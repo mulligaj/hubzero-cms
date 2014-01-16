@@ -1,0 +1,335 @@
+/*
+
+	-- -- -- -- -- -- --
+	mod_sliders CSS
+	-- -- -- -- -- -- --
+
+*/
+
+
+/* Master Container */
+#pane-sliders {
+	border: none;
+	margin: 0;
+	padding: 0;
+	height:360px;
+	position: relative;
+	overflow: hidden;
+	background: transparent url("/site/sliding_panes/panes-bg.png") 0 0 repeat;
+	}
+	
+/* Nav Buttons */
+.panes-headings {
+	display: block;
+	text-align: center;
+	margin: 0;
+	padding: 0;
+	border: none;
+	position: absolute;
+	bottom: 15px;
+	left: 15px;
+	}
+.panes-headings ul {
+	margin: 0;
+	padding: 0;
+	border: none;
+	float: left;
+	}
+.panes-headings li {
+	cursor: pointer;
+	float: left;
+	margin:0 3px 0 0;
+	padding:0;
+	color: #fff;
+	text-indent:-555em;
+	height: 6px;
+	width:6px;
+	-webkit-border-radius:5px;
+	-moz-border-radius:5px;
+	border-radius:5px;
+	border:2px solid transparent;
+	background:url("/site/sliding_panes/pane-not-active.png") no-repeat 50% 50%;
+	}
+.panes-headings li:hover {
+	border:2px solid #efefef;
+	}
+.panes-headings li.active {
+	background: url("/site/sliding_panes/pane-active.png") no-repeat 50% 50%;
+	border:2px solid transparent
+	}
+	
+/* Control buttons */
+.panes-headings p {
+	float: left;
+	display: block;
+	margin: 0;
+	padding: 0 2px 0 2px;
+	border: none;
+	height: 24px;
+	color: #fff;
+	width: 10px;
+	overflow: hidden;
+	}
+.panes-headings .pane-next {
+	display:none;
+	background: transparent url("../../../../modules/mod_sliding_panes/images/pane-next.png") 3px 0.4em no-repeat;
+	}
+.panes-headings .pane-prev {
+	display:none;
+	background: transparent url("../../../../modules/mod_sliding_panes/images/pane-prev.png") 3px 0.4em no-repeat;
+	}
+.panes-headings .pane-next:hover,
+.panes-headings .pane-prev:hover {
+	background-color: #555;
+	cursor: pointer;
+	}
+.pane-play,
+.pane-pause {
+	display:none;
+	position: absolute;
+	bottom: 15px;
+	right: 30px;
+	margin: 0;
+	padding: 0 0.2em 0 0.2em;
+	border: none;
+	height: 1.8em;
+	color: #fff;
+	width: 10px;
+	overflow: hidden;
+	background: transparent url("../../../../modules/mod_sliding_panes/images/pane-pause.png") 3px 0.4em no-repeat;
+	opacity: 0.5;
+	}
+.pane-play {
+	right: 10px;
+	background: transparent url("../../../../modules/mod_sliding_panes/images/pane-next.png") 3px 0.4em no-repeat;
+	}
+.pane-play:hover,
+.pane-pause:hover {
+	opacity: 0.8;
+	cursor: pointer;
+	}
+	
+	
+/* Panes */
+.panes {
+	border: none;
+	margin: 0;
+	padding: 0;
+	}
+.pane {
+	border: none;
+	margin: 0;
+	padding: 0;
+	}
+.pane-wrap {
+	border: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	width: 100%;
+	height:360px;
+	}
+.panes div div {
+	overflow: hidden;
+	}
+	
+	
+/* Individual Slide Styling */
+#slideone {
+	height:360px;
+	position:relative;
+	background:url("/site/sliding_panes/slide1.png") no-repeat 0 0;
+	}
+#slideone h2 {
+	text-indent:-555em;
+	}
+#slideone p {
+	position:absolute;
+	right:50px;
+	bottom:60px;
+	width:400px;
+	text-align:right;
+	color:#fff;
+	font-size:18px;
+	text-shadow:1px 1px 3px #444;
+	}
+#slideone p.learnmore {
+	position:absolute;
+	right:50px;
+	bottom:30px;
+	font-size:16px;
+	}
+#slideone p.learnmore a {
+	color:#efefef;
+	border-bottom:1px dotted #efefef;
+	}
+#slideone p.learnmore a:hover {
+	color:#7474a7;
+	border-bottom:1px solid #fff;
+	}
+	
+	
+#slidetwo {
+	height:360px;
+	position:relative;
+	background:url("/site/sliding_panes/slide2.png") no-repeat 0 0;
+	}
+#slidetwo h2 {
+	text-indent:-555em;
+	}
+#slidetwo p {
+	position:absolute;
+	right:50px;
+	bottom:60px;
+	width:400px;
+	text-align:right;
+	color:#fff;
+	font-size:18px;
+	text-shadow:1px 2px 5px #222;
+	}
+#slidetwo p.learnmore {
+	position:absolute;
+	right:50px;
+	bottom:30px;
+	font-size:16px;
+	}
+#slidetwo p.learnmore a {
+	color:#efefef;
+	border-bottom:1px dotted #efefef;
+	}
+#slidetwo p.learnmore a:hover {
+	color:#7474a7;
+	border-bottom:1px solid #fff;
+	}
+	
+#slidethree {
+	height:360px;
+	position:relative;
+	background:url("/site/sliding_panes/slide3.png") no-repeat 0 0;
+	}
+#slidethree h2 {
+	text-indent:-555em;
+	}
+#slidethree p {
+	position:absolute;
+	right:50px;
+	bottom:60px;
+	width:400px;
+	text-align:right;
+	color:#fff;
+	font-size:18px;
+	text-shadow:1px 1px 3px #444;
+	}
+#slidethree p.learnmore {
+	position:absolute;
+	right:50px;
+	bottom:30px;
+	font-size:16px;
+	}
+#slidethree p.learnmore a {
+	color:#efefef;
+	border-bottom:1px dotted #efefef;
+	}
+#slidethree p.learnmore a:hover {
+	color:#7474a7;
+	border-bottom:1px solid #fff;
+	} 
+	
+#slidefour {
+	height:360px;
+	position:relative;
+	background:url("/site/sliding_panes/slide4.png") no-repeat 0 0;
+	}
+#slidefour h2 {
+	text-indent:-555em;
+	}
+#slidefour p {
+	position:absolute;
+	right:50px;
+	bottom:60px;
+	width:400px;
+	text-align:right;
+	color:#fff;
+	font-size:18px;
+	text-shadow:1px 1px 3px #444;
+	}
+#slidefour p.learnmore {
+	position:absolute;
+	right:50px;
+	bottom:30px;
+	font-size:16px;
+	}
+#slidefour p.learnmore a {
+	color:#efefef;
+	border-bottom:1px dotted #efefef;
+	}
+#slidefour p.learnmore a:hover {
+	color:#7474a7;
+	border-bottom:1px solid #fff;
+	} 
+	
+#slidefive {
+	height:360px;
+	position:relative;
+	background:url("/site/sliding_panes/slide5.png") no-repeat 0 0;
+	}
+#slidefive h2 {
+	text-indent:-555em;
+	}
+#slidefive p {
+	position:absolute;
+	right:50px;
+	bottom:60px;
+	width:400px;
+	text-align:right;
+	color:#fff;
+	font-size:18px;
+	text-shadow:1px 1px 3px #444;
+	}
+#slidefive p.learnmore {
+	position:absolute;
+	right:50px;
+	bottom:30px;
+	font-size:16px;
+	}
+#slidefive p.learnmore a {
+	color:#efefef;
+	border-bottom:1px dotted #efefef;
+	}
+#slidefive p.learnmore a:hover {
+	color:#7474a7;
+	border-bottom:1px solid #fff;
+	} 
+			
+#slidesix {
+	height:360px;
+	position:relative;
+	background:url("/site/sliding_panes/slide6.png") no-repeat 0 0;
+	}
+#slidesix h2 {
+	text-indent:-555em;
+	}
+#slidesix p {
+	position:absolute;
+	right:50px;
+	bottom:60px;
+	width:400px;
+	text-align:right;
+	color:#fff;
+	font-size:18px;
+	text-shadow:1px 1px 3px #444;
+	}
+#slidesix p.learnmore {
+	position:absolute;
+	right:50px;
+	bottom:30px;
+	font-size:16px;
+	}
+#slidesix p.learnmore a {
+	color:#efefef;
+	border-bottom:1px dotted #efefef;
+	}
+#slidesix p.learnmore a:hover {
+	color:#7474a7;
+	border-bottom:1px solid #fff;
+	}  

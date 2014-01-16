@@ -1,0 +1,14 @@
+.four {
+	border-top:1px solid #efefef;
+	}
+.firstset .four {
+	border:none;
+	}
+.four.first {
+	border-top:3px solid #efefef;
+	}
+/* Topics Icon */
+.wiki {
+	padding-left:30px;
+	background:url("../images/home/fc-wiki.gif") no-repeat 0 0;
+	}

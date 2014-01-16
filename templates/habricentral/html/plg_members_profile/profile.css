@@ -1,0 +1,9 @@
+@import url('/plugins/members/profile/profile.css');
+
+.locate:before {
+	display: none;
+}
+
+#profile .profile-org .section-edit-content label:first-of-type {
+	display: none;
+}

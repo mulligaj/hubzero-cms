@@ -1,0 +1,69 @@
+.event-cal { 
+	border:1px solid #ccc;
+	padding:15px;
+	}
+.event-cal-caption {
+	margin:0 -16px 10px -16px;
+	padding:10px;
+	background:#63649c;
+	} 
+.event-cal-caption span {
+	float:right;
+	margin-right:10px;
+	}
+.event-cal-caption span a {
+   	font-weight:bold;
+	color:#fff; 
+	} 
+.event-cal-caption a.back,
+.event-cal-caption a.forward {
+	text-indent:-555em;
+	display:inline-block; 
+	width:15px;
+	height:15px;
+	border-bottom:none; 
+	background:url("arrows.png") no-repeat 0 0; 
+	margin-left:5px;
+	}  
+.event-cal-caption a.forward {
+	background-position:-15px 0;
+}
+.event-cal table.mod_events_calendar {
+	border:none;
+	border-collapse:separate;  
+	width:100%;
+	}
+.event-cal table.mod_events_calendar caption {
+	display:none;
+	} 
+.event-cal table.mod_events_calendar thead th {
+	border:none; 
+	padding:0 0 3px 0;
+	text-align:center;
+	}      
+.event-cal table.mod_events_calendar tbody {
+	border:1px solid #0f0;
+	}
+.event-cal table.mod_events_calendar tbody td {
+	border-left:1px solid #ccc;
+	border-bottom:1px solid #ccc;
+	text-align:center;
+	padding:5px 0px;
+	} 
+.event-cal table.mod_events_calendar tbody td.daynoevents,
+.event-cal table.mod_events_calendar tbody td.daywithevents,
+.event-cal table.mod_events_calendar tbody td.todaynoevents,
+.event-cal table.mod_events_calendar tbody td.todaywithevents {
+	background:#ededf5;
+	}  
+.event-cal table.mod_events_calendar tbody td.todaynoevents,
+.event-cal table.mod_events_calendar tbody td.todaywithevents {
+	border:1px solid #444; 
+	color:#444;
+	}
+.event-cal table.mod_events_calendar tbody tr:first-child td {
+	border-top:1px solid #ccc;  
+	}
+.event-cal table.mod_events_calendar tbody td:last-child {
+	border-right:1px solid #ccc;
+	}

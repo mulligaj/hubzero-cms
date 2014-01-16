@@ -1,0 +1,28 @@
+@import url("/components/com_members/assets/css/members.css");
+
+#sbox-content .hub-mail .cont {
+	background:#FFF url('/templates/habricentral/html/com_members/send-mail-hc.png') no-repeat 98% 4%;
+	border:1px solid #efefef;
+ 	}
+#page_menu li a {
+	border: none;
+}
+
+#profile-privacy {
+	background-image:none;
+}
+.data-entry + .container {
+	margin-bottom: 2.5em;
+}
+
+.groups .user-options a.delete {
+	width: 1em;
+	height: 1em;
+	text-indent: 0;
+	background: transparent;
+	padding-left: 0;
+}
+.groups .user-options a.delete:before {
+	content: "\f014";
+	font-family: "Fontcons";
+}

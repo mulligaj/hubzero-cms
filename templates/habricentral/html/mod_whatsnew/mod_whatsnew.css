@@ -1,0 +1,50 @@
+
+@import url("/modules/mod_whatsnew/mod_whatsnew.css");
+
+ul.new li .item {
+		background: #efefef;
+		border: 1px solid #d3d3d3;
+		-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		-moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		-webkit-border-radius: 0.25em;
+		-moz-border-radius: 0.25em;
+		border-radius: 0.25em;
+		margin: 0;
+		padding: 0;
+	}
+	ul.new li .item h4 {
+		background: #fff;
+		margin: 0;
+		padding: 1.618em;
+		border-bottom: 1px solid #d3d3d3;
+		font-weight: normal;
+	}
+	/*ul.new li .item h4 a {
+		color: #666;
+		border: none;
+		text-decoration: none;
+	}
+	ul.new li .item h4 a:hover {
+		color: #4242bd;
+		border-bottom: 1px solid #4242bd;
+		text-decoration: none;
+	}*/
+	ul.new li .item p {
+		margin: 0;
+		padding: 1.618em;
+	}
+	ul.new li .item .new-date {
+		display: block;
+		font-size: 90%;
+		color: #999;
+	}
+	ul.new li .item .new-details a {
+		color: #666;
+		border: none;
+		font-weight: bold;
+	}
+	ul.new li .item .new-details a:hover {
+		color: #333;
+		border-bottom: 1px solid #333;
+	}

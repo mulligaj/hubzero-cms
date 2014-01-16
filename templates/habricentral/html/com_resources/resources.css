@@ -1,0 +1,104 @@
+@import url("/components/com_resources/assets/css/resources.css");
+
+#sbox-newwindow {
+	display:none;
+	}
+#sbox-window-cover {
+	position:absolute;
+	top:0px;
+	right:0px;
+	width:25px;
+	height:25px;
+	background:whiteSmoke;
+}
+#sub-menu li a span {
+	padding-left: 20px;
+	padding-right: 0;
+}
+.com_resources .columns .columns div {
+	background: none;
+	padding-left: none;
+}
+.com_resources .four .columns .audio:before {
+	content: "\266B";
+}
+.com_resources .four .columns .book:before,
+.com_resources .four .columns .booksection:before {
+	content: "\f02d";
+}
+.com_resources .four .columns .magazinearticle:before,
+.com_resources .four .columns .journalarticle:before {
+	content: "\f072";
+}
+.com_resources .four .columns .governmentdocument:before {
+	content: "\f068";
+}
+.com_resources .four .columns .video:before {
+	content: "\f008";
+}
+.com_resources .four .columns .these:before {
+	content: "\f036";
+}
+.com_resources .four .columns .dataset:before {
+	content: "\f001";
+}
+.com_resources .four .columns .newspaperarticle:before {
+	content: "\f053";
+}
+.com_resources .four .columns .presentation:before {
+	content: "\f000";
+}
+.com_resources .four .columns .pamphlet:before {
+	content: "\f04a";
+}
+.com_resources .four .columns .conferencepaper:before {
+	content: "\f0c5";
+}
+.com_resources .four .columns .report:before {
+	content: "\f016";
+}
+.com_resources .four .columns .poster:before {
+	content: "\f03e";
+}
+.com_resources .four .columns .stillimage:before {
+	content: "\f08c";
+}
+
+.plg-content .sponsor-logo {
+	text-align: center;
+}
+.plg-content .sponsor-logo a {
+	border: none;
+}
+.aside .container p.wiki {
+	padding-left: 27px;
+	background: url("/components/com_resources/images/types/fc-wiki.gif") 4px 2px no-repeat;
+}
+.results {
+	margin-top: 0;
+}
+
+.extracontent .container .topicpage, 
+.extracontent .container .wiki {
+	position: relative;
+}
+.extracontent .container .topicpage:before, 
+.extracontent .container .wiki:before {
+	display: block;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+	font-family: 'Fontcons';
+	color: #aaa;
+	border: none;
+}
+
+.resource-content ul.badges {
+	margin-left: 0;
+}
+.resource-content ul.badges li:first-child {
+	margin: 0;
+}

@@ -1,0 +1,6 @@
+@import url("/plugins/groups/wiki/wiki.css");
+
+#sub-menu li.page-main span,
+#sub-menu li.page-index span {
+	background: transparent;
+}

@@ -1,0 +1,19 @@
+@import url("/plugins/members/blog/blog.css");
+
+.member_blog .figure {
+	padding: 4px;
+}
+.member_blog .figure img {
+	margin: 0;
+	padding: 0;
+}
+
+dl.entry-meta dd.entry-options a.edit, 
+dl.entry-meta dd.entry-options a.delete,
+div.entry dl.entry-meta dd.entry-options a.edit, 
+div.entry dl.entry-meta dd.entry-options a.delete {
+	width: 16px;
+	height: 16px;
+	text-indent: 55em;
+	padding: 0;
+}

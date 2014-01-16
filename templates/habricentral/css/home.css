@@ -1,0 +1,193 @@
+/*---------------------------------------------------------------
+	Home Page
+---------------------------------------------------------------*/
+
+/* Remove edit button and empty article separator */
+#frontpage .buttonheadings {
+	display:none;
+	}	
+#frontpage .article_separator {
+	display:none;
+	}  
+#frontpage #content { 
+	padding-bottom:0;
+	}  
+
+/* Home page structure */
+#home-container {
+	margin:0 -15px;
+	padding:20px 0 0 0;
+	overflow:hidden;
+	}	
+#home-left {
+	float:left;
+	width:25%;
+	}
+#home-right {
+	float:right;
+	width:75%;
+	}
+#home-right-top,
+#home-right-bottom {
+	overflow:hidden;
+	}
+#home-right .home-column { 
+	float:left;
+	}
+#home-right .two {
+	width:46%;
+	padding:15px 2%;
+	}
+#home-right .three {
+	width: 33%;
+	}	
+#home-right .last {
+	width:34%;
+	}	
+#home-right .home-column-inner {
+	padding:15px;
+	min-height:200px;
+	border-left:1px solid #ededed;
+	}
+	
+	
+/* Special headings */
+.full-heading {
+	margin:0;
+	padding:8px 8px 8px 12px;
+	background:#d5d5d6;
+	border-left:1px solid #ededed;
+	}
+.full-heading span {
+	color:#4d4c84;
+	margin-left:10px;
+	}
+.full-heading:before {
+	content: "";
+	border:2px solid #fff;
+	font-weight:bold;
+	padding:0;
+	margin:0;
+	}
+	
+
+/* Quick access Column */
+.home-left-inner {
+	padding:15px;
+	}
+.quick_access ul {
+	list-style:none;
+	margin:0;
+	padding:0;
+	}
+.home-left-inner ul li {
+	margin:0;
+	padding:0;
+	}
+.quick_access ul li a{
+	display:block;
+	text-transform:uppercase;
+	font-weight:500;
+	border-bottom:none;
+	padding:2px 0;
+	margin:10px 0 0 0;
+	}
+.home-left-inner ul li a:hover {
+	text-decoration:underline;
+	}
+.home-left-inner ul li:first-child a {
+	margin:0;
+	}
+.home-left-inner ul ul {
+	margin:5px 0 0 25px;
+	padding:0;
+	border-left:1px solid #ccc;
+	}
+.home-left-inner ul ul.no-border {
+	border:none;
+	}
+.home-left-inner ul ul li {
+	margin:0;
+	}
+.home-left-inner ul ul li a {
+	text-transform:none;
+	margin:5px 0;
+	padding-left:15px;
+	font-size:0.9em;
+	background:url("../images/tree-child.png") no-repeat 0 50%;
+	}
+.home-left-inner .bib {
+	padding-left:25px;
+	background:url("../images/home/fc-wiki.gif") no-repeat 0 50%;
+	}
+.home-left-inner .resource {
+	padding-left:25px;
+	background:url("../images/home/fc-publication.gif") no-repeat 0 50%;
+	}
+.home-left-inner .person {
+	padding-left:25px;
+	background:url("../images/home/fc-learningmodule.gif") no-repeat 0 50%;
+	}
+.home-left-inner .community {
+	padding-left:25px;
+	background:url("../images/home/fc-group.gif") no-repeat 0 50%;
+	}
+.home-left-inner .populartags, .home-column-inner .populartags {
+	padding-left:25px;
+	background:url("../images/home/fc-note.gif") no-repeat 0 50%;
+	}
+.home-left-inner .video {
+	color:#8f2447;
+	}
+.home-left-inner h3 {
+	margin-top:60px;
+	}
+.home-left-inner .tags {
+	margin:10px 0 0 0;
+	}
+	
+#featuredcontent {
+	list-style: none;
+	margin: 0;
+}
+
+#featuredcontent li {
+	margin: 0 0 3em 42px;
+}
+
+#featuredcontent li a, #featuredcontent li a:hover {
+    border-bottom: none;
+	text-decoration: none;
+}
+
+#featuredcontent img {
+	margin: 5px 0 0 0;
+	width: 32px;
+	height: 32px;
+	float: left;
+	margin-left: -42px;
+}
+
+#featuredcontent li.icon {
+	margin-left: 0;
+	padding-left: 42px;
+}
+
+#featuredcontent .blog {
+	background:url("../images/icons/featured/blog.png") top left no-repeat;
+}
+#featuredcontent .resource {
+	background:url("../images/icons/featured/resource.png") top left no-repeat;
+}
+#featuredcontent .answer {
+	background:url("../images/icons/featured/answer.png") top left no-repeat;
+}
+#featuredcontent .discussion {
+	background:url("../images/icons/featured/discussion.png") top left no-repeat;
+}
+#featuredcontent .member {
+	background:url("../images/icons/featured/member.png") top left no-repeat;
+}
+#featuredcontent .topic {
+	background:url("../images/icons/featured/topic.png") top left no-repeat;
+}

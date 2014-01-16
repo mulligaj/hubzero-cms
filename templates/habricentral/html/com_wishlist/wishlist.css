@@ -1,0 +1,5 @@
+@import url("/components/com_wishlist/assets/css/wishlist.css");
+
+.entries tbody tr.private .entry-title:before {
+	display: none;
+}

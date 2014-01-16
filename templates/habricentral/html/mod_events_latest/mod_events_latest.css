@@ -1,0 +1,97 @@
+/*
+
+	-- -- -- -- -- -- --
+	mod_events_latest CSS
+	-- -- -- -- -- -- --
+
+*/
+
+	/*.latest_events_tbl {
+		margin: 1em 0 0 0;
+		border: none;
+	}
+	.latest_events_tbl tr.odd,
+	.latest_events_tbl tr.even {
+		background-color:transparent;
+	}
+	.latest_events_tbl td {
+		border: none;
+		padding-top: 0;
+		padding-bottom: 1.2em;
+	}
+	.latest_events_tbl .event-title a {
+		font-weight: bold;
+	}*/
+
+	.latest_events_tbl .event-date {
+		width: 4.5em;
+		text-align: center;
+		padding: 0;
+		display: block;
+		margin: 0;
+		overflow: hidden;
+		border-right: 1px solid #d3d3d5;
+	}
+	.latest_events_tbl .event-date span {
+		display: block;
+		width: 100%;
+		/*-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		-moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);*/
+	}
+	.latest_events_tbl .event-date span.month {
+		background: #e9e9e9;
+		border-bottom: 1px solid #d3d3d5;
+		
+		color: #777;
+		text-transform: uppercase;
+		line-height: 1;
+		padding: 1.5em 0 0.6em 0;
+		font-size: 85%;
+		text-align: center;
+		/*-webkit-border-radius: 0.25em 0.25em 0 0;
+		-moz-border-radius: 0.25em 0.25em 0 0;
+		border-radius: 0.25em 0.25em 0 0;*/
+	}
+	.latest_events_tbl .event-date span.day {
+		background: #fff;
+
+		line-height: 1;
+		padding: 0.4em 0 1em 0;
+		font-weight: bold;
+		font-size: 1.2em;
+		letter-spacing: 1px;
+		/*-webkit-border-radius: 0 0 0.25em 0.25em;
+		-moz-border-radius: 0 0 0.25em 0.25em;
+		border-radius: 0 0 0.25em 0.25em;*/
+		-webkit-border-radius: 0 0 0 0.25em;
+		-moz-border-radius: 0 0 0 0.25em;
+		border-radius: 0 0 0 0.25em;
+	}
+	ul.latest_events_tbl li .item p {
+		margin: 0;
+		padding: 0; /*1.618em;*/
+		position: relative;
+	}
+	ul.latest_events_tbl li .item span.category {
+		display: block;
+		position: absolute;
+		width: auto;
+		text-align: left;
+		left: 6.5em;
+		top: 1.618em;
+		color: #999;
+		font-size: 90%;
+	}
+	ul.latest_events_tbl li .item strong {
+		color: #666;
+	}
+
+/* More Links */
+	p.more {
+		text-align: right;
+		font-weight: bold;
+	}
+	p.more a {
+		color: #48487b;
+	}

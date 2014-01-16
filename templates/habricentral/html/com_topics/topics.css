@@ -1,0 +1,16 @@
+@import url("/components/com_topics/topics.css");
+
+#sub-menu {
+	margin-bottom: 2em;
+}
+.com_topics ol {
+	list-style: decimal;
+}
+.com_topics ol.footnotes {
+	margin: 1em 0;
+	padding: 0 1em 0 2em;
+	list-style: decimal;
+}
+.com_topics ol.footnotes li p {
+	margin: 0;
+}

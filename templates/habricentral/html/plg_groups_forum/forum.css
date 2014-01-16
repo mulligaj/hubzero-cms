@@ -1,0 +1,28 @@
+@import url("/plugins/groups/forum/forum.css");
+
+.group_forum .entries .edit, 
+.group_forum .entries .delete {
+	width: 16px;
+	height: 16px;
+	text-indent: 55em;
+}
+
+.aside .container fieldset {
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
+}
+
+#forum-options {
+	margin: 2em 0;
+}
+#forum-options fieldset {
+	padding: 1em;
+	border: 1px solid #ddd;
+}
+#forum-options fieldset legend {
+	padding: 0 0.2em;
+	margin: 0 1em;
+	font-weight: bold;
+}

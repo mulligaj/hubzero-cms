@@ -1,0 +1,5 @@
+@import url("/plugins/groups/messages/messages.css");
+
+#message .mail {
+	background-image: url("/templates/habricentral/html/com_members/send-mail-hc.png");
+}

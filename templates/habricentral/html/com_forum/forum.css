@@ -1,0 +1,15 @@
+@import url("/components/com_forum/assets/css/forum.css");
+
+.entries .edit, 
+.entries .delete {
+	width: 16px;
+	height: 16px;
+	text-indent: 55em;
+}
+
+.aside .container fieldset {
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
+}

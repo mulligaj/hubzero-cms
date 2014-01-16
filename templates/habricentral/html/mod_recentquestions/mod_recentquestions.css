@@ -1,0 +1,48 @@
+
+@import url("/modules/mod_recentquestions/mod_recentquestions.css");
+
+ul.questions {
+	margin:0;
+	list-style:none;
+	}
+ul.questions li {
+	background-image:none;
+	margin-top:0;
+	}
+.questions h4 {
+	margin-left:-20px;
+	}
+.questions h4 a {
+	display:block;
+	background: url("/components/com_answers/images/bullets_medium.gif") no-repeat 0px -133px;
+	border-bottom:none;
+	padding-left:20px;
+	}
+.question-author {
+	float:left;
+	}
+.question-author a {
+	border-bottom:none;
+	color:#7f72b5;
+	}
+.question-author a:hover {
+	border-bottom:1px solid #afa6d4;
+	}
+.question-date {
+	float:left;
+	}
+.question-answers {
+	display:block;
+	clear:left;
+	color:#999;
+	font-size:0.85em;
+	}
+.question-question {
+	display:block;
+	padding:5px 0 30px 0;
+	color:#000;
+	}
+.question-question:before,
+.question-question:after {
+	content: '"';
+	}

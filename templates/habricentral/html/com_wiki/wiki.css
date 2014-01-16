@@ -1,0 +1,16 @@
+@import url("/components/com_wiki/assets/css/wiki.css");
+
+#sub-menu {
+	margin-bottom: 2em;
+}
+.com_wiki ol {
+	list-style: decimal;
+}
+.com_wiki ol.footnotes {
+	margin: 1em 0;
+	padding: 0 1em 0 2em;
+	list-style: decimal;
+}
+.com_wiki ol.footnotes li p {
+	margin: 0;
+}

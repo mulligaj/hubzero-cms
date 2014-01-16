@@ -1,0 +1,47 @@
+@import url("/components/com_tags/assets/css/tags.css");
+
+/* Entries */
+	.entries tbody td a.entry-title {
+		font-size: 1em !important;
+		line-height: 1.2em !important;
+		margin: 0 !important;
+		color: #554693 !important;
+		padding: 1px 3px !important;
+		background: #FFF6D3 !important;
+		-webkit-border-radius: 6px !important;
+		-moz-border-radius: 6px !important;
+		-ms-border-radius: 6px !important;
+		-o-border-radius: 6px !important;
+		border: 1px solid #DFD5AF !important;
+	}
+	.entries tbody td a.entry-title span {
+		display: none;
+	}
+	.entries tbody td a.entry-title:before {
+		content: "";
+		display: none;
+	}
+	.entries tbody td a.entry-title:after {
+		content: "";
+		display: none;
+	}
+	.entries tbody td a.entry-title:hover {
+		color: #4242bd;
+		background: #F0EBD6 !important;
+	}
+	.entries tbody td a.entry-title:hover span {
+		display: none;
+	}
+	.entries tbody td a.entry-title:hover:before {
+		display: none;
+	}
+	
+	.related .tags {
+		margin:10px !important;
+		}
+	.related .tags a {
+		margin-right:5px;
+		}
+	.tag-description {
+		padding:1em;
+	}

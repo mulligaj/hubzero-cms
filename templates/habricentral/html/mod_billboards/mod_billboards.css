@@ -1,0 +1,127 @@
+/**
+ * @package     hubzero-cms
+ * @file        modules/mod_billboards/mod_billboards.css
+ * @copyright   Copyright 2005-2011 Purdue University. All rights reserved.
+ * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ */
+
+/*
+
+	-- -- -- -- -- -- --
+	mod_billboard
+	-- -- -- -- -- -- --
+
+*/
+
+/* Container Styling */
+	.slider {
+		position: relative;
+	}
+	.banner, 
+	.slide {
+		height: 460px;
+		width: 100%;
+		overflow: hidden;
+		background: transparent url("/site/media/images/billboards/panes-bg.png") 0 0 repeat;
+	}
+	.banner div {
+		width: 100%;
+	}
+
+/* Standard Pager Styling */
+	.slider .pager {
+		z-index:999;
+		position:absolute;
+		bottom: 45px;
+		left: 50%;
+		margin-left: -30px;
+	}
+	.slider .pager a {
+		cursor: pointer;
+		float: left;
+		margin:0 3px 0 0;
+		padding:0;
+		color: #fff;
+		text-indent:-555em;
+		height: 6px;
+		width:6px;
+		-webkit-border-radius:5px;
+		-moz-border-radius:5px;
+		border-radius:5px;
+		border:2px solid transparent;
+		background:url("/site/media/images/billboards/pane-not-active.png") no-repeat 50% 50%;
+	}
+	.slider .pager a:hover {
+		border:2px solid #efefef;
+	}
+	.slider .pager a.activeSlide {
+		background: url("/site/media/images/billboards/pane-active.png") no-repeat 50% 50%;
+		border:2px solid transparent
+	}
+/* Standard billboard styling (could override here, or on a per-billboard basis) */
+	.slide {
+		background-size: cover !important;
+		-ms-behavior: url(/templates/habricentral/html/mod_billboards/backgroundsize.min.htc);
+	}
+	.slide h3 {
+		text-transform: uppercase;
+		font-weight: normal;
+		letter-spacing: 1px;
+		color: #fff;
+		text-shadow: #000 0px 2px 2px;
+		font-size: 2em;
+		margin-top: 1em;
+	}
+	.slide p {
+		position: absolute;
+		right: 30px;
+		bottom: 13em;
+		width: 400px;
+		text-align: right;
+		color: white;
+		font-size: 14px;
+		text-shadow: 1px 1px 5px #222;
+	}
+
+/* Standard Learn more link styling */
+	.slide a.learnmore {
+		font-size: 12px;
+		color: #EFEFEF;
+		border-bottom: 1px dotted #EFEFEF;
+		text-shadow: 1px 1px 5px #222;
+	}
+	.slide a:hover.learnmore {
+		color:#7474a7;
+		border-bottom:1px solid #fff;
+	}
+	.slide div .learnmore {
+		font-size: 12px;
+	}
+	.slide .relative {
+		margin-top: 15px;
+		font-size: 1em;
+	}
+	.slide .bottomright {
+		position: absolute;
+		right: 30px;
+		bottom: 12em;
+		width: 100px;
+		text-align: right;
+	}
+	.slide .bottomleft {
+		position: absolute;
+		left: 30px;
+		bottom: 7em;
+	}
+	.slide .topright {
+		position: absolute;
+		right: 30px;
+		top: 30px;
+		width: 100px;
+		text-align: right;
+	}
+	.slide .topleft {
+		position: absolute;
+		left: 30px;
+		top: 30px;
+	}

@@ -1,0 +1,17 @@
+@import url("/plugins/resources/about/about.css");
+
+.resource td {
+	padding: 5px 10px;
+}
+.resource td p:first-child {
+	margin-top: 0;
+	padding-top: 0;
+}
+.resource .resource-content {
+	padding: 5px 10px;
+}
+.resource th {
+	color: #999;
+	text-align: right;
+	white-space: nowrap;
+}
