@@ -65,3 +65,6 @@
 	#tab a:hover span {
 		color: #fff;
 		}
+	#tab a span:before {
+		content: '';
+	}
