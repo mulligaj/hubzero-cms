@@ -44,33 +44,33 @@ $parser = Hubzero_Wiki_Parser::getInstance();
 $c = 0;
 ?>
 <div id="latest_discussions_module" class="<?php echo $this->cls; ?>">
-	<?php if (count($this->posts > 0)) : ?>
+	<?php if ($this->posts->count() > 0) : ?>
 		<ul class="discussions">
 			<?php foreach ($this->posts as $post) : ?>
 				<?php if ($c < $this->limit) : ?>
 					<?php
-						if ($post['scope_id'] == 0) {
-							$url = 'index.php?option=com_forum&section=' . $this->categories[$post['category_id']]->section . '&category=' . $this->categories[$post['category_id']]->alias . '&thread=' . ($post['parent'] ? $post['parent'] : $post['id']);
+						if ($post->get('scope_id') == 0) {
+							$url = 'index.php?option=com_forum&section=' . $this->categories[$post->get('category_id')]->section . '&category=' . $this->categories[$post->get('category_id')]->alias . '&thread=' . ($post->get('parent') ? $post->get('parent') : $post->get('id'));
 							$location = '<a href="' . JRoute::_('index.php?option=com_forum') . '">' . JText::_('Site-Wide Forum') . '</a>';
 						} else {
 							ximport('Hubzero_Group');
-							$group = Hubzero_Group::getInstance($post['scope_id']);
-							$url = 'index.php?option=com_groups&cn=' . $group->get('cn') . '&active=forum&scope=' .  $this->categories[$post['category_id']]->section . '/' . $this->categories[$post['category_id']]->alias . '/' . ($post['parent'] ? $post['parent'] : $post['id']);
+							$group = Hubzero_Group::getInstance($post->get('scope_id'));
+							$url = 'index.php?option=com_groups&cn=' . $group->get('cn') . '&active=forum&scope=' .  $this->categories[$post->get('category_id')]->section . '/' . $this->categories[$post->get('category_id')]->alias . '/' . ($post->get('parent') ? $post->get('parent') : $post->get('id'));
 							$location = '<a href="' . JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn')) . '">' . stripslashes($group->get("description")) . '</a>';
 						}
 					?>
 					<li class="blog">
 						<h4>
-							<a href="<?php echo JRoute::_($url); ?>"><?php echo substr(strip_tags($parser->parse($post['comment'], $wikiconfig)), 0, $this->charlimit); if (strlen($post['comment']) > $this->charlimit) { echo '&hellip;'; } ?></a>
-							<!-- <a href="<?php echo JRoute::_($url); ?>"><?php echo ($post['parent'] && isset($this->threads[$post['parent']])) ? stripslashes($this->threads[$post['parent']]) : stripslashes($post['title']); ?></a> -->
+							<a href="<?php echo JRoute::_($url); ?>"><?php echo substr(strip_tags($parser->parse($post->get('comment'), $wikiconfig)), 0, $this->charlimit); if (strlen($post->get('comment')) > $this->charlimit) { echo '&hellip;'; } ?></a>
+							<!-- <a href="<?php echo JRoute::_($url); ?>"><?php echo ($post->get('parent') && isset($this->threads[$post->get('parent')])) ? stripslashes($this->threads[$post->get('parent')]) : stripslashes($post->get('title')); ?></a> -->
 						</h4>
 						<!-- <span class="discussion-author"> -->
 							by 
 							<?php 
-								if ($post['anonymous']) {
+								if ($post->get('anonymous')) {
 									echo '<em>' . JText::_('Anonymous') . '</em>';
 								} else {
-									$juser =& JUser::getInstance($post['created_by']); 
+									$juser =& JUser::getInstance($post->get('created_by')); 
 									echo '<a href="' . JRoute::_('index.php?option=com_members&id=' . $juser->get('id')) . '">' . stripslashes($juser->get("name")) . '</a>';
 								}
 								//echo ', in&nbsp;'
