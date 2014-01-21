@@ -1,0 +1,96 @@
+/**
+ * @package     hubzero-cms
+ * @file        templates/hubbasic/css/ie7.css
+ * @copyright   Copyright 2005-2011 Purdue University. All rights reserved.
+ * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ */
+
+/*
+
+	-- -- -- -- -- -- --
+	Hubbasic CSS
+	IE 7 Windows hacks
+	-- -- -- -- -- -- --
+
+*/
+
+/* Top bar */
+	#top {
+		zoom: 1.0;
+		}
+/* Nav */
+	#nav {
+		border-bottom: 1px solid #bdbbb7;
+		}
+	#nav ul.menu li {
+		zoom: 1;
+		}
+/* Content */
+	#content {
+		margin: 0;
+		filter: progid:DXImageTransform.Microsoft.Shadow(Strength=5, Direction=75, Color='#aaaaaa');
+		}
+	#content-wrap {
+		margin: -5px 0 -5px 0;
+		}
+/* Footer */
+	#bottom-nav {
+		padding-bottom: 0;
+		zoom: 1;
+		filter: progid:DXImageTransform.Microsoft.Shadow(Strength=5, Direction=130, Color='#292929');
+		}
+/* Forms */
+	#hubForm fieldset {
+		padding: 0 2% 1.75em 22%;
+		width: 45%; 
+		position: relative;
+		}
+	#hubForm .group {
+		margin: 0;
+		padding: 0 0 1.5em 0;
+		left: 0em;
+		}
+	#hubForm .group label {
+		margin: 0;
+		width: 49.5%;
+		}
+	#hubForm legend {
+		margin-top: -2em;
+		padding-top: 3.25em;
+		background: transparent;
+		}
+	#hubForm fieldset fieldset {
+		position: inherit;
+		}
+	#hubForm fieldset fieldset legend {
+		margin: 0;
+		padding: 0.2em 0.5em;
+		position: static;
+		}
+	#hubForm fieldset .group fieldset {
+		margin: 0 1% 0 0;
+		width: 44%;
+		}
+	#hubForm .group label input,
+	#hubForm .group label select {
+		width: 90%;
+		margin: 0;
+		}
+	#hubForm .group label:first-child {
+		margin: 0;
+		}
+	#hubForm fieldset .group fieldset:first-child {
+		margin-left: 0;	
+		}
+	#hubForm .warning,
+	#hubForm .error {
+		margin: 0;
+		display: inline-block;
+		}
+	#hubForm .group .hint {
+		margin: 0;
+		}
+	#hubForm .threeup label {
+		padding: 0;
+		width: 33%;
+		}
