@@ -1,15 +1,12 @@
 <?php
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-ximport('Hubzero_Document');
-ximport('Hubzero_Module_Helper');
 
-$config =& JFactory::getConfig();
-$juser =& JFactory::getUser();
+$config = JFactory::getConfig();
+$juser = JFactory::getUser();
 
 $this->template = 'habricentral';
 
-ximport('Hubzero_Browser');
 $browser = new Hubzero_Browser();
 $b = $browser->getBrowser();
 $v = $browser->getBrowserMajorVersion();
@@ -24,7 +21,7 @@ $v = $browser->getBrowserMajorVersion();
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		
-		<title><?php echo $config->getValue('config.sitename') . ' - ' . $this->error->code; ?></title>
+		<title><?php echo $config->getValue('config.sitename') . ' - ' . $this->error->getCode(); ?></title>
 		
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo Hubzero_Document::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications')); /* reset MUST come before all others except fontcons */ ?>" />
 		<link rel="stylesheet" href="/templates/<?php echo $this->template; ?>/css/main.css" type="text/css" />
@@ -73,8 +70,7 @@ $v = $browser->getBrowserMajorVersion();
 				<?php
 					if (!$juser->get('guest')) {
 						// Find the user's most recent support tickets
-						ximport('Hubzero_Message');
-						$database =& JFactory::getDBO();
+						$database = JFactory::getDBO();
 						$recipient = new Hubzero_Message_Recipient( $database );
 						$rows = $recipient->getUnreadMessages( $juser->get('id'), 0 );
 	
@@ -107,8 +103,8 @@ $v = $browser->getBrowserMajorVersion();
 		
 		<div id="trail">You are here: 
 			<?php
-				$app =& JFactory::getApplication();
-				$pathway =& $app->getPathway();
+				$app = JFactory::getApplication();
+				$pathway = $app->getPathway();
 	
 				$items = $pathway->getPathWay();
 				$l = array();
@@ -132,12 +128,12 @@ $v = $browser->getBrowserMajorVersion();
   		<div id="wrap">
 			<div id="content" class="<?php echo $option; ?>">
 				<div id="outline">
-					<div id="errorbox" class="code-<?php echo $this->error->code ?>">
-						<h2><?php echo $this->error->message ?></h2>
+					<div id="errorbox" class="code-<?php echo $this->error->getCode() ?>">
+						<h2><?php echo $this->error->getMessage() ?></h2>
 						<p><?php echo JText::_('You may not be able to visit this page because of:'); ?></p>
 
 						<ol>
-							<?php if ($this->error->code != 403) : ?>
+							<?php if ($this->error->getCode() != 403) : ?>
 								<li><?php echo JText::_('An out-of-date bookmark/favourite.'); ?></li>
 								<li><?php echo JText::_('A search engine that has an out-of-date listing for this site.'); ?></li>
 								<li><?php echo JText::_('A mis-typed address.'); ?></li>
@@ -148,7 +144,7 @@ $v = $browser->getBrowserMajorVersion();
 							<li><?php echo JText::_('An error has occurred while processing your request.'); ?></li>
 						</ol>
 						
-						<?php if ($this->error->code != 403) : ?>
+						<?php if ($this->error->getCode() != 403) : ?>
 							<p><?php echo JText::_('If difficulties persist, please contact the system administrator of this site.'); ?></p>
 						<?php else : ?>
 							<p><?php echo JText::_('If difficulties persist and you feel that you should have access to the page, please file a trouble report by clicking on the Help! option on the menu above.'); ?></p>

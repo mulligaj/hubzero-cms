@@ -1,10 +1,8 @@
 <?php
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-ximport('Hubzero_Document');
-
-$config =& JFactory::getConfig();
-$juser =& JFactory::getUser();
+$config = JFactory::getConfig();
+$juser = JFactory::getUser();
 
 //do we want to include jQuery
 if (JPluginHelper::isEnabled('system', 'jquery')) 
@@ -16,7 +14,6 @@ else
 	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js');
 }
 
-ximport('Hubzero_Browser');
 $browser = new Hubzero_Browser();
 $b = $browser->getBrowser();
 $v = $browser->getBrowserMajorVersion();
@@ -62,16 +59,15 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					<?php echo $config->getValue('config.sitename'); ?>
 				</a>
 			</h1>
-		
+
 			<ul id="toolbar" class="<?php if (!$juser->get('guest')) { echo 'loggedin'; } else { echo 'loggedout'; } ?>">
 				<?php
 					if (!$juser->get('guest')) {
 						// Find the user's most recent support tickets
-						ximport('Hubzero_Message_Recipient');
-						$database =& JFactory::getDBO();
+						$database = JFactory::getDBO();
 						$recipient = new Hubzero_Message_Recipient( $database );
 						$rows = $recipient->getUnreadMessages( $juser->get('id'), 0 );
-	
+
 						echo "\t\t\t".'<li id="myaccount"><a href="/members/'.$juser->get('id').'"><span>'.$juser->get('name').'</span></a></li>'."\n";
 						echo "\t\t\t".'<li class="sep">|</li>'."\n";
 						echo "\t\t\t".'<li id="logout"><a href="/logout"><span>'.JText::_('Logout').'</span></a></li>'."\n";
@@ -82,7 +78,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					}
 				?>
 			</ul>
-		
+
 			<jdoc:include type="modules" name="search" />
 			
 			<?php if ($this->countModules( 'helppane' )) : ?>
@@ -93,7 +89,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 				</p>
 			<?php endif; ?>
 		</div><!-- / #header -->
-	
+
 		<div id="nav">
 			<h2>Navigation</h2>
 			<jdoc:include type="modules" name="user3" />
@@ -107,16 +103,16 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 				<jdoc:include type="modules" name="banner" />
 			</div>
 		<?php endif; ?>
-        
+
 		<?php if (!$this->countModules( 'banner' )) : ?>
 			<div id="trail">You are here: 
 				<?php
-					$app =& JFactory::getApplication();
-					$pathway =& $app->getPathway();
-	
+					$app = JFactory::getApplication();
+					$pathway = $app->getPathway();
+
 					$items = $pathway->getPathWay();
 					$l = array();
-	
+
 					foreach ($items as $item) 
 					{
 						$text = trim(stripslashes($item->name));
@@ -134,8 +130,8 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 				?>
 			</div><!-- / #trail -->
 		<?php endif; ?>
-		
-  		<div id="wrap">
+
+		<div id="wrap">
 			<div id="content" class="<?php echo JRequest::getVar('option', ''); ?>">
 				<?php if ($this->countModules( 'left' )) : ?>
 					<div class="main section withleft">
@@ -165,11 +161,11 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 				<?php endif; ?>
 			</div><!-- / #content -->
 			
-			<jdoc:include type="modules" name="footer" />		
-  		</div><!-- / #wrap -->
+			<jdoc:include type="modules" name="footer" />
+		</div><!-- / #wrap -->
 
 		<script type="text/javascript">
-		  	var _gaq = _gaq || [];
+			var _gaq = _gaq || [];
 			  _gaq.push(['_setAccount', 'UA-25998614-1']);
 			  _gaq.push(['_setDomainName', 'habricentral.org']);
 			  _gaq.push(['_setAllowLinker', true]);
