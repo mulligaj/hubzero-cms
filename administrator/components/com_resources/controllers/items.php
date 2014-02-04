@@ -874,6 +874,7 @@ class ResourcesControllerItems extends Hubzero_Controller
 			// New entry
 			$row->created    = $row->created ? $row->created : JFactory::getDate()->toSql();
 			$row->created_by = $row->created_by ? $row->created_by : $this->juser->get('id');
+			$row->access	 = 0;
 		} else {
 			$old = new ResourcesResource($this->database);
 			$old->load($row->id);
@@ -893,11 +894,20 @@ class ResourcesControllerItems extends Hubzero_Controller
 				$row->created_by = $row->created_by ? $row->created_by : $this->juser->get('id');
 			}
 		}
+		
+		// publish up
+		$row->publish_up = JFactory::getDate($row->publish_up, JFactory::getConfig()->get('offset'))->toSql();
+		
+		// publish down
 		if (trim($row->publish_down) == 'Never')
 		{
 			$row->publish_down = '0000-00-00 00:00:00';
 		}
-
+		else
+		{
+			$row->publish_down = JFactory::getDate($row->publish_down, JFactory::getConfig()->get('offset'))->toSql();
+		}
+		
 		$paramsClass = 'JParameter';
 		if (version_compare(JVERSION, '1.6', 'ge'))
 		{

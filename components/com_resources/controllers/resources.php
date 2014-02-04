@@ -802,13 +802,24 @@ class ResourcesControllerResources extends Hubzero_Controller
 		//load resource
 		$activechild = new ResourcesResource($this->database);
 		$activechild->load($resid);
+		
+		$path = '';
+		if ($activechild->path)
+		{
+			$activechild->path = trim($activechild->path, '/');
+			// match YYYY/MM/#/something
+			if (preg_match('/(\d{4}\/\d{2}\/\d+)\/.+/i', $activechild->path, $matches))
+			{
+				$path = '/' . rtrim($matches[1], '/');
+			}
+		}
 
 		//base url for the resource
 		$base = DS . trim($this->config->get('uploadpath', '/site/resources'), DS);
 
 		//build the rest of the resource path and combine with base
-		$path = ResourcesHtml::build_path($activechild->created, $activechild->id, '');
-		$path =  $base . $path;
+		$path = $path ? $path : ResourcesHtml::build_path($activechild->created, $activechild->id, '');
+		$path = $base . $path;
 
 		//check to make sure we have a presentation document defining cuepoints, slides, and media
 		//$manifest_path_json = JPATH_ROOT . $path . DS . 'presentation.json';
@@ -1110,8 +1121,19 @@ class ResourcesControllerResources extends Hubzero_Controller
 		//base url for the resource
 		$base = DS . trim($this->config->get('uploadpath'), DS);
 		
+		$path = '';
+		if ($resource->path)
+		{
+			$resource->path = trim($resource->path, '/');
+			// match YYYY/MM/#/something
+			if (preg_match('/(\d{4}\/\d{2}\/\d+)\/.+/i', $resource->path, $matches))
+			{
+				$path = '/' . rtrim($matches[1], '/');
+			}
+		}
+
 		//build the rest of the resource path and combine with base
-		$path = ResourcesHtml::build_path($resource->created, $resource->id, '');
+		$path = $path ? $path : ResourcesHtml::build_path($resource->created, $resource->id, '');
 		
 		//get manifests
 		$manifests = JFolder::files( JPATH_ROOT . DS . $base . $path, '.json' );
@@ -1264,6 +1286,13 @@ class ResourcesControllerResources extends Hubzero_Controller
 			JError::raiseError(403, JText::_('COM_RESOURCES_ALERTNOTAUTH'));
 			return;
 		}
+		
+		// Make sure they have access to view this resource
+		if ($this->checkGroupAccess($this->model->resource)) 
+		{
+			JError::raiseError(403, JText::_('COM_RESOURCES_ALERTNOTAUTH'));
+			return;
+		}
 
 		// Initiate a resource helper class
 		$helper = new ResourcesHelper($this->model->resource->id, $this->database);
@@ -1381,7 +1410,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 				)
 			);
 		}
-		else if ($revision)
+		elseif (isset($this->model->revision) && $this->model->revision)
 		{
 			$cats = $dispatcher->trigger('onResourcesAreas', array(
 					$this->model
@@ -1397,15 +1426,13 @@ class ResourcesControllerResources extends Hubzero_Controller
 				}
 				foreach ($cat as $name => $title)
 				{
-					if ($name == 'about')
+					if ($name == 'about' || $name == 'versions' || $name == 'supportingdocs')
 					{
 						$cts[] = $cat;
 					}
 				}
 			}
-			/*$cats = array(
-				array('about' => JText::_('About'))
-			);*/
+
 			$cats = $cts;
 		}
 		// Get the sections
@@ -1574,7 +1601,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 			$view->thistool = $this->model->thistool;
 			$view->curtool  = $this->model->curtool;
 			$view->alltools = $this->model->alltools;
-			$view->revision = $revision;
+			$view->revision = $this->model->revision;
 		}
 		$view->model = $this->model;
 		//$view->config 		= $this->config;
