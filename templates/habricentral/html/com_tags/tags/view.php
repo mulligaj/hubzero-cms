@@ -176,7 +176,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 		
 		<?php
 			$dbh =& JFactory::getDBO();
-			$ids = implode(', ', array_map(create_function('$a', 'return $a->id;'), $this->tags));
+			
+			$ids = implode(', ', array_map(create_function('$a', 'return $a->get(\'id\');'), $this->tags));
+						
 			$dbh->setQuery('SELECT tag, raw_tag FROM #__tags_object jto INNER JOIN #__tags jt ON jt.id = jto.objectid WHERE jto.label = \'parent\' AND jto.tbl = \'tags\' AND jto.tagid IN ('.$ids.') AND jt.id NOT IN ('.$ids.')');
 			$children = $dbh->loadAssocList('tag');
 
