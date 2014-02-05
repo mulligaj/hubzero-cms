@@ -1,0 +1,6 @@
+@import url('/components/com_support/assets/css/support.css');
+
+.com_support .col .tag {
+	background-image: none;
+	padding-left: 0;
+}
