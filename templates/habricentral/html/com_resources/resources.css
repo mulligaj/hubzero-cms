@@ -15,52 +15,70 @@
 	padding-left: 20px;
 	padding-right: 0;
 }
-.com_resources .columns .columns div {
-	background: none;
-	padding-left: none;
+
+.com_resources .col div {
+	padding-left: 25px;
+	position: relative;
 }
-.com_resources .four .columns .audio:before {
+.com_resources .col.span-third div:before {
+	content: "\270D";
+	display: block;
+	position: absolute;
+	left: 0;
+	top: 0.2em;
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+	font-family: 'Fontcons';
+	color: #AAA;
+	border: none;
+}
+.com_resources .col.span-third .audio:before {
 	content: "\266B";
 }
-.com_resources .four .columns .book:before,
-.com_resources .four .columns .booksection:before {
+.com_resources .col.span-third .book:before,
+.com_resources .col.span-third .booksection:before {
 	content: "\f02d";
 }
-.com_resources .four .columns .magazinearticle:before,
-.com_resources .four .columns .journalarticle:before {
+.com_resources .col.span-third .book:before,
+.com_resources .col.span-third .booksection:before {
+	content: "\f02d";
+}
+.com_resources .col.span-third .magazinearticle:before,
+.com_resources .col.span-third .journalarticle:before {
 	content: "\f072";
 }
-.com_resources .four .columns .governmentdocument:before {
+.com_resources .col.span-third .governmentdocument:before {
 	content: "\f068";
 }
-.com_resources .four .columns .video:before {
+.com_resources .col.span-third .video:before {
 	content: "\f008";
 }
-.com_resources .four .columns .these:before {
+.com_resources .col.span-third .these:before {
 	content: "\f036";
 }
-.com_resources .four .columns .dataset:before {
+.com_resources .col.span-third .dataset:before {
 	content: "\f001";
 }
-.com_resources .four .columns .newspaperarticle:before {
+.com_resources .col.span-third .newspaperarticle:before {
 	content: "\f053";
 }
-.com_resources .four .columns .presentation:before {
+.com_resources .col.span-third .presentation:before {
 	content: "\f000";
 }
-.com_resources .four .columns .pamphlet:before {
+.com_resources .col.span-third .pamphlet:before {
 	content: "\f04a";
 }
-.com_resources .four .columns .conferencepaper:before {
+.com_resources .col.span-third .conferencepaper:before {
 	content: "\f0c5";
 }
-.com_resources .four .columns .report:before {
+.com_resources .col.span-third .report:before {
 	content: "\f016";
 }
-.com_resources .four .columns .poster:before {
+.com_resources .col.span-third .poster:before {
 	content: "\f03e";
 }
-.com_resources .four .columns .stillimage:before {
+.com_resources .col.span-third .stillimage:before {
 	content: "\f08c";
 }
 
