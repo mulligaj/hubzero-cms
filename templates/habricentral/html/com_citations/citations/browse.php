@@ -90,7 +90,7 @@ if ($label == "none") {
 					<?php echo JText::_('Tags (topic)'); ?>:
 					<?php 
 						JPluginHelper::importPlugin('hubzero');
-						$dispatcher =& JDispatcher::getInstance();
+						$dispatcher = JDispatcher::getInstance();
 						$tf = $dispatcher->trigger('onGetMultiEntry', array(array('tags', 'tag', 'actags', '', $this->filters['tag'])));  // type, field name, field id, class, value
 						if (count($tf) > 0) : ?>
 							<?php echo $tf[0]; ?>
@@ -113,7 +113,7 @@ if ($label == "none") {
 					<input type="text" name="year_end" class="half" value="<?php echo $this->filters['year_end']; ?>" />
 				</label>
 				<label>
-					<?php echo JText::_('SORT_BY'); ?>:
+					<?php echo JText::_('Sort by'); ?>:
 					<select name="sort" id="sort" class="">
 						<?php foreach($this->sorts as $k => $v) : ?>
 							<?php if($k == 'sec_cnt DESC' || $k == 'created DESC') continue; ?>
