@@ -1,120 +1,54 @@
 @import url("/components/com_resources/assets/css/create.css");
 
-.com_resources .four .columns div:before,
-.com_resources .four .columns div:after {
-	content: "";
-	display: block;
-	position: absolute;
-	left: 0;
-	top: 1em;
-	width: 20px;
-	height: 20px;
-	font-size: 20px;
-	font-family: 'Fontcons';
-	color: #aaa;
-}
-.com_resources .four .columns div:before {
+.com_resources .type-button a:before {
 	content: "\270D";
 }
-.com_resources .columns .columns div {
-	background: none;
-	padding-left: 25px;
-}
-.com_resources .four .columns .audio:before {
+.com_resources .audi .type-button a:before {
 	content: "\266B";
 }
-.com_resources .four .columns .book:before,
-.com_resources .four .columns .booksection:before {
+.com_resources .book .type-button a:before,
+.com_resources .booksectio .type-button a:before {
 	content: "\f02d";
 }
-.com_resources .four .columns .magazinearticle:before,
-.com_resources .four .columns .journalarticle:before {
+.com_resources .magazinearticle .type-button a:before,
+.com_resources .journalarticle .type-button a:before {
 	content: "\f072";
 }
-.com_resources .four .columns .governmentdocument:before {
+.com_resources .governmentdocument .type-button a:before {
 	content: "\f068";
 }
-.com_resources .four .columns .video:before {
+.com_resources .video .type-button a:before {
 	content: "\f008";
 }
-.com_resources .four .columns .these:before {
+.com_resources .these .type-button a:before {
 	content: "\f036";
 }
-.com_resources .four .columns .dataset:before {
+.com_resources .dataset .type-button a:before {
 	content: "\f001";
 }
-.com_resources .four .columns .newspaperarticle:before {
+.com_resources .newspaperarticle .type-button a:before {
 	content: "\f053";
 }
-.com_resources .four .columns .presentation:before {
+.com_resources .presentation .type-button a:before {
 	content: "\f000";
 }
-.com_resources .four .columns .pamphlet:before {
+.com_resources .pamphlet .type-button a:before {
 	content: "\f04a";
 }
-.com_resources .four .columns .conferencepaper:before {
+.com_resources .conferencepaper .type-button a:before {
 	content: "\f0c5";
 }
-.com_resources .four .columns .report:before {
+.com_resources .report .type-button a:before {
 	content: "\f016";
 }
-.com_resources .four .columns .poster:before {
+.com_resources .poster .type-button a:before {
 	content: "\f03e";
 }
-.com_resources .four .columns .stillimage:before {
+.com_resources .stillimage .type-button a:before {
 	content: "\f08c";
 }
-
-.com_resources .columns .type-container {
-	background: none;
-	padding-left: 0;
-}
-.com_resources .columns .type-button a:before {
-	content: "\270D";
-}
-.com_resources .columns .audio .type-button a:before {
-	content: "\266B";
-}
-.com_resources .columns .book .type-button a:before,
-.com_resources .columns .booksection .type-button a:before {
-	content: "\f02d";
-}
-.com_resources .columns .magazinearticle .type-button a:before,
-.com_resources .columns .journalarticle .type-button a:before {
-	content: "\f072";
-}
-.com_resources .columns .governmentdocument .type-button a:before {
-	content: "\f068";
-}
-.com_resources .columns .video .type-button a:before {
-	content: "\f008";
-}
-.com_resources .columns .these .type-button a:before {
-	content: "\f036";
-}
-.com_resources .columns .dataset .type-button a:before {
-	content: "\f001";
-}
-.com_resources .columns .newspaperarticle .type-button a:before {
-	content: "\f053";
-}
-.com_resources .columns .presentation .type-button a:before {
-	content: "\f000";
-}
-.com_resources .columns .pamphlet .type-button a:before {
-	content: "\f04a";
-}
-.com_resources .columns .conferencepaper .type-button a:before {
-	content: "\f0c5";
-}
-.com_resources .columns .report .type-button a:before {
-	content: "\f016";
-}
-.com_resources .columns .poster .type-button a:before {
-	content: "\f03e";
-}
-.com_resources .columns .stillimage .type-button a:before {
-	content: "\f08c";
+.com_resources .tool .type-button a:before {
+	content: "\2692";
 }
 
 .plg-content .sponsor-logo {
