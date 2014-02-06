@@ -268,8 +268,8 @@ $area = JRequest::getVar('area', 'about');
 	</div>
 </div>
 
-<div id="sub-menu">
-	<ul>
+<div>
+	<ul class="sub-menu">
 		<?php
 			$menu = array(
 				'about' => 'About',
