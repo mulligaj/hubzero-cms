@@ -1617,6 +1617,15 @@
 		text-decoration: none;
 		background: #F0EBD6;
 	}
+	.tags:before,
+	.tags:after {
+		content: "";
+		display: table;
+		line-height: 0;
+	}
+	.tags:after {
+		clear: left;
+	}
 /*---------------------------------------------------------------
 	Comment Types
 ---------------------------------------------------------------*/	
@@ -1660,6 +1669,7 @@
 /*---------------------------------------------------------------
 	File types
 ---------------------------------------------------------------*/
+	/*
 	.pdf { background: url("../images/icons/16x16/pdf.png") 0 0 no-repeat; padding-left: 25px; }
 	.swf { background: url("../images/icons/16x16/swf.png") 0 0 no-repeat; padding-left: 25px; }
 	.ppt { background: url("../images/icons/16x16/ppt.png") 0 0 no-repeat; padding-left: 25px; }
@@ -1730,6 +1740,7 @@
 		background: url("../images/icons/feed.png") 0 0 no-repeat;
 		padding-left: 20px;
 	}
+	*/
 /*---------------------------------------------------------------
 	Primary Resource file
 ---------------------------------------------------------------*/	
@@ -1969,8 +1980,7 @@
 	#content-header-extra:after,
 	.subject:after,
 	#hubForm fieldset:after,
-	#hubForm .group label.datepickers:after,
-	ol.tags:after {
+	#hubForm .group label.datepickers:after {
 		content: "."; 
 		display: block; 
 		height: 0; 
@@ -2176,6 +2186,9 @@
 	.entry-search ul.textboxlist-holder li input {
 		padding: 5px;
 		background: #fff
+	}	
+	.entry-search .token-input-list-act input[type="text"] {
+		border: none;
 	}
 	.aside .container h3,
 	.aside .container h4 {
@@ -2332,4 +2345,7 @@
 	}
 	.search-bar {
 		padding-right: 217px !important;
+	}
+	.contentpane>.actions {
+		display: none;
 	}
