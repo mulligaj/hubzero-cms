@@ -86,8 +86,8 @@ defined('_JEXEC') or die( 'Restricted access' );
 				if ($cat['category'] == $this->active) {
 					$a = ' class="active"';
 
-					$app =& JFactory::getApplication();
-					$pathway =& $app->getPathway();
+					$app = JFactory::getApplication();
+					$pathway = $app->getPathway();
 					$pathway->addItem($cat['title'],'index.php?option='.$this->option.'&tag='.$this->tagstring.'&area='. stripslashes($blob).'&sort='.$this->filters['sort']);
 				}
 
@@ -113,8 +113,8 @@ defined('_JEXEC') or die( 'Restricted access' );
 							if ($subcat['category'] == $this->active) {
 								$a = ' class="active"';
 
-								$app =& JFactory::getApplication();
-								$pathway =& $app->getPathway();
+								$app = JFactory::getApplication();
+								$pathway = $app->getPathway();
 								$pathway->addItem($subcat['title'],'index.php?option='.$this->option.'&tag='.$this->tagstring.'&area='. stripslashes($blob).'&sort='.$this->filters['sort']);
 							}
 
@@ -160,7 +160,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<fieldset class="entry-search">
 <?php
 			JPluginHelper::importPlugin( 'hubzero' );
-			$dispatcher =& JDispatcher::getInstance();
+			$dispatcher = JDispatcher::getInstance();
 			$tf = $dispatcher->trigger( 'onGetMultiEntry', array(array('tags', 'tag', 'actags','',$this->search)) );
 ?>
 				<label for="actags">
@@ -169,13 +169,13 @@ defined('_JEXEC') or die( 'Restricted access' );
 <?php if (count($tf) > 0) {
 						echo $tf[0];
 } else { ?>
-				<input type="text" name="tag" id="actags" value="<?php echo $this->search; ?>" />
+				<input type="text" name="tag" id="actags" value="<?php echo $this->escaoe($this->search); ?>" />
 <?php } ?>
 			</fieldset>
 		</div><!-- / .container -->
 		
 		<?php
-			$dbh =& JFactory::getDBO();
+			$dbh = JFactory::getDBO();
 			
 			$ids = implode(', ', array_map(create_function('$a', 'return $a->get(\'id\');'), $this->tags));
 						
@@ -232,7 +232,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 						$sef = str_replace('%20','+',$sef);
 						echo $sef;
 					?>" title="Sort by title">
-						&darr; <?php echo JText::_('COM_TAGS_OPT_TITLE'); ?>
+						<?php echo JText::_('COM_TAGS_OPT_TITLE'); ?>
 					</a>
 				</li>
 				<li>
@@ -241,7 +241,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 						$sef = str_replace('%20','+',$sef);
 						echo $sef;
 					?>" title="Sort by newest to oldest">
-						&darr; <?php echo JText::_('COM_TAGS_OPT_DATE'); ?>
+						<?php echo JText::_('COM_TAGS_OPT_DATE'); ?>
 					</a>
 				</li>
 <?php /*				<li><a<?php echo ($this->filters['sort'] == '') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&tag='.$this->tagstring.'&area='.$this->active); ?>" title="Sort by popularity">&darr; <?php echo JText::_('Popular'); ?></a></li> */ ?>
@@ -249,11 +249,11 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 			<div class="container-block">
 <?php
-$juri =& JURI::getInstance();
+$juri = JURI::getInstance();
 $foundresults = false;
 $dopaging = true;
 //$cats = $this->cats;
-$jconfig =& JFactory::getConfig();
+$jconfig = JFactory::getConfig();
 $html = '';
 $k = 0;
 if ($this->active) {
@@ -324,7 +324,7 @@ foreach ($this->results as $category)
 			if (substr($feed, 0, 1) != DS) {
 				$feed = DS.$feed;
 			}
-			$jconfig =& JFactory::getConfig();
+			$jconfig = JFactory::getConfig();
 			$live_site = rtrim(JURI::base(),'/');
 			$feed = $live_site.$feed;
 		}
