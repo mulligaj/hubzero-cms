@@ -380,14 +380,7 @@ $area = JRequest::getVar('area', 'about');
 					<tr>
 						<th><?php echo JText::_('Tags'); ?></th>
 						<td>
-							<ol class="tags">
-								<?php
-									foreach($tags as $tag)
-									{
-										echo '<li><a href="'.JRoute::_('index.php?option=com_tags&tag=' . $tag['tag']).'">'.stripslashes($tag['raw_tag']).'</a></li> ';
-									}
-								?>
-							</ol>
+							<?php echo CitationFormat::citationTags($citation, JFactory::getDBO()); ?>
 						</td>
 					</tr>
 				<?php endif; ?>
@@ -396,14 +389,7 @@ $area = JRequest::getVar('area', 'about');
 					<tr>
 						<th><?php echo JText::_('Badges'); ?></th>
 						<td>
-							<ol class="tags badges">
-								<?php
-									foreach($badges as $badge)
-									{
-										echo '<li><a href="javascript:void(0);">'.$badge['raw_tag'].'</a></li> ';
-									}
-								?>
-							</ol>
+							<?php echo CitationFormat::citationBadges($citation, JFactory::getDBO()); ?>
 						</td>
 					</tr>
 				<?php endif; ?>

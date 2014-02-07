@@ -23,10 +23,15 @@ form .aside input.half {
 }
 
 .citation-details .tags {
-	margin-top:25px !important;
+	margin-top: 25px !important;
 }
-.citation-details .badges {
-	margin-right:15px !important;
+.citation-details .tags.badges {
+	margin-top: 0px !important;
+	margin-right: 15px !important;
+}
+.badges li a {
+	border: 1px solid #634024 !important;
+	background: #8e6e59 !important;
 }
 
 
@@ -49,6 +54,9 @@ form .aside input.half {
 }
 table.citation {
 	border:none;
+}
+.citation-section table.citation ul.tags li:first-child {
+	display: none;
 }
 
 #sbox-window-cover {
