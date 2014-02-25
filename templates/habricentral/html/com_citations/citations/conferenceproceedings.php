@@ -628,11 +628,7 @@ $area = JRequest::getVar('area', 'about');
 			$.fancybox({
 				autoSize: false,
 				width: '100%',
-				content: '<iframe src="https://docs.google.com/viewer?url='+encodeURIComponent(href)+'&embedded=true" width="100%" height="100%" style="border: none;"></iframe>',
-				afterShow: function() {
-					$(".fancybox-inner").prepend("<div id=\"sbox-window-cover\"></div>");
-					$(".fancybox-inner").find("iframe").css("height", "99%"); //iframe being same height of lightbox causes scrollbar to appear
-				}
+				content: '<iframe src="/templates/habricentral/viewer/#'+href+'" width="100%" height="100%" allowfullscreen webkitallowfullscreen></iframe>',
 			});
 		});
 	});
