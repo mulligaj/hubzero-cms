@@ -20,12 +20,12 @@
 	a:active, 
 	a:visited {
 		color: #554693;
-		border-bottom:1px solid #ddd7e2;
+		/* border-bottom:1px solid #ddd7e2; */
 		text-decoration: none;
 	}
 	a:hover {
 		color: #4242bd;
-		border-bottom: 1px solid #4242bd;
+		/* border-bottom: 1px solid #4242bd; */
 	}
 		.contentpaneopen span.hasTip a img {
 			  display:none;
