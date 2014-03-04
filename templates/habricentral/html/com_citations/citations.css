@@ -55,9 +55,7 @@ form .aside input.half {
 table.citation {
 	border:none;
 }
-.citation-section table.citation ul.tags li:first-child {
-	display: none;
-}
+
 
 #sbox-window-cover {
 	position:absolute;
