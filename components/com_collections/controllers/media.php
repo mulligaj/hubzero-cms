@@ -143,12 +143,16 @@ class CollectionsControllerMedia extends Hubzero_Controller
 		if (substr($listdir, 0, 3) == 'tmp')
 		{
 			$item = new CollectionsModelItem($listdir);
-			$item->set('state', 0);
-			$item->set('description', $listdir);
-			if ($item->store())
+			if (!$item->exists())
 			{
-				$listdir = $item->get('id');
+				$item->set('state', 0);
+				$item->set('description', $listdir);
+				if (!$item->store())
+				{
+					$this->setError($item->getError());
+				}
 			}
+			$listdir = $item->get('id');
 		}
 
 		// Create database entry
@@ -192,19 +196,22 @@ class CollectionsControllerMedia extends Hubzero_Controller
 		if (substr($listdir, 0, 3) == 'tmp')
 		{
 			$item = new CollectionsModelItem($listdir);
-			$item->set('id', 0);
-			$item->set('state', 0);
-			$item->set('description', $listdir);
-			if (!$item->store())
+			if (!$item->exists())
 			{
-				echo json_encode(array(
-					'success'   => false, 
-					'errors'    => $item->getErrors(),
-					'file'      => 'http://',
-					'directory' => '',
-					'id'        => $listdir
-				));
-				return;
+				$item->set('id', 0);
+				$item->set('state', 0);
+				$item->set('description', $listdir);
+				if (!$item->store())
+				{
+					echo json_encode(array(
+						'success'   => false, 
+						'errors'    => $item->getErrors(),
+						'file'      => 'http://',
+						'directory' => '',
+						'id'        => $listdir
+					));
+					return;
+				}
 			}
 			$listdir = $item->get('id');
 		}
@@ -263,15 +270,18 @@ class CollectionsControllerMedia extends Hubzero_Controller
 
 		if (substr($listdir, 0, 3) == 'tmp')
 		{
-			$item = new CollectionsModelItem();
-			$item->set('state', 0);
-			$item->set('description', $listdir);
-			if (!$item->store())
+			$item = new CollectionsModelItem($listdir);
+			if (!$item->exists())
 			{
-				echo json_encode(array(
-					'error' => $item->getError()
-				));
-				return;
+				$item->set('state', 0);
+				$item->set('description', $listdir);
+				if (!$item->store())
+				{
+					echo json_encode(array(
+						'error' => $item->getError()
+					));
+					return;
+				}
 			}
 			$listdir = $item->get('id');
 		}
@@ -303,7 +313,7 @@ class CollectionsControllerMedia extends Hubzero_Controller
 		if (!is_dir($path)) 
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path, 0777)) 
+			if (!JFolder::create($path)) 
 			{
 				echo json_encode(array('error' => JText::_('Error uploading. Unable to create path.')));
 				return;
@@ -446,7 +456,7 @@ class CollectionsControllerMedia extends Hubzero_Controller
 		if (!is_dir($path)) 
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path, 0777)) 
+			if (!JFolder::create($path)) 
 			{
 				$this->setError(JText::_('Error uploading. Unable to create path.'));
 				$this->displayTask();

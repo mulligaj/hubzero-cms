@@ -194,7 +194,7 @@ function popratings()
 					<td><input type="text" name="attrib[location]" id="attrib[location]" size="25" maxlength="250" value="<?php echo $this->attribs->get('location', ''); ?>" /></td>
 					<th class="key"><label for="attrib[timeof]">Time:</label></th>
 					<td>
-						<input type="text" name="attrib[timeof]" id="attrib[timeof]" size="25" maxlength="250" value="<?php echo JHTML::_('date', $this->attribs->get('timeof', ''), 'Y-m-d H:i:s'); ?>" /></td>
+						<input type="text" name="attrib[timeof]" id="attrib[timeof]" size="25" maxlength="250" value="<?php echo $this->attribs->get('timeof', '') ? JHTML::_('date', $this->attribs->get('timeof', ''), 'Y-m-d H:i:s') : ''; ?>" /></td>
 				</tr>
 				<tr>
 					<th class="key"><label for="attrib_canonical">Canonical:</label></th>
@@ -383,7 +383,7 @@ function popratings()
 					<td class="paramlist_key"><label>Change Creator:</label></th>
 					<td><?php echo $this->lists['created_by']; ?></td>
 				</tr>
-<?php if ($this->row->standalone == 1) { ?>
+<?php // if ($this->row->standalone == 1) { ?>
 				<tr>
 					<td class="paramlist_key"><label for="publish_up">Start Publishing:</label></th>
 					<td>
@@ -404,7 +404,7 @@ function popratings()
 						<?php echo JHTML::_('calendar', $down, 'publish_down', 'publish_down', "%Y-%m-%d", array('class' => 'inputbox')); ?>
 					</td>
 				</tr>
-<?php } ?>
+<?php // } ?>
 				<tr>
 					<td class="paramlist_key"><strong>Hits:</strong></td>
 					<td>

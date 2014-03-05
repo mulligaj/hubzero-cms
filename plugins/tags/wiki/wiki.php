@@ -87,7 +87,7 @@ class plgTagsWiki extends JPlugin
 		// Check if our area is in the array of areas we want to return results for
 		if (is_array($areas) && $limit) 
 		{
-			if (!isset($areas['wiki'])) 
+			if (!isset($areas['wiki']) && !in_array('wiki', $areas)) 
 			{
 				return array();
 			}
@@ -156,14 +156,7 @@ class plgTagsWiki extends JPlugin
 				// Loop through the results and set each item's HREF
 				foreach ($rows as $key => $row)
 				{
-					if ($row->data1 != '' && $row->category != '') 
-					{
-						$rows[$key]->href = JRoute::_('index.php?option=com_groups&scope=' . $row->data1 . '&pagename=' . $row->alias);
-					} 
-					else 
-					{
-						$rows[$key]->href = JRoute::_('index.php?option=com_wiki&scope=' . $row->data1 . '&pagename=' . $row->alias);
-					}
+					$rows[$key]->href = JRoute::_($rows[$key]->href);
 					$rows[$key]->text = $rows[$key]->itext;
 				}
 			}

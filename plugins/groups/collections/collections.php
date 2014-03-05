@@ -112,6 +112,15 @@ class plgGroupsCollections extends Hubzero_Plugin
 
 		$this->model = new CollectionsModel('group', $this->group->get('gidNumber'));
 
+		//get the plugins params
+		$p = new Hubzero_Plugin_Params($this->database);
+		$this->params = $p->getParams($group->gidNumber, 'groups', $this->_name);
+		$this->members = $group->get('members');
+		$this->authorized = $authorized;
+
+		$this->_authorize('collection');
+		$this->_authorize('item');
+
 		//are we returning html
 		if ($return == 'html') 
 		{
@@ -153,20 +162,12 @@ class plgGroupsCollections extends Hubzero_Plugin
 			$this->authorized = $authorized;
 
 			//group vars
-			
 			$this->members    = $members;
 
 			// Set some variables so other functions have access
 			$this->action     = $action;
 			$this->option     = $option;
 			$this->name       = substr($option, 4, strlen($option));
-
-			//get the plugins params
-			$p = new Hubzero_Plugin_Params($this->database);
-			$this->params = $p->getParams($group->gidNumber, 'groups', $this->_name);
-
-			$this->_authorize('collection');
-			$this->_authorize('item');
 
 			$this->params->set('access-plugin', 0);
 			if ($group_plugin_acl == 'registered')
@@ -976,9 +977,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 
 		if ($remove = JRequest::getInt('remove', 0))
 		{
-			if (!$view->item->removeAsset($remove))
+			if (!$view->entry->item()->removeAsset($remove))
 			{
-				$view->setError($view->item->getError());
+				$view->setError($view->entry->item()->getError());
 			}
 		}
 
@@ -1848,7 +1849,8 @@ class plgGroupsCollections extends Hubzero_Plugin
 		if (!$this->juser->get('guest')) 
 		{
 			$p = new Hubzero_Plugin_Params($this->database);
-			$this->params->merge($p->getCustomParams($this->group->get('gidNumber'), 'groups', $this->_name));
+			$params = $p->getCustomParams($this->group->get('gidNumber'), 'groups', $this->_name);
+			$this->params->merge($params);
 
 			// Set asset to viewable
 			$this->params->set('access-view-' . $assetType, false);

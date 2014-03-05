@@ -2201,6 +2201,8 @@ class ResourcesControllerResources extends Hubzero_Controller
 			}
 		}
 
+		$resource->path = trim($resource->path);
+
 		// Ensure we have a path
 		if (empty($resource->path)) 
 		{
@@ -2510,7 +2512,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 		if (!is_dir($path)) 
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path, 0777)) 
+			if (!JFolder::create($path)) 
 			{
 				$this->setError('Error. Unable to create path.');
 			}

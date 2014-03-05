@@ -252,26 +252,6 @@ class WishlistController extends Hubzero_Controller
 	}
 
 	/**
-	 * Push CSS to the document head
-	 * 
-	 * @param      string $option Parameter description (if any) ...
-	 * @param      string $css Parameter description (if any) ...
-	 * @return     void
-	 */
-	public function _getStyles($option='', $css='')
-	{
-		ximport('Hubzero_Document');
-		if ($option) 
-		{
-			Hubzero_Document::addComponentStylesheet($option, $css);
-		} 
-		else 
-		{
-			Hubzero_Document::addComponentStylesheet($this->_option);
-		}
-	}
-
-	/**
 	 * Build the page title
 	 * 
 	 * @return     void
@@ -3174,7 +3154,7 @@ class WishlistController extends Hubzero_Controller
 		if (!is_dir(JPATH_ROOT . $webpath)) 
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create(JPATH_ROOT . $webpath, 0777)) 
+			if (!JFolder::create(JPATH_ROOT . $webpath)) 
 			{
 				$out .= JText::_('COM_WISHLIST_ERR_UNABLE_TO_CREATE_PATH');
 				return false;
@@ -3683,7 +3663,7 @@ class WishlistController extends Hubzero_Controller
 		if (!is_dir($path)) 
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path, 0777)) 
+			if (!JFolder::create($path)) 
 			{
 				$this->setError(JText::_('COM_WISHLIST_UNABLE_TO_CREATE_UPLOAD_PATH'));
 				return 'ATTACHMENT: ' . JText::_('COM_WISHLIST_UNABLE_TO_CREATE_UPLOAD_PATH');

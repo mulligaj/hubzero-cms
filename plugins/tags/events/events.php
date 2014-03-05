@@ -86,7 +86,7 @@ class plgTagsEvents extends JPlugin
 	{
 		if (is_array($areas) && $limit) 
 		{
-			if (!isset($areas['events'])) 
+			if (!isset($areas['events']) && !in_array('events', $areas)) 
 			{
 				return array();
 			}
@@ -175,7 +175,7 @@ class plgTagsEvents extends JPlugin
 	 * 
 	 * @return     void
 	 */
-	public function documents()
+	public static function documents()
 	{
 		ximport('Hubzero_Document');
 		Hubzero_Document::addComponentStylesheet('com_events');

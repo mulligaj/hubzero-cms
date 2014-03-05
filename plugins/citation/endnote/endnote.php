@@ -213,6 +213,9 @@ class plgCitationEndnote extends JPlugin
 				//loop through each key, we might have more than one key that we want as a var (ie. %K & %< to be tags)
 				foreach($keys as $key)
 				{
+					// make sure to remove unwanted space
+					$key = trim($key);
+
 					//make sure the var exists in our citation
 					if(array_key_exists($key, $citation)) 
 					{
@@ -231,9 +234,16 @@ class plgCitationEndnote extends JPlugin
 					}
 				}
 			}
+			// make sure all tags are separated by comma
+			if (isset($cite['tags']))
+			{
+				$cite['tags'] = str_replace("\n", ',', $cite['tags']);
+				$cite['tags'] = str_replace(',,', ',', $cite['tags']);
+			}
+
 			$final_citations[] = $cite;
 		}
-		
+
 		//check for duplicates
 		for ($i = 0; $i < count($final_citations); $i++) 
 		{

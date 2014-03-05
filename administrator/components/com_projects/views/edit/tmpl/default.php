@@ -21,6 +21,7 @@ $connected = $this->params->get($service . '_token');
 
 JToolBarHelper::title( JText::_( 'Projects' ) . ': '.stripslashes($this->obj->title).' ('.$this->obj->alias.', #'.$this->obj->id.')', 'addedit.png' );
 JToolBarHelper::spacer();
+JToolBarHelper::apply();
 JToolBarHelper::save();
 JToolBarHelper::cancel();
 

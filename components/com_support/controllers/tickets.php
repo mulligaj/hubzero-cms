@@ -2081,8 +2081,12 @@ class SupportControllerTickets extends Hubzero_Controller
 
 		//$params =  JComponentHelper::getParams($this->_option);
 		$allowEmailResponses = $this->config->get('email_processing');
+		if (!file_exists("/etc/hubmail_gw.conf"))
+		{
+			$allowEmailResponses = false;
+		}
 
-		if ($allowEmailResponses and file_exists("/etc/hubmail_gw.conf"))
+		if ($allowEmailResponses)
 		{
 			$encryptor = new Hubzero_EmailToken();
 		}
@@ -3092,7 +3096,7 @@ class SupportControllerTickets extends Hubzero_Controller
 		if (!is_dir($path)) 
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path, 0777)) 
+			if (!JFolder::create($path)) 
 			{
 				$this->setError(JText::_('UNABLE_TO_CREATE_UPLOAD_PATH'));
 				return '';
