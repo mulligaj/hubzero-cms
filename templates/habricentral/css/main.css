@@ -1797,7 +1797,8 @@
 		
 	.tooltip {
 		color:#FFF;
-		width: 184px;
+		width: auto;
+		max-width: 200px;
 		-webkit-border-radius: 0.27em;
 		-moz-border-radius: 0.27em;
 		-o-border-radius: 0.27em;
@@ -1807,7 +1808,7 @@
 		font-size: 90%; 
 	}
 	.tooltip-title {
-		display:block;
+		display:  block;
 		font-weight:500;
 		font-size:13px;
 		color:#9FD4FF;

@@ -167,8 +167,8 @@ HUB.Base = {
 			}
 		}).dynamic({ bottom: { direction: 'down' }, right: { direction: 'left' } });
 		$('.tooltips').tooltip({
-			position:'TOP RIGHT',
-			//offset: [10,2],
+			position:'top center',
+			offset: [-5,0],
 			onBeforeShow: function(event, position) {
 				var tip = this.getTip(),
 					tipText = tip[0].innerHTML;
