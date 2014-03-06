@@ -44,7 +44,7 @@ else
 	<?php
 	if ($this->eventsByRelDay)
 	{
-		$database =& JFactory::getDBO();
+		$database = JFactory::getDBO();
 		$cls = 'even';
 		foreach ($this->eventsByRelDay as $relDay => $daysEvents)
 		{
