@@ -9,10 +9,10 @@ if (jQuery) {
 			$('#search-block div.col')
 				.hover(
 					function (e) {
-						$(this).find('span.hint').fadeIn(400);
+						$(this).find('span.hint').stop(true, true).fadeIn(400);
 					},
 					function (e) {
-						$(this).find('span.hint').fadeOut(400);
+						$(this).find('span.hint').stop(true, true).fadeOut(400);
 					}
 				);
 		}
