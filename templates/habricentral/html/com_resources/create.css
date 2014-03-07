@@ -301,3 +301,8 @@
 #steps li#trash.active:after {
 	display: none;
 }
+
+/* Authors */
+#new-authors-role {
+	width: 100%;
+}
