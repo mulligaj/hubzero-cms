@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-if ($this->error)
+if (isset($this->error) && $this->error)
 {
 	?>
 		<p class="error"><?php echo $this->error; ?></p>
@@ -70,7 +70,7 @@ else
 				{
 					$cls .= ' announcement';
 				}
-				if (!$dayEvent->category)
+				if (!isset($dayEvent->category) || !$dayEvent->category)
 				{
 					$database->setQuery("SELECT title FROM #__categories WHERE id=" . $dayEvent->catid);
 					$dayEvent->category = $database->loadResult();

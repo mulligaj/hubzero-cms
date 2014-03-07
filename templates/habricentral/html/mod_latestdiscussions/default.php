@@ -74,7 +74,7 @@ $c = 0;
 		</p>
 	<?php endif; ?>
 
-	<?php if ($this->feedlink == 'yes') : ?>
+	<?php if ($this->params->get('feedlink') == 'yes') : ?>
 		<p>
 			<a href="<?php echo JRoute::_('index.php?option=com_forum&task=latest.rss', true, -1); ?>" class="newsfeed">
 				<?php echo JText::_('MOD_LATESTDISCUSSIONS_FEED'); ?>
