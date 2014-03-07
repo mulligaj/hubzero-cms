@@ -1,6 +1,6 @@
 @import url("/components/com_blog/assets/css/blog.css");
 
-.entry-title a.edit, 
+/*.entry-title a.edit, 
 .entry-title a.delete,
 dl.entry-meta dd.entry-options a.edit, 
 dl.entry-meta dd.entry-options a.delete,
@@ -10,7 +10,7 @@ div.entry dl.entry-meta dd.entry-options a.delete {
 	height: 16px;
 	text-indent: 55em;
 	padding: 0;
-}
+}*/
 
 .com_blog .below h3 {
 	margin: 1em 0;
