@@ -234,8 +234,8 @@ class modBillboardsStatic
 				jQuery(document).ready(function($){
 					HUB.Billboards.initialize();
 				});';
-		}*/
+		}
 
-		$jdocument->addScriptDeclaration($js);
+		$jdocument->addScriptDeclaration($js);*/
 	}
 }
