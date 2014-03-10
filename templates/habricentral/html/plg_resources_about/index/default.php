@@ -286,7 +286,7 @@ if ($this->model->params->get('show_assocs')) {
 	// Show coins
 	include_once( JPATH_ROOT . DS . 'components' . DS . 'com_citations' . DS . 'helpers' . DS . 'format.php' );
 	include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_citations' . DS . 'tables' . DS . 'type.php' );
-	$cconfig  =& JComponentHelper::getParams( 'com_citations' );
+	$cconfig  = JComponentHelper::getParams( 'com_citations' );
 	
 	$formatter = new CitationFormat();
 	$formatter->setTemplate('ieee');
