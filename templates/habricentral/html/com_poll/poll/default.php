@@ -4,8 +4,8 @@ defined('_JEXEC') or die('Restricted access');
 $pagetitle = $this->params->get('page_title');
 $pagetitle = ($pagetitle) ? $pagetitle : JText::_('Polls');
 
-$app =& JFactory::getApplication();
-$pathway =& $app->getPathway();
+$app = JFactory::getApplication();
+$pathway = $app->getPathway();
 if (count($pathway->getPathWay()) <= 0) {
 	$pathway->addItem($this->escape($pagetitle),'index.php?option=com_polls');
 } else {
