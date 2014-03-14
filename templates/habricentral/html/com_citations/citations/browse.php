@@ -314,9 +314,12 @@ if ($label == "none") {
 							case 'reftype':
 							case 'aff':
 							case 'geo':
-								foreach ($value as $k => $v)
+								if ($value)
 								{
-									$this->pageNav->setAdditionalUrlParam($key . '[' . $k . ']', $v);
+									foreach ($value as $k => $v)
+									{
+										$this->pageNav->setAdditionalUrlParam($key . '[' . $k . ']', $v);
+									}
 								}
 							break;
 
