@@ -89,7 +89,7 @@ $schema = $elements->getSchema();
 // Set the document description
 if ($this->model->resource->introtext) 
 {
-	$document =& JFactory::getDocument();
+	$document = JFactory::getDocument();
 	$document->setDescription(ResourcesHtml::encode_html(strip_tags($this->model->resource->introtext)));
 }
 
@@ -113,7 +113,7 @@ if (preg_match("/([\<])([^\>]{1,})*([\>])/i", $maintext)) {
 			'domain'   => ''
 		);
 		ximport('Hubzero_Wiki_Parser');
-		$p =& Hubzero_Wiki_Parser::getInstance();
+		$p = Hubzero_Wiki_Parser::getInstance();
 		$maintext = $p->parse($maintext, $wikiconfig);
 }
 ?>
@@ -230,7 +230,7 @@ if ($shots) {
 			//$this->helper->getUnlinkedContributors();
 
 			// Build our citation object
-			$juri =& JURI::getInstance();
+			$juri = JURI::getInstance();
 			
 			$cite = new stdClass();
 			$cite->title = $this->model->resource->title;
@@ -243,7 +243,7 @@ if ($shots) {
 			$cite->author = implode(';', $this->model->contributors('name')); //$this->helper->ul_contributors;
 			
 			// Get contribtool params
-			$tconfig =& JComponentHelper::getParams( 'com_tools' );
+			$tconfig = JComponentHelper::getParams( 'com_tools' );
 			$doi = '';
 
 			if (isset($this->model->resource->doi) && $this->model->resource->doi && $tconfig->get('doi_shoulder'))
