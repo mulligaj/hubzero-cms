@@ -173,9 +173,10 @@ class GroupsControllerGroups extends GroupsControllerAbstract
 		//build list of filters
 		$this->view->filters 			= array();
 		$this->view->filters['type']	= array(1, 3);
-		$this->view->filters['limit']	= 'all';
-		$this->view->filters['fields']	= array('COUNT(*)');
-		$this->view->filters['search'] 	= JRequest::getVar('search', '');
+		$this->view->filters['published'] = 1;
+		$this->view->filters['limit']	 = 'all';
+		$this->view->filters['fields']	 = array('COUNT(*)');
+		$this->view->filters['search'] 	 = JRequest::getVar('search', '');
 		$this->view->filters['sortby'] 	= strtolower(JRequest::getWord('sortby', 'title'));
 		$this->view->filters['policy'] 	= strtolower(JRequest::getWord('policy', ''));
 		$this->view->filters['index']	= htmlentities(JRequest::getVar('index', ''));
@@ -580,7 +581,7 @@ class GroupsControllerGroups extends GroupsControllerAbstract
 		
 		// Incoming
 		$g_gidNumber    	= JRequest::getInt('gidNumber', 0, 'post');
-		$g_cn           	= strtolower(trim(JRequest::getVar('cn', '', 'post')));
+		$g_cn           	= trim(JRequest::getVar('cn', '', 'post'));
 		$g_description  	= preg_replace('/\s+/', ' ',trim(JRequest::getVar('description', JText::_('NONE'), 'post')));
 		$g_discoverability	= JRequest::getInt('discoverability', 0, 'post');
 		$g_public_desc  	= trim(JRequest::getVar('public_desc',  '', 'post', 'none', 2));

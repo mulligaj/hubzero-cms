@@ -173,6 +173,12 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			$this->year     = JRequest::getInt('year', JFactory::getDate()->format("Y"), 'get');
 			$this->calendar = JRequest::getInt('calendar', 0, 'get');
 			
+			// make sure month is always two digets
+			if (strlen($this->month) == 1)
+			{
+				$this->month = 0 . $this->month;
+			}
+
 			//set vars for reuse purposes
 			$this->database = JFactory::getDBO();
 			
@@ -1553,6 +1559,9 @@ class plgGroupsCalendar extends Hubzero_Plugin
 					case 'race':
 						$output .= $this->escapeCsv( $race ) . ',';
 						break;
+					case 'registered':
+						$output .= $this->escapeCsv(JHTML::_('date', $registrant->registered, 'Y-m-d H:i:s'));
+						break;
 					default:
 						$output .= $this->escapeCsv($registrant->$field) . ',';
 				}
@@ -1719,7 +1728,8 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		//add scope and scope id to calendar array
 		$calendar['scope']    = 'group';
 		$calendar['scope_id'] = $this->group->get('gidNumber');
-		
+		$calendar['url']      = trim($calendar['url']);
+
 		//is this a remote calendar url
 		if ($calendar['url'] != '' && filter_var($calendar['url'], FILTER_VALIDATE_URL))
 		{
