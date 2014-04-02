@@ -931,22 +931,38 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 		// Build the path
 		$path = $this->_buildUploadPath($listdir, '');
 
+		$base   = JPATH_ROOT . '/' . trim($this->config->get('webpath', '/site/resources'), '/');
+		$baseY = $base . '/'. JFactory::getDate($row->created)->format("Y");
+		$baseM = $baseY . '/' . JFactory::getDate($row->created)->format("m");
+
 		// Check if the folder even exists
-		if (!file_exists($path) or !$path) 
+		if (!file_exists($path) or !$path or substr($row->path, 0, strlen('http')) == 'http') 
 		{
 			//$this->setError(JText::_('COM_CONTRIBUTE_FILE_NOT_FOUND'));
 		} 
 		else 
 		{
-			// Attempt to delete the folder
-			if (!JFile::delete($path)) 
+			if ($path == $base 
+			 || $path == $baseY
+			 || $path == $baseM)
 			{
-				$this->setError(JText::_('COM_CONTRIBUTE_UNABLE_TO_DELETE_FILE'));
+				$this->setError(JText::_('Invalid directory.'));
+			}
+			else
+			{
+				// Attempt to delete the folder
+				if (!JFile::delete($path)) 
+				{
+					$this->setError(JText::_('COM_CONTRIBUTE_UNABLE_TO_DELETE_FILE'));
+				}
 			}
 		}
 
 		if (!$this->getError()) 
 		{
+			/*
+			WTF? What is all this for? -- zooley 04/01/2014
+
 			$uploadPath = DS . trim($this->config->get('uploadpath', '/site/resources'), DS);
 
 			$year  = substr(trim($row->created), 0, 4);
@@ -994,6 +1010,7 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 					}
 				}
 			}
+			*/
 
 			// Delete associations to the resource
 			$row->deleteExistence();
