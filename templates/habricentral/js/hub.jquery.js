@@ -201,12 +201,16 @@ HUB.Base = {
 				}
 				$(this).attr('href', href);
 
-				if ($(this).attr('class')) {
-					var sizeString = $(this).attr('class').split(' ').pop();
-					if (sizeString && sizeString.match('/\d+x\d+/')) {
+				if (this.element.attr('class')) {
+					var sizeString = this.element.attr('class').split(' ').pop();
+					if (sizeString && sizeString.match(/\d+x\d+/i)) {
 						var sizeTokens = sizeString.split('x');
-						this.width = parseInt(sizeTokens[0]) - 20;
-						this.height = parseInt(sizeTokens[1]) - 60;
+						if (parseInt(sizeTokens[0])) {
+							this.width  = parseInt(sizeTokens[0]) - 20;
+						}
+						if (parseInt(sizeTokens[1])) {
+							this.height = parseInt(sizeTokens[1]) - 60;
+						}
 					}
 				}
 			},
@@ -216,6 +220,12 @@ HUB.Base = {
 				{
 					$(".fancybox-inner").prepend("<div id=\"sbox-window-cover\"></div>");
 					$(".fancybox-inner").find("iframe").css("height", "99%"); //iframe being same height of lightbox causes scrollbar to appear
+				}
+				else if (iframe.attr('src').indexOf('/templates/habricentral/viewer/') != -1)
+				{
+					this.width = '100%';
+					this.height = '100%';
+					$.fancybox.update();
 				}
 			}
 		});
