@@ -393,7 +393,7 @@ class SupportControllerTickets extends Hubzero_Controller
 		}
 
 		// Closed tickets
-		$sql = "SELECT c.ticket, c.created_by, c.created, YEAR(c.created) AS `year`, MONTH(c.created) AS `month`, UNIX_TIMESTAMP(t.created) AS opened, UNIX_TIMESTAMP(c.created) AS closed
+		/*$sql = "SELECT c.ticket, c.created_by, c.created, YEAR(c.created) AS `year`, MONTH(c.created) AS `month`, UNIX_TIMESTAMP(t.created) AS opened, UNIX_TIMESTAMP(c.created) AS closed
 				FROM #__support_comments AS c 
 				LEFT JOIN #__support_tickets AS t ON c.ticket=t.id
 				WHERE t.report!=''
@@ -410,7 +410,25 @@ class SupportControllerTickets extends Hubzero_Controller
 		{
 			$sql .= " AND c.created>='" . $this->view->start . "-01 00:00:00' AND c.created<'" . $end . "-01 00:00:00'";
 		}
-		$sql .= " ORDER BY c.created ASC";
+		$sql .= " ORDER BY c.created ASC";*/
+		$sql = "SELECT t.id AS ticket, t.owner AS created_by, t.closed AS created, YEAR(t.closed) AS `year`, MONTH(t.closed) AS `month`, UNIX_TIMESTAMP(t.created) AS opened, UNIX_TIMESTAMP(t.closed) AS closed
+				FROM #__support_tickets AS t
+				WHERE t.report!=''
+				AND t.type=" . $this->view->type . " AND t.open=0";
+		if ($this->view->group == '_none_') 
+		{
+			$sql .= " AND (t.`group`='' OR t.`group` IS NULL)";
+		} 
+		else if ($this->view->group)
+		{
+			$sql .= " AND t.`group`='{$this->view->group}'";
+		}
+		if ($this->view->start && $end)
+		{
+			$sql .= " AND t.closed>='" . $this->view->start . "-01 00:00:00' AND t.closed<'" . $end . "-01 00:00:00'";
+		}
+		$sql .= " ORDER BY t.closed ASC";
+
 		$this->database->setQuery($sql);
 		$clsd = $this->database->loadObjectList();
 
@@ -1294,8 +1312,6 @@ class SupportControllerTickets extends Hubzero_Controller
 
 		// Only do the following if a comment was posted
 		// otherwise, we're only recording a changelog
-		if ($row->owner) 
-		{
 			$jconfig = JFactory::getConfig();
 
 			// Parse comments for attachments
@@ -1372,6 +1388,40 @@ class SupportControllerTickets extends Hubzero_Controller
 				'after'  => SupportHtml::getStatus($row->open, $row->status)
 			);
 
+			// Add any CCs to the e-mail list
+			$cc = JRequest::getVar('cc', '');
+			if (trim($cc)) 
+			{
+				$cc = explode(',', $cc);
+				foreach ($cc as $acc)
+				{
+					$acc = trim($acc);
+
+					// Is this a username or email address?
+					if (!strstr($acc, '@')) 
+					{
+						// Username or user ID - load the user
+						$acc = (is_string($acc)) ? strtolower($acc) : $acc;
+						$juser = JUser::getInstance($acc);
+						// Did we find an account?
+						if (is_object($juser)) 
+						{
+							$log['cc'][] = $juser->get('username');
+						} 
+						else 
+						{
+							// Move on - nothing else we can do here
+							continue;
+						}
+					// Make sure it's a valid e-mail address
+					} 
+					else if (SupportUtilities::checkValidEmail($acc)) 
+					{
+						$log['cc'][] = $acc;
+					}
+				}
+			}
+
 			$message = array();
 			$message['plaintext']  = '----------------------------'."\r\n";
 			$message['plaintext'] .= strtoupper(JText::_('TICKET')).': '.$row->id."\r\n";
@@ -1407,6 +1457,8 @@ class SupportControllerTickets extends Hubzero_Controller
 			$message['plaintext'] .= $juri->base() . ltrim($sef, DS) . "\r\n";
 
 			//-------
+		if ($row->owner) 
+		{
 			$from['multipart'] = md5(date('U'));
 
 			$rowc->changelog = $log;
@@ -1459,9 +1511,12 @@ class SupportControllerTickets extends Hubzero_Controller
 					'address' => $juser->get('email')
 				);
 			}
+		}
 
 			// Were there any changes?
-			if (count($log['notifications']) > 0) 
+			if (count($log['notifications']) > 0 
+			 || count($log['cc']) > 0 
+			 || count($log['changes']) > 0) 
 			{
 				$rowc->changelog  = json_encode($log);
 
@@ -1478,7 +1533,6 @@ class SupportControllerTickets extends Hubzero_Controller
 					}
 				}
 			}
-		}
 
 		// Trigger any events that need to be called before session stop
 		$dispatcher->trigger('onTicketSubmission', array($row));
@@ -2250,6 +2304,42 @@ class SupportControllerTickets extends Hubzero_Controller
 			$rowc->changelog  = json_encode($log);
 			$rowc->access     = JRequest::getInt('access', 0);
 
+			// Add any CCs to the e-mail list
+			$cc = JRequest::getVar('cc', '');
+			if (trim($cc)) 
+			{
+				$cc = explode(',', $cc);
+				foreach ($cc as $acc)
+				{
+					$acc = trim($acc);
+
+					// Is this a username or email address?
+					if (!strstr($acc, '@')) 
+					{
+						// Username or user ID - load the user
+						$acc = (is_string($acc)) ? strtolower($acc) : $acc;
+						$juser = JUser::getInstance($acc);
+						// Did we find an account?
+						if (is_object($juser)) 
+						{
+							$log['cc'][] = $juser->get('username');
+						} 
+						else 
+						{
+							// Move on - nothing else we can do here
+							continue;
+						}
+					// Make sure it's a valid e-mail address
+					} 
+					else if (SupportUtilities::checkValidEmail($acc)) 
+					{
+						$log['cc'][] = $acc;
+					}
+				}
+			}
+
+			$rowc->changelog  = json_encode($log);
+
 			if ($rowc->check()) 
 			{
 				// If we're only recording a changelog, make it private
@@ -2486,15 +2576,14 @@ class SupportControllerTickets extends Hubzero_Controller
 						}
 					}
 
-	
 					// Add any CCs to the e-mail list
-					$cc = JRequest::getVar('cc', '');
-					if (trim($cc)) 
+					//$cc = JRequest::getVar('cc', '');
+					if (count($log['cc'])) 
 					{
-						$cc = explode(',', $cc);
-						foreach ($cc as $acc)
+						//$cc = explode(',', $cc);
+						foreach ($log['cc'] as $acc)
 						{
-							$acc = trim($acc);
+							//$acc = trim($acc);
 
 							// Is this a username or email address?
 							if (!strstr($acc, '@')) 
@@ -2528,7 +2617,7 @@ class SupportControllerTickets extends Hubzero_Controller
 										'name'    => $juser->get('name'),
 										'address' => $juser->get('email')
 									);
-									$log['cc'][] = $juser->get('username');
+									//$log['cc'][] = $juser->get('username');
 								} 
 								else 
 								{
@@ -2555,7 +2644,7 @@ class SupportControllerTickets extends Hubzero_Controller
 									'name'    => JText::_('[none]'),
 									'address' => $acc
 								);
-								$log['cc'][] = $acc;
+								//$log['cc'][] = $acc;
 							}
 						}
 					}
@@ -2589,7 +2678,6 @@ class SupportControllerTickets extends Hubzero_Controller
 					}
 
 					// Message people watching this ticket, but ONLY if the ticket was NOT marked private
-	
 					if ($rowc->access != 1)
 					{
 						$watch = array_diff($watcher_ids, $watcher_found);
@@ -2599,8 +2687,8 @@ class SupportControllerTickets extends Hubzero_Controller
 						{
 							// when allowing email responses to tickets, we have to loop through recipients individually, each
 							// reply-to address contains encrypted information that is user specific
-			                	        foreach ($watch as $uid)
-        				                {
+							foreach ($watch as $uid)
+							{
 								$user = Hubzero_User_Profile::getInstance($uid);
 								$uidNumber = $user->get('uidNumber');
 								
@@ -2614,7 +2702,6 @@ class SupportControllerTickets extends Hubzero_Controller
 									$this->setError(JText::_('Failed to message watchers.'));
 								}
 							}
-	
 						}
 						else
 						{
@@ -2624,9 +2711,6 @@ class SupportControllerTickets extends Hubzero_Controller
 							}
 						}
 					}
-
-
-
 				}
 			}
 		}
