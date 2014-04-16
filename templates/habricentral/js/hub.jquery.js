@@ -206,10 +206,10 @@ HUB.Base = {
 					if (sizeString && sizeString.match(/\d+x\d+/i)) {
 						var sizeTokens = sizeString.split('x');
 						if (parseInt(sizeTokens[0])) {
-							this.width  = parseInt(sizeTokens[0]) - 20;
+							this.width  = parseInt(sizeTokens[0]);// - 20;
 						}
 						if (parseInt(sizeTokens[1])) {
-							this.height = parseInt(sizeTokens[1]) - 60;
+							this.height = parseInt(sizeTokens[1]);// - 60;
 						}
 					}
 				}
