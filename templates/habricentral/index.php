@@ -14,9 +14,9 @@ else
 	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js');
 }
 
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 
 $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle());
 ?>
@@ -27,7 +27,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 <!--[if IE 9 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie9"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
 	<head>
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo Hubzero_Document::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'comments', 'voting', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'comments', 'voting', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/main.css" />
 		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl ?>/templates/habricentral/css/print.css" />
 
@@ -65,7 +65,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					if (!$juser->get('guest')) {
 						// Find the user's most recent support tickets
 						$database = JFactory::getDBO();
-						$recipient = new Hubzero_Message_Recipient( $database );
+						$recipient = new \Hubzero\Message\Recipient( $database );
 						$rows = $recipient->getUnreadMessages( $juser->get('id'), 0 );
 
 						echo "\t\t\t".'<li id="myaccount"><a href="/members/'.$juser->get('id').'"><span>'.$juser->get('name').'</span></a></li>'."\n";

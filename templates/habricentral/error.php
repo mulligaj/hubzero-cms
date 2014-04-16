@@ -7,9 +7,9 @@ $juser = JFactory::getUser();
 
 $this->template = 'habricentral';
 
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 
 ?>
 <!DOCTYPE html>
@@ -23,7 +23,7 @@ $v = $browser->getBrowserMajorVersion();
 		
 		<title><?php echo $config->getValue('config.sitename') . ' - ' . $this->error->getCode(); ?></title>
 		
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo Hubzero_Document::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications')); /* reset MUST come before all others except fontcons */ ?>" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications')); /* reset MUST come before all others except fontcons */ ?>" />
 		<link rel="stylesheet" href="/templates/<?php echo $this->template; ?>/css/main.css" type="text/css" />
 		<link rel="stylesheet" href="/templates/<?php echo $this->template; ?>/css/error.css" type="text/css" />
 		<link rel="stylesheet" href="/templates/<?php echo $this->template; ?>/html/mod_reportproblems/mod_reportproblems.css" type="text/css" />
@@ -54,9 +54,9 @@ $v = $browser->getBrowserMajorVersion();
 	</head>
 	
  	<body>
-		<?php Hubzero_Module_Helper::displayModules('notices'); ?>
+		<?php \Hubzero\Module\Helper::displayModules('notices'); ?>
 		
-		<?php Hubzero_Module_Helper::displayModules('helppane'); ?>
+		<?php \Hubzero\Module\Helper::displayModules('helppane'); ?>
 		<div id="afterclear">&nbsp;</div>
 		
 		<div id="header">
@@ -71,7 +71,7 @@ $v = $browser->getBrowserMajorVersion();
 					if (!$juser->get('guest')) {
 						// Find the user's most recent support tickets
 						$database = JFactory::getDBO();
-						$recipient = new Hubzero_Message_Recipient( $database );
+						$recipient = new \Hubzero\Message\Recipient( $database );
 						$rows = $recipient->getUnreadMessages( $juser->get('id'), 0 );
 	
 						echo "\t\t\t".'<li id="myaccount"><a href="/members/'.$juser->get('id').'"><span>'.$juser->get('name').'</span></a></li>'."\n";
@@ -85,7 +85,7 @@ $v = $browser->getBrowserMajorVersion();
 				?>
 			</ul>
 		
-			<?php Hubzero_Module_Helper::displayModules('search'); ?>
+			<?php \Hubzero\Module\Helper::displayModules('search'); ?>
 
 			<p id="tab">
 				<a href="/support" title="<?php echo JText::_('Need help? Send a trouble report to our support team.'); ?>">
@@ -96,8 +96,8 @@ $v = $browser->getBrowserMajorVersion();
 	
 		<div id="nav">
 			<h2>Navigation</h2>
-			<?php Hubzero_Module_Helper::displayModules('user3'); ?>
-			<?php Hubzero_Module_Helper::displayModules('introblock'); ?>
+			<?php \Hubzero\Module\Helper::displayModules('user3'); ?>
+			<?php \Hubzero\Module\Helper::displayModules('introblock'); ?>
 			<div class="clear"></div>
 		</div><!-- / #nav -->
 		
@@ -176,9 +176,9 @@ $v = $browser->getBrowserMajorVersion();
 <?php } ?>
 			</div><!-- / #content -->
 
-			<?php Hubzero_Module_Helper::displayModules('footer'); ?>
+			<?php \Hubzero\Module\Helper::displayModules('footer'); ?>
 		</div><!-- / #wrap -->
 
-		<?php Hubzero_Module_Helper::displayModules('endpage'); ?>
+		<?php \Hubzero\Module\Helper::displayModules('endpage'); ?>
 	</body>
 </html>

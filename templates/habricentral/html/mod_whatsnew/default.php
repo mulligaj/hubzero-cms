@@ -31,7 +31,6 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $rows = $this->rows;
 
-ximport('Hubzero_View_Helper_Html');
 ?>
 
 <?php if(count($rows) > 0) : ?>
@@ -39,7 +38,7 @@ ximport('Hubzero_View_Helper_Html');
 		<?php foreach($rows as $row) : ?>
 			<li><div class="item">
 				<h4 class="new-title">
-					<a href="<?php echo JRoute::_($row->href); ?>"><?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($row->title), 200, 0); ?></a>
+					<a href="<?php echo JRoute::_($row->href); ?>"><?php echo Hubzero\Utility\String::truncate(stripslashes($row->title), 200); ?></a>
 				</h4>
 				<p>
 				<span class="new-details">

@@ -122,8 +122,7 @@ class modBillboardsStatic
 		if (!$this->multiple_instances)
 		{
 			// Push some CSS to the template
-			ximport('Hubzero_Document');
-			Hubzero_Document::addModuleStylesheet('mod_billboards');
+			\Hubzero\Document\Assets::addModuleStylesheet('mod_billboards');
 			if(!JPluginHelper::isEnabled('system', 'jquery'))
 			{
 				$jdocument->addScript('https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js');
