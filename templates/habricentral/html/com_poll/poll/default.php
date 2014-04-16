@@ -6,11 +6,11 @@ $pagetitle = ($pagetitle) ? $pagetitle : JText::_('Polls');
 
 $app = JFactory::getApplication();
 $pathway = $app->getPathway();
+
 if (count($pathway->getPathWay()) <= 0) {
 	$pathway->addItem($this->escape($pagetitle),'index.php?option=com_polls');
 } else {
 	$pathway->setItemName(0,$pagetitle);
-	$pathway->_pathway[$id]->link = 'index.php?option=com_polls';
 }
 if (trim($this->poll->title) != '') {
 	$pathway->addItem($this->poll->title,'index.php?option=com_polls&id='.$this->poll->id);
