@@ -28,6 +28,8 @@
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
+use \Hubzero\Utility\Sanitize;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 ?>
@@ -68,7 +70,7 @@ if ($this->report) {
 					?></h4>
 					<?php echo ($this->report->subject) ? '<p><strong>'.stripslashes($this->report->subject).'</strong></p>' : ''; ?>
 					<blockquote cite="<?php echo ($this->report->anon != 0) ? JText::_('ANONYMOUS') : $name; ?>">
-						<p><?php echo $this->escape(stripslashes($this->report->text)); ?></p>
+						<p><?php echo Sanitize::html($this->report->text); ?></p>
 					</blockquote>
 				</div>
 			</div>

@@ -86,6 +86,7 @@ class plgMembersResume extends JPlugin
 		if ($user->get('id') == $member->get('uidNumber') || $this->isEmployer($user, $member))
 		{
 			$areas['resume'] = JText::_('PLG_MEMBERS_RESUME');
+			$areas['icon'] = 'f016';
 		}
 
 		return $areas;
@@ -95,7 +96,7 @@ class plgMembersResume extends JPlugin
 	 * Check if a user has employer authorization
 	 * 
 	 * @param      object $user       JUser
-	 * @param      object $member     Hubzero_User_PRofile
+	 * @param      object $member     \Hubzero\User\Profile
 	 * @return     integer 1 = authorized, 0 = not
 	 */
 	public function isEmployer($user=null, $member=null)
@@ -127,9 +128,7 @@ class plgMembersResume extends JPlugin
 		// check if they belong to a dedicated admin group
 		if ($this->config->get('admingroup')) 
 		{
-			ximport('Hubzero_User_Profile');
-
-			$profile = Hubzero_User_Profile::getInstance($juser->get('id'));
+			$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 			$ugs = $profile->getGroups('all');
 			if ($ugs && count($ugs) > 0) 
 			{
@@ -165,9 +164,7 @@ class plgMembersResume extends JPlugin
 		// check if they belong to a dedicated admin group
 		if ($this->config->get('admingroup')) 
 		{
-			ximport('Hubzero_User_Profile');
-
-			$profile = Hubzero_User_Profile::getInstance($juser->get('id'));
+			$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 			$ugs = $profile->getGroups('all');
 			if ($ugs && count($ugs) > 0) 
 			{
@@ -212,8 +209,8 @@ class plgMembersResume extends JPlugin
 		}
 
 		$document = JFactory::getDocument();
-		/*ximport('Hubzero_Document');
-		Hubzero_Document::addComponentScript('com_jobs');
+		/*
+		\Hubzero\Document\Assets::addComponentScript('com_jobs');
 		*/
 
 		// The output array we're returning
@@ -272,7 +269,7 @@ class plgMembersResume extends JPlugin
 	 * 
 	 * @param      object  $database JDatabase
 	 * @param      string  $option   Component name
-	 * @param      object  $member   Hubzero_User_PRofile
+	 * @param      object  $member   \Hubzero\User\Profile
 	 * @param      string  $task     Task to perform
 	 * @param      integer $emp      Is user employer?
 	 * @return     string
@@ -332,7 +329,7 @@ class plgMembersResume extends JPlugin
 	 * 
 	 * @param      object  $database JDatabase
 	 * @param      string  $option   Component name
-	 * @param      object  $member   Hubzero_User_PRofile
+	 * @param      object  $member   \Hubzero\User\Profile
 	 * @param      integer $emp      Is user employer?
 	 * @return     string
 	 */
@@ -377,11 +374,9 @@ class plgMembersResume extends JPlugin
 	 */
 	public function getThumb($uid)
 	{
-		ximport('Hubzero_User_Profile_Helper');
+		$profile = \Hubzero\User\Profile::getInstance($uid);
 
-		$profile = Hubzero_User_Profile::getInstance($uid);
-
-		return Hubzero_User_Profile_Helper::getMemberPhoto($profile);
+		return \Hubzero\User\Profile\Helper::getMemberPhoto($profile);
 	}
 
 	/**
@@ -426,8 +421,7 @@ class plgMembersResume extends JPlugin
 		}
 
 		// Add styles and scripts
-		ximport('Hubzero_Document');
-		Hubzero_Document::addComponentStylesheet('com_jobs');
+		\Hubzero\Document\Assets::addComponentStylesheet('com_jobs');
 
 		$jt = new JobType($database);
 		$jc = new JobCategory($database);
@@ -450,8 +444,7 @@ class plgMembersResume extends JPlugin
 		$jobstats = new JobStats($database);
 		$stats = $jobstats->getStats($member->get('uidNumber'), 'seeker');
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => $this->_name,
@@ -593,8 +586,7 @@ class plgMembersResume extends JPlugin
 		$base_path = $this->params->get('webpath', '/site/members');
 		$base_path = DS . trim($base_path, DS);
 
-		ximport('Hubzero_View_Helper_Html');
-		$dir = Hubzero_View_Helper_Html::niceidformat($uid);
+		$dir = \Hubzero\Utility\String::pad($uid);
 
 		$listdir = $base_path . DS . $dir;
 
@@ -616,7 +608,7 @@ class plgMembersResume extends JPlugin
 	 * 
 	 * @param      object $database JDatabase
 	 * @param      string $option   Component name
-	 * @param      object $member   Hubzero_User_PRofile
+	 * @param      object $member   \Hubzero\User\Profile
 	 * @return     string
 	 */
 	public function upload($database, $option, $member)
@@ -722,7 +714,7 @@ class plgMembersResume extends JPlugin
 	 * 
 	 * @param      object  $database JDatabase
 	 * @param      string  $option   Component name
-	 * @param      object  $member   Hubzero_User_PRofile
+	 * @param      object  $member   \Hubzero\User\Profile
 	 * @param      integer $emp      Is user employer?
 	 * @return     string
 	 */
@@ -929,9 +921,6 @@ class plgMembersResume extends JPlugin
 	 */
 	protected function download($member)
 	{
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		$database = JFactory::getDBO();
 		$juser    = JFactory::getUser();
 
@@ -966,7 +955,7 @@ class plgMembersResume extends JPlugin
 		$default_title .= substr($resume->filename, strripos($resume->filename, '.'));;
 
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($file);
 
 		// record view

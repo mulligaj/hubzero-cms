@@ -31,26 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Groups Plugin class for blog entries
  */
-class plgGroupsBlog extends Hubzero_Plugin
+class plgGroupsBlog extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -63,7 +54,8 @@ class plgGroupsBlog extends Hubzero_Plugin
 			'name' => $this->_name,
 			'title' => JText::_('PLG_GROUPS_BLOG'),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f075'
 		);
 		return $area;
 	}
@@ -161,13 +153,12 @@ class plgGroupsBlog extends Hubzero_Plugin
 			$this->database   = JFactory::getDBO();
 
 			//get the plugins params
-			$p = new Hubzero_Plugin_Params($this->database);
+			$p = new \Hubzero\Plugin\Params($this->database);
 			$this->params = $p->getParams($group->gidNumber, 'groups', $this->_name);
 
 			//push the css to the doc
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('groups', $this->_name);
-			Hubzero_Document::addPluginScript('groups', $this->_name);
+			\Hubzero\Document\Assets::addPluginStylesheet('groups', $this->_name);
+			\Hubzero\Document\Assets::addPluginScript('groups', $this->_name);
 
 			// Append to document the title
 			$document = JFactory::getDocument();
@@ -302,8 +293,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 	 */
 	private function _browse()
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -455,10 +445,10 @@ class plgGroupsBlog extends Hubzero_Plugin
 
 				// Strip html from feed item description text
 				$item->description = $row->content('parsed');
-				$item->description = html_entity_decode(Hubzero_View_Helper_Html::purifyText($item->description));
+				$item->description = html_entity_decode(\Hubzero\Utility\Sanitize::stripAll($item->description));
 				if ($this->params->get('feed_entries') == 'partial') 
 				{
-					$item->description = Hubzero_View_Helper_Html::shortenText($item->description, 300, 0);
+					$item->description = \Hubzero\Utility\String::truncate($item->description, 300);
 				}
 
 				// Load individual item creator class
@@ -516,8 +506,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 	 */
 	private function _entry()
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -627,8 +616,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 		}
 
 		// Instantiate view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -669,9 +657,9 @@ class plgGroupsBlog extends Hubzero_Plugin
 			}
 		}
 
-		Hubzero_Document::addSystemScript('jquery.timepicker');
-		Hubzero_Document::addSystemStylesheet('jquery.datepicker.css');
-		Hubzero_Document::addSystemStylesheet('jquery.timepicker.css');
+		\Hubzero\Document\Assets::addSystemScript('jquery.timepicker');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.datepicker.css');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.timepicker.css');
 
 		return $view->loadTemplate();
 	}
@@ -726,7 +714,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 		
 		// Instantiate model
 		$row = $this->model->entry($entry['id']);
-
+		
 		// Bind data
 		if (!$row->bind($entry)) 
 		{
@@ -736,7 +724,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 
 		if (!$row->get('id')) 
 		{
-			$item = $this->model->entry($row->alias);
+			$item = $this->model->entry($row->get('alias'));
 			if ($item->get('id'))
 			{
 				$this->setError(JText::_('PLG_GROUPS_BLOG_ERROR_ALIAS_EXISTS'));
@@ -811,8 +799,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 			}
 
 			// Output HTML
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => $this->_name,
@@ -871,7 +858,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 		}
 
 		// Incoming
-		$comment = JRequest::getVar('comment', array(), 'post');
+		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
 
 		// Instantiate a new comment object and pass it the data
 		$row = new BlogModelComment($comment['id']);
@@ -950,8 +937,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 		}
 
 		// Output HTML
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -964,7 +950,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 		$view->config     = $this->params;
 		$view->model      = $this->model;
 
-		$view->settings   = new Hubzero_Plugin_Params($this->database);
+		$view->settings   = new \Hubzero\Plugin\Params($this->database);
 		$view->settings->loadPlugin($this->group->gidNumber, 'groups', 'blog');
 
 		$view->authorized = $this->authorized;
@@ -1002,7 +988,7 @@ class plgGroupsBlog extends Hubzero_Plugin
 
 		$settings = JRequest::getVar('settings', array(), 'post');
 
-		$row = new Hubzero_Plugin_Params($this->database);
+		$row = new \Hubzero\Plugin\Params($this->database);
 		if (!$row->bind($settings)) 
 		{
 			$this->setError($row->getError());

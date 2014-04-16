@@ -31,12 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Tool_Version');
-ximport('Hubzero_Tool');
-ximport('Hubzero_Group');
-ximport('Hubzero_Trac_Project');
-ximport('Hubzero_Controller');
-
 include_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'helpers' . DS . 'helper.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'tool.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'version.php');
@@ -46,7 +40,7 @@ include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_r
 /**
  * Controller class for contributing a tool
  */
-class ToolsControllerScreenshots extends Hubzero_Controller
+class ToolsControllerScreenshots extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -717,8 +711,8 @@ class ToolsControllerScreenshots extends Hubzero_Controller
 	 */
 	public function transfer($sourceid, $destid, $rid)
 	{
-		$xlog = Hubzero_Factory::getLogger();
-		$xlog->logDebug(__FUNCTION__ . '()');
+		$xlog = JFactory::getLogger();
+		$xlog->debug(__FUNCTION__ . '()');
 
 		// Get resource information
 		$resource = new ResourcesResource($this->database);
@@ -748,15 +742,15 @@ class ToolsControllerScreenshots extends Hubzero_Controller
 				return false;
 			}
 		}
-		$xlog->logDebug(__FUNCTION__ . "() $src");
+		$xlog->debug(__FUNCTION__ . "() $src");
 
 		// do we have files to transfer?
 		$files = JFolder::files($src, '.', false, true, array());
-		$xlog->logDebug(__FUNCTION__ . "() $files");
+		$xlog->debug(__FUNCTION__ . "() $files");
 		if (!empty($files)) 
 		{
 			// Copy directory
-			$xlog->logDebug(__FUNCTION__ . "() copying $src to $dest");
+			$xlog->debug(__FUNCTION__ . "() copying $src to $dest");
 			if (!JFolder::copy($src, $dest, '', true)) 
 			{
 				return false;
@@ -766,12 +760,12 @@ class ToolsControllerScreenshots extends Hubzero_Controller
 				// Update screenshot information for this resource
 				$ss->updateFiles($rid, $sourceid, $destid, $copy=1);
 
-				$xlog->logDebug(__FUNCTION__ . '() updated files');
+				$xlog->debug(__FUNCTION__ . '() updated files');
 				return true;
 			}
 		}
 
-		$xlog->logDebug(__FUNCTION__ . '() done');
+		$xlog->debug(__FUNCTION__ . '() done');
 
 		return true;
 	}
@@ -979,9 +973,8 @@ class ToolsControllerScreenshots extends Hubzero_Controller
 		// otherwise superadmins can only act if they are also a member of the component admin group
 		if (($admingroup = trim($this->config->get('admingroup', '')))) 
 		{
-			ximport('Hubzero_User_Helper');
 			// Check if they're a member of admin group
-			$ugs = Hubzero_User_Helper::getGroups($this->juser->get('id'));
+			$ugs = \Hubzero\User\Helper::getGroups($this->juser->get('id'));
 			if ($ugs && count($ugs) > 0) 
 			{
 				$admingroup = strtolower($admingroup);

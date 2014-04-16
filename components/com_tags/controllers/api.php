@@ -39,7 +39,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tags' . DS . 'models' . 
 /**
  * API controller class for support tickets
  */
-class TagsControllerApi extends Hubzero_Api_Controller
+class TagsControllerApi extends \Hubzero\Component\ApiController
 {
 	/**
 	 * Execute a request
@@ -64,11 +64,7 @@ class TagsControllerApi extends Hubzero_Api_Controller
 			case 'remove':  $this->removeTask();  break;
 			case 'autocomplete':  $this->tagsTask();  break;
 			default:
-				$this->errorMessage(
-					500, 
-					JText::_('Invalid task.'), 
-					JRequest::getWord('format', 'json')
-				);
+				$this->serviceTask();
 			break;
 		}
 	}
@@ -96,6 +92,75 @@ class TagsControllerApi extends Hubzero_Api_Controller
 		//add error to message body
 		$this->setMessageType(JRequest::getWord('format', $format));
 		$this->setMessage($object);
+	}
+
+	/**
+	 * Documents available API tasks and their options
+	 *
+	 * @return  void
+	 */
+	public function serviceTask()
+	{
+		$response = new stdClass();
+		$response->component = 'tags';
+		$response->tasks = array(
+			'tags' => array(
+				'description' => JText::_('Get a list of tags.'),
+				'parameters'  => array(
+					'search' => array(
+						'description' => JText::_('A word or phrase to search for.'),
+						'type'        => 'string',
+						'default'     => 'null'
+					),
+					'scope' => array(
+						'description' => JText::_('Object type to retrieve tags for (ex: resource, answer, etc).'),
+						'type'        => 'string',
+						'default'     => 'null',
+						'requires'    => 'scope_id'
+					),
+					'scope_id' => array(
+						'description' => JText::_('ID of object to retrieve tags for.'),
+						'type'        => 'integer',
+						'default'     => 'null',
+						'requires'    => 'scope'
+					),
+					'sort' => array(
+						'description' => JText::_('Sorting to be applied to the records.'),
+						'type'        => 'string',
+						'default'     => 'date',
+						'accepts'     => array('raw_tag', 'id')
+					),
+					'sortDir' => array(
+						'description' => JText::_('Direction to sort records by.'),
+						'type'        => 'string',
+						'default'     => 'desc',
+						'accepts'     => array('asc', 'desc')
+					),
+					'limit' => array(
+						'description' => JText::_('Number of result to return.'),
+						'type'        => 'integer',
+						'default'     => '25'
+					),
+					'limitstart' => array(
+						'description' => JText::_('Number of where to start returning results.'),
+						'type'        => 'integer',
+						'default'     => '0'
+					),
+				),
+			),
+			'tag' => array(
+				'description' => JText::_('Get information for a tag.'),
+				'parameters'  => array(
+					'tag' => array(
+						'description' => JText::_('The tag to retrieve information for.'),
+						'type'        => 'string',
+						'default'     => 'null'
+					),
+				),
+			),
+		);
+
+		$this->setMessage($response);
 	}
 
 	/**
@@ -299,7 +364,7 @@ class TagsControllerApi extends Hubzero_Api_Controller
 
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 
 		//make sure we have a user
 		if ($result === false)
@@ -346,8 +411,7 @@ class TagsControllerApi extends Hubzero_Api_Controller
 		$ticket->open      = 1;
 		$ticket->status    = 0;
 
-		ximport('Hubzero_Environment');
-		$ticket->ip        = Hubzero_Environment::ipAddress();
+		$ticket->ip        = JRequest::ip();
 		$ticket->hostname  = gethostbyaddr(JRequest::getVar('REMOTE_ADDR','','server'));
 
 		// Check the data

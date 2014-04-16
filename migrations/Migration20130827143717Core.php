@@ -1,25 +1,27 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for renaming metrics_author_cluster if it exists, creating it otherwise
  **/
-class Migration20130827143717Core extends Hubzero_Migration
+class Migration20130827143717Core extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
-		if ($db->tableExists('metrics_author_cluster') && !$db->tableExists('#__metrics_author_cluster'))
+		if ($this->db->tableExists('metrics_author_cluster') && !$this->db->tableExists('#__metrics_author_cluster'))
 		{
 			$query = "RENAME TABLE `metrics_author_cluster` TO `#__metrics_author_cluster`;";
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
-		else if (!$db->tableExists('metrics_author_cluster') && !$db->tableExists('#__metrics_author_cluster'))
+		else if (!$this->db->tableExists('metrics_author_cluster') && !$this->db->tableExists('#__metrics_author_cluster'))
 		{
 			$query = "CREATE TABLE `#__metrics_author_cluster` (
 						`authorid` varchar(60) NOT NULL DEFAULT '0',
@@ -28,21 +30,21 @@ class Migration20130827143717Core extends Hubzero_Migration
 						`schools` int(11) DEFAULT '0',
 						PRIMARY KEY (`authorid`)
 						) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
-		if (!$db->tableExists('metrics_author_cluster') && $db->tableExists('#__metrics_author_cluster'))
+		if (!$this->db->tableExists('metrics_author_cluster') && $this->db->tableExists('#__metrics_author_cluster'))
 		{
 			$query = "RENAME TABLE `#__metrics_author_cluster` TO `metrics_author_cluster`;";
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 }

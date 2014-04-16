@@ -50,12 +50,8 @@ if ($this->direction == 'rtl') {
 	$doc->addStyleSheet('templates/'.$this->template.'/css/common/rtl.css');
 }
 
-// Load debug CSS if enabled
-if (JPluginHelper::isEnabled('system', 'debug')) {
-	$doc->addStyleSheet('templates/' . $this->template . '/css/common/debug.css');
-}
-
 $doc->addScript('templates/' . $this->template . '/js/index.js');
+/*
 $doc->addScriptDeclaration('
 	var sTimeout = ((' . $app->getCfg('lifetime') . '-1)*60*1000);
 	function sessionWarning() {
@@ -72,11 +68,11 @@ $doc->addScriptDeclaration('
 		sessionWarning.periodical(sTimeout);
 	});
 ');
+*/
 
-ximport('Hubzero_Browser');
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 
 $juser = JFactory::getUser();
 ?>

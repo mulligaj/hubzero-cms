@@ -34,7 +34,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Abstract model for forums
  */
-class ForumModelAbstract extends \Hubzero\Model
+class ForumModelAbstract extends \Hubzero\Base\Model
 {
 	/**
 	 * JUser
@@ -49,6 +49,13 @@ class ForumModelAbstract extends \Hubzero\Model
 	 * @var object
 	 */
 	protected $_config = NULL;
+
+	/**
+	 * Scope adapter
+	 * 
+	 * @var object
+	 */
+	protected $_adapter = null;
 
 	/**
 	 * Return a formatted timestamp
@@ -86,12 +93,17 @@ class ForumModelAbstract extends \Hubzero\Model
 	 */
 	public function creator($property=null)
 	{
-		if (!isset($this->_creator) || !is_object($this->_creator))
+		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
-			$this->_creator = JUser::getInstance($this->get('created_by'));
+			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+			if (!$this->_creator)
+			{
+				$this->_creator = new \Hubzero\User\Profile();
+			}
 		}
-		if ($property && $this->_creator instanceof JUser)
+		if ($property)
 		{
+			$property = ($property == 'id' ? 'uidNumber' : $property);
 			return $this->_creator->get($property);
 		}
 		return $this->_creator;
@@ -115,6 +127,34 @@ class ForumModelAbstract extends \Hubzero\Model
 			return $this->_config->get($key);
 		}
 		return $this->_config;
+	}
+
+	/**
+	 * Create an adapter object based on scope
+	 * 
+	 * @return  object
+	 */
+	public function _adapter()
+	{
+		if (!$this->get('scope'))
+		{
+			$this->set('scope', 'site');
+		}
+
+		$scope = strtolower($this->get('scope'));
+		$cls = 'ForumModelAdapter' . ucfirst($scope);
+
+		if (!class_exists($cls))
+		{
+			$path = __DIR__ . '/adapters/' . $scope . '.php';
+			if (!is_file($path))
+			{
+				throw new \InvalidArgumentException(\JText::sprintf('Invalid scope of "%s"', $scope));
+			}
+			include_once($path);
+		}
+
+		return new $cls($this->get('scope_id'));
 	}
 }
 

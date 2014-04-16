@@ -325,6 +325,11 @@ class CoursesTableCourse extends JTable
 			$where[] = "c.state=" . $this->_db->Quote($filters['state']);
 		}
 
+		if (isset($filters['group_id']) && $filters['group_id'] >= 0) 
+		{
+			$where[] = "c.group_id=" . $this->_db->Quote($filters['group_id']);
+		}
+
 		if (isset($filters['index']) && $filters['index'] != '') 
 		{
 			$where[] = "LOWER(LEFT(c.title, 1)) = " . $this->_db->Quote(strtolower($filters['index']));
@@ -353,7 +358,7 @@ class CoursesTableCourse extends JTable
 
 		if (isset($filters['tag']) && $filters['tag'] != '') 
 		{
-			$query .= " GROUP BY c.id HAVING uniques=" . count($tags);
+			$query .= " GROUP BY c.id HAVING uniques=" . (isset($filters['tag_any']) && $filters['tag_any'] ? '1' : count($tags));
 		}
 
 		if (isset($filters['limit']) && $filters['limit'] != 0) 

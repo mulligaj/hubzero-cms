@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Group');
-
 /**
  * Table class for wishlist owner group
  */
@@ -82,8 +80,6 @@ class WishlistOwnerGroup extends JTable
 	 */
 	public function get_owner_groups($listid, $controlgroup='', $wishlist=null, $native=0, $groups = array())
 	{
-		ximport('Hubzero_Group');
-
 		if ($listid === NULL) 
 		{
 			return false;
@@ -110,7 +106,7 @@ class WishlistOwnerGroup extends JTable
 		// if primary list, add all site admins
 		if ($controlgroup && $wishlist->category == 'general') 
 		{
-			$instance = Hubzero_Group::getInstance($controlgroup);
+			$instance = \Hubzero\User\Group::getInstance($controlgroup);
 
 			if (is_object($instance)) 
 			{
@@ -142,7 +138,7 @@ class WishlistOwnerGroup extends JTable
 			{
 				foreach ($wishgroups as $wg)
 				{
-					if (Hubzero_Group::exists($wg->groupid)) 
+					if (\Hubzero\User\Group::exists($wg->groupid)) 
 					{
 						$groups[] = $wg->groupid;
 					}
@@ -165,8 +161,6 @@ class WishlistOwnerGroup extends JTable
 	 */
 	 public function delete_owner_group($listid, $groupid, $admingroup)
 	 {
-	 	ximport('Hubzero_Group');
-
 		if ($listid === NULL or $groupid === NULL) 
 		{
 			return false;
@@ -175,7 +169,7 @@ class WishlistOwnerGroup extends JTable
 		$nativegroups = $this->get_owner_groups($listid, $admingroup, '', 1);
 
 		// cannot delete "native" owners (e.g. tool dev group)
-		if (Hubzero_Group::exists($groupid) 
+		if (\Hubzero\User\Group::exists($groupid) 
 		 && !in_array($groupid, $nativegroups, true)) 
 		{
 			$query = "DELETE FROM $this->_tbl WHERE wishlist=" . $this->_db->Quote($listid) . " AND groupid=" . $this->_db->Quote($groupid);
@@ -206,7 +200,7 @@ class WishlistOwnerGroup extends JTable
 		{
 			foreach ($newgroups as $ng)
 			{
-				$instance = Hubzero_Group::getInstance($ng);
+				$instance = \Hubzero\User\Group::getInstance($ng);
 				if (is_object($instance)) 
 				{
 					$gid = $instance->get('gidNumber');

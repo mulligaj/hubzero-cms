@@ -1,18 +1,15 @@
 <?php 
 defined('_JEXEC') or die('Restricted access');
 
-	ximport('Hubzero_User_Profile');
-	ximport('Hubzero_User_Profile_Helper');
-
 	$juser = JFactory::getUser();
 
 	$cls = isset($this->cls) ? $this->cls : 'odd';
 
 	$name = JText::_('PLG_MEMBERS_BLOG_ANONYMOUS');
-	$huser = new Hubzero_User_Profile;
+	$huser = new \Hubzero\User\Profile;
 	if (!$this->comment->get('anonymous')) 
 	{
-		$huser = Hubzero_User_Profile::getInstance($this->comment->get('created_by'));
+		$huser = \Hubzero\User\Profile::getInstance($this->comment->get('created_by'));
 		if (is_object($huser) && $huser->get('name')) 
 		{
 			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $this->comment->get('created_by')) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
@@ -31,7 +28,7 @@ defined('_JEXEC') or die('Restricted access');
 	<li class="comment <?php echo $cls; ?>" id="c<?php echo $this->comment->get('id'); ?>">
 		<p class="comment-member-photo">
 			<a class="comment-anchor" name="c<?php echo $this->comment->get('id'); ?>"></a>
-			<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
+			<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
 		</p>
 		<div class="comment-content">
 			<p class="comment-title">
@@ -98,8 +95,7 @@ defined('_JEXEC') or die('Restricted access');
 						<label for="comment_<?php echo $this->comment->get('id'); ?>_content">
 							<span class="label-text"><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_COMMENTS'); ?></span>
 							<?php
-							ximport('Hubzero_Wiki_Editor');
-							echo Hubzero_Wiki_Editor::getInstance()->display('comment[content]', 'comment_' . $this->comment->get('id') . '_content', '', 'minimal no-footer', '35', '4');
+							echo JFactory::getEditor()->display('comment[content]', '', '', '', 35, 4, false, 'comment_' . $this->comment->get('id') . '_content', null, null, array('class' => 'minimal no-footer'));
 							?>
 						</label>
 
@@ -119,23 +115,16 @@ defined('_JEXEC') or die('Restricted access');
 		<?php
 		if ($this->depth < $this->config->get('comments_depth', 3)) 
 		{
-			$view = new Hubzero_Plugin_View(
-				array(
-					'folder'  => 'members',
-					'element' => 'blog',
-					'name'    => 'comments',
-					'layout'  => '_list'
-				)
-			);
-			$view->parent     = $this->comment->get('id');
-			$view->option     = $this->option;
-			$view->comments   = $this->comment->replies();
-			$view->config     = $this->config;
-			$view->depth      = $this->depth;
-			$view->cls        = $cls;
-			$view->base       = $this->base;
-			$view->member     = $this->member;
-			$view->display();
+			$this->view('_list')
+			     ->set('parent', $this->comment->get('id'))
+			     ->set('option', $this->option)
+			     ->set('comments', $this->comment->replies())
+			     ->set('config', $this->config)
+			     ->set('depth', $this->depth)
+			     ->set('cls', $cls)
+			     ->set('base', $this->base)
+			     ->set('member', $this->member)
+			     ->display();
 		}
 		?>
 	</li>

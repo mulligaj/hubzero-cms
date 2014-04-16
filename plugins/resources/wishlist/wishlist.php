@@ -127,7 +127,6 @@ class plgResourcesWishlist extends JPlugin
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.php');
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.rank.php');
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.attachment.php');
-		ximport('Hubzero_View_Helper_Html');
 		require_once(JPATH_ROOT . DS . 'components' . DS . $option . DS . 'controllers' . DS . 'wishlist.php');
 
 		// Configure controller
@@ -198,8 +197,8 @@ class plgResourcesWishlist extends JPlugin
 
 			if ($rtrn != 'metadata') 
 			{
-				//push the stylesheet to the view
-				Hubzero_Document::addPluginStylesheet('groups', 'wishlist');
+				// Add the CSS to the template
+				\Hubzero\Document\Assets::addPluginStylesheet('groups', 'wishlist');
 
 				// Get wishes
 				$wishlist->items = $objWish->get_wishes($wishlist->id, $filters, $admin, $juser);
@@ -215,8 +214,7 @@ class plgResourcesWishlist extends JPlugin
 				}
 				// HTML output
 				// Instantiate a view
-				ximport('Hubzero_Plugin_View');
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'  => 'resources',
 						'element' => 'wishlist',
@@ -248,8 +246,7 @@ class plgResourcesWishlist extends JPlugin
 		// Build the HTML meant for the "about" tab's metadata overview
 		if ($rtrn == 'all' || $rtrn == 'metadata') 
 		{
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'resources',
 					'element' => 'wishlist',

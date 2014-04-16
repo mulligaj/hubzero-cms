@@ -31,14 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-ximport('Hubzero_User_Profile');
-ximport('Hubzero_Bank');
-
 /**
  * Members controller class for user points
  */
-class MembersControllerPoints extends Hubzero_Controller
+class MembersControllerPoints extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display an overview of point earnings
@@ -51,7 +47,7 @@ class MembersControllerPoints extends Hubzero_Controller
 		$this->database->setQuery("SELECT * FROM #__users_points ORDER BY earnings DESC, balance DESC LIMIT 15");
 		$this->view->rows = $this->database->loadObjectList();
 
-		$BT = new Hubzero_Bank_Transaction($this->database);
+		$BT = new \Hubzero\Bank\Transaction($this->database);
 
 		$thismonth = JFactory::getDate()->format('Y-m');
 		$lastmonth = JFactory::getDate(time() - (32 * 24 * 60 * 60))->format('Y-m');
@@ -221,7 +217,7 @@ class MembersControllerPoints extends Hubzero_Controller
 	{
 		if (($uid = JRequest::getInt('uid', 0))) 
 		{
-			$this->view->row = new Hubzero_Bank_Account($this->database);
+			$this->view->row = new \Hubzero\Bank\Account($this->database);
 			$this->view->row->load_uid($uid);
 
 			if (!$this->view->row->balance) 
@@ -276,7 +272,7 @@ class MembersControllerPoints extends Hubzero_Controller
 
 		$id = JRequest::getInt('id', 0);
 
-		$row = new Hubzero_Bank_Account($this->database);
+		$row = new \Hubzero\Bank\Account($this->database);
 		if (!$row->bind($_POST)) 
 		{
 			JError::raiseError(500, $row->getError());
@@ -315,7 +311,7 @@ class MembersControllerPoints extends Hubzero_Controller
 
 			$data['balance'] = $row->balance;
 
-			$BT = new Hubzero_Bank_Transaction($this->database);
+			$BT = new \Hubzero\Bank\Transaction($this->database);
 			if ($data['description'] == '') 
 			{
 				$data['description'] = 'Reason unspecified';
@@ -459,7 +455,7 @@ class MembersControllerPoints extends Hubzero_Controller
 		$when = JFactory::getDate()->toSql();
 
 		// make sure this function was not already run
-		$MH = new Hubzero_Bank_MarketHistory($this->database);
+		$MH = new \Hubzero\Bank\MarketHistory($this->database);
 		$duplicate = $MH->getRecord($ref, $action, $category, '', $data['description']);
 
 		if ($data['amount'] && $data['description'] && $data['users']) 
@@ -473,10 +469,10 @@ class MembersControllerPoints extends Hubzero_Controller
 
 				foreach ($users as $user)
 				{
-					$validuser = Hubzero_User_Profile::getInstance($user);
+					$validuser = \Hubzero\User\Profile::getInstance($user);
 					if ($user && $validuser) 
 					{
-						$BTL = new Hubzero_Bank_Teller($this->database, $user);
+						$BTL = new \Hubzero\Bank\Teller($this->database, $user);
 						switch ($data['type'])
 						{
 							case 'withdraw':
@@ -490,7 +486,7 @@ class MembersControllerPoints extends Hubzero_Controller
 				}
 
 				// Save log
-				$MH = new Hubzero_Bank_MarketHistory($this->database);
+				$MH = new \Hubzero\Bank\MarketHistory($this->database);
 				$data['itemid']       = $log['ref'];
 				$data['date']         = JFactory::getDate()->toSql();
 				$data['market_value'] = $data['amount'];
@@ -555,7 +551,7 @@ class MembersControllerPoints extends Hubzero_Controller
 		$resmsg = 'Royalties on Resources for '.$curyear.' were distributed successfully.';
 
 		// Make sure we distribute royalties only once/ month
-		$MH = new Hubzero_Bank_MarketHistory($this->database);
+		$MH = new \Hubzero\Bank\MarketHistory($this->database);
 		$royaltyAnswers = $MH->getRecord('', $action, 'answers', $curyear, $this->_message);
 		$royaltyReviews = $MH->getRecord('', $action, 'reviews', $curyear, $rmsg);
 		$royaltyResources = $MH->getRecord('', $action, 'resources', $curyear, $resmsg);
@@ -589,7 +585,7 @@ class MembersControllerPoints extends Hubzero_Controller
 				// make a record of royalty payment
 				if (intval($accumulated) > 0) 
 				{
-					$MH = new Hubzero_Bank_MarketHistory($this->database);
+					$MH = new \Hubzero\Bank\MarketHistory($this->database);
 					$data['itemid']       = $ref;
 					$data['date']         = JFactory::getDate()->toSql();
 					$data['market_value'] = $accumulated;
@@ -655,7 +651,7 @@ class MembersControllerPoints extends Hubzero_Controller
 			// make a record of royalty payment
 			if (intval($accumulated) > 0) 
 			{
-				$MH = new Hubzero_Bank_MarketHistory($this->database);
+				$MH = new \Hubzero\Bank\MarketHistory($this->database);
 				$data['itemid']       = $ref;
 				$data['date']         = JFactory::getDate()->toSql();
 				$data['market_value'] = $accumulated;
@@ -705,7 +701,7 @@ class MembersControllerPoints extends Hubzero_Controller
 			// make a record of royalty payment
 			if (intval($accumulated) > 0) 
 			{
-				$MH = new Hubzero_Bank_MarketHistory($this->database);
+				$MH = new \Hubzero\Bank\MarketHistory($this->database);
 				$data['itemid']       = $ref;
 				$data['date']         = JFactory::getDate()->toSql();
 				$data['market_value'] = $accumulated;

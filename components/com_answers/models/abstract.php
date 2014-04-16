@@ -34,7 +34,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Base class for Answers models to extend
  */
-class AnswersModelAbstract extends \Hubzero\Model
+class AnswersModelAbstract extends \Hubzero\Base\Model
 {
 	/**
 	 * Item scope
@@ -92,9 +92,13 @@ class AnswersModelAbstract extends \Hubzero\Model
 	 */
 	public function creator($property=null)
 	{
-		if (!($this->_creator instanceof Hubzero_User_Profile))
+		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
-			$this->_creator = Hubzero_User_Profile::getInstance($this->get('created_by'));
+			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+			if (!$this->_creator)
+			{
+				$this->_creator = new \Hubzero\User\Profile();
+			}
 		}
 		if ($property)
 		{

@@ -70,7 +70,8 @@ class plgGroupsMemberOptions extends JPlugin
 			'name' => 'memberoptions',
 			'title' => JText::_('GROUP_MEMBEROPTIONS'),
 			'default_access' => 'registered', 
-			'display_menu_tab' => $this->params->get('display_tab', 0)
+			'display_menu_tab' => $this->params->get('display_tab', 0),
+			'icon' => '2699'
 		);
 
 		return $area;
@@ -94,8 +95,6 @@ class plgGroupsMemberOptions extends JPlugin
 	 */
 	public function onGroup( $group, $option, $authorized, $limit=0, $limitstart=0, $action='', $access, $areas=null)
 	{
-		ximport('Hubzero_Document');
-
 		// The output array we're returning
 		$arr = array(
 			'html'=>''
@@ -143,8 +142,7 @@ class plgGroupsMemberOptions extends JPlugin
 	{
 		// HTML output
 		// Instantiate a view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'groups',
 				'element'=>'memberoptions',
@@ -191,7 +189,7 @@ class plgGroupsMemberOptions extends JPlugin
 	 */
 	protected function save($group, $user, $recvEmailOptionID, $recvEmailOptionValue)
 	{
-		/* @var $group Hubzero_Group */
+		/* @var $group \Hubzero\User\Group */
 
 		$postSaveRedirect = JRequest::getVar('postsaveredirect', '');
 		
@@ -239,16 +237,16 @@ class plgGroupsMemberOptions extends JPlugin
 		$database = JFactory::getDBO();
 		
 		//get hubzero logger
-		$logger =  Hubzero_Factory::getLogger();
+		$logger =  JFactory::getLogger();
 		
 		//get group
-		$group = Hubzero_Group::getInstance( $gidNumber );
+		$group = \Hubzero\User\Group::getInstance( $gidNumber );
 		
 		//is auto-subscribe on for discussion forum
 		$discussion_email_autosubscribe = $group->get('discussion_email_autosubscribe');
 		
 		//log variable
-		$logger->logDebug('$discussion_email_autosubscribe' . $discussion_email_autosubscribe);
+		$logger->debug('$discussion_email_autosubscribe' . $discussion_email_autosubscribe);
 		
 		//if were not auto-subscribed then stop
 		if (!$discussion_email_autosubscribe)

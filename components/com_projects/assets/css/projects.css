@@ -42,6 +42,10 @@
 	}
 	#content-header-extra {
 		width: 50%;
+		z-index: 1000;
+	}
+	#content-header-extra a {
+		border: none;
 	}
 	.com_projects input {
 		background: #FFFFFF;
@@ -157,87 +161,27 @@
 		margin: 0;
 		padding-top: 0.8em;
 	}
-
-/* Standard Submit Buttons 
---------------------------------------------- */
-	input[type="submit"], input[type="reset"], input[type="button"], .btncancel, .btn {
-		padding: 0.2em 0.6em !important;
-		border: 1px solid #999 !important;
-		margin-right: 0.5em;
-		color: #000;
-		-moz-border-radius: 10px;
-		border-radius: 10px;
+	.btn.btn-cancel {
 		background: #FFFFFF;
+		border: 1px solid #CCC !important;
 	}
-	input[type="submit"].disabled {
-		-webkit-animation: none;
-	}
-	.btn {
-		padding: 1px 1em;
-		font-size: 85%;
-	}
-	.btn a {
-		padding: 0 !important;
-		margin: 0;
-		color: #000000;
-	}
-	.btn a:hover {
-		border: none;
-	}
-	input[type="reset"], .btncancel, input[type="button"] {
-		color: #999;
-		border: 1px solid #CCC;
-	} 
-	input[type="button"].cancel {
-		margin-left: 0.2em;
-		-moz-border-radius: 0;
-		border-radius: 0;
-		padding: 0 !important;
-	}
-	.btncancel {
-		padding: 0 1em !important;
-	}
-	.btncancel a {
-		color: #666;
-		padding: 0 !important;
-	}
-	.btnaction, input[type="submit"].btnaction {
-		font-size: 1em;
-		font-weight: bold;
-		border: 3px solid #000 !important;
-	}
-	input[type="submit"]:hover, input[type="reset"]:hover, input[type="button"]:hover,  .btn:hover {
-		cursor: pointer;
-		background: #e2f6f8;
-		background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#e5e5e5), to(#ffffff));
-		background: -webkit-linear-gradient(0% 0%, 0% 100%, from(#e5e5e5), to(#ffffff));
-		background: -moz-linear-gradient(center top, #e5e5e5, #ffffff);
-	}
-	input[type="submit"].disabled, input[type="submit"].hover {
-		cursor: default !important;
-		background: #f0f0f0;
-		border: 1px solid #e2e2e2;
-		color: #CCC;
-	}
-	input[type="submit"]:focus, 
-	input[type="button"]:focus { outline : none; }
 		
 /* Left-menu layout
 --------------------------------------------- */
 	.main-menu {
-		width: 170px;
+		width: 200px;
 		float: left;
 		margin: 0;
 		padding: 0 0 0 0;	
 		background: #fff9ef;
 	}
 	.main-content {
-		margin-left: 170px;
+		margin-left: 200px;
 		padding: 2em;
 		padding-bottom: 4em;
 		margin-top: 0;
 		background: #FFF;
-		border-left: 1px solid #CCC;
+		border-left: 1px solid #e8e8e8;
 		min-height: 400px;
 	}
 	.main-menu ul.projecttools {
@@ -247,23 +191,59 @@
 		font-size: 90%;
 		margin-bottom: 2em;
 		margin-top: 0;
-		padding-top: 1.5em;
+		padding-top: 0;
 		padding-bottom: 2em;
 		background: #fff9ef;
-		border-right: 1px solid #CCC;
+		border-right: 1px solid #e8e8e8;
 		margin-right: -1px;	
 	}
+	.main-menu ul.assetlist {
+		padding-top: 0;
+		padding-bottom: 0;
+		margin-bottom: -1px;
+		margin-top: -4em;
+	}
 	.main-menu ul.projecttools li {
-		padding: 0.3em 0.5em 0.2em 1.5em;
+		padding: 0.5em 0.5em 0.5em 1.5em;
 		padding-right: 0;
 		margin: 0;
 		background: #fff9ef;
-		border-bottom: 1px solid #CCC;
-		border-top: 1px solid #CCC;
-		border-right: 1px solid #CCC;		
+		border-bottom: 1px solid #e8e8e8;
+		border-top: 1px solid #e8e8e8;
+		border-right: 1px solid #e8e8e8;		
 		height: 20px;
 		margin-right: -1px;
 		margin-top: -1px;
+	}
+	.main-menu ul.projecttools li.assets {
+		padding-top: 0.5em;
+		background: #fff9ef;
+	}
+	.main-menu ul.projecttools li.assets:hover {
+		background: #fff9ef;
+	}
+	.main-menu ul.projecttools li,
+	.main-menu ul.projecttools li.assets,
+	.main-menu ul.projecttools li.assets:hover {
+		background: #fff9ef;
+	}
+	.main-menu ul.projecttools li a:before {
+		color: #c9c4bc;
+	}
+	.main-menu ul.projecttools li a:hover:before,
+	.main-menu ul.projecttools li a:hover {
+		color: #666;
+	}
+	.main-menu ul.projecttools li.active a:before,
+	#plg-header h3:before {
+		color: black;
+	}
+	.main-menu ul.assetlist li {
+		background: #f7f3ed;
+		padding-left: 40px;
+	}
+	.main-menu ul.projecttools li.assets span {
+		padding-left: 20px;
 	}
 	.main-menu ul.projecttools li a {
 		padding: 0.1em;
@@ -278,16 +258,16 @@
 		border-right: 1px solid #FFF;
 	}	
 	.main-menu ul.projecttools li:last-child {
-		border-bottom: none;
+		/*border-bottom: none; */
 	}
 	.main-menu ul.projecttools li:first-child {
-		border-top: none;
+		/*border-top: none; */
 	}
 	.main-menu ul.projecttools li.active:last-child {
-		border-bottom: 1px solid #CCC;
+		border-bottom: 1px solid #e8e8e8;
 	}
 	.main-menu ul.projecttools li.active:first-child {
-		border-top: 1px solid #CCC;
+		border-top: 1px solid #e8e8e8;
 	}
 	.main-menu ul.projecttools li.active a {
 		color: #000000;
@@ -298,6 +278,9 @@
 	.main-menu ul.projecttools li.editing {
 		background: #FFFFFF;
 		padding-right: 0;
+	}
+	.main-menu ul.assetlist {
+		border-bottom: 1px solid #CCC;	
 	}
 	.main-menu ul.projecttools li:hover {
 		background: #ffffff;
@@ -326,8 +309,11 @@
 		background: none;
 		display: inline;
 	}
+	.main-menu ul.assetlist li a span.mini {
+		margin-right: 6px;
+	}
 	.main-menu ul.projecttools li a span.mini span {
-		background: #f5ebe0;
+		background: #e9e1d5;
 		padding: 1px 4px;
 	}
 	.main-menu ul.projecttools li a span.highlight span {
@@ -644,11 +630,14 @@
 		padding: 1em 1em 1em 1em;
 		margin-left: 3em;
 		width: 32px;
-		height: 32px;
-		border-radius: 10px;
-		-moz-border-radius: 10px;
+		height: 32px;	
 		text-align: center;
 		background: #FFFFFF;
+		-webkit-border-radius: 10px;
+		-moz-border-radius: 10px;
+		-ms-border-radius: 10px;
+		-o-border-radius: 10px;
+		border-radius: 10px;
 	}
 	.feature .wip {
 		margin: 0;
@@ -703,33 +692,6 @@
 		padding-top: 2em;
 		padding-bottom: 2em;
 	}		
-	#introduction .emphasized {
-		margin: 2em 0;
-	}
-	#introduction .emphasized a {
-		color: white;
-		border: none;
-		background: black;
-		padding: 0.6em 1em;
-		border-radius: 10px;
-		-moz-border-radius: 10px;
-		-moz-box-shadow: inset 0 0.3em 2em #fff;
-		-webkit-box-shadow: inset 0 0.3em 2em #fff;
-	}
-	#introduction .emphasized a:before {
-		content: "\25B6";
-		width: 12px;
-		height: 12px;
-		font-size: 12px;
-		font-family: 'Fontcons';
-		color: #FFF;
-		margin-right: 0.5em;
-		margin-left: 0;
-		vertical-align: middle;
-	}
-	#introduction .emphasized a:hover, #introduction .emphasized a:focus {
-		background: red;
-	}
 	#introduction .second ul {
 		padding-left: 0;
 		margin-left: 0.5em;
@@ -981,9 +943,8 @@
 		padding-left: 0.5em;
 		margin-top: 2em;
 		margin-bottom: 1em;
-		background: #edf3e5;
-		border-top: 1px dotted #000;
-		border-bottom: 1px dotted #000;
+		margin-right: 2em;
+		background: #d8dcd3;
 	}
 	#setup #hubForm {
 		min-width: 850px;
@@ -1017,6 +978,17 @@
 	.cautionaction p {
 		padding: 0 !important;
 		margin: 0.5em 0 1em !important;
+	}
+	#setup div {
+		border: none !important;
+	}
+	#setup .aside p {
+		margin: 0;
+	}
+	#hubForm fieldset {
+		color: #777;
+		background: #F5F7F2;
+		border: 2px solid #DEE4CD;
 	}
 
 /* Setup - describe project
@@ -1436,22 +1408,35 @@
 		width: 100%;
 		text-align: center;
 		padding-top: 1em;
+		margin-bottom: 2em;
+		margin-top: 1em;
 	}
 	
 /* Project image
 --------------------------------------------- */
 
 	#pimage img {
-		max-width: 100px;
-		max-height: 100px;
-		padding: 0.4em;
-		background: #FFFFFF;
-		-moz-box-shadow: 5px 5px 5px #ebebeb;
-		-webkit-box-shadow: 5px 5px 5px #ebebeb;
-		box-shadow: 5px 5px 5px #ebebeb;
+		max-width: 150px;
+		max-height: 150px;
+		padding: 0;
 	}
 	#pimage a:hover {
 		border: none;
+	}
+	#pimage .defaultimage {
+		width: 150px;
+		height: 150px;
+		display: block;
+		margin-left: 25px;
+		background: #fffdfb;
+	}
+	#pimage .defaultimage:before {
+		width: 100px;
+		height: 100px;
+		font-size: 100px;
+		margin-top: 0.5em;
+		margin-left: -0.5em;
+		position: absolute;
 	}
 	
 /* Project member options
@@ -1539,49 +1524,10 @@
 		border: none;
 		border-bottom: 1px solid #E2E2E2;
 	}
-	/*
-	.com_projects #member_options #options-dock ul li:before {
-		content: "\25B6";
-		font-size: 12px;
-		margin-right: 0.3em;
-		color: #6897a4;
-	}*/
 	.com_projects #member_options #options-dock p {
 		margin: 0;
 		text-align: right;
 	}
-	
-/* On-mouseover item options (in listings)
---------------------------------------------- */
-	.m_options {
-		display: none;
-		font-size: 85%;
-		color: #999;
-		float: right;
-		margin-top: -0.5em;
-		margin: 0;
-		padding: 0;
-	}
-	.m_options span {
-		position: absolute;
-		display: block;
-		padding: 0;
-		margin-left: 0.5em;
-	}
-	.m_options span a {
-		border: 1px solid #CCC;
-		margin: 0;
-		padding: 0 0.3em;
-		background: #FFF;
-		color: #CCC;
-	}
-	.m_options span a:hover {
-		border: 1px solid #333;
-		padding: 0 0.3em;
-		background: #333;
-		color: #FFF;
-	}
-	
 	
 /* External layout 
 --------------------------------------------- */
@@ -1811,11 +1757,6 @@
 		background: #f6f7f9;
 		font-size: 85%;
 	}
-	#abox-content p.anote, .anote {
-		font-size: 85%;
-		color: #999;
-		margin: -1em 0 1em 0;
-	}
 	#sbox-content {
 		background: #FFFFFF;
 	}
@@ -1874,6 +1815,13 @@
 	}
 	#plg-content #abox-content h4 {
 		margin: 1em 0;
+	}
+	#abox-content .wrapper {
+		overflow: scroll;
+		max-height: 300px;
+	}
+	#abox-content .content-wrap {
+		margin: 2em 1em;
 	}
 	
 /* Squezebox 
@@ -2265,57 +2213,6 @@
 		padding: 0.5em 1em;
 		font-size: 85%;
 	}
-	
-/* Comment Form
---------------------------------------------- */
-	.addcomment {
-		padding: 0;
-		margin: 0;
-		margin-left: 2em;
-		width: 95%;
-	}
-	#plg-content .addcomment fieldset {
-		border: none;
-		float: none !important;
-		width: auto;
-		margin: 0;
-		color: #777;
-		background: #f2f2f2;
-		padding: 0.5em;
-	}
-	#plg-content .addcomment textarea {
-		margin: 0;
-		height: 30px;
-		width: 98%;
-		padding: 0.2em;	
-		display: block;
-	}	
-	#plg-content .addcomment label {
-		padding: 0;
-		margin: 0;
-	}
-	#plg-content .comments {
-		list-style: none;
-		padding: 0;
-		margin: 1em 0 0 0;
-		border: none;
-		width: 95%;
-		margin-left: 2em;
-	}
-	#plg-content .comments li {		
-		margin: 0;
-		border: none;
-		padding: 0.5em 2em 0.5em 0.5em;
-		background: #f2f2f2;		
-		color: #444;
-		border-bottom: 1px solid #FFF;
-		margin-right: 0;
-		clear: none;
-	}
-	#plg-content .comments .delit-container {
-		float: right;
-		margin-right: -5px;
-	}
 
 /* Reviewers
 --------------------------------------------- */
@@ -2668,6 +2565,7 @@
 		padding: 1em 0 0 0;
 		height: 30px;
 		margin-bottom: -1em;
+		background: none;
 	}
 	.status-msg p {
 		color: #51b126;
@@ -2767,40 +2665,39 @@
 	100%{
 	-webkit-transform:scale(0.7);
 	opacity:0.1}
-
 	}
 
-	@-moz-keyframes bounceG{
+	@-moz-keyframes bounceG {
 	0%{
 	-moz-transform:scale(1.2);
-	opacity:1}
+	opacity:1
+	}
 
-	100%{
+	100% {
 	-moz-transform:scale(0.7);
 	opacity:0.1}
-
 	}
 
-	@-o-keyframes bounceG{
+	@-o-keyframes bounceG {
 	0%{
 	-o-transform:scale(1.2);
-	opacity:1}
-
-	100%{
-	-o-transform:scale(0.7);
-	opacity:0.1}
-
+	opacity:1
 	}
 
-	@-ms-keyframes bounceG{
+	100% {
+	-o-transform:scale(0.7);
+	opacity:0.1}
+	}
+
+	@-ms-keyframes bounceG {
 	0%{
 	-ms-transform:scale(1.2);
-	opacity:1}
+	opacity:1
+	}
 
-	100%{
+	100% {
 	-ms-transform:scale(0.7);
 	opacity:0.1}
-
 	}		
 		
 /* Misc. 
@@ -3054,11 +2951,6 @@
 	
 /* Back-end 
 --------------------------------------------- */
-	#system-message .message {
-		background: none;
-		width: auto;
-		padding: 0;
-	}
 	.editform td.key {
 		padding-left: 1em;
 		width: 20%;
@@ -3145,13 +3037,14 @@
 		height: 16px;
 		font-size: 16px;
 		font-family: 'Fontcons';
-		color: #4ab454; 
+		color: #000; 
 		margin-right: 0.2em;
 		font-weight: normal;
 	}
 	
 /* 	Fixes for smaller screens
 --------------------------------------------- */
+	
 	@media all and (max-width: 1024px) {
 		#introduction .second {
 			background: none;
@@ -3230,12 +3123,12 @@
 	.tools:after,
 	.databases:before,
 	.databases:after,
-	#plg-content .comments li:before,
-	#plg-content .addcomment fieldset:before,
 	.admin-note:before,
 	.private:before,
 	.s-private:before,
-	.browse:before {
+	.browse:before,
+	.main-menu ul.projecttools li.assets span:before,
+	.defaultimage:before {
 		content: "";
 		width: 16px;
 		height: 16px;
@@ -3245,6 +3138,9 @@
 		margin-right: 0.3em;
 		vertical-align: middle;
 	}	
+	.main-menu ul.projecttools li.assets span:before {
+		color: #dbd2c3;
+	}
 	#plg-header h3:before {
 		width: 22px;
 		height: 22px;
@@ -3261,6 +3157,10 @@
 	.inform:before {
 		content: "\f05a";
 		color: #89c685;
+	}
+	.defaultimage:before {
+		content: "\f03f";
+		color: #aea79a;	
 	}
 	.newsupdate:before {
 		content: "\f053"; 
@@ -3292,7 +3192,10 @@
 	.browse:before {
 		content: "\f002";
 	}
-	.main-menu ul.projecttools li a:before {
+	.main-menu ul.projecttools li.assets span:before {
+		content: "\f0d7";
+	}
+	.main-menu ul.projecttools li a:before, .main-menu ul.projecttools li.assets span:before {
 		position: absolute;
 		margin-left: -20px;
 	}
@@ -3316,8 +3219,6 @@
 		color: #55c64c;
 		vertical-align: top;
 	}
-	#plg-content .comments li:before , 
-	#plg-content .addcomment fieldset:before,
 	.admin-note:before {
 		content: "\275D";
 		width: 14px;
@@ -3325,16 +3226,6 @@
 		font-size: 14px;
 		color: #CCCCCC;
 	}
-	#plg-content .comments li:before , 
-	#plg-content .addcomment fieldset:before {
-		position: absolute;
-		margin-left: -20px;
-	}
-	#plg-content .comments li,
-	#plg-content .addcomment fieldset {
-		padding-left: 2em;
-	}
-	
 	#suggestions .s-apps a:before, .suggestions .s-apps a:before,
 	.feature #feature-app .ima:before,
 	#suggestions .s-tools a:before, .suggestions .s-tools a:before,

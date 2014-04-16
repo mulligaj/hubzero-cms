@@ -31,11 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_User_Profile');
-ximport('Hubzero_Wiki_Editor');
-
 $juser = JFactory::getUser();
-$editor = Hubzero_Wiki_Editor::getInstance();
 
 $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=blog'
 ?>
@@ -158,13 +154,13 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 			</div>
 
 			<?php 
-			$author = Hubzero_User_Profile::getInstance($this->row->get('created_by'));
+			$author = \Hubzero\User\Profile::getInstance($this->row->get('created_by'));
 			if (is_object($author) && $author->get('name')) 
 			{
 			?>
 			<div class="entry-author">
 				<h3><?php echo JText::_('PLG_GROUPS_BLOG_ABOUT_AUTHOR'); ?></h3>
-				<p class="entry-author-photo"><img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($author, 0); ?>" alt="" /></p>
+				<p class="entry-author-photo"><img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($author, 0); ?>" alt="" /></p>
 				<div class="entry-author-content">
 					<h4>
 						<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $this->row->get('created_by')); ?>">
@@ -173,7 +169,7 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 					</h4>
 					<p class="entry-author-bio">
 						<?php if ($author->get('bio')) { ?>
-							<?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($author->get('bio')), 300, 0); ?>
+							<?php echo $author->getBio('parsed', 300); ?>
 						<?php } else { ?>
 							<?php echo JText::_('PLG_GROUPS_BLOG_AUTHOR_BIO_BLANK'); ?>
 						<?php } ?>
@@ -195,15 +191,14 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 				</a>
 			</p>
 		</div><!-- / .aside -->
-		
+
 		<div class="subject below">
 			<h3 class="below_heading">
-				<a name="comments"></a>
 				<?php echo JText::_('PLG_GROUPS_BLOG_COMMENTS_HEADER'); ?>
 			</h3>
 			<?php if ($this->row->comments('count') > 0) { ?>
 				<?php 
-					$view = new Hubzero_Plugin_View(
+					$view = new \Hubzero\Plugin\View(
 						array(
 							'folder'  => 'groups',
 							'element' => 'blog',
@@ -226,73 +221,32 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 					<?php echo JText::_('PLG_GROUPS_BLOG_NO_COMMENTS'); ?>
 				</p>
 			<?php } ?>
-		</div><!-- / .subject -->
-		<div class="clear"></div>
 
-		<div class="aside aside-below">
-			<table class="wiki-reference" summary="Wiki Syntax Reference">
-				<caption>Wiki Syntax Reference</caption>
-				<tbody>
-					<tr>
-						<td>'''bold'''</td>
-						<td><b>bold</b></td>
-					</tr>
-					<tr>
-						<td>''italic''</td>
-						<td><i>italic</i></td>
-					</tr>
-					<tr>
-						<td>__underline__</td>
-						<td><span style="text-decoration:underline;">underline</span></td>
-					</tr>
-					<tr>
-						<td>{{{monospace}}}</td>
-						<td><code>monospace</code></td>
-					</tr>
-					<tr>
-						<td>~~strike-through~~</td>
-						<td><del>strike-through</del></td>
-					</tr>
-					<tr>
-						<td>^superscript^</td>
-						<td><sup>superscript</sup></td>
-					</tr>
-					<tr>
-						<td>,,subscript,,</td>
-						<td><sub>subscript</sub></td>
-					</tr>
-				</tbody>
-			</table>
-		</div><!-- / .aside -->
-	
-		<div class="subject below">
 			<h3 class="below_heading">
-				<a name="post-comment"></a>
 				<?php echo JText::_('Post a comment'); ?>
 			</h3>
 
 			<form method="post" action="<?php echo JRoute::_($this->row->link()); ?>" id="commentform">
 				<p class="comment-member-photo">
 					<?php
-						$jxuser = Hubzero_User_Profile::getInstance($juser->get('id'));
+						$jxuser = \Hubzero\User\Profile::getInstance($juser->get('id'));
 						$anon = 1;
 						if (!$juser->get('guest')) 
 						{
 							$anon = 0;
 						}
 					?>
-					<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($jxuser, $anon); ?>" alt="" />
+					<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($jxuser, $anon); ?>" alt="" />
 				</p>
 				<fieldset>
 					<?php
 						$replyto = $this->row->comment(JRequest::getInt('reply', 0));
 						if ($replyto->exists()) 
 						{
-							ximport('Hubzero_View_Helper_Html');
 							$name = JText::_('PLG_GROUPS_BLOG_ANONYMOUS');
 							if (!$replyto->get('anonymous')) 
 							{
-								$xuser = Hubzero_User_Profile::getInstance($replyto->get('created_by'));
+								$xuser = \Hubzero\User\Profile::getInstance($replyto->get('created_by'));
 								if (is_object($xuser) && $xuser->get('name')) 
 								{
 									$name = '<a href="'.JRoute::_('index.php?option=com_members&id=' . $replyto->get('created_by')) . '">' . $this->escape(stripslashes($xuser->get('name'))) . '</a>';
@@ -307,14 +261,14 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 							<span class="comment-date-on"><?php echo JText::_('PLG_GROUPS_BLOG_ON'); ?></span> 
 							<span class="date"><time datetime="<?php echo $replyto->get('created'); ?>"><?php echo $replyto->created('date'); ?></time></span>
 						</p>
-						<p><?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($replyto->get('content')), 300, 0); ?></p>
+						<p><?php echo \Hubzero\Utility\String::truncate(stripslashes($replyto->get('content')), 300); ?></p>
 					</blockquote>
 					<?php } ?>
 
 					<?php if (!$this->juser->get('guest')) { ?>
 						<label for="comment_content">
 							Your <?php echo ($replyto->exists()) ? 'reply' : 'comments'; ?>: <span class="required"><?php echo JText::_('PLG_GROUPS_BLOG_REQUIRED'); ?></span>
-							<?php echo $editor->display('comment[content]', 'comment_content', '', '', '40', '15'); ?>
+							<?php echo JFactory::getEditor()->display('comment[content]', '', '', '', 40, 15, false, 'comment_content'); ?>
 						</label>
 
 						<label id="comment-anonymous-label">

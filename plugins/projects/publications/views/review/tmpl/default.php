@@ -132,14 +132,14 @@ $append .= '</span>';
 
 <?php if ($canpublish) { ?>
 <p class="mini"><?php echo ($this->row->state == 1) 
-	? ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_OVERVIEW_SUMMARY_BELOW')) 
-	: ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_REVIEW_SUMMARY_BELOW')); ?>
+	? ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_OVERVIEW_SUMMARY_BELOW')) . ' '
+	: ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_REVIEW_SUMMARY_BELOW')) . ' '; ?>
 	<?php if($this->row->state != 1 && !$this->publication_allowed) {
-		echo ' <span class="urgency block">' . JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_REVIEW_MISSING_PARTS').'</span>'; 
+		echo ' <span class="urgency block">' . JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_REVIEW_MISSING_PARTS').'</span> '; 
 	}
 	elseif ($this->publication_allowed) 
 	{
-		if($post)
+		if ($post)
 		{
 			echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_REVIEW_NOT_FINAL_POST'); 	
 		}
@@ -227,10 +227,10 @@ $append .= '</span>';
 		<div class="centeralign">
 			<span class="review-question"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_REVIEW_LOOKING_GOOD'); ?></span>
 			<span>
-				<input type="submit" id="submit-review" value="<?php echo $txt; ?>" />
+				<input type="submit" id="submit-review" value="<?php echo $txt; ?>" class="btn btn-success active" />
 			</span>
-			<span class="cancel"><a href="<?php echo $this->url.'/?version='.$this->version; ?>">
-			<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_REVIEW_NOT_NOW'); ?></a></span>
+			<a href="<?php echo $this->url.'/?version='.$this->version; ?>" class="btn btn-cancel">
+			<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_REVIEW_NOT_NOW'); ?></a>
 		</div>
 	<?php } ?>
 </div>
@@ -251,14 +251,27 @@ else if ($this->authorized == 3)
 			PublicationContribHelper::drawStatusBar($this, NULL, false, 1);	
 		}
 		
+		$model = new PublicationsModelPublication($this->pub);
 		$description = '';
 		if ($this->pub->description) 
 		{
-			$description = $this->parser->parse( stripslashes($this->pub->description), $this->wikiconfig );
+			$description = $model->description('parsed');
 		}
 		
 		// Process metadata
-		$metadata = PublicationsHtml::processMetadata($this->pub->metadata, $this->_category, $this->parser, $this->wikiconfig, 0);
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'parser.php');
+
+		$parser = WikiHelperParser::getInstance();
+		$wikiconfig = array(
+			'option'   => $this->option,
+			'scope'    => '',
+			'pagename' => 'projects',
+			'pageid'   => '',
+			'filepath' => '',
+			'domain'   => ''
+		);
+
+		$metadata = PublicationsHtml::processMetadata($this->pub->metadata, $this->_category, $parser, $wikiconfig, 0);
 	
 		?>
 		<div class="two columns first">
@@ -268,7 +281,7 @@ else if ($this->authorized == 3)
 			<div id="authorslist">
 			<?php echo $this->helper->showContributors( $this->authors, true ); ?>
 			</div>
-			<?php echo $this->pub->abstract ? '<p>'.Hubzero_View_Helper_Html::shortenText(stripslashes($this->pub->abstract), 250, 0).'</p>'  : ''; ?>
+			<?php echo $this->pub->abstract ? '<p>'.\Hubzero\Utility\String::truncate(stripslashes($this->pub->abstract), 250).'</p>'  : ''; ?>
 		 </div>
 			<?php if($show_gallery) { ?>
 			<p class="pub-review-label"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_GALLERY')); ?></p>
@@ -301,7 +314,7 @@ else if ($this->authorized == 3)
 			<?php
 				// Show notes
 				if ($this->pub->release_notes) {
-					echo $this->parser->parse( $this->pub->release_notes, $this->wikiconfig );
+					echo $model->notes('parsed');
 				}
 				else {
 					echo '<p class="nocontent">'.JText::_('PLG_PROJECTS_PUBLICATIONS_NONE').'</p>';

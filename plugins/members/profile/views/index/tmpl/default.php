@@ -127,8 +127,8 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							window.bonus_amount = '.$incrOpts->getAwardPerField().';
 						</script>';
 			echo $increm;
-			ximport('Hubzero_Document');
-			Hubzero_Document::addComponentScript('assets/js/incremental');
+
+			\Hubzero\Document\Assets::addComponentScript('assets/js/incremental');
 		}
 	?>
 	
@@ -169,8 +169,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 					<div class="value"><?php echo $this->escape($this->profile->get('name')); ?></div>
 					<br class="clear" />
 					<?php
-						ximport('Hubzero_Plugin_View');
-						$editview = new Hubzero_Plugin_View(
+						$editview = new \Hubzero\Plugin\View(
 							array(
 								'folder'  => 'members',
 								'element' => 'profile',
@@ -183,6 +182,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 
 						$editview->registration_field = 'name';
 						$editview->profile_field = 'name';
+						$editview->registration = $this->registration->Fullname;
 						$editview->title   =  JText::_('PLG_MEMBERS_PROFILE_NAME');
 						$editview->profile = $this->profile;
 						$editview->isUser  = $isUser;
@@ -283,17 +283,16 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							//create select for organizations and optional text input
 							$organizations  = '<select name="org" class="input-select">';
 							$organizations .= '<option value="">' . JText::_('PLG_MEMBERS_PROFILE_SELECT_OR_ENTER_BELOW') . '</option>';
-							foreach($orgs as $o)
-							{   
+							foreach ($orgs as $o)
+							{
 								$sel = ($o == $this->profile->get("organization")) ? "selected=\"selected\"" : "";
 								$organizations .= "<option {$sel} value=\"{$o}\">{$o}</option>";
 							}
 							$organizations .= "</select>";
 							$organization_alt = (!in_array($this->profile->get("organization"), $orgs)) ? $this->escape($this->profile->get('organization')) : "";
 							$organizations_text = "<input type=\"text\" name=\"orgtext\" class=\"input-text\" value=\"{$organization_alt}\" />";
-						
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -302,6 +301,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							);
 							$editview->registration_field = 'org';
 							$editview->profile_field = 'organization';
+							$editview->registration = $this->registration->Organization;
 							$editview->title =  JText::_('PLG_MEMBERS_PROFILE_ORGANIZATION');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -331,7 +331,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						if ($this->params->get('access_orgtype') == 2) 
 						{
 							$cls .= "private";
-						}                     
+						}
 						if ($this->profile->get("orgtype") == "" || is_null($this->profile->get("orgtype")))
 						{
 							$cls .= ($isUser) ? " hidden" : " hide";
@@ -368,8 +368,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							}
 							$organization_types .= "</select>"; 
 
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -378,6 +377,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							);
 							$editview->registration_field = 'orgtype';
 							$editview->profile_field = 'orgtype';
+							$editview->registration = $this->registration->Employment;
 							$editview->title =  JText::_('PLG_MEMBERS_PROFILE_EMPLOYMENT_TYPE');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -423,8 +423,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						</div>
 						<br class="clear" />
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -433,6 +432,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							);
 							$editview->registration_field = 'email';
 							$editview->profile_field = 'email';
+							$editview->registration = $this->registration->Email;
 							$editview->title = JText::_('PLG_MEMBERS_PROFILE_EMAIL');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -494,8 +494,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<div class="value"><?php echo $url; ?></div>
 						<br class="clear" />
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -504,6 +503,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							);
 							$editview->registration_field = 'web';
 							$editview->profile_field = 'url';
+							$editview->registration = $this->registration->URL;
 							$editview->title = JText::_('PLG_MEMBERS_PROFILE_WEBSITE');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -557,8 +557,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<div class="value"><?php echo $tel; ?></div>
 						<br class="clear" />
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -567,6 +566,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							);
 							$editview->registration_field = 'phone';
 							$editview->profile_field = 'phone';
+							$editview->registration = $this->registration->Phone;
 							$editview->title = JText::_('PLG_MEMBERS_PROFILE_TELEPHONE');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -621,8 +621,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						</div>
 						<br class="clear" />
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -634,6 +633,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							
 							$editview->registration_field = "address";
 							$editview->profile_field = "address";
+							$editview->registration = $this->registration->address;
 							$editview->title = JText::_('test');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -677,18 +677,9 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 				<div class="section-content">
 					<div class="key"><?php echo JText::_('PLG_MEMBERS_PROFILE_BIOGRAPHY'); ?></div>
 					<?php
-						if ($this->profile->get('bio')) {
-							$wikiconfig = array(
-								'option'   => $this->option,
-								'scope'    => 'members'.DS.'profile',
-								'pagename' => 'member',
-								'pageid'   => 0,
-								'filepath' => '',
-								'domain'   => '' 
-							);
-							ximport('Hubzero_Wiki_Parser');
-							$p = Hubzero_Wiki_Parser::getInstance();
-							$bio = $p->parse(stripslashes($this->profile->get('bio')), $wikiconfig, false);
+						if ($this->profile->get('bio')) 
+						{
+							$bio = $this->profile->getBio('parsed');
 						}
 						else
 						{
@@ -699,22 +690,18 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 					<br class="clear" />
 					
 					<?php
-						ximport('Hubzero_Plugin_View');
-						$editview = new Hubzero_Plugin_View(
+						$editview = new \Hubzero\Plugin\View(
 							array(
 								'folder'  => 'members',
 								'element' => 'profile',
 								'name'    => 'edit'
 							)
 						);
-					
-						ximport('Hubzero_Wiki_Editor');
-						$editor = Hubzero_Wiki_Editor::getInstance();
-					
-						$bio = $editor->display('profile[bio]', 'profile_bio', stripslashes($this->profile->get('bio')), '', '100', '15'); 
-					
+
+						$bio = \JFactory::getEditor()->display('profile[bio]', $this->escape(stripslashes($this->profile->getBio('raw'))), '', '', 100, 15, false, 'profile_bio', null, null, array('class' => 'minimal no-footer'));
 						$editview->registration_field = "bio";
 						$editview->profile_field = "bio";
+						$editview->registration = $this->registration->Bio;
 						$editview->title = JText::_('Biography');
 						$editview->profile = $this->profile;
 						$editview->isUser = $isUser;
@@ -767,8 +754,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						</div>
 						<br class="clear" />
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -790,6 +776,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 
 							$editview->registration_field = 'interests';
 							$editview->profile_field = 'interests';
+							$editview->registration = $this->registration->Interests;
 							$editview->title = JText::_('PLG_MEMBERS_PROFILE_INTERESTS');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -829,16 +816,30 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							$cls = str_replace(" hide", '', $cls);
 							$cls .= " missing";
 						}
+						
+						// get countries list
+						$co = Hubzero\Geocode\Geocode::countries();
 					?>
 				<li class="profile-countryorigin section <?php echo $cls; ?>">
 					<div class="section-content">
 						<div class="key"><?php echo JText::_('PLG_MEMBERS_PROFILE_CITIZENSHIP'); ?></div>
 						<?php
 							$img = '';
+							$citizenship = '';
 							if (is_file(JPATH_ROOT.DS.'components'.DS.$this->option.DS.'images'.DS.'flags'.DS.strtolower($this->profile->get('countryorigin')).'.gif')) {
 								$img = '<img src="' . rtrim(JURI::getInstance()->base(true), '/') . '/components/'.$this->option.'/images/flags/'.strtolower($this->profile->get('countryorigin')).'.gif" alt="'.$this->escape($this->profile->get('countryorigin')).' '.JText::_('PLG_MEMBERS_PROFILE_FLAG').'" /> ';
 							}
-							$citizenship = $img . strtoupper($this->escape($this->profile->get('countryorigin')));
+							
+							// get the country name
+							foreach($co as $c)
+							{
+								if ($c->code == strtoupper($this->profile->get('countryorigin')))
+								{
+									$citizenship = $c->name;
+								}
+							}
+							// prepend image if we have them
+							$citizenship = $img . $citizenship;
 						?>
 						<div class="value">
 							<?php echo ($citizenship) ? $citizenship : JText::_('PLG_MEMBERS_PROFILE_CITIZENSHIP_ENTER'); ?>
@@ -846,8 +847,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<br class="clear" />
 
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -855,22 +855,16 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 								)
 							);
 
-							ximport('Hubzero_Geo');
-							$co = Hubzero_Geo::getcountries();
-
 							$countries  = '<select name="corigin" id="corigin" class="input-select">';
 							$countries .= '<option value="">'.JText::_('PLG_MEMBERS_PROFILE_SELECT').'</option>';
 							foreach ($co as $c)
 							{
-								if ($c['code'] != 'US') 
+								$countries .= '<option value="' . $c->code . '"';
+								if ($this->profile->get('countryorigin') == $c->code) 
 								{
-									$countries .= '<option value="' . $c['code'] . '"';
-									if ($this->profile->get('countryorigin') == $c['code']) 
-									{
-										$countries .= ' selected="selected"';
-									}
-									$countries .= '>' . $this->escape($c['name']) . '</option>';
+									$countries .= ' selected="selected"';
 								}
+								$countries .= '>' . $this->escape($c->name) . '</option>';
 							}
 							$countries .= '</select>';
 
@@ -889,6 +883,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 
 							$editview->registration_field = "countryorigin";
 							$editview->profile_field = "countryorigin";
+							$editview->registration = $this->registration->Citizenship;
 							$editview->title = JText::_('Citizenship');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -929,47 +924,53 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							$cls = str_replace(" hide", "", $cls);
 							$cls .= " missing";
 						}
+						// get countries list
+						$co = Hubzero\Geocode\Geocode::countries();
 					?>
 				<li class="profile-countryresident section <?php echo $cls; ?>">
 					<div class="section-content">
 						<div class="key"><?php echo JText::_('PLG_MEMBERS_PROFILE_RESIDENCE'); ?></div>
 						<?php
 							$img = '';
+							$residence = '';
 							if (is_file(JPATH_ROOT.DS.'components'.DS.$this->option.DS.'images'.DS.'flags'.DS.strtolower($this->profile->get('countryresident')).'.gif')) {
 								$img = '<img src="' . rtrim(JURI::getInstance()->base(true), '/') . '/components/'.$this->option.'/images/flags/'.strtolower($this->profile->get('countryresident')).'.gif" alt="'.$this->profile->get('countryresident').' '.JText::_('PLG_MEMBERS_PROFILE_FLAG').'" /> ';
 							}
-							$residence = $img . strtoupper($this->escape($this->profile->get('countryresident')));
+							
+							// get the country name
+							foreach($co as $c)
+							{
+								if ($c->code == strtoupper($this->profile->get('countryresident')))
+								{
+									$residence = $c->name;
+								}
+							}
+							// prepend image if we have them
+							$residence = $img . $residence;
 						?>
 						<div class="value">
 							<?php echo ($residence) ? $residence : JText::_('PLG_MEMBERS_PROFILE_RESIDENCE_ENTER'); ?>
 						</div>
 						<br class="clear" />
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
 									'name'    => 'edit'
 								)
 							);
-						
-							ximport('Hubzero_Geo');
-							$co = Hubzero_Geo::getcountries();
-						
+							
 							$countries = '<select name="cresident" id="cresident" class="input-select">';
 							$countries .= '<option value="">'.JText::_('PLG_MEMBERS_PROFILE_SELECT').'</option>';
 							foreach ($co as $c)
 							{
-								if ($c['code'] != 'US') 
+								$countries .= '<option value="' . $c->code . '"';
+								if ($this->profile->get('countryresident') == $c->code) 
 								{
-									$countries .= '<option value="' . $c['code'] . '"';
-									if ($this->profile->get('countryresident') == $c['code']) 
-									{
-										$countries .= ' selected="selected"';
-									}
-									$countries .= '>' . $this->escape($c['name']) . '</option>';
+									$countries .= ' selected="selected"';
 								}
+								$countries .= '>' . $this->escape($c->name) . '</option>';
 							}
 							$countries .= '</select>';
 						
@@ -989,6 +990,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 
 							$editview->registration_field = "countryresident";
 							$editview->profile_field = "countryresident";
+							$editview->registration = $this->registration->Residency;
 							$editview->title = JText::_('Residence');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -1042,8 +1044,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<br class="clear" />
 						
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -1068,6 +1069,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 
 							$editview->registration_field = "sex";
 							$editview->profile_field = "gender";
+							$editview->registration = $this->registration->Sex;
 							$editview->title = JText::_('Gender');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -1122,8 +1124,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<br class="clear" />
 						
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -1208,6 +1209,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 
 							$editview->registration_field = 'disability';
 							$editview->profile_field = 'disability';
+							$editview->registration = $this->registration->Disability;
 							$editview->title = JText::_('PLG_MEMBERS_PROFILE_DISABILITY');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -1262,8 +1264,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<br class="clear" />
 						
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -1334,6 +1335,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 
 							$editview->registration_field = 'hispanic';
 							$editview->profile_field = 'hispanic';
+							$editview->registration = $this->registration->Hispanic;
 							$editview->title = JText::_('PLG_MEMBERS_PROFILE_HISPANIC');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -1388,8 +1390,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<br class="clear" />
 						
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -1442,6 +1443,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 
 							$editview->registration_field = "race";
 							$editview->profile_field = "race";
+							$editview->registration = $this->registration->Race;
 							$editview->title = JText::_('PLG_MEMBERS_PROFILE_RACE');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;
@@ -1499,8 +1501,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<div class="value"><?php echo $mailPreferenceValue; ?></div>
 						<br class="clear" />
 						<?php
-							ximport('Hubzero_Plugin_View');
-							$editview = new Hubzero_Plugin_View(
+							$editview = new \Hubzero\Plugin\View(
 								array(
 									'folder'  => 'members',
 									'element' => 'profile',
@@ -1529,6 +1530,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							
 							$editview->registration_field = 'mailPreferenceOption';
 							$editview->profile_field = 'mailPreferenceOption';
+							$editview->registration = $this->registration->OptIn;
 							$editview->title =  JText::_('PLG_MEMBERS_PROFILE_EMAILUPDATES');
 							$editview->profile = $this->profile;
 							$editview->isUser = $isUser;

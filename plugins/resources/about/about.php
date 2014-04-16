@@ -108,12 +108,10 @@ class plgResourcesAbout extends JPlugin
 
 		if ($rtrn == 'all' || $rtrn == 'html') 
 		{
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStyleSheet('resources', $this->_name);
+			\Hubzero\Document\Assets::addPluginStyleSheet('resources', $this->_name);
 
 			// Instantiate a view
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'resources',
 					'element' => $this->_name,

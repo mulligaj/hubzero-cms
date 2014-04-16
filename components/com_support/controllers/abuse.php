@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Report items as abusive
  */
-class SupportControllerAbuse extends Hubzero_Controller
+class SupportControllerAbuse extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Method to set the document path
@@ -86,7 +84,7 @@ class SupportControllerAbuse extends Hubzero_Controller
 		{
 			$return = base64_encode(JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller, false, true), 'server'));
 			$this->setRedirect(
-				JRoute::_('index.php?option=com_login&return=' . $return)
+				JRoute::_('index.php?option=com_users&view=login&return=' . $return, false)
 			);
 			return;
 		}
@@ -195,8 +193,7 @@ class SupportControllerAbuse extends Hubzero_Controller
 			return;
 		}
 
-		ximport('Hubzero_Filter');
-		$row->report     = Hubzero_Filter::cleanXss($row->report);
+		$row->report     = \Hubzero\Utility\Sanitize::clean($row->report);
 		$row->report     = nl2br($row->report);
 		$row->created_by = $this->juser->get('id');
 		$row->created    = JFactory::getDate()->toSql();

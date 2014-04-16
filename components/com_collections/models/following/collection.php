@@ -82,8 +82,7 @@ class CollectionsModelFollowingCollection extends CollectionsModelFollowingAbstr
 		switch ($this->_obj->get('object_type'))
 		{
 			case 'group':
-				ximport('Hubzero_Group');
-				$group = Hubzero_Group::getInstance($this->_obj->get('object_id'));
+				$group = \Hubzero\User\Group::getInstance($this->_obj->get('object_id'));
 				$this->_baselink = 'index.php?option=com_groups&cn=' . $group->get('cn') . '&active=collections&scope=' . $this->_obj->get('alias');
 			break;
 
@@ -136,8 +135,7 @@ class CollectionsModelFollowingCollection extends CollectionsModelFollowingAbstr
 			case 'group':
 				if (!isset($this->_creator) || !is_object($this->_creator))
 				{
-					ximport('Hubzero_Group');
-					$this->_creator = Hubzero_Group::getInstance($this->_obj->get('object_id'));
+					$this->_creator = \Hubzero\User\Group::getInstance($this->_obj->get('object_id'));
 				}
 				if ($property)
 				{

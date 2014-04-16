@@ -140,8 +140,8 @@ if ($mode != 'preview')
 ?>
 					<p class="ataglance">
 						<?php echo $this->model->resource->introtext 
-								? Hubzero_View_Helper_Html::shortenText(stripslashes($this->model->resource->introtext), 255, 0) 
-								: Hubzero_View_Helper_Html::shortenText(stripslashes($this->model->resource->fulltxt), 255, 0);
+								? \Hubzero\Utility\String::truncate(stripslashes($this->model->resource->introtext), 255) 
+								: \Hubzero\Utility\String::truncate(stripslashes($this->model->resource->fulltxt), 255);
 						?>
 					</p>
 
@@ -259,6 +259,7 @@ if ($mode != 'preview')
 		}
 		
 		echo $html;
+		
 	} // --- end else (if group check passed)
 ?>
 				</div><!-- / .aside launcharea -->
@@ -272,7 +273,7 @@ if ($mode != 'preview')
 <?php 
 	} 
 	else 
-	{
+	{ 
 ?>
 			<div class="clear sep"></div>
 		</div><!-- / .main section -->
@@ -301,9 +302,9 @@ if ($mode != 'preview')
 		// Show what's popular
 		if ($this->tab == 'about') 
 		{
-			ximport('Hubzero_Module_Helper');
-			echo Hubzero_Module_Helper::renderModules('extracontent');
+			echo \Hubzero\Module\Helper::renderModules('extracontent');
 		}
+
 ?>
 			</div><!-- / .aside extracontent -->
 

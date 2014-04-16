@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for the store
  */
-class StoreControllerShop extends Hubzero_Controller
+class StoreControllerShop extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -328,7 +326,7 @@ class StoreControllerShop extends Hubzero_Controller
 		}
 
 		// Check available user funds
-		$BTL = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+		$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 		$balance = $BTL->summary();
 		$credit  = $BTL->credit_summary();
 		$funds   = $balance - $credit;
@@ -393,7 +391,7 @@ class StoreControllerShop extends Hubzero_Controller
 		$this->view->cost = $item->getCartItems($this->juser->get('id'), 'cost');
 
 		// Check available user funds
-		$BTL = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+		$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 		$balance = $BTL->summary();
 		$credit  = $BTL->credit_summary();
 		$funds   = $balance - $credit;
@@ -416,7 +414,7 @@ class StoreControllerShop extends Hubzero_Controller
 
 		// Output HTML
 		$this->view->juser = $this->juser;
-		$this->view->xprofile = new Hubzero_User_Profile;
+		$this->view->xprofile = new \Hubzero\User\Profile;
 		$this->view->xprofile->load($this->juser->get('id'));
 		$this->view->posted = array();
 
@@ -466,7 +464,7 @@ class StoreControllerShop extends Hubzero_Controller
 		$cost = $item->getCartItems($this->juser->get('id'),'cost');
 
 		// Check available user funds
-		$BTL = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+		$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 		$balance = $BTL->summary();
 		$credit  = $BTL->credit_summary();
 		$funds = $balance - $credit;
@@ -490,7 +488,7 @@ class StoreControllerShop extends Hubzero_Controller
 		// Format posted info
 		$details  = JText::_('COM_STORE_SHIP_TO') . ':' . "\r\n";
 		$details .= $shipping['name'] . "\r\n";
-		$details .= Hubzero_View_Helper_Html::purifyText($shipping['address']) . "\r\n";
+		$details .= \Hubzero\Utility\Sanitize::stripAll($shipping['address']) . "\r\n";
 		$details .= JText::_('COM_STORE_COUNTRY') . ': ' . $shipping['country'] . "\r\n";
 		$details .= '----------------------------------------------------------' . "\r\n";
 		$details .= JText::_('COM_STORE_CONTACT') . ': ' . "\r\n";
@@ -501,7 +499,7 @@ class StoreControllerShop extends Hubzero_Controller
 		$details .= $email . "\r\n";
 		$details .= '----------------------------------------------------------' . "\r\n";
 		$details .= JText::_('COM_STORE_DETAILS').': ';
-		$details .= ($shipping['comments']) ? "\r\n" . (Hubzero_View_Helper_Html::purifyText($shipping['comments'])) : 'N/A';
+		$details .= ($shipping['comments']) ? "\r\n" . (\Hubzero\Utility\Sanitize::stripAll($shipping['comments'])) : 'N/A';
 
 		// Register a new order
 		$order = new Order($this->database);
@@ -545,7 +543,7 @@ class StoreControllerShop extends Hubzero_Controller
 			}
 
 			// Put the purchase amount on hold
-			$BTL = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+			$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 			$BTL->hold($order->total, JText::_('COM_STORE_BANKING_HOLD'), 'store', $orderid);
 
 			$jconfig = JFactory::getConfig();
@@ -644,7 +642,7 @@ class StoreControllerShop extends Hubzero_Controller
 		}
 
 		// Check available user funds
-		$BTL = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+		$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 		$balance = $BTL->summary();
 		$credit  = $BTL->credit_summary();
 		$funds = $balance - $credit;
@@ -691,7 +689,7 @@ class StoreControllerShop extends Hubzero_Controller
 		$this->view->items = $items;
 		$this->view->infolink = $this->infolink;
 		$this->view->juser = $this->juser;
-		$this->view->xprofile = new Hubzero_User_Profile;
+		$this->view->xprofile = new \Hubzero\User\Profile;
 		$this->view->xprofile->load($this->juser->get('id'));
 
 		if ($this->getError()) 

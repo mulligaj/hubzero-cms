@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for registration
  */
-class RegisterController extends Hubzero_Controller
+class RegisterController extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determine task and execute it
@@ -102,7 +100,7 @@ class RegisterController extends Hubzero_Controller
 			return JError::raiseError(500, JText::_('COM_REGISTER_ERROR_GUEST_SESSION_EDITING'));
 		}
 
-		$xprofile = Hubzero_Factory::getProfile();
+		$xprofile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		$jsession = JFactory::getSession();
 
 		// Get the return URL
@@ -119,7 +117,7 @@ class RegisterController extends Hubzero_Controller
 
 		$username = JRequest::getVar('username',$xprofile->get('username'),'get');
 
-		$target_xprofile = Hubzero_User_Profile::getInstance($username);
+		$target_xprofile = \Hubzero\User\Profile::getInstance($username);
 
 		$admin = $this->juser->authorize($this->_option, 'manage');
 		$self = ($xprofile->get('username') == $username);
@@ -142,7 +140,7 @@ class RegisterController extends Hubzero_Controller
 		$this->_buildTitle();
 
 		// Instantiate a new registration object
-		$xregistration = new Hubzero_Registration();
+		$xregistration = new RegisterModelRegistration();
 
 		if (JRequest::getVar('edit', '', 'post')) 
 		{
@@ -226,7 +224,15 @@ class RegisterController extends Hubzero_Controller
 				$eview->baseURL = $this->baseURL;
 				$message = $eview->loadTemplate();
 				$message = str_replace("\n", "\r\n", $message);
-				if (!Hubzero_Toolbox::send_email($target_xprofile->get('email'), $subject, $message)) 
+
+				$msg = new \Hubzero\Mail\Message();
+				$msg->setSubject($subject)
+				    ->addTo($target_xprofile->get('email'))
+				    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+				    ->addHeader('X-Component', $this->_option)
+				    ->setBody($message);
+
+				if (!$msg->send()) 
 				{
 					$this->setError(JText::sprintf('COM_REGISTER_ERROR_EMAILING_CONFIRMATION'/*, $hubMonitorEmail*/));
 					// @FIXME: LOG ERROR CONDITION SOMEWHERE
@@ -244,7 +250,13 @@ class RegisterController extends Hubzero_Controller
 			$message = $eaview->loadTemplate();
 			$message = str_replace("\n", "\r\n", $message);
 
-			// Hubzero_Toolbox::send_email($hubMonitorEmail, $subject, $message);
+			/*$msg = new \Hubzero\Mail\Message();
+			$msg->setSubject($subject)
+			    ->addTo($hubMonitorEmail)
+			    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+			    ->addHeader('X-Component', $this->_option)
+			    ->setBody($message)
+			    ->send();*/
 			// @FIXME: LOG ACCOUNT UPDATE ACTIVITY SOMEWHERE
 
 			// Determine action based on if the user chaged their email or not
@@ -269,7 +281,14 @@ class RegisterController extends Hubzero_Controller
 				$message = $eview->loadTemplate();
 				$message = str_replace("\n", "\r\n", $message);
 
-				if (!Hubzero_Toolbox::send_email($target_xprofile->get('email'), $subject, $message)) 
+				$msg = new \Hubzero\Mail\Message();
+				$msg->setSubject($subject)
+				    ->addTo($target_xprofile->get('email'))
+				    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+				    ->addHeader('X-Component', $this->_option)
+				    ->setBody($message);
+
+				if (!$msg->send()) 
 				{
 					$this->setError(JText::sprintf('COM_REGISTER_ERROR_EMAILING_CONFIRMATION'/*, $hubMonitorEmail*/));
 					// @FIXME: LOG ERROR CONDITION SOMEWHERE
@@ -287,7 +306,13 @@ class RegisterController extends Hubzero_Controller
 			$message = $eaview->loadTemplate();
 			$message = str_replace("\n", "\r\n", $message);
 
-			// Hubzero_Toolbox::send_email($hubMonitorEmail, $subject, $message);
+			/*$msg = new \Hubzero\Mail\Message();
+			$msg->setSubject($subject)
+			    ->addTo($hubMonitorEmail)
+			    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+			    ->addHeader('X-Component', $this->_option)
+			    ->setBody($message)
+			    ->send();*/
 			// @FIXME: LOG ACCOUNT UPDATE ACTIVITY SOMEWHERE
 
 			// Determine action based on if the user chaged their email or not
@@ -323,8 +348,6 @@ class RegisterController extends Hubzero_Controller
 	 */
 	protected function proxycreate($action='show')
 	{
-		ximport('Hubzero_User_Password');
-		
 		$action = ($action) ? $action : 'show';
 
 		$admin = $this->juser->authorize($this->_option, 'manage');
@@ -357,7 +380,7 @@ class RegisterController extends Hubzero_Controller
 		$this->_buildTitle();
 
 		// Instantiate a new registration object
-		$xregistration = new Hubzero_Registration();
+		$xregistration = new RegisterModelRegistration();
 
 		// Show the form if needed
 		if ($action == 'show') 
@@ -381,7 +404,7 @@ class RegisterController extends Hubzero_Controller
 			return $this->_show_registration_form($xregistration, 'proxycreate');
 		}
 
-		$xprofile = Hubzero_Factory::getProfile();
+		$xprofile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 
 		// Get some settings
 		$jconfig = JFactory::getConfig();
@@ -425,7 +448,7 @@ class RegisterController extends Hubzero_Controller
 		$target_juser->save();
 
 		// Attempt to retrieve the new user
-		$target_xprofile = Hubzero_User_Profile::getInstance($target_juser->get('id'));
+		$target_xprofile = \Hubzero\User\Profile::getInstance($target_juser->get('id'));
 		$result = is_object($target_xprofile);
 
 		// Did we successully create an account?
@@ -450,9 +473,17 @@ class RegisterController extends Hubzero_Controller
 			$result = $target_xprofile->update();
 		}
 
+		// add member interests
+		$interests = $xregistration->get('interests');
+		if (!empty($interests))
+		{
+			$mt = new MembersTags($this->database);
+			$mt->tag_object($target_xprofile->get('uidNumber'), $target_xprofile->get('uidNumber'), $interests, 1, 1);
+		}
+
 		if ($result) 
 		{
-			$result = Hubzero_User_Password::changePassword($target_xprofile->get('username'), $xregistration->get('password'));
+			$result = \Hubzero\User\Password::changePassword($target_xprofile->get('username'), $xregistration->get('password'));
 		}
 		
 		// Did we successully create/update an account?
@@ -492,8 +523,6 @@ class RegisterController extends Hubzero_Controller
 	 */
 	protected function update()
 	{
-		ximport('Hubzero_Auth_Link');
-		
 		$app = JFactory::getApplication();
 		
 		$force = false;
@@ -522,12 +551,12 @@ class RegisterController extends Hubzero_Controller
 		}
 
 		// Instantiate a new registration object
-		$xregistration = new Hubzero_Registration();
+		$xregistration = new RegisterModelRegistration();
 
-		$xprofile    = Hubzero_Factory::getProfile();
+		$xprofile    = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		$jsession = JFactory::getSession();
 
-		$hzal = Hubzero_Auth_Link::find_by_id($this->juser->get('auth_link_id'));
+		$hzal = \Hubzero\Auth\Link::find_by_id($this->juser->get('auth_link_id'));
 
 		if (JRequest::getMethod() == 'POST') 
 		{
@@ -546,7 +575,6 @@ class RegisterController extends Hubzero_Controller
 				$xregistration->loadAccount($this->juser);
 			}
 
-			ximport('Hubzero_Auth_Link');
 			$username = $this->juser->get('username');
 			$email = $this->juser->get('email');
 
@@ -674,7 +702,14 @@ class RegisterController extends Hubzero_Controller
 				$message = $eview->loadTemplate();
 				$message = str_replace("\n", "\r\n", $message);
 
-				if (!Hubzero_Toolbox::send_email($xprofile->get('email'), $subject, $message)) 
+				$msg = new \Hubzero\Mail\Message();
+				$msg->setSubject($subject)
+				    ->addTo($xprofile->get('email'))
+				    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+				    ->addHeader('X-Component', $this->_option)
+				    ->setBody($message);
+
+				if (!$msg->send()) 
 				{
 					$this->setError(JText::sprintf('COM_REGISTER_ERROR_EMAILING_CONFIRMATION'/*,$hubMonitorEmail*/));
 					// @FIXME: LOG ERROR SOMEWHERE
@@ -694,7 +729,13 @@ class RegisterController extends Hubzero_Controller
 				$message = $eaview->loadTemplate();
 				$message = str_replace("\n", "\r\n", $message);
 
-				// Hubzero_Toolbox::send_email($hubMonitorEmail, $subject, $message);
+				/*$msg = new \Hubzero\Mail\Message();
+				$msg->setSubject($subject)
+				    ->addTo($hubMonitorEmail)
+				    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+				    ->addHeader('X-Component', $this->_option)
+				    ->setBody($message)
+				    ->send();*/
 				// @FIXME: LOG ACCOUNT UPDATE ACTIVITY SOMEWHERE
 			}
 
@@ -742,8 +783,6 @@ class RegisterController extends Hubzero_Controller
 	 */
 	protected function create()
 	{
-		ximport('Hubzero_Auth_Link');
-
 		// Add the CSS to the template
 		$this->_getStyles();
 
@@ -772,7 +811,7 @@ class RegisterController extends Hubzero_Controller
 
 		if ($this->juser->get('auth_link_id')) 
 		{
-			$hzal = Hubzero_Auth_Link::find_by_id($this->juser->get('auth_link_id'));
+			$hzal = \Hubzero\Auth\Link::find_by_id($this->juser->get('auth_link_id'));
 		}
 		else 
 		{
@@ -780,7 +819,7 @@ class RegisterController extends Hubzero_Controller
 		}
 
 		// Instantiate a new registration object
-		$xregistration = new Hubzero_Registration();
+		$xregistration = new RegisterModelRegistration();
 
 		if (JRequest::getMethod() == 'POST') 
 		{
@@ -880,7 +919,7 @@ class RegisterController extends Hubzero_Controller
 					$hubHomeDir = rtrim($params->get('homedir'), '/');
 					
 					// Attempt to get the new user
-					$xprofile = Hubzero_User_Profile::getInstance($user->get('id'));
+					$xprofile = \Hubzero\User\Profile::getInstance($user->get('id'));
 
 					$result = is_object($xprofile);
 					
@@ -916,9 +955,16 @@ class RegisterController extends Hubzero_Controller
 						$result = $xprofile->update();
 					}
 
+					// add member interests
+					$interests = $xregistration->get('interests');
+					$mt = new MembersTags($this->database);
+					if (!empty($interests)) {
+						$mt->tag_object($xprofile->get('uidNumber'), $xprofile->get('uidNumber'), $interests, 1, 1);
+					}
+
 					if ($result) 
 					{
-						$result = Hubzero_User_Password::changePassword($xprofile->get('uidNumber'), $xregistration->get('password'));
+						$result = \Hubzero\User\Password::changePassword($xprofile->get('uidNumber'), $xregistration->get('password'));
 						// Set password back here in case anything else down the line is looking for it
 						$xprofile->set('password', $xregistration->get('password'));
 					}
@@ -948,9 +994,14 @@ class RegisterController extends Hubzero_Controller
 						$message = $eview->loadTemplate();
 						$message = str_replace("\n", "\r\n", $message);
 
-						$fullEmailAddress = $xprofile->get('name') . " <" . $xprofile->get('email') . ">";
+						$msg = new \Hubzero\Mail\Message();
+						$msg->setSubject($subject)
+						    ->addTo($xprofile->get('email'), $xprofile->get('name'))
+						    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+						    ->addHeader('X-Component', $this->_option)
+						    ->setBody($message);
 
-						if (!Hubzero_Toolbox::send_email($fullEmailAddress, $subject, $message)) 
+						if (!$msg->send()) 
 						{
 							$this->setError(JText::sprintf('COM_REGISTER_ERROR_EMAILING_CONFIRMATION'/*, $hubMonitorEmail*/));
 							// @FIXME: LOG ERROR SOMEWHERE
@@ -968,7 +1019,13 @@ class RegisterController extends Hubzero_Controller
 					$message = $eaview->loadTemplate();
 					$message = str_replace("\n", "\r\n", $message);
 
-					// Hubzero_Toolbox::send_email($hubMonitorEmail, $subject, $message);
+					/*$msg = new \Hubzero\Mail\Message();
+					$msg->setSubject($subject)
+					    ->addTo($hubMonitorEmail)
+					    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+					    ->addHeader('X-Component', $this->_option)
+					    ->setBody($message)
+					    ->send();*/
 					// @FIXME: LOG ACCOUNT CREATION ACTIVITY SOMEWHERE
 
 					// Instantiate a new view
@@ -1135,7 +1192,7 @@ class RegisterController extends Hubzero_Controller
 		// Get the registration object
 		if (!is_object($xregistration)) 
 		{
-			$view->xregistration = new Hubzero_Registration();
+			$view->xregistration = new RegisterModelRegistration();
 		} 
 		else 
 		{
@@ -1144,8 +1201,7 @@ class RegisterController extends Hubzero_Controller
 
 		// Push some values to the view
 
-		ximport('Hubzero_Password_Rule');
-		$password_rules = Hubzero_Password_Rule::getRules();
+		$password_rules = \Hubzero\Password\Rule::getRules();
 
 		$view->password_rules = array();
 
@@ -1246,7 +1302,7 @@ class RegisterController extends Hubzero_Controller
 		$username = JRequest::getVar('user','','post');
 
 		// Instantiate a new registration object
-		$xregistration = new Hubzero_Registration();
+		$xregistration = new RegisterModelRegistration();
 
 		// Score the password
 		$score = $xregistration->scorePassword($password, $username);
@@ -1300,7 +1356,7 @@ class RegisterController extends Hubzero_Controller
 		$username = JRequest::getVar('userlogin', '', 'get');
 
 		// Instantiate a new registration object
-		$xregistration = new Hubzero_Registration();
+		$xregistration = new RegisterModelRegistration();
 
 		// Check the username
 		$usernamechecked = $xregistration->checkusername($username);
@@ -1341,7 +1397,7 @@ class RegisterController extends Hubzero_Controller
 			return;
 		}
 
-		$xprofile = Hubzero_Factory::getProfile();
+		$xprofile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		$login = $xprofile->get('username');
 		$email = $xprofile->get('email');
 		$email_confirmed = $xprofile->get('emailConfirmed');
@@ -1351,10 +1407,9 @@ class RegisterController extends Hubzero_Controller
 
 		if (($email_confirmed != 1) && ($email_confirmed != 3)) 
 		{
-			$confirm = Hubzero_Registration_Helper::genemailconfirm();
+			$confirm = RegisterHelperUtility::genemailconfirm();
 
-			ximport('Hubzero_User_Profile');
-			$xprofile = new Hubzero_User_Profile();
+			$xprofile = new \Hubzero\User\Profile();
 			$xprofile->load($login);
 			$xprofile->set('emailConfirmed', $confirm);
 			$xprofile->update();
@@ -1370,7 +1425,14 @@ class RegisterController extends Hubzero_Controller
 			$message = $eview->loadTemplate();
 			$message = str_replace("\n", "\r\n", $message);
 
-			if (!Hubzero_Toolbox::send_email($email, $subject, $message)) 
+			$msg = new \Hubzero\Mail\Message();
+			$msg->setSubject($subject)
+			    ->addTo($email)
+			    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+			    ->addHeader('X-Component', $this->_option)
+			    ->setBody($message);
+
+			if (!$msg->send()) 
 			{
 				$this->setError(JText::sprintf('COM_REGISTER_ERROR_EMAILING_CONFIRMATION', $email));
 			}
@@ -1429,7 +1491,7 @@ class RegisterController extends Hubzero_Controller
 			return;
 		}
 
-		$xprofile = Hubzero_Factory::getProfile();
+		$xprofile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		$login = $xprofile->get('username');
 		$email = $xprofile->get('email');
 		$email_confirmed = $xprofile->get('emailConfirmed');
@@ -1458,7 +1520,7 @@ class RegisterController extends Hubzero_Controller
 			{
 				$this->setError(JText::_('COM_REGISTER_ERROR_INVALID_EMAIL'));
 			}
-			if ($pemail && Hubzero_Registration_Helper::validemail($pemail) /*&& ($newemail != $email)*/) 
+			if ($pemail && RegisterHelperUtility::validemail($pemail) /*&& ($newemail != $email)*/) 
 			{
 				// Check if the email address was actually changed
 				if ($pemail == $email) 
@@ -1469,7 +1531,7 @@ class RegisterController extends Hubzero_Controller
 				else 
 				{
 					// New email submitted - attempt to save it
-					$xprofile = Hubzero_User_Profile::getInstance($login);
+					$xprofile = \Hubzero\User\Profile::getInstance($login);
 					if ($xprofile) 
 					{
 						$dtmodify = JFactory::getDate()->toSql();
@@ -1496,10 +1558,9 @@ class RegisterController extends Hubzero_Controller
 					{
 						// No errors
 						// Attempt to send a new confirmation code
-						$confirm = Hubzero_Registration_Helper::genemailconfirm();
+						$confirm = RegisterHelperUtility::genemailconfirm();
 
-						ximport('Hubzero_User_Profile');
-						$xprofile = new Hubzero_User_Profile();
+						$xprofile = new \Hubzero\User\Profile();
 						$xprofile->load($login);
 						$xprofile->set('emailConfirmed', $confirm);
 						$xprofile->update();
@@ -1515,7 +1576,14 @@ class RegisterController extends Hubzero_Controller
 						$message = $eview->loadTemplate();
 						$message = str_replace("\n", "\r\n", $message);
 
-						if (!Hubzero_Toolbox::send_email($pemail, $subject, $message)) 
+						$msg = new \Hubzero\Mail\Message();
+						$msg->setSubject($subject)
+						    ->addTo($pemail)
+						    ->addFrom($this->jconfig->getValue('config.mailfrom'), $this->jconfig->getValue('config.sitename') . ' Administrator')
+						    ->addHeader('X-Component', $this->_option)
+						    ->setBody($message);
+
+						if (!$msg->send()) 
 						{
 							$this->setError(JText::sprintf('COM_REGISTER_ERROR_EMAILING_CONFIRMATION', $pemail));
 						}
@@ -1579,14 +1647,14 @@ class RegisterController extends Hubzero_Controller
 			return;
 		}
 
-		$xprofile = Hubzero_Factory::getProfile();
+		$xprofile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 
 		$email_confirmed = $xprofile->get('emailConfirmed');
 
 		if (($email_confirmed == 1) || ($email_confirmed == 3)) 
 		{
 			// The current user is confirmed - check to see if the incoming code is valid at all
-			if (Hubzero_Registration_Helper::isActiveCode($code))
+			if (RegisterHelperUtility::isActiveCode($code))
 			{
 				$this->setError('login mismatch');
 
@@ -1611,8 +1679,7 @@ class RegisterController extends Hubzero_Controller
 			}
 			
 			//load user profile
-			ximport('Hubzero_User_Profile');
-			$profile = new Hubzero_User_Profile();
+			$profile = new \Hubzero\User\Profile();
 			$profile->load($xprofile->get('username'));
 			
 			//check to see if we have a return param
@@ -1678,7 +1745,7 @@ class RegisterController extends Hubzero_Controller
 	 */
 	protected function unconfirmed()
 	{
-		$xprofile = Hubzero_Factory::getProfile();
+		$xprofile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		$email_confirmed = $xprofile->get('emailConfirmed');
 
 		// Incoming

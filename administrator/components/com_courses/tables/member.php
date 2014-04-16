@@ -107,6 +107,13 @@ class CoursesTableMember extends JTable
 	var $first_visit = NULL;
 
 	/**
+	 * varchar(23)
+	 * 
+	 * @var string
+	 */
+	var $token = NULL;
+
+	/**
 	 * Contructor method for JTable class
 	 * 
 	 * @param  database object
@@ -288,6 +295,26 @@ class CoursesTableMember extends JTable
 	}
 
 	/**
+	 * Check if a token exists
+	 * 
+	 * @param      string $token
+	 * @return     integer
+	 */
+	public function tokenExists($token)
+	{
+		if (!$token) 
+		{
+			$this->setError(JText::_('No token provided.'));
+			return 0;
+		}
+
+		$query = "SELECT COUNT(*) FROM $this->_tbl WHERE `token`=" . $this->_db->Quote($token);
+
+		$this->_db->setQuery($query);
+		return $this->_db->loadResult();
+	}
+
+	/**
 	 * Store data
 	 * 
 	 * @return     boolean True on success
@@ -378,7 +405,13 @@ class CoursesTableMember extends JTable
 		}
 		if (isset($filters['search']) && $filters['search']) 
 		{
-			$where[] = "(LOWER(u.name) LIKE '%" . $this->_db->getEscaped(strtolower($filters['search'])) . "%')";
+			$q  = "(LOWER(u.name) LIKE '%" . $this->_db->getEscaped(strtolower($filters['search'])) . "%' OR LOWER(u.username) LIKE '%" . $this->_db->getEscaped(strtolower($filters['search'])) . "%'";
+			if (is_numeric($filters['search']))
+			{
+				$q .= " OR u.id=" . $this->_db->quote($filters['search']);
+			}
+			$q .= ")";
+			$where[] = $q;
 		}
 		if (isset($filters['student']))
 		{

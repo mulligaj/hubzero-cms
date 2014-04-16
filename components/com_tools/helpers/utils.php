@@ -298,11 +298,6 @@ class ToolsHelperUtils
 	 */
 	public static function getToolAccess( $tool, $login = '')
 	{
-		//import needed HUBzero libraries
-		ximport('Hubzero_Geo');
-		ximport('Hubzero_Factory');
-		ximport('Hubzero_User_Helper');
-		
 		//include tool models
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'tool.php');
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'group.php');
@@ -312,14 +307,14 @@ class ToolsHelperUtils
 		$access 	= new stdClass();
 		$juser		= JFactory::getUser();
 		$database 	= JFactory::getDBO();
-		$xlog 		= Hubzero_Factory::getLogger();
+		$xlog 		= JFactory::getLogger();
 		
 		// Ensure we have a tool
 		if (!$tool) 
 		{
 			$access->valid = 0;
 			$access->error->message = 'No tool provided.';
-			$xlog->logDebug("mw::_getToolAccess($tool,$login) FAILED null tool check");
+			$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null tool check");
 			return $access;
 		}
 		
@@ -331,7 +326,7 @@ class ToolsHelperUtils
 			{
 				$access->valid = 0;
 				$access->error->message = 'Unable to grant tool access to user, no user was found.';
-				$xlog->logDebug("mw::_getToolAccess($tool,$login) FAILED null user check");
+				$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null user check");
 				return $access;
 			}
 		}
@@ -343,7 +338,7 @@ class ToolsHelperUtils
 		{
 			$access->valid = 0;
 			$access->error->message = 'Unable to load the tool';
-			$xlog->logDebug("mw::_getToolAccess($tool,$login) FAILED null tool version check");
+			$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null tool version check");
 			return $access;
 		}
 		
@@ -354,7 +349,7 @@ class ToolsHelperUtils
 		$toolgroups = $database->loadObjectList();
 		
 		//get users groups
-		$xgroups = Hubzero_User_Helper::getGroups( $juser->get('id'), 'members' );
+		$xgroups = \Hubzero\User\Helper::getGroups( $juser->get('id'), 'members' );
 
 		// Check if the user is in any groups for this app
 		$ingroup = false;
@@ -404,7 +399,7 @@ class ToolsHelperUtils
 			{
 				$access->valid = 0;
 				$access->error->message = 'The development version of this tool may only be accessed by members of it\'s development group.';
-				$xlog->logDebug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS DENIED (USER NOT IN DEVELOPMENT OR ADMIN GROUPS)");
+				$xlog->debug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS DENIED (USER NOT IN DEVELOPMENT OR ADMIN GROUPS)");
 			}
 			else
 			{
@@ -422,7 +417,7 @@ class ToolsHelperUtils
 				{
 					$access->valid = 0;
 					$access->error->message = 'This tool may only be accessed by members of it\'s access control groups.';
-					$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (USER NOT IN ACCESS OR ADMIN GROUPS)");
+					$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (USER NOT IN ACCESS OR ADMIN GROUPS)");
 				}
 				else
 				{
@@ -435,7 +430,7 @@ class ToolsHelperUtils
 				{
 					$access->valid = 0;
 					$access->error->message = 'Export Access Denied';
-					$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (EXPORT DENIED)");
+					$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (EXPORT DENIED)");
 				}
 				else
 				{
@@ -448,7 +443,7 @@ class ToolsHelperUtils
 		{
 			$access->valid = 0;
 			$access->error->message = 'This tool version is not published.';
-			$xlog->logDebug("mw::_getToolAccess($tool,$login): UNPUBLISHED TOOL ACCESS DENIED (TOOL NOT PUBLISHED)");
+			$xlog->debug("mw::_getToolAccess($tool,$login): UNPUBLISHED TOOL ACCESS DENIED (TOOL NOT PUBLISHED)");
 		}
 		
 		//return access
@@ -465,36 +460,32 @@ class ToolsHelperUtils
 	 */
 	public static function getToolExportAccess( $export_control )
 	{
-		//include needed HUBzero libraries
-		ximport('Hubzero_Factory');
-		ximport('Hubzero_Environment');
-		
 		//instaniate objects
 		$export_access = new stdClass;
-		$xlog = Hubzero_Factory::getLogger();
-		$ip = Hubzero_Environment::ipAddress();
+		$xlog = JFactory::getLogger();
+		$ip = JRequest::ip();
 		
 		//get the export control level
 		$export_control = strtolower( $export_control );
 		
 		//get the users country based on ip address
-		$country = Hubzero_Geo::ipcountry( $ip );
+		$country = \Hubzero\Geocode\Geocode::ipcountry( $ip );
 		
 		//if we dont know the users location and its a restricted to we have to deny access
 		if (empty($country) && in_array($export_control, array('us', 'd1', 'pu')))
 		{
 			$export_access->valid = 0;
 			$export_access->error->message = 'This tool may not be accessed from your unknown current location due to export/license restrictions.';
-			$xlog->logDebug("mw::_getToolExportControl($export_control) FAILED location export control check");
+			$xlog->debug("mw::_getToolExportControl($export_control) FAILED location export control check");
 			return $export_access;
 		}
 		
 		//if the user is in an E1 nation
-		if (Hubzero_Geo::is_e1nation(Hubzero_Geo::ipcountry($ip))) 
+		if (\Hubzero\Geocode\Geocode::is_e1nation(\Hubzero\Geocode\Geocode::ipcountry($ip))) 
 		{
 			$export_access->valid = 0;
 			$export_access->error->message = 'This tool may not be accessed from your current location due to E1 export/license restrictions.';
-			$xlog->logDebug("mw::_getToolExportControl($export_control) FAILED E1 export control check");
+			$xlog->debug("mw::_getToolExportControl($export_control) FAILED E1 export control check");
 			return $export_access;
 		}
 		
@@ -502,31 +493,31 @@ class ToolsHelperUtils
 		switch ($export_control)
 		{
 			case 'us':
-				if (Hubzero_Geo::ipcountry( $ip ) != 'us') 
+				if (\Hubzero\Geocode\Geocode::ipcountry( $ip ) != 'us') 
 				{
 					$export_access->valid = 0;
 					$export_access->error->message = 'This tool may only be accessed from within the U.S. due to export/licensing restrictions.';
-					$xlog->logDebug("mw::_getToolExportControl($export_control) FAILED US export control check");
+					$xlog->debug("mw::_getToolExportControl($export_control) FAILED US export control check");
 					return $export_access;
 				}
 			break;
 
 			case 'd1':
-				if (Hubzero_Geo::is_d1nation( Hubzero_Geo::ipcountry( $ip ) )) 
+				if (\Hubzero\Geocode\Geocode::is_d1nation(\Hubzero\Geocode\Geocode::ipcountry( $ip ))) 
 				{
 					$export_access->valid = 0;
 					$export_access->error->message = 'This tool may not be accessed from your current location due to export/license restrictions.';
-					$xlog->logDebug("mw::_getToolExportControl($export_control) FAILED D1 export control check");
+					$xlog->debug("mw::_getToolExportControl($export_control) FAILED D1 export control check");
 					return $export_access;
 				}
 			break;
 
 			case 'pu':
-				if (!Hubzero_Geo::is_iplocation( $ip, $export_control )) 
+				if (!\Hubzero\Geocode\Geocode::is_iplocation( $ip, $export_control )) 
 				{
 					$export_access->valid = 0;
 					$export_access->error->message = 'This tool may only be accessed by authorized users while on the West Lafayette campus of Purdue University due to license restrictions.';
-					$xlog->logDebug("mw::_getToolExportControl($export_control) FAILED PURDUE export control check");
+					$xlog->debug("mw::_getToolExportControl($export_control) FAILED PURDUE export control check");
 					return $export_access;
 				}
 			break;

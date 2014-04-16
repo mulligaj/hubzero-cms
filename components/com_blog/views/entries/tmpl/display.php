@@ -33,7 +33,14 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $juser = JFactory::getUser();
 
-$first = $this->model->entries('first');
+$filters = array(
+	'scope'      => $this->filters['scope'],
+	'group_id'   => $this->filters['group_id'],
+	'state'      => $this->filters['state'],
+	'authorized' => $this->filters['authorized']
+);
+
+$first = $this->model->entries('first', $filters);
 ?>
 <div id="content-header">
 	<h2><?php echo $this->title; ?></h2>
@@ -74,6 +81,7 @@ $first = $this->model->entries('first');
 			if ($first->exists()) {
 				$start = intval(substr($first->get('publish_up'), 0, 4));
 				$now = JFactory::getDate()->format("Y");
+
 				for ($i=$now, $n=$start; $i >= $n; $i--)
 				{
 				?>
@@ -98,7 +106,7 @@ $first = $this->model->entries('first');
 						);
 						//if (($this->year && $i == $this->year) || (!$this->year && $i == $now)) {
 						if ($i == $now) {
-							$months = JFactory::getDate()->toFormat("m");
+							$months = JFactory::getDate()->format("m");
 						} else {
 							$months = 12;
 						}
@@ -180,7 +188,6 @@ $first = $this->model->entries('first');
 					$archiveDate  = $this->filters['year'];
 					$archiveDate .= ($this->filters['month']) ? '-' . $this->filters['month'] : '-01';
 					$archiveDate .= '-01 00:00:00';
-
 					echo JFactory::getDate($archiveDate)->format('M Y');
 				} ?>
 				</h3>

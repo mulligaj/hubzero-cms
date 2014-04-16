@@ -57,7 +57,7 @@ class plgProjectsNotes extends JPlugin
 		$this->_config = JComponentHelper::getParams( 'com_projects' );
 		
 		// Load wiki configs
-		$this->_wiki_config = JComponentHelper::getParams( 'com_wiki' ); 			
+		$this->_wiki_config = JComponentHelper::getParams( 'com_wiki' );
 				
 		$this->_task 	= '';
 		$this->_msg 	= '';
@@ -193,24 +193,15 @@ class plgProjectsNotes extends JPlugin
 			// Get JS
 			$document = JFactory::getDocument();
 			$document->addStyleSheet('plugins' . DS . 'groups' . DS . 'wiki' . DS . 'wiki.css');
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginScript('projects', 'notes');
-			Hubzero_Document::addPluginStylesheet('projects', 'notes');
+
+			\Hubzero\Document\Assets::addPluginScript('projects', 'notes');
+			\Hubzero\Document\Assets::addPluginStylesheet('projects', 'notes');
 
 			// Import some needed libraries
-			ximport('Hubzero_User_Helper');
-			
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'attachment.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'author.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'comment.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'log.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'page.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'revision.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'page.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'html.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'setup.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'tags.php');
-			
+			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'models' . DS . 'book.php');
+			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'parser.php');
+			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'editor.php');
+
 			$pagename = trim(JRequest::getVar('pagename', ''));
 			$scope = trim(JRequest::getVar( 'scope', '' ));
 			
@@ -237,7 +228,7 @@ class plgProjectsNotes extends JPlugin
 				$objProjectTool = new ProjectTool( $database );
 				$this->_tool = $objProjectTool->getFullRecord($tool, $this->_project->id);
 				
-				Hubzero_Document::addPluginStylesheet('projects', 'tools');
+				\Hubzero\Document\Assets::addPluginStylesheet('projects', 'tools');
 				$lang = JFactory::getLanguage();
 				$lang->load('plg_projects_tools');
 			}
@@ -298,6 +289,9 @@ class plgProjectsNotes extends JPlugin
 				$controllerName = 'media';
 				$this->_task = 'download';
 			}
+
+			$lang = JFactory::getLanguage();
+			$lang->load('com_wiki');
 			
 			if (!file_exists(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'controllers' . DS . $controllerName . '.php'))
 			{
@@ -397,9 +391,9 @@ class plgProjectsNotes extends JPlugin
 		$rename = $this->_task == 'saverename' ? 1 : 0;
 			
 		// Load requested page
-		$page = new WikiPage( $this->_database );		
+		$page = new WikiTablePage( $this->_database );		
 		$page->load( $pagename, $scope );
-				
+		
 		// Fix up saved page
 		if ($page->exist()) 
 		{
@@ -407,7 +401,7 @@ class plgProjectsNotes extends JPlugin
 			$_REQUEST['lid'] = $page->id;
 			
 			// Check that we have a version
-			$revision = new WikiPageRevision($this->_database);
+			$revision = new WikiTableRevision($this->_database);
 			
 			// Create version if does not exists
 			if (!$revision->loadByVersion($page->id))
@@ -460,14 +454,14 @@ class plgProjectsNotes extends JPlugin
 		$controller->execute();
 		
 		// Record activity
-		if ($save && !$preview && !$this->getError() && !$controller->getError() && !$exists) 
+		if ($save && !$preview && !$this->getError() && !$controller->getError()) 
 		{
 			$objAA = new ProjectActivity( $this->_database );
 			$what  = $exists ? JText::_('COM_PROJECTS_NOTE_EDITED') : JText::_('COM_PROJECTS_NOTE_ADDED');
 			$what .= $exists ? ' "' . $page->title . '" ' : '';
 			$what .= ' '.JText::_('COM_PROJECTS_NOTE_IN_NOTES');
 			$aid = $objAA->recordActivity($this->_project->id, $this->_uid, $what, 
-				'', 'notes', JRoute::_('index.php?option=' . $this->_option . a
+				$controller->page->get('id'), 'notes', JRoute::_('index.php?option=' . $this->_option . a
 				. 'alias=' . $this->_project->alias . a . 'active=notes') , 'notes', 0);
 			
 			// Record page order for new pages
@@ -488,10 +482,9 @@ class plgProjectsNotes extends JPlugin
 		$controller->redirect();
 		$content = ob_get_contents();
 		ob_end_clean();
-			
+
 		// Output HTML (wrap for notes)
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'notes',
@@ -508,7 +501,9 @@ class plgProjectsNotes extends JPlugin
 		// Get parent notes
 		$view->parent_notes = $projectsHelper->getParentNotes($this->_group, $scope, $this->_task);
 		
-		$view->templates 	= $page->getTemplates();		
+		//$book = new WikiModelBook('project');
+
+		$view->templates 	= $page->getTemplates(); //$book->templates()
 		$view->params 		= new JParameter($this->_project->params);
 		$view->task 		= $this->_task;
 		$view->option 		= $this->_option;
@@ -553,7 +548,7 @@ class plgProjectsNotes extends JPlugin
 		$url 	= JRoute::_($route . a . 'active=notes');
 		
 		// Load requested page
-		$page = new WikiPage( $this->_database );		
+		$page = new WikiTablePage( $this->_database );		
 		if (!$page->loadById( $id )) 
 		{			
 			$this->_referer = $url;
@@ -608,7 +603,7 @@ class plgProjectsNotes extends JPlugin
 		$url 	= JRoute::_($route . a . 'active=notes');
 		
 		// Load requested page
-		$page = new WikiPage( $this->_database );		
+		$page = new WikiTablePage( $this->_database );		
 		if (!$page->loadById( $id )) 
 		{			
 			$this->_referer = $url;
@@ -632,8 +627,7 @@ class plgProjectsNotes extends JPlugin
 			);
 			
 			// Output HTML
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'notes',
@@ -684,11 +678,10 @@ class plgProjectsNotes extends JPlugin
 	 */
 	protected function _createDefaultPage( $pagename = '', $scope = '', $pagePrefix = '' )
 	{
-		ximport('Hubzero_Plugin_View');
 		$juser = JFactory::getUser();
 		
 		// Compose default tool page
-		$eview = new Hubzero_Plugin_View(
+		$eview = new \Hubzero\Plugin\View(
 			array(
 				'folder'	=>'projects',
 				'element'	=>'tools',
@@ -714,7 +707,7 @@ class plgProjectsNotes extends JPlugin
 		}
 		
 		// Create page
-		$page 					= new WikiPage($this->_database);
+		$page 					= new WikiTablePage($this->_database);
 		$page->title  			= $pagename;
 		$page->pagename 		= $pagename;
 		$page->scope    		= $scope;
@@ -733,7 +726,7 @@ class plgProjectsNotes extends JPlugin
 		}
 		
 		// Create revision
-		$revision 				= new WikiPageRevision($this->_database);
+		$revision 				= new WikiTableRevision($this->_database);
 		$revision->pageid     	= $page->id;
 		$revision->created    	= JFactory::getDate()->toSql();
 		$revision->created_by 	= $juser->get('id');
@@ -750,8 +743,8 @@ class plgProjectsNotes extends JPlugin
 			'filepath' => '',
 			'domain'   => $this->_group
 		);
-		ximport('Hubzero_Wiki_Parser');
-		$p = Hubzero_Wiki_Parser::getInstance();
+
+		$p = WikiHelperParser::getInstance();
 		$revision->pagehtml = $p->parse($revision->pagetext, $wikiconfig);
 		$revision->store();
 		
@@ -778,7 +771,7 @@ class plgProjectsNotes extends JPlugin
 		
 		if ($this->_project->owned_by_group)
 		{
-			$group = Hubzero_Group::getInstance( $this->_project->owned_by_group );
+			$group = \Hubzero\User\Group::getInstance( $this->_project->owned_by_group );
 		}
 		
 		// Add group
@@ -790,7 +783,7 @@ class plgProjectsNotes extends JPlugin
 				JRoute::_('index.php?option=com_groups')
 			);
 			$pathway->addItem(
-				Hubzero_View_Helper_Html::shortenText($group->get('description'), 50, 0),
+				\Hubzero\Utility\String::truncate($group->get('description'), 50),
 				JRoute::_('index.php?option=com_groups' . a . 'cn=' . $group->cn)
 			);
 			$pathway->addItem(
@@ -820,7 +813,7 @@ class plgProjectsNotes extends JPlugin
 			);
 			
 			$pathway->addItem(
-				Hubzero_View_Helper_Html::shortenText($this->_tool->title, 50, 0),
+				\Hubzero\Utility\String::truncate($this->_tool->title, 50),
 				JRoute::_('index.php?option=' . $this->_option . a . 'alias='
 				. $this->_project->alias . a . 'active=tools' . a . 'tool=' . $this->_tool->id)
 			);	
@@ -848,10 +841,6 @@ class plgProjectsNotes extends JPlugin
 	 */
 	public function browser()
 	{
-		// Enable views
-		ximport('Hubzero_View_Helper_Html');
-		ximport('Hubzero_Plugin_View');
-				
 		// Incoming
 		$ajax 		= JRequest::getInt('ajax', 0);
 		$primary 	= JRequest::getInt('primary', 1);
@@ -863,7 +852,7 @@ class plgProjectsNotes extends JPlugin
 		}
 				
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'notes',
@@ -950,7 +939,7 @@ class plgProjectsNotes extends JPlugin
 		$url 	= JRoute::_('index.php?option=com_projects' . a . 'alias=' . $this->_project->alias);
 		
 		// Load requested page
-		$page = new WikiPage( $database );		
+		$page = new WikiTablePage( $database );		
 		if (!$page->loadById( $data->pageid )) 
 		{			
 			return false;
@@ -965,8 +954,7 @@ class plgProjectsNotes extends JPlugin
 		$document->setTitle( JText::_(strtoupper($this->_option)) . ': ' . stripslashes($this->_project->title) . ' - ' . stripslashes($page->title) );	
 				
 		// Instantiate a new view
-		ximport('Hubzero_Plugin_View');	
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'	=>'projects',
 				'element'	=>'notes',

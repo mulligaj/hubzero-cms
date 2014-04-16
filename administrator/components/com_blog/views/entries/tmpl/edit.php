@@ -41,7 +41,8 @@ if ($canDo->get('core.edit'))
 	JToolBarHelper::spacer();
 }
 JToolBarHelper::cancel();
-
+JToolBarHelper::spacer();
+JToolBarHelper::help('entry.html', true);
 ?>
 <script type="text/javascript">
 function submitbutton(pressbutton) 
@@ -55,7 +56,7 @@ function submitbutton(pressbutton)
 
 	// do field validation
 	if (form.greeting.value == ''){
-		alert(<?php echo JText::_('Error! You must fill in a title!'); ?>);
+		alert("<?php echo JText::_('Error! You must fill in a title!'); ?>");
 	} else {
 		submitform(pressbutton);
 	}
@@ -80,13 +81,12 @@ function submitbutton(pressbutton)
 					<td class="key">
 						<label for="field-group_id"><?php echo JText::_('Group'); ?>:</label><br />
 						<?php
-						ximport('Hubzero_Group');
 						$filters = array();
 						$filters['authorized'] = 'admin';
 						$filters['fields'] = array('cn','description','published','gidNumber','type');
 						$filters['type'] = array(1,3);
 						$filters['sortby'] = 'description';
-						$groups = Hubzero_Group::find($filters);
+						$groups = \Hubzero\User\Group::find($filters);
 						
 						$html  = '<select name="fields[group_id]" id="field-group_id">'."\n";
 						$html .= '<option value="0"';
@@ -114,7 +114,7 @@ function submitbutton(pressbutton)
 				</tr>
 				<tr>
 					<td class="key" colspan="2">
-						<label for="field-title"><?php echo JText::_('Title'); ?>:</label><br />
+						<label for="field-title"><?php echo JText::_('Title'); ?>: <span class="required">required</span></label><br />
 						<input type="text" name="fields[title]" id="field-title" size="30" maxlength="250" value="<?php echo $this->escape(stripslashes($this->row->get('title'))); ?>" />
 					</td>
 				</tr>
@@ -126,13 +126,13 @@ function submitbutton(pressbutton)
 				</tr>
 				<tr>
 					<td class="key" colspan="2">
-						<label for="field-content"><?php echo JText::_('Content'); ?></label><br />
-						<textarea name="fields[content]" id="field-content" cols="35" rows="30"><?php echo $this->escape(stripslashes($this->row->get('content'))); ?></textarea>
+						<label for="field-content"><?php echo JText::_('Content'); ?>: <span class="required">required</span></label><br />
+						<textarea name="fields[content]" id="field-content" cols="35" rows="30"><?php echo $this->escape($this->row->content('raw')); ?></textarea>
 					</td>
 				</tr>
 				<tr>
 					<td class="key" colspan="2">
-						<label for="field-tags"><?php echo JText::_('Tags'); ?></label><br />
+						<label for="field-tags"><?php echo JText::_('Tags'); ?>:</label><br />
 						<textarea name="tags" id="field-tags" cols="35" rows="3"><?php echo $this->escape(stripslashes($this->row->tags('string'))); ?></textarea>
 					</td>
 				</tr>

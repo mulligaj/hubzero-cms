@@ -68,6 +68,7 @@ class plgMembersGroups extends JPlugin
 		if ($user->get('id') == $member->get('uidNumber'))
 		{
 			$areas['groups'] = JText::_('PLG_MEMBERS_GROUPS');
+			$areas['icon'] = 'f042';
 		}
 
 		return $areas;
@@ -109,11 +110,10 @@ class plgMembersGroups extends JPlugin
 			'metadata'=>''
 		);
 
-		ximport('Hubzero_User_Helper');
-		$applicants = $member->getGroups('applicants'); //Hubzero_User_Helper::getGroups($member->get('uidNumber'), 'applicants', 1);
-		$invitees   = $member->getGroups('invitees'); //Hubzero_User_Helper::getGroups($member->get('uidNumber'), 'invitees', 1);
-		$members    = $member->getGroups('members'); //Hubzero_User_Helper::getGroups($member->get('uidNumber'), 'members', 1);
-		$managers   = $member->getGroups('managers'); //Hubzero_User_Helper::getGroups($member->get('uidNumber'), 'managers', 1);
+		$applicants = $member->getGroups('applicants'); //\Hubzero\User\Helper::getGroups($member->get('uidNumber'), 'applicants', 1);
+		$invitees   = $member->getGroups('invitees'); //\Hubzero\User\Helper::getGroups($member->get('uidNumber'), 'invitees', 1);
+		$members    = $member->getGroups('members'); //\Hubzero\User\Helper::getGroups($member->get('uidNumber'), 'members', 1);
+		$managers   = $member->getGroups('managers'); //\Hubzero\User\Helper::getGroups($member->get('uidNumber'), 'managers', 1);
 
 		$applicants = (is_array($applicants)) ? $applicants : array();
 		$invitees   = (is_array($invitees))   ? $invitees   : array();
@@ -139,11 +139,9 @@ class plgMembersGroups extends JPlugin
 		// Build the final HTML
 		if ($returnhtml) 
 		{
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('members', 'groups');
+			\Hubzero\Document\Assets::addPluginStylesheet('members', 'groups');
 
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'members',
 					'element' => 'groups',

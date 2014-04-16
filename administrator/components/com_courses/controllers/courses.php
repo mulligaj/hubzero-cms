@@ -31,15 +31,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'courses.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
 
 /**
  * Courses controller class for managing membership and course info
  */
-class CoursesControllerCourses extends Hubzero_Controller
+class CoursesControllerCourses extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Displays a list of courses
@@ -73,6 +71,18 @@ class CoursesControllerCourses extends Hubzero_Controller
 			0,
 			'int'
 		);
+		// Get sorting variables
+		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
+			$this->_option . '.' . $this->_controller . '.sort', 
+			'filter_order', 
+			'title'
+		));
+		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
+			$this->_option . '.' . $this->_controller . '.sortdir', 
+			'filter_order_Dir', 
+			'ASC'
+		));
+
 		// In case limit has been changed, adjust limitstart accordingly
 		$this->view->filters['start'] = ($this->view->filters['limit'] != 0 ? (floor($this->view->filters['start'] / $this->view->filters['limit']) * $this->view->filters['limit']) : 0);
 
@@ -188,7 +198,7 @@ class CoursesControllerCourses extends Hubzero_Controller
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 		$fields = array_map('trim', $fields);
 
 		// Initiate extended database class

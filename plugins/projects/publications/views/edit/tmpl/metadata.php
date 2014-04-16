@@ -57,9 +57,6 @@ $elements 	= new PublicationsElements($data, $customFields);
 $fields 	= $elements->render();
 $schema 	= $elements->getSchema();
 
-ximport('Hubzero_Wiki_Editor');
-$editor = Hubzero_Wiki_Editor::getInstance();
-
 $canedit = (
 	$this->pub->state == 3 
 	|| $this->pub->state == 4 
@@ -109,7 +106,7 @@ $canedit = (
 	  <div id="c-pane" class="columns">
 		 <div class="c-inner">
 			<?php if ($canedit) { ?>
-			<span class="c-submit"><input type="submit" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" <?php if(count($this->checked['description']) == 0) { echo 'class="disabled"'; } ?> class="c-continue" id="c-continue" /></span>
+			<span class="c-submit"><input type="submit" class="btn" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" <?php if(count($this->checked['description']) == 0) { echo 'class="disabled"'; } ?> class="c-continue" id="c-continue" /></span>
 			<?php } ?>
 		<h4><?php echo $ptitle; ?></h4>
 		
@@ -125,12 +122,23 @@ $canedit = (
 						<p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_NO_METADATA_COLLECTED'); ?></p>
 					<?php } ?>
 			<?php } else { 
-				
+				include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'parser.php');
+
+				$parser = WikiHelperParser::getInstance();
+				$wikiconfig = array(
+					'option'   => $this->option,
+					'scope'    => '',
+					'pagename' => 'projects',
+					'pageid'   => '',
+					'filepath' => '',
+					'domain'   => ''
+				);
+
 				$metadata = $this->htmlHelper->processMetadata(
 					$this->row->metadata, 
 					$this->_category,  
-					$this->parser, 
-					$this->wikiconfig,
+					$parser, 
+					$wikiconfig,
 					0
 				);					
 			?>

@@ -107,7 +107,7 @@ $services = $this->connect->getActive();
 	<?php if (!$this->tool) { ?>
 		<?php 
 			// NEW: connections to external services
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'files',
@@ -222,7 +222,7 @@ $services = $this->connect->getActive();
 						if (!$remote) 
 						{ 	
 							// Local file
-							$view = new Hubzero_Plugin_View(
+							$view = new \Hubzero\Plugin\View(
 								array(
 									'folder'=>'projects',
 									'element'=>'files',
@@ -247,7 +247,7 @@ $services = $this->connect->getActive();
 					elseif ($combined['type'] == 'remote')
 					{
 						// Google file
-						$view = new Hubzero_Plugin_View(
+						$view = new \Hubzero\Plugin\View(
 							array(
 								'folder'=>'projects',
 								'element'=>'files',
@@ -303,7 +303,7 @@ $services = $this->connect->getActive();
 		<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto.a.'active=files').'?case='.$this->case.a.'action=diskspace'; ?>" title="<?php echo JText::_('COM_PROJECTS_FILES_DISK_SPACE_TOOLTIP'); ?>"><span id="indicator-wrapper" <?php if($warning) { echo 'class="quota-warning"'; } ?>><span id="indicator-area" class="used:<?php echo $inuse; ?>">&nbsp;</span><span id="indicator-value"><span><?php echo $inuse.'% '.JText::_('COM_PROJECTS_FILES_USED'); ?></span></span></span></a>
 			 <span class="show-quota"><?php echo JText::_('COM_PROJECTS_FILES_QUOTA') . ': ' . ProjectsHtml::formatSize($this->quota); ?></span>
 		</span>
-		<span class="rightfloat">	
+		<span class="rightfloat">			
 			<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto.'&active=files').'/?action=status'.a.'case='.$this->case; ?>" class="showinbox"><?php echo JText::_('COM_PROJECTS_FILES_GIT_STATUS'); ?></a>
 		</span>
 	</p>

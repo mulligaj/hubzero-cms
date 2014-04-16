@@ -75,8 +75,14 @@ if ($this->pub->doi)
 }
 
 // Get creator name
-$profile = Hubzero_User_Profile::getInstance($this->pub->created_by);
+$profile = \Hubzero\User\Profile::getInstance($this->pub->created_by);
 $creator = $profile->get('name') . ' (' . $profile->get('username') . ')';
+
+$mt = new PublicationMasterType( $this->database );
+$mType = $mt->getType($this->pub->base);
+$typeParams = new JParameter( $mType->params );
+
+$showCitations = $typeParams->get('show_citations', 0);	
 
 ?>
 <form action="<?php echo $this->url; ?>" method="post" id="plg-form" enctype="multipart/form-data">	
@@ -254,11 +260,11 @@ $creator = $profile->get('name') . ' (' . $profile->get('username') . ')';
 				</li>
 				<?php } ?>
 				<li id="next-publish"><p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_PUBLISH_READY');  ?> <?php if ($this->pubconfig->get('doi_service')) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_PUBLISH_DOI');  } ?></p>
-					<p class="centeralign"><span class="<?php echo $this->publication_allowed ? 'btn' : 'btncancel'; ?>"><?php if($this->publication_allowed) {  ?><a href="<?php echo $this->url.'/?action=publish'. a . 'version='.$this->version; ?>"><?php } ?><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_SUBMIT_TO_PUBLISH_REVIEW'); ?><?php if($this->publication_allowed) {  ?></a><?php } ?></span></p>
+				<p class="centeralign"><?php if($this->publication_allowed) {  ?><a href="<?php echo $this->url.'/?action=publish'. a . 'version='.$this->version; ?>" class="btn btn-success active"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_SUBMIT_TO_PUBLISH_REVIEW'); ?></a><?php } else { ?><span class="btn disabled"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_SUBMIT_TO_PUBLISH_REVIEW'); ?></span><?php } ?></p>
 				</li>
 				<?php if($this->row->state != 4 && $this->publication_allowed) { ?>
 				<li id="next-ready"><p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_SAVE');  ?></p>
-					<p class="centeralign"><span class="<?php echo $this->publication_allowed ? 'btn' : 'btncancel'; ?>"><?php if($this->publication_allowed) {  ?><a href="<?php echo $this->url . '/?action=post'. a . 'version='.$this->version; ?>"><?php } ?><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_SAVE_REVIEW'); ?><?php if($this->publication_allowed) {  ?></a><?php } ?></span></p>
+					<p class="centeralign"><span class="<?php echo $this->publication_allowed ? 'btn' : 'btn disabled'; ?>"><?php if($this->publication_allowed) {  ?><a href="<?php echo $this->url . '/?action=post'. a . 'version='.$this->version; ?>"><?php } ?><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_SAVE_REVIEW'); ?><?php if($this->publication_allowed) {  ?></a><?php } ?></span></p>
 				</li>
 				<?php } ?>
 				<li id="next-cancel"><p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_NEED_TO_CANCEL').' <a href="'.$this->url.'/?action=cancel' . a . 'version='.$this->version.'">'.JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_CANCEL').'</a> '.JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_CANCEL_BEFORE');  ?></p></li>				
@@ -290,6 +296,10 @@ $creator = $profile->get('name') . ' (' . $profile->get('username') . ')';
 				.' <strong>'.JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_USAGE_STATS').'</strong> '
 				.JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_FOLLOW_FEEDBACK');  ?>
 					<span class="block italic"><a href="<?php echo $this->url . '/?action=stats' . a . 'version='.$this->version; ?>"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_VIEW_USAGE'); ?> &raquo;</a></span></p></li>
+				<?php if ($showCitations) { ?>
+				<li id="next-citation"><p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_WATCH_ADD_CITATIONS');  ?>
+					<span class="block italic"><a href="<?php echo $this->url . '/?section=citations' . a . 'version=' . $this->version; ?>"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_ADD_CITATIONS'); ?> &raquo;</a></span></p></li>	
+				<?php } ?>
 			<?php } ?>
 			
 			<?php if ($this->row->state == 5) { // pending approval ?>

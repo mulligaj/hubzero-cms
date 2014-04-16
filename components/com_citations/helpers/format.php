@@ -474,7 +474,7 @@ class CitationFormat
 		}
 		
 		//output the citation
-		return ($highlight) ? Hubzero_View_Helper_Html::str_highlight($cite, array($highlight)) : $cite;
+		return ($highlight) ? \Hubzero\Utility\String::highlight($cite, $highlight) : $cite;
 	}
 
 	/**
@@ -483,7 +483,7 @@ class CitationFormat
 	 * @param 	string		Format Type
 	 * @return  String		Formats Template
 	 */
-	public function getDefaultFormat($format)
+	public function getDefaultFormat($format = 'apa')
 	{
 		return $this->_default_format[$format];
 	}
@@ -698,7 +698,7 @@ class CitationFormat
 		if ($citation->eprint) 
 		{
 			$html .= '<span>|</span>';
-			$html .= '<a href="' . Hubzero_View_Helper_Html::ampReplace($citation->eprint) . '">' . JText::_('Electronic Paper') . '</a>';
+			$html .= '<a href="' . JFilterOutput::ampReplace($citation->eprint) . '">' . JText::_('Electronic Paper') . '</a>';
 		}
 		
 		return $html;
@@ -871,12 +871,10 @@ class CitationFormat
 	 */
 	public static function formatReference(&$row, $link='none', $highlight='')
 	{
-		ximport('Hubzero_View_Helper_Html');
-
 		$html = "\t" . '<p>';
 		if (CitationFormat::keyExistsOrIsNotEmpty('author', $row)) 
 		{
-			$xprofile = Hubzero_Factory::getProfile();
+			$xprofile = \Hubzero\User\Profile::getInstance(JFactory::getUser()->get('id'));
 			$app   = JFactory::getApplication();
 			$auths = explode(';', $row->author);
 			$a = array();
@@ -936,7 +934,7 @@ class CitationFormat
 			} 
 			else 
 			{
-				$html .= ', "<a href="' . CitationFormat::cleanUrl($row->url) . '">' . Hubzero_View_Helper_Html::str_highlight(stripslashes($row->title), array($highlight)) . '</a>';
+				$html .= ', "<a href="' . CitationFormat::cleanUrl($row->url) . '">' . \Hubzero\Utility\String::highlight(stripslashes($row->title), $highlight) . '</a>';
 			}
 		}
 		if (CitationFormat::keyExistsOrIsNotEmpty('journal', $row)
@@ -948,7 +946,7 @@ class CitationFormat
 		$html .= '"';
 		if (CitationFormat::keyExistsOrIsNotEmpty('journal', $row)) 
 		{
-			$html .= ' <i>' . Hubzero_View_Helper_Html::str_highlight(stripslashes($row->journal), array($highlight)) . '</i>';
+			$html .= ' <i>' . \Hubzero\Utility\String::highlight(stripslashes($row->journal), $highlight) . '</i>';
 		} 
 		elseif (CitationFormat::keyExistsOrIsNotEmpty('booktitle', $row)) 
 		{

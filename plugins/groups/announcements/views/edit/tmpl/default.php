@@ -32,13 +32,12 @@
 defined('_JEXEC') or die('Restricted access');
 
 //add styles and scripts
-ximport('Hubzero_Document');
+$this->css();
+$this->js();
 
-Hubzero_Document::addPluginStylesheet('groups', $this->name);
-Hubzero_Document::addPluginScript('groups', $this->name);
-Hubzero_Document::addSystemScript('jquery.timepicker');
-Hubzero_Document::addSystemStylesheet('jquery.datepicker.css');
-Hubzero_Document::addSystemStylesheet('jquery.timepicker.css');
+\Hubzero\Document\Assets::addSystemScript('jquery.timepicker');
+\Hubzero\Document\Assets::addSystemStylesheet('jquery.datepicker.css');
+\Hubzero\Document\Assets::addSystemStylesheet('jquery.timepicker.css');
 ?>
 
 <ul id="page_options">
@@ -55,39 +54,7 @@ Hubzero_Document::addSystemStylesheet('jquery.timepicker.css');
 <?php } ?>
 	<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=announcements'); ?>" method="post" id="hubForm">
 		<div class="explaination">
-			<table class="wiki-reference">
-				<caption>Wiki Syntax Reference</caption>
-				<tbody>
-					<tr>
-						<td>'''bold'''</td>
-						<td><b>bold</b></td>
-					</tr>
-					<tr>
-						<td>''italic''</td>
-						<td><i>italic</i></td>
-					</tr>
-					<tr>
-						<td>__underline__</td>
-						<td><span style="text-decoration:underline;">underline</span></td>
-					</tr>
-					<tr>
-						<td>{{{monospace}}}</td>
-						<td><code>monospace</code></td>
-					</tr>
-					<tr>
-						<td>~~strike-through~~</td>
-						<td><del>strike-through</del></td>
-					</tr>
-					<tr>
-						<td>^superscript^</td>
-						<td><sup>superscript</sup></td>
-					</tr>
-					<tr>
-						<td>,,subscript,,</td>
-						<td><sub>subscript</sub></td>
-					</tr>
-				</tbody>
-			</table>
+			<?php echo JText::_('PLG_GROUPS_ANNOUNCEMENTS_HINT'); ?>
 		</div><!-- /.aside -->
 		
 		<fieldset>
@@ -102,8 +69,7 @@ Hubzero_Document::addSystemStylesheet('jquery.timepicker.css');
 			<label for="field_content">
 				<?php echo JText::_('PLG_GROUPS_ANNOUNCEMENTS_ANNOUNCEMENT'); ?> <span class="required"><?php echo JText::_('PLG_GROUPS_ANNOUNCEMENTS_REQUIRED'); ?></span>
 				<?php
-					ximport('Hubzero_Wiki_Editor');
-					echo Hubzero_Wiki_Editor::getInstance()->display('fields[content]', 'field_content', $this->escape(stripslashes($this->announcement->get('content'))), 'minimal no-footer', '35', '5');
+				echo \JFactory::getEditor()->display('fields[content]', $this->escape(stripslashes($this->announcement->get('content'))), '', '', 35, 5, false, 'field_content', null, null, array('class' => 'minimal no-footer'));
 				?>
 			</label>
 
@@ -177,6 +143,7 @@ Hubzero_Document::addSystemStylesheet('jquery.timepicker.css');
 		<input type="hidden" name="cn" value="<?php echo $this->escape($this->group->get('cn')); ?>" />
 		<input type="hidden" name="active" value="announcements" />
 		<input type="hidden" name="action" value="save" />
-		
+
+		<?php echo JHTML::_('form.token'); ?>
 	</form>
 </div>

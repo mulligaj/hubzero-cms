@@ -31,26 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Members Plugin class for points
  */
-class plgMembersPoints extends Hubzero_Plugin
+class plgMembersPoints extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Event call to determine if this plugin should return data
@@ -68,6 +59,7 @@ class plgMembersPoints extends Hubzero_Plugin
 		if ($user->get('id') == $member->get('uidNumber'))
 		{
 			$areas['points'] = JText::_('PLG_MEMBERS_POINTS');
+			$areas['icon'] = 'f006';
 		}
 
 		return $areas;
@@ -112,18 +104,14 @@ class plgMembersPoints extends Hubzero_Plugin
 			return $arr;
 		}
 
-		ximport('Hubzero_Bank');
-
-		$BTL = new Hubzero_Bank_Teller($database, $member->get('uidNumber'));
+		$BTL = new \Hubzero\Bank\Teller($database, $member->get('uidNumber'));
 
 		// Build the final HTML
 		if ($returnhtml) 
 		{
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('members', 'points');
+			\Hubzero\Document\Assets::addPluginStylesheet('members', 'points');
 
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'members',
 					'element' => 'points',

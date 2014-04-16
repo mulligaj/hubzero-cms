@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Courses controller class for media
  */
-class CoursesControllerMedia extends Hubzero_Controller
+class CoursesControllerMedia extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Track video viewing progress
@@ -85,7 +83,7 @@ class CoursesControllerMedia extends Hubzero_Controller
 			$trackingInformation->session_id                  = $session->getId();
 			$trackingInformation->ip_address                  = $ipAddress; 
 			$trackingInformation->object_id                   = $resourceid;
-			$trackingInformation->object_type                 = 'resource';
+			$trackingInformation->object_type                 = 'course';
 			$trackingInformation->object_duration             = $duration;
 			$trackingInformation->current_position            = $time;
 			$trackingInformation->farthest_position           = $time;
@@ -145,7 +143,7 @@ class CoursesControllerMedia extends Hubzero_Controller
 			$trackingInformationDetailed->session_id                  = $session->getId();
 			$trackingInformationDetailed->ip_address                  = $ipAddress; 
 			$trackingInformationDetailed->object_id                   = $resourceid;
-			$trackingInformationDetailed->object_type                 = 'resource';
+			$trackingInformationDetailed->object_type                 = 'course';
 			$trackingInformationDetailed->object_duration             = $duration;
 			$trackingInformationDetailed->current_position            = $time;
 			$trackingInformationDetailed->farthest_position           = $time;
@@ -330,7 +328,7 @@ class CoursesControllerMedia extends Hubzero_Controller
 		}
 		if ($size > $sizeLimit) 
 		{
-			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', Hubzero_View_Helper_Html::formatSize($sizeLimit));
+			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			echo json_encode(array('error' => 'File is too large. Max file upload size is ' . $max));
 			return;
 		}
@@ -500,7 +498,7 @@ class CoursesControllerMedia extends Hubzero_Controller
 			$this->addComponentMessage(JText::_('COURSES_NO_ID'), 'error');
 		}
 
-		$course = Hubzero_Course::getInstance($listdir);
+		$course = CoursesModelCourse::getInstance($listdir);
 
 		// Output HTML
 		$this->view->config = $this->config;
@@ -597,7 +595,7 @@ class CoursesControllerMedia extends Hubzero_Controller
 	public function downloadTask($filename)
 	{
 		//get the course
-		$course = Hubzero_Course::getInstance($this->gid);
+		$course = CoursesModelCourse::getInstance($this->gid);
 
 		//authorize
 		$authorized = $this->_authorize();
@@ -615,12 +613,9 @@ class CoursesControllerMedia extends Hubzero_Controller
 		//if were on the wiki we need to output files a specific way
 		if ($this->active == 'wiki') 
 		{
-			//get access level for wiki
-			$access = Hubzero_Course_Helper::getPluginAccess($course, 'wiki');
-
 			//check to make sure user has access to wiki section
-			if (($access == 'members' && !in_array($this->juser->get('id'), $course->get('members'))) 
-			 || ($access == 'registered' && $this->juser->get('guest') == 1)) 
+			if (!in_array($this->juser->get('id'), $course->get('members')) 
+			 || $this->juser->get('guest')) 
 			{
 				JError::raiseError(403, JText::_('COM_COURSES_NOT_AUTH') . ' ' . $file);
 				return;
@@ -628,7 +623,7 @@ class CoursesControllerMedia extends Hubzero_Controller
 
 			//load wiki page from db
 			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'page.php');
-			$page = new WikiPage($this->database);
+			$page = new WikiTablePage($this->database);
 			$page->load(JRequest::getVar('pagename'), $course->get('cn') . DS . 'wiki');
 
 			//check specific wiki page access
@@ -644,12 +639,9 @@ class CoursesControllerMedia extends Hubzero_Controller
 		} 
 		else 
 		{
-			//get access level for overview or other course pages
-			$access = Hubzero_Course_Helper::getPluginAccess($course, 'overview');
-
 			//check to make sure we can access it
-			if (($access == 'members' && !in_array($this->juser->get('id'), $course->get('members'))) 
-			 || ($access == 'registered' && $this->juser->get('guest') == 1)) 
+			if (!in_array($this->juser->get('id'), $course->get('members')) 
+			 || $this->juser->get('guest') == 1) 
 			{
 				JError::raiseError(403, JText::_('COM_COURSES_NOT_AUTH') . ' ' . $file);
 				return;
@@ -670,11 +662,8 @@ class CoursesControllerMedia extends Hubzero_Controller
 			return;
 		}
 
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename(JPATH_ROOT . DS . $file_path);
 		$xserver->disposition('attachment');
 		$xserver->acceptranges(false); // @TODO fix byte range support

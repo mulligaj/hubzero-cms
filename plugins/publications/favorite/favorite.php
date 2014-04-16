@@ -122,18 +122,11 @@ class plgPublicationsFavorite extends JPlugin
 			if ($rtrn == 'all' || $rtrn == 'metadata') 
 			{
 				// Push some scripts to the template
-				ximport('Hubzero_Document');
-				Hubzero_Document::addPluginScript('publications', 'favorite');
-
-				ximport('Hubzero_Favorite');
-				if (!class_exists('Hubzero_Favorite')) 
-				{
-					return $arr;
-				}
+				\Hubzero\Document\Assets::addPluginScript('publications', 'favorite');
 
 				$database = JFactory::getDBO();
 
-				$fav = new Hubzero_Favorite($database);
+				$fav = new \Hubzero\Item\Favorite($database);
 				$fav->loadFavorite($juser->get('id'), $publication->id, 'publications');
 				if (!$fav->id) 
 				{
@@ -146,8 +139,7 @@ class plgPublicationsFavorite extends JPlugin
 					$cls = 'faved';
 				}
 
-				ximport('Hubzero_Plugin_View');
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'  => 'publications',
 						'element' => 'favorite',
@@ -194,11 +186,9 @@ class plgPublicationsFavorite extends JPlugin
 		$juser = JFactory::getUser();
 		if (!$juser->get('guest')) 
 		{
-			ximport('Hubzero_Favorite');
-
 			$database = JFactory::getDBO();
 
-			$fav = new Hubzero_Favorite($database);
+			$fav = new \Hubzero\Item\Favorite($database);
 			$fav->loadFavorite($juser->get('id'), $oid, 'publications');
 
 			if (!$fav->id) 

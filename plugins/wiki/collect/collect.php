@@ -85,12 +85,10 @@ class plgWikiCollect extends JPlugin
 		if (!$juser->get('guest')) 
 		{
 			// Push some scripts to the template
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginScript('wiki', $this->_name);
-			Hubzero_Document::addPluginStylesheet('wiki', $this->_name);
+			\Hubzero\Document\Assets::addPluginScript('wiki', $this->_name);
+			\Hubzero\Document\Assets::addPluginStylesheet('wiki', $this->_name);
 
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'wiki',
 					'element' => $this->_name,
@@ -128,19 +126,17 @@ class plgWikiCollect extends JPlugin
 		$model = new CollectionsModel('member', $this->juser->get('id'));
 
 		$b = new CollectionsTableItem($this->database);
-		$b->loadType($this->page->id, 'wiki');
+		$b->loadType($this->page->get('id'), 'wiki');
 		if (!$b->id)
 		{
 			$row = new CollectionsTableCollection($this->database);
 			$row->load($collection_id);
 
-			ximport('Hubzero_View_Helper_Html');
-
-			$b->url         = JRoute::_('index.php?option=com_wiki&scope=' . $this->page->scope . '&pagename=' . $this->page->pagename);
+			$b->url         = JRoute::_($this->page->link());
 			$b->type        = 'wiki';
-			$b->object_id   = $this->page->id;
-			$b->title       = $this->page->title;
-			$b->description = Hubzero_View_Helper_Html::shortenText(strip_tags($this->revision->pagehtml), 300, 0, 1);
+			$b->object_id   = $this->page->get('id');
+			$b->title       = $this->page->get('title');
+			$b->description = \Hubzero\Utility\String::truncate($this->revision->content('clean'), 300);
 			if (!$b->check()) 
 			{
 				$this->setError($b->getError());
@@ -157,8 +153,7 @@ class plgWikiCollect extends JPlugin
 		// No board ID selected so present repost form
 		if (!$collection_id && !$collection_title)
 		{
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'wiki',
 					'element' => $this->_name,
@@ -215,7 +210,7 @@ class plgWikiCollect extends JPlugin
 				// No record found -- we're OK to add one
 				$stick->item_id       = $item_id;
 				$stick->collection_id = $collection_id;
-				$stick->description = JRequest::getVar('description', '');
+				$stick->description = JRequest::getVar('description', '', 'none', 2);
 				if ($stick->check()) 
 				{
 					// Store new content

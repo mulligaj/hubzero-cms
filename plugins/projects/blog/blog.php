@@ -56,6 +56,8 @@ class plgProjectsBlog extends JPlugin
 		// Output collectors
 		$this->_referer = '';
 		$this->_message = array();
+		
+		$this->_path	= NULL;
 	}
 	
 	/**
@@ -135,17 +137,13 @@ class plgProjectsBlog extends JPlugin
 			// Load component configs
 			$this->_config = JComponentHelper::getParams( 'com_projects' );
 			
-			// Enable views
-			ximport('Hubzero_View_Helper_Html');
-			ximport('Hubzero_Plugin_View');
-						
 			$database = JFactory::getDBO();
 			
 			// Add CSS and JS
 			$document = JFactory::getDocument();
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginScript('projects', 'blog');
-			Hubzero_Document::addPluginStylesheet('projects', 'blog');
+
+			\Hubzero\Document\Assets::addPluginScript('projects', 'blog');
+			\Hubzero\Document\Assets::addPluginStylesheet('projects', 'blog');
 																	
 			// Set vars									
 			$this->_task = JRequest::getVar( 'action', '' );
@@ -157,6 +155,7 @@ class plgProjectsBlog extends JPlugin
 			{
 				$this->setError( $error );	
 			}
+			
 			$this->_uid = $uid;
 			if (!$this->_uid) 
 			{
@@ -207,7 +206,7 @@ class plgProjectsBlog extends JPlugin
 	public function view() 
 	{		
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'blog',
@@ -259,8 +258,7 @@ class plgProjectsBlog extends JPlugin
 		$entry = trim(JRequest::getVar( 'blogentry', '' ));
 		
 		// Text clean-up
-		$entry = Hubzero_View_Helper_Html::shortenText($entry, 250, 0);
-		$entry = Hubzero_View_Helper_Html::purifyText($entry);	
+		$entry = \Hubzero\Utility\Sanitize::stripAll($entry);	
 				
 		// Instantiate project microblog entry
 		$objM = new ProjectMicroblog( $this->_database );
@@ -428,7 +426,7 @@ class plgProjectsBlog extends JPlugin
 	public function updateFeed()
 	{		
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'blog',
@@ -474,11 +472,11 @@ class plgProjectsBlog extends JPlugin
 		$newc = array();
 		$skipped = array();
 		$prep = array();
-
+		
 		// Loop through activities
 		if (count($activities) > 0 ) 
 		{
-			foreach($activities as $a) 
+			foreach ($activities as $a) 
 			{ 
 				// Is this a comment?
 				if ($a->class == 'quote') 
@@ -511,7 +509,7 @@ class plgProjectsBlog extends JPlugin
 				{
 					$shown[] = $a->id;
 					$class = $a->class ? $a->class : 'activity';
-					$timeclass = $this->_project->lastvisit && $this->_project->lastvisit <= $a->recorded ? ' urgency' : '';
+					$new = $this->_project->lastvisit && $this->_project->lastvisit <= $a->recorded ? true : false;
 
 					// Display hyperlink
 					if ($a->highlighted && $a->url) 
@@ -520,10 +518,10 @@ class plgProjectsBlog extends JPlugin
 					}
 
 					// Set vars
-					$body = '';
-					$eid = $a->id;
-					$etbl = 'activity';
-					$deletable = 0;
+					$body 		= '';
+					$eid 		= $a->id;
+					$etbl 		= 'activity';
+					$deletable 	= 0;
 
 					// Get blog entry
 					if ($class == 'blog') 
@@ -533,10 +531,10 @@ class plgProjectsBlog extends JPlugin
 						{
 							continue;
 						}
-						$body = $blog ? $blog[0]->blogentry : '';
-						$eid = $blog[0]->id;
-						$etbl = 'blog';
-						$deletable = 1;
+						$body 		= $blog ? $blog[0]->blogentry : '';
+						$eid 		= $blog[0]->id;
+						$etbl 		= 'blog';
+						$deletable 	= 1;
 					}
 
 					// Get todo item
@@ -547,41 +545,15 @@ class plgProjectsBlog extends JPlugin
 						{
 							continue;						
 						}
-						$body = $todo ? $todo[0]->content : '';
-						$eid = $todo[0]->id;
-						$etbl = 'todo';
-						$deletable = 0; // Cannot delete to-do related activity
+						$body 		= $todo ? $todo[0]->content : '';
+						$eid 		= $todo[0]->id;
+						$etbl 		= 'todo';
+						$deletable 	= 0; // Cannot delete to-do related activity
 					}
 					
-					// Get app log
-					if ($class == 'tools' && is_file(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-						. DS . 'com_tools' . DS . 'tables' . DS . 'project.tool.log.php'))
-					{
-						require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-							. DS . 'com_tools' . DS . 'tables' . DS . 'project.tool.log.php');
-							
-						$objLog = new ProjectToolLog( $this->_database );
-						$aLog = $objLog->getLog($a->referenceid, $a->id);
-						
-						if ($aLog)
-						{
-							$aLog = rtrim(stripslashes($aLog));
-							$aLog = Hubzero_View_Helper_Html::purifyText($aLog);
-							$body = Hubzero_View_Helper_Html::shortenText($aLog, 200, 0);
-						}
-					}
-
-					// Embed links
-					if ($body) 
-					{
-						$body = ProjectsHtml::replaceUrls($body, 'external');
-					}
-
-					// Style body text
-					$ebody = $body ? '&#58; <span class="body' : '';
-					$ebody.= $body && strlen($body) > 50 ? ' newline' : '';
-					$ebody.= $body ? '">'.$body.'</span>' : '';
-
+					// Get/parse item preview if available
+					$ebody = $this->getItemPreview($class, $a, $body);
+					
 					// Get comments
 					$comments = $objC->getComments($eid, $etbl );
 
@@ -590,7 +562,7 @@ class plgProjectsBlog extends JPlugin
 
 					$prep[] = array('activity' => $a, 'eid' => $eid, 'etbl' => $etbl, 
 						'body' => $ebody, 'deletable' => $deletable, 
-						'comments' => $comments, 'class' => $class, 'timeclass' => $timeclass 
+						'comments' => $comments, 'class' => $class, 'new' => $new 
 					);
 				}
 			}
@@ -598,6 +570,232 @@ class plgProjectsBlog extends JPlugin
 
 		return $prep;
 	} 
+	
+	/**
+	 * Display 'more' link if text is too long
+	 * 
+	 * @param      string	$body   	Text body to shorten
+	 * @param      object	$activity   Individual activity
+	 * @return     HTML
+	 */	
+	public function drawBodyText ( $body = NULL )
+	{
+		if (!$body)
+		{
+			return false;
+		}
+		
+		$shorten = ($body && strlen($body) > 250) ? 1 : 0;
+		$shortBody = $shorten ? \Hubzero\Utility\String::truncate($body, 250) : $body;
+		
+		// Embed links
+		$body 	   = ProjectsHtml::replaceUrls($body, 'external');
+		$shortBody = ProjectsHtml::replaceUrls($shortBody, 'external');
+		
+		// Style body text
+		$ebody = '<span class="body';
+		$ebody.= strlen($shortBody) > 50 ? ' newline' : ' sameline';
+		$ebody.= '">' . $shortBody;
+		if ($shorten)
+		{
+			$ebody .= ' <a href="#" class="more-content">' . JText::_('COM_PROJECTS_MORE') . '</a>';
+		}
+		$ebody.= '</span>';	
+		
+		if ($shorten)
+		{
+			$ebody .= '<span class="fullbody hidden">' . $body . '</span>' ;
+		}
+		
+		return $ebody;
+		
+	}
+	
+	/**
+	 * Get preview
+	 * 
+	 * @param      string	$type    	Item type (files, notes etc.)
+	 * @param      object	$activity   Individual activity
+	 * @return     HTML
+	 */	
+	public function getItemPreview( $type = NULL, $activity = NULL, $body = NULL )
+	{
+		$ref = $activity->referenceid;
+		
+		if ($body) 
+		{						
+			return $this->drawBodyText($body);
+		}
+		
+		if (!$ref || !$type)
+		{
+			return false;
+		}
+		
+		$previewBody = NULL;
+		
+		switch ($type)
+		{
+			case 'files': 
+				$previewBody = $this->_getFilesPreview($ref);
+				break;
+				
+			case 'notes': 
+				$previewBody = $this->_getNotesPreview($ref);
+				break;
+		
+			case 'tools': 
+				$previewBody = $this->_getToolPreview($activity);
+				break;
+		}
+		
+		return $previewBody;
+	}
+	
+	/**
+	 * Get Tool Preview
+	 * 
+	 * @param      object	$activity   Individual activity
+	 * @return     void, redirect
+	 */	
+	protected function _getToolPreview( $activity = NULL, $body = NULL)
+	{		
+		if (!$activity)
+		{
+			return false;
+		}
+		
+		// Get app log
+		if (is_file(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+			. DS . 'com_tools' . DS . 'tables' . DS . 'project.tool.log.php'))
+		{
+			require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+				. DS . 'com_tools' . DS . 'tables' . DS . 'project.tool.log.php');
+				
+			$objLog = new ProjectToolLog( $this->_database );
+			$aLog = $objLog->getLog($activity->referenceid, $activity->id);
+			
+			if ($aLog)
+			{
+				$aLog = rtrim(stripslashes($aLog));
+				$aLog = \Hubzero\Utility\Sanitize::stripAll($aLog);
+				$body = $aLog;
+			}
+		}
+		
+		return $body;
+	}
+	
+	/**
+	 * Get Note Previews
+	 * 
+	 * @param      string	$ref   	 	 Reference to note
+	 * @return     void, redirect
+	 */	
+	protected function _getNotesPreview( $ref = '')
+	{		
+		if (!$ref)
+		{
+			return false;
+		}
+		
+		// Import some needed libraries
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'models' . DS . 'book.php');
+				
+		$page = new WikiTablePage( $this->_database );		
+		if ($page->loadById( $ref )) 
+		{			
+			$revision = $page->getCurrentRevision();
+			// TBD
+			// return $revision->get('pagehtml');
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Get File Previews
+	 * 
+	 * @param      string 	$ref    Reference to files
+	 * @return     void, redirect
+	 */	
+	protected function _getFilesPreview( $ref = '')
+	{		
+		if (!$ref)
+		{
+			return false;
+		}
+		
+		if (!$this->_path)
+		{
+			// Get project file path
+			$this->_path = ProjectsHelper::getProjectPath($this->_project->alias, 
+					$this->_config->get('webpath'), $this->_config->get('offroot', 0));
+		}
+		
+		// We do need project file path
+		if (!$this->_path)
+		{
+			return false;
+		}
+		
+		$files 	  = explode(',', $ref);
+		$selected = array();
+				
+		// Include Git Helper
+		$this->getGitHelper();
+		
+		// Include image handler
+		$ih = new ProjectsImgHandler();	
+		
+		$imagepath = trim($this->_config->get('imagepath', '/site/projects'), DS);
+		$to_path = DS . $imagepath . DS . strtolower($this->_project->alias) . DS . 'preview';
+		
+		foreach ($files as $item)
+		{
+			$parts = explode(':', $item);
+			$file  = count($parts) > 1 ? $parts[1] : $parts[0];
+			$hash  = count($parts) > 1 ? $parts[0] : NULL;
+			
+			if (!$hash)
+			{
+				$hash   = $this->_git->gitLog($this->_path, $file, '' , 'hash');
+				$hash  	= $hash ? substr($hash, 0, 10) : '';
+			}
+			
+			if ($hash)
+			{
+				$hashed = $ih->createThumbName(basename($file), '-' . $hash, 'png');
+				
+				if (is_file(JPATH_ROOT. $to_path . DS . $hashed))
+				{
+					$preview['image'] = $to_path . DS . $hashed;
+					$preview['url']   = NULL;				
+					$preview['title'] = basename($file);			
+					$selected[] = $preview;
+				}
+			}
+		}
+		
+		// No files for preview
+		if (empty($selected))
+		{
+			return false;
+		}
+
+		// Output HTML
+		$view = new \Hubzero\Plugin\View(
+			array(
+				'folder'	=>'projects',
+				'element'	=>'blog',
+				'name'		=>'preview',
+				'layout' 	=> 'files'
+			)
+		);
+		
+		$view->selected		= $selected;
+		return $view->loadTemplate();
+	}
 	
 	/**
 	 * Save comment
@@ -611,11 +809,10 @@ class plgProjectsBlog extends JPlugin
 		$tbl = trim(JRequest::getVar( 'tbl', 'activity', 'post' ));
 		$comment = trim(JRequest::getVar( 'comment', '', 'post' ));
 		$parent_activity = JRequest::getInt( 'parent_activity', 0, 'post' );
-				
+
 		// Clean-up
-		$comment = Hubzero_View_Helper_Html::shortenText($comment, 250, 0);
-		$comment = Hubzero_View_Helper_Html::purifyText($comment);
-						
+		$comment = \Hubzero\Utility\Sanitize::stripAll($comment);
+
 		// Instantiate comment
 		$objC = new ProjectComment( $this->_database );
 		if ($comment) 
@@ -638,7 +835,7 @@ class plgProjectsBlog extends JPlugin
 			if (!$objC->id) {
 				$objC->checkin();
 			}
-			
+
 			// Record activity
 			$objAA = new ProjectActivity( $this->_database );
 			if ( $objC->id ) 
@@ -653,7 +850,7 @@ class plgProjectsBlog extends JPlugin
 					$objC->id, $what, $url, 'quote', 0 
 				);
 			}
-			
+
 			// Store activity ID
 			if ($aid) 
 			{
@@ -661,7 +858,7 @@ class plgProjectsBlog extends JPlugin
 				$objC->store();
 			}
 		}
-		
+
 		// Pass success or error message
 		if ($this->getError()) 
 		{
@@ -686,20 +883,20 @@ class plgProjectsBlog extends JPlugin
 	{
 		// Incoming
 		$cid  = JRequest::getInt( 'cid', 0 );
-					
+
 		// Instantiate comment
 		$objC = new ProjectComment( $this->_database );	
-		
+
 		if ($objC->load($cid)) 
 		{
 			$activityid = $objC->activityid;
-				
+
 			// delete comment
 			if ($objC->deleteComment()) 
 			{
 				$this->_msg = JText::_('COM_PROJECTS_COMMENT_DELETED');
 			}
-			
+
 			// delete associated activity
 			$objAA = new ProjectActivity( $this->_database );
 			if ($activityid && $objAA->load($activityid)) 
@@ -707,7 +904,7 @@ class plgProjectsBlog extends JPlugin
 				$objAA->deleteActivity();
 			}
 		}
-	
+
 		// Pass success or error message
 		if ($this->getError()) 
 		{
@@ -721,5 +918,25 @@ class plgProjectsBlog extends JPlugin
 		// Redirect back to feed
 		$this->_referer = JRoute::_('index.php?option=' . $this->_option . a . 'alias=' . $this->_project->alias . a .'active=feed');
 		return;		
+	}
+	
+	/**
+	 * Get Git helper
+	 * 
+	 *
+	 * @return     void
+	 */
+	protected function getGitHelper()
+	{
+		if (!isset($this->_git))
+		{
+			// Git helper
+			include_once( JPATH_ROOT . DS . 'components' . DS .'com_projects' . DS . 'helpers' . DS . 'githelper.php' );
+			$this->_git = new ProjectsGitHelper(
+				$this->_config->get('gitpath', '/opt/local/bin/git'), 
+				0,
+				$this->_config->get('offroot', 0) ? '' : JPATH_ROOT
+			);			
+		}
 	}
 }

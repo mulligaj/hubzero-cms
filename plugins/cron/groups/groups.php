@@ -73,7 +73,6 @@ class plgCronGroups extends JPlugin
 	public function cleanGroupFolders($params=null)
 	{
 		//include needed libraries
-		ximport('Hubzero_Group');
 		jimport('joomla.filesystem.folder');
 
 		//get group params
@@ -89,7 +88,7 @@ class plgCronGroups extends JPlugin
 		foreach ($groupFolders as $groupFolder)
 		{
 			//load group object for each folder
-			$hubzeroGroup = Hubzero_Group::getInstance(trim($groupFolder));
+			$hubzeroGroup = \Hubzero\User\Group::getInstance(trim($groupFolder));
 			
 			//if we dont have a group object delete folder
 			if (!is_object($hubzeroGroup))
@@ -112,7 +111,7 @@ class plgCronGroups extends JPlugin
 	public function sendGroupAnnouncements($params=null)
 	{
 		// get hubzero announcement object
-		$hubzeroAnnouncement = new Hubzero_Announcement( JFactory::getDBO() );
+		$hubzeroAnnouncement = new \Hubzero\Item\Announcement( JFactory::getDBO() );
 		
 		// get all announcements that are not yet sent but want to be mailed
 		$announcements = $hubzeroAnnouncement->find(array('email' => 1,'sent' => 0));

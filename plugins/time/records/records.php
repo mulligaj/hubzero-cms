@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-
 /**
  * Records plugin for time component
  */
-class plgTimeRecords extends Hubzero_Plugin
+class plgTimeRecords extends \Hubzero\Plugin\Plugin
 {
 
 	/**
@@ -108,9 +106,8 @@ class plgTimeRecords extends Hubzero_Plugin
 		require_once(JPATH_ROOT.DS.'plugins'.DS.'time'.DS.'helpers'.DS.'filters.php');
 
 		// Add some styles to the view
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('time','records');
-		Hubzero_Document::addPluginScript('time','records');
+		\Hubzero\Document\Assets::addPluginStylesheet('time','records');
+		\Hubzero\Document\Assets::addPluginScript('time','records');
 
 		// Only perform the following if this is the active tab/plugin
 		if ($return == 'html') {
@@ -146,8 +143,7 @@ class plgTimeRecords extends Hubzero_Plugin
 		$records = new TimeRecords($this->db);
 
 		// Create a new plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'time',
 				'element'=>'records',
@@ -188,8 +184,7 @@ class plgTimeRecords extends Hubzero_Plugin
 	private function _edit($record=null)
 	{
 		// Create a new plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'time',
 				'element'=>'records',
@@ -303,8 +298,7 @@ class plgTimeRecords extends Hubzero_Plugin
 		$record = new TimeRecords($this->db);
 
 		// Create a new plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'time',
 				'element'=>'records',

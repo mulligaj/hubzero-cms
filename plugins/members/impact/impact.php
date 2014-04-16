@@ -88,6 +88,7 @@ class plgMembersImpact extends JPlugin
 			if ($this->_stats)
 			{
 				$areas['impact'] = JText::_('PLG_MEMBERS_IMPACT');
+				$areas['icon'] = '';
 			}
 		}
 
@@ -122,8 +123,6 @@ class plgMembersImpact extends JPlugin
 			'html'     => '',
 			'metadata' => ''
 		);
-
-		ximport('Hubzero_View_Helper_Html');
 
 		// Add stylesheet
 		$document = JFactory::getDocument();
@@ -163,8 +162,7 @@ class plgMembersImpact extends JPlugin
 	protected function _view($uid = 0) 
 	{
 		// Build the final HTML		
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'impact',

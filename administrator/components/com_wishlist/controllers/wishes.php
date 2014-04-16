@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Cotnroller class for wishes
  */
-class WishlistControllerWishes extends Hubzero_Controller
+class WishlistControllerWishes extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of entries
@@ -85,7 +83,7 @@ class WishlistControllerWishes extends Hubzero_Controller
 		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
 			$this->_option . '.' . $this->_controller . '.sort', 
 			'filter_order', 
-			'title'
+			'subject'
 		));
 		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
 			$this->_option . '.' . $this->_controller . '.sortdir', 
@@ -213,7 +211,7 @@ class WishlistControllerWishes extends Hubzero_Controller
 		$this->view->ownerassignees[-1] = array();
 		$none = new stdClass;
 		$none->id = '-1';
-		$none->name = JText::_('Select Category');
+		$none->name = JText::_('Select ...');
 		$this->view->ownerassignees[-1][] = $none;//JHTML::_('select.option', '-1', JText::_( 'Select Category' ), 'id', 'title');
 
 		$this->view->assignees = null;
@@ -230,6 +228,12 @@ class WishlistControllerWishes extends Hubzero_Controller
 				}
 				$this->view->ownerassignees[$list->id] = array();
 
+				$none = new stdClass;
+				$none->id = '0';
+				$none->name = JText::_('[none]');
+
+				$this->view->ownerassignees[$list->id][] = $none;
+
 				$owners = $objOwner->get_owners($list->id, $this->admingroup, $list);
 				if (count($owners['individuals']) > 0) 
 				{
@@ -238,11 +242,6 @@ class WishlistControllerWishes extends Hubzero_Controller
 					
 					$users = $this->database->loadObjectList();
 
-					$none = new stdClass;
-					$none->id = '0';
-					$none->name = JText::_('[none]');
-
-					$this->view->ownerassignees[$list->id][] = $none;
 					foreach ($users as $row2) 
 					{
 						$this->view->ownerassignees[$list->id][] = $row2;//JHTML::_('select.option', $row2->id, $row2->name, 'id', 'title');
@@ -280,6 +279,8 @@ class WishlistControllerWishes extends Hubzero_Controller
 			}
 		}
 
+		$this->view->messages = $this->getComponentMessage();
+
 		// Output the HTML
 		$this->view->display();
 	}
@@ -306,7 +307,7 @@ class WishlistControllerWishes extends Hubzero_Controller
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 		$fields = array_map('trim', $fields);
 
 		// Initiate extended database class
@@ -317,6 +318,9 @@ class WishlistControllerWishes extends Hubzero_Controller
 			$this->editTask($row);
 			return;
 		}
+
+		$row->anonymous = (isset($fields['anonymous']) && $fields['anonymous']) ? 1 : 0;
+		$row->private   = (isset($fields['private']) && $fields['private']) ? 1 : 0;
 
 		// Check content
 		if (!$row->check()) 
@@ -335,7 +339,8 @@ class WishlistControllerWishes extends Hubzero_Controller
 		}
 
 		//$create_revision = JRequest::getInt('create_revision', 0, 'post');
-		$plan = JRequest::getVar('plan', array(), 'post');
+		$plan = JRequest::getVar('plan', array(), 'post', 'none', 2);
+		$plan['create_revision'] = isset($plan['create_revision']) ? $plan['create_revision'] : 0;
 
 		// Initiate extended database class
 		$page = new WishlistPlan($this->database);
@@ -361,9 +366,16 @@ class WishlistControllerWishes extends Hubzero_Controller
 			$page->id = 0;
 		}
 
+		if (!$page->check()) 
+		{
+			$this->addComponentMessage($page->getError(), 'error');
+			$this->editTask($row);
+			return;
+		}
+
 		if (!$page->store()) 
 		{
-			$this->addComponentMessage($row->getError(), 'error');
+			$this->addComponentMessage($page->getError(), 'error');
 			$this->editTask($row);
 			return;
 		}

@@ -224,19 +224,17 @@ if (count($this->rows) > 0)
 	$thumb = DS . trim($config->get('webpath', '/site/members'), DS);
 
 	$dfthumb = DS . ltrim($config->get('defaultpic'), DS);
-	$dfthumb = Hubzero_View_Helper_Html::thumbit($dfthumb);
+	$dfthumb = \Hubzero\User\Profile\Helper::thumbit($dfthumb);
 
 	// User messaging
 	$messaging = false;
 	if ($this->config->get('user_messaging') > 0 && !$juser->get('guest')) 
 	{
-		ximport('Hubzero_User_Helper');
-
 		switch ($this->config->get('user_messaging'))
 		{
 			case 1:
 				// Get the groups the visiting user
-				$xgroups = Hubzero_User_Helper::getGroups($juser->get('id'), 'all');
+				$xgroups = \Hubzero\User\Helper::getGroups($juser->get('id'), 'all');
 				$usersgroups = array();
 				if (!empty($xgroups)) 
 				{
@@ -318,10 +316,10 @@ if (count($this->rows) > 0)
 		$old_thumb = '';
 		if ($row->picture) 
 		{
-			$new_thumb = $thumb . DS . Hubzero_View_Helper_Html::niceidformat($row->uidNumber) . DS . 'thumb.png';
+			$new_thumb = $thumb . DS . \Hubzero\Utility\String::pad($row->uidNumber) . DS . 'thumb.png';
 			
-			$old_thumb = $thumb . DS . Hubzero_View_Helper_Html::niceidformat($row->uidNumber) . DS . $row->picture;
-			$old_thumb = Hubzero_View_Helper_Html::thumbit($old_thumb);
+			$old_thumb = $thumb . DS . \Hubzero\Utility\String::pad($row->uidNumber) . DS . $row->picture;
+			$old_thumb = \Hubzero\User\Profile\Helper::thumbit($old_thumb);
 		}
 
 		if ($new_thumb && is_file(JPATH_ROOT . $new_thumb)) 
@@ -345,7 +343,7 @@ if (count($this->rows) > 0)
 			{
 				case 1:
 					// Get the groups of the profile
-					$pgroups = Hubzero_User_Helper::getGroups($row->uidNumber, 'all');
+					$pgroups = \Hubzero\User\Helper::getGroups($row->uidNumber, 'all');
 					// Get the groups the user has access to
 					$profilesgroups = array();
 					if (!empty($pgroups)) 

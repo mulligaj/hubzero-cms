@@ -46,11 +46,7 @@ $goto  = 'alias=' . $this->project->alias;
 <div id="plg-header">
 	<h3 class="team"><?php echo $this->title; ?></h3>
 </div>
-<?php
 
-ximport('Hubzero_User_Profile_Helper');
-
-?>	
 <form id="plg-form" method="post" action="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto).'/?active=team'; ?>">
  <div>
 	<input type="hidden" id="id" name="id" value="<?php echo $this->project->id; ?>" />
@@ -78,8 +74,8 @@ ximport('Hubzero_User_Profile_Helper');
 <?php foreach ($this->team as $owner) 
 	{
 					// Get profile thumb image 				
-					$profile = Hubzero_User_Profile::getInstance($owner->userid);
-					$thumb = Hubzero_User_Profile_Helper::getMemberPhoto($profile);
+					$profile = \Hubzero\User\Profile::getInstance($owner->userid);
+					$thumb = \Hubzero\User\Profile\Helper::getMemberPhoto($profile);
 					
 					$timecheck = date('Y-m-d H:i:s', time() - (15 * 60));
 					$lastvisit = $owner->lastvisit && $owner->lastvisit != '0000-00-00 00:00:00'  
@@ -116,7 +112,7 @@ ximport('Hubzero_User_Profile_Helper');
 				<td><?php echo $owner->fullname; ?><span class="block mini short prominent"><?php echo $username; ?></span></td>
 				<td class="mini"><?php echo $role; ?></td>
 				<td class="mini"><?php echo $owner->status == 1 ? JHTML::_('date', $owner->added, $dateFormat, $tz) : '<span class="invited">'.JText::_('COM_PROJECTS_INVITED').'</span>';  ?></td>				
-				<td><?php echo $owner->groupdesc ? Hubzero_View_Helper_Html::shortenText($owner->groupdesc, 30, 0) : ''; ?><span class="block mini short prominent"><?php echo $owner->groupname; ?></span></td>
+				<td><?php echo $owner->groupdesc ? \Hubzero\Utility\String::truncate($owner->groupdesc, 30) : ''; ?><span class="block mini short prominent"><?php echo $owner->groupname; ?></span></td>
 				<td class="mini"><?php echo $lastvisit; ?></td>
 			</tr>
 <?php } ?>

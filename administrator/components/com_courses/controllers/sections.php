@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'section.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'offering.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
@@ -41,7 +39,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models'
 /**
  * Courses controller class for managing membership and course info
  */
-class CoursesControllerSections extends Hubzero_Controller
+class CoursesControllerSections extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Displays a list of courses
@@ -90,6 +88,17 @@ class CoursesControllerSections extends Hubzero_Controller
 			0,
 			'int'
 		);
+		// Get sorting variables
+		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
+			$this->_option . '.' . $this->_controller . '.sort', 
+			'filter_order', 
+			'title'
+		));
+		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
+			$this->_option . '.' . $this->_controller . '.sortdir', 
+			'filter_order_Dir', 
+			'ASC'
+		));
 		// In case limit has been changed, adjust limitstart accordingly
 		$this->view->filters['start'] = ($this->view->filters['limit'] != 0 ? (floor($this->view->filters['start'] / $this->view->filters['limit']) * $this->view->filters['limit']) : 0);
 
@@ -210,7 +219,7 @@ class CoursesControllerSections extends Hubzero_Controller
 		// Incoming
 		$fields = JRequest::getVar('fields', array(), 'post');
 
-		// Instantiate an Hubzero_Course object
+		// Instantiate a Course object
 		$model = CoursesModelSection::getInstance($fields['id']);
 
 		if (!$model->bind($fields))
@@ -510,13 +519,13 @@ class CoursesControllerSections extends Hubzero_Controller
 			if ($badgeObj->get('provider_name') && !$badgeObj->get('provider_badge_id') && $badgeObj->get('img_url'))
 			{
 				$request_type   = $cconfig->get('badges_request_type', 'oauth');
-				$badgesHandler  = new Hubzero_Badges(strtoupper($badgeObj->get('provider_name')), $request_type);
+				$badgesHandler  = new \Hubzero\Badges\Wallet(strtoupper($badgeObj->get('provider_name')), $request_type);
 				$badgesProvider = $badgesHandler->getProvider();
 
 				if (is_object($badgesProvider))
 				{
-					$credentials->consumer_key    = $cconfig->get($badgeObj->get('provider_name').'_consumer_key');
-					$credentials->consumer_secret = $cconfig->get($badgeObj->get('provider_name').'_consumer_secret');;
+					$credentials->consumer_key    = $cconfig->get($badgeObj->get('provider_name').'_consumer_key', 0);
+					$credentials->consumer_secret = $cconfig->get($badgeObj->get('provider_name').'_consumer_secret', 0);
 					$credentials->issuerId        = $cconfig->get($badgeObj->get('provider_name').'_issuer_id');;
 					$badgesProvider->setCredentials($credentials);
 
@@ -530,17 +539,31 @@ class CoursesControllerSections extends Hubzero_Controller
 					$data['Version']       = '1';
 					$data['BadgeImageUrl'] = rtrim(JURI::root(), DS) . DS . trim($badgeObj->get('img_url'), DS);
 
-					$provider_badge_id = $badgesProvider->createBadge($data);
-
-					if ($provider_badge_id)
+					if (!$credentials->consumer_key || !$credentials->consumer_secret)
 					{
-						// We've successfully created a badge, so save that id to the database
-						$badgeObj->bind(array('provider_badge_id'=>$provider_badge_id));
-						$badgeObj->store();
+						$this->setError('You must fill in the courses badge options before attempting to save a badge!');
 					}
 					else
 					{
-						$this->setError('Failed to save badge to provider. Please try saving again or make sure your badge parameters are correct.');
+						try
+						{
+							$provider_badge_id = $badgesProvider->createBadge($data);
+						}
+						catch (Exception $e)
+						{
+							$this->setError($e->getMessage());
+						}
+
+						if ($provider_badge_id)
+						{
+							// We've successfully created a badge, so save that id to the database
+							$badgeObj->bind(array('provider_badge_id'=>$provider_badge_id));
+							$badgeObj->store();
+						}
+						else
+						{
+							$this->setError('Failed to save badge to provider. Please try saving again or make sure your badge parameters are correct.');
+						}
 					}
 				}
 			}
@@ -624,6 +647,120 @@ class CoursesControllerSections extends Hubzero_Controller
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&offering=' . $offering_id,
 			JText::sprintf('%s Item(s) removed.', $num)
 		);
+	}
+
+	/**
+	 * Make a section the default one
+	 *
+	 * @return	void
+	 */
+	public function makedefaultTask()
+	{
+		// Incoming
+		$ids = JRequest::getVar('id', array());
+
+		// Get the single ID we're working with
+		if (is_array($ids))
+		{
+			$id = (!empty($ids)) ? $ids[0] : 0;
+		}
+		else
+		{
+			$id = 0;
+		}
+
+		$row = CoursesModelSection::getInstance($id);
+		$row->makeDefault();
+
+		// Redirect back to the courses page
+		$this->setRedirect(
+			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&offering=' . JRequest::getInt('offering', 0)
+		);
+	}
+
+	/**
+	 * Publish a course
+	 *
+	 * @return void
+	 */
+	public function publishTask()
+	{
+		$this->stateTask(1);
+	}
+
+	/**
+	 * Unpublish a course
+	 *
+	 * @return void
+	 */
+	public function unpublishTask()
+	{
+		$this->stateTask(0);
+	}
+
+	/**
+	 * Set the state of a course
+	 *
+	 * @return void
+	 */
+	public function stateTask($state=0)
+	{
+		// Check for request forgeries
+		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
+
+		// Incoming
+		$ids = JRequest::getVar('id', array());
+
+		// Get the single ID we're working with
+		if (!is_array($ids))
+		{
+			$ids = array();
+		}
+
+		// Do we have any IDs?
+		$num = 0;
+		if (!empty($ids))
+		{
+			// foreach course id passed in
+			foreach ($ids as $id)
+			{
+				// Load the course page
+				$section = CoursesModelSection::getInstance($id);
+
+				// Ensure we found the course info
+				if (!$section->exists())
+				{
+					continue;
+				}
+
+				//set the course to be published and update
+				$section->set('state', $state);
+				if (!$section->store())
+				{
+					$this->setError(JText::_('Unable to set state for section #' . $id . '.'));
+					continue;
+				}
+
+				$num++;
+			}
+		}
+
+		if ($this->getErrors())
+		{
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				implode('<br />', $this->getErrors()),
+				'error'
+			);
+		}
+		else
+		{
+			// Output messsage and redirect
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&offering=' . JRequest::getInt('offering', 0),
+				($state ? JText::sprintf('%s item(s) published', $num) : JText::sprintf('%s item(s) unpublished', $num))
+			);
+		}
 	}
 
 	/**

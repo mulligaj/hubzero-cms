@@ -34,21 +34,6 @@ defined('_JEXEC') or die('Restricted access');
 class plgAuthenticationGoogle extends JPlugin
 {
 	/**
-	 * Constructor
-	 *
-	 * For php4 compatability we must not use the __constructor as a constructor for plugins
-	 * because func_get_args ( void ) returns a copy of all passed arguments NOT references.
-	 * This causes problems with cross-referencing necessary for the observer design pattern.
-	 *
-	 * @param object $subject The object to observe
-	 * @param array  $config  An array that holds the plugin configuration
-	 */
-	function plgAuthenticationJoomla(& $subject, $config)
-	{
-		parent::__construct($subject, $config);
-	}
-
-	/**
 	 * Perform logout (handled via JS)
 	 *
 	 * @access	public
@@ -128,6 +113,8 @@ class plgAuthenticationGoogle extends JPlugin
 
 		// Included needed google api class
 		require_once(JPATH_SITE.DS.'libraries'.DS.'google-api-php-client'.DS.'src'.DS.'Google_Client.php');
+
+		$b64dreturn = '';
 
 		// Check the state for our return variable
 		if($return = JRequest::getVar('state', '', 'method', 'base64'))
@@ -289,7 +276,7 @@ class plgAuthenticationGoogle extends JPlugin
 			$username = $user_profile['email'];
 
 			// Create the hubzero auth link
-			$hzal = Hubzero_Auth_Link::find_or_create('authentication', 'google', null, $username);
+			$hzal = \Hubzero\Auth\Link::find_or_create('authentication', 'google', null, $username);
 			$hzal->email = $user_profile['email'];
 
 			// Set response variables
@@ -383,10 +370,10 @@ class plgAuthenticationGoogle extends JPlugin
 			// Make sure we use something unique and consistent here!
 			$username = $user_profile['email'];
 
-			$hzad = Hubzero_Auth_Domain::getInstance('authentication', 'google', '');
+			$hzad = \Hubzero\Auth\Domain::getInstance('authentication', 'google', '');
 
 			// Create the link
-			if(Hubzero_Auth_Link::getInstance($hzad->id, $username))
+			if (\Hubzero\Auth\Link::getInstance($hzad->id, $username))
 			{
 				// This google account is already linked to another hub account
 				$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'), 
@@ -396,7 +383,7 @@ class plgAuthenticationGoogle extends JPlugin
 			else
 			{
 				// Create the hubzero auth link
-				$hzal = Hubzero_Auth_Link::find_or_create('authentication', 'google', null, $username);
+				$hzal = \Hubzero\Auth\Link::find_or_create('authentication', 'google', null, $username);
 				$hzal->user_id = $juser->get('id');
 				$hzal->email   = $user_profile['email'];
 				$hzal->update();

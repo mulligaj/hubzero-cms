@@ -37,23 +37,9 @@ if (version_compare(JVERSION, '1.6', 'ge'))
 $view = $this->info;
 $goto = $this->goto;
 
-$view->project->about = rtrim(stripslashes(ProjectsHtml::cleanText($view->project->about)));
+$project = new ProjectsModelProject($view->project);
 
-// Transform the wikitext to HTML
-ximport('Hubzero_Wiki_Parser');
-$p = Hubzero_Wiki_Parser::getInstance();
-
-//import the wiki parser
-$wikiconfig = array(
-	'option'   => $view->option,
-	'scope'    => $view->project->alias.DS.'notes',
-	'pagename' => 'projects',
-	'pageid'   => $view->project->id,
-	'filepath' => $view->config->get('webpath'),
-	'domain'   => $view->project->alias
-);
-
-$view->project->about = $p->parse( $view->project->about, $wikiconfig );
+$view->project->about = $project->about('parsed');
 $privacy = $view->project->private ? JText::_('COM_PROJECTS_PRIVATE') : JText::_('COM_PROJECTS_PUBLIC');
 
 ?>

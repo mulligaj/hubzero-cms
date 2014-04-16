@@ -116,9 +116,8 @@ $goto  = 'alias=' . $this->project->alias;
 										<td>
 											<span class="clear"></span>	
 											<?php
-												ximport('Hubzero_Wiki_Editor');
-												$editor = Hubzero_Wiki_Editor::getInstance();
-												echo $editor->display('about', 'about', $this->project->about, '', '10', '25');
+												$project = new ProjectsModelProject($this->project);
+												echo \JFactory::getEditor()->display('about', $this->escape($project->about('raw')), '', '', 35, 25, false, 'about', null, null, array('class' => 'minimal no-footer'));
 											?>
 											<?php if(!JPluginHelper::isEnabled('projects', 'apps') && !$this->publishing) { ?>
 												<input type="hidden"  name="type" value="<?php echo $this->project->type; ?>" />
@@ -128,14 +127,14 @@ $goto  = 'alias=' . $this->project->alias;
 
 									<tr>
 										<td class="htd"><?php echo JText::_('COM_PROJECTS_THUMB'); ?></td>
-										<td><iframe class="filer filerMini" src="<?php echo 'index.php?option='.$this->option.'&amp;no_html=1&amp;task=img&amp;file='.stripslashes($this->project->picture).'&amp;id='.$this->project->id; ?>"></iframe></td>
+										<td><iframe class="filer filerMini" src="<?php echo JRoute::_('index.php?option='.$this->option. a . $goto . a . 'task=img').'/?no_html=1&file='.stripslashes($this->project->picture); ?>"></iframe></td>
 									</tr>
 			
 								</tbody>
 							</table>
 							<p class="submitarea">
-								<input type="submit" value="<?php echo JText::_('COM_PROJECTS_SAVE_CHANGES'); ?>"  />
-								<span class="btn btncancel"><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto); ?>"><?php echo JText::_('COM_PROJECTS_CANCEL'); ?></a></span>
+								<input type="submit" class="btn" value="<?php echo JText::_('COM_PROJECTS_SAVE_CHANGES'); ?>"  />
+								<span><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto . '&active=info'); ?>" class="btn btn-cancel"><?php echo JText::_('COM_PROJECTS_CANCEL'); ?></a></span>
 							</p>
 						</div><!-- / .basic info -->
 					<?php  
@@ -148,11 +147,11 @@ $goto  = 'alias=' . $this->project->alias;
 					</div>
 					<h5 class="terms-question"><?php echo JText::_('COM_PROJECTS_PROJECT') . ' ' . JText::_('COM_PROJECTS_OWNER'); ?>:</h5>	
 					<?php 	if($this->project->owned_by_group) {	
-							$group = Hubzero_Group::getInstance( $this->project->owned_by_group );			
-							$ownedby = '<a href="/groups/'.$group->get('cn').'">'.JText::_('COM_PROJECTS_GROUP').' '.$group->get('cn').'</a>';
+							$group = \Hubzero\User\Group::getInstance( $this->project->owned_by_group );			
+							$ownedby = '<a href="'.JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn')).'">'.JText::_('COM_PROJECTS_GROUP').' '.$group->get('cn').'</a>';
 						}
 						else {
-						 $ownedby = '<a href="/members/'.$this->project->owned_by_user.'">'.$this->project->fullname.'</a>';	
+						 $ownedby = '<a href="'.JRoute::_('index.php?option=com_members&id=' . $this->project->owned_by_user).'">'.$this->project->fullname.'</a>';	
 					} echo '<span class="mini">' . $ownedby . '</span>'; ?>
 					<?php  
 							break;
@@ -235,8 +234,8 @@ $goto  = 'alias=' . $this->project->alias;
 					<?php } ?>
 					<?php } ?>					
 					<p class="submitarea">
-						<input type="submit" value="<?php echo JText::_('COM_PROJECTS_SAVE_CHANGES'); ?>"  />
-						<span class="btn btncancel"><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto); ?>"><?php echo JText::_('COM_PROJECTS_CANCEL'); ?></a></span>
+						<input type="submit" class="btn" value="<?php echo JText::_('COM_PROJECTS_SAVE_CHANGES'); ?>"  />
+						<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto); ?>" class="btn btn-cancel"><?php echo JText::_('COM_PROJECTS_CANCEL'); ?></a>
 					</p>
 					<?php 
 						break;

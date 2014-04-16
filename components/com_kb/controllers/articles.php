@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Knowledge Base controller
  */
-class KbControllerArticles extends Hubzero_Controller
+class KbControllerArticles extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -234,14 +232,12 @@ class KbControllerArticles extends Hubzero_Controller
 		// Is the user logged in?
 		/*if (!$this->juser->get('guest')) 
 		{
-			ximport('Hubzero_Environment');
-			
 			// See if this person has already voted
 			$h = new KbTableVote($this->database);
 			$this->view->vote = $h->getVote(
 				$this->view->article->get('id'), 
 				$this->juser->get('id'), 
-				Hubzero_Environment::ipAddress(), 
+				JRequest::ip(), 
 				'entry'
 			);
 		} 
@@ -435,7 +431,6 @@ class KbControllerArticles extends Hubzero_Controller
 		if (!$row->vote($vote, $this->juser->get('id'))) 
 		{
 			$this->setError($row->getError());
-			return;
 		}
 
 		if (JRequest::getInt('no_html', 0)) 
@@ -445,7 +440,7 @@ class KbControllerArticles extends Hubzero_Controller
 			$this->view->item = $row;
 			$this->view->type = $type;
 			$this->view->vote = $vote;
-			$this->view->id   = $id;
+			$this->view->id   = ''; //$id;
 			if ($this->getError()) 
 			{
 				$this->view->setError($this->getError());
@@ -508,7 +503,7 @@ class KbControllerArticles extends Hubzero_Controller
 		}
 
 		$this->setRedirect(
-			$row->link() . '#comments'
+			JRoute::_($row->link() . '#comments')
 		);
 	}
 
@@ -581,17 +576,6 @@ class KbControllerArticles extends Hubzero_Controller
 		// Start outputing results if any found
 		if (count($rows) > 0) 
 		{
-			$wikiconfig = array(
-				'option'   => $this->_option,
-				'scope'    => '',
-				'pagename' => $entry->get('alias'),
-				'pageid'   => $entry->id,
-				'filepath' => '',
-				'domain'   => ''
-			);
-			ximport('Hubzero_Wiki_Parser');
-			$p = Hubzero_Wiki_Parser::getInstance();
-
 			foreach ($rows as $row)
 			{
 				// URL link to article
@@ -614,9 +598,9 @@ class KbControllerArticles extends Hubzero_Controller
 				} 
 				else 
 				{
-					$description = $p->parse($row->content, $wikiconfig);
+					$description = $row->content;
 				}
-				$description = html_entity_decode(Hubzero_View_Helper_Html::purifyText($description));
+				$description = html_entity_decode(\Hubzero\Utility\Sanitize::stripAll($description));
 
 				@$date = ($row->created ? date('r', strtotime($row->created)) : '');
 
@@ -657,9 +641,9 @@ class KbControllerArticles extends Hubzero_Controller
 						} 
 						else 
 						{
-							$description = (is_object($p)) ? $p->parse(stripslashes($reply->content)) : nl2br(stripslashes($reply->content));
+							$description = stripslashes($reply->content);
 						}
-						$description = html_entity_decode(Hubzero_View_Helper_Html::purifyText($description));
+						$description = html_entity_decode(\Hubzero\Utility\Sanitize::stripAll($description));
 
 						@$date = ($reply->created ? date('r', strtotime($reply->created)) : '');
 
@@ -699,9 +683,9 @@ class KbControllerArticles extends Hubzero_Controller
 								} 
 								else 
 								{
-									$description = (is_object($p)) ? $p->parse(stripslashes($response->content)) : nl2br(stripslashes($response->content));
+									$description = stripslashes($response->content);
 								}
-								$description = html_entity_decode(Hubzero_View_Helper_Html::purifyText($description));
+								$description = html_entity_decode(\Hubzero\Utility\Sanitize::stripAll($description));
 
 								@$date = ($response->created ? date('r', strtotime($response->created)) : '');
 

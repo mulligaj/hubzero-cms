@@ -191,7 +191,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 */
 	public function __construct($oid, $course_id=null)
 	{
-		$section = '__default';
+		$section = '!!default!!';
 
 		$this->_db = JFactory::getDBO();
 
@@ -207,16 +207,12 @@ class CoursesModelOffering extends CoursesModelAbstract
 			}
 			$this->_tbl->load($oid, $course_id);
 		}
-		else if (is_object($oid))
+		else if (is_object($oid) || is_array($oid))
 		{
-			$this->_tbl->bind($oid);
-		}
-		else if (is_array($oid))
-		{
-			$this->_tbl->bind($oid);
+			$this->bind($oid);
 		}
 
-		if ($this->exists() && $section)
+		if ($this->exists()) // && $section)
 		{
 			$this->section($section);
 		}
@@ -272,14 +268,9 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 */
 	public function params($key='', $default=null)
 	{
-		if (!$this->_params)
+		if (!($this->_params instanceof JRegistry))
 		{
-			$paramsClass = 'JParameter';
-			if (version_compare(JVERSION, '1.6', 'ge'))
-			{
-				$paramsClass = 'JRegistry';
-			}
-			$this->_params = new $paramsClass($this->get('params'));
+			$this->_params = new JRegistry($this->get('params'));
 		}
 		if ($key)
 		{
@@ -296,6 +287,13 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 */
 	public function section($id=null)
 	{
+		if ($id instanceof CoursesModelSection)
+		{
+			$this->_link = null;
+			$this->_section = $id;
+			return $this->_section;
+		}
+
 		if (!isset($this->_section) 
 		 || ($id !== null && (int) $this->_section->get('id') != $id && (string) $this->_section->get('alias') != $id))
 		{
@@ -306,7 +304,15 @@ class CoursesModelOffering extends CoursesModelAbstract
 			{
 				foreach ($this->sections() as $section)
 				{
-					if ((int) $section->get('id') == $id || (string) $section->get('alias') == $id)
+					if ($id == '!!default!!')
+					{
+						if ($section->get('is_default'))
+						{
+							$this->_section = $section;
+							break;
+						}
+					}
+					else if ((int) $section->get('id') == $id || (string) $section->get('alias') == $id)
 					{
 						$this->_section = $section;
 						break;
@@ -349,7 +355,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			return $tbl->count($filters);
 		}
 
-		if (!isset($this->_sections) || !is_a($this->_sections, 'CoursesModelIterator'))
+		if (!($this->_sections instanceof CoursesModelIterator))
 		{
 			$tbl = new CoursesTableSection($this->_db);
 
@@ -992,10 +998,9 @@ class CoursesModelOffering extends CoursesModelAbstract
 	{
 		if (!isset($this->_plugins) || !is_array($this->_plugins))
 		{
-			JPluginHelper::importPlugin('courses');
-			$dispatcher = JDispatcher::getInstance();
+			$this->importPlugin('courses');
 
-			$plugins = $dispatcher->trigger('onCourseAreas', array());
+			$plugins = $this->trigger('onCourseAreas', array());
 
 			array_unshift($plugins, array(
 				'name'             => 'outline',
@@ -1120,7 +1125,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			return $user;
 		}
 
-		$this->_db->setQuery("SELECT id FROM #__users WHERE username=" . $this->_db->Quote($user));
+		$this->_db->setQuery("SELECT id FROM `#__users` WHERE username=" . $this->_db->Quote($user));
 
 		if (($result = $this->_db->loadResult()))
 		{
@@ -1173,6 +1178,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			$section->set('alias', '__default');
 			$section->set('title', JText::_('Default'));
 			$section->set('state', 1);
+			$section->set('is_default', 1);
 			$section->set('start_date', $this->get('start_date'));
 			$section->set('end_date', $this->get('end_date'));
 			$section->set('publish_up', $this->get('publish_up'));
@@ -1184,8 +1190,8 @@ class CoursesModelOffering extends CoursesModelAbstract
 			}
 		}
 
-		JPluginHelper::importPlugin('courses');
-		JDispatcher::getInstance()->trigger('onOfferingSave', array($this));
+		$this->importPlugin('courses')
+		     ->trigger('onOfferingSave', array($this));
 
 		if ($isNew)
 		{
@@ -1204,8 +1210,8 @@ class CoursesModelOffering extends CoursesModelAbstract
 	{
 		$value = parent::delete();
 
-		JPluginHelper::importPlugin('courses');
-		JDispatcher::getInstance()->trigger('onOfferingDelete', array($this));
+		$this->importPlugin('courses')
+		     ->trigger('onOfferingDelete', array($this));
 
 		return $value;
 	}
@@ -1220,12 +1226,11 @@ class CoursesModelOffering extends CoursesModelAbstract
 	public function getPluginAccess($get_plugin = '')
 	{
 		// Get plugins
-		JPluginHelper::importPlugin('courses');
-		$dispatcher =  JDispatcher::getInstance();
+		$this->importPlugin('courses');
 
 		// Trigger the functions that return the areas we'll be using
 		//then add overview to array
-		$hub_course_plugins = $dispatcher->trigger('onCourseAreas', array());
+		$hub_course_plugins = $this->trigger('onCourseAreas', array());
 		array_unshift($hub_course_plugins, array(
 			'name' => 'outline', 
 			'title' => 'Outline', 
@@ -1326,8 +1331,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 				$course = CoursesModelCourse::getInstance($this->get('course_id'));
 				$this->set('course_alias', $course->get('alias'));
 			}
-			$this->_link  = 'index.php?option=com_courses&gid=' . $this->get('course_alias') . '&offering=' . $this->get('alias');
-			$this->_link .= ($this->section()->get('alias') != '__default') ? ':' . $this->section()->get('alias') : '';
+			$this->_link  = 'index.php?option=com_courses&gid=' . $this->get('course_alias') . '&offering=' . $this->alias();
 		}
 
 		// If it doesn't exist or isn't published
@@ -1342,11 +1346,11 @@ class CoursesModelOffering extends CoursesModelAbstract
 			break;
 
 			case 'enroll':
-				JPluginHelper::importPlugin('courses');
+				$this->importPlugin('courses');
 
 				$course = CoursesModelCourse::getInstance($this->get('course_id'));
 
-				$data = JDispatcher::getInstance()->trigger('onCourseEnrollLink', array(
+				$data = $this->trigger('onCourseEnrollLink', array(
 					$course, $this, $this->section()
 				));
 				if ($data && count($data) > 0)
@@ -1370,6 +1374,56 @@ class CoursesModelOffering extends CoursesModelAbstract
 		}
 
 		return $link;
+	}
+
+	/**
+	 * Get the offering alias with section alias
+	 * 
+	 * @return     string
+	 */
+	public function alias()
+	{
+		return $this->get('alias') . ($this->section()->get('is_default') ? '' : ':' . $this->section()->get('alias'));
+	}
+
+	/**
+	 * Get the offering logo
+	 *
+	 * @param      string $rtrn Property to return
+	 * @return     string
+	 */
+	public function logo($rtrn='')
+	{
+		$rtrn = strtolower(trim($rtrn));
+
+		// Return just the file name
+		if ($rtrn == 'file')
+		{
+			return $this->params('logo');
+		}
+
+		// Build the path
+		$path = '/' . trim($this->config('uploadpath', '/site/courses'), '/') . '/' . $this->get('course_id') . '/offerings/' . $this->get('id');
+
+		// Return just the upload path?
+		if ($rtrn == 'path')
+		{
+			return $path;
+		}
+
+		// Do we have a logo set?
+		if ($file = $this->params('logo'))
+		{
+			// Return the web path to the image
+			$path .= '/' . $file;
+			if (file_exists(JPATH_ROOT . $path))
+			{
+				$path = str_replace('/administrator', '', \JURI::base(true)) . $path;
+			}
+			return $path;
+		}
+
+		return '';
 	}
 }
 

@@ -29,8 +29,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_User_Profile_Helper');
-
 $juser = JFactory::getUser();
 
 $entry_year  = substr($this->row->get('publish_up'), 0, 4);
@@ -176,70 +174,23 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 			</h3>
 			<?php if ($this->row->comments('count') > 0) { ?>
 				<?php 
-					$view = new Hubzero_Plugin_View(
-						array(
-							'folder'  => 'members',
-							'element' => 'blog',
-							'name'    => 'comments',
-							'layout'  => '_list'
-						)
-					);
-					$view->parent     = 0;
-					$view->cls        = 'odd';
-					$view->depth      = 0;
-					$view->option     = $this->option;
-					$view->comments   = $this->row->comments('list');
-					$view->config     = $this->config;
-					$view->base       = $this->row->link();
-					$view->member     = $this->member;
-					$view->display();
+					$this->view('_list', 'comments')
+					     ->set('parent', 0)
+					     ->set('cls', 'odd')
+					     ->set('depth', 0)
+					     ->set('option', $this->option)
+					     ->set('comments', $this->row->comments('list'))
+					     ->set('config', $this->config)
+					     ->set('base', $this->row->link())
+					     ->set('member', $this->member)
+					     ->display();
 				?>
 			<?php } else { ?>
 				<p class="no-comments">
 					<?php echo JText::_('PLG_MEMBERS_BLOG_NO_COMMENTS'); ?>
 				</p>
 			<?php } ?>
-		</div>
-		<div class="clear"></div>
 
-
-		<div class="aside aside-below">
-			<table class="wiki-reference">
-				<caption>Wiki Syntax Reference</caption>
-				<tbody>
-					<tr>
-						<td>'''bold'''</td>
-						<td><b>bold</b></td>
-					</tr>
-					<tr>
-						<td>''italic''</td>
-						<td><i>italic</i></td>
-					</tr>
-					<tr>
-						<td>__underline__</td>
-						<td><span style="text-decoration:underline;">underline</span></td>
-					</tr>
-					<tr>
-						<td>{{{monospace}}}</td>
-						<td><code>monospace</code></td>
-					</tr>
-					<tr>
-						<td>~~strike-through~~</td>
-						<td><del>strike-through</del></td>
-					</tr>
-					<tr>
-						<td>^superscript^</td>
-						<td><sup>superscript</sup></td>
-					</tr>
-					<tr>
-						<td>,,subscript,,</td>
-						<td><sub>subscript</sub></td>
-					</tr>
-				</tbody>
-			</table>
-		</div><!-- / .aside -->
-
-		<div class="subject below">
 			<h3>
 				<a name="post-comment"></a>
 				<?php echo JText::_('Post a comment'); ?>
@@ -247,25 +198,24 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 			<form method="post" action="<?php echo JRoute::_($this->row->link()); ?>" id="commentform">
 				<p class="comment-member-photo">
 					<?php
-					$jxuser = Hubzero_User_Profile::getInstance($juser->get('id'));
+					$jxuser = \Hubzero\User\Profile::getInstance($juser->get('id'));
 					$anon = 1;
 					if (!$juser->get('guest')) 
 					{
 						$anon = 0;
 					}
 					?>
-					<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($jxuser, $anon); ?>" alt="" />
+					<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($jxuser, $anon); ?>" alt="" />
 				</p>
 				<fieldset>
 					<?php
 						$replyto = $this->row->comment(JRequest::getInt('reply', 0));
 						if ($replyto->exists()) 
 						{
-							ximport('Hubzero_View_Helper_Html');
 							$name = JText::_('PLG_MEMBERS_BLOG_ANONYMOUS');
 							if (!$replyto->get('anonymous')) 
 							{
-								$xuser = Hubzero_User_Profile::getInstance($replyto->get('created_by'));
+								$xuser = \Hubzero\User\Profile::getInstance($replyto->get('created_by'));
 								if (is_object($xuser) && $xuser->get('name')) 
 								{
 									$name = '<a href="'.JRoute::_('index.php?option=com_members&id=' . $replyto->get('created_by')) . '">' . $this->escape(stripslashes($xuser->get('name'))) . '</a>';
@@ -280,7 +230,7 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 							<span class="comment-date-on"><?php echo JText::_('PLG_MEMBERS_BLOG_ON'); ?></span> 
 							<span class="date"><time datetime="<?php echo $replyto->get('created'); ?>"><?php echo $replyto->created('date'); ?></time></span>
 						</p>
-						<p><?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($replyto->get('content')), 300, 0); ?></p>
+						<p><?php echo \Hubzero\Utility\String::truncate(stripslashes($replyto->get('content')), 300); ?></p>
 					</blockquote>
 					<?php
 						}
@@ -289,8 +239,7 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 						Your <?php echo ($replyto->exists()) ? 'reply' : 'comments'; ?>: <span class="required"><?php echo JText::_('PLG_MEMBERS_BLOG_REQUIRED'); ?></span>
 						<?php
 						if (!$juser->get('guest')) {
-							//ximport('Hubzero_Wiki_Editor');
-							echo Hubzero_Wiki_Editor::getInstance()->display('comment[content]', 'commentcontent', '', '', '40', '15');
+							echo JFactory::getEditor()->display('comment[content]', '', '', '', 40, 15, false, 'commentcontent');
 						} else { 
 						?>
 						<p class="warning">

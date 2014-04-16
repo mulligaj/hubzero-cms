@@ -47,6 +47,13 @@ class CoursesModelPage extends CoursesModelAbstract
 	protected $_tbl_name = 'CoursesTablePage';
 
 	/**
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_courses.page.content';
+
+	/**
 	 * Object scope
 	 * 
 	 * @var string
@@ -67,14 +74,16 @@ class CoursesModelPage extends CoursesModelAbstract
 		switch ($as)
 		{
 			case 'parsed':
-				if ($this->get('content_parsed'))
+				if ($content = $this->get('content_parsed'))
 				{
-					return $this->get('content_parsed');
+					if ($shorten)
+					{
+						$content = \Hubzero\Utility\String::truncate($content, $shorten, array('html' => true));
+					}
+					return $content;
 				}
 
-				$p = Hubzero_Wiki_Parser::getInstance();
-
-				$wikiconfig = array(
+				$config = array(
 					'option'   => JRequest::getCmd('option', 'com_courses'),
 					'scope'    => JRequest::getVar('gid', ''),
 					'pagename' => $this->get('url'),
@@ -82,34 +91,46 @@ class CoursesModelPage extends CoursesModelAbstract
 					'filepath' => DS . ltrim($this->config()->get('uploadpath', '/site/courses'), DS) . DS . $this->get('course_id') . DS . 'pagefiles' . ($this->get('offering_id') ? DS . $this->get('offering_id') : ''),
 					'domain'   => $this->get('course_id')
 				);
-
-				$this->set('content_parsed', $p->parse(stripslashes($this->get('content')), $wikiconfig));
-
-				if ($shorten)
+				if ($this->get('offering_id'))
 				{
-					$content = Hubzero_View_Helper_Html::shortenText($this->get('content_parsed'), $shorten, 0, 0);
-					if (substr($content, -7) == '&#8230;') 
-					{
-						$content .= '</p>';
-					}
-					return $content;
+					$config['scope'] = CoursesModelCourse::getInstance($this->get('course_id'))->get('alias') . DS . CoursesModelOffering::getInstance($this->get('offering_id'))->get('alias') . DS . 'pages';
+				}
+				if ($this->get('section_id'))
+				{
+					$config['filepath'] = DS . trim($this->config()->get('uploadpath', '/site/courses'), DS) . DS . $this->get('course_id') . DS . 'sections' . DS . $this->get('section_id') . DS . 'pagefiles';
 				}
 
-				return $this->get('content_parsed');
+				$content = stripslashes($this->get('content'));
+				$this->importPlugin('content')->trigger('onContentPrepare', array(
+					$this->_context,
+					&$this,
+					&$config
+				));
+
+				$this->set('content_parsed', $this->get('content'));
+				$this->set('content', $content);
+
+				return $this->content($as, $shorten);
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->content('parsed'));
 				if ($shorten)
 				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
+					$content = \Hubzero\Utility\String::truncate($content, $shorten);
 				}
 				return $content;
 			break;
 
 			case 'raw':
 			default:
-				return $this->get('content');
+				$content = stripslashes($this->get('content'));
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
+				if ($shorten)
+				{
+					$content = \Hubzero\Utility\String::truncate($content, $shorten);
+				}
+				return $content;
 			break;
 		}
 	}

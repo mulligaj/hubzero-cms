@@ -31,26 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Groups Plugin class for assets
  */
-class plgGroupsCollections extends Hubzero_Plugin
+class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -63,7 +54,8 @@ class plgGroupsCollections extends Hubzero_Plugin
 			'name'  => $this->_name,
 			'title' => JText::_('PLG_GROUPS_' . strtoupper($this->_name)),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f005'
 		);
 		return $area;
 	}
@@ -113,7 +105,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$this->model = new CollectionsModel('group', $this->group->get('gidNumber'));
 
 		//get the plugins params
-		$p = new Hubzero_Plugin_Params($this->database);
+		$p = new \Hubzero\Plugin\Params($this->database);
 		$this->params = $p->getParams($group->gidNumber, 'groups', $this->_name);
 		$this->members = $group->get('members');
 		$this->authorized = $authorized;
@@ -124,6 +116,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 		//are we returning html
 		if ($return == 'html') 
 		{
+			// This needs to be called to ensure scripts are pushed to the document
+			$foo = \JFactory::getEditor()->display('description', '', '', '', 35, 5, false, 'field_description', null, null, array('class' => 'minimal no-footer'));
+
 			//set group members plugin access level
 			$group_plugin_acl = $access[$active];
 
@@ -162,6 +157,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 			$this->authorized = $authorized;
 
 			//group vars
+			
 			$this->members    = $members;
 
 			// Set some variables so other functions have access
@@ -180,8 +176,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 			}
 
 			//push the css to the doc
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('groups', $this->_name);
+			\Hubzero\Document\Assets::addPluginStylesheet('groups', $this->_name);
 
 			$task = '';
 			$controller = 'board';
@@ -346,8 +341,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _followers()
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -362,7 +356,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$view->params      = $this->params;
 		$view->model       = $this->model;
 
-		Hubzero_Document::addPluginScript('members', $this->_name);
+		\Hubzero\Document\Assets::addPluginScript('members', $this->_name);
 
 		$this->jconfig = JFactory::getConfig();
 
@@ -438,8 +432,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _collections()
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -461,10 +454,10 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$view->filters['limit']       = JRequest::getInt('limit', $this->jconfig->getValue('config.list_limit'));
 		$view->filters['start']       = JRequest::getInt('limitstart', 0);
 
-		//Hubzero_Document::addPluginScript('groups', $this->_name, 'jquery.masonry');
-		Hubzero_Document::addComponentScript('com_collections', 'assets/js/jquery.masonry');
-		Hubzero_Document::addComponentScript('com_collections', 'assets/js/jquery.infinitescroll');
-		Hubzero_Document::addPluginScript('groups', $this->_name);
+		//\Hubzero\Document\Assets::addPluginScript('groups', $this->_name, 'jquery.masonry');
+		\Hubzero\Document\Assets::addComponentScript('com_collections', 'assets/js/jquery.masonry');
+		\Hubzero\Document\Assets::addComponentScript('com_collections', 'assets/js/jquery.infinitescroll');
+		\Hubzero\Document\Assets::addPluginScript('groups', $this->_name);
 
 		// Filters for returning results
 		$filters = array();
@@ -534,8 +527,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _collection()
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -549,10 +541,10 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$view->params      = $this->params;
 		$view->model      = $this->model;
 
-		//Hubzero_Document::addPluginScript('groups', $this->_name, 'jquery.masonry');
-		Hubzero_Document::addComponentScript('com_collections', 'assets/js/jquery.masonry');
-		Hubzero_Document::addComponentScript('com_collections', 'assets/js/jquery.infinitescroll');
-		Hubzero_Document::addPluginScript('groups', $this->_name);
+		//\Hubzero\Document\Assets::addPluginScript('groups', $this->_name, 'jquery.masonry');
+		\Hubzero\Document\Assets::addComponentScript('com_collections', 'assets/js/jquery.masonry');
+		\Hubzero\Document\Assets::addComponentScript('com_collections', 'assets/js/jquery.infinitescroll');
+		\Hubzero\Document\Assets::addPluginScript('groups', $this->_name);
 
 		$this->jconfig = JFactory::getConfig();
 
@@ -748,8 +740,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _posts()
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -763,9 +754,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$view->params     = $this->params;
 		$view->model      = $this->model;
 
-		Hubzero_Document::addComponentScript('com_collections', 'assets/js/jquery.masonry');
-		Hubzero_Document::addComponentScript('com_collections', 'assets/js/jquery.infinitescroll');
-		Hubzero_Document::addPluginScript('members', $this->_name);
+		\Hubzero\Document\Assets::addComponentScript('com_collections', 'assets/js/jquery.masonry');
+		\Hubzero\Document\Assets::addComponentScript('com_collections', 'assets/js/jquery.infinitescroll');
+		\Hubzero\Document\Assets::addPluginScript('members', $this->_name);
 
 		$this->jconfig = JFactory::getConfig();
 
@@ -836,8 +827,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _post()
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -920,7 +910,6 @@ class plgGroupsCollections extends Hubzero_Plugin
 			return;
 		}
 
-		ximport('Hubzero_Plugin_View');
 		$no_html = JRequest::getInt('no_html', 0);
 		if ($no_html)
 		{
@@ -930,7 +919,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 				$type = 'file';
 			}
 
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => $this->_name,
@@ -941,7 +930,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		}
 		else
 		{
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => $this->_name,
@@ -990,7 +979,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		}
 		else
 		{
-			Hubzero_Document::addPluginScript('groups', $this->_name);
+			\Hubzero\Document\Assets::addPluginScript('groups', $this->_name);
 
 			return $view->loadTemplate();
 		}
@@ -1003,6 +992,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _save()
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Login check
 		if ($this->juser->get('guest')) 
 		{
@@ -1017,7 +1009,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		}
 
 		// Incoming
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 		$files  = JRequest::getVar('fls', '', 'files', 'array');
 		/*$descriptions = JRequest::getVar('description', array(), 'post');*/
 
@@ -1134,8 +1126,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 				$item_id = $post->get('item_id');
 			}
 
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => $this->_name,
@@ -1166,6 +1157,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 			}
 		}
 
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		$collection_id = JRequest::getInt('collection_id', 0);
 		if (!$collection_id)
 		{
@@ -1191,7 +1185,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 			// No record found -- we're OK to add one
 			$post->item_id       = $item_id;
 			$post->collection_id = $collection_id;
-			$post->description   = JRequest::getVar('description', '');
+			$post->description   = JRequest::getVar('description', '', 'none', 2);
 			if ($post->check()) 
 			{
 				$this->setError($post->getError());
@@ -1243,9 +1237,12 @@ class plgGroupsCollections extends Hubzero_Plugin
 
 		$collection = $this->model->collection($post->get('collection_id'));
 
+		$msg = JText::_('Post removed.');
+		$type = 'passed';
 		if (!$post->remove())
 		{
-			$this->setError($post->getError());
+			$msg = $post->getError();
+			$type = 'error';
 		}
 
 		$route = JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=' . $this->_name . '&scope=' . $collection->get('alias'));
@@ -1257,7 +1254,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		}
 
 		$app = JFactory::getApplication();
-		$app->redirect($route);
+		$app->redirect($route, $msg, $type);
 	}
 
 	/**
@@ -1307,6 +1304,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _delete()
 	{
+		// Check for request forgeries
+		//JRequest::checkToken() or jexit('Invalid Token');
+
 		// Login check
 		if ($this->juser->get('guest')) 
 		{
@@ -1335,7 +1335,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$collection = $this->model->collection($post->get('collection_id'));
 
 		// Did they confirm delete?
-		if (!$process || !$confirmdel) 
+		if (!$process || !$confirmdel || !JRequest::checkToken()) 
 		{
 			if ($process && !$confirmdel) 
 			{
@@ -1348,8 +1348,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 			}
 
 			// Output HTML
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => $this->_name,
@@ -1376,12 +1375,16 @@ class plgGroupsCollections extends Hubzero_Plugin
 			return $view->loadTemplate();
 		}
 
+		$msg = JText::_('Post deleted.');
+		$type = 'passed';
+
 		// Mark the entry as deleted
 		$item = $post->item();
 		$item->set('state', 2);
 		if (!$item->store()) 
 		{
-			$this->setError($item->getError());
+			$msg = $item->getError();
+			$type = 'error';
 		}
 
 		// Redirect to collection
@@ -1394,7 +1397,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		}
 
 		$app = JFactory::getApplication();
-		$app->redirect($route);
+		$app->redirect($route, $msg, $type);
 	}
 
 	/**
@@ -1404,6 +1407,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _savecomment()
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Ensure the user is logged in
 		if ($this->juser->get('guest')) 
 		{
@@ -1414,8 +1420,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$comment = JRequest::getVar('comment', array(), 'post');
 
 		// Instantiate a new comment object and pass it the data
-		ximport('Hubzero_Item_Comment');
-		$row = new Hubzero_Item_Comment($this->database);
+		$row = new \Hubzero\Item\Comment($this->database);
 		if (!$row->bind($comment)) 
 		{
 			$this->setError($row->getError());
@@ -1460,8 +1465,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		}
 
 		// Initiate a whiteboard comment object
-		ximport('Hubzero_Item_Comment');
-		$comment = new Hubzero_Item_Comment($this->database);
+		$comment = new \Hubzero\Item\Comment($this->database);
 		$comment->load($id);
 		$comment->state = 2;
 
@@ -1543,8 +1547,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 			return;
 		}
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -1597,6 +1600,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 	 */
 	private function _savecollection()
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		if ($this->juser->get('guest')) 
 		{
 			return $this->_login();
@@ -1682,8 +1688,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 			}
 
 			// Output HTML
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => $this->_name,
@@ -1749,8 +1754,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		}
 
 		// Output HTML
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -1762,7 +1766,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$view->action      = $this->action;
 		$view->params      = $this->params;
 
-		$view->settings    = new Hubzero_Plugin_Params($this->database);
+		$view->settings    = new \Hubzero\Plugin\Params($this->database);
 		$view->settings->loadPlugin($this->group->get('gidNumber'), 'groups', $this->_name);
 
 		$view->authorized  = $this->authorized;
@@ -1799,7 +1803,7 @@ class plgGroupsCollections extends Hubzero_Plugin
 
 		$settings = JRequest::getVar('settings', array(), 'post');
 
-		$row = new Hubzero_Plugin_Params($this->database);
+		$row = new \Hubzero\Plugin\Params($this->database);
 		if (!$row->bind($settings)) 
 		{
 			$this->setError($row->getError());
@@ -1853,9 +1857,9 @@ class plgGroupsCollections extends Hubzero_Plugin
 		$this->params->set('access-can-follow', false);
 		if (!$this->juser->get('guest')) 
 		{
-			$p = new Hubzero_Plugin_Params($this->database);
-			$params = $p->getCustomParams($this->group->get('gidNumber'), 'groups', $this->_name);
-			$this->params->merge($params);
+			$p = new \Hubzero\Plugin\Params($this->database);
+			$customParams = $p->getCustomParams($this->group->get('gidNumber'), 'groups', $this->_name);
+			$this->params->merge($customParams);
 
 			// Set asset to viewable
 			$this->params->set('access-view-' . $assetType, false);

@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-	
 /**
  * Publications Plugin class for supporting docs
  */
@@ -122,8 +120,7 @@ class plgPublicationsSupportingDocs extends JPlugin
 			return $arr;
 		}*/
 				
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('publications', 'supportingdocs');
+		\Hubzero\Document\Assets::addPluginStylesheet('publications', 'supportingdocs');
 		
 		$database = JFactory::getDBO();
 		
@@ -134,8 +131,7 @@ class plgPublicationsSupportingDocs extends JPlugin
 		$jconfig = JFactory::getConfig();
 				
 		// Instantiate a view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'publications',
 				'element'=>'supportingdocs',

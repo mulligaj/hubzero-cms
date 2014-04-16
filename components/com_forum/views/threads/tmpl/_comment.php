@@ -30,8 +30,6 @@
 
 defined('_JEXEC') or die('Restricted access');
 
-	ximport('Hubzero_User_Profile');
-	ximport('Hubzero_User_Profile_Helper');
 	$juser = JFactory::getUser();
 
 	$this->comment->set('section', $this->filters['section']);
@@ -41,7 +39,7 @@ defined('_JEXEC') or die('Restricted access');
 	$huser = '';
 	if (!$this->comment->get('anonymous')) 
 	{
-		$huser = Hubzero_User_Profile::getInstance($this->comment->get('created_by'));
+		$huser = \Hubzero\User\Profile::getInstance($this->comment->get('created_by'));
 		if (is_object($huser) && $huser->get('name')) 
 		{
 			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $this->comment->get('created_by')) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
@@ -61,7 +59,7 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 	<li class="comment <?php echo $cls; ?><?php if (!$this->comment->get('parent')) { echo ' start'; } ?>" id="c<?php echo $this->comment->get('id'); ?>">
 		<p class="comment-member-photo">
-			<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
+			<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
 		</p>
 		<div class="comment-content">
 			<p class="comment-title">
@@ -135,7 +133,6 @@ defined('_JEXEC') or die('Restricted access');
 		<?php if (!$this->thread->get('closed') && $this->config->get('threading') == 'tree' && $this->depth < $this->config->get('threading_depth', 3)) { ?>
 			<div class="comment-add<?php if (JRequest::getInt('reply', 0) != $this->comment->get('id')) { echo ' hide'; } ?>" id="comment-form<?php echo $this->comment->get('id'); ?>">
 				<form id="cform<?php echo $this->comment->get('id'); ?>" action="<?php echo JRoute::_($this->thread->link()); ?>" method="post" enctype="multipart/form-data">
-					<!-- <a name="commentform<?php echo $this->comment->get('id'); ?>"></a> -->
 					<fieldset>
 						<legend><span><?php echo JText::sprintf('COM_FORUM_REPLYING_TO', (!$this->comment->get('anonymous') ? $name : JText::_('COM_FORUM_ANONYMOUS'))); ?></span></legend>
 
@@ -160,9 +157,7 @@ defined('_JEXEC') or die('Restricted access');
 						<label for="comment-<?php echo $this->comment->get('id'); ?>-content">
 							<span class="label-text"><?php echo JText::_('COM_FORUM_FIELD_COMMENTS'); ?></span>
 							<?php
-							ximport('Hubzero_Wiki_Editor');
-							$editor = Hubzero_Wiki_Editor::getInstance();
-							echo $editor->display('fields[comment]', 'field_' . $this->comment->get('id') . '_comment', '', 'minimal no-footer', '35', '4');
+							echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 4, false, 'field_' . $this->comment->get('id') . '_comment', null, null, array('class' => 'minimal no-footer'));
 							?>
 						</label>
 

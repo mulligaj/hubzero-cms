@@ -76,8 +76,7 @@ if (!$this->thread->thread)
 							$huser = '';
 							if (!$this->thread->anonymous) 
 							{
-								ximport('Hubzero_User_Profile');
-								$huser = Hubzero_User_Profile::getInstance($this->thread->created_by);
+								$huser = \Hubzero\User\Profile::getInstance($this->thread->created_by);
 								if (is_object($huser) && $huser->get('name')) 
 								{
 									$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $this->thread->created_by) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
@@ -100,7 +99,7 @@ if (!$this->thread->thread)
 							$this->thread->instructor_replied = 0;
 							if (count($this->instructors))
 							{
-								$database->setQuery("SELECT COUNT(*) FROM #__forum_posts AS c WHERE c.thread= " . $this->thread->thread . " AND c.state=1 AND c.created_by IN (" . implode(',', $this->instructors) . ")");
+								$database->setQuery("SELECT COUNT(*) FROM `#__forum_posts` AS c WHERE c.thread=" . $this->thread->thread . " AND c.state=1 AND c.created_by IN (" . implode(',', $this->instructors) . ")");
 								$this->thread->instructor_replied = $database->loadResult();
 							}
 						?>

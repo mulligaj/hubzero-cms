@@ -76,6 +76,7 @@ function submitbutton(pressbutton)
 
 	<table class="adminlist">
 		<thead>
+<?php if ($this->filters['wish'] > 0) { ?>
 			<tr>
 				<th colspan="7">
 					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=wishes&amp;wishlist=<?php echo $this->wishlist->id; ?>">
@@ -85,6 +86,7 @@ function submitbutton(pressbutton)
 					<?php echo $this->escape(stripslashes($this->wish->subject)); ?>
 				</th>
 			</tr>
+<?php } ?>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_WISHLIST_COMMENT_ID'), 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
@@ -128,18 +130,18 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 	if ($row->anonymous) 
 	{
 		$aclass = 'publish';
-		$atask = 'unpublish';
+		$atask = 'publicize';
 		$aalt = JText::_('Anonymous');
 	} 
 	else 
 	{
 		$aclass = 'unpublish';
-		$atask = 'publish';
+		$atask = 'anonymize';
 		$aalt = JText::_('Not anonymous');
 	}
 
-	$comment = substr($row->comment, 0, 50);
-	if (strlen($row->comment) >= 50) 
+	$comment = substr(strip_tags(stripslashes($row->content)), 0, 50);
+	if (strlen($row->content) >= 50) 
 	{
 		$comment .= '...';
 	}
@@ -155,23 +157,23 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 					<?php echo $row->prfx; ?>
 <?php if ($canDo->get('core.edit')) { ?>
 					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->id; ?>&amp;wish=<?php echo $row->wish; ?>" title="<?php echo JText::_('COM_WISHLIST_EDIT_COMMENT'); ?>">
-						<span><?php echo $this->escape(stripslashes($comment)); ?></span>
+						<span><?php echo $this->escape($comment); ?></span>
 					</a>
 <?php } else { ?>
 					<span>
-						<span><?php echo $this->escape(stripslashes($comment)); ?></span>
+						<span><?php echo $this->escape($comment); ?></span>
 					</span>
 <?php } ?>
 				</td>
 				<td>
-					<?php echo $this->escape(stripslashes($row->authorname)); ?>
+					<?php echo $this->escape(stripslashes($row->name)); ?>
 				</td>
 				<td>
-					<time datetime="<?php echo $row->added; ?>"><?php echo $row->added; ?></time>
+					<time datetime="<?php echo $row->created; ?>"><?php echo $row->created; ?></time>
 				</td>
 				<td>
 <?php if ($canDo->get('core.edit.state')) { ?>
-					<a class="state <?php echo $class; ?>" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task;?>&amp;id[]=<?php echo $row->id; ?>&amp;wish=<?php echo $this->filters['wish']; ?>" title="<?php echo JText::sprintf('COM_WISHLIST_SET_TASK', $task);?>">
+					<a class="state <?php echo $class; ?>" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task;?>&amp;id[]=<?php echo $row->id; ?>&amp;wish=<?php echo $this->filters['wish']; ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo JText::sprintf('COM_WISHLIST_SET_TASK', $task);?>">
 						<span><?php echo $alt; ?></span>
 					</a>
 <?php } else { ?>
@@ -182,7 +184,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 				</td>
 				<td>
 <?php if ($canDo->get('core.edit.state')) { ?>
-					<a class="<?php echo $aclass; ?> state" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $atask; ?>&amp;id=<?php echo $row->id; ?>&amp;wish=<?php echo $row->wish; ?>" title="<?php echo $aalt; ?>">
+					<a class="<?php echo $aclass; ?> state" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $atask; ?>&amp;id[]=<?php echo $row->id; ?>&amp;wish=<?php echo $row->wish; ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo $aalt; ?>">
 						<span><?php echo $aalt; ?></span>
 					</a>
 <?php } else { ?>

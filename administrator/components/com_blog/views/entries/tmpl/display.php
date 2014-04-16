@@ -57,6 +57,8 @@ if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
+JToolBarHelper::spacer();
+JToolBarHelper::help('entries.html', true);
 
 JHTML::_('behavior.tooltip');
 ?>
@@ -80,13 +82,12 @@ function submitbutton(pressbutton)
 
 <?php if ($this->filters['scope'] == 'group') { ?>
 		<?php
-		ximport('Hubzero_Group');
 		$filters = array();
 		$filters['authorized'] = 'admin';
 		$filters['fields'] = array('cn','description','published','gidNumber','type');
 		$filters['type'] = array(1,3);
 		$filters['sortby'] = 'description';
-		$groups = Hubzero_Group::find($filters);
+		$groups = \Hubzero\User\Group::find($filters);
 		
 		$html  = '<label for="filter_group_id">' . JText::_('Group') . ':</label> '."\n";
 		$html .= '<select name="group_id" id="filter_group_id">'."\n";

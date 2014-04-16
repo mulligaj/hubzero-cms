@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 // Include required forms models
 require_once(JPATH_COMPONENT . DS . 'models' . DS . 'form.php');
 require_once(JPATH_COMPONENT . DS . 'models' . DS . 'formRespondent.php');
@@ -41,7 +39,8 @@ require_once(JPATH_COMPONENT . DS . 'models' . DS . 'formDeployment.php');
 /**
  * Courses form controller class
  */
-class CoursesControllerForm extends Hubzero_Controller {
+class CoursesControllerForm extends \Hubzero\Component\SiteController
+{
 	/**
 	 * Execute a task
 	 * 
@@ -50,9 +49,6 @@ class CoursesControllerForm extends Hubzero_Controller {
 	public function execute()
 	{
 		$this->getCourseInfo();
-
-		$section = $this->course->offering()->section()->get('alias');
-		$section = ($section != '__default' && !empty($section)) ? ":{$section}" : '';
 
 		// Get the courses member
 		$this->juser  = JFactory::getUser();
@@ -68,7 +64,7 @@ class CoursesControllerForm extends Hubzero_Controller {
 		}
 
 		// Set the base path
-		$this->base = "index.php?option=com_courses&controller=form&gid={$this->course->get('alias')}&offering={$this->course->offering()->get('alias')}{$section}";
+		$this->base = "index.php?option=com_courses&controller=form&gid={$this->course->get('alias')}&offering={$this->course->offering()->alias()}";
 
 		parent::execute();
 	}
@@ -145,8 +141,8 @@ class CoursesControllerForm extends Hubzero_Controller {
 		$this->_getScripts('assets/js/select');
 
 		// Add tablesorter
-		Hubzero_Document::addSystemStylesheet('tablesorter.themes.blue.css');
-		Hubzero_Document::addSystemScript('jquery.tablesorter.min');
+		\Hubzero\Document\Assets::addSystemStylesheet('tablesorter.themes.blue.css');
+		\Hubzero\Document\Assets::addSystemScript('jquery.tablesorter.min');
 
 		// Set the title and pathway
 		$this->_buildTitle('Upload a PDF');
@@ -274,8 +270,8 @@ class CoursesControllerForm extends Hubzero_Controller {
 		$this->_getScripts('assets/js/' . $this->_task);
 
 		// Add tablesorter
-		Hubzero_Document::addSystemStylesheet('tablesorter.themes.blue.css');
-		Hubzero_Document::addSystemScript('jquery.tablesorter.min');
+		\Hubzero\Document\Assets::addSystemStylesheet('tablesorter.themes.blue.css');
+		\Hubzero\Document\Assets::addSystemScript('jquery.tablesorter.min');
 
 		$this->view->pdf   = $this->assertExistentForm();
 		$this->view->dep   = ($dep) ? $dep : new PdfFormDeployment;
@@ -389,8 +385,8 @@ class CoursesControllerForm extends Hubzero_Controller {
 		$this->_getScripts('assets/js/timepicker');
 
 		// Add tablesorter
-		Hubzero_Document::addSystemStylesheet('tablesorter.themes.blue.css');
-		Hubzero_Document::addSystemScript('jquery.tablesorter.min');
+		\Hubzero\Document\Assets::addSystemStylesheet('tablesorter.themes.blue.css');
+		\Hubzero\Document\Assets::addSystemScript('jquery.tablesorter.min');
 
 		$this->view->pdf   = $this->assertExistentForm();
 		$this->view->title = $this->view->pdf->getTitle();
@@ -563,9 +559,9 @@ class CoursesControllerForm extends Hubzero_Controller {
 		}
 
 		$attempt = JRequest::getInt('attempt', 1);
-		$att  = ($attempt > 1) ? '&attempt='.$attempt : '';
-
-		$dep = PdfFormDeployment::fromCrumb($crumb);
+		$att     = ($attempt > 1) ? '&attempt='.$attempt : '';
+		$dep     = PdfFormDeployment::fromCrumb($crumb);
+		$ended   = false;
 
 		// Make sure they're not trying to take the form too many times
 		if($attempt > $dep->getAllowedAttempts())
@@ -573,7 +569,22 @@ class CoursesControllerForm extends Hubzero_Controller {
 			JError::raiseError(403, "You're not allowed this many attempts!");
 		}
 
-		list($complete, $answers) = $dep->getForm()->getQuestionAnswerMap($_POST);
+		// Check to see if the time limit has been reached
+		if ($limit = $dep->getTimeLimit())
+		{
+			$resp = $dep->getRespondent($this->member, $attempt);
+
+			$now   = strtotime(JFactory::getDate());
+			$start = strtotime($resp->getStartTime());
+			$dur   = $limit * 60;
+
+			if ($now > ($start + $dur))
+			{
+				$ended = true;
+			}
+		}
+
+		list($complete, $answers) = $dep->getForm()->getQuestionAnswerMap($_POST, $ended);
 
 		if ($complete)
 		{
@@ -589,6 +600,7 @@ class CoursesControllerForm extends Hubzero_Controller {
 		else
 		{
 			$this->setView('form', 'complete');
+			$this->_task = 'complete';
 			$this->view->incomplete = array_filter($answers, function($ans) { return is_null($ans[0]); });
 			$this->completeTask();
 		}

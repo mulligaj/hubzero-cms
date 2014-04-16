@@ -29,12 +29,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-
 /**
  * Groups Plugin class for projects
  */
-class plgGroupsProjects extends Hubzero_Plugin
+class plgGroupsProjects extends \Hubzero\Plugin\Plugin
 {
 	/**
 	 * Constructor
@@ -77,7 +75,8 @@ class plgGroupsProjects extends Hubzero_Plugin
 			'name' => 'projects',
 			'title' => JText::_('PLG_GROUPS_PROJECTS'),
 			'default_access' => $this->params->get('plugin_access','members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f03f'
 		);
 		return $area;
 	}
@@ -176,15 +175,11 @@ class plgGroupsProjects extends Hubzero_Plugin
 			}
 
 			//push styles to the view
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('groups', 'projects');
+			\Hubzero\Document\Assets::addPluginStylesheet('groups', 'projects');
 
 			// Load classes
-			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_projects' 
-				. DS . 'helpers' . DS . 'html.php');
-			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_projects' 
-				. DS . 'helpers' . DS . 'imghandler.php');
-			ximport('Hubzero_View_Helper_Html');
+			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS . 'helpers' . DS . 'html.php');
+			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS . 'helpers' . DS . 'imghandler.php');
 
 			// Which view 
 			$task = $action ? strtolower(trim($action)) : JRequest::getVar('action', '');
@@ -225,8 +220,7 @@ class plgGroupsProjects extends Hubzero_Plugin
 		$filters['sortdir']  = JRequest::getVar('sortdir', 'DESC');
 
 		// Build the final HTML
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'projects',
@@ -283,16 +277,12 @@ class plgGroupsProjects extends Hubzero_Plugin
 	 */
 	protected function _updates() 
 	{
-		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-			. DS . 'com_projects' . DS . 'tables' . DS . 'project.comment.php');
-		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-			. DS . 'com_projects' . DS . 'tables' . DS . 'project.todo.php');
-		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-			. DS . 'com_projects' . DS . 'tables' . DS . 'project.microblog.php');
+		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_projects' . DS . 'tables' . DS . 'project.comment.php');
+		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_projects' . DS . 'tables' . DS . 'project.todo.php');
+		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_projects' . DS . 'tables' . DS . 'project.microblog.php');
 
 		// Build the final HTML
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'projects',
@@ -309,7 +299,7 @@ class plgGroupsProjects extends Hubzero_Plugin
 		$filters['sortdir']  = JRequest::getVar('sortdir', 'ASC');
 
 		// Get all projects group has access to	
-		$obj = new Project($this->_database);	
+		$obj = new Project($this->_database);
 		$projects = $obj->getGroupProjectIds($this->group->get('gidNumber'), $this->_juser->get('id'));
 		$view->projectcount = count($projects);
 
@@ -318,8 +308,7 @@ class plgGroupsProjects extends Hubzero_Plugin
 		$view->newcount = $obj->getUpdateCount($projects, $this->_juser->get('id'));
 
 		// Get activity class
-		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS 
-			. 'com_projects' . DS . 'tables' . DS . 'project.activity.php');
+		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_projects' . DS . 'tables' . DS . 'project.activity.php');
 		$objAC = new ProjectActivity($this->_database);
 
 		$afilters = array();
@@ -498,8 +487,7 @@ class plgGroupsProjects extends Hubzero_Plugin
 		}
 
 		//create plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'projects',
@@ -544,3 +532,4 @@ class plgGroupsProjects extends Hubzero_Plugin
 		return $view->loadTemplate();
 	}
 }
+

@@ -25,28 +25,17 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Groups Plugin class for usage
  */
-class plgGroupsUsage extends Hubzero_Plugin
+class plgGroupsUsage extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Short description for 'plgGroupsUsage'
-	 * 
-	 * Long description (if any) ...
-	 * 
-	 * @param      unknown &$subject Parameter description (if any) ...
-	 * @param      unknown $config Parameter description (if any) ...
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -59,7 +48,8 @@ class plgGroupsUsage extends Hubzero_Plugin
 			'name' => 'usage',
 			'title' => JText::_('USAGE'),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f080'
 		);
 		return $area;
 	}
@@ -142,14 +132,11 @@ class plgGroupsUsage extends Hubzero_Plugin
 			//reference group for other functions
 			$this->group = $group;
 
-			//import the hubzero document library
-			ximport('Hubzero_Document');
-
 			//get the joomla document
 			$doc = JFactory::getDocument();
 
 			//add usage stylesheet to view
-			Hubzero_Document::addPluginStylesheet('groups', 'usage');
+			\Hubzero\Document\Assets::addPluginStylesheet('groups', 'usage');
 
 			//add datepicker stylesheet to view
 			$doc->addStyleSheet('plugins' . DS . 'groups' . DS . 'usage' . DS . 'datepicker.css');
@@ -190,8 +177,7 @@ class plgGroupsUsage extends Hubzero_Plugin
 			$doc->addScriptDeclaration($script);
 
 			//import and create view
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => 'usage',
@@ -200,7 +186,7 @@ class plgGroupsUsage extends Hubzero_Plugin
 			);
 
 			//get the group pages
-			$query = "SELECT id, title FROM `#__xgroups_pages` WHERE gid=" . $database->quote($group->get('gidNumber'));
+			$query = "SELECT id, title FROM `#__xgroups_pages` WHERE state=1 AND gidNumber=" . $database->quote($group->get('gidNumber'));
 			$database->setQuery($query);
 			$view->pages = $database->loadAssocList();
 
@@ -354,14 +340,13 @@ class plgGroupsUsage extends Hubzero_Plugin
 		{
 			return 0;
 		}
-
-		$database = JFactory::getDBO();
-
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_groups' . DS . 'tables' . DS . 'pages.php');
-
-		$gp = new GroupPages($database);
-
-		$pages = $gp->getPages($gid);
+		
+		// get group pages if any
+		$pageArchive = GroupsModelPageArchive::getInstance();
+		$pages = $pageArchive->pages('list', array(
+			'gidNumber' => $gid,
+			'state'     => array(0,1),
+		));
 
 		return count($pages);
 	}
@@ -381,11 +366,11 @@ class plgGroupsUsage extends Hubzero_Plugin
 
 		if ($pageid != '') 
 		{
-			$query = "SELECT * FROM `#__xgroups_pages_hits` WHERE `gid`=" . $database->quote($gid) . " AND `datetime` > " . $database->quote($start) . " AND `datetime` < " . $database->quote($end) . " AND `pid`=" . $database->Quote($pageid) . " GROUP BY ip ORDER BY `datetime` ASC";
+			$query = "SELECT * FROM `#__xgroups_pages_hits` WHERE `gidNumber`=" . $database->quote($gid) . " AND `date` > " . $database->quote($start) . " AND `date` < " . $database->quote($end) . " AND `pageid`=" . $database->quote($pageid) . " GROUP BY ip ORDER BY `date` ASC";
 		} 
 		else 
 		{
-			$query = "SELECT * FROM `#__xgroups_pages_hits` WHERE `gid`=" . $database->quote($gid) . " AND `datetime` > " . $database->quote($start) . " AND `datetime` < " . $database->quote($end) . " GROUP BY ip ORDER BY `datetime` ASC";
+			$query = "SELECT * FROM `#__xgroups_pages_hits` WHERE `gidNumber`=" . $database->quote($gid) . " AND `date` > " . $database->quote($start) . " AND `date` < " . $database->quote($end) . " GROUP BY ip ORDER BY `date` ASC";
 		}
 		$database->setQuery($query);
 		$views = $database->loadAssocList();
@@ -410,7 +395,7 @@ class plgGroupsUsage extends Hubzero_Plugin
 
 			foreach ($views as $view) 
 			{
-				$t = $view['datetime'];
+				$t = $view['date'];
 
 				if ($t >= $day_s && $t <= $day_e) 
 				{

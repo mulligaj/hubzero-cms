@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Bank');
-
 /**
  * Answers Economy class:
  * Stores economy funtions for com_answers
@@ -66,7 +64,7 @@ class AnswersEconomy extends JObject
 	{
 		// get all closed questions
 		$sql = "SELECT q.id, q.created_by AS q_owner, a.created_by AS a_owner
-				FROM #__answers_questions AS q LEFT JOIN #__answers_responses AS a ON q.id=a.qid AND a.state=1
+				FROM #__answers_questions AS q LEFT JOIN #__answers_responses AS a ON q.id=a.question_id AND a.state=1
 				WHERE q.state=1";
 		$this->_db->setQuery($sql);
 		return $this->_db->loadObjectList();
@@ -96,7 +94,7 @@ class AnswersEconomy extends JObject
 		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_answers' . DS . 'tables' . DS . 'questionslog.php');
 
 		// Get point values for actions
-		$BC = new Hubzero_Bank_Config($this->_db);
+		$BC = new \Hubzero\Bank\Config($this->_db);
 		$p_Q  = $BC->get('ask');
 		$p_A  = $BC->get('answer');
 		$p_R  = $BC->get('answervote');
@@ -174,7 +172,7 @@ class AnswersEconomy extends JObject
 
 		$points = $this->calculate_marketvalue($qid, $type);
 
-		$BT = new Hubzero_Bank_Transaction($this->_db);
+		$BT = new \Hubzero\Bank\Transaction($this->_db);
 		$reward = $BT->getAmount($cat, 'hold', $qid);
 		$reward = ($reward) ? $reward : '0';
 		$share = $points/3;
@@ -223,7 +221,7 @@ class AnswersEconomy extends JObject
 		$q_user = JUser::getInstance($Q_owner);
 		if (is_object($q_user) && $q_user->get('id')) 
 		{
-			$BTL_Q = new Hubzero_Bank_Teller($this->_db , $q_user->get('id'));
+			$BTL_Q = new \Hubzero\Bank\Teller($this->_db , $q_user->get('id'));
 			//$BTL_Q->deposit($Q_owner_share, 'Commission for posting a question', $cat, $qid);
 			// Separate comission and reward payment
 			// Remove credit
@@ -245,8 +243,8 @@ class AnswersEconomy extends JObject
 
 		// Reward others
 		$ba_user = JUser::getInstance($BA_owner);
-		//ximport('Hubzero_User_Profile');
-		//$ba_user = Hubzero_User_Profile::getInstance($BA_owner);
+
+		//$ba_user = \Hubzero\User\Profile::getInstance($BA_owner);
 		if (is_object($ba_user) && $ba_user->get('id')) 
 		{
 			// Reward other responders
@@ -254,10 +252,10 @@ class AnswersEconomy extends JObject
 			{
 				foreach ($eligible as $e)
 				{
-					$auser = Hubzero_User_Profile::getInstance($e);
+					$auser = \Hubzero\User\Profile::getInstance($e);
 					if (is_object($auser) && $auser->get('id') && is_object($ba_user) && $ba_user->get('id') && $ba_user->get('id') != $auser->get('id')) 
 					{
-						$BTL_A = new Hubzero_Bank_Teller($this->_db , $auser->get('id'));
+						$BTL_A = new \Hubzero\Bank\Teller($this->_db , $auser->get('id'));
 						if (intval($A_owner_share) > 0) 
 						{
 							$A_owner_share_msg = ($type=='royalty') ? JText::sprintf('Royalty payment for answering question #%s', $qid) : JText::sprintf('Answered question #%s that was recently closed', $qid);
@@ -273,7 +271,7 @@ class AnswersEconomy extends JObject
 			}
 
 			// Reward best answer
-			$BTL_BA = new Hubzero_Bank_Teller($this->_db , $ba_user->get('id'));
+			$BTL_BA = new \Hubzero\Bank\Teller($this->_db , $ba_user->get('id'));
 
 			if (isset($ba_extra)) 
 			{
@@ -290,7 +288,7 @@ class AnswersEconomy extends JObject
 		// Remove hold if exists
 		if ($reward) 
 		{
-			$BT = new Hubzero_Bank_Transaction($this->_db);
+			$BT = new \Hubzero\Bank\Transaction($this->_db);
 			$BT->deleteRecords('answers', 'hold', $qid);
 		}
 	}

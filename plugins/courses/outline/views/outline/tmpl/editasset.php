@@ -31,8 +31,8 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-Hubzero_Document::addSystemScript('jquery.fancyselect.min');
-Hubzero_Document::addSystemStylesheet('jquery.fancyselect.css');
+\Hubzero\Document\Assets::addSystemScript('jquery.fancyselect.min');
+\Hubzero\Document\Assets::addSystemStylesheet('jquery.fancyselect.css');
 
 // Get our asset model
 $asset = new CoursesModelAsset(JRequest::getInt('asset_id', null));
@@ -47,7 +47,9 @@ foreach ($this->course->offering()->units() as $unit) :
 	endforeach;
 endforeach;
 
-$tools     = Hubzero_Tool::getMyTools();
+require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'tool.php');
+
+$tools     = ToolsModelTool::getMyTools();
 $config    = JComponentHelper::getParams('com_courses');
 $tool_path = $config->get('tool_path');
 ?>
@@ -55,7 +57,7 @@ $tool_path = $config->get('tool_path');
 <div class="edit-asset">
 	<h3>Edit Asset</h3>
 
-	<form action="/api/courses/asset/save" method="POST" class="edit-form">
+	<form action="<?php echo JURI::base(true); ?>/api/courses/asset/save" method="POST" class="edit-form">
 
 		<p>
 			<label for="title">Title:</label>
@@ -100,6 +102,12 @@ $tool_path = $config->get('tool_path');
 			</select>
 		</p>
 
+		<p>
+			<label for="graded">Create a gradebook entry for this item?</label>
+			<input name="graded" type="checkbox" value="1" <?php echo ($asset->get('graded')) ? 'checked="checked"' : ''; ?>/>
+			<input type="hidden" name="edit_graded" value="1" />
+		</p>
+
 		<?php if ($tool_path
 				&& $tools
 				&& count($tools) > 0
@@ -122,11 +130,10 @@ $tool_path = $config->get('tool_path');
 
 		<input type="hidden" name="course_id" value="<?= $this->course->get('id') ?>" />
 		<input type="hidden" name="original_scope_id" value="<?= $this->scope_id ?>" />
-		<input type="hidden" name="offering" value="<?= $this->course->offering()->get('alias') ?>" />
+		<input type="hidden" name="offering" value="<?= $this->course->offering()->alias(); ?>" />
 		<input type="hidden" name="id" value="<?= $asset->get('id') ?>" />
 
-		<input type="submit" value="Submit" class="submit" />
 		<input type="button" value="Cancel" class="cancel" />
-
+		<input type="submit" value="Submit" class="submit" />
 	</form>
 </div>

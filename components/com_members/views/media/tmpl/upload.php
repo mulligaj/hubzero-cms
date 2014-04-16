@@ -40,7 +40,7 @@ $picture->width = 'n/a';
 $picture->height = 'n/a';
 
 //get user id in nice format
-$uid = Hubzero_View_Helper_Html::niceidformat( $this->profile->get("uidNumber") );
+$uid = \Hubzero\Utility\String::pad( $this->profile->get("uidNumber") );
 
 //get profile pic and path to picture
 $pic = $this->profile->get("picture");
@@ -54,7 +54,7 @@ if ($pic && file_exists(JPATH_ROOT . $path . $pic))
 	 
 	$picture->src = $path . $pic;
 	$picture->name = $pic;
-	$picture->size = Hubzero_View_Helper_Html::formatsize( $size );
+	$picture->size = \Hubzero\Utility\Number::formatBytes( $size );
 	$picture->width = $width . " <abbr title=\"pixels\">px</abbr>";
 	$picture->height = $height . " <abbr title=\"pixels\">px</abbr>";
 }

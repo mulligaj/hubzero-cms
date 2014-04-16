@@ -34,10 +34,9 @@ defined('_JEXEC') or die;
 $app = JFactory::getApplication();
 $doc = JFactory::getDocument();
 
-ximport('Hubzero_Browser');
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 
 $juser = JFactory::getUser();
 
@@ -60,9 +59,7 @@ if (version_compare(JVERSION, '1.6', 'ge'))
 <?php if ($this->direction == 'rtl') : ?>
 		<link href="templates/<?php echo $this->template; ?>/css/common/rtl.css" rel="stylesheet" type="text/css" />
 <?php endif; ?>
-<?php if (JPluginHelper::isEnabled('system', 'debug')) { ?>
-		<link href="templates/<?php echo $this->template; ?>/css/common/debug.css" rel="stylesheet" type="text/css" />
-<?php } ?>
+
 <?php if ($b == 'firefox' && intval($v) < 4 && $browser->getBrowserMinorVersion() < 5) { ?>
 		<link href="templates/<?php echo $this->template; ?>/css/browser/firefox.css" rel="stylesheet" type="text/css" />
 <?php } ?>

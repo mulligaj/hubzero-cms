@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Bank');
-
 /**
  * Wishlist Economy class:
  * Stores economy funtions for wishlists
@@ -116,7 +114,7 @@ class WishlistEconomy extends JObject
 			{
 				foreach ($payees as $p)
 				{
-					$BTL = new Hubzero_Bank_Teller($this->_db , $p->uid);
+					$BTL = new \Hubzero\Bank\Teller($this->_db , $p->uid);
 					$hold = $this->getTotalPayment($wishid, $p->uid);
 					if ($hold) 
 					{
@@ -127,7 +125,7 @@ class WishlistEconomy extends JObject
 				}
 			}
 			 // Delete holds
-			$BT = new Hubzero_Bank_Transaction($this->_db);
+			$BT = new \Hubzero\Bank\Transaction($this->_db);
 			$BT->deleteRecords('wish', 'hold', $wishid);
 		}
 	}
@@ -178,7 +176,7 @@ class WishlistEconomy extends JObject
 					{
 						continue;
 					}
-					$BTLO = new Hubzero_Bank_Teller($this->_db , $owner);
+					$BTLO = new \Hubzero\Bank\Teller($this->_db , $owner);
 					if ($wish->assigned && $wish->assigned == $owner) 
 					{
 						//$BTLO->deposit($mainshare, JText::_('Bonus for fulfilling assigned wish').' #'.$wishid.' '.JText::_('on list').' #'.$wish->wishlist, 'wish', $wishid);
@@ -201,7 +199,7 @@ class WishlistEconomy extends JObject
 				$o = JUser::getInstance($wish->assigned);
 				if (is_object($o) && $o->get('id')) 
 				{
-					$BTLM = new Hubzero_Bank_Teller($this->_db , $wish->assigned);
+					$BTLM = new \Hubzero\Bank\Teller($this->_db , $wish->assigned);
 					$BTLM->deposit($mainshare, JText::sprintf('Bonus for fulfilling assigned wish #%s on list #%s', $wishid, $wish->wishlist), 'wish', $wishid);
 				}
 			}
@@ -218,7 +216,7 @@ class WishlistEconomy extends JObject
 						continue;
 					}
 
-					$BTL = new Hubzero_Bank_Teller($this->_db, $p->uid);
+					$BTL = new \Hubzero\Bank\Teller($this->_db, $p->uid);
 					$hold = $this->getTotalPayment($wishid, $p->uid);
 					if ($hold) 
 					{
@@ -235,7 +233,7 @@ class WishlistEconomy extends JObject
 			// Remove holds if exist
 			if ($wish->bonus) 
 			{
-				$BT = new Hubzero_Bank_Transaction($this->_db);
+				$BT = new \Hubzero\Bank\Transaction($this->_db);
 				$BT->deleteRecords('wish', 'hold', $wishid);
 			}
 		}
@@ -247,7 +245,7 @@ class WishlistEconomy extends JObject
 			$o = JUser::getInstance($wish->proposed_by);
 			if (is_object($o) && $o->get('id')) 
 			{
-				$BTLA = new Hubzero_Bank_Teller($this->_db , $wish->proposed_by);
+				$BTLA = new \Hubzero\Bank\Teller($this->_db , $wish->proposed_by);
 				$BTLA->deposit($wish->ranking, JText::sprintf('Your wish #%s on list #%s was granted', $wishid, $wish->wishlist), 'wish', $wishid);
 			}
 		}

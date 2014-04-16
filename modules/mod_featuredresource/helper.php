@@ -35,7 +35,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Module class for displaying a random featured resource
  */
-class modFeaturedresource extends Hubzero_Module
+class modFeaturedresource extends \Hubzero\Module\Module
 {
 	/**
 	 * Container for properties
@@ -383,8 +383,6 @@ class modFeaturedresource extends Hubzero_Module
 	 */
 	private function build_path($date, $id, $base='')
 	{
-		ximport('Hubzero_View_Helper_Html');
-
 		if ($date && preg_match("#([0-9]{4})-([0-9]{2})-([0-9]{2})[ ]([0-9]{2}):([0-9]{2}):([0-9]{2})#", $date, $regs)) 
 		{
 			$date = mktime($regs[4], $regs[5], $regs[6], $regs[2], $regs[3], $regs[1]);
@@ -399,7 +397,7 @@ class modFeaturedresource extends Hubzero_Module
 			$dir_year  = date('Y');
 			$dir_month = date('m');
 		}
-		$dir_id = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir_id = \Hubzero\Utility\String::pad($id);
 
 		return $base . DS . $dir_year . DS . $dir_month . DS . $dir_id;
 	}

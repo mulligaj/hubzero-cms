@@ -132,9 +132,9 @@ class plgWhatsnewResources extends JPlugin
 		if (is_array($areas) && $limit) 
 		{
 			$ars = $this->onWhatsnewAreas();
-			if (!array_intersect($areas, $ars)
-			 && !array_intersect($areas, array_keys($ars))
-			 && !array_intersect($areas, array_keys($ars['resources']))) 
+			if (!isset($areas[$this->_name]) 
+			 && !in_array($this->_name, $areas) 
+			 && !array_intersect($areas, array_keys($ars['resources'])))
 			{
 				return array();
 			}
@@ -161,9 +161,8 @@ class plgWhatsnewResources extends JPlugin
 			$filters['tags'] = $tagids;
 		}
 
-		ximport('Hubzero_User_Helper');
 		$juser = JFactory::getUser();
-		$filters['usergroups'] = Hubzero_User_Helper::getGroups($juser->get('id'), 'all');
+		$filters['usergroups'] = \Hubzero\User\Helper::getGroups($juser->get('id'), 'all');
 
 		// Get categories
 		$categories = $this->_cats;
@@ -283,9 +282,8 @@ class plgWhatsnewResources extends JPlugin
 	 	$document = JFactory::getDocument();
 		$document->addScript('components' . DS . 'com_resources' . DS . 'assets' . DS . 'css' . DS . 'resources.js');
 
-		ximport('Hubzero_Document');
-		Hubzero_Document::addComponentStylesheet('com_resources');
-		Hubzero_Document::addComponentScript('com_resources');
+		\Hubzero\Document\Assets::addComponentStylesheet('com_resources');
+		\Hubzero\Document\Assets::addComponentScript('com_resources');
 
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'helper.php');
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'usage.php');
@@ -399,11 +397,11 @@ class plgWhatsnewResources extends JPlugin
 		$html .= '</p>' . "\n";
 		if ($row->itext) 
 		{
-			$html .= "\t\t" . '<p>' . Hubzero_View_Helper_Html::shortenText(Hubzero_View_Helper_Html::purifyText(stripslashes($row->itext)), 200, 0) . '</p>' . "\n";
+			$html .= "\t\t" . '<p>' . \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->itext)), 200) . '</p>' . "\n";
 		} 
 		else if ($row->ftext) 
 		{
-			$html .= "\t\t" . '<p>' . Hubzero_View_Helper_Html::shortenText(Hubzero_View_Helper_Html::purifyText(stripslashes($row->ftext)), 200, 0) . '</p>' . "\n";
+			$html .= "\t\t" . '<p>' . \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->ftext)), 200) . '</p>' . "\n";
 		}
 		$html .= "\t\t" . '<p class="href">' . $juri->base() . trim($row->href, DS) . '</p>' . "\n";
 		$html .= "\t" . '</li>' . "\n";

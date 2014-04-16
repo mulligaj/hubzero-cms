@@ -28,9 +28,22 @@ $layout = $pdf->getPageLayout($record['summary']['version']);
 		<? $attempt = $resp->getAttemptNumber(); ?>
 		You are allowed <strong><?= $this->dep->getAllowedAttempts() ?></strong> attempts.
 		This was your <strong><?= FormHelper::toOrdinal((int)$attempt) ?></strong> attempt.
-		<? if ($this->dep->getAllowedAttempts() > $attempt) : ?>
-			<a href="<?= JRoute::_($this->base . '&task=form.complete&crumb='.$this->dep->getCrumb().'&attempt='.((int)$attempt+1)) ?>">View your <?= FormHelper::toOrdinal((int)$attempt+1) ?> attempt</a>
-		<? endif; ?>
+		<form action="<?= JRoute::_($this->base . '&task=form.complete') ?>">
+			<input type="hidden" name="crumb" value="<?= $this->dep->getCrumb() ?>" />
+			View another attempt: 
+			<select name="attempt">
+				<? for ($i = 1; $i <= $this->dep->getAllowedAttempts(); $i++) { ?>
+					<?
+						if ($i == $attempt) :
+							continue;
+						endif; 
+					?>
+					<option value="<?= $i ?>"><?= FormHelper::toOrdinal($i) ?> attempt</option>
+				<? } ?>
+				?>
+			</select>
+			<input class="btn btn-secondary" type="submit" value="GO" />
+		</form>
 	<? endif; ?>
 
 	<ol id="pages" class="complete">
@@ -42,7 +55,10 @@ $layout = $pdf->getPageLayout($record['summary']['version']);
 				$qidx = 0;
 				foreach ($layout[$idx - 1] as $qid=>$group):
 					foreach ($group['answers'] as $aidx=>$ans):
-						if ($record['detail'][$qid]['correct_answer_id'] == $ans['id']):
+						if ($record['detail'][$qid]['answer_id'] == 0) :
+							echo '<div class="no-answer" style="top: '.($ans['top'] - 4).'px; left: '.$ans['left'].'px">No answer provided</div>';
+							continue 2;
+						elseif ($record['detail'][$qid]['correct_answer_id'] == $ans['id']):
 							echo '<div name="question-'.$qid.'" value="'.$ans['id'].'" class="answer-marker correct" type="radio" style="top: '.($ans['top'] - 4).'px; left: '.$ans['left'].'px">&#10004;</div>';
 						elseif ($record['detail'][$qid]['answer_id'] == $ans['id']):
 							echo '<div name="question-'.$qid.'" value="'.$ans['id'].'" class="answer-marker incorrect" type="radio" style="top: '.($ans['top'] - 4).'px; left: '.$ans['left'].'px">&#10008;</div>';

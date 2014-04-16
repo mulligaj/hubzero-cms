@@ -16,7 +16,7 @@ defined('_JEXEC') or die('Restricted access');
 	}
 
 	$name = JText::_('COM_KB_ANONYMOUS');
-	$huser = new Hubzero_User_Profile;
+	$huser = new \Hubzero\User\Profile;
 	if (!$this->comment->get('anonymous')) 
 	{
 		$huser = $this->comment->creator();
@@ -35,11 +35,11 @@ defined('_JEXEC') or die('Restricted access');
 		$comment  = $this->comment->content('parsed');
 	}
 
-	$this->comment->set('category', 'kb');
+	//$this->comment->set('category', 'kb');
 ?>
 	<li class="comment <?php echo $cls; ?>" id="c<?php echo $this->comment->get('id'); ?>">
 		<p class="comment-member-photo">
-			<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
+			<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
 		</p>
 		<div class="comment-content">
 		<?php if (!$this->comment->isReported() && $this->comment->get('entry_id')) { ?>
@@ -56,9 +56,9 @@ defined('_JEXEC') or die('Restricted access');
 				$view->id     = '';
 				if (!$juser->get('guest')) 
 				{
-					if ($this->comment->get('created_by') == $juser->get('username')) 
+					$view->vote = $this->comment->get('vote');
+					if ($this->comment->get('created_by') == $juser->get('id')) 
 					{
-						$view->vote = $this->comment->get('vote');
 						$view->id   = $this->comment->get('id');
 					}
 				}
@@ -118,7 +118,6 @@ defined('_JEXEC') or die('Restricted access');
 				</p>
 				<?php } else { ?>
 				<form id="cform<?php echo $this->comment->get('id'); ?>" action="<?php echo JRoute::_($this->base); ?>" method="post" enctype="multipart/form-data">
-					<!-- <a name="commentform<?php echo $this->comment->get('id'); ?>"></a> -->
 					<fieldset>
 						<legend><span><?php echo JText::sprintf('COM_KB_REPLYING_TO', (!$this->comment->get('anonymous') ? $name : JText::_('COM_KB_ANONYMOUS'))); ?></span></legend>
 
@@ -127,6 +126,7 @@ defined('_JEXEC') or die('Restricted access');
 						<input type="hidden" name="comment[entry_id]" value="<?php echo $this->escape($this->comment->get('entry_id')); ?>" />
 						<input type="hidden" name="comment[created]" value="" />
 						<input type="hidden" name="comment[created_by]" value="<?php echo $this->escape($juser->get('id')); ?>" />
+						<input type="hidden" name="comment[state]" value="1" />
 
 						<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 						<input type="hidden" name="controller" value="articles" />
@@ -140,14 +140,13 @@ defined('_JEXEC') or die('Restricted access');
 						<label for="comment_<?php echo $this->comment->get('id'); ?>_content">
 							<span class="label-text"><?php echo JText::_('COM_KB_ENTER_COMMENTS'); ?></span>
 							<?php
-							ximport('Hubzero_Wiki_Editor');
-							echo Hubzero_Wiki_Editor::getInstance()->display('comment[comment]', 'comment_' . $this->comment->get('id') . '_content', '', 'minimal no-footer', '35', '4');
+							echo JFactory::getEditor()->display('comment[content]', '', '', '', 35, 4, false, 'comment_' . $this->comment->get('id') . '_content', null, null, array('class' => 'minimal no-footer'));
 							?>
 						</label>
 
 						<label id="comment-anonymous-label" for="comment-anonymous">
 							<input class="option" type="checkbox" name="comment[anonymous]" id="comment-anonymous" value="1" />
-							<?php echo JText::_('COM_KB_POST_COMMENT_ANONYMOUSLY'); ?>
+							<?php echo JText::_('COM_KB_FIELD_ANONYMOUS'); ?>
 						</label>
 
 						<p class="submit">

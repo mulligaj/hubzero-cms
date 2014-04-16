@@ -41,16 +41,14 @@ if ($canDo->get('core.edit'))
 }
 JToolBarHelper::cancel();
 
-jimport('joomla.html.editor');
 
 JHtml::_('behavior.switcher');
 
-$editor = JEditor::getInstance();
 
 $base = str_replace('/administrator', '', rtrim(JURI::getInstance()->base(true), '/'));
 
-$document = JFactory::getDocument();
-$document->addStyleSheet('components' . DS . $this->option . DS . 'assets' . DS . 'css' . DS . 'classic.css');
+$this->css()
+     ->css('classic');
 
 $course_id = 0;
 ?>
@@ -156,13 +154,19 @@ window.addEvent('domready', function(){
 							<tr>
 								<th class="key"><label for="field-alias"><?php echo JText::_('Alias'); ?>:</label></th>
 								<td>
-									<input type="text" name="fields[alias]" id="field-alias"<?php if ($this->row->get('alias') == '__default') { echo ' disabled="disabled"'; } ?> value="<?php echo $this->escape(stripslashes($this->row->get('alias'))); ?>" size="50" />
-									<?php if ($this->row->get('alias') == '__default') { ?><span class="hint">Offerings must have a "__default" section.</span><?php } ?>
+									<input type="text" name="fields[alias]" id="field-alias" value="<?php echo $this->escape(stripslashes($this->row->get('alias'))); ?>" size="50" />
 								</td>
 							</tr>
 							<tr>
 								<th class="key"><label for="field-title"><?php echo JText::_('COM_COURSES_TITLE'); ?>:</label></th>
 								<td><input type="text" name="fields[title]" id="field-title" value="<?php echo $this->escape(stripslashes($this->row->get('title'))); ?>" size="50" /></td>
+							</tr>
+							<tr>
+								<th class="key"><?php echo JText::_('Default section'); ?>:</th>
+								<td>
+									<label for="field-is_default-yes"><input type="radio" name="fields[is_default]" id="field-is_default-yes" value="1" <?php if ($this->row->get('is_default', 0) == 1) { echo ' checked="checked"'; } ?> /> <?php echo JText::_('yes'); ?></label>
+									<label for="field-is_default-no"><input type="radio" name="fields[is_default]" id="field-is_default-no" value="0" <?php if ($this->row->get('is_default', 0) == 0) { echo ' checked="checked"'; } ?> /> <?php echo JText::_('no'); ?></label>
+								</td>
 							</tr>
 							<tr>
 								<th class="key"><label for="field-enrollment"><?php echo JText::_('Enrollment'); ?>:</label></th>
@@ -171,6 +175,17 @@ window.addEvent('domready', function(){
 										<option value="0"<?php if ($this->row->get('enrollment', 2) == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('Open (anyone can join)'); ?></option>
 										<option value="1"<?php if ($this->row->get('enrollment', 2) == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('Restricted (coupon code is required)'); ?></option>
 										<option value="2"<?php if ($this->row->get('enrollment', 2) == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('Closed (no new enrollment)'); ?></option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th class="key"><label for="field-state"><?php echo JText::_('State'); ?>:</label></th>
+								<td>
+									<select name="fields[state]" id="field-state">
+										<option value="0"<?php if ($this->row->get('state') == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('Unpublished'); ?></option>
+										<option value="3"<?php if ($this->row->get('state') == 3) { echo ' selected="selected"'; } ?>><?php echo JText::_('Draft'); ?></option>
+										<option value="1"<?php if ($this->row->get('state') == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('Published'); ?></option>
+										<option value="2"<?php if ($this->row->get('state') == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('Deleted'); ?></option>
 									</select>
 								</td>
 							</tr>
@@ -216,7 +231,7 @@ window.addEvent('domready', function(){
 				</fieldset>
 			</div>
 			<div class="col width-50 fltrt">
-				<table class="meta" summary="<?php echo JText::_('COM_COURSES_META_SUMMARY'); ?>">
+				<table class="meta">
 					<tbody>
 						<tr>
 							<th><?php echo JText::_('Course ID'); ?></th>
@@ -250,6 +265,133 @@ window.addEvent('domready', function(){
 					</tbody>
 				</table>
 
+				<fieldset class="adminform">
+					<legend><span><?php echo JText::_('IMAGE'); ?></span></legend>
+
+					<?php
+					if ($this->row->exists()) 
+					{
+						$logo = $this->row->params('logo');
+						?>
+						<div style="padding-top: 2.5em">
+							<div id="ajax-uploader" data-action="index.php?option=<?php echo $this->option; ?>&amp;controller=logo&amp;task=upload&amp;type=section&amp;id=<?php echo $this->row->get('id'); ?>&amp;no_html=1&amp;<?php echo JUtility::getToken(); ?>=1">
+								<noscript>
+									<iframe width="100%" height="350" name="filer" id="filer" frameborder="0" src="index.php?option=<?php echo $this->option; ?>&amp;controller=logo&amp;tmpl=component&amp;file=<?php echo $logo; ?>&amp;type=section&amp;id=<?php echo $this->row->get('id'); ?>"></iframe>
+								</noscript>
+							</div>
+						</div>
+							<?php 
+							$width  = 0;
+							$height = 0;
+							$this_size = 0;
+							if ($logo) 
+							{
+								$path = $this->row->logo('path');
+
+								$this_size = filesize(JPATH_ROOT . $path . DS . $logo);
+								list($width, $height, $type, $attr) = getimagesize(JPATH_ROOT . $path . DS . $logo);
+								$pic = $logo;
+							}
+							else
+							{
+								$pic  = 'blank.png';
+								$path = '/administrator/components/com_courses/assets/img';
+							}
+							?>
+							<div id="img-container">
+								<img id="img-display" src="<?php echo '..' . $path . DS . $pic; ?>" alt="<?php echo JText::_('COM_COURSES_LOGO'); ?>" />
+								<input type="hidden" name="currentfile" id="currentfile" value="<?php echo $this->escape($logo); ?>" />
+							</div>
+							<table class="formed">
+								<tbody>
+									<tr>
+										<th><?php echo JText::_('File'); ?>:</th>
+										<td>
+											<span id="img-name"><?php echo $this->row->params('logo', '[ none ]'); ?></span>
+										</td>
+										<td>
+											<a id="img-delete" <?php echo $logo ? '' : 'style="display: none;"'; ?> href="index.php?option=<?php echo $this->option; ?>&amp;controller=logo&amp;tmpl=component&amp;task=remove&amp;currentfile=<?php echo $logo; ?>&amp;type=section&amp;id=<?php echo $this->row->get('id'); ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo JText::_('Delete'); ?>">[ x ]</a>
+										</td>
+									</tr>
+									<tr>
+										<th><?php echo JText::_('Size'); ?>:</th>
+										<td><span id="img-size"><?php echo \Hubzero\Utility\Number::formatBytes($this_size); ?></span></td>
+										<td></td>
+									</tr>
+									<tr>
+										<th><?php echo JText::_('Width'); ?>:</th>
+										<td><span id="img-width"><?php echo $width; ?></span> px</td>
+										<td></td>
+									</tr>
+									<tr>
+										<th><?php echo JText::_('Height'); ?>:</th>
+										<td><span id="img-height"><?php echo $height; ?></span> px</td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+
+							<script type="text/javascript" src="<?php echo $base; ?>/media/system/js/jquery.js"></script>
+							<script type="text/javascript" src="<?php echo $base; ?>/media/system/js/jquery.noconflict.js"></script>
+							<script type="text/javascript" src="<?php echo $base; ?>/media/system/js/jquery.fileuploader.js"></script>
+							<script type="text/javascript">
+							String.prototype.nohtml = function () {
+								if (this.indexOf('?') == -1) {
+									return this + '?no_html=1';
+								} else {
+									return this + '&no_html=1';
+								}
+							};
+							jQuery(document).ready(function(jq){
+								var $ = jq;
+								
+								if ($("#ajax-uploader").length) {
+									var uploader = new qq.FileUploader({
+										element: $("#ajax-uploader")[0],
+										action: $("#ajax-uploader").attr("data-action"),
+										multiple: true,
+										debug: true,
+										template: '<div class="qq-uploader">' +
+													'<div class="qq-upload-button"><span>Click or drop file</span></div>' + 
+													'<div class="qq-upload-drop-area"><span>Click or drop file</span></div>' +
+													'<ul class="qq-upload-list"></ul>' + 
+												   '</div>',
+										onComplete: function(id, file, response) {
+											if (response.success) {
+												$('#img-display').attr('src', '..' + response.directory + '/' + response.file);
+												$('#img-name').text(response.file);
+												$('#img-size').text(response.size);
+												$('#img-width').text(response.width);
+												$('#img-height').text(response.height);
+
+												$('#img-delete').show();
+											}
+										}
+									});
+								}
+								$('#img-delete').on('click', function (e) {
+									e.preventDefault();
+									var el = $(this);
+									$.getJSON(el.attr('href').nohtml(), {}, function(response) {
+										if (response.success) {
+											$('#img-display').attr('src', '../administrator/components/com_courses/assets/img/blank.png');
+											$('#img-name').text('[ none ]');
+											$('#img-size').text('0');
+											$('#img-width').text('0');
+											$('#img-height').text('0');
+										}
+										el.hide();
+									});
+								});
+							});
+							</script>
+					<?php
+					} else {
+						echo '<p class="warning">'.JText::_('COM_COURSES_PICTURE_ADDED_LATER').'</p>';
+					}
+					?>
+				</fieldset>
+
 				<?php
 					JPluginHelper::importPlugin('courses');
 					$dispatcher = JDispatcher::getInstance();
@@ -280,7 +422,15 @@ window.addEvent('domready', function(){
 							?>
 							<fieldset class="adminform eventparams" id="params-<?php echo $plugin['name']; ?>">
 								<legend><?php echo JText::sprintf('%s Parameters', $plugin['title']); ?></legend>
-								<?php echo $out; ?>
+								<table class="admintable">
+									<tbody>
+										<tr>
+											<td>
+									<?php echo $out; ?>
+											</td>
+										</tr>
+									</tbody>
+								</table>
 							</fieldset>
 							<?php
 						}
@@ -304,7 +454,7 @@ window.addEvent('domready', function(){
 		<div id="page-datetime" class="tab">
 		<?php if ($this->offering->units()->total() > 0) { ?>
 			<div class="col width-100">
-				<?php if (!$this->row->exists() && $this->row->get('alias') != '__default') { ?>
+				<?php if (!$this->row->exists() && !$this->row->get('is_default')) { ?>
 				<p class="info"><?php echo JText::_('Dates and times are initially inherited from the default section for this offering.'); ?></p>
 				<?php } ?>
 				<script src="<?php echo $base; ?>/media/system/js/jquery.js"></script>

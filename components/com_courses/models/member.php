@@ -79,63 +79,22 @@ class CoursesModelMember extends CoursesModelAbstract
 		{
 			$this->_tbl->load($uid, $cid, $oid, $sid);
 		}
-		else if (is_object($uid))
+		else if (is_object($uid) || is_array($uid))
 		{
-			$this->_tbl->bind($uid);
-
-			$properties = $this->_tbl->getProperties();
-			foreach (get_object_vars($uid) as $key => $property)
-			{
-				if (!array_key_exists($key, $properties)) // && in_array($property, self::$_section_keys))
-				{
-					$this->_tbl->set('__' . $key, $property);
-				}
-			}
-		}
-		else if (is_array($uid))
-		{
-			$this->_tbl->bind($uid);
-
-			$properties = $this->_tbl->getProperties();
-			foreach (array_keys($uid) as $key)
-			{
-				if (!array_key_exists($key, $properties)) // && in_array($property, self::$_section_keys))
-				{
-					$this->_tbl->set('__' . $key, $uid[$key]);
-				}
-			}
+			$this->bind($uid);
 		}
 
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-
-		//$permissions = clone(JComponentHelper::getParams('com_courses'));
-		//$permissions->merge(new $paramsClass($this->get('role_permissions')));
 		if (!$this->get('role_alias'))
 		{
 			$result = new CoursesTableRole($this->_db);
 			if ($result->load($this->get('role_id')))
 			{
-				$properties = $result->getProperties();
 				foreach ($result->getProperties() as $key => $property)
 				{
 					$this->_tbl->set('__role_' . $key, $property);
 				}
 			}
 		}
-
-		//$permissions = new $paramsClass($this->get('role_permissions'));
-		//$permissions->merge(new $paramsClass($this->get('permissions')));
-
-		/*if ($this->exists())
-		{
-			$permissions->set('access-view-offering', true);
-		}*/
-
-		//$this->set('permissions', $permissions);
 	}
 
 	/**
@@ -146,7 +105,7 @@ class CoursesModelMember extends CoursesModelAbstract
 	 *
 	 * @param      string $pagename The page to load
 	 * @param      string $scope    The page scope
-	 * @return     object WikiPage
+	 * @return     object CoursesModelMember
 	 */
 	static function &getInstance($uid=null, $cid=0, $oid=0, $sid=0)
 	{
@@ -157,12 +116,12 @@ class CoursesModelMember extends CoursesModelAbstract
 			$instances = array();
 		}
 
-		if (!isset($instances[$oid . '_' . $uid])) 
+		if (!isset($instances[$oid . '_' . $uid . '_' . $sid])) 
 		{
-			$instances[$oid . '_' . $uid] = new CoursesModelMember($uid, $cid, $oid, $sid);
+			$instances[$oid . '_' . $uid . '_' . $sid] = new self($uid, $cid, $oid, $sid);
 		}
 
-		return $instances[$oid . '_' . $uid];
+		return $instances[$oid . '_' . $uid . '_' . $sid];
 	}
 
 	/**
@@ -205,6 +164,45 @@ class CoursesModelMember extends CoursesModelAbstract
 			return $this->get('permissions');
 		}
 		return $this->get('permissions')->get('access-' . strtolower($action) . '-' . $item);
+	}
+
+	/**
+	 * Get a unique token, generating one if it doesn't exist
+	 * 
+	 * @return     obj
+	 */
+	public function token()
+	{
+		if (!$this->get('token'))
+		{
+			$this->set('token', $this->generateToken());
+			$this->store(false);
+		}
+
+		return $this->get('token'); 
+	}
+
+	/**
+	 * Generate a unique token
+	 * 
+	 * @return     obj
+	 */
+	public function generateToken()
+	{
+		$chars = array(0,1,2,3,4,5,6,7,8,9); //,'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z');
+		$sn = '';
+		$max = count($chars)-1;
+		for ($i=0;$i<20;$i++)
+		{
+			$sn .= (!($i % 5) && $i ? '-' : '') . $chars[rand(0, $max)];
+		}
+
+		if ($this->_tbl->tokenExists($sn))
+		{
+			return $this->generateToken();
+		}
+
+		return $sn; 
 	}
 }
 

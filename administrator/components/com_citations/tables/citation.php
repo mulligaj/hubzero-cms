@@ -420,6 +420,20 @@ class CitationsCitation extends JTable
 	 * @var unknown
 	 */
 	var $params				= NULL;
+	
+	/**
+	 * Formatted citation
+	 * 
+	 * @var unknown
+	 */
+	var $formatted			= NULL;
+	
+	/**
+	 * Format of saved formatted citation
+	 * 
+	 * @var unknown
+	 */
+	var $format				= NULL;
 
 	/**
 	 * Constructor
@@ -759,8 +773,6 @@ class CitationsCitation extends JTable
 			} 
 			else 
 			{
-				ximport('Hubzero_Geo');
-
 				$query .= " AND ca.cid=r.id AND";
 
 				$multi = 0;
@@ -786,7 +798,7 @@ class CitationsCitation extends JTable
 				}
 				if (isset($filter['geo']['na']) && $filter['geo']['na'] == 1) 
 				{
-					$countries = Hubzero_Geo::getCountriesByContinent('na');
+					$countries = \Hubzero\Geocode\Geocode::getCountriesByContinent('na');
 					$c = implode("','",$countries);
 					if ($multi) 
 					{
@@ -797,7 +809,7 @@ class CitationsCitation extends JTable
 				}
 				if (isset($filter['geo']['eu']) && $filter['geo']['eu'] == 1) 
 				{
-					$countries = Hubzero_Geo::getCountriesByContinent('eu');
+					$countries = \Hubzero\Geocode\Geocode::getCountriesByContinent('eu');
 					$c = implode("','", $countries);
 					if ($multi) 
 					{
@@ -808,7 +820,7 @@ class CitationsCitation extends JTable
 				}
 				if (isset($filter['geo']['as']) && $filter['geo']['as'] == 1) 
 				{
-					$countries = Hubzero_Geo::getCountriesByContinent('as');
+					$countries = \Hubzero\Geocode\Geocode::getCountriesByContinent('as');
 					$c = implode("','", $countries);
 					if ($multi) 
 					{
@@ -975,7 +987,57 @@ class CitationsCitation extends JTable
 		$this->_db->setQuery($sql);
 		return $this->_db->loadObjectList();
 	}
+	
+	/**
+	 * Load publication citation
+	 * 
+	 * @param      string $doi 
+	 * @param      string $oid 
+	 * @return     object Return description (if any) ...
+	 */
+	public function loadPubCitation($doi, $oid)
+	{
+		$ca  = new CitationsAssociation($this->_db);
+		
+		$sql = "SELECT C.* FROM $this->_tbl AS C ";
+		$sql.= " JOIN $ca->_tbl AS a ON a.cid=C.id ";
+		$sql.= " WHERE C.doi='" . $doi . "' AND a.tbl='publication' AND a.oid=" . $oid;
 
+		$this->_db->setQuery($sql);
+		if ($result = $this->_db->loadAssoc()) 
+		{
+			return $this->bind( $result );
+		} 
+		else 
+		{
+			$this->setError( $this->_db->getErrorMsg() );
+			return false;
+		}
+	}
+	
+	/**
+	 * Load entry by DOI
+	 * 
+	 * @param      string $doi
+	 * @return     object Return description (if any) ...
+	 */
+	public function loadByDoi($doi)
+	{		
+		$sql = "SELECT C.* FROM $this->_tbl AS C ";
+		$sql.= " WHERE C.doi='" . $doi . "' LIMIT 1";
+
+		$this->_db->setQuery($sql);
+		if ($result = $this->_db->loadAssoc()) 
+		{
+			return $this->bind( $result );
+		} 
+		else 
+		{
+			$this->setError( $this->_db->getErrorMsg() );
+			return false;
+		}
+	}
+	
 	/**
 	 * Short description for 'getLastCitationDate'
 	 * 

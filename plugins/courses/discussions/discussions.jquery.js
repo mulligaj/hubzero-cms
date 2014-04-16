@@ -167,7 +167,7 @@ if (!HUB.Plugins) {
 	});
 })(jQuery);
 
-var _DEBUG = true;
+var _DEBUG = false;
 
 HUB.Plugins.CoursesForum = {
 	jQuery: jq,
@@ -299,6 +299,7 @@ HUB.Plugins.CoursesForum = {
 										// Comment already exists!
 										continue;
 									}
+
 									var list = $('#category' + item.category_id);
 									if (!list.length) {
 										list = $('#categorynew');
@@ -306,12 +307,17 @@ HUB.Plugins.CoursesForum = {
 									if (!list.length) {
 										continue;
 									}
+
 									if (list.find('li.comments-none').length) {
 										list.empty();
 									}
 									list.prepend($(item.html).hide().fadeIn());
 
-									var count = $('#ct' + item.category_id + ' span.count');
+									if (list.attr('id') == 'categorynew') {
+										var count = $('#newcomments span.count');
+									} else {
+										var count = $('#ct' + item.category_id + ' span.count');
+									}
 									if (count.length > 0) {
 										count.text(parseInt(count.text()) + 1);
 									}
@@ -340,7 +346,20 @@ HUB.Plugins.CoursesForum = {
 							}
 
 							// Append thread data and fade it in
-							thread.html(data.thread.html).hide().fadeIn();
+							//thread.html(data.thread.html).hide().fadeIn();
+							// hide thread
+							thread.hide();
+
+							// set the inner html (not jQuery way)
+							thread.get(0).innerHTML = data.thread.html;
+
+							// find all scripts in this html and eval them
+							thread.find('script').each(function(){
+								eval($(this).html());
+							});
+
+							// fade in
+							thread.fadeIn();
 
 							// Apply plugins to loaded content
 							jQuery(document).trigger('ajaxLoad');
@@ -386,9 +405,13 @@ HUB.Plugins.CoursesForum = {
 					parent.find('> p.comment-options').hide();
 					//parent.find('> div.comment-body').html(data).hide().fadeIn();
 					parent.find('> div.comment-body').hide();
-					parent.append($(data).hide().fadeIn());
+					parent.get(0).innerHTML = parent.get(0).innerHTML + data;
+					parent.find('script').each(function(){
+						eval($(this).html());
+					});
+					//parent.append($(data).hide().fadeIn());
 
-					jQuery(document).trigger('ajaxLoad');
+					//jQuery(document).trigger('ajaxLoad');
 				});
 			})
 			// Add confirm dialog to delete links
@@ -407,7 +430,14 @@ HUB.Plugins.CoursesForum = {
 							header.text(data.thread.total + ' comments');
 
 							// Append data and fade it in
-							thread.html(data.thread.html).hide().fadeIn();
+							//thread.html(data.thread.html).hide().fadeIn();
+							thread.hide();
+							thread.get(0).innerHTML = data.thread.html;
+							thread.find('script').each(function(){
+								eval($(this).html());
+							});
+							thread.fadeIn();
+
 							// Apply plugins to loaded content
 							jQuery(document).trigger('ajaxLoad');
 						} else {
@@ -512,7 +542,14 @@ HUB.Plugins.CoursesForum = {
 										console.log('thread_last_change: ' + feed.data('thread_last_change') + ', thread: ' + feed.data('thread'));
 									}
 									// Append data and fade it in
-									thread.html(data.thread.html).hide().fadeIn();
+									//thread.html(data.thread.html).hide().fadeIn();
+									thread.hide();
+									thread.get(0).innerHTML = data.thread.html;
+									thread.find('script').each(function(){
+										eval($(this).html());
+									});
+									thread.fadeIn();
+
 									// Apply plugins to loaded content
 									jQuery(document).trigger('ajaxLoad');
 								});
@@ -612,7 +649,14 @@ HUB.Plugins.CoursesForum = {
 					header.text(data.thread.total + ' comments');
 
 					// Append data and fade it in
-					thread.html(data.thread.html).hide().fadeIn();
+					//thread.html(data.thread.html).hide().fadeIn();
+					thread.hide();
+					thread.get(0).innerHTML = data.thread.html;
+					thread.find('script').each(function(){
+						eval($(this).html());
+					});
+					thread.fadeIn();
+
 					// Apply plugins to loaded content
 					jQuery(document).trigger('ajaxLoad');
 				});
@@ -808,5 +852,7 @@ HUB.Plugins.CoursesForum = {
 }
 
 jQuery(document).ready(function($){
+	_DEBUG = document.getElementById('system-debug') ? true : false;
+
 	HUB.Plugins.CoursesForum.initialize();
 });

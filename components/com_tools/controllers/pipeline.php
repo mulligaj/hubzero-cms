@@ -31,12 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Tool_Version');
-ximport('Hubzero_Tool');
-ximport('Hubzero_Group');
-ximport('Hubzero_Trac_Project');
-ximport('Hubzero_Controller');
-
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'tool.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'version.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'group.php');
@@ -62,7 +56,7 @@ include_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'html.php');
 /**
  * Controller class for contributing a tool
  */
-class ToolsControllerPipeline extends Hubzero_Controller
+class ToolsControllerPipeline extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -383,7 +377,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		$document = JFactory::getDocument();
 		$document->setTitle($this->view->title);
 
-		$hzt = Hubzero_Tool::getInstance($this->_toolid);
+		$hzt = ToolsModelTool::getInstance($this->_toolid);
 		$hztv_dev = $hzt->getRevision('development');
 		$hztv_current = $hzt->getRevision('current');
 
@@ -393,8 +387,8 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			'version'         => $hztv_dev->version,
 			'state'           => $hzt->state,
 			'toolname'        => $hzt->toolname,
-			'membergroups'    => Hubzero_Tool::getToolGroups($this->_toolid),
-			'resourceid'      => Hubzero_Tool::getResourceId($this->_toolid),
+			'membergroups'    => ToolsModelTool::getToolGroups($this->_toolid),
+			'resourceid'      => ToolsModelTool::getResourceId($this->_toolid),
 			'currentrevision' => (is_object($hztv_current) ? $hztv_current->revision : ''),
 			'currentversion'  => (is_object($hztv_current) ? $hztv_current->version : '')
 		);
@@ -661,7 +655,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			);
 		}
 
-		$hztv = Hubzero_Tool_VersionHelper::getDevelopmentToolVersion($id);
+		$hztv = ToolsHelperVersion::getDevelopmentToolVersion($id);
 
 		$this->license_choice = array(
 			'text'      => JRequest::getVar('license', ''),
@@ -726,7 +720,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		}
 		
 		// Open source
-		if (Hubzero_Tool::validateLicense($this->license_choice, $hztv->codeaccess, $error))
+		if (ToolsModelTool::validateLicense($this->license_choice, $hztv->codeaccess, $error))
 		{
 			// code for saving license
 			$hztv->license = strip_tags($this->license_choice['text']);
@@ -940,7 +934,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 	 */
 	protected function _setTracAccess($toolname, $codeaccess, $wikiaccess)
 	{
-		if (!($hztrac = Hubzero_Trac_Project::find_or_create('app:' . $toolname))) 
+		if (!($hztrac = \Hubzero\Trac\Project::find_or_create('app:' . $toolname))) 
 		{
 			return false;
 		}
@@ -991,7 +985,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 	 */
 	public function saveTask()
 	{
-		$xlog = Hubzero_Factory::getLogger();
+		$xlog = JFactory::getLogger();
 
 		$exportmap  = array(
 			'@OPEN'   => null,
@@ -1038,7 +1032,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			}
 		}
 
-		if (!Hubzero_Tool::validate($tool, $err, $id))
+		if (!ToolsModelTool::validate($tool, $err, $id))
 		{
 			// display form with errors
 			//$title = JText::_(strtoupper($this->_option)).': '.JText::_('COM_TOOLS_EDIT_TOOL');
@@ -1078,7 +1072,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		// save tool info
 		if (!$id)  // new tool
 		{
-			$hzt = Hubzero_Tool::createInstance($tool['toolname']);
+			$hzt = ToolsModelTool::createInstance($tool['toolname']);
 			$hzt->toolname      = $tool['toolname'];
 			$hzt->title         = $tool['title'];
 			$hzt->published     = 0;
@@ -1090,7 +1084,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		}
 		else
 		{
-			$hzt = Hubzero_Tool::getInstance($id);
+			$hzt = ToolsModelTool::getInstance($id);
 		}
 
 		// get tool id for newly registered tool
@@ -1114,8 +1108,8 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		{
 			if ($hztv === false)
 			{
-				$xlog->logDebug(__FUNCTION__ . "() HZTV createInstance dev_suffix=$dev_suffix");
-				$hztv = Hubzero_Tool_Version::createInstance($tool['toolname'], $tool['toolname'] . $dev_suffix);
+				$xlog->debug(__FUNCTION__ . "() HZTV createInstance dev_suffix=$dev_suffix");
+				$hztv = ToolsModelVersion::createInstance($tool['toolname'], $tool['toolname'] . $dev_suffix);
 
 				$oldstatus = $hztv->toArray();
 				$oldstatus['toolstate']    = $hzt->state;
@@ -1179,7 +1173,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 
 		if (empty($gid))
 		{
-			$hzg = new Hubzero_Group();
+			$hzg = new \Hubzero\User\Group();
 			$hzg->cn =  $group_prefix . strtolower($tool['toolname']);
 			$hzg->create();
 			$hzg->set('type', 2);
@@ -1189,11 +1183,11 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		}
 		else
 		{
-			$hzg = Hubzero_Group::getInstance($gid);
+			$hzg = \Hubzero\User\Group::getInstance($gid);
 		}
 		$hzg->set('members', $tool['developers']);
 
-		$hztrac = Hubzero_Trac_Project::find_or_create('app:' . $tool['toolname']);
+		$hztrac = \Hubzero\Trac\Project::find_or_create('app:' . $tool['toolname']);
 		$hztrac->add_group_permission('apps', array(
 			'WIKI_ADMIN',
 			'MILESTONE_ADMIN',
@@ -1248,7 +1242,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		}
 
 		// create resource page
-		$rid = Hubzero_Tool::getResourceId($hzt->toolname,$hzt->id);
+		$rid = ToolsModelTool::getResourceId($hzt->toolname,$hzt->id);
 
 		if (empty($rid))
 		{
@@ -1391,7 +1385,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		}
 		$error = '';
 
-		$hzt = Hubzero_Tool::getInstance($this->_toolid);
+		$hzt = ToolsModelTool::getInstance($this->_toolid);
 		$hztv = $hzt->getRevision($editversion);
 
 		if ($newstate && !intval($newstate)) 
@@ -1402,7 +1396,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		$oldstatus = ($hztv) ? $hztv->toArray() : array();
 		$oldstatus['toolstate'] = $hzt->state;
 
-		if (Hubzero_Tool::validateVersion($newversion, $error, $hzt->id))
+		if (ToolsModelTool::validateVersion($newversion, $error, $hzt->id))
 		{
 			$this->_error = $error;
 			$hztv->version = $newversion;
@@ -1525,7 +1519,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		//$newversion  = JRequest::getVar('newversion', '');
 		$editversion = JRequest::getVar('editversion', 'dev');
 
-		$hzt = Hubzero_Tool::getInstance($this->_toolid);
+		$hzt = ToolsModelTool::getInstance($this->_toolid);
 		$hztv = $hzt->getRevision($editversion);
 
 		$oldstatus = ($hztv) ? $hztv->toArray() : array();
@@ -1591,7 +1585,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			return;
 		}
 
-		$xlog = Hubzero_Factory::getLogger();
+		$xlog = JFactory::getLogger();
 
 		$newstate    = JRequest::getVar('newstate', '');
 		$priority    = JRequest::getVar('priority', 3);
@@ -1600,7 +1594,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		$newversion  = JRequest::getVar('newversion', '');
 		$editversion = JRequest::getVar('editversion', 'dev');
 
-		$hzt = Hubzero_Tool::getInstance($this->_toolid);
+		$hzt = ToolsModelTool::getInstance($this->_toolid);
 		$hztv = $hzt->getRevision($editversion);
 
 		$oldstatus = ($hztv) ? $hztv->toArray() : array();
@@ -1613,12 +1607,12 @@ class ToolsControllerPipeline extends Hubzero_Controller
 
 		if (intval($newstate) && $newstate != $oldstatus['toolstate']) 
 		{
-			$xlog->logDebug(__FUNCTION__ . "() state changing");
+			$xlog->debug(__FUNCTION__ . "() state changing");
 
-			if ($newstate == ToolsHelperHtml::getStatusNum('Approved') && Hubzero_Tool::validateVersion($oldstatus['version'], $error, $hzt->id))
+			if ($newstate == ToolsHelperHtml::getStatusNum('Approved') && ToolsModelTool::validateVersion($oldstatus['version'], $error, $hzt->id))
 			{
 				$this->_error = $error;
-				$xlog->logDebug(__FUNCTION__ . "() state changing to approved, action confirm");
+				$xlog->debug(__FUNCTION__ . "() state changing to approved, action confirm");
 				$this->_action = 'confirm';
 				$this->_task = JText::_('COM_TOOLS_CONTRIBTOOL_APPROVE_TOOL');
 				$this->versionsTask();
@@ -1627,7 +1621,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			else if ($newstate == ToolsHelperHtml::getStatusNum('Approved')) 
 			{
 				$this->_error = $error;
-				$xlog->logDebug(__FUNCTION__ . "() state changing to approved, action new");
+				$xlog->debug(__FUNCTION__ . "() state changing to approved, action new");
 				$this->_action = 'new';
 				$this->_task = JText::_('COM_TOOLS_CONTRIBTOOL_APPROVE_TOOL');
 				$this->versionsTask();
@@ -1635,7 +1629,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			}
 			else if ($newstate == ToolsHelperHtml::getStatusNum('Published')) 
 			{
-				$xlog->logDebug(__FUNCTION__ . "() state changing to published");
+				$xlog->debug(__FUNCTION__ . "() state changing to published");
 				$hzt->published = '1';
 			}
 			$this->_error = $error;
@@ -1646,9 +1640,9 @@ class ToolsControllerPipeline extends Hubzero_Controller
 				// Create a Tool Version object
 				$objV = new ToolVersion($this->database);
 
-				$xlog->logDebug(__FUNCTION__ . "() state changing away from  published");
+				$xlog->debug(__FUNCTION__ . "() state changing away from  published");
 				// Get version ids
-				$rid = Hubzero_Tool::getResourceId($hzt->toolname,$hzt->id);
+				$rid = ToolsModelTool::getResourceId($hzt->toolname,$hzt->id);
 
 				$to   = $objV->getVersionIdFromResource($rid, 'dev');
 				$from = $objV->getVersionIdFromResource($rid, 'current');
@@ -1656,7 +1650,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 				$dev_hztv = $hzt->getRevision('dev');
 				$current_hztv = $hzt->getRevision('current');
 
-				$xlog->logDebug("update: to=$to from=$from   dev=" . $dev_hztv->id . " current=" . $current_hztv->id);
+				$xlog->debug("update: to=$to from=$from   dev=" . $dev_hztv->id . " current=" . $current_hztv->id);
 				if ($to && $from) 
 				{
 					require_once(JPATH_COMPONENT . DS . 'controllers' . DS . 'screenshots.php');
@@ -1666,7 +1660,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 				}
 			}
 
-			$xlog->logDebug(__FUNCTION__ . "() state changing to $newstate");
+			$xlog->debug(__FUNCTION__ . "() state changing to $newstate");
 			$hzt->state = $newstate;
 			$hzt->state_changed = JFactory::getDate()->toSql();
 		}
@@ -1684,12 +1678,12 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		$status = $hztv->toArray();
 		$status['toolstate'] = $hzt->state;
 		// update history ticket
-		$xlog->logDebug(__FUNCTION__ . "() before newUpdateTicket test");
+		$xlog->debug(__FUNCTION__ . "() before newUpdateTicket test");
 		if ($oldstatus != $status || !empty($comment))
 		{
-			$xlog->logDebug(__FUNCTION__ . "() before newUpdateTicket");
+			$xlog->debug(__FUNCTION__ . "() before newUpdateTicket");
 			$this->_newUpdateTicket($hzt->id, $hzt->ticketid, $oldstatus, $status, $comment, $access, 1);
-			$xlog->logDebug(__FUNCTION__ . "() after newUpdateTicket");
+			$xlog->debug(__FUNCTION__ . "() after newUpdateTicket");
 		}
 
 		//$this->addComponentMessage(JText::_('COM_TOOLS_NOTICE_STATUS_CHANGED'));
@@ -1738,7 +1732,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			$newstate = ToolsHelperHtml::getStatusNum($newstate);
 		}
 
-		$hzt = Hubzero_Tool::getInstance($this->_toolid);
+		$hzt = ToolsModelTool::getInstance($this->_toolid);
 
 		if ($comment)
 		{
@@ -1788,8 +1782,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		}
 		$admingroup = $this->config->get('admingroup', '');
 
-		ximport('Hubzero_Group');
-		$group = Hubzero_Group::getInstance($admingroup);
+		$group = \Hubzero\User\Group::getInstance($admingroup);
 		if (is_object($group)) 
 		{
 			$members  = $group->get('members');
@@ -1799,7 +1792,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			{
 				foreach ($members as $member) 
 				{
-					$muser = Hubzero_User_Profile::getInstance($member);
+					$muser = \Hubzero\User\Profile::getInstance($member);
 					if (is_object($muser)) 
 					{
 						$admins[] = $member;
@@ -1907,8 +1900,8 @@ class ToolsControllerPipeline extends Hubzero_Controller
 	 */
 	protected function _newUpdateTicket($toolid, $ticketid, $oldstuff, $newstuff, $comment, $access=0, $email=0, $action=1)
 	{
-		$xlog = Hubzero_Factory::getLogger();
-		$xlog->logDebug(__FUNCTION__ . '() started');
+		$xlog = JFactory::getLogger();
+		$xlog->debug(__FUNCTION__ . '() started');
 
 		$summary = '';
 
@@ -2079,7 +2072,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 			$rowc->created_by = $this->juser->get('username');
 			$rowc->changelog  = json_encode($log);
 			$rowc->access     = $access;
-			$xlog->logDebug(__FUNCTION__ . '() storing ticket');
+			$xlog->debug(__FUNCTION__ . '() storing ticket');
 			if (!$rowc->store()) 
 			{
 				$this->_error = $rowc->getError();
@@ -2088,7 +2081,7 @@ class ToolsControllerPipeline extends Hubzero_Controller
 
 			if ($email) 
 			{
-				$xlog->logDebug(__FUNCTION__ . '() emailing notifications');
+				$xlog->debug(__FUNCTION__ . '() emailing notifications');
 				// send notification emails
 				$this->_email($toolid, $summary, $comment, $access, $action);
 			}
@@ -2542,9 +2535,8 @@ class ToolsControllerPipeline extends Hubzero_Controller
 		// otherwise superadmins can only act if they are also a member of the component admin group
 		if (($admingroup = trim($this->config->get('admingroup', '')))) 
 		{
-			ximport('Hubzero_User_Helper');
 			// Check if they're a member of admin group
-			$ugs = Hubzero_User_Helper::getGroups($this->juser->get('id'));
+			$ugs = \Hubzero\User\Helper::getGroups($this->juser->get('id'));
 			if ($ugs && count($ugs) > 0) 
 			{
 				$admingroup = strtolower($admingroup);

@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Blog controller class for entries
  */
-class BlogControllerEntries extends Hubzero_Controller
+class BlogControllerEntries extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -607,7 +605,7 @@ class BlogControllerEntries extends Hubzero_Controller
 
 		// Build some basic RSS document information
 		$doc->title  = $jconfig->getValue('config.sitename') . ' - ' . JText::_(strtoupper($this->_option));
-		$doc->title .= ($filters['year'])  ? ': ' . $year : '';
+		$doc->title .= ($filters['year'])  ? ': ' . $filters['year'] : '';
 		$doc->title .= ($filters['month']) ? ': ' . sprintf("%02d", $filters['month']) : '';
 
 		$doc->description = JText::sprintf('COM_BLOG_RSS_DESCRIPTION', $jconfig->getValue('config.sitename'));
@@ -626,10 +624,10 @@ class BlogControllerEntries extends Hubzero_Controller
 
 				// Strip html from feed item description text
 				$item->description = $row->content('parsed');
-				$item->description = html_entity_decode(Hubzero_View_Helper_Html::purifyText($item->description));
+				$item->description = html_entity_decode(\Hubzero\Utility\Sanitize::stripAll($item->description));
 				if ($this->config->get('feed_entries') == 'partial') 
 				{
-					$item->description = Hubzero_View_Helper_Html::shortenText($item->description, 300, 0);
+					$item->description = \Hubzero\Utility\String::truncate($item->description, 300);
 				}
 
 				// Load individual item creator class
@@ -671,7 +669,7 @@ class BlogControllerEntries extends Hubzero_Controller
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
-		$comment = JRequest::getVar('comment', array(), 'post');
+		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
 
 		// Instantiate a new comment object and pass it the data
 		$row = new BlogModelComment($comment['id']);
@@ -840,17 +838,6 @@ class BlogControllerEntries extends Hubzero_Controller
 			return;
 		}
 
-		$this->wikiconfig = array(
-			'option'   => $this->_option,
-			'scope'    => 'blog',
-			'pagename' => $this->entry->get('alias'),
-			'pageid'   => 0,
-			'filepath' => $this->config->get('uploadpath'),
-			'domain'   => ''
-		);
-		ximport('Hubzero_Wiki_Parser');
-		$this->p = Hubzero_Wiki_Parser::getInstance();
-
 		foreach ($rows as $row)
 		{
 			$this->_comment($doc, $row);
@@ -880,7 +867,7 @@ class BlogControllerEntries extends Hubzero_Controller
 		} 
 		else 
 		{
-			$item->description = html_entity_decode(Hubzero_View_Helper_Html::purifyText($this->p->parse($row->get('content'), $this->wikiconfig)));
+			$item->description = html_entity_decode(\Hubzero\Utility\Sanitize::stripAll($row->content('clean')));
 		}
 
 		if ($row->get('anonymous'))

@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for service subscriptions
  */
-class ServicesControllerSubscriptions extends Hubzero_Controller
+class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Subscriptions List
@@ -156,7 +154,7 @@ class ServicesControllerSubscriptions extends Hubzero_Controller
 		$this->view->customer = JUser::getInstance($this->view->subscription->uid);
 
 		// check available user funds		
-		$BTL = new Hubzero_Bank_Teller($this->database, $this->view->subscription->uid);
+		$BTL = new \Hubzero\Bank\Teller($this->database, $this->view->subscription->uid);
 		$balance = $BTL->summary();
 		$credit  = $BTL->credit_summary();
 		$funds   = $balance;

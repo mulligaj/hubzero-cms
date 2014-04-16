@@ -82,11 +82,10 @@ else
 			<p class="comment-member-photo">
 				<a class="comment-anchor" name="commentform"></a>
 				<?php
-				ximport('Hubzero_User_Profile_Helper');
-				$jxuser = new Hubzero_User_Profile();
+				$jxuser = new \Hubzero\User\Profile();
 				$jxuser->load($this->post->get('created_by', $juser->get('id')));
 				?>
-				<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($jxuser, 0); ?>" alt="" />
+				<img src="<?php echo $jxuser->getPicture(); ?>" alt="" />
 			</p>
 
 			<fieldset>
@@ -137,9 +136,7 @@ else
 				<label for="fieldcomment">
 					<?php echo JText::_('COM_FORUM_FIELD_COMMENTS'); ?> <span class="required"><?php echo JText::_('COM_FORUM_REQUIRED'); ?></span>
 					<?php
-					ximport('Hubzero_Wiki_Editor');
-					$editor = Hubzero_Wiki_Editor::getInstance();
-					echo $editor->display('fields[comment]', 'fieldcomment', stripslashes($this->post->get('comment')), '', '35', '15');
+					echo \JFactory::getEditor()->display('fields[comment]', $this->escape(stripslashes($this->post->get('comment'))), '', '', 35, 15, false, 'fieldcomment', null, null, array('class' => 'minimal no-footer'));
 					?>
 				</label>
 
@@ -193,9 +190,6 @@ else
 				<div class="sidenote">
 					<p>
 						<strong><?php echo JText::_('COM_FORUM_KEEP_POLITE'); ?></strong>
-					</p>
-					<p>
-						<?php echo JText::_('COM_FORUM_WIKI_HINT'); ?>
 					</p>
 				</div>
 			</fieldset>

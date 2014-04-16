@@ -29,9 +29,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-ximport('Hubzero_Group');
-ximport('Hubzero_User_Profile');
-
 $setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
 $juser = $this->juser;
 ?>
@@ -76,7 +73,7 @@ $juser = $this->juser;
 			<?php if($this->which == 'all')  { 
 				
 				// Show owned projects first
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'=>'groups',
 						'element'=>'projects',
@@ -92,7 +89,7 @@ $juser = $this->juser;
 				echo $view->loadTemplate();
 			}	
 				// Show rows
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'=>'groups',
 						'element'=>'projects',

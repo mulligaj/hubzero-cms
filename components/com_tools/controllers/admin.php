@@ -31,12 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Tool_Version');
-ximport('Hubzero_Tool');
-ximport('Hubzero_Group');
-ximport('Hubzero_Trac_Project');
-ximport('Hubzero_Controller');
-
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'tool.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'version.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'author.php');
@@ -44,7 +38,7 @@ include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_t
 /**
  * Controller class for contributing a tool
  */
-class ToolsControllerAdmin extends Hubzero_Controller
+class ToolsControllerAdmin extends \Hubzero\Component\SiteController
 {
 	private $_toolid = 0;
 	private $_admin = 0;
@@ -251,7 +245,7 @@ class ToolsControllerAdmin extends Hubzero_Controller
 			else 
 			{
 				// Update the revision number
-				$hztv = Hubzero_Tool_VersionHelper::getDevelopmentToolVersion($this->_toolid);
+				$hztv = ToolsHelperVersion::getDevelopmentToolVersion($this->_toolid);
 				$hztv->revision = intval($rev[1]);
 				if (!$hztv->update()) 
 				{
@@ -400,8 +394,8 @@ class ToolsControllerAdmin extends Hubzero_Controller
 
 		$result = true;
 
-		$xlog = Hubzero_Factory::getLogger();
-		$xlog->logDebug("publish(): checkpoint 1:$result");
+		$xlog = JFactory::getLogger();
+		$xlog->debug("publish(): checkpoint 1:$result");
 
 		// get config
 
@@ -442,17 +436,17 @@ class ToolsControllerAdmin extends Hubzero_Controller
 		}
 
 		// Log checkpoint
-		$xlog->logDebug("publish(): checkpoint 2:$result, check revision");
+		$xlog->debug("publish(): checkpoint 2:$result, check revision");
 
 		// check if version is valid
-		if (!Hubzero_Tool::validateVersion($status['version'], $error_v, $this->_toolid))
+		if (!ToolsModelTool::validateVersion($status['version'], $error_v, $this->_toolid))
 		{
 			$result = false; 
 			$this->setError($error_v);
 		}
 
 		// Log checkpoint
-		$xlog->logDebug("publish(): checkpoint 3:$result, running finalize tool");
+		$xlog->debug("publish(): checkpoint 3:$result, running finalize tool");
 
 		// Run finalizetool
 		if (!$this->getError()) 
@@ -468,7 +462,7 @@ class ToolsControllerAdmin extends Hubzero_Controller
 			}
 		}
 
-		$xlog->logDebug("publish(): checkpoint 4:$result, running doi stuff");
+		$xlog->debug("publish(): checkpoint 4:$result, running doi stuff");
 
 		// Register DOI handle
 		if ($result && $this->config->get('new_doi', 0)) 
@@ -543,11 +537,11 @@ class ToolsControllerAdmin extends Hubzero_Controller
 		{
 			$invokedir = rtrim($this->config->get('invokescript_dir', DS . 'apps'), "\\/");
 
-			$hzt = Hubzero_Tool::getInstance($this->_toolid);
+			$hzt = ToolsModelTool::getInstance($this->_toolid);
 			$hztv_cur = $hzt->getCurrentVersion();
 			$hztv_dev = $hzt->getDevelopmentVersion();
 
-			$xlog->logDebug("publish(): checkpoint 6:$result, running database stuff");
+			$xlog->debug("publish(): checkpoint 6:$result, running database stuff");
 
 			// create tool instance in the database
 			$newtool = $status['toolname'] . '_r' . $status['revision'];
@@ -565,7 +559,7 @@ class ToolsControllerAdmin extends Hubzero_Controller
 				'@D1'    => 'd1'
 			);
 
-			$new_hztv = Hubzero_Tool_Version::createInstance($status['toolname'], $newtool);
+			$new_hztv = ToolsModelVersion::createInstance($status['toolname'], $newtool);
 			$new_hztv->toolname      = $status['toolname'];
 			$new_hztv->instance      = $newtool;
 			$new_hztv->toolid        = $this->_toolid;
@@ -600,7 +594,7 @@ class ToolsControllerAdmin extends Hubzero_Controller
 				$this->_setTracAccess($new_hztv->toolname, $new_hztv->codeaccess, $new_hztv->wikiaccess);
 
 				// update tool entry
-				$hzt = Hubzero_Tool::getInstance($this->_toolid);
+				$hzt = ToolsModelTool::getInstance($this->_toolid);
 				$hzt->add('version', $new_hztv->instance);
 				$hzt->update();
 
@@ -669,7 +663,7 @@ class ToolsControllerAdmin extends Hubzero_Controller
 			}
 		}
 
-		$xlog->logDebug("publish(): checkpoint 7:$result, gather output");
+		$xlog->debug("publish(): checkpoint 7:$result, gather output");
 
 		// Set errors to view
 		if ($this->getError())
@@ -702,9 +696,9 @@ class ToolsControllerAdmin extends Hubzero_Controller
 	 */
 	protected function _finalizeTool(&$out = '')
 	{
-		$xlog = Hubzero_Factory::getLogger();
+		$xlog = JFactory::getLogger();
 
-		$xlog->logDebug("finalizeTool(): checkpoint 1");
+		$xlog->debug("finalizeTool(): checkpoint 1");
 
 		if (!$this->_toolid) 
 		{
@@ -717,7 +711,7 @@ class ToolsControllerAdmin extends Hubzero_Controller
 			$tarball_path = rtrim(JPATH_ROOT . DS . $tarball_path, DS);
 		}
 
-		$xlog->logDebug("finalizeTool(): checkpoint 2");
+		$xlog->debug("finalizeTool(): checkpoint 2");
 
 		// Create a Tool object
 		$obj = new Tool($this->database);
@@ -743,7 +737,7 @@ class ToolsControllerAdmin extends Hubzero_Controller
 			chmod($fname, 0664);
 
 			$command = '/usr/bin/sudo -u apps /usr/bin/finalizetool -hubdir ' . JPATH_ROOT . ' -title "' . $status['title'] . '" -version "' . $status['version'] . '" -license ' . $fname . ' ' . $status['toolname'];
-			$xlog->logDebug("finalizeTool(): checkpoint 3: $command");
+			$xlog->debug("finalizeTool(): checkpoint 3: $command");
 
 			if (!$this->_invokescript($command, JText::_('COM_TOOLS_NOTICE_VERSION_FINALIZED'))) 
 			{
@@ -768,21 +762,21 @@ class ToolsControllerAdmin extends Hubzero_Controller
 				jimport('joomla.filesystem.folder');
 				if (!JFolder::create($file_path)) 
 				{
-					$xlog->logDebug("findalizeTool(): failed to create tarball path $file_path");
+					$xlog->debug("findalizeTool(): failed to create tarball path $file_path");
 					$out .= JText::_('COM_TOOLS_ERR_UNABLE_TO_CREATE_TAR_PATH');
 					return false;
 				}
 			}
-			$xlog->logDebug("finalizeTool(): checkpoint 4: " . DS . 'tmp' . DS . $tar . " to " . $file_path . '/' . $tar);
+			$xlog->debug("finalizeTool(): checkpoint 4: " . DS . 'tmp' . DS . $tar . " to " . $file_path . '/' . $tar);
 			if (!@copy(DS . 'tmp' . DS . $tar, $file_path . '/' . $tar)) 
 			{
 				$out .= " failed to copy $tar to $file_path";
-				$xlog->logDebug("findalizeTool(): failed tarball copy");
+				$xlog->debug("findalizeTool(): failed tarball copy");
 				return false;
 			} 
 			else 
 			{
-				$xlog->logDebug("findalizeTool(): deleting tmp files");
+				$xlog->debug("findalizeTool(): deleting tmp files");
 				exec ('sudo -u apps rm -f /tmp/' . $tar, $out, $result);
 			}
 			return true;
@@ -805,7 +799,7 @@ class ToolsControllerAdmin extends Hubzero_Controller
 	 */
 	protected function _setTracAccess($toolname, $codeaccess, $wikiaccess)
 	{
-		if (!($hztrac = Hubzero_Trac_Project::find_or_create('app:' . $toolname))) 
+		if (!($hztrac = \Hubzero\Trac\Project::find_or_create('app:' . $toolname))) 
 		{
 			return false;
 		}
@@ -920,9 +914,8 @@ class ToolsControllerAdmin extends Hubzero_Controller
 		// otherwise superadmins can only act if they are also a member of the component admin group
 		if (($admingroup = trim($this->config->get('admingroup', '')))) 
 		{
-			ximport('Hubzero_User_Helper');
 			// Check if they're a member of admin group
-			$ugs = Hubzero_User_Helper::getGroups($this->juser->get('id'));
+			$ugs = \Hubzero\User\Helper::getGroups($this->juser->get('id'));
 			if ($ugs && count($ugs) > 0) 
 			{
 				$admingroup = strtolower($admingroup);

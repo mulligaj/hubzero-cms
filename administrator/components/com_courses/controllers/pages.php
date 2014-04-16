@@ -31,15 +31,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 // Course model pulls in other classes we need
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
 
 /**
  * Courses controller class for managing course pages
  */
-class CoursesControllerPages extends Hubzero_Controller
+class CoursesControllerPages extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Manage course pages
@@ -211,6 +209,8 @@ class CoursesControllerPages extends Hubzero_Controller
 			}
 		}
 
+		$this->view->notifications = $this->getComponentMessage();
+
 		// Output the HTML
 		$this->view->display();
 	}
@@ -236,7 +236,7 @@ class CoursesControllerPages extends Hubzero_Controller
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// load the request vars
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 
 		// instatiate course page object for saving
 		$row = new CoursesTablePage($this->database);
@@ -445,8 +445,7 @@ class CoursesControllerPages extends Hubzero_Controller
 		}
 		if ($size > $sizeLimit) 
 		{
-			ximport('Hubzero_View_Helper_Html');
-			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', Hubzero_View_Helper_Html::formatSize($sizeLimit));
+			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			echo json_encode(array('error' => JText::sprintf('File is too large. Max file upload size is %s', $max)));
 			return;
 		}

@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Module');
-
 /**
  * Module class for showing content spotlight
  */
-class modSpotlight extends Hubzero_Module
+class modSpotlight extends \Hubzero\Module\Module
 {
 	/**
 	 * Display module contents
@@ -75,9 +73,6 @@ class modSpotlight extends Hubzero_Module
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_features' . DS . 'tables' . DS . 'history.php');
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'tables' . DS . 'entry.php');
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'tables' . DS . 'comment.php');
-
-		ximport('Hubzero_User_Profile');
-		ximport('Hubzero_View_Helper_Html');
 
 		if (!class_exists('FeaturesHistory'))
 		{
@@ -171,7 +166,7 @@ class modSpotlight extends Hubzero_Module
 					case 'topics':
 						include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'page.php');
 						// Yes - load the topic page
-						$row = new WikiPage($this->database);
+						$row = new WikiTablePage($this->database);
 						$row->load($fh->objectid);
 					break;
 
@@ -379,48 +374,14 @@ class modSpotlight extends Hubzero_Module
 				}
 
 				// Load their bio
-				$profile = Hubzero_User_Profile::getInstance($row->uidNumber);
-
-				$mconfig = JComponentHelper::getParams('com_members');
-
-				if (isset($row->picture) && $row->picture != '')
-				{
-					// Yes - so build the path to it
-					$thumb  = DS . trim($mconfig->get('webpath'), DS);
-					$thumb .= DS . Hubzero_View_Helper_Html::niceidformat($row->uidNumber) . DS . $row->picture;
-
-					// No - use default picture
-					if (is_file(JPATH_ROOT . $thumb))
-					{
-						// Build a thumbnail filename based off the picture name
-						$thumb = Hubzero_View_Helper_Html::thumbit($thumb);
-
-						if (!is_file(JPATH_ROOT . $thumb))
-						{
-							// Create a thumbnail image
-							include_once(JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'helpers' . DS . 'imghandler.php');
-							$ih = new MembersImgHandler();
-							$ih->set('image', $row->picture);
-							$ih->set('path', JPATH_ROOT . $mconfig->get('webpath') . DS . Hubzero_View_Helper_Html::niceidformat($row->uidNumber) . DS);
-							$ih->set('maxWidth', 50);
-							$ih->set('maxHeight', 50);
-							$ih->set('cropratio', '1:1');
-							$ih->set('outputName', $ih->createThumbName());
-						}
-					}
-				}
-				// No - use default picture
-				if (!$thumb || !is_file(JPATH_ROOT . $thumb))
-				{
-					$thumb = DS . trim($mconfig->get('defaultpic'), DS);
-				}
+				$profile = \Hubzero\User\Profile::getInstance($row->uidNumber);
 
 				$title = $row->name;
 				if (!trim($title))
 				{
 					$title = $row->givenName . ' ' . $row->surname;
 				}
-				$out .= '<span class="spotlight-img"><a href="' . JRoute::_('index.php?option=com_members&id=' . $row->uidNumber) . '"><img width="30" height="30" src="' . $thumb . '" alt="' . htmlentities($title) . '" /></a></span>' . "\n";
+				$out .= '<span class="spotlight-img"><a href="' . JRoute::_('index.php?option=com_members&id=' . $row->uidNumber) . '"><img width="30" height="30" src="' . $profile->getPicture() . '" alt="' . htmlentities($title) . '" /></a></span>' . "\n";
 				$out .= '<span class="spotlight-item"><a href="' . JRoute::_('index.php?option=com_members&id=' . $row->uidNumber) . '">' . $title . '</a></span>, ' . $row->organization . "\n";
 				$out .= ' - ' . JText::_('Contributions') . ': ' . $this->_countContributions($row->uidNumber) . "\n";
 				$out .= '<div class="clear"></div>'."\n";
@@ -429,7 +390,7 @@ class modSpotlight extends Hubzero_Module
 			case 'blog':
 				$thumb = trim($this->params->get('default_blogpic', '/modules/mod_spotlight/default.gif'));
 
-				$profile = Hubzero_User_Profile::getInstance($row->created_by);
+				$profile = \Hubzero\User\Profile::getInstance($row->created_by);
 
 				if ($getid)
 				{
@@ -542,7 +503,7 @@ class modSpotlight extends Hubzero_Module
 				$titlecut  = ($remaining) ? 0 : $txtLength - strlen($row->typetitle);
 				if ($titlecut)
 				{
-					$title = Hubzero_View_Helper_Html::shortenText(($row->title), $titlecut, 0);
+					$title = \Hubzero\Utility\String::truncate($row->title, $titlecut);
 				}
 				else
 				{
@@ -563,11 +524,11 @@ class modSpotlight extends Hubzero_Module
 					// Show bit of description for tools
 					if ($row->introtext)
 					{
-						$out .= ': '.Hubzero_View_Helper_Html::shortenText($this->_encodeHtml(strip_tags($row->introtext)), $txtLength, 0);
+						$out .= ': '.\Hubzero\Utility\String::truncate($this->_encodeHtml(strip_tags($row->introtext)), $txtLength);
 					}
 					else
 					{
-						$out .= ': '.Hubzero_View_Helper_Html::shortenText($this->_encodeHtml(strip_tags($row->fulltxt)), $txtLength, 0);
+						$out .= ': '.\Hubzero\Utility\String::truncate($this->_encodeHtml(strip_tags($row->fulltxt)), $txtLength);
 					}
 				}
 				if ($tbl == 'itunes')
@@ -767,7 +728,7 @@ class modSpotlight extends Hubzero_Module
 			$dir_year  = date('Y');
 			$dir_month = date('m');
 		}
-		$dir_id = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir_id = \Hubzero\Utility\String::pad($id);
 
 		return $base . DS . $dir_year . DS . $dir_month . DS . $dir_id;
 	}

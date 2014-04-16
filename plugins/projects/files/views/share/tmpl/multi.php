@@ -88,7 +88,7 @@ if (!$this->getError()) {
 			}
 
 			// Display list item with file data
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'files',
@@ -179,8 +179,8 @@ if (!$this->getError()) {
 		<p class="submitarea">
 			<input type="submit" value="<?php echo $sendTo == 'local' 
 			? JText::_('COM_PROJECTS_FILES_ACTION_UNSHARE') 
-			: JText::_('COM_PROJECTS_FILES_ACTION_SHARE'); ?>" id="submit-ajaxform" />
-			<input type="reset" id="cancel-action" value="<?php echo JText::_('COM_PROJECTS_CANCEL'); ?>" />
+			: JText::_('COM_PROJECTS_FILES_ACTION_SHARE'); ?>" id="submit-ajaxform" class="btn" />
+			<input type="reset" id="cancel-action"  class="btn btn-cancel" value="<?php echo JText::_('COM_PROJECTS_CANCEL'); ?>" />
 		</p>		
 	</fieldset>
 </form>

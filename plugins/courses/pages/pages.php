@@ -31,26 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-
 /**
  * Courses Plugin class for pages
  */
-class plgCoursesPages extends Hubzero_Plugin
+class plgCoursesPages extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -63,7 +54,8 @@ class plgCoursesPages extends Hubzero_Plugin
 			'name' => $this->_name,
 			'title' => JText::_('PLG_COURSES_' . strtoupper($this->_name)),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => true
+			'display_menu_tab' => true,
+			'icon' => 'f05a'
 		);
 		return $area;
 	}
@@ -133,9 +125,8 @@ class plgCoursesPages extends Hubzero_Plugin
 		// Determine if we need to return any HTML (meaning this is the active plugin)
 		if ($return == 'html') 
 		{
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('courses', $this->_name);
-			Hubzero_Document::addPluginScript('courses', $this->_name);
+			\Hubzero\Document\Assets::addPluginStylesheet($this->_type, $this->_name);
+			\Hubzero\Document\Assets::addPluginScript($this->_type, $this->_name);
 
 			$action = strtolower(JRequest::getWord('group', ''));
 			if ($action && $action != 'edit' && $action != 'delete')
@@ -154,10 +145,9 @@ class plgCoursesPages extends Hubzero_Plugin
 				$action = $act;
 			}
 
-			ximport('Hubzero_Plugin_View');
-			$this->view = new Hubzero_Plugin_View(
+			$this->view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'courses',
+					'folder'  => $this->_type,
 					'element' => $this->_name,
 					'name'    => 'pages'
 				)
@@ -264,7 +254,7 @@ class plgCoursesPages extends Hubzero_Plugin
 	{
 		if ($this->view->juser->get('guest'))
 		{
-			$return = JRoute::_('index.php?option=' . $this->view->option . '&gid=' . $this->view->course->get('alias') . '&offering=' . $this->view->offering->get('alias') . '&active=' . $this->_name, false, true);
+			$return = JRoute::_($this->view->offering->link() . '&active=' . $this->_name, false, true);
 			$this->setRedirect(
 				JRoute::_('index.php?option=com_user' . (version_compare(JVERSION, '1.6', 'lt') ? '' : 's') . '&view=login&return=' . $return, false)
 			);
@@ -275,7 +265,7 @@ class plgCoursesPages extends Hubzero_Plugin
 			return $this->_list();
 		}
 
-		Hubzero_Document::addSystemScript('jquery.fileuploader');
+		\Hubzero\Document\Assets::addSystemScript('jquery.fileuploader');
 		$this->view->setLayout('edit');
 
 		if (is_object($model))
@@ -335,7 +325,7 @@ class plgCoursesPages extends Hubzero_Plugin
 	{
 		if ($this->view->juser->get('guest'))
 		{
-			$return = JRoute::_('index.php?option=' . $this->view->option . '&gid=' . $this->view->course->get('alias') . '&offering=' . $this->view->offering->get('alias') . '&active=' . $this->_name, false, true);
+			$return = JRoute::_($this->view->offering->link() . '&active=' . $this->_name, false, true);
 			$this->setRedirect(
 				JRoute::_('index.php?option=com_user' . (version_compare(JVERSION, '1.6', 'lt') ? '' : 's') . '&view=login&return=' . $return, false)
 			);
@@ -372,7 +362,7 @@ class plgCoursesPages extends Hubzero_Plugin
 		}
 
 		$this->setRedirect(
-			JRoute::_('index.php?option=' . $this->view->option . '&gid=' . $this->view->course->get('alias') . '&offering=' . $this->view->offering->get('alias') . '&active=' . $this->_name . '&unit=' . $model->get('url'))
+			JRoute::_($this->view->offering->link() . '&active=' . $this->_name . '&unit=' . $model->get('url'))
 		);
 	}
 
@@ -386,7 +376,7 @@ class plgCoursesPages extends Hubzero_Plugin
 	{
 		if ($this->view->juser->get('guest'))
 		{
-			$return = JRoute::_('index.php?option=' . $this->view->option . '&gid=' . $this->view->course->get('alias') . '&offering=' . $this->view->offering->get('alias') . '&active=' . $this->_name, false, true);
+			$return = JRoute::_($this->view->offering->link() . '&active=' . $this->_name, false, true);
 			$this->setRedirect(
 				JRoute::_('index.php?option=com_user' . (version_compare(JVERSION, '1.6', 'lt') ? '' : 's') . '&view=login&return=' . $return, false)
 			);
@@ -410,7 +400,7 @@ class plgCoursesPages extends Hubzero_Plugin
 		}
 
 		$this->setRedirect(
-			JRoute::_('index.php?option=' . $this->view->option . '&gid=' . $this->view->course->get('alias') . '&offering=' . $this->view->offering->get('alias') . '&active=pages')
+			JRoute::_($this->view->offering->link() . '&active=pages')
 		);
 	}
 
@@ -504,7 +494,7 @@ class plgCoursesPages extends Hubzero_Plugin
 		}
 		if ($size > $sizeLimit) 
 		{
-			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', Hubzero_View_Helper_Html::formatSize($sizeLimit));
+			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			ob_clean();
 			header('Content-type: text/plain');
 			echo json_encode(array('error' => JText::sprintf('PLG_COURSES_PAGES_ERROR_FILE_TOO_LARG', $max)));
@@ -849,9 +839,6 @@ class plgCoursesPages extends Hubzero_Plugin
 	 */
 	public function _fileDownload()
 	{
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		if (!$this->view->course->access('view'))
 		{
 			JError::raiseError(404, JText::_('COM_COURSES_NO_COURSE_FOUND'));
@@ -902,7 +889,7 @@ class plgCoursesPages extends Hubzero_Plugin
 		}
 
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($filename);
 		$xserver->disposition('inline');
 		$xserver->acceptranges(false); // @TODO fix byte range support

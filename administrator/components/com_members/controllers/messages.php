@@ -31,13 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-ximport('Hubzero_Message_Component');
-
 /**
  * Manage messaging settings
  */
-class MembersControllerMessages extends Hubzero_Controller
+class MembersControllerMessages extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of messaging settings
@@ -82,7 +79,7 @@ class MembersControllerMessages extends Hubzero_Controller
 			'int'
 		);
 
-		$obj = new Hubzero_Message_Component($this->database);
+		$obj = new \Hubzero\Message\Component($this->database);
 
 		// Get a record count
 		$this->view->total = $obj->getCount($this->view->filters, true);
@@ -154,7 +151,7 @@ class MembersControllerMessages extends Hubzero_Controller
 			}
 
 			// Initiate database class and load info
-			$this->view->row = new Hubzero_Message_Component($this->database);
+			$this->view->row = new \Hubzero\Message\Component($this->database);
 			$this->view->row->load($id);
 		}
 
@@ -196,7 +193,7 @@ class MembersControllerMessages extends Hubzero_Controller
 		$fields = JRequest::getVar('fields', array(), 'post');
 
 		// Load the profile
-		$row = new Hubzero_Message_Component($this->database);
+		$row = new \Hubzero\Message\Component($this->database);
 		if (!$row->bind($fields)) 
 		{
 			$this->addComponentMessage($row->getError(), 'error');
@@ -252,15 +249,14 @@ class MembersControllerMessages extends Hubzero_Controller
 		// Do we have any IDs?
 		if (!empty($ids)) 
 		{
-			ximport('Hubzero_Message_Notify');
-			$notify = new Hubzero_Message_Notify($this->database);
+			$notify = new \Hubzero\Message\Notify($this->database);
 
 			// Loop through each ID and delete the necessary items
 			foreach ($ids as $id)
 			{
 				$id = intval($id);
 
-				$row = new Hubzero_Message_Component($this->database);
+				$row = new \Hubzero\Message\Component($this->database);
 				$row->load($id);
 
 				// Remove any associations

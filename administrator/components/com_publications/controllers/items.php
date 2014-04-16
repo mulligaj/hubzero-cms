@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Manage publications
  */
-class PublicationsControllerItems extends Hubzero_Controller
+class PublicationsControllerItems extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Executes a task
@@ -314,19 +312,6 @@ class PublicationsControllerItems extends Hubzero_Controller
 			$this->view->pub_allowed = 0;
 		}
 		
-		//Import the wiki parser
-		ximport('Hubzero_Wiki_Parser');
-		$this->view->parser = Hubzero_Wiki_Parser::getInstance();
-
-		$this->view->wikiconfig = array(
-			'option'   => $this->_option,
-			'scope'    => '',
-			'pagename' => 'publications',
-			'pageid'   => '',
-			'filepath' => '',
-			'domain'   => ''
-		);
-		
 		// Get tags on this item
 		$tagsHelper = new PublicationTags( $this->database);
 		$this->view->lists['tags'] = $tagsHelper->get_tag_string($id, 0, 0, NULL, 0, 1);
@@ -521,7 +506,8 @@ class PublicationsControllerItems extends Hubzero_Controller
 		$objP->load($id);
 				
 		// If publication not found, raise error
-		if(!$pub) {
+		if (!$pub) 
+		{
 			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_NOT_FOUND') );
 			return;
 		}
@@ -545,15 +531,20 @@ class PublicationsControllerItems extends Hubzero_Controller
 		// Checkin resource
 		$objP->checkin();
 		
+		// Get pub project
+		$project = new Project($this->database);
+		$project->load($pub->project_id);
+		
 		// Incoming updates
 		$title 			= trim(JRequest::getVar( 'title', '', 'post' )); 
 		$title 			= htmlspecialchars($title);
 		$abstract 		= trim(JRequest::getVar( 'abstract', '', 'post' )); 
-		$abstract 		= Hubzero_Filter::cleanXss(htmlspecialchars($abstract));
+		$abstract 		= \Hubzero\Utility\Sanitize::clean(htmlspecialchars($abstract));
 		$description 	= trim(JRequest::getVar( 'description', '', 'post' ));	
 		$description 	= stripslashes($description);
 		$release_notes 	= stripslashes(trim(JRequest::getVar( 'release_notes', '', 'post' )));
 		$metadata 		= '';
+		$activity 		= '';
 					
 		// Get metadata
 		if (isset($_POST['nbtag']))
@@ -583,7 +574,8 @@ class PublicationsControllerItems extends Hubzero_Controller
 				{
 					foreach ($fields as $f) 
 					{
-						if ($f[0] == $tagname && end($f) == 1) {
+						if ($f[0] == $tagname && end($f) == 1) 
+						{
 							echo PublicationsHtml::alert(JText::sprintf('COM_PUBLICATIONS_REQUIRED_FIELD_CHECK', $f[1]));
 							exit();
 						}
@@ -594,7 +586,7 @@ class PublicationsControllerItems extends Hubzero_Controller
 				
 		// Save title, abstract and description
 		$row->title 		= $title ? $title : $row->title;
-		$row->abstract 		= $abstract ? Hubzero_View_Helper_Html::shortenText($abstract, 250, 0) : $row->abstract;
+		$row->abstract 		= $abstract ? \Hubzero\Utility\String::truncate($abstract, 250) : $row->abstract;
 		$row->description 	= $description ? $description : $row->description;
 		$row->metadata 		= $metadata ? $metadata : $row->metadata;	
 		$row->published_up 	= $published_up ? $published_up : $row->published_up;
@@ -627,11 +619,11 @@ class PublicationsControllerItems extends Hubzero_Controller
 		}
 		
 		// Email config
-		$pubtitle 	= Hubzero_View_Helper_Html::shortenText($row->title, 100, 0);
+		$pubtitle 	= \Hubzero\Utility\String::truncate($row->title, 100);
 		$subject 	= JText::_('Version') . ' ' . $row->version_label . ' ' 
 					. JText::_('COM_PUBLICATIONS_OF') . ' ' . JText::_('publication') . ' "' . $pubtitle . '" ';
 		$sendmail 	= 0;
-		$message 	= rtrim(Hubzero_Filter::cleanXss(JRequest::getVar( 'message', '' )));
+		$message 	= rtrim(\Hubzero\Utility\Sanitize::clean(JRequest::getVar( 'message', '' )));
 		$output 	= JText::_('Item successfully saved.');			
 		
 		// Admin actions
@@ -688,7 +680,8 @@ class PublicationsControllerItems extends Hubzero_Controller
 						else 
 						{
 							// Update DOI with latest information
-							if(!PublicationUtilities::updateDoi($row->doi, $row, $authors, $this->config, $metadata, $doierr))
+							if (!PublicationUtilities::updateDoi($row->doi, $row, 
+								$authors, $this->config, $metadata, $doierr))
 							{
 								$this->setError(JText::_('COM_PUBLICATIONS_ERROR_DOI').' '.$doierr);
 							}						
@@ -736,21 +729,25 @@ class PublicationsControllerItems extends Hubzero_Controller
 			.JText::_('COM_PUBLICATIONS_OF').' '.strtolower(JText::_('publication')).' "'
 			.$pubtitle.'" ';
 			
+			// Build return url
+			$link 	= '/projects/' . $project->alias . '/publications/' 
+					. $id . '/?version=' . $row->version_number;
+			
 			if ($action != 'message' && !$this->getError()) 
 			{
 				$aid = $objAA->recordActivity( $pub->project_id, $this->juser->get('id'), 
-					$activity, $id, $pubtitle, JRoute::_('index.php?option=' . $this->_option 
-					 . '&id='.$id).'/?v='.$row->version_number, 'publication', 0, $admin = 1 );
+					$activity, $id, $pubtitle, $link, 'publication', 0, $admin = 1 );
 				$sendmail = $this->config->get('email') ? 1 : 0;
 				
 				// Append comment to activity
 				if ($message && $aid)
 				{
-					require_once( JPATH_ROOT.DS.'administrator'.DS.'components'.DS.'com_projects'.DS.'tables'.DS.'project.comment.php');
+					require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+						. DS . 'com_projects' . DS . 'tables' . DS . 'project.comment.php');
 					$objC = new ProjectComment( $this->database );
 					
-					$comment = Hubzero_View_Helper_Html::shortenText($message, 250, 0);
-					$comment = Hubzero_View_Helper_Html::purifyText($comment);
+					$comment = \Hubzero\Utility\String::truncate($message, 250);
+					$comment = \Hubzero\Utility\Sanitize::stripAll($comment);
 					
 					$objC->itemid = $aid;
 					$objC->tbl = 'activity';
@@ -762,17 +759,24 @@ class PublicationsControllerItems extends Hubzero_Controller
 					$objC->store();
 					
 					// Get new entry ID
-					if(!$objC->id) {
+					if (!$objC->id) 
+					{
 						$objC->checkin();
 					}
+					
 					$objAA = new ProjectActivity ( $this->database );
-					if( $objC->id ) {
+					
+					if ( $objC->id ) 
+					{
 						$what = JText::_('COM_PROJECTS_AN_ACTIVITY');
 						$curl = '#tr_'.$aid; // same-page link
-						$caid = $objAA->recordActivity( $pub->project_id, $this->juser->get('id'), JText::_('COM_PROJECTS_COMMENTED').' '.JText::_('COM_PROJECTS_ON').' '.$what, $objC->id, $what, $curl, 'quote', 0, 1 );
+						$caid = $objAA->recordActivity( $pub->project_id, $this->juser->get('id'),
+						 	JText::_('COM_PROJECTS_COMMENTED') . ' ' . JText::_('COM_PROJECTS_ON')
+							. ' ' . $what, $objC->id, $what, $curl, 'quote', 0, 1 );
 						
 						// Store activity ID
-						if($caid) {
+						if ($caid) 
+						{
 							$objC->activityid = $aid;
 							$objC->store();
 						}
@@ -813,14 +817,14 @@ class PublicationsControllerItems extends Hubzero_Controller
 		$rt->tag_object($this->juser->get('id'), $id, $tags, 1, 1);
 	
 		// Get ids of publication authors with accounts
-		$notify = $pa->getAuthors($row->id, 1, 1, 1);
+		$notify = $pa->getAuthors($row->id, 1, 1, 1, true);
 		$notify[] = $row->created_by;
 		$notify = array_unique($notify);
-	
+
 		// Send email
 		if ($sendmail && !$this->getError()) 
-		{
-			$this->_emailContributors($row, $subject, $message, $notify, $action);	
+		{			
+			$this->_emailContributors($row, $project, $subject, $message, $notify, $action);	
 		}
 		
 		// Append any errors
@@ -844,6 +848,7 @@ class PublicationsControllerItems extends Hubzero_Controller
 				$output
 			);
 		}
+		
 	}
 	
 	/**
@@ -868,7 +873,7 @@ class PublicationsControllerItems extends Hubzero_Controller
 		// Get dc:contibutor
 		$project = new Project($this->database);
 		$project->load($objP->project_id);
-		$profile = Hubzero_Factory::getProfile();
+		$profile = \Hubzero\User\Profile::getInstance(JFactory::getUser()->get('id'));
 		$owner 	 = $project->owned_by_user ? $project->owned_by_user : $project->created_by_user;
 		if ($profile->load( $owner ))
 		{
@@ -897,11 +902,17 @@ class PublicationsControllerItems extends Hubzero_Controller
 	 * Sends a message to authors (or creator) of a publication
 	 * 
 	 * @param      object $row      Publication
-	 * @param      object $database JDatabase
+	 * @param      object $project  Project
 	 * @return     void
 	 */
-	private function _emailContributors($row, $subject = '', $message = '', $authors = array(), $action = 'publish')
+	private function _emailContributors($row, $project, $subject = '', $message = '', 
+		$authors = array(), $action = 'publish')
 	{
+		if (!$row || !$project)
+		{
+			return false;
+		}
+		
 		// Get pub authors' ids
 		if (empty($authors)) 
 		{
@@ -929,35 +940,36 @@ class PublicationsControllerItems extends Hubzero_Controller
 			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('PUBLICATIONS');
 			
 			$subject = $subject ? $subject : JText::_('COM_PUBLICATIONS_STATUS_UPDATE');
-
-			$juri = JURI::getInstance();
-			$sef = JRoute::_('index.php?option=' . $this->_option . '&id=' . $row->publication_id).'?v='.$row->version_number;
-			if (substr($sef, 0, 1) == '/')
-			{
-				$sef = substr($sef, 1, strlen($sef));
-			}
 			
 			// Get message body
-			$eview = new JView( array('name'=>'emails' ) );
-			$eview->option = $this->_option;
-			$eview->subject = $subject;
-			$eview->action = $action;
-			$eview->hubShortName = $jconfig->getValue('config.sitename');
-			$eview->row = $row;
-			$livesite = $jconfig->getValue('config.live_site');
-			$eview->url = $livesite.DS.'publications'.DS.$row->publication_id.DS.'?v='.$row->version_number;
+			$eview 					= new JView( array('name'=>'emails', 'layout' => 'admin_plain' ) );
+			$eview->option 			= $this->_option;
+			$eview->subject 		= $subject;
+			$eview->action 			= $action;
+			$eview->row 			= $row;
+			$eview->message			= $message;
+			$eview->project			= $project;
+			
+			$body = array();
+			$body['plaintext'] 	= $eview->loadTemplate();
+			$body['plaintext'] 	= str_replace("\n", "\r\n", $body['plaintext']);
 
-			$body = $eview->loadTemplate();
-			if ($message) 
-			{
-				$body.=  JText::_('COM_PUBLICATION_MSG_MESSAGE_FROM_ADMIN').': '."\n".$message;
-			}	
-			$body = str_replace("\n\n", "\n", $body);
+			// HTML email
+			$eview->setLayout('admin_html');
+			$body['multipart'] = $eview->loadTemplate();
+			$body['multipart'] = str_replace("\n", "\r\n", $body['multipart']);
 
 			// Send message
 			JPluginHelper::importPlugin('xmessage');
 			$dispatcher = JDispatcher::getInstance();
-			if (!$dispatcher->trigger('onSendMessage', array('publication_status_changed', $subject, $body, $from, $authors, $this->_option)))
+			if (!$dispatcher->trigger('onSendMessage', array(
+				'publication_status_changed', 
+				$subject, 
+				$body, 
+				$from, 
+				$authors, 
+				$this->_option)
+			))
 			{
 				$this->setError(JText::_('Failed to message authors.'));
 			}
@@ -1303,8 +1315,7 @@ class PublicationsControllerItems extends Hubzero_Controller
 		$u = JRequest::getInt('u', 0);
 
 		// Get the member's info
-		ximport('Hubzero_User_Profile');
-		$profile = Hubzero_User_Profile::getInstance($u);
+		$profile = \Hubzero\User\Profile::getInstance($u);
 
 		if (!$profile->get('name'))
 		{

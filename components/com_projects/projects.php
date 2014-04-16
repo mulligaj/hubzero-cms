@@ -41,12 +41,6 @@ if (version_compare(JVERSION, '1.6', 'lt'))
 
 jimport('joomla.application.component.helper');
 jimport('joomla.application.component.view');
-ximport('Hubzero_View_Helper_Html');
-ximport('Hubzero_Filter');
-ximport('Hubzero_Group');
-ximport('Hubzero_User_Helper');
-ximport('Hubzero_User_Profile');
-ximport('Hubzero_Document');
 
 require_once( JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'project.php' );
 require_once( JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'project.activity.php' );
@@ -61,6 +55,8 @@ include_once( JPATH_COMPONENT . DS . 'helpers' . DS . 'imghandler.php' );
 include_once( JPATH_COMPONENT . DS . 'helpers' . DS . 'autocomplete.php' );
 include_once( JPATH_COMPONENT . DS . 'helpers' . DS . 'helper.php' );
 include_once( JPATH_COMPONENT . DS . 'helpers' . DS . 'tags.php' );
+
+include_once( JPATH_COMPONENT . DS . 'models' . DS . 'project.php' );
 
 $controllerName = JRequest::getCmd('controller', JRequest::getCmd('view', 'projects'));
 if (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))

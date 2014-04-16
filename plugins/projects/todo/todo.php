@@ -160,16 +160,12 @@ class plgProjectsTodo extends JPlugin
 			// Load component configs
 			$this->_config = JComponentHelper::getParams( 'com_projects' );
 			
-			// Enable views
-			ximport('Hubzero_View_Helper_Html');
-			ximport('Hubzero_Plugin_View');
-			
 			// Get JS and css
 			$document = JFactory::getDocument();
 			$document->addStylesheet('components' . DS . 'com_projects' . DS . 'assets' . DS . 'css' . DS . 'calendar.css');
 						
-			Hubzero_Document::addPluginScript('projects', 'todo');
-			Hubzero_Document::addPluginStylesheet('projects', 'todo');	
+			\Hubzero\Document\Assets::addPluginScript('projects', 'todo');
+			\Hubzero\Document\Assets::addPluginStylesheet('projects', 'todo');	
 			
 			$plugin 		= JPluginHelper::getPlugin( 'system', 'jquery' );
 			$p_params 		= $plugin ? new JParameter($plugin->params) : NULL;
@@ -312,7 +308,7 @@ class plgProjectsTodo extends JPlugin
 		shuffle($unused);
 				
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'todo',
@@ -368,7 +364,7 @@ class plgProjectsTodo extends JPlugin
 		if ($todoid && $objTD->loadTodo($this->_project->id, $todoid) && $objTD->state != 2 ) 
 		{
 			// Show to-do item with comments
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'todo',
@@ -488,10 +484,9 @@ class plgProjectsTodo extends JPlugin
 		{						
 			$content 			= rtrim(stripslashes($content));
 			$objTD->content 	= $content ? $content : $objTD->content;
-			$objTD->content 	= Hubzero_View_Helper_Html::purifyText($objTD->content);
-			$objTD->content 	= Hubzero_View_Helper_Html::shortenText($objTD->content, 200, 0);
-			$objTD->color 		= $listcolor ? $listcolor : $objTD->color;
-			$objTD->color 		= $listcolor == 'none' ? '' : $objTD->color;
+			$objTD->content 	= \Hubzero\Utility\Sanitize::stripAll($objTD->content);
+			$objTD->content 	= \Hubzero\Utility\String::truncate($objTD->content, 200);
+			$objTD->color 		= $listcolor == 'none' ? '' : $listcolor ;
 			$objTD->assigned_to = $assigned;
 			$objTD->state 		= $state;
 			
@@ -539,7 +534,7 @@ class plgProjectsTodo extends JPlugin
 			$objTD->priority = $todoid ? $objTD->priority : $neworder;
 			
 			// Get list name
-			$objTD->todolist = $objTD->getListName($this->_project->id, $objTD->color);
+			$objTD->todolist = $listcolor == 'none' ? NULL : $objTD->getListName($this->_project->id, $objTD->color);
 			
 			// Store content
 			if (!$objTD->store()) 
@@ -616,7 +611,7 @@ class plgProjectsTodo extends JPlugin
 		if ($newlist != '' && $newcolor != '') 
 		{			
 			$new = 0;
-			$newlist = Hubzero_View_Helper_Html::purifyText(trim($newlist));
+			$newlist = \Hubzero\Utility\Sanitize::stripAll(trim($newlist));
 			if (!$objTD->getListName($this->_project->id, $newcolor)) 
 			{
 				$objTD 				= new ProjectTodo( $this->_database );
@@ -923,8 +918,8 @@ class plgProjectsTodo extends JPlugin
 			$objC->itemid = $itemid;
 			$objC->tbl = 'todo';
 			$objC->parent_activity = $parent_activity;
-			$comment = Hubzero_View_Helper_Html::shortenText($comment, 250, 0);
-			$objC->comment = Hubzero_View_Helper_Html::purifyText($comment);
+			$comment = \Hubzero\Utility\String::truncate($comment, 250);
+			$objC->comment = \Hubzero\Utility\Sanitize::stripAll($comment);
 			$objC->created = JFactory::getDate()->toSql();
 			$objC->created_by = $this->_uid;
 			if (!$objC->store()) 

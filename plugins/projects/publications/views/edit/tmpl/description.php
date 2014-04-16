@@ -105,7 +105,7 @@ $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 	  <div id="c-pane" class="columns">
 		 <div class="c-inner">
 			<?php if (!$noedit) { ?>
-			<span class="c-submit"><input type="submit" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" <?php if(count($this->checked['description']) == 0) { echo 'class="disabled"'; } ?> class="c-continue" id="c-continue" /></span>
+			<span class="c-submit"><input type="submit" class="btn" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" <?php if(count($this->checked['description']) == 0) { echo 'class="disabled"'; } ?> class="c-continue" id="c-continue" /></span>
 			<?php } ?>
 			<h4><?php echo $ptitle; ?></h4>
 			<?php if ($noedit) { ?>
@@ -151,18 +151,19 @@ $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 						<td colspan="2">
 							<label>
 								<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_COMPOSE_FULL_ABSTRACT'); ?>: 
-									<span class="required"><?php echo JText::_('REQUIRED'); ?></span>
 							</label>								
 							<span class="clear"></span>
-							<?php if ($noedit) { ?>
 							<?php 
-								echo $this->parser->parse( stripslashes($this->row->description), $this->wikiconfig );
+							$model = new PublicationsModelPublication($this->row);
+							if ($noedit) 
+							{
+								echo $model->description('parsed');
+							}
+							else
+							{ 
+								echo \JFactory::getEditor()->display('description', $this->escape($model->description('raw')), '', '', 35, 20, false, 'description', null, null, array('class' => 'minimal no-footer'));
+							}
 							?>
-							<?php } else { 
-								ximport('Hubzero_Wiki_Editor');
-								$editor = Hubzero_Wiki_Editor::getInstance();
-								echo $editor->display('description', 'description', $this->row->description, '', '35', '20'); 
-							} ?>
 						</td>
 					</tr>
 				  </tbody>

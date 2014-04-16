@@ -636,8 +636,10 @@ class PublicationsHtml
 		
 		$cconfig  = JComponentHelper::getParams( 'com_citations' );
 		
+		$template = "{AUTHORS} ({YEAR}). <b>{TITLE/CHAPTER}</b>. <i>{JOURNAL}</i>, <i>{BOOK TITLE}</i>, {EDITION}, {CHAPTER}, {SERIES}, {ADDRESS}, <b>{VOLUME}</b>, <b>{ISSUE/NUMBER}</b> {PAGES}, {ORGANIZATION}, {INSTITUTION}, {SCHOOL}, {LOCATION}, {MONTH}, {ISBN/ISSN}. {PUBLISHER}. doi:{DOI}";
+		
 		$formatter = new CitationFormat();
-		$formatter->setTemplate('ieee');
+		$formatter->setTemplate($template);
 
 		$html  = '<p>'.JText::_('COM_PUBLICATIONS_CITATION_INSTRUCTIONS').'</p>'."\n";
 		$html .= $citations;
@@ -645,7 +647,21 @@ class PublicationsHtml
 		{
 			$html .= '<ul class="citations results">'."\n";
 			$html .= "\t".'<li>'."\n";
-			$html .= $formatter->formatCitation($cite, false, true, $cconfig);
+			
+			$formatted = $formatter->formatCitation($cite, false, true, $cconfig);
+			
+			$formatted = str_replace('"', '', $formatted);
+			if ($cite->doi && $cite->url)
+			{
+				$formatted = str_replace('doi:' . $cite->doi, '<a href="' . $cite->url . '" rel="external">' 
+					. 'doi:' . $cite->doi . '</a>', $formatted);
+			}
+			else
+			{
+				$formatted = str_replace('doi:', '', $formatted);
+			}
+			
+			$html .= $formatted;
 			if ($version != 'dev') 
 			{
 				$html .= "\t\t".'<p class="details">'."\n";
@@ -669,12 +685,10 @@ class PublicationsHtml
 	 * 
 	 * @param      string  $metadata  	Pub metadata
 	 * @param      object  $category  	Category
-	 * @param      object  $parser  	Wiki parser instance
-	 * @param      array   $wikiconfig 	Array with wiki config
 	 * @param      int     $table 		Show in html table?
 	 * @return     array
 	 */	
-	public static function processMetadata( $metadata, $category, $parser, $wikiconfig, $table = 1 ) 
+	public static function processMetadata( $metadata, $category, $table = 1 ) 
 	{	
 		$html 		= '';
 		$citations 	= '';
@@ -715,10 +729,7 @@ class PublicationsHtml
 					$citations = $data[$field->name];
 				} 
 				elseif ($value = $elements->display($field->type, $data[$field->name])) 
-				{
-					// Parse wiki format if not HTML already
-					$value = $value == strip_tags($value) ? $parser->parse( $value, $wikiconfig ) : $value;
-					
+				{					
 					if ($table) 
 					{
 						$html .= $publicationsHtml->tableRow( $field->label, $value );	
@@ -1000,7 +1011,7 @@ class PublicationsHtml
 				? ' <a href="' . JRoute::_('index.php?option=com_projects&alias=' 
 				. $publication->project_alias) .'">' 
 				: ' <strong>';
-			$project.= Hubzero_View_Helper_Html::shortenText($publication->project_title, 50, 0);
+			$project.= \Hubzero\Utility\String::truncate($publication->project_title, 50);
 			$project.= $authorized == 1 ? '</a>' : '</strong>';			
 		}
 			
@@ -1141,11 +1152,10 @@ class PublicationsHtml
 		// Show group if group project
 		if ($publication->project_group) 
 		{
-			ximport('Hubzero_Group');
-			$group = new Hubzero_Group();
-			if (Hubzero_Group::exists($publication->project_group)) 
+			$group = new \Hubzero\User\Group();
+			if (\Hubzero\User\Group::exists($publication->project_group)) 
 			{
-				$group = Hubzero_Group::getInstance( $publication->project_group );
+				$group = \Hubzero\User\Group::getInstance( $publication->project_group );
 				$html .= ' | '.JText::_('COM_PUBLICATIONS_PUBLICATION_BY_GROUP').' <a href="/groups/'.$group->get('cn').'">'.$group->get('description').'</a>';
 			}
 		}
@@ -1515,7 +1525,6 @@ class PublicationsHtml
 				break;
 
 				default:
-					ximport('Hubzero_View_Helper_Html');
 					$fs = ($fsize) ? $fs : PublicationsHtml::formatSize($fs);
 				break;
 			}
@@ -1535,8 +1544,7 @@ class PublicationsHtml
 	 */
 	public static function formatsize($file_size)
 	{
-		ximport('Hubzero_View_Helper_Html');
-		return Hubzero_View_Helper_Html::formatSize($file_size);
+		return \Hubzero\Utility\Number::formatBytes($file_size);
 	}
 	
 	/**

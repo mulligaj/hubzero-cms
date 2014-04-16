@@ -79,8 +79,8 @@ class plgWhatsnewEvents extends JPlugin
 	{
 		if (is_array($areas) && $limit) 
 		{
-			if (!array_intersect($areas, $this->onWhatsnewAreas()) 
-			 && !array_intersect($areas, array_keys($this->onWhatsnewAreas()))) 
+			if (!isset($areas[$this->_name])
+			 && !in_array($this->_name, $areas)) 
 			{
 				return array();
 			}
@@ -145,8 +145,7 @@ class plgWhatsnewEvents extends JPlugin
 	 */
 	public function documents()
 	{
-		ximport('Hubzero_Document');
-		Hubzero_Document::addComponentStylesheet('com_events');
+		\Hubzero\Document\Assets::addComponentStylesheet('com_events');
 	}
 
 	/**
@@ -169,7 +168,7 @@ class plgWhatsnewEvents extends JPlugin
 		if ($row->itext) 
 		{
 			$row->itext = str_replace('[[BR]]', '', $row->itext);
-			$html .= "\t\t".'<p>' . Hubzero_View_Helper_Html::shortenText(Hubzero_View_Helper_Html::purifyText(stripslashes($row->itext)), 200, 0) . '</p>' . "\n";
+			$html .= "\t\t".'<p>' . \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->itext)), 200) . '</p>' . "\n";
 		}
 		$html .= "\t\t" . '<p class="href">' . $juri->base() . trim($row->href, DS) . '</p>' . "\n";
 		$html .= "\t" . '</li>' . "\n";

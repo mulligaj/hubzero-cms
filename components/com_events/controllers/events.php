@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for events
  */
-class EventsControllerEvents extends Hubzero_Controller
+class EventsControllerEvents extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -684,8 +682,7 @@ class EventsControllerEvents extends Hubzero_Controller
 		//is this a group rescricted event
 		if ($row->scope == 'group')
 		{
-			ximport('Hubzero_Group');
-			$group = Hubzero_Group::getInstance( $row->scope_id );
+			$group = \Hubzero\User\Group::getInstance( $row->scope_id );
 			
 			//if we have a group and we are a member
 			if (is_object($group))
@@ -694,7 +691,6 @@ class EventsControllerEvents extends Hubzero_Controller
 				$redirect = JRoute::_( 'index.php?option=com_groups&cn=' . $group->get('cn') . '&active=calendar&action=details&event_id=' . $row->id, false);
 				$this->setRedirect( $redirect );
 				return;
-
 			}
 			else
 			{
@@ -1024,13 +1020,13 @@ class EventsControllerEvents extends Hubzero_Controller
 		$pages = $page->loadPages($event->id);
 
 		// Check if registration is still open
-		$registerby = Hubzero_View_Helper_Html::mkt($event->registerby);
+		$registerby = strtotime($event->registerby);
 		$now = time();
 
 		$register = array();
 		if (!$this->juser->get('guest')) 
 		{
-			$profile = new Hubzero_User_Profile();
+			$profile = new \Hubzero\User\Profile();
 			$profile->load($this->juser->get('id'));
 
 			$register['firstname']   = $profile->get('givenName');
@@ -1203,24 +1199,24 @@ class EventsControllerEvents extends Hubzero_Controller
 		if ($register) 
 		{
 			$register = array_map('trim', $register);
-			$register = array_map(array('Hubzero_View_Helper_Html', 'purifyText'), $register);
+			$register = array_map(array('\\Hubzero\\Utility\\Sanitize', 'stripAll'), $register);
 
 			$validemail = $this->_validEmail($register['email']);
 		}
 		if ($arrival) 
 		{
 			$arrival = array_map('trim', $arrival);
-			$arrival = array_map(array('Hubzero_View_Helper_Html', 'purifyText'), $arrival);
+			$arrival = array_map(array('\\Hubzero\\Utility\\Sanitize', 'stripAll'), $arrival);
 		}
 		if ($departure) 
 		{
 			$departure = array_map('trim', $departure);
-			$departure = array_map(array('Hubzero_View_Helper_Html', 'purifyText'), $departure);
+			$departure = array_map(array('\\Hubzero\\Utility\\Sanitize', 'stripAll'), $departure);
 		}
 		if ($dietary) 
 		{
 			$dietary = array_map('trim', $dietary);
-			$dietary = array_map(array('Hubzero_View_Helper_Html', 'purifyText'), $dietary);
+			$dietary = array_map(array('\\Hubzero\\Utility\\Sanitize', 'stripAll'), $dietary);
 		}
 
 		if ($register['firstname'] && $register['lastname'] && ($validemail == 1)) 
@@ -1810,6 +1806,8 @@ class EventsControllerEvents extends Hubzero_Controller
 		// New entry or existing?
 		if ($row->id) 
 		{
+			$state = 'edit';
+
 			// Existing - update modified info
 			$row->modified = strftime("%Y-%m-%d %H:%M:%S", time()+($offset*60*60));
 			if ($this->juser->get('id')) 
@@ -1819,6 +1817,8 @@ class EventsControllerEvents extends Hubzero_Controller
 		} 
 		else 
 		{
+			$state = 'add';
+			
 			// New - set created info
 			$row->created = strftime("%Y-%m-%d %H:%M:%S", time()+($offset*60*60));
 			if ($this->juser->get('id')) 

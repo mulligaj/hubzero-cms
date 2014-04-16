@@ -29,9 +29,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-ximport('Hubzero_User_Helper');
-ximport("Hubzero_User_Profile_Helper");
-
 $juser = JFactory::getUser();
 $no_html = JRequest::getInt( 'no_html', 0 );
 $user_messaging = $this->config->get('user_messaging', 0);
@@ -51,7 +48,7 @@ switch( $user_messaging )
 		$mssaging = false;
 		break;
 	case 1:
-		$common = Hubzero_User_Helper::getCommonGroups( $juser->get("id"), $this->profile->get('uidNumber') );
+		$common = \Hubzero\User\Helper::getCommonGroups( $juser->get("id"), $this->profile->get('uidNumber') );
 		if (count($common) > 0) {
 			$messaging = true;
 		}
@@ -84,7 +81,7 @@ if (!$no_html) {
 	<div id="page_container">
 		<div id="page_sidebar">
 			<?php
-				$src = Hubzero_User_Profile_Helper::getMemberPhoto($this->profile, 0, false);
+				$src = \Hubzero\User\Profile\Helper::getMemberPhoto($this->profile, 0, false);
 				$link = JRoute::_('index.php?option=' . $this->option . '&id=' . $this->profile->get('uidNumber'));
 			?>
 			<div id="page_identity">
@@ -126,9 +123,14 @@ if (!$no_html) {
 						{
 							$meta_alert = '';
 						}
+						
+						if (!isset($c['icon']))
+						{
+							$c['icon'] = 'f009';
+						}
 					?>
 					<li class="<?php echo $cls; ?>">
-						<a class="<?php echo $key; ?>" title="<?php echo $prefix." ".$name; ?>" href="<?php echo $url; ?>">
+						<a class="<?php echo $key; ?>" data-icon="<?php echo '&#x' . $c['icon']; ?>" title="<?php echo $prefix." ".$name; ?>" href="<?php echo $url; ?>">
 							<?php echo $name; ?>
 						</a>
 						<span class="meta">

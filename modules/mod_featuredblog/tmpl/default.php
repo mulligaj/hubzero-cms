@@ -39,32 +39,21 @@ if ($this->getError())
 } 
 else if ($this->row) 
 {
+	$row = new BlogModelEntry($this->row);
 	$base = rtrim(JURI::getInstance()->base(true), '/');
-
-	$yearFormat  = "%Y";
-	$monthFormat = "%m";
-	$tz = 0;
-	if (version_compare(JVERSION, '1.6', 'ge'))
-	{
-		$yearFormat  = "Y";
-		$monthFormat = "m";
-		$tz = true;
-	}
-
-	ximport('Hubzero_View_Helper_Html');
 	?>
 	<div class="<?php echo $this->cls; ?>">
 		<p class="featured-img">
-			<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $this->row->created_by . '&active=blog&task=' . JHTML::_('date', $this->row->publish_up, $yearFormat, $tz) . '/' . JHTML::_('date', $this->row->publish_up, $monthFormat, $tz) . '/' . $this->row->alias); ?>">
-				<img width="50" height="50" src="<?php echo $base; ?>/modules/mod_featuredblog/images/blog_thumb.gif" alt="<?php echo htmlentities(stripslashes($this->title)); ?>" />
+			<a href="<?php echo JRoute::_($row->link()); ?>">
+				<img width="50" height="50" src="<?php echo $base; ?>/modules/mod_featuredblog/images/blog_thumb.gif" alt="<?php echo $this->escape(stripslashes($row->get('title'))); ?>" />
 			</a>
 		</p>
 		<p>
-			<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $this->row->created_by . '&active=blog&task=' . JHTML::_('date', $this->row->publish_up, $yearFormat, $tz) . '/' . JHTML::_('date', $this->row->publish_up, $monthFormat, $tz) . '/' . $this->row->alias); ?>">
-				<?php echo $this->escape(stripslashes($this->title)); ?>
+			<a href="<?php echo JRoute::_($row->link()); ?>">
+				<?php echo $this->escape(stripslashes($row->get('title'))); ?>
 			</a>: 
-		<?php if ($this->txt) { ?>
-			<?php echo Hubzero_View_Helper_Html::shortenText(strip_tags($this->txt), $this->txt_length, 0); ?>
+		<?php if ($row->get('content')) { ?>
+			<?php echo $row->content('clean', $this->txt_length); ?>
 		<?php } ?>
 		</p>
 	</div>

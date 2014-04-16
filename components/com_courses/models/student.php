@@ -76,43 +76,24 @@ class CoursesModelStudent extends CoursesModelMember
 					$this->_tbl->load($uid);
 				}
 			}
-			else if (is_object($uid))
+			else if (is_object($uid) || is_array($uid))
 			{
-				$this->_tbl->bind($uid);
-
-				$properties = $this->_tbl->getProperties();
-				foreach (get_object_vars($uid) as $key => $property)
-				{
-					if (!array_key_exists($key, $properties))
-					{
-						$this->_tbl->set('__' . $key, $property);
-					}
-				}
-			}
-			else if (is_array($uid))
-			{
-				$this->_tbl->bind($uid);
-
-				$properties = $this->_tbl->getProperties();
-				foreach (array_keys($uid) as $key)
-				{
-					if (!array_key_exists($key, $properties))
-					{
-						$this->_tbl->set('__' . $key, $uid[$key]);
-					}
-				}
+				$this->bind($uid);
 			}
 		}
 	}
 
 	/**
-	 * Returns a reference to a CoursesModelStudent object
+	 * Returns a reference to a wiki page object
 	 *
-	 * @param      integer $uid User ID
-	 * @param      integer $sid Section ID
-	 * @return     object CoursesModelStudent
+	 * This method must be invoked as:
+	 *     $inst = CoursesInstance::getInstance($alias);
+	 *
+	 * @param      string $pagename The page to load
+	 * @param      string $scope    The page scope
+	 * @return     object CoursesModelMember
 	 */
-	static function &getInstance($uid=null, $cid=0, $oid=null, $sid=null)
+	static function &getInstance($uid=null, $cid=0, $oid=0, $sid=0)
 	{
 		static $instances;
 
@@ -121,12 +102,12 @@ class CoursesModelStudent extends CoursesModelMember
 			$instances = array();
 		}
 
-		if (!isset($instances[$sid . '_' . $uid])) 
+		if (!isset($instances[$oid . '_' . $uid])) 
 		{
-			$instances[$sid . '_' . $uid] = new CoursesModelStudent($uid, $cid, $oid, $sid);
+			$instances[$oid . '_' . $uid] = new self($uid, $cid, $oid, $sid);
 		}
 
-		return $instances[$sid . '_' . $uid];
+		return $instances[$oid . '_' . $uid];
 	}
 
 	/**

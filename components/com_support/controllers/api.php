@@ -36,7 +36,7 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_s
 /**
  * API controller class for support tickets
  */
-class SupportControllerApi extends Hubzero_Api_Controller
+class SupportControllerApi extends \Hubzero\Component\ApiController
 {
 	/**
 	 * Execute a request
@@ -387,7 +387,7 @@ class SupportControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
@@ -433,8 +433,7 @@ class SupportControllerApi extends Hubzero_Api_Controller
 		$ticket->open      = 1;
 		$ticket->status    = 0;
 
-		ximport('Hubzero_Environment');
-		$ticket->ip        = Hubzero_Environment::ipAddress();
+		$ticket->ip        = JRequest::ip();
 		$ticket->hostname  = gethostbyaddr(JRequest::getVar('REMOTE_ADDR','','server'));
 
 		// Check the data

@@ -48,7 +48,7 @@ class AnswersTableQuestionsLog extends JTable
 	 * 
 	 * @var integer
 	 */
-	var $qid     = NULL;
+	var $question_id     = NULL;
 
 	/**
 	 * datetime (0000-00-00 00:00:00)
@@ -89,8 +89,8 @@ class AnswersTableQuestionsLog extends JTable
 	 */
 	public function check()
 	{
-		$this->qid = intval($this->qid);
-		if (!$this->qid) 
+		$this->question_id = intval($this->question_id);
+		if (!$this->question_id) 
 		{
 			$this->setError(JText::_('Missing question ID'));
 			return false;
@@ -104,11 +104,10 @@ class AnswersTableQuestionsLog extends JTable
 
 		if (!$this->expires)
 		{
-			$this->expires = JFactory::getDate(time() + (7 * 24 * 60 * 60)); // in a week
+			$this->expires = JFactory::getDate(time() + (7 * 24 * 60 * 60))->toSql(); // in a week
 		}
 
-		ximport('Hubzero_Environment');
-		if (!Hubzero_Environment::validIp($this->ip))
+		if (!\Hubzero\Utility\Validate::ip($this->ip))
 		{
 			$this->setError(JText::_('Invalid IP address'));
 			return false;
@@ -129,7 +128,7 @@ class AnswersTableQuestionsLog extends JTable
 	{
 		if ($qid == null) 
 		{
-			$qid = $this->qid;
+			$qid = $this->question_id;
 		}
 		if ($qid == null) 
 		{
@@ -147,7 +146,7 @@ class AnswersTableQuestionsLog extends JTable
 			$and = " AND ip=" . $this->_db->Quote($ip);
 		}
 
-		$query = "SELECT count(*) FROM $this->_tbl WHERE qid=" . $this->_db->Quote($qid) . $and;
+		$query = "SELECT count(*) FROM $this->_tbl WHERE question_id=" . $this->_db->Quote($qid) . $and;
 
 		$this->_db->setQuery($query);
 		return $this->_db->loadResult();

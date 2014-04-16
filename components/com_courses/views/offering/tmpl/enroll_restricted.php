@@ -30,16 +30,20 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+$this->css('offering');
 ?>
 	<div id="content-header"<?php if ($this->course->get('logo')) { echo ' class="with-identity"'; } ?>>
 		<h2>
 			<?php echo $this->escape(stripslashes($this->course->get('title'))); ?>
 		</h2>
-		<?php if ($this->course->get('logo')) { ?>
+
+		<?php if ($logo = $this->course->logo()) { ?>
 		<p class="course-identity">
-			<img src="<?php echo JURI::base(true); ?>/site/courses/<?php echo $this->course->get('id'); ?>/<?php echo $this->course->get('logo'); ?>" alt="<?php echo JText::_('Course logo'); ?>" />
+			<img src="<?php echo $logo; ?>" alt="<?php echo JText::_('Course logo'); ?>" />
 		</p>
 		<?php } ?>
+
 		<p id="page_identity">
 			<a class="prev" href="<?php echo JRoute::_($this->course->link()); ?>">
 				<?php echo JText::_('Course overview'); ?>
@@ -61,12 +65,13 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 	<div class="main section enroll-restricted">
 		<?php
-			foreach ($this->notifications as $notification) {
-				echo "<p class=\"{$notification['type']}\">{$notification['message']}</p>";
+			foreach ($this->notifications as $notification) 
+			{
+				echo '<p class="' . $notification['type'] . '">' . $notification['message'] . '</p>';
 			}
 		?>
 
-		<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&gid=' . $this->course->get('alias') . '&offering=' . $this->course->offering()->get('alias') . ($this->course->offering()->section()->get('alias') !== '__default' ? ':' . $this->course->offering()->section()->get('alias') : '') . '&task=enroll'); ?>" method="post" id="hubForm">
+		<form action="<?php echo JRoute::_($this->course->offering()->link() . '&task=enroll'); ?>" method="post" id="hubForm">
 			<div class="explaination">
 				<h3><?php echo JText::_('Code not working?'); ?></h3>
 				<p><?php echo JText::_('It may be possible that the code has already been redeemed.'); ?></p>
@@ -83,7 +88,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</fieldset>
 			<div class="clear"></div>
 
-			<input type="hidden" name="offering" value="<?php echo $this->escape($this->course->offering()->get('alias')); ?>" />
+			<input type="hidden" name="offering" value="<?php echo $this->escape($this->course->offering()->get('alias') . ':' . $this->course->offering()->section()->get('alias')); ?>" />
 			<input type="hidden" name="gid" value="<?php echo $this->escape($this->course->get('alias')); ?>" />
 			<input type="hidden" name="option" value="<?php echo $this->escape($this->option); ?>" />
 			<input type="hidden" name="controller" value="<?php echo $this->escape($this->controller); ?>" />

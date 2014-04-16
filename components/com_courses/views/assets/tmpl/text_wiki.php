@@ -31,27 +31,30 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$section = ($this->course->offering()->section()->get('alias') != '__default') ? ':'.$this->course->offering()->section()->get('alias') : '';
-
-$wikiconfig = array(
+$config = array(
 	'option'   => 'com_courses',
-	'scope'    => $this->course->get('alias') . DS . $this->course->offering()->get('alias').$section . DS . 'asset',
+	'scope'    => $this->course->get('alias') . DS . $this->course->offering()->alias() . DS . 'asset',
 	'pagename' => $this->asset->id,
 	'pageid'   => '',
 	'filepath' => DS . 'site' . DS . 'courses' . DS . $this->course->get('id') . DS . $this->asset->id,
 	'domain'   => $this->course->get('alias') 
 );
 
-ximport('Hubzero_Wiki_Parser');
-$p = Hubzero_Wiki_Parser::getInstance();
+$this->model->set('content', stripslashes($this->model->get('content')));
+\JPluginHelper::importPlugin('content');
+\JDispatcher::getInstance()->trigger('onContentPrepare', array(
+	'com_courses.asset.content',
+	&$this->model,
+	&$config
+));
 ?>
 
 <div id="content-header">
-	<h2><?= $this->asset->title ?></h2>
+	<h2><?php echo $this->asset->title; ?></h2>
 </div>
 
 <div class="wiki-page-body">
 	<p>
-		<?= $p->parse(stripslashes($this->asset->content), $wikiconfig) ?>
+		<?php echo $this->model->get('content'); ?>
 	</p>
 </div>

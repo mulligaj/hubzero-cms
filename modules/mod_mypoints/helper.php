@@ -35,7 +35,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Module class for displaying point total and recent transactions
  */
-class modMyPoints extends Hubzero_Module
+class modMyPoints extends \Hubzero\Module\Module
 {
 	/**
 	 * Display module content
@@ -63,16 +63,13 @@ class modMyPoints extends Hubzero_Module
 		} 
 		else 
 		{
-			// Find the user's most recent support tickets
-			ximport('Hubzero_Bank');
-
-			$BTL  = new Hubzero_Bank_Teller($database, $juser->get('id'));
+			// Get the user's point summary and history
+			$BTL  = new \Hubzero\Bank\Teller($database, $juser->get('id'));
 			$this->summary = $BTL->summary();
 			$this->history = $BTL->history($this->limit);
 
 			// Push the module CSS to the template
-			ximport('Hubzero_Document');
-			Hubzero_Document::addModuleStyleSheet($this->module->module);
+			$this->css();
 		}
 
 		require(JModuleHelper::getLayoutPath($this->module->module));

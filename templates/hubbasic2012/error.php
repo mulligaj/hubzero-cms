@@ -1,9 +1,6 @@
 <?php
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Module_Helper');
-ximport('Hubzero_Document');
-
 $config = JFactory::getConfig();
 $juser = JFactory::getUser();
 
@@ -12,10 +9,9 @@ $this->template = 'hubbasic2012';
 $lang = JFactory::getLanguage();
 $lang->load('tpl_hubbasic2012');
 
-ximport('Hubzero_Browser');
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 ?>
 <!DOCTYPE html>
 <!--[if lt IE 7 ]> <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie6"> <![endif]-->
@@ -28,11 +24,11 @@ $v = $browser->getBrowserMajorVersion();
 
 		<title><?php echo $config->getValue('config.sitename') . ' - ' . $this->error->getCode(); ?></title>
 
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo Hubzero_Document::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications')); /* reset MUST come before all others except fontcons */ ?>" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications')); /* reset MUST come before all others except fontcons */ ?>" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/main.css" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/error.css" />
 <?php if ($config->getValue('config.application_env', 'production') != 'production') { ?>
-		<link rel="stylesheet" type="text/css" media="screen" href="/modules/mod_application_env/mod_application_env.css" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/modules/mod_application_env/mod_application_env.css" />
 <?php } ?>
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/html/mod_reportproblems/mod_reportproblems.css" />
 		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/print.css" />
@@ -62,18 +58,18 @@ $v = $browser->getBrowserMajorVersion();
 		<![endif]-->
 	</head>
 	<body>
-		<?php Hubzero_Module_Helper::displayModules('notices'); ?>
-		<?php Hubzero_Module_Helper::displayModules('helppane'); ?>
+		<?php \Hubzero\Module\Helper::displayModules('notices'); ?>
+		<?php \Hubzero\Module\Helper::displayModules('helppane'); ?>
 		<div id="top">
 			<div class="inner-wrap">
 				<div class="inner">
 					<div id="topbar">
 						<ul>
 							<li><a href="#content"><?php echo JText::_('TPL_HUBBASIC_SKIP'); ?></a></li>
-							<li><a href="/about/contact"><?php echo JText::_('TPL_HUBBASIC_CONTACT'); ?></a></li>
+							<li><a href="<?php echo $this->baseurl; ?>/about/contact"><?php echo JText::_('TPL_HUBBASIC_CONTACT'); ?></a></li>
 						</ul>
-						<?php Hubzero_Module_Helper::displayModules('search'); ?>
-					<?php if (Hubzero_Module_Helper::countModules('helppane')) : ?>
+						<?php \Hubzero\Module\Helper::displayModules('search'); ?>
+					<?php if (\Hubzero\Module\Helper::countModules('helppane')) : ?>
 						<p id="tab">
 							<a href="<?php echo JRoute::_('index.php?option=com_support'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_NEED_HELP'); ?>">
 								<span><?php echo JText::_('TPL_HUBBASIC_HELP'); ?></span>
@@ -91,12 +87,10 @@ $v = $browser->getBrowserMajorVersion();
 							</h1>
 							<ul id="account" class="<?php echo (!$juser->get('guest')) ? 'loggedin' : 'loggedout'; ?>">
 							<?php if (!$juser->get('guest')) { 
-									ximport('Hubzero_User_Profile');
-									ximport('Hubzero_User_Profile_Helper');
-									$profile = Hubzero_User_Profile::getInstance($juser->get('id'));
+									$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 							?>
 								<li id="account-info">
-									<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($profile); ?>" alt="<?php echo $juser->get('name'); ?>" width="30" height="30" />
+									<img src="<?php echo $profile->getPicture(); ?>" alt="<?php echo $juser->get('name'); ?>" width="30" height="30" />
 									<a class="account-details" href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id')); ?>">
 										<?php echo stripslashes($juser->get('name')); ?> 
 										<span class="account-username"><?php echo $juser->get('username'); ?></span>
@@ -128,14 +122,14 @@ $v = $browser->getBrowserMajorVersion();
 							</ul><!-- / #account -->
 							<div id="nav">
 								<a name="nav"></a>
-								<?php Hubzero_Module_Helper::displayModules('user3'); ?>
+								<?php \Hubzero\Module\Helper::displayModules('user3'); ?>
 							</div><!-- / #nav -->
 						</div><!-- / .inner -->
 					</div><!-- / #masthead -->
 
 					<div id="sub-masthead">
 						<div id="trail">
-							<?php /* Hubzero_Module_Helper::displayModules('breadcrumbs'); */ ?>
+							<?php /* \Hubzero\Module\Helper::displayModules('breadcrumbs'); */ ?>
 						</div>
 					</div><!-- / #sub-masthead -->
 				</div><!-- / .inner -->
@@ -206,9 +200,9 @@ $v = $browser->getBrowserMajorVersion();
 
 		<div id="footer">
 			<a name="footer" id="footer-anchor"></a>
-			<?php Hubzero_Module_Helper::displayModules('footer'); ?>
+			<?php \Hubzero\Module\Helper::displayModules('footer'); ?>
 		</div><!-- / #footer -->
 
-		<?php Hubzero_Module_Helper::displayModules('endpage'); ?>
+		<?php \Hubzero\Module\Helper::displayModules('endpage'); ?>
 	</body>
 </html>

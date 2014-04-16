@@ -43,8 +43,7 @@ if ($canDo->get('core.edit'))
 }
 JToolBarHelper::cancel();
 
-ximport('Hubzero_User_Profile');
-$profile = Hubzero_User_Profile::getInstance($this->row->get('user_id'));
+$profile = \Hubzero\User\Profile::getInstance($this->row->get('user_id'));
 
 $js = '';
 
@@ -150,6 +149,12 @@ function submitbutton(pressbutton)
 						<td class="paramlist_key"><label for="enrolled">Enrolled:</label></th>
 						<td>
 							<?php echo JHTML::_('calendar', $this->row->get('enrolled'), 'fields[enrolled]', 'enrolled', "%Y-%m-%d", array('class' => 'inputbox')); ?>
+						</td>
+					</tr>
+					<tr>
+						<td class="paramlist_key"><label for="field-token">Serial #:</label></th>
+						<td>
+							<input type="text" name="fields[token]" id="field-token" value="<?php echo $this->escape($this->row->get('token')); ?>" />
 						</td>
 					</tr>
 				</tbody>

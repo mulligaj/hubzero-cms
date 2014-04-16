@@ -37,7 +37,7 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_k
 /**
  * Knowledgebase model for a comment
  */
-class KbModelComment extends \Hubzero\Model
+class KbModelComment extends \Hubzero\Base\Model
 {
 	/**
 	 * Table class name
@@ -47,7 +47,14 @@ class KbModelComment extends \Hubzero\Model
 	protected $_tbl_name = 'KbTableComment';
 
 	/**
-	 * \Hubzero\ItemList
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_kb.comment.content';
+
+	/**
+	 * \Hubzero\Base\ItemList
 	 * 
 	 * @var object
 	 */
@@ -66,6 +73,13 @@ class KbModelComment extends \Hubzero\Model
 	 * @var string
 	 */
 	private $_base = null;
+
+	/**
+	 * JUser
+	 * 
+	 * @var object
+	 */
+	private $_creator = null;
 
 	/**
 	 * Constructor
@@ -126,11 +140,11 @@ class KbModelComment extends \Hubzero\Model
 	 */
 	public function creator($property=null)
 	{
-		if (!isset($this->_creator) || !is_object($this->_creator))
+		if (!($this->_creator instanceof JUser))
 		{
 			$this->_creator = JUser::getInstance($this->get('created_by'));
 		}
-		if ($property && is_a($this->_creator, 'JUser'))
+		if ($property)
 		{
 			return $this->_creator->get($property);
 		}
@@ -218,7 +232,7 @@ class KbModelComment extends \Hubzero\Model
 			case 'list':
 			case 'results':
 			default:
-				if (!$this->_comments instanceof \Hubzero\ItemList || $clear)
+				if (!$this->_comments instanceof \Hubzero\Base\ItemList || $clear)
 				{
 					if ($this->get('replies', null) !== null)
 					{
@@ -243,7 +257,7 @@ class KbModelComment extends \Hubzero\Model
 					{
 						$results = array();
 					}
-					$this->_comments = new \Hubzero\ItemList($results);
+					$this->_comments = new \Hubzero\Base\ItemList($results);
 				}
 				return $this->_comments;
 			break;
@@ -260,55 +274,56 @@ class KbModelComment extends \Hubzero\Model
 	public function content($as='parsed', $shorten=0)
 	{
 		$as = strtolower($as);
+		$options = array();
 
 		switch ($as)
 		{
 			case 'parsed':
-				if ($this->get('content_parsed'))
+				$content = $this->get('content.parsed', null);
+
+				if ($content === null)
 				{
-					return $this->get('content_parsed');
+					$config = array(
+						'option'   => 'com_kb',
+						'scope'    => '',
+						'pagename' => $this->get('article'),
+						'pageid'   => $this->get('id'),
+						'filepath' => '',
+						'domain'   => ''
+					);
+
+					$content = (string) stripslashes($this->get('content', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('content.parsed', (string) $this->get('content', ''));
+					$this->set('content', $content);
+
+					return $this->content($as, $shorten);
 				}
 
-				$p = Hubzero_Wiki_Parser::getInstance();
-
-				$wikiconfig = array(
-					'option'   => 'com_kb',
-					'scope'    => '',
-					'pagename' => $this->get('article'),
-					'pageid'   => $this->get('id'),
-					'filepath' => '',
-					'domain'   => ''
-				);
-
-				$this->set('content_parsed', $p->parse(stripslashes($this->get('content')), $wikiconfig));
-
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($this->get('content_parsed'), $shorten, 0, 0);
-					if (substr($content, -7) == '&#8230;') 
-					{
-						$content .= '</p>';
-					}
-					return $content;
-				}
-
-				return $this->get('content_parsed');
+				$options['html'] = true;
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->content('parsed'));
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
 			break;
 
 			case 'raw':
 			default:
-				return $this->get('content');
+				$content = stripslashes($this->get('content'));
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+		return $content;
 	}
 
 	/**
@@ -325,6 +340,14 @@ class KbModelComment extends \Hubzero\Model
 			$this->_base = 'index.php?option=com_kb';
 		}
 		$link  = $this->_base;
+		if (!$this->get('section'))
+		{
+			$article = KbModelArticle::getInstance($this->get('entry_id'));
+
+			$this->set('section', $article->get('calias'));
+			$this->set('category', $article->get('ccalias'));
+			$this->set('article', $article->get('alias'));
+		}
 		$link .= '&section=' . $this->get('section');
 		$link .= ($this->get('category')) ? '&category= '. $this->get('category') : '';
 		$link .= '&alias=' . $this->get('article');
@@ -386,7 +409,7 @@ class KbModelComment extends \Hubzero\Model
 			$tbl = new KbTableVote($this->_db);
 			$this->set(
 				'voted', 
-				$tbl->getVote($this->get('id'), $juser->get('id'), Hubzero_Environment::ipAddress(), 'comment')
+				$tbl->getVote($this->get('id'), $juser->get('id'), JRequest::ip(), 'comment')
 			);
 		}
 
@@ -421,7 +444,7 @@ class KbModelComment extends \Hubzero\Model
 		$al = new KbTableVote($this->_db);
 		$al->object_id = $this->get('id');
 		$al->type      = 'comment';
-		$al->ip        = Hubzero_Environment::ipAddress();
+		$al->ip        = JRequest::ip();
 		$al->user_id   = $juser->get('id');
 		$al->vote      = $vote;
 

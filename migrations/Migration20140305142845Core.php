@@ -1,30 +1,32 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for converting dates from server timezone to UTC
  **/
-class Migration20140305142845Core extends Hubzero_Migration
+class Migration20140305142845Core extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
 		// First, get the current timezone according to PHP
 		$tz = date_default_timezone_get();
 
 		// Now, run a test to ensure that the MySQL tz info is setup
 		$query = "SELECT CONVERT_TZ('2014-01-01 12:00:00', '{$tz}', 'UTC')";
-		$db->setQuery($query);
-		$result = $db->loadResult();
+		$this->db->setQuery($query);
+		$result = $this->db->loadResult();
 
 		if (!$result)
 		{
-			$return = new stdClass();
-			$return->error = new stdClass();
+			$return = new \stdClass();
+			$return->error = new \stdClass();
 			$return->error->type = 'fatal';
 			$return->error->message = 'Missing MySQL timezone table. Please ensure the necessary timezone setup migration has been run.';
 
@@ -33,8 +35,8 @@ class Migration20140305142845Core extends Hubzero_Migration
 
 		// Now do our best guess as to whether or not this has already been run
 		$query = "SELECT `alias`, `created` FROM `#__faq` WHERE `alias` IN ('login', 'login2', 'login3')";
-		$db->setQuery($query);
-		$results = $db->loadObjectList();
+		$this->db->setQuery($query);
+		$results = $this->db->loadObjectList();
 
 		$need_to_run = false;
 
@@ -57,10 +59,10 @@ class Migration20140305142845Core extends Hubzero_Migration
 
 		if (!$need_to_run)
 		{
-			$return = new stdClass();
-			$return->error = new stdClass();
+			$return = new \stdClass();
+			$return->error = new \stdClass();
 			$return->error->type = 'fatal';
-			$return->error->message = 'The timezone conversion appears to have already run. You should confirm this and mark this migration as run if necessary (/docroot/bin/migration.php -fm --file=Migration20140305142845Core.php)';
+			$return->error->message = 'The timezone conversion appears to have already run. You should confirm this and mark this migration as run if necessary (muse migration -fm --file=Migration20140305142845Core.php)';
 
 			return $return;
 		}
@@ -300,18 +302,29 @@ class Migration20140305142845Core extends Hubzero_Migration
 			"UPDATE `#__xprofiles_tags` SET `taggedon` = CONVERT_TZ(`taggedon`, '{$tz}', 'UTC') WHERE `taggedon` IS NOT NULL AND `taggedon` != '0000-00-00 00:00:00';"
 		);
 
+		$this->callback('progress', 'init', array('Running ' . __CLASS__ . '.php:'));
+
+		$total = count($updates);
+		$i     = 1;
+
 		foreach ($updates as $update)
 		{
 			preg_match('/UPDATE `(#__[[:alpha:]_]*)` SET `([[:alpha:]_]*)`/', $update, $matches);
 			$table  = $matches[1];
 			$column = $matches[2];
 
-			if ($db->tableExists($table) && $db->tableHasField($table, $column))
+			if ($this->db->tableExists($table) && $this->db->tableHasField($table, $column))
 			{
-				$db->setQuery($update);
-				$db->query();
+				$this->db->setQuery($update);
+				$this->db->query();
+
+				$progress = round($i/$total*100);
+				$this->callback('progress', 'setProgress', array($progress));
+				$i++;
 			}
 		}
+
+		$this->callback('progress', 'done');
 
 		// Update configuration file with new timezone
 		$configuration = file_get_contents(JPATH_ROOT . DS . 'configuration.php');

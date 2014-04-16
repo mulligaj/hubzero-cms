@@ -1,17 +1,19 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for fixing nanoHUB reference in wiki formatting page
  **/
-class Migration20130708082138ComWiki extends Hubzero_Migration
+class Migration20130708082138ComWiki extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
 		$query  = "SELECT * FROM `#__wiki_page` AS wp,";
 		$query .= " `#__wiki_version` AS wv";
@@ -20,14 +22,20 @@ class Migration20130708082138ComWiki extends Hubzero_Migration
 		$query .= " ORDER BY wv.version DESC";
 		$query .= " LIMIT 1;";
 
-		$db->setQuery($query);
-		$result = $db->loadObject();
+		$this->db->setQuery($query);
+		$result = $this->db->loadObject();
 
 		require_once JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'revision.php';
 
 		if ($result)
 		{
-			$version = new WikiPageRevision($db);
+			$cls = 'WikiPageRevision';
+			if (class_exists('WikiTableRevision'))
+			{
+				$cls = 'WikiTableRevision';
+			}
+
+			$version = new $cls($this->db);
 			$version->loadByVersion($result->pageid, $result->version);
 
 			$hostname = php_uname('n');

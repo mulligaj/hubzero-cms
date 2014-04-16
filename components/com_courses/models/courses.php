@@ -38,7 +38,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models'
 /**
  * Courses model class for a course
  */
-class CoursesModelCourses extends JObject
+class CoursesModelCourses extends \Hubzero\Base\Object
 {
 	/**
 	 * CoursesTableCourse
@@ -101,7 +101,7 @@ class CoursesModelCourses extends JObject
 
 		if (!isset($instances[$oid])) 
 		{
-			$instances[$oid] = new CoursesModelCourses();
+			$instances[$oid] = new self();
 		}
 
 		return $instances[$oid];
@@ -143,17 +143,18 @@ class CoursesModelCourses extends JObject
 	 * Get a list of courses
 	 *   Accepts an array of filters to build query from
 	 * 
-	 * @param      array $filters Filters to build query from
+	 * @param      array   $filters Filters to build query from
+	 * @param      boolean $clear   Clear cached results?
 	 * @return     mixed
 	 */
-	public function courses($filters=array())
+	public function courses($filters=array(), $clear=false)
 	{
 		if (isset($filters['count']) && $filters['count'])
 		{
 			return $this->_tbl->getCount($filters);
 		}
 
-		if (!isset($this->_courses) || !is_a($this->_courses, 'CoursesModelIterator'))
+		if (!($this->_courses instanceof CoursesModelIterator) || $clear)
 		{
 			if (($results = $this->_tbl->getRecords($filters)))
 			{

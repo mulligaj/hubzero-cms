@@ -31,13 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-ximport('Hubzero_Environment');
-
 /**
  * Answers controller class for questions
  */
-class AnswersControllerQuestions extends Hubzero_Controller
+class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -47,11 +44,6 @@ class AnswersControllerQuestions extends Hubzero_Controller
 	public function execute()
 	{
 		$this->config->set('banking', JComponentHelper::getParams('com_members')->get('bankAccounts'));
-
-		if ($this->config->get('banking')) 
-		{
-			ximport('Hubzero_Bank');
-		}
 
 		$this->registerTask('__default', 'search');
 		$this->registerTask('latest', 'latest.rss');
@@ -86,7 +78,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		if (is_object($question) && $question->get('subject')) 
 		{
 			$pathway->addItem(
-				Hubzero_View_Helper_Html::shortenText(stripslashes($question->get('subject')), 50, 0),
+				\Hubzero\Utility\String::truncate($question->subject('clean'), 50),
 				$question->link()
 			);
 		}
@@ -107,7 +99,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		}
 		if (is_object($question) && $question->get('subject')) 
 		{
-			$this->view->title .= ': ' . Hubzero_View_Helper_Html::shortenText(stripslashes($question->get('subject')), 50, 0);
+			$this->view->title .= ': ' . \Hubzero\Utility\String::truncate($question->subject('clean'), 50);
 		}
 		$document = JFactory::getDocument();
 		$document->setTitle($this->view->title);
@@ -134,7 +126,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		$rtrn = JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller, false, true), 'server');
 
 		$this->setRedirect(
-			JRoute::_('index.php?option=com_login&return=' . base64_encode($rtrn))
+			JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($rtrn), false)
 		);
 	}
 
@@ -159,13 +151,13 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		// Incoming
 		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
 
-		if (!$comment['referenceid']) 
+		if (!$comment['item_id']) 
 		{
 			JError::raiseError(500, JText::_('COM_ANSWERS_ERROR_QUESTION_ID_NOT_FOUND'));
 			return;
 		}
 
-		if ($comment['category']) 
+		if ($comment['item_type']) 
 		{
 			$row = new AnswersModelComment(0);
 			if (!$row->bind($comment)) 
@@ -175,12 +167,11 @@ class AnswersControllerQuestions extends Hubzero_Controller
 			}
 
 			// Perform some text cleaning, etc.
-			//$row->set('comment', Hubzero_View_Helper_Html::purifyText($row->get('comment')));
-			$row->set('comment', nl2br($row->get('comment')));
+			$row->set('content', nl2br($row->get('content')));
 			$row->set('anonymous', ($row->get('anonymous') ? 1 : 0));
-			$row->set('added', JFactory::getDate()->toSql());
+			$row->set('created', JFactory::getDate()->toSql());
 			$row->set('state', 0);
-			$row->set('added_by', $this->juser->get('id'));
+			$row->set('created_by', $this->juser->get('id'));
 
 			// Save the data
 			if (!$row->store(true)) 
@@ -266,7 +257,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		$id      = JRequest::getInt('refid', 0);
 		$cat     = JRequest::getVar('category', '');
 		$vote    = JRequest::getVar('vote', '');
-		$ip      = Hubzero_Environment::ipAddress();
+		$ip      = JRequest::ip();
 
 		// Check for reference ID
 		if (!$id) 
@@ -286,7 +277,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		// load answer
 		$row = new AnswersModelResponse($id);
 
-		$qid = $row->get('qid');
+		$qid = $row->get('question_id');
 
 		// Can't vote for your own comment
 		if ($row->get('created_by') == $this->juser->get('username'))
@@ -369,23 +360,25 @@ class AnswersControllerQuestions extends Hubzero_Controller
 			// no vote change;
 		}
 
-		if (!$row->store()) 
+		if (!$row->store(false)) 
 		{
 			$this->setError($row->getError());
 			return;
 		}
 
 		// Record user's vote (old way)
-		$al->rid     = $row->get('id');
+		$al->response_id = $row->get('id');
 		$al->ip      = $ip;
 		$al->helpful = $vote;
 		if (!$al->check()) 
 		{
+			echo $al->getError();
 			$this->setError($al->getError());
 			return;
 		}
 		if (!$al->store()) 
 		{
+			echo $al->getError();
 			$this->setError($al->getError());
 			return;
 		}
@@ -404,11 +397,13 @@ class AnswersControllerQuestions extends Hubzero_Controller
 			$v->helpful     = $vote;
 			if (!$v->check()) 
 			{
+				echo $v->getError();
 				$this->setError($v->getError());
 				return;
 			}
 			if (!$v->store()) 
 			{
+				echo $v->getError();
 				$this->setError($v->getError());
 				return;
 			}
@@ -705,7 +700,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		$this->view->funds = 0;
 		if ($this->config->get('banking')) 
 		{
-			$BTL = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+			$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 			$funds = $BTL->summary() - $BTL->credit_summary();
 			$this->view->funds = ($funds > 0) ? $funds : 0;
 		}
@@ -743,8 +738,12 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		}
 
 		// Incoming
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 		$tags   = JRequest::getVar('tags', '');
+		if (!isset($fields['reward']))
+		{
+			$fields['reward'] = 0;
+		}
 
 		// If offering a reward, do some checks
 		if ($fields['reward']) 
@@ -797,7 +796,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		// Hold the reward for this question if we're banking
 		if ($fields['reward'] && $this->config->get('banking')) 
 		{
-			$BTL = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+			$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 			$BTL->hold(
 				$fields['reward'], 
 				JText::_('COM_ANSWERS_HOLD_REWARD_FOR_BEST_ANSWER'), 
@@ -883,6 +882,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 
 			$message = array();
 
+			// Plain text message
 			$eview = new JView(array(
 				'name'   => 'emails',
 				'layout' => 'question_plaintext'
@@ -898,19 +898,8 @@ class AnswersControllerQuestions extends Hubzero_Controller
 			$message['plaintext'] = $eview->loadTemplate();
 			$message['plaintext'] = str_replace("\n", "\r\n", $message['plaintext']);
 
-			// Build the message	
-			$eview = new JView(array(
-				'name'   => 'emails',
-				'layout' => 'question'
-			));
-			$eview->option    = $this->_option;
-			$eview->jconfig   = $jconfig;
-			$eview->sitename  = $jconfig->getValue('config.sitename');
-			$eview->juser     = $this->juser;
-			$eview->question  = $row;
-			$eview->id        = $row->get('id', 0);
-			$eview->boundary  = $from['multipart'];
-			$eview->plaintext = $message['plaintext'];
+			// HTML message
+			$eview->setLayout('question_html');
 
 			$message['multipart'] = $eview->loadTemplate();
 			$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);
@@ -947,12 +936,12 @@ class AnswersControllerQuestions extends Hubzero_Controller
 
 		// Incoming
 		$id = JRequest::getInt('qid', 0);
-		$ip = (!$this->juser->get('guest')) ? Hubzero_Environment::ipAddress() : '';
+		$ip = (!$this->juser->get('guest')) ? JRequest::ip() : '';
 
 		$reward = 0;
 		if ($this->config->get('banking')) 
 		{
-			$BT = new Hubzero_Bank_Transaction($this->database);
+			$BT = new \Hubzero\Bank\Transaction($this->database);
 			$reward = $BT->getAmount('answers', 'hold', $id);
 		}
 		$email = 0;
@@ -961,7 +950,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		$question->load($id);
 
 		// Check if user is authorized to delete
-		if ($question->created_by != $this->juser->get('username')) 
+		if ($question->created_by != $this->juser->get('id')) 
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option . '&task=question&id=' . $id . '&note=3')
@@ -990,7 +979,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		$ar = new AnswersTableResponse($this->database);
 		$responses = $ar->getRecords(array(
 			'ip'  => $ip,
-			'qid' => $id
+			'question_id' => $id
 		));
 
 		if ($reward && $this->config->get('banking')) 
@@ -1022,6 +1011,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 
 				$message = array();
 
+				// Plain text message
 				$eview = new JView(array(
 					'name'   => 'emails',
 					'layout' => 'removed_plaintext'
@@ -1037,19 +1027,8 @@ class AnswersControllerQuestions extends Hubzero_Controller
 				$message['plaintext'] = $eview->loadTemplate();
 				$message['plaintext'] = str_replace("\n", "\r\n", $message['plaintext']);
 
-				// Build the message	
-				$eview = new JView(array(
-					'name'   => 'emails',
-					'layout' => 'removed'
-				));
-				$eview->option    = $this->_option;
-				$eview->jconfig  = $jconfig;
-				$eview->sitename  = $jconfig->getValue('config.sitename');
-				$eview->juser     = $this->juser;
-				$eview->question  = new AnswersModelQuestion($question);
-				$eview->id        = $id;
-				$eview->boundary  = $from['multipart'];
-				$eview->plaintext = $message['plaintext'];
+				// HTML message
+				$eview->setLayout('removed_html');
 
 				$message['multipart'] = $eview->loadTemplate();
 				$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);
@@ -1067,7 +1046,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 			$BT->deleteRecords('answers', 'hold', $id);
 
 			// Make credit adjustment
-			$BTL_Q = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+			$BTL_Q = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 			$adjusted = $BTL_Q->credit_summary() - $reward;
 			$BTL_Q->credit_adjustment($adjusted);
 		}
@@ -1115,7 +1094,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		}
 
 		// Incoming
-		$response = JRequest::getVar('response', array(), 'post');
+		$response = JRequest::getVar('response', array(), 'post', 'none', 2);
 
 		// Initiate class and bind posted items to database fields
 		$row = new AnswersModelResponse($response['id']);
@@ -1133,7 +1112,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		}
 
 		// Load the question
-		$question = new AnswersModelQuestion($row->get('qid'));
+		$question = new AnswersModelQuestion($row->get('question_id'));
 
 		$jconfig = JFactory::getConfig();
 
@@ -1151,7 +1130,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 
 		$message = array();
 
-		// Build the message	
+		// Plain text message
 		$eview = new JView(array(
 			'name'   => 'emails',
 			'layout' => 'response_plaintext'
@@ -1162,26 +1141,14 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		$eview->juser    = $this->juser;
 		$eview->question = $question;
 		$eview->row      = $row;
-		$eview->id       = $response['qid'];
+		$eview->id       = $response['question_id'];
 		$eview->boundary = $from['multipart'];
 
 		$message['plaintext'] = $eview->loadTemplate();
 		$message['plaintext'] = str_replace("\n", "\r\n", $message['plaintext']);
 
-		// Build the message
-		$eview = new JView(array(
-			'name'   => 'emails',
-			'layout' => 'response'
-		));
-		$eview->option    = $this->_option;
-		$eview->jconfig  = $jconfig;
-		$eview->sitename  = $jconfig->getValue('config.sitename');
-		$eview->juser     = $this->juser;
-		$eview->question  = $question;
-		$eview->row       = $row;
-		$eview->id        = $response['qid'];
-		$eview->boundary  = $from['multipart'];
-		$eview->plaintext = $message['plaintext'];
+		// HTML message
+		$eview->setLayout('response_html');
 
 		$message['multipart'] = $eview->loadTemplate();
 		$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);
@@ -1470,15 +1437,11 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		//instantiate database object
 		$database = JFactory::getDBO();
 
-		//import Hubzero Libs
-		ximport('Hubzero_View_Helper_Html');
-		ximport('Hubzero_Module_Helper');
-
 		//get the id of module so we get the right params
 		$mid = JRequest::getInt("m", 0);
 
 		//get module params
-		$params = Hubzero_Module_Helper::getParams($mid);
+		$params = \Hubzero\Module\Helper::getParams($mid);
 
 		//include feed lib
 		include_once(JPATH_ROOT . DS . 'libraries' . DS . 'joomla' . DS . 'document' . DS . 'feed' . DS . 'feed.php');
@@ -1511,7 +1474,7 @@ class AnswersControllerQuestions extends Hubzero_Controller
 		//get questions based on params
 		$sql = "SELECT 
 					a.id, a.subject, a.question, a.state, a.created, a.created_by, a.anonymous, 
-					(SELECT COUNT(*) FROM #__answers_responses AS r WHERE r.qid=a.id) AS rcount
+					(SELECT COUNT(*) FROM #__answers_responses AS r WHERE r.question_id=a.id) AS rcount
 				FROM #__answers_questions AS a
 				WHERE {$st} 
 				ORDER BY a.created DESC
@@ -1531,9 +1494,9 @@ class AnswersControllerQuestions extends Hubzero_Controller
 
 			//set feed item attibs and add item to feed
 			$item 				= new JFeedItem();
-			$item->title 		= html_entity_decode(Hubzero_View_Helper_Html::purifyText(stripslashes($question['subject'])));
+			$item->title 		= html_entity_decode(\Hubzero\Utility\Sanitize::stripAll(stripslashes($question['subject'])));
 			$item->link 		= $link;
-			$item->description 	= html_entity_decode(Hubzero_View_Helper_Html::purifyText(stripslashes($question['question'])));
+			$item->description 	= html_entity_decode(\Hubzero\Utility\Sanitize::stripAll(stripslashes($question['question'])));
 			$item->date        	= date("r", strtotime($question['created']));
 			$item->category   	= 'Recent Question';
 			$item->author     	= $author;

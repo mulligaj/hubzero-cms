@@ -31,26 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Groups Plugin class for calendar
  */
-class plgGroupsCalendar extends Hubzero_Plugin
+class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function plgGroupsCalendar(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -63,7 +54,8 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			'name' => 'calendar',
 			'title' => JText::_('PLG_GROUPS_CALENDAR'),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f073'
 		);
 		return $area;
 	}
@@ -154,9 +146,8 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			}
 			
 			//push styles to the view
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('groups','calendar');
-			Hubzero_Document::addPluginScript('groups','calendar');
+			\Hubzero\Document\Assets::addPluginStylesheet('groups','calendar');
+			\Hubzero\Document\Assets::addPluginScript('groups','calendar');
 			
 			//check to see if we need to include the mootools datepicker
 			if (!JPluginHelper::isEnabled('system', 'jquery'))
@@ -170,6 +161,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			
 			//get the request vars
 			$this->month    = JRequest::getInt('month', JFactory::getDate()->format("m") ,'get');
+			$this->month    = (strlen($this->month) == 1) ? '0'.$this->month : $this->month;
 			$this->year     = JRequest::getInt('year', JFactory::getDate()->format("Y"), 'get');
 			$this->calendar = JRequest::getInt('calendar', 0, 'get');
 			
@@ -183,9 +175,9 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			$this->database = JFactory::getDBO();
 			
 			//include needed event libs
-			ximport('Hubzero_Event_Helper');
-			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'tables' . DS . 'event.php' );
-			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'tables' . DS . 'calendar.php' );
+			require __DIR__ . '/helper.php';
+			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'models' . DS . 'event.php' );
+			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'models' . DS . 'calendar' . DS . 'archive.php' );
 			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'tables' . DS . 'respondent.php' );
 			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'html.php' );
 			
@@ -215,6 +207,9 @@ class plgGroupsCalendar extends Hubzero_Plugin
 				case 'savecalendar':     $arr['html'] = $this->saveCalendar();       break;
 				case 'deletecalendar':   $arr['html'] = $this->deleteCalendar();     break;
 				case 'refreshcalendar':  $arr['html'] = $this->refreshCalendar();    break;
+				case 'refreshcalendars': $this->refreshCalendars();                  break;
+				case 'eventsources':     $this->eventSources();                      break;
+				case 'events':           $this->events();                            break;
 				default:                 $arr['html'] = $this->display();            break;
 			}
 		}
@@ -243,8 +238,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 	 */
 	private function display()
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'calendar',
@@ -252,143 +246,6 @@ class plgGroupsCalendar extends Hubzero_Plugin
 				'layout'  => 'display'
 			)
 		);
-		
-		//refresh calendars
-		$eventsCalendar = new EventsCalendar( $this->database );
-		$eventsCalendar->refreshAll( $this->group );
-		
-		//get calendar sync errors
-		$syncErrors = array_filter($eventsCalendar->getErrors());
-		if (count($syncErrors) > 0 && $eventsCalendar->failed_attempts > 3)
-		{
-			//set message to display to user
-			$this->setError( JText::_('Unable to sync the following group calendar(s). The group Managers have been notified. <br /> - ' . implode('<br /> - ', $syncErrors)));
-			
-			//build message sent to managers
-			$subject  = JText::_('Group Calendar Subscription Sync Issue');
-			$message  = 'There is an issue with the following group calendar subscriptions:' . "\n";
-			$message .= '---------------------------------------------------------------------------------------------------' . "\n\n";
-			$message .= " - " . implode( "\n - ", $syncErrors);
-			$config = JFactory::getConfig();
-			$from['name'] = $this->group->get('description') . " Group on " . $config->getValue("fromname");
-			$from['email'] = $config->getValue("mailfrom");
-			
-			// Send the message
-			JPluginHelper::importPlugin('xmessage');
-			$dispatcher = JDispatcher::getInstance();
-			if (!$dispatcher->trigger('onSendMessage', array('group_message', $subject, $message, $from, $this->group->get('managers'), 'com_groups'))) 
-			{
-				$this->setError(JText::_('GROUPS_ERROR_EMAIL_MEMBERS_FAILED'));
-			}
-		}
-		
-		// An array of the names of the days of the week
-		$days_of_week = array(
-			JText::_('PLG_GROUPS_CALENDAR_SUNDAY_SHORT'),
-			JText::_('PLG_GROUPS_CALENDAR_MONDAY_SHORT'),
-			JText::_('PLG_GROUPS_CALENDAR_TUESDAY_SHORT'),
-			JText::_('PLG_GROUPS_CALENDAR_WEDNESDAY_SHORT'),
-			JText::_('PLG_GROUPS_CALENDAR_THURSDAY_SHORT'),
-			JText::_('PLG_GROUPS_CALENDAR_FRIDAY_SHORT'),
-			JText::_('PLG_GROUPS_CALENDAR_SATURDAY_SHORT')
-		);
-		
-		//class to determine if we allow double click to create
-		$class = ($this->params->get('allow_quick_create', 1) && in_array($this->juser->get('id'), $this->group->get('members'))) ? 'quick-create' : 'no-quick-create';
-		
-		// Create Calendar
-		$calendarHTML = "<div id=\"calendar\" class=\"{$class}\">";
-		$calendarHTML .= "<table>"."\n";
-		$calendarHTML .= "<thead>"."\n";
-		$calendarHTML .= "<tr>"."\n";
-		
-		foreach ($days_of_week as $day_of_week) 
-		{
-			$calendarHTML .= "<th>".$day_of_week."</th>"."\n";
-		}
-
-		$calendarHTML .= "</tr>"."\n";
-		$calendarHTML .= "</thead>"."\n";
-
-		//create the calendar days
-		$calendarHTML .= "<tbody>"."\n";
-		$calendarHTML .= "<tr class=\"calendar-row\">"."\n";
-
-		// Fix to fill in end days out of month correctly
-		$running_day = JFactory::getDate(mktime(0,0,0,$this->month,1,$this->year))->format('w');
-		$days_in_month = JFactory::getDate(mktime(0,0,0,$this->month,1,$this->year))->format('t');
-		$today = JHTML::_('date', JFactory::getDate(),'Y-m-d');
-		
-		$days_in_this_week = 1;
-		$day_counter = 0;
-		$dates_array = array();
-
-		for ($x = 0; $x < $running_day; $x++) 
-		{
-			$calendarHTML .= '<td class="no-date">&nbsp;</td>' ."\n";
-			$days_in_this_week++;
-		}
-
-		for ($list_day = 1; $list_day <= $days_in_month; $list_day++) 
-		{
-			$day = mktime(0,0,0,$this->month,$list_day,$this->year);
-			$weekend = JFactory::getDate($day)->format("D");
-			$class = ($weekend == 'Sat' || $weekend == 'Sun') ? ' weekend' : '';
-			
-			//check to see if today
-			$class .= (JFactory::getDate($day)->format("Y-m-d") == $today) ? ' today' : '';
-			
-			$dateString = $this->year . '-' . $this->month . '-' . JFactory::getDate($day)->format('d') . ' 08:00:00';
-			$calendarHTML .= "<td id=\"box-{$list_day}\" class=\"{$class}\" data-date=\"{$dateString}\">";
-			$calendarHTML .= "<div class=\"day\">{$list_day}</div>";
-			
-			//get any group events
-			$events = $this->_getEvents($list_day, $this->month, $this->year, $this->calendar);
-			
-			//display any events	
-			$calendarHTML .= "<ul>";
-			
-			foreach ($events as $event) 
-			{
-				$event_url = JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id=' . $event->id);
-				$calendarHTML .= "<li class=\"{$event->event_calendar_color}\">";
-				$calendarHTML .= "<a class=\"event\" href=\"{$event_url}\">".$event->title."</a>";
-				$calendarHTML .= "</li>";
-			}
-			
-			$calendarHTML .= "</ul>";
-			
-		    $calendarHTML.= '</td>';
-			if ($running_day == 6) 
-			{
-				$calendarHTML.= '</tr>';
-				if (($day_counter+1) != $days_in_month) 
-				{
-					$calendarHTML.= '<tr class="calendar-row">';
-				}
-				$running_day = -1;
-				$days_in_this_week = 0;
-			}
-
-			$days_in_this_week++;
-			$running_day++;
-			$day_counter++;
-		}
-
-		/* finish the rest of the days in the week */
-		if ($days_in_this_week < 8) 
-		{
-			for ($x = 1; $x <= (8 - $days_in_this_week); $x++) 
-			{
-				$calendarHTML.= '<td class="no-date"> </td>';
-			}
-		}
-
-		//Finish off the table
-		$calendarHTML .= "</tr>"."\n";
-		$calendarHTML .= "</tbody>"."\n";
-		$calendarHTML .= "</table>"."\n";
-		$calendarHTML .= "</div>"."\n";
 
 		//push the calendar content to view
 		$view->month        = $this->month;
@@ -400,16 +257,44 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		$view->option       = $this->option;
 		$view->group        = $this->group;
 		$view->params       = $this->params;
-		$view->calendarHTML = $calendarHTML;
 		
 		//get calendars
+		$eventsCalendarArchive = EventsModelCalendarArchive::getInstance();
+		$view->calendars = $eventsCalendarArchive->calendars('list', array(
+			'scope'     => 'group',
+			'scope_id'  => $this->group->get('gidNumber'),
+			'published' => array(1)
+		));
+
+		$jconfig = JFactory::getConfig();
+
+		// event calendar model
+		$eventsCalendar = EventsModelCalendar::getInstance();
+
+		//define our filters	
+		$view->filters = array(
+			'scope'    => 'group',
+			'scope_id' => $this->group->get('gidNumber'),
+			'orderby'  => 'publish_up DESC'
+		);
+
+		// get events count
+		$view->eventsCount = $eventsCalendar->events('count', $view->filters);
+
+		// get events for no js
+		$view->filters['limit'] = JRequest::getInt('limit', $jconfig->getValue('config.list_limit'));
+		$view->filters['start'] = JRequest::getInt('limitstart', 0);
+		$view->events = $eventsCalendar->events('list', $view->filters);
 		
-		$view->calendars = $eventsCalendar->getCalendars( $this->group );
+		// add hub fancyselect lib
+		\Hubzero\Document\Assets::addSystemScript('jquery.fancyselect.min');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.fancyselect.css');
 		
-		//add ddslick lib
-		Hubzero_Document::addSystemScript('jquery.fancyselect.min');
-		Hubzero_Document::addSystemStylesheet('jquery.fancyselect.css');
-		
+		// add full calendar lib
+		\Hubzero\Document\Assets::addSystemScript('jquery.fullcalendar.min');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.fullcalendar.css');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.fullcalendar.print.css', 'text/css', 'print');
+
 		if ($this->getError()) 
 		{
 			foreach ($this->getErrors() as $error)
@@ -418,6 +303,125 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			}
 		}
 		return $view->loadTemplate();
+	}
+
+	/**
+	 * Output event sources. For caledar
+	 * 
+	 * @return string
+	 */
+	private function eventSources()
+	{
+		// array to hold sources
+		$sources = array();
+
+		// get calendars
+		$eventsCalendarArchive = EventsModelCalendarArchive::getInstance();
+		$calendars = $eventsCalendarArchive->calendars('list', array(
+			'scope'     => 'group',
+			'scope_id'  => $this->group->get('gidNumber'),
+			'published' => array(1)
+		));
+		
+		// add each calendar to the sources
+		foreach ($calendars as $calendar)
+		{
+			$source            = new stdClass;
+			$source->title     = $calendar->get('title');
+			$source->url       = JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&active=calendar&action=events&calender_id=' . $calendar->get('id'));
+			$source->className = ($calendar->get('color')) ? 'fc-event-' . $calendar->get('color') : 'fc-event-default';
+			array_push($sources, $source);
+		}
+
+		// add uncategorized source
+		$source            = new stdClass;
+		$source->title     = 'Uncategorized';
+		$source->url       = JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&active=calendar&action=events&calender_id=0');
+		$source->className = 'fc-event-default';
+		array_push($sources, $source);
+
+		// output sources
+		echo json_encode($sources);
+		exit();
+	}
+
+	/**
+	 * Returns events for a source.
+	 * Ajax only and returns json.
+	 * 
+	 * @return string
+	 */
+	public function events()
+	{
+		// array to hold events
+		$events = array();
+
+		// get request params
+		$start      = JRequest::getInt('start', 0);
+		$end        = JRequest::getInt('end', 0);
+		$calendarId = JRequest::getInt('calender_id', 'null');
+
+		// format date/times
+		$start = JFactory::getDate($start);
+		$end   = JFactory::getDate($end);
+		$end->modify('-1 second');
+		
+		// get calendar events
+		$eventsCalendar = EventsModelCalendar::getInstance();
+		$rawEvents = $eventsCalendar->events('list', array(
+			'scope'        => 'group',
+			'scope_id'     => $this->group->get('gidNumber'),
+			'calendar_id'  => $calendarId,
+			'state'        => array(1),
+			'publish_up'   => $start->format('Y-m-d H:i:s'),
+			'publish_down' => $end->format('Y-m-d H:i:s')
+		));
+
+		// get repeating events
+		$rawEventsRepeating = $eventsCalendar->events('repeating', array(
+			'scope'        => 'group',
+			'scope_id'     => $this->group->get('gidNumber'),
+			'calendar_id'  => $calendarId,
+			'state'        => array(1),
+			'publish_up'   => $start->format('Y-m-d H:i:s'),
+			'publish_down' => $end->format('Y-m-d H:i:s')
+		));
+
+		// merge events with repeating events
+		$rawEvents = $rawEvents->merge($rawEventsRepeating);
+
+		// loop through each event to return it
+		foreach ($rawEvents as $rawEvent)
+		{
+			$event            = new stdClass;
+			$event->id        = $rawEvent->get('id');
+			$event->title     = $rawEvent->get('title');
+			$event->allDay    = false;
+			$event->url       = $rawEvent->link();
+			$event->start     = JFactory::getDate($rawEvent->get('publish_up'))->toUnix();
+			$event->className = ($rawEvent->get('calendar_id')) ? 'calendar-'.$rawEvent->get('calendar_id') : 'calendar-0';
+			if ($rawEvent->get('publish_down') != '0000-00-00 00:00:00')
+			{
+				$event->end = JFactory::getDate($rawEvent->get('publish_down'))->toUnix();
+			}
+
+			// add start & end for displaying dates user clicked on
+			// instead of actual event start & end
+			if ($rawEvent->get('repeating_rule') != '')
+			{
+				$event->url .= '?start=' . $event->start;
+				if ($rawEvent->get('publish_down') != '0000-00-00 00:00:00')
+				{
+					$event->url .= '&end=' . $event->end;
+				}
+			}
+
+			array_push($events, $event);
+		}
+
+		// output events
+		echo json_encode($events);
+		exit();
 	}
 	
 	
@@ -451,8 +455,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		}
 		
 		//create the view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'calendar',
@@ -465,20 +468,22 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		$eventId = JRequest::getInt('event_id', 0, 'get');
 
 		//load event data
-		$view->event    = new EventsEvent( $this->database );
-		$eventsCalendar = new EventsCalendar( $this->database );
+		$view->event = new EventsModelEvent($eventId);
 		
 		//get calendars
-		$view->calendars = $eventsCalendar->getCalendars( $this->group, null, 0 );
-		
-		//if we have an event id we are in edit mode
-		if (isset($eventId) && $eventId != '') 
-		{
-			//load the event obj based on event id passed in
-			$view->event->load( $eventId );
+		$eventsCalendarArchive = EventsModelCalendarArchive::getInstance();
+		$view->calendars = $eventsCalendarArchive->calendars('list', array(
+			'scope'     => 'group',
+			'scope_id'  => $this->group->get('gidNumber'),
+			'published' => array(1),
+			'readonly'  => 0
+		));
 
+		// do we have access to edit
+		if ($view->event->get('id'))
+		{
 			//check to see if user has the correct permissions to edit
-			if ($this->juser->get('id') != $view->event->created_by && $this->authorized != 'manager') 
+			if ($this->juser->get('id') != $view->event->get('created_by') && $this->authorized != 'manager') 
 			{
 				//do not have permission to edit the event
 				$this->redirect(
@@ -488,20 +493,20 @@ class plgGroupsCalendar extends Hubzero_Plugin
 				);
 				return;
 			}
-			
-			//is this a readonly event
-			$cal = $eventsCalendar->getCalendars( $this->group, $view->event->calendar_id );
-			if (isset($cal[0]) && $cal[0]->readonly)
+
+			// make sure this event is editable
+			$eventCalendar = $view->event->calendar();
+			if ($eventCalendar->isSubscription())
 			{
 				$this->redirect(
-					JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id='.$view->event->id),
+					JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id='.$view->event->get('id')),
 					JText::_('You cannot edit imported events from remote calendar subscriptions.'),
 					'error'
 				);
 				return;
 			}
 		}
-
+	
 		//push some vars to the view
 		$view->month      = $this->month;
 		$view->year       = $this->year;
@@ -513,7 +518,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		
 		//load com_events params file for registration fields
 		$view->registrationFields = new JParameter(
-			$view->event->params, 
+			$view->event->get('params'), 
 			JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_events' . DS . 'events.xml'
 		);
 		
@@ -524,15 +529,15 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		}
 		
 		//added need scripts and stylesheets
-		Hubzero_Document::addSystemScript('fileupload/jquery.fileupload');
-		Hubzero_Document::addSystemScript('fileupload/jquery.iframe-transport');
-		Hubzero_Document::addSystemScript('jquery.fancyselect.min');
-		Hubzero_Document::addSystemScript('jquery.timepicker');
-		Hubzero_Document::addSystemScript('toolbox');
-		Hubzero_Document::addSystemStylesheet('jquery.datepicker.css');
-		Hubzero_Document::addSystemStylesheet('jquery.timepicker.css');
-		Hubzero_Document::addSystemStylesheet('jquery.fancyselect.css');
-		Hubzero_Document::addSystemStylesheet('toolbox.css');
+		\Hubzero\Document\Assets::addSystemScript('fileupload/jquery.fileupload');
+		\Hubzero\Document\Assets::addSystemScript('fileupload/jquery.iframe-transport');
+		\Hubzero\Document\Assets::addSystemScript('jquery.fancyselect.min');
+		\Hubzero\Document\Assets::addSystemScript('jquery.timepicker');
+		\Hubzero\Document\Assets::addSystemScript('toolbox');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.datepicker.css');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.timepicker.css');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.fancyselect.css');
+		\Hubzero\Document\Assets::addSystemStylesheet('toolbox.css');
 		
 		//get any errors if there are any
 		if ($this->getError()) 
@@ -570,6 +575,9 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		$event['modified']    = JFactory::getDate()->toSql();
 		$event['modified_by'] = $this->juser->get('id');
 
+		// repeating rule
+		$event['repeating_rule'] = $this->_buildRepeatingRule();
+
 		//if we are updating set modified time and actor
 		if (!isset($event['id']) || $event['id'] == 0) 
 		{
@@ -579,7 +587,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 
 		// timezone
 		$timezone = new DateTimezone(JFactory::getConfig()->get('offset'));
-		
+
 		//parse publish up date/time
 		if (isset($event['publish_up']) && $event['publish_up'] != '')
 		{
@@ -595,7 +603,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			$event['publish_down'] = str_replace("@", "", $event['publish_down']);
 			$event['publish_down'] = JFactory::getDate($event['publish_down'], $timezone)->format("Y-m-d H:i:s");
 		}
-
+		
 		//parse register by date/time
 		if (isset($event['registerby']) && $event['registerby'] != '')
 		{
@@ -618,16 +626,15 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		{
 			$event['registerby'] = '0000-00-00 00:00:00';
 		}
-
-		//instantiate new event object
-		$eventsEvent = new EventsEvent( $this->database );
-		$eventsEvent->bind( $event );
 		
-		//check to make sure we have valid info
-		if (!$eventsEvent->check())
+		//instantiate new event object
+		$eventsModelEvent = new EventsModelEvent();
+
+		// attempt to bind
+		if (!$eventsModelEvent->bind($event))
 		{
-			$this->setError($eventsEvent->getError());
-			$this->event = $eventsEvent;
+			$this->setError($eventsModelEvent->getError());
+			$this->event = $eventsModelEvent;
 			return $this->edit();
 		}
 
@@ -635,7 +642,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		if ($event['publish_up'] == '')
 		{
 			$this->setError('You must enter an event start, an end date is optional.');
-			$this->event = $eventsEvent;
+			$this->event = $eventsModelEvent;
 			return $this->edit();
 		}
 
@@ -645,7 +652,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			if (strtotime($event['publish_up']) >= strtotime($event['publish_down'])) 
 			{
 				$this->setError('You must an event end date greater than the start date.');
-				$this->event = $eventsEvent;
+				$this->event = $eventsModelEvent;
 				return $this->edit();
 			}
 		}
@@ -654,7 +661,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		if ($registration && isset($event['email']) && $event['email'] != '' && !filter_var($event['email'], FILTER_VALIDATE_EMAIL))
 		{
 			$this->setError('You must enter a valid email address for the events registration admin email.');
-			$this->event = $eventsEvent;
+			$this->event = $eventsModelEvent;
 			return $this->edit();
 		}
 		
@@ -663,15 +670,15 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		{
 			$this->setError('You must enter a valid event registration deadline to require registration.');
 			JRequest::setVar('includeRegistration', 1);
-			$this->event = $eventsEvent;
+			$this->event = $eventsModelEvent;
 			return $this->edit();
 		}
 
-		//save event
-		if (!$eventsEvent->save( $event ))
+		//check to make sure we have valid info
+		if (!$eventsModelEvent->store(true))
 		{
 			$this->setError('An error occurred when trying to edit the event. Please try again.');
-			$this->event = $eventsEvent;
+			$this->event = $eventsModelEvent;
 			return $this->edit();
 		}
 
@@ -689,12 +696,11 @@ class plgGroupsCalendar extends Hubzero_Plugin
 	
 		//inform user and redirect
 		$this->redirect(
-			JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id=' . $eventsEvent->id),
+			JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id=' . $eventsModelEvent->get('id')),
 			$message,
 			'passed'
 		);
 	}
-	
 	
 	/**
 	 * Delete an event
@@ -707,13 +713,12 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		$eventId = JRequest::getVar('event_id','','get');
 
 		//load event data
-		$eventsEvent = new EventsEvent( $this->database );
-		$eventsEvent->load( $eventId );
+		$eventsModelEvent = new EventsModelEvent($eventId);
 
-		//check to see if user has the right permissions to delete
-		if ($this->juser->get('id') != $eventsEvent->created_by && $this->authorized != 'manager') 
+		// check to see if user has the right permissions to delete
+		if ($this->juser->get('id') != $eventsModelEvent->get('created_by') && $this->authorized != 'manager') 
 		{
-			//do not have permission to edit the event
+			// do not have permission to delete the event
 			$this->redirect(
 				JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&year=' . $this->year . '&month=' . $this->month),
 				JText::_('You do not have the correct permissions to delete this event.'),
@@ -721,15 +726,13 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			);
 			return;
 		}
-		
-		//is this event deletable?
-		$eventsCalendar = new EventsCalendar( $this->database );
-		$cal = $eventsCalendar->getCalendars( $this->group, $eventsEvent->calendar_id );
-		if (isset($cal[0]) && $cal[0]->readonly)
+
+		// make sure this event is editable
+		$eventCalendar = $eventsModelEvent->calendar();
+		if ($eventCalendar->isSubscription())
 		{
-			//do not have permission to edit the event
 			$this->redirect(
-				JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id='.$eventsEvent->id),
+				JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id='.$eventsModelEvent->get('id')),
 				JText::_('You cannot delete imported events from remote calendar subscriptions.'),
 				'error'
 			);
@@ -737,10 +740,10 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		}
 		
 		//make as disabled
-		$eventsEvent->state = 0;
+		$eventsModelEvent->set('state', 0);
 
 		//save changes
-		if (!$eventsEvent->save($eventsEvent))
+		if (!$eventsModelEvent->store(true))
 		{
 			$this->redirect(
 				JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&year=' . $this->year . '&month=' . $this->month),
@@ -758,7 +761,6 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		);
 	}
 	
-	
 	/**
 	 * Details View for Event
 	 * 
@@ -767,8 +769,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 	private function details()
 	{
 		//create the view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'calendar',
@@ -781,19 +782,14 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		$eventId = JRequest::getVar('event_id','','get');
 
 		//load event data
-		$view->event = new EventsEvent( $this->database );
-		$view->event->load( $eventId );
+		$view->event = new EventsModelEvent( $eventId );
 
 		//get registrants count
 		$eventsRespondent = new EventsRespondent( array('id' => $eventId ) );
 		$view->registrants = $eventsRespondent->getCount();
 
-		//get calendars
-		if (isset($view->event->calendar_id) && $view->event->calendar_id != '')
-		{
-			$eventsCalendar = new EventsCalendar( $this->database );
-			$view->calendar = $eventsCalendar->getCalendars( $this->group, $view->event->calendar_id );
-		}
+		//get calendar
+		$view->calendar = EventsModelCalendar::getInstance($view->event->get('calendar_id'));
 
 		//push some vars to the view
 		$view->month      = $this->month;
@@ -815,89 +811,27 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		//load the view
 		return $view->loadTemplate();
 	}
-	
-	
+
 	/**
 	 * Export Event Details
 	 * 
-	 * @return     string
+	 * @return void
 	 */
 	private function export()
 	{
-		//get request varse
+		// get request varse
 		$eventId = JRequest::getVar('event_id','','get');
 		
-		//load event
-		$eventsEvent = new EventsEvent( $this->database );
-		$eventsEvent->load( $eventId );
-		
-		// get event timezone setting
-		// use this in "DTSTART;TZID=" 
-		$tzInfo = Hubzero_Event_Helper::getTimezoneNameAndAbbreviation($eventsEvent->time_zone);
-		$tzName = timezone_name_from_abbr($tzInfo['abbreviation']);
-		
-		// get publish up/down dates in UTC
-		$publishUp   = new DateTime($eventsEvent->publish_up, new DateTimezone('UTC'));
-		$publishDown = new DateTime($eventsEvent->publish_down, new DateTimezone('UTC'));
-		
-		// Set eastern timezone as publish up/down date timezones
-		// since all event date/times are stores relative to eastern 
-		// ----------------------------------------------------------------------------------
-		// The timezone param "DTSTART;TZID=" defined above will allow a users calendar app to 
-		// adjust date/time display according to that timezone and their systems timezone setting
-		$publishUp->setTimezone( new DateTimezone(timezone_name_from_abbr('EST')) );
-		$publishDown->setTimezone( new DateTimezone(timezone_name_from_abbr('EST')) );
-
-		//event vars
-		$id       = $eventsEvent->id;
-		$title    = $eventsEvent->title;
-		$desc     = str_replace("\n", '\n', $eventsEvent->content);
-		$url      = $eventsEvent->extra_info;
-		$location = $eventsEvent->adresse_info;
-		$now      = gmdate('Ymd') . 'T' . gmdate('His') . 'Z';
-		$created  = gmdate('Ymd', strtotime($eventsEvent->created)) . 'T' . gmdate('His', strtotime($eventsEvent->created)) . 'Z';
-		$modified = gmdate('Ymd', strtotime($eventsEvent->modified)) . 'T' . gmdate('His', strtotime($eventsEvent->modified)) . 'Z';
-		
-		//create ouput
-		$output  = "BEGIN:VCALENDAR\r\n";
-		$output .= "VERSION:2.0\r\n";
-		$output .= "PRODID:PHP\r\n";
-		$output .= "METHOD:PUBLISH\r\n";
-		$output .= "BEGIN:VEVENT\r\n";
-		$output .= "UID:{$id}\r\n";
-		$output .= "DTSTAMP:{$now}\r\n";
-		$output .= "DTSTART;TZID={$tzName}:" . $publishUp->format('Ymd\THis') . "\r\n";
-		if($eventsEvent->publish_down != '' && $eventsEvent->publish_down != '0000-00-00 00:00:00')
-		{
-			$output .= "DTEND;TZID={$tzName}:" . $publishDown->format('Ymd\THis') . "\r\n";
-		}
-		else
-		{
-			$output .= "DTEND;TZID={$tzName}:" . $publishUp->format('Ymd\THis') . "\r\n";
-		}
-		$output .= "CREATED:{$created}\r\n";
-		$output .= "LAST-MODIFIED:{$modified}\r\n";
-		$output .= "SUMMARY:{$title}\r\n";
-		$output .= "DESCRIPTION:{$desc}\r\n";
-		if($url != '' && filter_var($url, FILTER_VALIDATE_URL))
-		{
-			$output .= "URL;VALUE=URI:{$url}\r\n";
-		}
-		if ($location != '')
-		{
-			$output .= "LOCATION:{$location}\r\n";
-		}
-		$output .= "END:VEVENT\r\n";
-		$output .= "END:VCALENDAR\r\n";
-
-		//set the headers for output
-		header('Content-type: text/calendar; charset=utf-8');
-		header('Content-Disposition: attachment; filename=' . str_replace(' ', '_', strtolower($title)) . '_export.ics');
-		echo $output;
-		exit();
+		// load & export event
+		$eventsModelEvent = new EventsModelEvent( $eventId );
+		$eventsModelEvent->export();
 	}
 	
-	
+	/**
+	 * Subscribe to a calendar
+	 * 
+	 * @return void
+	 */
 	private function subscribe()
 	{
 		//check to see if subscriptions are on
@@ -944,153 +878,18 @@ class plgGroupsCalendar extends Hubzero_Plugin
 				die( JText::sprintf('GROUPS_PLUGIN_REQUIRES_MEMBER', 'Calendar') );
 			}
 		}
-		
-		//get request varse
-		$calendarIds = JRequest::getVar('calendar_id','','get');
-		$calendarIds = array_map("intval", explode(',', $calendarIds));
-		
-		//array to hold events
-		$events = array();
-		
-		//loop through and get each calendar
-		foreach ($calendarIds as $k => $calendarId)
-		{
-			if ($calendarId != 0)
-			{
-				//load calendar object
-				$eventsCalendar = new EventsCalendar( $this->database );
-				$eventsCalendar->load( $calendarId );
-				
-				//make sure we have a valid calendar
-				if (!is_object($eventsCalendar) || $eventsCalendar->id == '' || $eventsCalendar->scope_id == '')
-				{
-					unset($calendarIds[$k]);
-				}
-				
-				//make sure the calender is published
-				if (!$eventsCalendar->published)
-				{
-					unset($calendarIds[$k]);
-				}
-				
-				//make its our groups calendar
-				if ($eventsCalendar->scope_id != $this->group->get('gidNumber'))
-				{
-					unset($calendarIds[$k]);
-				}
-				
-				//get events for this calendar
-				$sql = "SELECT *
-				        FROM #__events AS e
-				        WHERE state=1
-				        AND calendar_id=" . $this->database->quote( $calendarId ) . "
-				        AND scope=" . $this->database->quote( 'group' ) . "
-				        AND scope_id=" . $this->database->quote( $this->group->get('gidNumber') );
-				$this->database->setQuery( $sql );
-				$e = $this->database->loadObjectList();
-				$events = array_merge($events, $e);
-			}
-			else
-			{
-				//get events for this calendar
-				$sql = "SELECT *
-				        FROM #__events AS e
-				        WHERE state=1
-				        AND (calendar_id=0 OR calendar_id IS NULL)
-				        AND scope=" . $this->database->quote( 'group' ) . "
-				        AND scope_id=" . $this->database->quote( $this->group->get('gidNumber') );
-				$this->database->setQuery( $sql );
-				$events = array_merge($events, $this->database->loadObjectList());
-			}
-		}
-		
-		//create output
-		$output  = "BEGIN:VCALENDAR\r\n";
-		$output .= "VERSION:2.0\r\n";
-		$output .= "PRODID:PHP\r\n";
-		$output .= "METHOD:PUBLISH\r\n";
-		$output .= "X-WR-CALNAME:" . '[' . JFactory::getConfig()->getValue('sitename') . '] Group Calendar: ' . $this->group->get('description') . "\r\n";
-		$output .= "X-PUBLISHED-TTL:PT15M\r\n";
-		$output .= "X-ORIGINAL-URL:https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . "\r\n";
-		$output .= "CALSCALE:GREGORIAN\r\n";
-		
-		//loop through events
-		foreach ($events as $event)
-		{
-			$sequence = 0;
-			$uid      = $event->id;
-			$title    = $event->title;
-			$content  = str_replace("\r\n", '\n', $event->content);
-			$location = $event->adresse_info;
-			$url      = $event->extra_info;
 
-			// get event timezone setting
-			// use this in "DTSTART;TZID=" 
-			$tzInfo = Hubzero_Event_Helper::getTimezoneNameAndAbbreviation($event->time_zone);
-			$tzName = timezone_name_from_abbr($tzInfo['abbreviation']);
-		
-			// get publish up/down dates in UTC
-			$publishUp   = new DateTime($event->publish_up, new DateTimezone('UTC'));
-			$publishDown = new DateTime($event->publish_down, new DateTimezone('UTC'));
-		
-			// Set eastern timezone as publish up/down date timezones
-			// since all event date/times are stores relative to eastern 
-			// ----------------------------------------------------------------------------------
-			// The timezone param "DTSTART;TZID=" defined above will allow a users calendar app to 
-			// adjust date/time display according to that timezone and their systems timezone setting
-			$publishUp->setTimezone( new DateTimezone(timezone_name_from_abbr('EST')) );
-			$publishDown->setTimezone( new DateTimezone(timezone_name_from_abbr('EST')) );
-			
-			// create now, created, and modified vars
-			$now      = gmdate('Ymd') . 'T' . gmdate('His') . 'Z';
-			$created  = gmdate('Ymd', strtotime($event->created)) . 'T' . gmdate('His', strtotime($event->created)) . 'Z';
-			$modified = gmdate('Ymd', strtotime($event->modified)) . 'T' . gmdate('His', strtotime($event->modified)) . 'Z';
-			
-			$output .= "BEGIN:VEVENT\r\n";
-			$output .= "UID:{$uid}\r\n";
-			$output .= "SEQUENCE:{$sequence}\r\n";
-			$output .= "DTSTAMP:{$now}Z\r\n";
-			$output .= "DTSTART;TZID={$tzName}:" . $publishUp->format('Ymd\THis') . "\r\n";
-			if($event->publish_down != '' && $event->publish_down != '0000-00-00 00:00:00')
-			{
-				$output .= "DTEND;TZID={$tzName}:" . $publishDown->format('Ymd\THis') . "\r\n";
-			}
-			else
-			{
-				$output .= "DTEND;TZID={$tzName}:" . $publishUp->format('Ymd\THis') . "\r\n";
-			}
-			$output .= "CREATED:{$created}\r\n";
-			$output .= "LAST-MODIFIED:{$modified}\r\n";
-			$output .= "SUMMARY:{$title}\r\n";
-			$output .= "DESCRIPTION:{$content}\r\n";
-			//do we have extra info
-			if($url != '' && filter_var($url, FILTER_VALIDATE_URL))
-			{
-				$output .= "URL;VALUE=URI:{$url}\r\n";
-			}
-			//do we have a location
-			if ($location != '')
-			{
-				$output .= "LOCATION:{$location}\r\n";
-			}
-			$output .= "END:VEVENT\r\n";
-		}
-		
-		//close calendar
-		$output .= "END:VCALENDAR";
-
-		//set headers and output
-		header('Content-type: text/calendar; charset=utf-8');
-		header('Content-Disposition: attachment; filename="'. '[' . JFactory::getConfig()->getValue('sitename') . '] Group Calendar: ' . $this->group->get('description') .'.ics"');
-		//header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
-		header('Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT');
-		//header('Cache-Control: no-store, no-cache, must-revalidate');
-		//header('Cache-Control: post-check=0, pre-check=0', false);
-		//header('Pragma: no-cache');
-		echo $output;
-		exit();
+		// load & subscribe to the calendar archive
+		$eventsCalendarArchive = EventsModelCalendarArchive::getInstance();
+		$subscriptionName = '[' . JFactory::getConfig()->getValue('sitename') . '] Group Calendar: ' . $this->group->get('description');
+		$eventsCalendarArchive->subscribe($subscriptionName, 'group', $this->group->get('gidNumber'));
 	}
 	
+	/**
+	 * Authenticate Subscription Requests
+	 * 
+	 * @return void
+	 */
 	private function authenticateSubscriptionRequest()
 	{
 		$realm = '[' . JFactory::getConfig()->getValue('sitename') . '] Group Calendar: ' . $this->group->get('description');
@@ -1149,7 +948,11 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		return $user;
 	}
 	
-	
+	/**
+	 * Import iCal File
+	 * 
+	 * @return mixed
+	 */
 	private function import()
 	{
 		//include icalendar file reader
@@ -1194,8 +997,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 	private function register()
 	{
 		//create the view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'calendar',
@@ -1208,18 +1010,17 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		$eventId = JRequest::getVar('event_id','');
 
 		//load event data
-		$view->event = new EventsEvent( $this->database );
-		$view->event->load( $eventId );
+		$view->event = new EventsModelEvent( $eventId );
 
 		//get registrants count
 		$eventsRespondent = new EventsRespondent( array('id' => $eventId ) );
 		$view->registrants = $eventsRespondent->getCount();
 
 		//do we have a registration deadline
-		if (!isset($view->event->registerby) || $view->event->registerby == '' || $view->event->registerby == '0000-00-00 00:00:00')
+		if ($view->event->get('registerby') == '' || $view->event->get('registerby') == '0000-00-00 00:00:00')
 		{
 			$this->redirect(
-				JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id=' . $view->event->id),
+				JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id=' . $view->event->get('id')),
 				JText::_('This event does not have registration.'),
 				'warning'
 			);
@@ -1228,7 +1029,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 
 		//make sure registration is open
 		$now        = JFactory::getDate()->toUnix();
-		$registerby = JFactory::getDate($view->event->registerby)->toUnix();
+		$registerby = JFactory::getDate($view->event->get('registerby'))->toUnix();
 		
 		if ($registerby >= $now)
 		{
@@ -1236,7 +1037,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			$password = JRequest::getVar('passwrd', '', 'post');
 
 			//is the event restricted
-			if (isset($view->event->restricted) && $view->event->restricted != '' && $view->event->restricted != $password && !isset($this->register))
+			if ($view->event->get('restricted') != '' && $view->event->get('restricted') != $password && !isset($this->register))
 			{
 				//if we entered a password and it was bad lets tell the user
 				if (isset($password) && $password != '')
@@ -1269,11 +1070,11 @@ class plgGroupsCalendar extends Hubzero_Plugin
 
 		//add params to view
 		$paramsClass = (version_compare(JVERSION, '1.6', 'ge')) ? 'JRegistry' : 'JParameter';
-		$view->params = new $paramsClass( $view->event->params );
+		$view->params = new $paramsClass( $view->event->get('params') );
 
 		if (!$this->juser->get('guest')) 
 		{
-			$profile = new Hubzero_User_Profile();
+			$profile = new \Hubzero\User\Profile();
 			$profile->load($this->juser->get('id'));
 
 			$view->register['first_name']  = $profile->get('givenName');
@@ -1403,8 +1204,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		if ($eventsEvent->email != '')
 		{
 			//build message to send to event admin
-			ximport('Hubzero_Plugin_View');
-			$email = new Hubzero_Plugin_View(
+			$email = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => 'calendar',
@@ -1454,8 +1254,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 	private function registrants()
 	{
 		//create the view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'calendar',
@@ -1613,9 +1412,15 @@ class plgGroupsCalendar extends Hubzero_Plugin
 	 */
 	private function calendars()
 	{
+		//get calendars
+		$eventsCalendarArchive = EventsModelCalendarArchive::getInstance();
+		$calendars = $eventsCalendarArchive->calendars('list', array(
+			'scope'     => 'group',
+			'scope_id'  => $this->group->get('gidNumber')
+		));
+
 		//create the view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'calendar',
@@ -1623,11 +1428,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 				'layout'  => 'display'
 			)
 		);
-		
-		//get calendars
-		$eventsCalendar = new EventsCalendar( $this->database );
-		$view->calendars = $eventsCalendar->getCalendars( $this->group );
-		
+
 		//push some vars to the view
 		$view->month      = $this->month;
 		$view->year       = $this->year;
@@ -1635,6 +1436,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		$view->option     = $this->option;
 		$view->authorized = $this->authorized;
 		$view->juser      = $this->juser;
+		$view->calendars  = $calendars;
 
 		//get any errors if there are any
 		if ($this->getError()) 
@@ -1672,8 +1474,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		$calendarId = JRequest::getVar('calendar_id','');
 		
 		//create the view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'calendar',
@@ -1681,20 +1482,9 @@ class plgGroupsCalendar extends Hubzero_Plugin
 				'layout'  => 'edit'
 			)
 		);
-		
-		//get calendars
-		$view->calendar            = new stdClass;
-		$view->calendar->id        = null;
-		$view->calendar->title     = null;
-		$view->calendar->url       = null;
-		$view->calendar->color     = null;
-		$view->calendar->published = 1;
-		if (isset($calendarId) && $calendarId != '')
-		{
-			$eventsCalendar = new EventsCalendar( $this->database );
-			$calendars = $eventsCalendar->getCalendars( $this->group, $calendarId );
-			$view->calendar = $calendars[0];
-		}
+
+		// get the calendar
+		$view->calendar = EventsModelcalendar::getInstance($calendarId);
 		
 		//push some vars to the view
 		$view->month      = $this->month;
@@ -1726,31 +1516,47 @@ class plgGroupsCalendar extends Hubzero_Plugin
 	private function saveCalendar()
 	{
 		//get request vars
-		$calendar = JRequest::getVar('calendar','');
+		$calendarInput = JRequest::getVar('calendar',array());
+
+		// get the calendar
+		$calendar = EventsModelcalendar::getInstance($calendarInput['id']);
 		
 		//add scope and scope id to calendar array
-		$calendar['scope']    = 'group';
-		$calendar['scope_id'] = $this->group->get('gidNumber');
+		$calendarInput['scope']    = 'group';
+		$calendarInput['scope_id'] = $this->group->get('gidNumber');
 		$calendar['url']      = trim($calendar['url']);
 
 		//is this a remote calendar url
-		if ($calendar['url'] != '' && filter_var($calendar['url'], FILTER_VALIDATE_URL))
+		if ($calendarInput['url'] != '' && filter_var($calendarInput['url'], FILTER_VALIDATE_URL))
 		{
-			$calendar['readonly'] = 1;
+			$calendarInput['readonly'] = 1;
+			$needsRefresh = true;
 		}
 		else
 		{
-			$calendar['url'] = '';
+			$calendarInput['url'] = '';
+			$calendarInput['readonly'] = 0;
+			$needsRefresh = false;
 		}
 		
-		//new events calendar object
-		$eventsCalendar = new EventsCalendar( $this->database );
-		
-		//save calendar
-		if (!$eventsCalendar->save( $calendar ))
+		// bind input
+		if (!$calendar->bind($calendarInput))
 		{
-			$this->setError( $eventsCalendar->getError() );
-			return $this->editCalendar();
+			$this->setError( $calendar->getError() );
+		 	return $this->editCalendar();
+		}
+
+		// attempt to save
+		if (!$calendar->store(true))
+		{
+			$this->setError( $calendar->getError() );
+		 	return $this->editCalendar();
+		}
+
+		// should we refresh?
+		if ($needsRefresh)
+		{
+		 	$calendar->refresh();
 		}
 		
 		//inform and redirect
@@ -1772,25 +1578,11 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		//get the passed in event id
 		$calendarId = JRequest::getVar('calendar_id','');
 		
-		//make sure we have a calendar id
-		if (!$calendarId || $calendarId == 0 || $calendarId == '')
-		{
-			return $this->calendars();
-		}
+		// get the calendar
+		$calendar = EventsModelcalendar::getInstance($calendarId);
 		
-		//get calendars
-		$eventsCalendar = new EventsCalendar( $this->database );
-		$calendars = $eventsCalendar->getCalendars( $this->group, $calendarId );
-		$calendar = $calendars[0];
-		
-		//make sure we have a calendar
-		if (!is_object($calendar) || $calendar->id == '')
-		{
-			return $this->calendars();
-		}
-		
-		//delete calendar
-		$eventsCalendar->delete( $calendar->id );
+		//delete the calendar
+		$calendar->delete();
 		
 		//inform and redirect
 		$this->redirect(
@@ -1808,26 +1600,13 @@ class plgGroupsCalendar extends Hubzero_Plugin
 		//get the passed in event id
 		$calendarId = JRequest::getVar('calendar_id','');
 		
-		//make sure we have a calendar id
-		if (!$calendarId || $calendarId == 0 || $calendarId == '')
-		{
-			return $this->calendars();
-		}
+		// get the calendar
+		$calendar = EventsModelcalendar::getInstance($calendarId);
 		
-		//load event calendar
-		$eventsCalendar = new EventsCalendar( $this->database );
-		$eventsCalendar->load( $calendarId );
-		
-		//make sure we have a valid calendar url
-		if ($eventsCalendar->url == '' || !filter_var($eventsCalendar->url, FILTER_VALIDATE_URL))
+		// refresh Calendar (force refresh even if we dont need to yet)
+		if (!$calendar->refresh(true))
 		{
-			return $this->calendars();
-		}
-		
-		//refresh Calendar if we can
-		if (!$eventsCalendar->refresh( $this->group, $calendarId ))
-		{
-			$this->setError( JText::_('Unable to sync the group calendar "' . $eventsCalendar->getError() . '". Please verify the calendar subscription URL is valid.') );
+			$this->setError( JText::sprintf('Unable to sync the group calendar "%s". Please verify the calendar subscription URL is valid.', $calendar->getError()) );
 			return $this->calendars();
 		}
 		
@@ -1838,41 +1617,116 @@ class plgGroupsCalendar extends Hubzero_Plugin
 			'passed'
 		);
 	}
-	
-	/**
-	 * Get events for a specific date
-	 * 
-	 * @param      integer $day   Day to display for
-	 * @param      integer $month Month to display for
-	 * @param      integer $year  Year to display for
-	 * @return     array
-	 */
-	private function _getEvents($day, $month, $year, $calendar = 0)
-	{
-		$start = JFactory::getDate(mktime(0,0,0,$month,$day,$year))->format("Y-m-d H:i:s");
-		$end = JFactory::getDate(mktime(23,59,59,$month,$day,$year))->format("Y-m-d H:i:s");
 
-		$database = JFactory::getDBO();
-		$sql = "SELECT e.*, ec.title AS event_calendar_title, ec.color AS event_calendar_color
-				FROM #__events AS e
-				LEFT JOIN #__events_calendars AS ec
-				ON e.calendar_id = ec.id
-				WHERE (e.publish_up >= " . $database->Quote( $start )." AND e.publish_up <=" . $database->Quote( $end ) . " 
-					OR e.publish_down >= " . $database->Quote( $start )." AND e.publish_down <=" . $database->Quote( $end ) . " 
-					OR e.publish_up <= " . $database->Quote( $start )." AND e.publish_down >= " . $database->Quote( $end ) . ")
-				AND e.scope=" . $database->quote( 'group' ) . " 
-				AND e.scope_id=" . $database->Quote( $this->group->get('gidNumber') ) . " 
-				AND e.state=1";
-		
-		if (is_numeric($calendar) && $calendar != '' && $calendar != 0)
+	/**
+	 * Refresh all Calendars
+	 *
+	 * Should only be called via ajax
+	 * 
+	 * @return string
+	 */
+	private function refreshCalendars()
+	{
+		//get calendars
+		$eventsCalendarArchive = EventsModelCalendarArchive::getInstance();
+		$calendars = $eventsCalendarArchive->calendars('list', array(
+			'scope'     => 'group',
+			'scope_id'  => $this->group->get('gidNumber'),
+			'published' => array(1)
+		));
+
+		// array to hold refreshed cals
+		$refreshed = array();
+
+		// refresh each calendar
+		// dont force refresh if we havent made it to the next refresh interval
+		$calendars->map(function($calendar) use (&$refreshed) {
+			// if we refreshed lets add it 
+			// to our array of refreshed
+			if ($calendar->refresh(false))
+			{
+				$refreshed[] = $calendar->get('id');
+			}
+		});
+
+		// return refreshed count
+		echo json_encode(array('refreshed' => count($refreshed)));
+		exit();
+	}
+
+	/**
+	 * Build Repeating rule from input
+	 * 
+	 * @return string
+	 */
+	private function _buildRepeatingRule()
+	{
+		$rules = array();
+
+		// get reccurrance
+		$reccurance = JRequest::getVar('reccurance', array(), 'post');
+
+		// valid frequencies
+		$validFreq = array('daily','weekly','monthly','yearly');
+
+		// make sure we have a frequency and its a valid type
+		if (!isset($reccurance['freq']) || !in_array($reccurance['freq'], $validFreq))
 		{
-			$sql .= " AND ec.id=" . $database->quote( $calendar );
+			return '';
+		}
+
+		// frequency & interval
+		$freq     = $reccurance['freq'];
+		$interval = (isset($reccurance['interval'][$freq])) ? $reccurance['interval'][$freq] : 1;
+
+		// add the frequency rule
+		$rule[] = 'FREQ=' . strtoupper($freq);
+
+		// make sure we have a valid interval
+		if ($interval < 1 || $interval > 30)
+		{
+			$interval = 1;
+		}
+
+		// add interval rule
+		$rule[] = 'INTERVAL=' . $interval;
+
+		// valid end 
+		$validEnd = array('never','count','until');
+
+		// do we need to add end rules?
+		if (isset($reccurance['ends']['when']) && in_array($reccurance['ends']['when'], $validEnd))
+		{
+			// get the end type
+			$end = $reccurance['ends']['when'];
+
+			// if end is after a count or after date
+			if ($end == 'count')
+			{
+				$count = (isset($reccurance['ends']['count'])) ? $reccurance['ends']['count'] : 1;
+				$rule[] = 'COUNT=' . $count;
+			}
+			elseif ($end == 'until')
+			{
+				// create date object in local timezone
+				$until    = (isset($reccurance['ends']['until'])) ? $reccurance['ends']['until'] : 1;
+				
+				// create date time object where timezoen is configured value
+				// let php convert to UTC when formatting
+				$timezone = new DateTimezone(JFactory::getConfig()->get('offset'));
+				$date = JFactory::getDate($until, $timezone);
+
+				// subtract by 1 second (iCal standard)
+				$date->modify('-1 second');
+
+				//set the rule
+				$rule[] = 'UNTIL=' . $date->format('Ymd\THis\Z');
+			}
 		}
 		
-		$database->setQuery($sql);
-		return $database->loadObjectList();
+		// return the full rule
+		return implode(';', $rule);
 	}
-	
 	
 	/**
 	 * Get all future events for this group cal
@@ -1887,7 +1741,7 @@ class plgGroupsCalendar extends Hubzero_Plugin
 				WHERE scope=" . $db->quote('group') . " 
 				AND scope_id=".$this->group->get('gidNumber')." 
 				AND state=1 
-				AND (publish_up >='".JFactory::getDate()->toSql()."' OR publish_up >='".JFactory::getDate()->toSql()."')";
+				AND (publish_up >='".JFactory::getDate()->toSql()."' OR publish_down >='".JFactory::getDate()->toSql()."')";
 		$db->setQuery($sql);
 		return $db->loadResult();
 	}
@@ -1921,25 +1775,21 @@ class plgGroupsCalendar extends Hubzero_Plugin
 	 * @param      unknown $message Parameter description (if any) ...
 	 * @return     integer Return description (if any) ...
 	 */
-	private function _sendEmail($to, $from, $subject, $message)
+	private function _sendEmail($to, $from, $subject, $body)
 	{
-		$contact_email = $from['email'];
-		$contact_name  = $from['name'];
-
-		$args     = '-f hubmail-bounces@' . $_SERVER['HTTP_HOST'];
-		$headers  = "MIME-Version: 1.0\n";
-		$headers .= "Content-type: text/plain; charset=iso-8859-1\n";
-		$headers .= 'From: ' . $contact_name .' <' . $contact_email . ">\n";
-		$headers .= 'Reply-To: ' . $contact_name .' <' . $contact_email . ">\n";
-		$headers .= "X-Priority: 3\n";
-		$headers .= "X-MSMail-Priority: Normal\n";
-		$headers .= 'X-Mailer: PHP/' . phpversion() ."\n";
-		$headers .= "X-Component: com_groups \n";
-		$headers .= "X-Component-Object: Group Calendar Event Registration \n";
-		if (mail($to, $subject, $message, $headers, $args)) 
-		{
-			return(1);
-		}
-		return(0);
+		// create message object
+		$message = new \Hubzero\Mail\Message();
+		
+		// set message details and send
+		$message->setSubject($subject)
+				->addFrom($from['email'], $from['name'])
+				->setTo($to)
+				->addPart($body, 'text/plain')
+				->addHeader('X-Component', 'com_groups')
+				->addHeader('X-Component-Object', 'Group Calendar Event Registration')
+				->send();
+		
+		// add good
+		return true;
 	}
 }

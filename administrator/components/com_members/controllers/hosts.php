@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Manage host entries for a member
  */
-class MembersControllerHosts extends Hubzero_Controller
+class MembersControllerHosts extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Add a host entry for a member
@@ -58,7 +56,7 @@ class MembersControllerHosts extends Hubzero_Controller
 		}
 
 		// Load the profile
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($id);
 
 		// Incoming host
@@ -104,7 +102,7 @@ class MembersControllerHosts extends Hubzero_Controller
 		}
 
 		// Load the profile
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($id);
 
 		// Incoming host
@@ -140,7 +138,7 @@ class MembersControllerHosts extends Hubzero_Controller
 	/**
 	 * Display host entries for a member
 	 * 
-	 * @param      object $profile Hubzero_User_Profile
+	 * @param      object $profile \Hubzero\User\Profile
 	 * @return     void
 	 */
 	public function displayTask($profile=null)
@@ -152,7 +150,7 @@ class MembersControllerHosts extends Hubzero_Controller
 		{
 			$id = JRequest::getInt('id', 0, 'get');
 
-			$profile = new Hubzero_User_Profile();
+			$profile = new \Hubzero\User\Profile();
 			$profile->load($id);
 		}
 

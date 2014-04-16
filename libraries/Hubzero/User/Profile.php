@@ -28,16 +28,16 @@
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+namespace Hubzero\User;
 
-ximport('Hubzero_User_Profile_Helper');
+use Hubzero\Base\Object;
+use Hubzero\User\Profile\Helper as ProfileHelper;
+use Hubzero\Utility\String;
 
 /**
- * Short description for 'Hubzero_User_Profile'
- * Long description (if any) ...
+ * Extended user profile
  */
-class Hubzero_User_Profile extends JObject
+class Profile extends Object
 {
 	// properties
 	
@@ -392,7 +392,7 @@ class Hubzero_User_Profile extends JObject
 	{
 		$bt = debug_backtrace();
 		
-		$error = "Hubzero_User_Profile::" . $bt[1]['function'] . "():" . $error;
+		$error = __CLASS__ . "::" . $bt[1]['function'] . "():" . $error;
 		
 		array_push($this->_errors, $error);
 	}
@@ -405,7 +405,7 @@ class Hubzero_User_Profile extends JObject
 	 */
 	public function clear()
 	{
-		$classvars = get_class_vars('Hubzero_User_Profile');
+		$classvars = get_class_vars(__CLASS__);
 		
 		foreach ($classvars as $property=>$value)
 		{
@@ -440,7 +440,7 @@ class Hubzero_User_Profile extends JObject
 	 */
 	private function _mysql_load($user)
 	{
-		$db = JFactory::getDBO();
+		$db = \JFactory::getDBO();
 		
 		if (empty($user))
 		{
@@ -477,11 +477,11 @@ class Hubzero_User_Profile extends JObject
 		
 		$this->clear();
 		
-		$paramsClass = 'JParameter';
+		$paramsClass = '\\JParameter';
 		
 		if (version_compare(JVERSION, '1.6', 'ge'))
 		{
-			$paramsClass = 'JRegistry';
+			$paramsClass = '\\JRegistry';
 		}
 		
 		$this->_params = new $paramsClass($result['params']);
@@ -491,7 +491,7 @@ class Hubzero_User_Profile extends JObject
 			$this->set($property, $value);
 		}
 		
-		$classvars = get_class_vars('Hubzero_User_Profile');
+		$classvars = get_class_vars(__CLASS__);
 		
 		foreach ($classvars as $property=>$value)
 		{
@@ -517,7 +517,7 @@ class Hubzero_User_Profile extends JObject
 	{
 		static $_propertyauthormap = array('uidNumber'=>'id', 'givenName'=>'firstname', 'middleName'=>'middlename', 'surname'=>'lastname', 'organization'=>'org', 'bio'=>'bio', 'url'=>'url', 'picture'=>'picture', 'vip'=>'principal_investigator');
 		
-		$db =  JFactory::getDBO();
+		$db =  \JFactory::getDBO();
 		
 		$query = "SELECT * FROM #__author WHERE id=" . $db->Quote($authorid);
 		
@@ -732,7 +732,7 @@ class Hubzero_User_Profile extends JObject
 			$id = strtolower(trim($id));
 			if (!isset($usernames[$id]))
 			{
-				$user = new Hubzero_User_Profile($id);
+				$user = new self($id);
 				
 				// Save
 				$usernames[$id] = $user->get('uidNumber');
@@ -745,7 +745,7 @@ class Hubzero_User_Profile extends JObject
 		// Check for existing record
 		if (empty($instances[$id]) || $instances[$id]->get('uidNumber') != $id)
 		{
-			$user = new Hubzero_User_Profile($id);
+			$user = new self($id);
 			$instances[$id] = $user;
 		}
 		
@@ -766,7 +766,7 @@ class Hubzero_User_Profile extends JObject
 	 */
 	public function create()
 	{
-		$db =  JFactory::getDBO();
+		$db =  \JFactory::getDBO();
 		
 		$modifiedDate = gmdate('Y-m-d H:i:s');
 		
@@ -859,6 +859,22 @@ class Hubzero_User_Profile extends JObject
 	 * @param boolean $mysqlonly Parameter description (if any) ...
 	 * @return boolean Return description (if any) ...
 	 */
+	public function store()
+	{
+		if (!is_numeric($this->get('uidNumber')))
+		{
+			return $this->create();
+		}
+		return $this->update();
+	}
+
+	/**
+	 * Short description for 'update'
+	 * Long description (if any) ...
+	 *
+	 * @param boolean $mysqlonly Parameter description (if any) ...
+	 * @return boolean Return description (if any) ...
+	 */
 	public function update()
 	{
 		if (!is_numeric($this->get('uidNumber')))
@@ -866,7 +882,7 @@ class Hubzero_User_Profile extends JObject
 			return false;
 		}
 		
-		$db =  JFactory::getDBO();
+		$db =  \JFactory::getDBO();
 		
 		$modifiedDate = gmdate('Y-m-d H:i:s');
 		
@@ -874,7 +890,7 @@ class Hubzero_User_Profile extends JObject
 		
 		$query = "UPDATE #__xprofiles SET ";
 		
-		$classvars = get_class_vars('Hubzero_User_Profile');
+		$classvars = get_class_vars(__CLASS__);
 		
 		$first = true;
 		$affected = 0;
@@ -976,7 +992,7 @@ class Hubzero_User_Profile extends JObject
 				}
 			}
 			
-			if (property_exists('Hubzero_User_Profile', '_auxv_' . $property))
+			if (property_exists(__CLASS__, '_auxv_' . $property))
 			{
 				foreach ($list as $key=>$value)
 				{
@@ -1007,8 +1023,8 @@ class Hubzero_User_Profile extends JObject
 		
 		if ($affected > 0)
 		{
-			JPluginHelper::importPlugin('user');
-			JDispatcher::getInstance()->trigger('onAfterStoreProfile', array($this));
+			\JPluginHelper::importPlugin('user');
+			\JDispatcher::getInstance()->trigger('onAfterStoreProfile', array($this));
 		}
 		
 		return true;
@@ -1022,7 +1038,7 @@ class Hubzero_User_Profile extends JObject
 	 */
 	public function delete()
 	{
-		$db =  JFactory::getDBO();
+		$db =  \JFactory::getDBO();
 		
 		if (!is_numeric($this->get('uidNumber')))
 		{
@@ -1030,7 +1046,7 @@ class Hubzero_User_Profile extends JObject
 			return false;
 		}
 		
-		$classvars = get_class_vars('Hubzero_User_Profile');
+		$classvars = get_class_vars(__CLASS__);
 		
 		$affected = 0;
 		
@@ -1070,8 +1086,8 @@ class Hubzero_User_Profile extends JObject
 		
 		if ($affected > 0)
 		{
-			JPluginHelper::importPlugin('user');
-			JDispatcher::getInstance()->trigger('onAfterDeleteProfile', array($this));
+			\JPluginHelper::importPlugin('user');
+			\JDispatcher::getInstance()->trigger('onAfterDeleteProfile', array($this));
 		}
 		
 		$this->clear();
@@ -1099,13 +1115,13 @@ class Hubzero_User_Profile extends JObject
 			return false;
 		}
 
-		if (!property_exists('Hubzero_User_Profile', $property))
+		if (!property_exists(__CLASS__, $property))
 		{
-			if (property_exists('Hubzero_User_Profile', '_auxs_' . $property))
+			if (property_exists(__CLASS__, '_auxs_' . $property))
 			{
 				$property = '_auxs_' . $property;
 			}
-			else if (property_exists('Hubzero_User_Profile', '_auxv_' . $property))
+			else if (property_exists(__CLASS__, '_auxv_' . $property))
 			{
 				$property = '_auxv_' . $property;
 			}
@@ -1118,7 +1134,7 @@ class Hubzero_User_Profile extends JObject
 
 		if ($this->$property === false)
 		{
-			$db = JFactory::getDBO();
+			$db = \JFactory::getDBO();
 
 			$property_name = substr($property, 6);
 
@@ -1191,13 +1207,13 @@ class Hubzero_User_Profile extends JObject
 			return false;
 		}
 		
-		if (!property_exists('Hubzero_User_Profile', $property))
+		if (!property_exists(__CLASS__, $property))
 		{
-			if (property_exists('Hubzero_User_Profile', '_auxs_' . $property))
+			if (property_exists(__CLASS__, '_auxs_' . $property))
 			{
 				$property = '_auxs_' . $property;
 			}
-			else if (property_exists('Hubzero_User_Profile', '_auxv_' . $property))
+			else if (property_exists(__CLASS__, '_auxv_' . $property))
 			{
 				$property = '_auxv_' . $property;
 			}
@@ -1260,13 +1276,13 @@ class Hubzero_User_Profile extends JObject
 			return false;
 		}
 		
-		if (property_exists('Hubzero_User_Profile', $property) || property_exists('Hubzero_User_Profile', '_auxs_' . $property))
+		if (property_exists(__CLASS__, $property) || property_exists(__CLASS__, '_auxs_' . $property))
 		{
 			$this->setError("Can't add value(s) to non-array property.");
 			return false;
 		}
 		
-		if (!property_exists('Hubzero_User_Profile', '_auxv_' . $property))
+		if (!property_exists(__CLASS__, '_auxv_' . $property))
 		{
 			$this->setError("Unknown property: $property");
 			return false;
@@ -1315,13 +1331,13 @@ class Hubzero_User_Profile extends JObject
 			return false;
 		}
 		
-		if (property_exists('Hubzero_User_Profile', $property) || property_exists('Hubzero_User_Profile', '_auxs_' . $property))
+		if (property_exists(__CLASS__, $property) || property_exists(__CLASS__, '_auxs_' . $property))
 		{
 			$this->setError("Can't remove value(s) from non-array property.");
 			return false;
 		}
 		
-		if (!property_exists('Hubzero_User_Profile', '_auxv_' . $property))
+		if (!property_exists(__CLASS__, '_auxv_' . $property))
 		{
 			$this->setError("Unknown property: $property");
 			return false;
@@ -1454,20 +1470,40 @@ class Hubzero_User_Profile extends JObject
 	 * @param string $gid Parameter description (if any) ...
 	 * @return unknown Return description (if any) ...
 	 */
-	public function getGroupMemberRoles($uid, $gid)
+	public static function getGroupMemberRoles($uid, $gid)
 	{
-		$user_roles = '';
-		
-		$db =  JFactory::getDBO();
-		$sql = "SELECT r.id, r.role FROM #__xgroups_roles as r, #__xgroups_member_roles as m WHERE r.id=m.role AND m.uidNumber='" . $uid . "' AND r.gidNumber='" . $gid . "'";
+		$db = \JFactory::getDBO();
+		$sql = "SELECT r.id, r.name, r.permissions FROM #__xgroups_roles as r, #__xgroups_member_roles as m WHERE r.id=m.roleid AND m.uidNumber='" . $uid . "' AND r.gidNumber='" . $gid . "'";
 		$db->setQuery($sql);
 		
-		$roles = $db->loadAssocList();
+		return $db->loadAssocList();
+	}
+	
+	/**
+	 * Check to see if user has permission to perform task
+	 *
+	 * @param     $group     \Hubzero\User\Group Object
+	 * @param     $action    Group Action to perform
+	 * @return    bool
+	 */
+	public static function userHasPermissionForGroupAction( $group, $action )
+	{
+		//get user roles
+		$roles = self::getGroupMemberRoles( 
+			\JFactory::getUser()->get('id'), 
+			$group->get('gidNumber')
+		);
 		
-		if ($roles)
+		// check to see if any of our roles for user has permission for action
+		foreach ($roles as $role)
 		{
-			return $roles;
+			$permissions = json_decode($role['permissions']);
+			if (array_key_exists($action, $permissions) && $permissions->$action == 1)
+			{
+				return true;
+			}
 		}
+		return false;
 	}
 
 	/**
@@ -1482,7 +1518,7 @@ class Hubzero_User_Profile extends JObject
 	{
 		$user_roles = '';
 		
-		$db =  JFactory::getDBO();
+		$db =  \JFactory::getDBO();
 		$sql = "SELECT r.id, r.role FROM #__courses_roles as r, #__courses_member_roles as m WHERE r.id=m.role AND m.uidNumber='" . $uid . "' AND r.gidNumber='" . $gid . "'";
 		$db->setQuery($sql);
 		
@@ -1507,10 +1543,7 @@ class Hubzero_User_Profile extends JObject
 		if (!isset($groups))
 		{
 			$groups = array('applicants'=>array(), 'invitees'=>array(), 'members'=>array(), 'managers'=>array(), 'all'=>array());
-			
-			ximport('Hubzero_User_Helper');
-			
-			$groups['all'] = Hubzero_User_Helper::getGroups($this->get('uidNumber'), 'all', 1);
+			$groups['all'] = Helper::getGroups($this->get('uidNumber'), 'all', 1);
 			
 			if ($groups['all'])
 			{
@@ -1551,6 +1584,60 @@ class Hubzero_User_Profile extends JObject
 	}
 
 	/**
+	 * Get the content of the entry
+	 * 
+	 * @param      string  $as      Format to return state in [text, number]
+	 * @param      integer $shorten Number of characters to shorten text to
+	 * @return     string
+	 */
+	public function getBio($as='parsed', $shorten=0)
+	{
+		$options = array();
+
+		switch (strtolower($as))
+		{
+			case 'parsed':
+				$config = array(
+					'option'   => 'com_members',
+					'scope'    => 'profile',
+					'pagename' => 'member',
+					'pageid'   => 0,
+					'filepath' => '',
+					'domain'   => '',
+					'camelcase' => 0
+				);
+
+				\JPluginHelper::importPlugin('content');
+				\JDispatcher::getInstance()->trigger('onContentPrepare', array(
+					'com_members.profile.bio',
+					&$this,
+					&$config
+				));
+				$content = $this->get('bio');
+
+				$options = array('html' => true);
+			break;
+
+			case 'clean':
+				$content = strip_tags($this->getBio('parsed'));
+			break;
+
+			case 'raw':
+			default:
+				$content = stripslashes($this->get('bio'));
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
+			break;
+		}
+
+		if ($shorten)
+		{
+			$content = String::truncate($content, $shorten, $options);
+		}
+
+		return $content;
+	}
+
+	/**
 	 * Get a user's picture
 	 *
 	 * @param    integer $anonymous Is user anonymous?
@@ -1559,7 +1646,6 @@ class Hubzero_User_Profile extends JObject
 	 */
 	public function getPicture($anonymous=0, $thumbit=true)
 	{
-		ximport('Hubzero_User_Profile_Helper');
-		return Hubzero_User_Profile_Helper::getMemberPhoto($this, $anonymous, $thumbit);
+		return ProfileHelper::getMemberPhoto($this, $anonymous, $thumbit);
 	}
 }

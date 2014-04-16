@@ -1,26 +1,28 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for ...
  **/
-class Migration20130821164628ComCart extends Hubzero_Migration
+class Migration20130821164628ComCart extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
-		self::addComponentEntry('Cart');
+		$this->addComponentEntry('Cart');
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
-		self::deleteComponentEntry('Cart');
+		$this->deleteComponentEntry('Cart');
 	}
 }

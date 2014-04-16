@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'models' . DS . 'adapters' . DS . 'abstract.php');
+require_once(__DIR__ . '/abstract.php');
 
 /**
  * Adapter class for a forum post link for the site-wide forum
@@ -46,6 +46,13 @@ class ForumModelAdapterSite extends ForumModelAdapterAbstract
 	protected $_segments = array(
 		'option' => 'com_forum',
 	);
+
+	/**
+	 * Scope title
+	 * 
+	 * @var string
+	 */
+	protected $_name = 'site';
 
 	/**
 	 * Generate and return various links to the entry

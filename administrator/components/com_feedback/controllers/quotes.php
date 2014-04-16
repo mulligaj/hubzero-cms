@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Feedback controller class for quotes
  */
-class FeedbackControllerQuotes extends Hubzero_Controller
+class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Execute a task
@@ -199,9 +197,7 @@ class FeedbackControllerQuotes extends Hubzero_Controller
 		$username = trim(JRequest::getVar('username', ''));
 		if ($username)
 		{
-			ximport('Hubzero_User_Profile');
-
-			$profile = new Hubzero_User_Profile();
+			$profile = new \Hubzero\User\Profile();
 			$profile->load($username);
 
 			$this->view->row->fullname = $profile->get('name');

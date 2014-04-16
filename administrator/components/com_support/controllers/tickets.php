@@ -33,15 +33,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'query.php');
-include_once(JPATH_ROOT . DS . 'libraries' . DS . 'Hubzero' . DS . 'EmailToken.php');
 
 /**
  * Support controller class for tickets
  */
-class SupportControllerTickets extends Hubzero_Controller
+class SupportControllerTickets extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Displays a list of tickets
@@ -297,16 +294,14 @@ class SupportControllerTickets extends Hubzero_Controller
 			$row->email    = $this->juser->get('email');
 			$row->cookies  = 1;
 
-			ximport('Hubzero_Browser');
-			$browser = new Hubzero_Browser();
+			$browser = new \Hubzero\Browser\Detector();
 
-			$row->os = $browser->getOs() . ' ' . $browser->getOsVersion();
-			$row->browser = $browser->getBrowser() . ' ' . $browser->getBrowserVersion();
+			$row->os = $browser->platform() . ' ' . $browser->platformVersion();
+			$row->browser = $browser->name() . ' ' . $browser->version();
 
 			$row->uas = JRequest::getVar('HTTP_USER_AGENT','','server');
 
-			ximport('Hubzero_Environment');
-			$row->ip = Hubzero_Environment::ipAddress();
+			$row->ip = JRequest::ip();
 			$row->hostname = gethostbyaddr(JRequest::getVar('REMOTE_ADDR','','server'));
 			$row->section = 1;
 
@@ -443,7 +438,7 @@ class SupportControllerTickets extends Hubzero_Controller
 
 		if ($allowEmailResponses)
 		{
-			$encryptor = new Hubzero_EmailToken();
+			$encryptor = new \Hubzero\Mail\Token();
 		}
 
 		// Instantiate the tagging class - we'll need this a few times
@@ -496,7 +491,6 @@ class SupportControllerTickets extends Hubzero_Controller
 		{
 			// Incoming comment
 			$comment = JRequest::getVar('comment', '', 'post', 'none', 2);
-			//$comment = Hubzero_Filter::cleanXss($comment);
 			if ($comment)
 			{
 				// If a comment was posted to a closed ticket, re-open it.
@@ -581,8 +575,8 @@ class SupportControllerTickets extends Hubzero_Controller
 				);
 			}
 
-			$attachment = $this->uploadTask($row->id);
-			$comment .= ($attachment) ? "\n\n".$attachment : '';
+			//$attachment = $this->uploadTask($row->id);
+			//$comment .= ($attachment) ? "\n\n".$attachment : '';
 
 			// Create a new support comment object and populate it
 			$rowc = new SupportComment($this->database);
@@ -591,7 +585,6 @@ class SupportControllerTickets extends Hubzero_Controller
 			$rowc->comment    = str_replace('<br>', '<br />', $rowc->comment);
 			$rowc->created    = JFactory::getDate()->toSql();
 			$rowc->created_by = JRequest::getVar('username', '');
-			$rowc->changelog  = json_encode($log);
 			$rowc->access     = JRequest::getInt('access', 0);
 
 			// Add any CCs to the e-mail list
@@ -653,6 +646,8 @@ class SupportControllerTickets extends Hubzero_Controller
 					return;
 				}
 
+				$attachment = $this->uploadTask($row->id, $rowc->id);
+
 				// Only do the following if a comment was posted or ticket was reassigned
 				// otherwise, we're only recording a changelog
 				if ($comment || $row->owner != $old->owner)
@@ -687,7 +682,7 @@ class SupportControllerTickets extends Hubzero_Controller
 					$from['name']  = $jconfig->getValue('config.sitename') . ' ' . ucfirst($this->_name);
 					$from['email'] = $jconfig->getValue('config.mailfrom');
 
-					$message = array();
+					/*$message = array();
 					$message['plaintext']  = '----------------------------'."\r\n";
 					$message['plaintext'] .= strtoupper(JText::_('TICKET')).': '.$row->id."\r\n";
 					$message['plaintext'] .= strtoupper(JText::_('TICKET_DETAILS_SUMMARY')).': '.stripslashes($row->summary)."\r\n";
@@ -731,7 +726,7 @@ class SupportControllerTickets extends Hubzero_Controller
 					//   and it would return only the script name and querystring (index.php?option=...)
 					//   We need nice URLs that can be clicked.
 					$sef = $this->_name . '/ticket/' . $row->id;
-					$message['plaintext'] .= rtrim($base, DS) . DS . ltrim($sef, DS) . "\r\n";
+					$message['plaintext'] .= rtrim($base, DS) . DS . ltrim($sef, DS) . "\r\n";*/
 
 					// Html email
 					$from['multipart'] = md5(date('U'));
@@ -739,7 +734,7 @@ class SupportControllerTickets extends Hubzero_Controller
 					//$rowc->comment   = $attach->parse($rowc->comment);
 					$rowc->changelog = $log;
 
-					$eview = new JView(array(
+					/*$eview = new JView(array(
 						'base_path' => JPATH_ROOT . DS . 'components' . DS . $this->_option,
 						'name'      => 'emails',
 						'layout'    => 'comment'
@@ -751,6 +746,31 @@ class SupportControllerTickets extends Hubzero_Controller
 					$eview->delimiter  = '~!~!~!~!~!~!~!~!~!~!';
 					$eview->boundary   = $from['multipart'];
 					$eview->attach     = $attach;
+
+					$message['multipart'] = $eview->loadTemplate();
+					$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);*/
+					// Plain text email
+					$eview = new JView(array(
+						'base_path' => JPATH_ROOT . DS . 'components' . DS . $this->_option,
+						'name'      => 'emails', 
+						'layout'    => 'comment_plain'
+					));
+					$eview->option     = $this->_option;
+					$eview->controller = $this->_controller;
+					$eview->comment    = $rowc;
+					$eview->ticket     = $row;
+					$eview->delimiter  = '';
+					if ($allowEmailResponses)
+					{
+						$eview->delimiter  = '~!~!~!~!~!~!~!~!~!~!';
+					}
+					$eview->attach     = $attach;
+
+					$message['plaintext'] = $eview->loadTemplate();
+					$message['plaintext'] = str_replace("\n", "\r\n", $message['plaintext']);
+
+					// HTML email
+					$eview->setLayout('comment_html');
 
 					$message['multipart'] = $eview->loadTemplate();
 					$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);
@@ -800,7 +820,7 @@ class SupportControllerTickets extends Hubzero_Controller
 								{
 									// The reply-to address contains the token 
 									$token = $encryptor->buildEmailToken(1, 1, $zuser->get('id'), $id);
-									$from['replytoemail'] = 'htc-' . $token;
+									$from['replytoemail'] = 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@');
 								}
 
 								if (!$dispatcher->trigger('onSendMessage', array($type, $subject, $message, $from, array($zuser->get('id')), $this->_option)))
@@ -822,7 +842,7 @@ class SupportControllerTickets extends Hubzero_Controller
 								{
 									// Build a temporary token for this user, userid will not be valid, but the token will
 									$token = $encryptor->buildEmailToken(1, 1, 1, $id);
-									$emails[] = array($row->email, 'htc-' . $token);
+									$emails[] = array($row->email, 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@'));
 								}
 								else
 								{
@@ -845,7 +865,7 @@ class SupportControllerTickets extends Hubzero_Controller
 							{
 								// The reply-to address contains the token 
 								$token = $encryptor->buildEmailToken(1, 1, $juser->get('id'), $id);
-								$from['replytoemail'] = 'htc-' . $token;									
+								$from['replytoemail'] = 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@');
 							}
 
 							if (!$dispatcher->trigger('onSendMessage', array('support_reply_assigned', $subject, $message, $from, array($juser->get('id')), $this->_option)))
@@ -894,7 +914,7 @@ class SupportControllerTickets extends Hubzero_Controller
 								{
 									// The reply-to address contains the token 
 									$token = $encryptor->buildEmailToken(1, 1, -9999, $id);
-									$from['replytoemail'] = 'htc-' . $token;
+									$from['replytoemail'] = 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@');
 								}
 
 								// Is this the same account as the submitter? If so, ignore
@@ -933,7 +953,7 @@ class SupportControllerTickets extends Hubzero_Controller
 								{
 									// The reply-to address contains the token
 									$token = $encryptor->buildEmailToken(1, 1, -9999, $id);
-									$emails[] = array($acc, 'htc-' . $token);
+									$emails[] = array($acc, 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@'));
 								}
 								else
 								{
@@ -1164,8 +1184,6 @@ class SupportControllerTickets extends Hubzero_Controller
 			$users[] = JHTML::_('select.option', '', 'No User', 'value', 'text');
 		}
 
-		ximport('Hubzero_Group');
-
 		if (strstr($group, ','))
 		{
 			$groups = explode(',', $group);
@@ -1173,7 +1191,7 @@ class SupportControllerTickets extends Hubzero_Controller
 			{
 				foreach ($groups as $g)
 				{
-					$hzg = Hubzero_Group::getInstance(trim($g));
+					$hzg = \Hubzero\User\Group::getInstance(trim($g));
 
 					if ($hzg->get('gidNumber'))
 					{
@@ -1204,7 +1222,7 @@ class SupportControllerTickets extends Hubzero_Controller
 		}
 		else
 		{
-			$hzg = Hubzero_Group::getInstance($group);
+			$hzg = \Hubzero\User\Group::getInstance($group);
 
 			if ($hzg && $hzg->get('gidNumber'))
 			{
@@ -1245,9 +1263,6 @@ class SupportControllerTickets extends Hubzero_Controller
 	 */
 	public function downloadTask()
 	{
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Ensure we have a database object
 		if (!$this->database)
 		{
@@ -1272,34 +1287,6 @@ class SupportControllerTickets extends Hubzero_Controller
 		if (empty($file))
 		{
 			JError::raiseError(404, JText::_('SUPPORT_FILE_NOT_FOUND'));
-			return;
-		}
-		if (preg_match("/^\s*http[s]{0,1}:/i", $file))
-		{
-			JError::raiseError(404, JText::_('SUPPORT_BAD_FILE_PATH'));
-			return;
-		}
-		if (preg_match("/^\s*[\/]{0,1}index.php\?/i", $file))
-		{
-			JError::raiseError(404, JText::_('SUPPORT_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow windows drive letter
-		if (preg_match("/^\s*[.]:/", $file))
-		{
-			JError::raiseError(404, JText::_('SUPPORT_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow \
-		if (strpos('\\', $file))
-		{
-			JError::raiseError(404, JText::_('SUPPORT_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow ..
-		if (strpos('..', $file))
-		{
-			JError::raiseError(404, JText::_('SUPPORT_BAD_FILE_PATH'));
 			return;
 		}
 
@@ -1329,7 +1316,7 @@ class SupportControllerTickets extends Hubzero_Controller
 		}
 
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($filename);
 		$xserver->disposition('inline');
 		$xserver->acceptranges(false); // @TODO fix byte range support
@@ -1352,7 +1339,7 @@ class SupportControllerTickets extends Hubzero_Controller
 	 * @param  $listdir Sub-directory to upload files to
 	 * @return string   Key to use in comment bodies (parsed into links or img tags)
 	 */
-	public function uploadTask($listdir)
+	public function uploadTask($listdir, $comment = 0)
 	{
 		// Incoming
 		$description = JRequest::getVar('description', '');
@@ -1426,6 +1413,7 @@ class SupportControllerTickets extends Hubzero_Controller
 			$row->bind(array(
 				'id'          => 0,
 				'ticket'      => $listdir,
+				'comment_id'  => $comment,
 				'filename'    => $filename . '.' . $ext,
 				'description' => $description
 			));

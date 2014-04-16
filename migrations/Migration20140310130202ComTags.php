@@ -1,32 +1,35 @@
 <?php
+
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for ...
  **/
-class Migration20140310130202ComTags extends Hubzero_Migration
+class Migration20140310130202ComTags extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
-		if ($db->tableExists('#__tags'))
+		if ($this->db->tableExists('#__tags'))
 		{
 			// We need to clean out duplicates first
 			$query = "SELECT *, count(id) as cnt FROM `#__tags` GROUP BY `tag` HAVING cnt > 1;";
-			$db->setQuery($query);
-			if ($results = $db->loadObjectList())
+			$this->db->setQuery($query);
+			if ($results = $this->db->loadObjectList())
 			{
 				require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tags' . DS . 'models' . DS . 'cloud.php');
 
 				foreach ($results as $result)
 				{
 					// Get all duplicate tags
-					$query = "SELECT * FROM `#__tags` WHERE `tag`=" . $db->quote($result->tag) . ";";
-					$db->setQuery($query);
-					if ($tags = $db->loadObjectList())
+					$query = "SELECT * FROM `#__tags` WHERE `tag`=" . $this->db->quote($result->tag) . ";";
+					$this->db->setQuery($query);
+					if ($tags = $this->db->loadObjectList())
 					{
 						foreach ($tags as $tag)
 						{
@@ -44,36 +47,36 @@ class Migration20140310130202ComTags extends Hubzero_Migration
 				}
 			}
 
-			if ($db->tableHasKey('#__tags', 'idx_tag'))
+			if ($this->db->tableHasKey('#__tags', 'idx_tag'))
 			{
 				$query = "ALTER TABLE `#__tags` DROP INDEX `idx_tag`;";
-				$db->setQuery($query);
-				$db->query();
+				$this->db->setQuery($query);
+				$this->db->query();
 			}
 
 			$query = "CREATE UNIQUE INDEX `idx_tag` ON `#__tags` (`tag`);";
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
-		if ($db->tableExists('#__tags'))
+		if ($this->db->tableExists('#__tags'))
 		{
-			if ($db->tableHasKey('#__tags', 'idx_tag'))
+			if ($this->db->tableHasKey('#__tags', 'idx_tag'))
 			{
 				$query = "ALTER TABLE `#__tags` DROP INDEX `idx_tag`;";
-				$db->setQuery($query);
-				$db->query();
+				$this->db->setQuery($query);
+				$this->db->query();
 			}
 
 			$query = "ALTER TABLE `#__tags` ADD INDEX `idx_tag` (`tag`);";
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 }

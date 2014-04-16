@@ -31,14 +31,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'contributor.php');
 
 /**
  * Resources controller for creating a resource
  */
-class ResourcesControllerCreate extends Hubzero_Controller
+class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Container for steps
@@ -362,6 +360,7 @@ class ResourcesControllerCreate extends Hubzero_Controller
 		// Output HTML
 		$this->view->row  = $row;
 		$this->view->task = 'draft';
+		$this->view->progress = $this->progress;
 		if ($this->getError()) 
 		{
 			foreach ($this->getErrors() as $error)
@@ -431,8 +430,7 @@ class ResourcesControllerCreate extends Hubzero_Controller
 		$this->view->row->load($this->view->id);
 
 		// Get groups
-		ximport('Hubzero_User_Profile');
-		$profile = Hubzero_User_Profile::getInstance($this->juser->get('id'));
+		$profile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		$this->view->groups = $profile->getGroups('members');
 
 		// Output HTML
@@ -636,8 +634,7 @@ class ResourcesControllerCreate extends Hubzero_Controller
 
 		if (!$this->juser->get('guest')) 
 		{
-			ximport('Hubzero_User_Helper');
-			$xgroups = Hubzero_User_Helper::getGroups($this->juser->get('id'), 'all');
+			$xgroups = \Hubzero\User\Helper::getGroups($this->juser->get('id'), 'all');
 			// Get the groups the user has access to
 			$this->view->usersgroups = $this->_getUsersGroups($xgroups);
 		} 
@@ -729,8 +726,11 @@ class ResourcesControllerCreate extends Hubzero_Controller
 		$row->modified_by  = $this->juser->get('id');
 		$row->access	   = 0;
 
-		$row->introtext = (trim($row->fulltxt)) ? Hubzero_View_Helper_Html::shortenText(trim($row->fulltxt), 500, 0) : trim($row->fulltxt);
-		$row->fulltxt  = $this->_txtAutoP(trim($row->fulltxt), 1);
+		$row->fulltxt   = trim($row->fulltxt);
+		$row->introtext = $row->introtext 
+						? \Hubzero\Utility\String::truncate(strip_tags($row->introtext), 500) 
+						: \Hubzero\Utility\String::truncate(strip_tags($row->fulltxt), 500);
+		$row->fulltxt   = $this->_txtAutoP($row->fulltxt, 1);
 
 		// Get custom areas, add wrapper tags, and compile into fulltxt
 		$type = new ResourcesType($this->database);
@@ -809,7 +809,6 @@ class ResourcesControllerCreate extends Hubzero_Controller
 			$row->fulltxt   = $this->_txtClean($row->fulltxt);
 			//$row->fulltxt   = $this->_txtAutoP($row->fulltxt, 1);
 			$row->footertext = $this->_txtClean($row->footertext);
-			//$row->introtext  = Hubzero_View_Helper_Html::shortenText($row->fulltxt, 500, 0);
 		}
 
 		// Check content
@@ -1004,7 +1003,8 @@ class ResourcesControllerCreate extends Hubzero_Controller
 					continue;
 				}
 				$this->database->setQuery(
-					'SELECT t2.raw_tag AS fa, t2.id AS label_id, t.id FROM #__tags t
+					'SELECT t2.raw_tag AS fa, t2.id AS label_id, t.id 
+					FROM #__tags t
 					INNER JOIN #__tags_object to1 ON to1.tbl = \'tags\' AND to1.label = \'label\' AND to1.objectid = t.id
 					INNER JOIN #__tags t2 ON t2.id = to1.tagid
 					INNER JOIN #__focus_areas fa ON fa.tag_id = to1.tagid
@@ -1903,7 +1903,7 @@ class ResourcesControllerCreate extends Hubzero_Controller
 			$dir_year  = JFactory::getDate()->format('Y');
 			$dir_month = JFactory::getDate()->format('m');
 		}
-		$dir_id = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir_id = \Hubzero\Utility\String::pad($id);
 
 		$path = $base . DS . $dir_year . DS . $dir_month . DS . $dir_id;
 

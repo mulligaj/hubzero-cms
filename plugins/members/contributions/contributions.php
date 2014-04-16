@@ -64,6 +64,7 @@ class plgMembersContributions extends JPlugin
 	public function &onMembersAreas($user, $member)
 	{
 		$areas['contributions'] = JText::_('PLG_MEMBERS_CONTRIBUTIONS');
+		$areas['icon'] = 'f02d';
 		return $areas;
 	}
 
@@ -183,7 +184,7 @@ class plgMembersContributions extends JPlugin
 			{
 				// No sub-categories - this should be easy
 				$cats[$i]['title'] = $t;
-				$cats[$i]['total'] = (!is_array($totals[$i])) ? $totals[$i] : 0;
+				$cats[$i]['total'] = (isset($totals[$i]) && !is_array($totals[$i])) ? $totals[$i] : 0;
 			}
 
 			// Add to the overall total
@@ -194,9 +195,8 @@ class plgMembersContributions extends JPlugin
 		// Build the HTML
 		if ($returnhtml) 
 		{
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('members', 'contributions');
-			Hubzero_Document::addComponentScript('com_resources', 'resources');
+			\Hubzero\Document\Assets::addPluginStylesheet('members', 'contributions');
+			\Hubzero\Document\Assets::addComponentScript('com_resources', 'resources');
 
 			$limit = ($limit == 0) ? 'all' : $limit;
 
@@ -220,8 +220,7 @@ class plgMembersContributions extends JPlugin
 				$active = '';
 			}
 
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'members',
 					'element' => 'contributions',

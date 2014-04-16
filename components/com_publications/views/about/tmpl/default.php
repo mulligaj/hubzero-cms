@@ -20,13 +20,10 @@ if ($this->publication->abstract)
 }
 
 $description = '';
+$model = new PublicationsModelPublication($this->publication);	
 if ($this->publication->description) 
-{	
-	// No HTML, need to parse
-	if ($this->publication->description == strip_tags($this->publication->description)) 
-	{
-	    $description = $this->parser->parse( stripslashes($this->publication->description), $this->wikiconfig );	
-	}
+{
+	$description = $model->description('parsed');
 }
 
 // Start display
@@ -59,8 +56,7 @@ $citations = NULL;
 if ($this->params->get('show_metadata')) 
 {
 	// Process metadata
-	$metadata = PublicationsHtml::processMetadata($this->publication->metadata, 
-		$this->publication->_category, $this->parser, $this->wikiconfig);
+	$metadata = PublicationsHtml::processMetadata($this->publication->metadata, $this->publication->_category);
 	$html .= $metadata['html'] ? $metadata['html'] : '';
 	$citations = $metadata['citations'];
 }
@@ -90,11 +86,14 @@ if ($this->params->get('show_citation') && $this->publication->state == 1)
 		$jconfig = JFactory::getConfig();
 		$site = trim( $jconfig->getValue('config.live_site'), DS);
 		
-		$cite->url 		= $site . DS . 'publications' . DS . $this->publication->id . '?v='.$this->version;
+		$cite->doi 		= $this->publication->doi ? $this->publication->doi : '';
+		$cite->url 		= $cite->doi 
+							? trim($this->config->get('doi_resolve', 'http://dx.doi.org/'), DS) . DS . $cite->doi
+							: NULL;
 		$cite->type 	= '';
 		$cite->pages 	= '';
 		$cite->author 	= $this->helper->getUnlinkedContributors( $this->authors);
-		$cite->doi 		= $this->publication->doi ? $this->publication->doi : '';
+		$cite->publisher= $this->config->get('doi_publisher', '' );
 		
 		if ($this->params->get('show_citation') == 2) {
 			$citations = '';
@@ -121,9 +120,7 @@ if ($this->params->get('show_tags'))
 // Show version notes
 if ($this->params->get('show_notes') && $this->publication->release_notes) 
 {
-	$notes = $this->parser->parse( stripslashes($this->publication->release_notes), $this->wikiconfig );
-	$html .= PublicationsHtml::tableRow( JText::_('COM_PUBLICATIONS_VERSION')
-	. ' ' . $this->publication->version_label . ' ' . JText::_('COM_PUBLICATIONS_NOTES'),$notes);	
+	$description = $model->notes('parsed');
 }
 
 // Page end

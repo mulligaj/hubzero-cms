@@ -16,10 +16,10 @@ defined('_JEXEC') or die('Restricted access');
 	}
 
 	$name = JText::_('COM_ANSWERS_ANONYMOUS');
-	$huser = new Hubzero_User_Profile;
+	$huser = new \Hubzero\User\Profile;
 	if (!$this->comment->get('anonymous')) 
 	{
-		$huser = $this->comment->creator(); //Hubzero_User_Profile::getInstance($this->comment->get('created_by'));
+		$huser = $this->comment->creator(); //\Hubzero\User\Profile::getInstance($this->comment->get('created_by'));
 		if (is_object($huser) && $huser->get('name')) 
 		{
 			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $huser->get('uidNumber')) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
@@ -35,7 +35,8 @@ defined('_JEXEC') or die('Restricted access');
 		$comment  = $this->comment->content('parsed');
 	}
 
-	$this->comment->set('category', ($this->depth == 1 ? 'answer' : 'answercomment'));
+	$this->comment->set('item_type', 'answer'); // ($this->depth == 1 ? 'answer' : 'answercomment'));
+	$this->comment->set('item_id', ($this->depth == 1 ? $this->comment->get('id') : $this->item_id));
 
 ?>
 	<li class="comment <?php echo $cls; ?>" id="c<?php echo $this->comment->get('id'); ?>">
@@ -122,15 +123,15 @@ defined('_JEXEC') or die('Restricted access');
 				</p>
 				<?php } else { ?>
 				<form id="cform<?php echo $this->comment->get('id'); ?>" action="<?php echo JRoute::_($this->base); ?>" method="post" enctype="multipart/form-data">
-					<!-- <a name="commentform<?php echo $this->comment->get('id'); ?>"></a> -->
 					<fieldset>
 						<legend><span><?php echo JText::sprintf('COM_ANSWERS_REPLYING_TO', (!$this->comment->get('anonymous') ? $name : JText::_('COM_ANSWERS_ANONYMOUS'))); ?></span></legend>
 
 						<input type="hidden" name="comment[id]" value="0" />
-						<input type="hidden" name="comment[category]" value="<?php echo $this->comment->get('category') ?>" />
-						<input type="hidden" name="comment[referenceid]" value="<?php echo $this->comment->get('id'); ?>" />
-						<input type="hidden" name="comment[added]" value="" />
-						<input type="hidden" name="comment[added_by]" value="<?php echo $juser->get('id'); ?>" />
+						<input type="hidden" name="comment[item_type]" value="<?php echo $this->comment->get('item_type', 'answer'); ?>" />
+						<input type="hidden" name="comment[item_id]" value="<?php echo $this->comment->get('item_id'); ?>" />
+						<input type="hidden" name="comment[parent]" value="<?php echo ($this->depth == 1 ? 0 : $this->comment->get('id')); ?>" />
+						<input type="hidden" name="comment[created]" value="" />
+						<input type="hidden" name="comment[created_by]" value="<?php echo $juser->get('id'); ?>" />
 						<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 						<input type="hidden" name="controller" value="questions" />
 						<input type="hidden" name="rid" value="<?php echo $this->question->get('id'); ?>" />
@@ -141,9 +142,7 @@ defined('_JEXEC') or die('Restricted access');
 						<label for="comment_<?php echo $this->comment->get('id'); ?>_content">
 							<span class="label-text"><?php echo JText::_('COM_ANSWERS_ENTER_COMMENTS'); ?></span>
 							<?php
-							ximport('Hubzero_Wiki_Editor');
-							$editor = Hubzero_Wiki_Editor::getInstance();
-							echo $editor->display('comment[comment]', 'comment_' . $this->comment->get('id') . '_content', '', 'minimal no-footer', '35', '4');
+							echo JFactory::getEditor()->display('comment[content]', '', '', '', 35, 4, false, 'comment_' . $this->comment->get('id') . '_content', null, null, array('class' => 'minimal no-footer'));
 							?>
 						</label>
 
@@ -170,7 +169,7 @@ defined('_JEXEC') or die('Restricted access');
 					'layout'  => '_list'
 				)
 			);
-			
+			$view->item_id    = $this->comment->get('item_id');
 			$view->parent     = $this->comment->get('id');
 			$view->question   = $this->question;
 			$view->option     = $this->option;

@@ -78,8 +78,6 @@ class plgAuthenticationHubzero extends JPlugin
 	function onUserAuthenticate( $credentials, $options, &$response )
 	{
 		jimport('joomla.user.helper');
-		ximport('Hubzero_User_Profile');
-		ximport('Hubzero_User_Password');
 
 		// For JLog
 		$response->type = 'hubzero';
@@ -128,7 +126,7 @@ class plgAuthenticationHubzero extends JPlugin
 
 		if ($result)
 		{	
-			if (Hubzero_User_Password::passwordMatches($result->username, $credentials['password'], true)) {
+			if (\Hubzero\User\Password::passwordMatches($result->username, $credentials['password'], true)) {
 				
 				$user = JUser::getInstance($result->id);
 				
@@ -139,16 +137,14 @@ class plgAuthenticationHubzero extends JPlugin
 				$response->error_message = '';
 
 				// Check validity and age of password
-				ximport('Hubzero_Password_Rule');
-				ximport('Hubzero_User_Password');
-				$password_rules = Hubzero_Password_Rule::getRules();
-				$msg = Hubzero_Password_Rule::validate($credentials['password'], $password_rules, $result->username);
+				$password_rules = \Hubzero\Password\Rule::getRules();
+				$msg = \Hubzero\Password\Rule::validate($credentials['password'], $password_rules, $result->username);
 				if(is_array($msg) && !empty($msg[0]))
 				{
 					$session = JFactory::getSession();
 					$session->set('badpassword', '1');
 				}
-				if(Hubzero_User_Password::isPasswordExpired($result->username))
+				if(\Hubzero\User\Password::isPasswordExpired($result->username))
 				{
 					$session = JFactory::getSession();
 					$session->set('expiredpassword', '1');

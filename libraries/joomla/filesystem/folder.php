@@ -356,7 +356,7 @@ abstract class JFolder
 		// as long as the owner is either the webserver or the ftp.
 		if (@rmdir($path))
 		{
-			Hubzero_Factory::getLogger()->logDebug(
+			JFactory::getLogger()->debug(
 				'Path deleted: ' . $path . '; ' . 
 				(!JFactory::getUser()->get('guest') ? ' By: ' . JFactory::getUser()->get('username') . '; ' : '') . 
 				'Request: ' . JRequest::getVar('REQUEST_URI', '', 'server')

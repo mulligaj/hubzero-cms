@@ -46,14 +46,9 @@ else
 	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js');
 }
 
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
-
-if (md5($juser->get('username')) == '579499ed6b89886e17fcf374c81b47a2' || md5(Hubzero_Environment::ipAddress()) == '77c399b44f89766bf48ecb61aa2762cf')
-{
-	$v .= ' rwun';
-}
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 
 $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle());
 ?>
@@ -66,14 +61,12 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 	<head>
 		<!-- <meta http-equiv="X-UA-Compatible" content="IE=edge" /> Doesn't validate... -->
 
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo Hubzero_Document::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'pagination', 'tabs', 'tags', 'tooltip', 'comments', 'voting', 'icons', 'buttons', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'pagination', 'tabs', 'tags', 'tooltip', 'comments', 'voting', 'icons', 'buttons', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/main.css" />
 		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/print.css" />
 
 		<jdoc:include type="head" />
-<?php if (JPluginHelper::isEnabled('system', 'debug')) { ?>
-		<link rel="stylesheet" type="text/css" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/debug.css" />
-<?php } ?>
+
 		<!--[if IE 10]>
 			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie10.css" />
 		<![endif]-->
@@ -102,12 +95,12 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 
 					<div id="account" role="navigation">
 					<?php if (!$juser->get('guest')) { 
-							$profile = Hubzero_User_Profile::getInstance($juser->get('id'));
+							$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 					?>
 						<ul class="menu <?php echo (!$juser->get('guest')) ? 'loggedin' : 'loggedout'; ?>">
 							<li>
 								<div id="account-info">
-									<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($profile); ?>" alt="<?php echo $juser->get('name'); ?>" width="30" height="30" />
+									<img src="<?php echo $profile->getPicture(); ?>" alt="<?php echo $juser->get('name'); ?>" width="30" height="30" />
 									<a class="account-details" href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id')); ?>">
 										<?php echo stripslashes($juser->get('name')); ?> 
 										<span class="account-email"><?php echo $juser->get('email'); ?></span>

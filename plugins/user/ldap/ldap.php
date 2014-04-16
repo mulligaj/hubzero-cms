@@ -32,7 +32,6 @@
 defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.event.plugin');
-jimport('Hubzero.Ldap');
 
 /**
  * User plugin for hub users
@@ -61,8 +60,8 @@ class plgUserLdap extends JPlugin
 	 */
 	public function onAfterStoreUser($user, $isnew, $succes, $msg)
 	{
-		//Hubzero_Factory::getLogger()->logDebug("plgUserLdap::onAfterStoreUser(" . $user['id'] . ")");
-		Hubzero_Ldap::syncUser($user['id']);
+		//JFactory::getLogger()->debug("plgUserLdap::onAfterStoreUser(" . $user['id'] . ")");
+		\Hubzero\Utility\Ldap::syncUser($user['id']);
 	}
 
 	/**
@@ -74,73 +73,73 @@ class plgUserLdap extends JPlugin
 	 */
 	public function onAfterDeleteUser($user, $succes, $msg)
 	{
-		//Hubzero_Factory::getLogger()->logDebug("plgUserLdap::onAfterDeleteUser(" . $user['id'] . ")");
-		Hubzero_Ldap::syncUser($user['id']);
+		//JFactory::getLogger()->debug("plgUserLdap::onAfterDeleteUser(" . $user['id'] . ")");
+		\Hubzero\Utility\Ldap::syncUser($user['id']);
 	}
 	
 	/**
 	 * Method is called after user data is stored in the database
 	 *
-	 * @param object holds the new profile data (Hubzero_User_Profile)
+	 * @param object holds the new profile data (\Hubzero\User\Profile)
 	 */
 	public function onAfterStoreProfile($user)
 	{
-		//Hubzero_Factory::getLogger()->logDebug("plgUserLdap::onAfterStoreProfile(" . $user->get('uidNumber') . ")");
-		Hubzero_Ldap::syncUser($user->get('uidNumber'));
+		//JFactory::getLogger()->debug("plgUserLdap::onAfterStoreProfile(" . $user->get('uidNumber') . ")");
+		\Hubzero\Utility\Ldap::syncUser($user->get('uidNumber'));
 	}
 
 	/**
 	 * Method is called after user data is deleted from the database
 	 *
-	 * @param object holds the new profile data (Hubzero_User_Profile)
+	 * @param object holds the new profile data (\Hubzero\User\Profile)
 	 */
 	public function onAfterDeleteProfile($user)
 	{
-		//Hubzero_Factory::getLogger()->logDebug("plgUserLdap::onAfterDeleteProfile(" . $user->get('uidNumber') . ")");
-		Hubzero_Ldap::syncUser($user->get('uidNumber'));
+		//JFactory::getLogger()->debug("plgUserLdap::onAfterDeleteProfile(" . $user->get('uidNumber') . ")");
+		\Hubzero\Utility\Ldap::syncUser($user->get('uidNumber'));
 	}
 	
 	/**
 	 * Method is called after password data is stored in the database
 	 *
-	 * @param object holds the new password data (Hubzero_User_Password)
+	 * @param object holds the new password data (\Hubzero\User\Password)
 	 */
 	public function onAfterStorePassword($user)
 	{
-		//Hubzero_Factory::getLogger()->logDebug("plgUserLdap::onAfterStoreUser(" . $user->user_id . ")");
-		Hubzero_Ldap::syncUser($user->user_id);
+		//JFactory::getLogger()->debug("plgUserLdap::onAfterStoreUser(" . $user->user_id . ")");
+		\Hubzero\Utility\Ldap::syncUser($user->user_id);
 	}
 
 	/**
 	 * Method is called after password data is deleted from the database
 	 *
-	 * @param object holds the new password data (Hubzero_User_Password)
+	 * @param object holds the new password data (\Hubzero\User\Password)
 	 */
 	public function onAfterDeletePassword($user)
 	{
-		//Hubzero_Factory::getLogger()->logDebug("plgUserLdap::onAfterDeleteUser(" . $user->user_id . ")");
-		Hubzero_Ldap::syncUser($user->user_id);
+		//JFactory::getLogger()->debug("plgUserLdap::onAfterDeleteUser(" . $user->user_id . ")");
+		\Hubzero\Utility\Ldap::syncUser($user->user_id);
 	}
 	
 	/**
 	 * Method is called after group data is stored in the database
 	 *
-	 * @param object holds the new group data (Hubzero_Group)
+	 * @param object holds the new group data (\Hubzero\User\Group)
 	 */
 	public function onAfterStoreGroup($group)
 	{
-		//Hubzero_Factory::getLogger()->logDebug("plgUserLdap::onAfterStoreGroup(" . $group->cn . ")");
-		Hubzero_Ldap::syncGroup($group->cn);
+		//JFactory::getLogger()->debug("plgUserLdap::onAfterStoreGroup(" . $group->cn . ")");
+		\Hubzero\Utility\Ldap::syncGroup($group->cn);
 	}
 	
 	/**
 	 * Method is called after group data is deleted from the database
 	 *
-	 * @param object holds the new group data (Hubzero_Group)
+	 * @param object holds the new group data (\Hubzero\User\Group)
 	 */
 	public function onAfterDeleteGroup($group)
 	{
-		//Hubzero_Factory::getLogger()->logDebug("onAfterDeleteGroup($group)");
-		Hubzero_Ldap::syncGroup($group->cn);
+		//JFactory::getLogger()->debug("onAfterDeleteGroup($group)");
+		\Hubzero\Utility\Ldap::syncGroup($group->cn);
 	}	
 }

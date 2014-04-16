@@ -1,7 +1,7 @@
 <?php
 JLoader::import('Hubzero.Api.Controller');
 
-class ToolsControllerApi extends Hubzero_Api_Controller
+class ToolsControllerApi extends \Hubzero\Component\ApiController
 {
 	function execute()
 	{
@@ -75,14 +75,10 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
-		
-		//include needed tool libraries
-		ximport('Hubzero_Tool');
-		ximport('Hubzero_Tool_Version');
 		
 		//instantiate database object
 		$database = JFactory::getDBO();
@@ -91,7 +87,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 		$format = JRequest::getVar('format', 'json');
 		
 		//get list of tools
-		$tools = Hubzero_Tool::getMyTools();
+		$tools = ToolsModelTool::getMyTools();
 		
 		//get the supported tag
 		$rconfig = JComponentHelper::getParams('com_resources');
@@ -135,7 +131,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
@@ -227,7 +223,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
@@ -235,9 +231,6 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 		//mw session lib
 		require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.session.php' );
 		require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.viewperm.php' );
-		
-		//import HUBzero image lib
-		ximport('Hubzero_Image');
 		
 		//instantiate middleware database object
 		$mwdb = ToolsHelperUtils::getMWDBO();
@@ -311,7 +304,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 		}
 		
 		//load image and serve up
-		$image = new Hubzero_image( $screenshot );
+		$image = new \Hubzero\Image\Processor( $screenshot );
 		$this->setMessageType( 'image/' . $type );
 		$image->setImageType( $image_type );
 		$image->display();
@@ -327,7 +320,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
@@ -508,7 +501,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
@@ -615,7 +608,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
@@ -684,7 +677,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
@@ -730,7 +723,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)	return $this->not_found();
@@ -769,7 +762,7 @@ class ToolsControllerApi extends Hubzero_Api_Controller
 	{
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if($result === false)	return $this->not_found();

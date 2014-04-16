@@ -48,18 +48,18 @@ class ForumModelPost extends ForumModelAbstract
 	protected $_tbl_name = 'ForumTablePost';
 
 	/**
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_forum.post.comment';
+
+	/**
 	 * ForumModelAttachment
 	 * 
 	 * @var object
 	 */
 	protected $_attachment = null;
-
-	/**
-	 * Scope adapter
-	 * 
-	 * @var object
-	 */
-	private $_adapter = null;
 
 	/**
 	 * Returns a reference to a forum post model
@@ -242,22 +242,19 @@ class ForumModelPost extends ForumModelAbstract
 	 */
 	public function link($type='', $params=null)
 	{
+		return $this->adapter()->build($type, $params);
+	}
+
+	/**
+	 * Get the adapter
+	 * 
+	 * @return  object
+	 */
+	public function adapter()
+	{
 		if (!$this->_adapter)
 		{
-			$scope = strtolower($this->get('scope'));
-			$cls = 'ForumModelAdapter' . ucfirst($scope);
-
-			if (!class_exists($cls))
-			{
-				$path = dirname(__FILE__) . '/adapters/' . $scope . '.php';
-				if (!is_file($path))
-				{
-					throw new \InvalidArgumentException(JText::sprintf('Invalid scope of "%s"', $scope));
-				}
-				include_once($path);
-			}
-
-			$this->_adapter = new $cls($this->get('scope_id'));
+			$this->_adapter = $this->_adapter();
 			$this->_adapter->set('thread', $this->get('thread'));
 			$this->_adapter->set('parent', $this->get('parent'));
 			$this->_adapter->set('post', $this->get('id'));
@@ -277,7 +274,7 @@ class ForumModelPost extends ForumModelAbstract
 			$this->_adapter->set('section', $this->get('section'));
 		}
 
-		return $this->_adapter->build($type, $params);
+		return $this->_adapter;
 	}
 
 	/**
@@ -290,67 +287,63 @@ class ForumModelPost extends ForumModelAbstract
 	public function content($as='parsed', $shorten=0)
 	{
 		$as = strtolower($as);
+		$options = array();
 
 		switch ($as)
 		{
 			case 'parsed':
-				if ($this->get('content_parsed'))
+				$content = $this->get('content.parsed', null);
+
+				if ($content === null)
 				{
-					return $this->get('content_parsed');
+					$config = array(
+						'option'   => 'com_forum',
+						'scope'    => 'forum',
+						'pagename' => 'forum',
+						'pageid'   => $this->get('thread'),
+						'filepath' => '',
+						'domain'   => $this->get('thread')
+					);
+
+					$attach = new ForumTableAttachment($this->_db);
+
+					$content = (string) stripslashes($this->get('comment', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('content.parsed', (string) $this->get('comment', ''));
+					$this->set('content.parsed', $this->get('content.parsed') . $attach->getAttachment(
+						$this->get('id'), 
+						$this->link('download'), 
+						$this->_config
+					));
+					$this->set('comment', $content);
+
+					return $this->content($as, $shorten);
 				}
 
-				$p = Hubzero_Wiki_Parser::getInstance();
-
-				$wikiconfig = array(
-					'option'   => 'com_forum',
-					'scope'    => 'forum',
-					'pagename' => 'forum',
-					'pageid'   => $this->get('thread'),
-					'filepath' => '',
-					'domain'   => $this->get('thread')
-				);
-
-				$attach = new ForumTableAttachment($this->_db);
-
-				$this->set('content_parsed', $p->parse(stripslashes($this->get('comment')), $wikiconfig, true, true));
-				$this->set('content_parsed', $this->get('content_parsed') . $attach->getAttachment(
-					$this->get('id'), 
-					$this->link('download'), 
-					$this->_config
-				));
-
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($this->get('content_parsed'), $shorten, 0, 0);
-					if (substr($content, -7) == '&#8230;') 
-					{
-						$content .= '</p>';
-					}
-					return $content;
-				}
-
-				return $this->get('content_parsed');
+				$options['html'] = true;
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->content('parsed'));
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
 			break;
 
 			case 'raw':
 			default:
 				$content = $this->get('comment');
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+		return $content;
 	}
 }
 

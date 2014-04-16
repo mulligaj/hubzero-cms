@@ -150,7 +150,7 @@ class ForumModelSection extends ForumModelAbstract
 		{
 			$this->_cache['category'] = null;
 
-			if (isset($this->_cache['categories']) && ($this->_cache['categories'] instanceof \Hubzero\ItemList))
+			if (isset($this->_cache['categories']) && ($this->_cache['categories'] instanceof \Hubzero\Base\ItemList))
 			{
 				foreach ($this->_cache['categories'] as $key => $category)
 				{
@@ -209,7 +209,7 @@ class ForumModelSection extends ForumModelAbstract
 			case 'list':
 			case 'results':
 			default:
-				if (!isset($this->_cache['categories']) || !($this->_cache['categories'] instanceof \Hubzero\ItemList) || $clear)
+				if (!isset($this->_cache['categories']) || !($this->_cache['categories'] instanceof \Hubzero\Base\ItemList) || $clear)
 				{
 					$tbl = new ForumTableCategory($this->_db);
 					if (($results = $tbl->getRecords($filters)))
@@ -223,7 +223,7 @@ class ForumModelSection extends ForumModelAbstract
 					{
 						$results = array();
 					}
-					$this->_cache['categories'] = new \Hubzero\ItemList($results);
+					$this->_cache['categories'] = new \Hubzero\Base\ItemList($results);
 				}
 				return $this->_cache['categories'];
 			break;
@@ -322,6 +322,22 @@ class ForumModelSection extends ForumModelAbstract
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get the adapter
+	 * 
+	 * @return  object
+	 */
+	public function adapter()
+	{
+		if (!$this->_adapter)
+		{
+			$this->_adapter = $this->_adapter();
+			$this->_adapter->set('section', $this->get('alias'));
+		}
+
+		return $this->_adapter;
 	}
 }
 

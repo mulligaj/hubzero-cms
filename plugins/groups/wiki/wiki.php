@@ -31,27 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-ximport('Hubzero_Plugin');
-
 /**
  * Groups Plugin class for wiki
  */
-class plgGroupsWiki extends Hubzero_Plugin
+class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function plgGroupsWiki(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -64,7 +54,8 @@ class plgGroupsWiki extends Hubzero_Plugin
 			'name' => 'wiki',
 			'title' => JText::_('PLG_GROUPS_WIKI'),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f072'
 		);
 		return $area;
 	}
@@ -104,36 +95,21 @@ class plgGroupsWiki extends Hubzero_Plugin
 			}
 		}
 
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'page.php');
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'revision.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'models' . DS . 'book.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'editor.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'parser.php');
 
-		$page = new WikiPage(JFactory::getDBO());
-		$arr['metadata']['count'] = $page->getPagesCount(array(
-			'group' => $group->get('cn'),
-			'state' => array('0', '1')
-		));
+		$book = new WikiModelBook($group->get('cn'));
+		$arr['metadata']['count'] = $book->pages('count');
+
 		if ($arr['metadata']['count'] <= 0)
 		{
-			if (!defined('WIKI_SUBPAGE_SEPARATOR'))
-			{
-				define('WIKI_SUBPAGE_SEPARATOR', '/');
-			}
-			if (!defined('WIKI_MAX_PAGENAME_LENGTH'))
-			{
-				define('WIKI_MAX_PAGENAME_LENGTH', 100);
-			}
-
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'setup.php');
-
-			$result = WikiSetup::initialize('com_groups', $group->get('cn'));
-			if ($result) 
+			if ($result = $book->scribe($option)) 
 			{
 				$this->setError($result);
 			}
-			$arr['metadata']['count'] = $page->getPagesCount(array(
-				'group' => $group->get('cn'),
-				'state' => array('0', '1')
-			));
+
+			$arr['metadata']['count'] = $book->pages('count', array(), true);
 		}
 
 		// Determine if we need to return any HTML (meaning this is the active plugin)
@@ -186,17 +162,6 @@ class plgGroupsWiki extends Hubzero_Plugin
 			}
 
 			// Import some needed libraries
-			ximport('Hubzero_User_Helper');
-
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'attachment.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'author.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'comment.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'log.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'page.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'html.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'setup.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'tags.php');
-
 			switch ($action)
 			{
 				case 'upload':
@@ -243,11 +208,8 @@ class plgGroupsWiki extends Hubzero_Plugin
 
 			JRequest::setVar('task', $action);
 
-			//if (version_compare(JVERSION, '1.6', 'ge'))
-			//{
-				$lang = JFactory::getLanguage();
-				$lang->load('com_wiki');
-			//}
+			$lang = JFactory::getLanguage();
+			$lang->load('com_wiki');
 
 			//$controllerName = JRequest::getCmd('controller', 'page');
 			if (!file_exists(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'controllers' . DS . $controllerName . '.php'))
@@ -272,8 +234,7 @@ class plgGroupsWiki extends Hubzero_Plugin
 			$content = ob_get_contents();
 			ob_end_clean();
 
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('groups', 'wiki');
+			\Hubzero\Document\Assets::addPluginStylesheet('groups', 'wiki');
 
 			// Return the content
 			$arr['html'] = $content;
@@ -297,7 +258,7 @@ class plgGroupsWiki extends Hubzero_Plugin
 		// Import needed libraries
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'page.php');
 
-		// Instantiate a WikiPage object
+		// Instantiate a WikiTablePage object
 		$database = JFactory::getDBO();
 
 		// Start the log text
@@ -308,7 +269,7 @@ class plgGroupsWiki extends Hubzero_Plugin
 			// Loop through all the IDs for pages associated with this group
 			foreach ($ids as $id)
 			{
-				$wp = new WikiPage($database);
+				$wp = new WikiTablePage($database);
 				$wp->load($id->id);
 				// Delete all items linked to this page
 				//$wp->deleteBits($id->id);
@@ -358,7 +319,7 @@ class plgGroupsWiki extends Hubzero_Plugin
 			return array();
 		}
 		$database = JFactory::getDBO();
-		$database->setQuery("SELECT id FROM #__wiki_page AS p WHERE p.group_cn='" . $gid . "'");
+		$database->setQuery("SELECT id FROM `#__wiki_page` AS p WHERE p.group_cn=" . $database->quote($gid));
 		return $database->loadObjectList();
 	}
 }

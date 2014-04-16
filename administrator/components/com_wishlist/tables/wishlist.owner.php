@@ -175,8 +175,6 @@ class WishlistOwner extends JTable
 	 */
 	public function get_owners($listid, $admingroup, $wishlist='', $native=0, $wishid=0, $owners = array())
 	{
-		ximport('Hubzero_Group');
-
 		if ($listid === NULL) 
 		{
 			return false;
@@ -215,7 +213,7 @@ class WishlistOwner extends JTable
 			foreach ($groups as $g)
 			{
 				// Load the group
-				$group = Hubzero_Group::getInstance($g);
+				$group = \Hubzero\User\Group::getInstance($g);
 				if ($group && $group->get('gidNumber'))
 				{
 					$members  = $group->get('members');

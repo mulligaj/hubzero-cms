@@ -60,8 +60,18 @@
         "tecnick.com/tcpdf": "6.0.017",
         "leafo/lessphp": "0.3.9",
         "dannytrue/phantomjs": "dev-master",
-        "swiftmailer/swiftmailer": "v5.0.2"
+        "swiftmailer/swiftmailer": "v5.0.2",
+        "monolog/monolog": "1.2.*",
+        "willdurand/geocoder": "@stable",
+		"guzzle/guzzle": "3.8.*@dev",
+        "tplaner/when": "dev-develop"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/tplaner/when"
+        }
+    ],
     "autoload": {
 	"psr-0": { "Hubzero": "libraries/" },
         "classmap": [ "libraries/joomla" ]

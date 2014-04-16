@@ -35,7 +35,7 @@ $canDo = TagsHelper::getActions();
 
 $text = ($this->task == 'edit' ? JText::_('EDIT') : JText::_('NEW'));
 
-JToolBarHelper::title(JText::_('TAGS') . ': <small><small>[ ' . $text . ' ]</small></small>', 'tags.png');
+JToolBarHelper::title(JText::_('TAGS') . ': ' . $text, 'tags.png');
 if ($canDo->get('core.edit')) 
 {
 	JToolBarHelper::save();
@@ -90,11 +90,11 @@ if ($this->getError())
 					</tr>
 					<tr>
 						<th class="key" style="vertical-align:top;"><label><?php echo JText::_('DESCRIPTION'); ?>:</label></th>
-						<td><?php echo $editor->display('fields[description]', $this->escape(stripslashes($this->tag->get('description'))), '100%', '200px', '50', '10'); ?></td>
+						<td><?php echo $editor->display('fields[description]', stripslashes($this->tag->get('description')), '100%', '200px', '50', '10'); ?></td>
 					</tr>
 					<tr>
 						<th class="key" style="vertical-align:top;"><label><?php echo JText::_('ALIAS'); ?>:</label></th>
-						<td><?php echo $editor->display('fields[substitutions]', $this->escape(stripslashes($this->tag->substitutes('string', array('limit' => 0)))), '100%', '200px', '50', '10'); ?></td>
+						<td><?php echo $editor->display('fields[substitutions]', stripslashes($this->tag->substitutes('string', array('limit' => 0))), '100%', '200px', '50', '10'); ?></td>
 					</tr>
 				</tbody>
 			</table>
@@ -110,8 +110,7 @@ if ($this->getError())
 			<?php
 			foreach ($logs as $log)
 			{
-				//$user = JUser::getInstance($log->actorid);
-				$actor = $this->escape(stripslashes($log->actor('name'))); //$this->escape(stripslashes($user->get('name')))
+				$actor = $this->escape(stripslashes($log->actor('name')));
 			?>
 			<li>
 				<?php

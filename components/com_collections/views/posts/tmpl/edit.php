@@ -58,9 +58,6 @@ $base = 'index.php?option=' . $this->option . '&controller=' . $this->controller
 
 $site = rtrim(JURI::getInstance()->base(true), '/');
 
-ximport('Hubzero_Wiki_Editor');
-$editor = Hubzero_Wiki_Editor::getInstance();
-
 $dir = $item->get('id');
 if (!$dir)
 {
@@ -204,52 +201,16 @@ if (!$dir)
 					</div><!-- / .field-wrap -->
 
 					<label for="field-title">
-						<?php echo JText::_('COM_COLLECTIONS_FIELD_TITLE'); ?> <!-- <span class="optional">optional</span> -->
+						<?php echo JText::_('COM_COLLECTIONS_FIELD_TITLE'); ?>
 						<input type="text" name="fields[title]" id="field-title" size="35" value="<?php echo $this->escape(stripslashes($item->get('title'))); ?>" />
 					</label>
 	<?php } ?>
 					<label for="field_description">
-						<?php echo JText::_('COM_COLLECTIONS_FIELD_DESCRIPTION'); ?> <!-- <span class="optional">optional</span> -->
-						<span class="syntax hint">limited <a class="tooltips" href="<?php echo JRoute::_('index.php?option=com_wiki&scope=&pagename=Help:WikiFormatting'); ?>" title="Syntax Reference :: <table class=&quot;wiki-reference&quot;>
-									<tbody>
-										<tr>
-											<td>'''bold'''</td>
-											<td><b>bold</b></td>
-										</tr>
-										<tr>
-											<td>''italic''</td>
-											<td><i>italic</i></td>
-										</tr>
-										<tr>
-											<td>__underline__</td>
-											<td><span style=&quot;text-decoration:underline;&quot;>underline</span></td>
-										</tr>
-										<tr>
-											<td>{{{monospace}}}</td>
-											<td><code>monospace</code></td>
-										</tr>
-										<tr>
-											<td>~~strike-through~~</td>
-											<td><del>strike-through</del></td>
-										</tr>
-										<tr>
-											<td>^superscript^</td>
-											<td><sup>superscript</sup></td>
-										</tr>
-										<tr>
-											<td>,,subscript,,</td>
-											<td><sub>subscript</sub></td>
-										</tr>
-										<tr>
-											<td>[http://hubzero.org A link]</td>
-											<td><a href=&quot;http://hubzero.org&quot;>A link</a></td>
-										</tr>
-									</tbody>
-								</table>">Wiki formatting</a> is allowed.</span>
+						<?php echo JText::_('COM_COLLECTIONS_FIELD_DESCRIPTION'); ?>
 					<?php if ($this->entry->get('original')) { ?>
-						<?php echo $editor->display('fields[description]', 'field_description', $this->escape(stripslashes($item->get('description'))), 'minimal no-footer', '50', '5'); ?>
+						<?php echo \JFactory::getEditor()->display('fields[description]', $this->escape(stripslashes($item->description('raw'))), '', '', 35, 5, false, 'field_description', null, null, array('class' => 'minimal no-footer')); ?>
 					<?php } else { ?>
-						<?php echo $editor->display('post[description]', 'field_description', $this->escape(stripslashes($this->entry->get('description'))), 'minimal no-footer', '50', '5'); ?>
+						<?php echo \JFactory::getEditor()->display('post[description]', $this->escape(stripslashes($this->entry->description('raw'))), '', '', 35, 5, false, 'field_description', null, null, array('class' => 'minimal no-footer')); ?>
 					<?php } ?>
 					</label>
 				<?php if ($this->task == 'save' && !$item->get('description')) { ?>
@@ -307,6 +268,8 @@ if (!$dir)
 		<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 		<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 		<input type="hidden" name="task" value="save" />
+
+		<?php echo JHTML::_('form.token'); ?>
 
 		<p class="submit">
 			<input class="btn btn-success" type="submit" value="<?php echo JText::_(strtoupper($this->option) . '_SAVE'); ?>" />

@@ -34,7 +34,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Wiki table class for logging links
  */
-class WikiLink extends JTable
+class WikiTableLink extends JTable
 {
 	/**
 	 * int(11) Primary key

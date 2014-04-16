@@ -89,13 +89,13 @@ function submitbutton(pressbutton)
 					<tr>
 						<td>
 							<span>Question:</span><br />
-							<?php echo $this->escape(stripslashes($this->question->get('subject'))); ?>
+							<?php echo $this->escape($this->question->subject('clean')); ?>
 						</td>
 					</tr>
 					<tr>
 						<td>
 							<label>Answer:</label><br />
-							<?php echo $editor->display('answer[answer]', stripslashes($this->row->get('answer')), '100%', 'auto', '50', '15'); ?>
+							<?php echo $editor->display('answer[answer]', $this->escape($this->row->content('raw')), '100%', 'auto', '50', '15'); ?>
 						</td>
 					</tr>
 				</tbody>
@@ -131,7 +131,7 @@ function submitbutton(pressbutton)
 					</tr>
 					<tr>
 						<td class="key"><label for="created_by">Change Creator:</label></td>
-						<td><input type="text" name="answer[created_by]" id="created_by" size="25" maxlength="50" value="<?php echo $this->escape($this->row->get('created_by', JFactory::getUser()->get('username'))); ?>" /></td>
+						<td><input type="text" name="answer[created_by]" id="created_by" size="25" maxlength="50" value="<?php echo $this->escape($this->row->get('created_by', JFactory::getUser()->get('id'))); ?>" /></td>
 					</tr>
 					<tr>
 						<td class="key"><label for="created">Created Date:</label></td>
@@ -153,7 +153,7 @@ function submitbutton(pressbutton)
 	</div>
 	<div class="clr"></div>
 	
-	<input type="hidden" name="answer[qid]" value="<?php echo $this->question->get('id'); ?>" />
+	<input type="hidden" name="answer[question_id]" value="<?php echo $this->question->get('id'); ?>" />
 	<input type="hidden" name="answer[id]" value="<?php echo $this->row->get('id'); ?>" />
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />

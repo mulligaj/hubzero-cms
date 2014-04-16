@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Resources controller class
  */
-class ResourcesControllerResources extends Hubzero_Controller
+class ResourcesControllerResources extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Constructor
@@ -1293,6 +1291,13 @@ class ResourcesControllerResources extends Hubzero_Controller
 			JError::raiseError(403, JText::_('COM_RESOURCES_ALERTNOTAUTH'));
 			return;
 		}
+		
+		// Make sure they have access to view this resource
+		if ($this->checkGroupAccess($this->model->resource)) 
+		{
+			JError::raiseError(403, JText::_('COM_RESOURCES_ALERTNOTAUTH'));
+			return;
+		}
 
 		// Initiate a resource helper class
 		$helper = new ResourcesHelper($this->model->resource->id, $this->database);
@@ -1303,8 +1308,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 		if ($this->model->inGroup()) 
 		{
 			// Alter the pathway to reflect a group owned resource
-			ximport('Hubzero_Group');
-			$group = Hubzero_Group::getInstance($this->model->resource->group_owner);
+			$group = \Hubzero\User\Group::getInstance($this->model->resource->group_owner);
 
 			if ($group)
 			{
@@ -1361,10 +1365,10 @@ class ResourcesControllerResources extends Hubzero_Controller
 
 		// Access check for tools
 		if ($this->model->isTool())
-		{
+		{			
 			// if (development revision
 			//   or (specific revision that is NOT published))
-			if (($revision=='dev') 
+			if (($revision == 'dev') 
 			 or (!$revision && $this->model->resource->published != 1)) 
 			{
 				// Check if the user has access to the tool
@@ -1378,7 +1382,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 				}
 			}
 		}
-
+				
 		// Whew! Finally passed all the checks
 		// Let's get down to business...
 
@@ -1400,7 +1404,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 
 		$sections = array();
 		$cats = array();
-
+		
 		// We need to do this here because we need some stats info to pass to the body
 		if (!isset($this->model->thistool) || !$this->model->thistool) 
 		{
@@ -1435,6 +1439,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 
 			$cats = $cts;
 		}
+		
 		// Get the sections
 		$sections = $dispatcher->trigger('onResources', array(
 				$this->model,
@@ -1443,8 +1448,9 @@ class ResourcesControllerResources extends Hubzero_Controller
 				'all',
 			)
 		);
-
+		
 		$available = array('play');
+		
 		foreach ($cats as $cat)
 		{
 			$name = key($cat);
@@ -1596,7 +1602,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 		}
 		// Instantiate a new view
 		$view = new JView($v);
-		//$view->filters = $filters;
+		
 		if ($this->model->isTool()) 
 		{
 			$view->thistool = $this->model->thistool;
@@ -1604,20 +1610,14 @@ class ResourcesControllerResources extends Hubzero_Controller
 			$view->alltools = $this->model->alltools;
 			$view->revision = $this->model->revision;
 		}
-		$view->model = $this->model;
-		//$view->config 		= $this->config;
+		$view->model 		= $this->model;
 		$view->tconfig 		= $tconfig;
 		$view->option 		= $this->_option;
-		//$view->resource 	= $this->model->resource;
-		//$view->params 		= $this->model->params;
-		//$view->authorized 	= $authorized;
-		//$view->attribs 		= $this->model->attribs;
 		$view->fsize 		= $fsize;
 		$view->cats 		= $cats;
 		$view->tab 			= $tab;
 		$view->sections 	= $sections;
 		$view->database 	= $this->database;
-		//$view->usersgroups 	= $usersgroups;
 		$view->helper 		= $helper;
 		if ($this->getError()) 
 		{
@@ -1645,8 +1645,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 		$jdoc->setMimeEncoding('application/rss+xml');
 
 		// Start a new feed object
-		ximport('Hubzero_Document_Feed');
-		$doc = new Hubzero_Document_Feed;
+		$doc = new \Hubzero\Document\Feed;
 		$app = JFactory::getApplication();
 		$params = $app->getParams();
 
@@ -1732,10 +1731,10 @@ class ResourcesControllerResources extends Hubzero_Controller
 		$title = '[' . $type . '] ' . $title;
 
 		// Build some basic RSS document information
-		$dtitle = Hubzero_View_Helper_Html::purifyText(stripslashes($title));
+		$dtitle = \Hubzero\Utility\Sanitize::clean(stripslashes($title));
 
-		$doc->title = trim(Hubzero_View_Helper_Html::shortenText(html_entity_decode($dtitle), 250, 0));
-		$doc->description = htmlspecialchars(html_entity_decode(Hubzero_View_Helper_Html::purifyText(stripslashes($resource->introtext))), ENT_COMPAT, 'UTF-8');
+		$doc->title = trim(\Hubzero\Utility\String::truncate(html_entity_decode($dtitle), 250));
+		$doc->description = htmlspecialchars(html_entity_decode(\Hubzero\Utility\Sanitize::clean(stripslashes($resource->introtext))), ENT_COMPAT, 'UTF-8');
 		$doc->copyright = JText::sprintf('COM_RESOURCES_RSS_COPYRIGHT', date("Y"), $jconfig->getValue('config.sitename'));
 		$doc->category = JText::_('COM_RESOURCES_RSS_CATEGORY');
 		$doc->link = JRoute::_('index.php?option=' . $this->_option . '&id=' . $resource->id);
@@ -1769,7 +1768,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 		}
 		$tags = implode(', ', $tagarray);
 		//$tags = $rt->get_tag_string($resource->id, 0, 0, 0, 0, 0);
-		$tags = trim(Hubzero_View_Helper_Html::shortenText($tags, 250, 0));
+		$tags = trim(\Hubzero\Utility\String::truncate($tags, 250));
 		$tags = rtrim($tags, ',');
 
 		$helper->getUnlinkedContributors();
@@ -1785,7 +1784,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 			}
 		}
 
-		$doc->itunes_summary = html_entity_decode(Hubzero_View_Helper_Html::purifyText(stripslashes($resource->introtext)));
+		$doc->itunes_summary = html_entity_decode(\Hubzero\Utility\Sanitize::clean(stripslashes($resource->introtext)));
 		if (count($categories) > 0) 
 		{
 			$doc->itunes_category = $categories[0];
@@ -1803,14 +1802,14 @@ class ResourcesControllerResources extends Hubzero_Controller
 		$dimg = $this->checkForImage($itunes_image_name, $this->config->get('uploadpath'), $resource->created, $resource->id);
 		if ($dimg) 
 		{
-			$dimage = new Hubzero_Document_Feed_Image();
+			$dimage = new \Hubzero\Document\Feed\Image();
 			$dimage->url = $dimg;
-			$dimage->title = trim(Hubzero_View_Helper_Html::shortenText(html_entity_decode($dtitle . ' ' . JText::_('COM_RESOURCES_RSS_ARTWORK')), 250, 0));
+			$dimage->title = trim(\Hubzero\Utility\String::truncate(html_entity_decode($dtitle . ' ' . JText::_('COM_RESOURCES_RSS_ARTWORK')), 250));
 			$dimage->link = $base.$doc->link;
 			$doc->itunes_image = $dimage;
 		}
 
-		$owner = new Hubzero_Document_Feed_ItunesOwner;
+		$owner = new \Hubzero\Document\Feed\ItunesOwner;
 		$owner->email = $jconfig->getValue('config.mailfrom');
 		$owner->name  = $jconfig->getValue('config.sitename');
 
@@ -1835,7 +1834,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 				$link = DS . ltrim(JRoute::_('index.php?option=' . $this->_option . '&id=' . $row->id), DS);
 
 				// Strip html from feed item description text
-				$description = html_entity_decode(Hubzero_View_Helper_Html::purifyText(stripslashes($row->introtext)));
+				$description = html_entity_decode(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->introtext)));
 				$author = '';
 				@$date = ($row->publish_up ? date('r', strtotime($row->publish_up)) : '');
 
@@ -1893,7 +1892,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 						{
 							if (stripslashes($grandchild->introtext) != '')
 							{
-								$gdescription = html_entity_decode(Hubzero_View_Helper_Html::purifyText(stripslashes($grandchild->introtext)));
+								$gdescription = html_entity_decode(\Hubzero\Utility\Sanitize::clean(stripslashes($grandchild->introtext)));
 							}
 							array_push($podcasts, $grandchild->path);
 							array_push($children, $grandchild);
@@ -1909,7 +1908,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 				$rtags = $rtt->get_tag_string($row->id, 0, 0, 0, 0, 0);
 				if (trim($rtags))
 				{
-					$rtags = trim(Hubzero_View_Helper_Html::shortenText($rtags, 250, 0));
+					$rtags = trim(\Hubzero\Utility\String::truncate($rtags, 250));
 					$rtags = rtrim($rtags, ',');
 				}
 
@@ -1923,7 +1922,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 				foreach ($podcasts as $podcast)
 				{
 					// Load individual item creator class
-					$item = new Hubzero_Document_Feed_Item();
+					$item = new \Hubzero\Document\Feed\Item();
 					$item->title       = $title;
 					$item->link        = $link;
 					$item->description = $description;
@@ -1934,7 +1933,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 					$img = $this->checkForImage('ituness_artwork', $this->config->get('uploadpath'), $row->created, $row->id);
 					if ($img) 
 					{
-						$image = new Hubzero_Document_Feed_Image();
+						$image = new \Hubzero\Document\Feed\Image();
 						$image->url = $img;
 						$image->title = $title.' '.JText::_('COM_RESOURCES_RSS_ARTWORK');
 						$image->link = $base.$link;
@@ -1970,7 +1969,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 						{
 							$fs = filesize($podcastp);
 
-							$enclosure = new Hubzero_Document_Feed_Enclosure; //JObject;
+							$enclosure = new \Hubzero\Document\Feed\Enclosure; //JObject;
 							$enclosure->url = $podcast;
 							switch (ResourcesHtml::getFileExtension($podcast))
 							{
@@ -2126,9 +2125,6 @@ class ResourcesControllerResources extends Hubzero_Controller
 	 */
 	protected function download()
 	{
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Ensure we have a database object
 		if (!$this->database) 
 		{
@@ -2210,34 +2206,6 @@ class ResourcesControllerResources extends Hubzero_Controller
 			JError::raiseError(404, JText::_('COM_RESOURCES_FILE_NOT_FOUND'));
 			return;
 		}
-		if (preg_match("/^\s*http[s]{0,1}:/i", $resource->path)) 
-		{
-			JError::raiseError(404, JText::_('COM_RESOURCES_BAD_FILE_PATH'));
-			return;
-		}
-		if (preg_match("/^\s*[\/]{0,1}index.php\?/i", $resource->path)) 
-		{
-			JError::raiseError(404, JText::_('COM_RESOURCES_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow windows drive letter
-		if (preg_match("/^\s*[.]:/", $resource->path)) 
-		{
-			JError::raiseError(404, JText::_('COM_RESOURCES_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow \
-		if (strpos('\\', $resource->path)) 
-		{
-			JError::raiseError(404, JText::_('COM_RESOURCES_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow ..
-		if (strpos('..', $resource->path)) 
-		{
-			JError::raiseError(404, JText::_('COM_RESOURCES_BAD_FILE_PATH'));
-			return;
-		}
 
 		// Get the configured upload path
 		$base_path = $this->config->get('uploadpath', '/site/resources');
@@ -2280,7 +2248,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 		}
 
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($filename);
 		$xserver->disposition($d);
 		$xserver->acceptranges(false); // @TODO fix byte range support
@@ -2313,8 +2281,6 @@ class ResourcesControllerResources extends Hubzero_Controller
 			JError::raiseError(404, JText::_('COM_RESOURCES_RESOURCE_NOT_FOUND'));
 			return;
 		}
-
-		ximport('Hubzero_Content_Server');
 
 		// Load the tool version
 		$tv = new ToolVersion($this->database);
@@ -2354,7 +2320,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 		}
 
 		// Serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($tarpath . $tarname);
 		$xserver->disposition('attachment');
 		$xserver->acceptranges(false); // @TODO fix byte range support
@@ -2501,7 +2467,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 		// Build the download path
 		$path = JPATH_ROOT . $this->config->get('cachepath', '/cache/resources');
 		$date = $row->created;
-		$dir_resid = Hubzero_View_Helper_Html::niceidformat($row->id);
+		$dir_resid = \Hubzero\Utility\String::pad($row->id);
 		if ($date && preg_match("#([0-9]{4})-([0-9]{2})-([0-9]{2})[ ]([0-9]{2}):([0-9]{2}):([0-9]{2})#", $date, $regs)) 
 		{
 			$date = mktime($regs[4], $regs[5], $regs[6], $regs[2], $regs[3], $regs[1]);
@@ -2795,7 +2761,6 @@ class ResourcesControllerResources extends Hubzero_Controller
 	 */
 	private function checkGroupAccess($resource, $juser=null)
 	{
-		//$juser = Hubzero_Factory::getUser();
 		if (!$juser) 
 		{
 			$juser = JFactory::getUser();
@@ -2820,8 +2785,7 @@ class ResourcesControllerResources extends Hubzero_Controller
 				}
 			}
 
-			ximport('Hubzero_User_Helper');
-			$xgroups = Hubzero_User_Helper::getGroups($juser->get('id'), 'all');
+			$xgroups = \Hubzero\User\Helper::getGroups($juser->get('id'), 'all');
 			// Get the groups the user has access to
 			$usersgroups = self::getUsersGroups($xgroups);
 		} 

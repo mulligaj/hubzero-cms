@@ -40,9 +40,9 @@ if (!$no_html && $tmpl != 'component') : ?>
 		<h2>
 			<?php echo $this->escape(stripslashes($this->course->get('title'))); ?>
 		</h2>
-		<?php if ($this->course->get('logo')) { ?>
+		<?php if ($logo = $this->course->logo()) { ?>
 		<p class="course-identity">
-			<img src="/site/courses/<?php echo $this->course->get('id'); ?>/<?php echo $this->course->get('logo'); ?>" alt="<?php echo JText::_('Course logo'); ?>" />
+			<img src="<?php echo $logo; ?>" alt="<?php echo JText::_('Course logo'); ?>" />
 		</p>
 		<?php } ?>
 		<p id="page_identity">
@@ -112,6 +112,10 @@ if (!$no_html && $tmpl != 'component') : ?>
 								$active = $cat['name'];
 								$title  = $cat['title'];
 								$cls    = $cat['name'];
+								if (!isset($cat['icon']))
+								{
+									$cat['icon'] = 'f0a1';
+								}
 
 								//get the menu items access level
 								//$access = $access_levels[$cat['name']];
@@ -132,7 +136,7 @@ if (!$no_html && $tmpl != 'component') : ?>
 									else
 									{
 										$menu_item  = "<li class=\"{$li_cls} course-overview-tab\">";
-										$menu_item .= '<a class="outline" href="' . $link . '" data-title="' . JText::_('Outline') . '">' . JText::_('Outline') . '</a>';
+										$menu_item .= '<a class="outline" href="' . $link . '" data-icon="&#x' . $cat['icon'] . '" data-title="' . JText::_('Outline') . '">' . JText::_('Outline') . '</a>';
 									} 
 									$menu_item .= '</li>';
 									$menu_item .= '</li>';
@@ -142,7 +146,7 @@ if (!$no_html && $tmpl != 'component') : ?>
 									if (!$this->course->offering()->access('view'))
 									{
 										$menu_item  = '<li class="protected members-only course-' . $cls . '-tab" data-title="' . JText::_('This page is restricted to course members only!') . '">';
-										$menu_item .= '<span class="' . $cls . '">' . $title . '</span>';
+										$menu_item .= '<span class="' . $cls . '" data-icon="&#x' . $cat['icon'] . '">' . $title . '</span>';
 										$menu_item .= '</li>';
 									}
 									else
@@ -154,7 +158,7 @@ if (!$no_html && $tmpl != 'component') : ?>
 
 										//create menu item
 										$menu_item  = '<li class="' . $li_cls . ' course-' . $cls . '-tab">';
-										$menu_item .= '<a class="' . $cls . '" data-title="' . $this->escape(stripslashes($title)) . '" href="' . $link . '">' . $this->escape($title) . '</a>';
+										$menu_item .= '<a class="' . $cls . '" data-icon="&#x' . $cat['icon'] . '" data-title="' . $this->escape(stripslashes($title)) . '" href="' . $link . '">' . $this->escape($title) . '</a>';
 										if ($meta_count)
 										{
 											$menu_item .= '<span class="meta">';

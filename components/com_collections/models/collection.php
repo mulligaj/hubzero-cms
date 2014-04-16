@@ -37,7 +37,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'mod
 /**
  * Table class for forum posts
  */
-class CollectionsModelCollection extends \Hubzero\Model
+class CollectionsModelCollection extends \Hubzero\Base\Model
 {
 	/**
 	 * Resource ID
@@ -54,11 +54,11 @@ class CollectionsModelCollection extends \Hubzero\Model
 	protected $_tbl_name = 'CollectionsTableCollection';
 
 	/**
-	 * JDatabase
+	 * Model context
 	 * 
-	 * @var object
+	 * @var string
 	 */
-	//private $_db = NULL;
+	protected $_context = 'com_collections.collection.description';
 
 	/**
 	 * Container for properties
@@ -89,6 +89,13 @@ class CollectionsModelCollection extends \Hubzero\Model
 	private $_following = null;
 
 	/**
+	 * User object
+	 * 
+	 * @var object
+	 */
+	private $_creator = null;
+
+	/**
 	 * Constructor
 	 * 
 	 * @param      integer $id  Resource ID or alias
@@ -108,10 +115,7 @@ class CollectionsModelCollection extends \Hubzero\Model
 		else if (is_object($oid))
 		{
 			$this->bind($oid);
-			/*if (isset($oid->posts))
-			{
-				$this->_tbl->set('posts', $oid->posts);
-			}*/
+
 			if (isset($oid->following))
 			{
 				$this->_following = $oid->following ? true : false;
@@ -120,10 +124,7 @@ class CollectionsModelCollection extends \Hubzero\Model
 		else if (is_array($oid))
 		{
 			$this->bind($oid);
-			/*if (isset($oid['posts']))
-			{
-				$this->_tbl->set('posts', $oid['posts']);
-			}*/
+
 			if (isset($oid['following']))
 			{
 				$this->_following = $oid['following'] ? true : false;
@@ -152,7 +153,7 @@ class CollectionsModelCollection extends \Hubzero\Model
 
 		if (!isset($instances[$key])) 
 		{
-			$instances[$key] = new CollectionsModelCollection($oid, $object_id, $object_type);
+			$instances[$key] = new self($oid, $object_id, $object_type);
 		}
 
 		return $instances[$key];
@@ -170,19 +171,49 @@ class CollectionsModelCollection extends \Hubzero\Model
 	}
 
 	/**
+	 * Return a formatted timestamp
+	 * 
+	 * @param      string $as What format to return
+	 * @return     boolean
+	 */
+	public function created($as='')
+	{
+		switch (strtolower($as))
+		{
+			case 'date':
+				return JHTML::_('date', $this->get('created'), JText::_('DATE_FORMAT_HZ1'));
+			break;
+
+			case 'time':
+				return JHTML::_('date', $this->get('created'), JText::_('TIME_FORMAT_HZ1'));
+			break;
+
+			default:
+				return $this->get('created');
+			break;
+		}
+	}
+
+	/**
 	 * Get the creator of this entry
 	 * 
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
+	 * it returns the entire user object
 	 *
-	 * @return     mixed
+	 * @param   string $property
+	 * @return  mixed
 	 */
-	public function creator()
+	public function creator($property=null)
 	{
-		if (!isset($this->_creator) || !is_object($this->_creator))
+		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
-			$this->_creator = JUser::getInstance($this->get('created_by'));
+			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+		}
+		if ($property)
+		{
+			$property = ($property == 'id' ? 'uidNumber' : $property);
+			return $this->_creator->get($property);
 		}
 		return $this->_creator;
 	}
@@ -291,7 +322,7 @@ class CollectionsModelCollection extends \Hubzero\Model
 			$this->_post = null;
 
 			// If the list of all posts is available ...
-			if (isset($this->_posts) && $this->_posts instanceof \Hubzero\ItemList)
+			if (isset($this->_posts) && $this->_posts instanceof \Hubzero\Base\ItemList)
 			{
 				// Find a post in the list that matches the ID passed
 				foreach ($this->posts() as $key => $post)
@@ -336,7 +367,7 @@ class CollectionsModelCollection extends \Hubzero\Model
 			return $tbl->getCount($filters);
 		}
 
-		if (!isset($this->_posts) || !($this->_posts instanceof \Hubzero\ItemList))
+		if (!isset($this->_posts) || !($this->_posts instanceof \Hubzero\Base\ItemList))
 		{
 			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tables' . DS . 'post.php');
 
@@ -402,7 +433,7 @@ class CollectionsModelCollection extends \Hubzero\Model
 				$results = array();
 			}
 
-			$this->_posts = new \Hubzero\ItemList($results);
+			$this->_posts = new \Hubzero\Base\ItemList($results);
 		}
 
 		return $this->_posts;
@@ -438,7 +469,28 @@ class CollectionsModelCollection extends \Hubzero\Model
 				}
 			break;
 
+			case 'followers':
+				if (!isset($this->_counts[$what]))
+				{
+					//$follow = new CollectionsModelFollowing($this->get('id'), 'collection');
+					//$this->_counts[$what] = $follow->count('followers');
+					$tbl = new CollectionsTableFollowing($this->_db);
+					$this->_counts[$what] = $tbl->count(array(
+						'following_type' => 'collection',
+						'following_id'   => $this->get('id')
+					));
+				}
+				return $this->_counts[$what];
+			break;
+
 			case 'post':
+				if ($this->get('posts', null) == null)
+				{
+					$this->set('posts', $this->posts(array(
+						'count' => true,
+						'collection_id' => $this->get('id'))
+					));
+				}
 				return (int) $this->get('posts', 0);
 			break;
 
@@ -536,15 +588,78 @@ class CollectionsModelCollection extends \Hubzero\Model
 		switch ($this->get('object_type'))
 		{
 			case 'group':
-				$group = Hubzero_Group::getInstance($this->get('object_id'));
+				$group = \Hubzero\User\Group::getInstance($this->get('object_id'));
 				$href = 'index.php?option=com_groups&cn=' . $group->get('cn') . '&active=collections&scope=' . $this->get('alias');
 			break;
 
 			case 'member':
-			default:
 				$href = 'index.php?option=com_members&id=' . $this->get('object_id') . '&active=collections&task=' . $this->get('alias');
+			break;
+
+			default:
+				$href = 'index.php?option=com_collections&task=all&id=' . $this->get('id');
 			break;
 		}
 		return $href;
+	}
+
+	/**
+	 * Get the content of the entry
+	 * 
+	 * @param      string  $as      Format to return state in [text, number]
+	 * @param      integer $shorten Number of characters to shorten text to
+	 * @return     string
+	 */
+	public function description($as='parsed', $shorten=0)
+	{
+		$as = strtolower($as);
+		$options = array();
+
+		switch ($as)
+		{
+			case 'parsed':
+				$content = $this->get('description.parsed', null);
+				if ($content === null)
+				{
+					$config = array(
+						'option'   => $this->get('option', JRequest::getCmd('option')),
+						'scope'    => $this->get('scope', 'collection'),
+						'pagename' => $this->get('alias'),
+						'pageid'   => 0,
+						'filepath' => $this->get('path', '/site/collections'),
+						'domain'   => ''
+					);
+
+					$content = stripslashes((string) $this->get('description', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('description.parsed', (string) $this->get('description', ''));
+					$this->set('description', $content);
+
+					return $this->description($as, $shorten);
+				}
+				$options['html'] = true;
+			break;
+
+			case 'clean':
+				$content = strip_tags($this->description('parsed'));
+			break;
+
+			case 'raw':
+			default:
+				$content = stripslashes($this->get('description'));
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
+			break;
+		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+		return $content;
 	}
 }

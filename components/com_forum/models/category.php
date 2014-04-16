@@ -55,13 +55,6 @@ class ForumModelCategory extends ForumModelAbstract
 	private $_cache = array();
 
 	/**
-	 * Scope adapter
-	 * 
-	 * @var object
-	 */
-	private $_adapter = null;
-
-	/**
 	 * Constructor
 	 * 
 	 * @param      mixed   $oid        ID (integer), alias (string), array or object
@@ -166,7 +159,7 @@ class ForumModelCategory extends ForumModelAbstract
 		{
 			$this->_cache['thread'] = null;
 
-			if (isset($this->_cache['threads']) && ($this->_cache['threads'] instanceof \Hubzero\ItemList))
+			if (isset($this->_cache['threads']) && ($this->_cache['threads'] instanceof \Hubzero\Base\ItemList))
 			{
 				foreach ($this->_cache['threads'] as $key => $thread)
 				{
@@ -224,7 +217,7 @@ class ForumModelCategory extends ForumModelAbstract
 			case 'list':
 			case 'results':
 			default:
-				if (!isset($this->_cache['threads']) || !($this->_cache['threads'] instanceof \Hubzero\ItemList) || $clear)
+				if (!isset($this->_cache['threads']) || !($this->_cache['threads'] instanceof \Hubzero\Base\ItemList) || $clear)
 				{
 					$tbl = new ForumTablePost($this->_db);
 
@@ -240,7 +233,7 @@ class ForumModelCategory extends ForumModelAbstract
 						$results = array();
 					}
 
-					$this->_cache['threads'] = new \Hubzero\ItemList($results);
+					$this->_cache['threads'] = new \Hubzero\Base\ItemList($results);
 				}
 
 				return $this->_cache['threads'];
@@ -310,31 +303,7 @@ class ForumModelCategory extends ForumModelAbstract
 	 */
 	public function link($type='', $params=null)
 	{
-		if (!$this->_adapter)
-		{
-			$scope = strtolower($this->get('scope'));
-			$cls = 'ForumModelAdapter' . ucfirst($scope);
-
-			if (!class_exists($cls))
-			{
-				$path = dirname(__FILE__) . '/adapters/' . $scope . '.php';
-				if (!is_file($path))
-				{
-					throw new \InvalidArgumentException(JText::sprintf('Invalid scope of "%s"', $scope));
-				}
-				include_once($path);
-			}
-
-			$this->_adapter = new $cls($this->get('scope_id'));
-			if (!$this->get('section_alias'))
-			{
-				$this->set('section_alias', ForumModelSection::getInstance($this->get('section_id'))->get('alias'));
-			}
-			$this->_adapter->set('section', $this->get('section_alias'));
-			$this->_adapter->set('category', $this->get('alias'));
-		}
-
-		return $this->_adapter->build($type, $params);
+		return $this->adapter()->build($type, $params);
 	}
 
 	/**
@@ -344,7 +313,7 @@ class ForumModelCategory extends ForumModelAbstract
 	 */
 	public function lastActivity()
 	{
-		if (!isset($this->_cache['last']) || !is_a($this->_cache['last'], 'ForumModelPost'))
+		if (!isset($this->_cache['last']) || !($this->_cache['last'] instanceof ForumModelPost))
 		{
 			$post = new ForumTablePost($this->_db);
 			if (!($last = $post->getLastActivity($this->get('scope_id'), $this->get('scope'), $this->get('id'))))
@@ -354,6 +323,27 @@ class ForumModelCategory extends ForumModelAbstract
 			$this->_cache['last'] = new ForumModelPost($last);
 		}
 		return $this->_cache['last'];
+	}
+
+	/**
+	 * Get the adapter
+	 * 
+	 * @return  object
+	 */
+	public function adapter()
+	{
+		if (!$this->_adapter)
+		{
+			$this->_adapter = $this->_adapter();
+			if (!$this->get('section_alias'))
+			{
+				$this->set('section_alias', ForumModelSection::getInstance($this->get('section_id'))->get('alias'));
+			}
+			$this->_adapter->set('section', $this->get('section_alias'));
+			$this->_adapter->set('category', $this->get('alias'));
+		}
+
+		return $this->_adapter;
 	}
 }
 

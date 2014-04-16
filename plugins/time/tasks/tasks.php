@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-
 /**
  * Tasks plugin for time component
  */
-class plgTimeTasks extends Hubzero_Plugin
+class plgTimeTasks extends \Hubzero\Plugin\Plugin
 {
 
 	/**
@@ -108,9 +106,8 @@ class plgTimeTasks extends Hubzero_Plugin
 		require_once(JPATH_ROOT.DS.'plugins'.DS.'time'.DS.'helpers'.DS.'filters.php');
 
 		// Add some styles to the view
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('time','tasks');
-		Hubzero_Document::addPluginScript('time','tasks');
+		\Hubzero\Document\Assets::addPluginStylesheet('time','tasks');
+		\Hubzero\Document\Assets::addPluginScript('time','tasks');
 
 		// Only perform the following if this is the active tab/plugin
 		if ($return == 'html')
@@ -148,8 +145,7 @@ class plgTimeTasks extends Hubzero_Plugin
 		$hub   = new TimeHubs($this->db);
 
 		// Create a new plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'time',
 				'element'=>'tasks',
@@ -191,8 +187,7 @@ class plgTimeTasks extends Hubzero_Plugin
 	private function _edit($task=null)
 	{
 		// Create a new plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'time',
 				'element'=>'tasks',

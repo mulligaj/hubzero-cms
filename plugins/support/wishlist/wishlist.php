@@ -76,9 +76,9 @@ class plgSupportWishlist extends JPlugin
 		} 
 		else if ($category == 'wishcomment') 
 		{
-			$query  = "SELECT rr.id, rr.comment as text, rr.added AS created, rr.added_by as author, NULL as subject";
+			$query  = "SELECT rr.id, rr.content as text, rr.created, rr.created_by as author, NULL as subject";
 			$query .= ", rr.category as parent_category, rr.anonymous as anon";
-			$query .= " FROM #__comments AS rr";
+			$query .= " FROM #__item_comments AS rr";
 			$query .= " WHERE rr.id=" . $refid;
 		}
 
@@ -89,6 +89,10 @@ class plgSupportWishlist extends JPlugin
 		{
 			foreach ($rows as $key => $row)
 			{
+				if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $row->text, $matches))
+				{
+					$rows[$key]->text = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $row->text);
+				}
 				$rows[$key]->href = ($parent) ? JRoute::_('index.php?option=com_wishlist&task=wishlist&id=' . $parent) : '';
 				if ($rows[$key]->parent_category == 'wishcomment') 
 				{
@@ -108,8 +112,6 @@ class plgSupportWishlist extends JPlugin
 	 */
 	public function getParentId($parentid, $category)
 	{
-		ximport('Hubzero_Comment');
-
 		$database = JFactory::getDBO();
 		$refid = $parentid;
 
@@ -153,7 +155,7 @@ class plgSupportWishlist extends JPlugin
 	{
 		$database = JFactory::getDBO();
 
-		$parent = new Hubzero_Comment($database);
+		$parent = new \Hubzero\Item\Comment($database);
 		$parent->load($parentid);
 
 		return $parent;
@@ -226,9 +228,7 @@ class plgSupportWishlist extends JPlugin
 			break;
 
 			case 'wishcomment':
-				ximport('Hubzero_Comment');
-
-				$comment = new Hubzero_Comment($database);
+				$comment = new \Hubzero\Item\Comment($database);
 				$comment->load($referenceid);
 				$comment->state = 2;
 				if (!$comment->store()) 

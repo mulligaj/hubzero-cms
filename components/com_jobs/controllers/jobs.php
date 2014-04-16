@@ -31,12 +31,10 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Jobs controller class for postings
  */
-class JobsControllerJobs extends Hubzero_Controller
+class JobsControllerJobs extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Method to set a property of the class
@@ -575,7 +573,7 @@ class JobsControllerJobs extends Hubzero_Controller
 		$this->_getScripts('assets/js/' . $this->_name);
 
 		// Get the member's info
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($uid);
 
 		// load Employer
@@ -604,8 +602,7 @@ class JobsControllerJobs extends Hubzero_Controller
 		$specialgroup = $this->config->get('specialgroup', '');
 		if ($specialgroup)
 		{
-			ximport('Hubzero_Group');
-			$sgroup = Hubzero_Group::getInstance($specialgroup);
+			$sgroup = \Hubzero\User\Group::getInstance($specialgroup);
 			if (!$sgroup)
 			{
 				$specialgroup = '';
@@ -621,7 +618,7 @@ class JobsControllerJobs extends Hubzero_Controller
 		}
 
 		// check available user funds (if paying with points)
-		$BTL = new Hubzero_Bank_Teller($this->database, $subscription->uid);
+		$BTL = new \Hubzero\Bank\Teller($this->database, $subscription->uid);
 		$balance = $BTL->summary();
 		$credit  = $BTL->credit_summary();
 		$funds   = $balance;
@@ -672,7 +669,7 @@ class JobsControllerJobs extends Hubzero_Controller
 		$uid = $uid ? $uid : $this->juser->get('id');
 
 		// Get the member's info
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($uid);
 
 		// are we renewing?
@@ -961,7 +958,7 @@ class JobsControllerJobs extends Hubzero_Controller
 		}
 
 		// Get the member's info
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($uid);
 
 		// load Employer
@@ -1524,7 +1521,7 @@ class JobsControllerJobs extends Hubzero_Controller
 			}
 		}
 
-		$job->companyLocationCountry = $job->companyLocationCountry ? $job->companyLocationCountry : JText::_('COM_JOBS_JOBS_DEFAULT_COUNTRY') ;
+		$job->companyLocationCountry = $job->companyLocationCountry ? $job->companyLocationCountry : NULL;
 
 		// Save new information
 		if (!$min) 
@@ -1696,7 +1693,7 @@ class JobsControllerJobs extends Hubzero_Controller
 		$job->admins = $code ? $jobadmin->getAdmins($job->id) : array($this->juser->get('id'));
 
 		// Get the member's info
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($uid);
 
 		// load Employer
@@ -1867,9 +1864,7 @@ class JobsControllerJobs extends Hubzero_Controller
 			$admingroup = $this->config->get('admingroup', '');
 			if ($admingroup) 
 			{
-				ximport('Hubzero_User_Helper');
-
-				$ugs = Hubzero_User_Helper::getGroups($this->juser->get('id'));
+				$ugs = \Hubzero\User\Helper::getGroups($this->juser->get('id'));
 				if ($ugs && count($ugs) > 0) 
 				{
 					foreach ($ugs as $ug)
@@ -2087,9 +2082,8 @@ class JobsControllerJobs extends Hubzero_Controller
 		if ($archive) 
 		{
 			// Initiate a new content server and serve up the file
-			ximport('Hubzero_Content_Server');
 			jimport('joomla.filesystem.file');
-			$xserver = new Hubzero_Content_Server();
+			$xserver = new \Hubzero\Content\Server();
 			$xserver->filename($archive['path']);
 
 			$xserver->disposition('attachment');
@@ -2157,7 +2151,7 @@ class JobsControllerJobs extends Hubzero_Controller
 				$base_path = DS . trim($base_path, DS);
 			}
 			
-			$base_path .= DS . Hubzero_View_Helper_Html::niceidformat($this->juser->get('id'));
+			$base_path .= DS . \Hubzero\Utility\String::pad($this->juser->get('id'));
 			
 			$i = 0;
 						

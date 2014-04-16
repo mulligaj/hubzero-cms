@@ -1,17 +1,19 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for fixing some dated references to topics, rather than wiki
  **/
-class Migration20131017133750ComWiki extends Hubzero_Migration
+class Migration20131017133750ComWiki extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
 		$query  = "SELECT * FROM `#__wiki_page` AS wp,";
 		$query .= " `#__wiki_version` AS wv";
@@ -20,18 +22,26 @@ class Migration20131017133750ComWiki extends Hubzero_Migration
 		$query .= " ORDER BY wv.version DESC";
 		$query .= " LIMIT 1;";
 
-		$db->setQuery($query);
-		$result = $db->loadObject();
+		$this->db->setQuery($query);
+		$result = $this->db->loadObject();
 
 		if ($result)
 		{
 			require_once JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'revision.php';
 			require_once JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'page.php';
 
-			$version = new WikiPageRevision($db);
+			$cls = 'WikiPage';
+			$cls2 = 'WikiPageRevision';
+			if (class_exists('WikiTablePage'))
+			{
+				$cls = 'WikiTablePage';
+				$cls2 = 'WikiTableRevision';
+			}
+
+			$version = new $cls2($this->db);
 			$version->loadByVersion($result->pageid, $result->version);
 
-			$page = new WikiPage($db);
+			$page = new $cls($this->db);
 			$page->load($result->pageid);
 
 			$hostname = php_uname('n');

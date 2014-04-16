@@ -31,9 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$base = 'index.php?option='.$this->option.'&controller=offering&active=progress&gid='.$this->course->get('alias');
-$base .= '&offering='.$this->course->offering()->get('alias');
-$base .= ($this->course->offering()->section()->get('alias') != '__default') ? ':'.$this->course->offering()->section()->get('alias') : '';
+$base = $this->course->offering()->link() . '&active=progress';
 ?>
 
 <script id="progress-template-main" type="text/x-handlebars-template">
@@ -61,7 +59,7 @@ $base .= ($this->course->offering()->section()->get('alias') != '__default') ? '
 					<textarea name="description" cols="50" rows="2">{{gradepolicy.description}}</textarea>
 				</div>
 				<button type="submit">Submit</button>
-				<a class="restore-defaults" href="<?php echo JRoute::_($base. '&active=progress&action=restoredefaults') ?>">Restore Defaults</a>
+				<a class="restore-defaults" href="<?php echo JRoute::_($base. '&action=restoredefaults') ?>">Restore Defaults</a>
 			{{else}}
 				<p class="warning">Sorry, you do not have permission to edit the grade policy for this course</p>
 			{{/if}}
@@ -126,7 +124,7 @@ $base .= ($this->course->offering()->section()->get('alias') != '__default') ? '
 				<div class="extended-info">
 					<div class="picture">
 						<img src="<?php echo Juri::base(); ?>{{this.full}}" />
-						<a class="more-details" href="<?php echo JRoute::_($base.'&active=progress&id=') ?>{{this.user_id}}">More details</a>
+						<a class="more-details" href="<?php echo JRoute::_($base.'&id=') ?>{{this.user_id}}">More details</a>
 					</div>
 					<div class="extended-info-extra">
 						<h6>Joined Course</h6>
@@ -194,12 +192,12 @@ $base .= ($this->course->offering()->section()->get('alias') != '__default') ? '
 					<div class="form-type">
 						{{#if ../canManage}}
 							<select name="type">
-								<option value="exam"{{ifAreEqual subtype "exam"}}>Exam</option>
-								<option value="quiz"{{ifAreEqual subtype "quiz"}}>Quiz</option>
-								<option value="homework"{{ifAreEqual subtype "homework"}}>Homework</option>
+								<option value="exam"{{ifAreEqual grade_weight "exam"}}>Exam</option>
+								<option value="quiz"{{ifAreEqual grade_weight "quiz"}}>Quiz</option>
+								<option value="homework"{{ifAreEqual grade_weight "homework"}}>Homework</option>
 							</select>
 						{{else}}
-							<small>*{{subtype}}</small>
+							<small>*{{grade_weight}}</small>
 						{{/if}}
 					</div>
 					{{#if ../canManage}}
@@ -217,6 +215,48 @@ $base .= ($this->course->offering()->section()->get('alias') != '__default') ? '
 	{{/each}}
 </script>
 
+<script id="reports-template-main" type="text/x-handlebars-template">
+	<div class="reports-container-inner">
+		<table>
+			<thead>
+				<tr>
+					<td class="centered"><input type="checkbox" class="checkall" /></td>
+					<td>Name</td>
+					<td class="numeric">Responses</td>
+					<td class="numeric">Average</td>
+					<td class="numeric">Min</td>
+					<td class="numeric">Max</td>
+				</tr>
+			</thead>
+			<tbody>
+				{{#each assets}}
+					<tr>
+						<td class="centered checkbox">
+							{{ifIsForm this.type 'form'}}
+						</td>
+						<td>
+							{{resultDetails this.type 'form'}}
+							<span class="form-title">{{this.title}}</span>
+						</td>
+						<td class="numeric">
+							{{getStat ../stats this.id 'responses'}}
+						</td>
+						<td class="numeric">
+							{{getStat ../stats this.id 'average'}}
+						</td>
+						<td class="numeric">
+							{{getStat ../stats this.id 'min'}}
+						</td>
+						<td class="numeric">
+							{{getStat ../stats this.id 'max'}}
+						</td>
+					</tr>
+				{{/each}}
+			</tbody>
+		</table>
+	</div>
+</script>
+
 <div class="main-container">
 	<div id="message-container"></div>
 	<div class="loading">
@@ -227,6 +267,7 @@ $base .= ($this->course->offering()->section()->get('alias') != '__default') ? '
 		<div class="controls clear">
 			<div title="progress view" class="progress-button button active"></div>
 			<div title="gradebook view" class="gradebook-button button"></div>
+			<div title="reports view" class="reports-button button"></div>
 			<?php echo (!$this->course->config()->get('section_grade_policy', true) && !$this->course->offering()->access('manage'))
 				? ''
 				: '<div title="edit grade policy" class="progress_button policy button"></div>'; ?>
@@ -235,6 +276,7 @@ $base .= ($this->course->offering()->section()->get('alias') != '__default') ? '
 				: '<div title="add a new entry" class="gradebook_button addrow button"></div>'; ?>
 			<div title="export to csv" class="gradebook_button export button"></div>
 			<div title="refresh gradebook view" class="gradebook_button refresh button"></div>
+			<div title="download selected detailed results" class="reports_button download button"></div>
 		</div>
 		<div class="fetching-rows">
 			<div class="fetching-rows-inner">

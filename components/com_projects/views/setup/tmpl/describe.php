@@ -33,7 +33,7 @@ $this->project->about = ProjectsHtml::cleanText($this->project->about);
 $title = $this->project->title ? JText::_('COM_PROJECTS_NEW_PROJECT').': '.$this->project->title : $this->title;
 ?>
 <div id="content-header">
-	<h2><?php echo $title; ?> <?php if($this->gid && is_object($this->group)) { ?> <?php echo JText::_('COM_PROJECTS_FOR').' '.ucfirst(JText::_('COM_PROJECTS_GROUP')); ?> <a href="<?php echo JRoute::_('index.php?option=com_groups'.a.'cn='.$this->group->get('cn')); ?>"><?php echo Hubzero_View_Helper_Html::shortenText($this->group->get('description'), 50, 0); ?></a><?php } ?></h2>
+	<h2><?php echo $title; ?> <?php if($this->gid && is_object($this->group)) { ?> <?php echo JText::_('COM_PROJECTS_FOR').' '.ucfirst(JText::_('COM_PROJECTS_GROUP')); ?> <a href="<?php echo JRoute::_('index.php?option=com_groups'.a.'cn='.$this->group->get('cn')); ?>"><?php echo \Hubzero\Utility\String::truncate($this->group->get('description'), 50); ?></a><?php } ?></h2>
 </div><!-- / #content-header -->
 <div class="main section" id="setup">
 	<ul id="status-bar" class="moving">
@@ -55,7 +55,7 @@ $title = $this->project->title ? JText::_('COM_PROJECTS_NEW_PROJECT').': '.$this
 <?php
 
 	$html .= t.' <form id="hubForm" method="post" action="index.php">'.n;
-	$html .= t.'<div class="explaination">'.n;
+	$html .= t.'<div class="aside">'.n;
 	$html .= t.t.'<h4>'.JText::_('COM_PROJECTS_HOWTO_TITLE_NAME_PROJECT').'</h4>'.n;
 	$html .= t.t.'<p>'.JText::_('COM_PROJECTS_HOWTO_NAME_PROJECT').'</p>'.n;
 	$html .= t.'</div>'.n;	
@@ -91,18 +91,18 @@ $title = $this->project->title ? JText::_('COM_PROJECTS_NEW_PROJECT').': '.$this
 	$html .= t.t.'<h2>'.JText::_('COM_PROJECTS_DESCRIBE_PROJECT').'</h2>'.n;
 	$html .= t.t.'<p class="question">'.JText::_('COM_PROJECTS_QUESTION_DESCRIBE_NOW_OR_LATER').'</p>'.n;
 	$html .= t.t.'<p>'.n;
-	$html .= t.t.t.'<span class="btn yesbtn">';
-	$html .= '<a href="index.php?option='.$this->option.a.'task=setup'.a.'id='.$this->project->id.a.'extended=1#ext" id="next_desc">'.JText::_('COM_PROJECTS_QUESTION_DESCRIBE_YES').'</a>';
+	$html .= t.t.t.'<span class="yesbtn">';
+	$html .= '<a href="index.php?option='.$this->option.a.'task=setup'.a.'id='.$this->project->id.a.'extended=1#ext" id="next_desc" class="btn">'.JText::_('COM_PROJECTS_QUESTION_DESCRIBE_YES').'</a>';
 	$html .= '</span>'.n;
-	$html .= t.t.t.'<span class="btn nobtn">';
-	$html .= '<a href="index.php?option='.$this->option.a.'task=setup'.a.'id='.$this->project->id.a.'gonext=1" id="next_step">'.JText::_('COM_PROJECTS_QUESTION_DESCRIBE_NO').'</a>';
+	$html .= t.t.t.'<span class="nobtn">';
+	$html .= '<a href="index.php?option='.$this->option.a.'task=setup'.a.'id='.$this->project->id.a.'gonext=1" id="next_step" class="btn">'.JText::_('COM_PROJECTS_QUESTION_DESCRIBE_NO').'</a>';
 	$html .= '</span>'.n;
 	$html .= t.t.'</p>'.n;
 	$html .= t.'</div>'.n;
 	$html .= t.t.'</fieldset>'.n;
 	$html .= t.t.'<div class="clear"></div>'.n;
 	$html .= t.t.'<div id="describearea">'.n;
-	$html .= t.t.'<div class="explaination">'.n;
+	$html .= t.t.'<div class="aside">'.n;
 	$html .= t.t.t.'<h4>'.JText::_('COM_PROJECTS_HOWTO_TITLE_DESC').'</h4>'.n;
 	$html .= t.t.t.'<p>'.JText::_('COM_PROJECTS_HOWTO_DESC_PROJECT').'</p>'.n;
 	$html .= t.t.t.'<h4>'.JText::_('COM_PROJECTS_HOWTO_TITLE_THUMB').'</h4>'.n;
@@ -115,17 +115,16 @@ $title = $this->project->title ? JText::_('COM_PROJECTS_NEW_PROJECT').': '.$this
 	//$html .= t.t.t.'<span class="hint rightfloat">'.JText::_('COM_PROJECTS_PLEASE_USE').' <a href="/topics/Help:WikiFormatting" rel="external">'.JText::_('COM_PROJECTS_WIKI_FORMATTING').'</a> '.JText::_('COM_PROJECTS_WIKI_TO_COMPOSE').'</span> '.n;
 	$html .= t.t.t.'<span class="clear"></span>'.n;
 	if($this->project->id) {
+		$project = new ProjectsModelProject($this->project);
 		//$html .= t.t.t.'<p id="previewit" class="previewit showaslink">'.JText::_('COM_PROJECTS_PREVIEW').'</p>'.n;
-		ximport('Hubzero_Wiki_Editor');
-		$editor = Hubzero_Wiki_Editor::getInstance();
-		$html .= $editor->display('about', 'about', $this->project->about, '', '10', '25');
+		$html .= \JFactory::getEditor()->display('about', $this->escape($project->about('raw')), '', '', 35, 25, false, 'about', null, null, array('class' => 'minimal no-footer'));
 	}
 	else {
 		$html .= t.t.t.'<textarea name="about" id="about" rows="10" cols="25">'.$this->project->about.'</textarea>'.n;	
 	}
 	$html .= t.t.t.'</label>'.n;
 	$html .= t.t.t.'<label>'.JText::_('COM_PROJECTS_THUMBNAIL').':'.n;
-	$html .= t.t.t.'<iframe class="filer filerMini" frameBorder="0" src="index.php?option='.$this->option.'&amp;no_html=1&amp;task=img&amp;file='.stripslashes($this->project->picture).'&amp;id='.$this->project->id.'&amp;tempid='.$this->tempid.'"></iframe>'."\n";			
+	$html .= t.t.t.'<iframe class="filer filerMini" frameBorder="0" src="' . JRoute::_('index.php?option='.$this->option. a . 'alias=' . $this->project->alias . a . 'task=img').'/?file='.stripslashes($this->project->picture).'&no_html=1&tempid='.$this->tempid .'"></iframe>'."\n";			
 	$html .= t.t.t.'</label>'.n;
 	// Privacy
 	$html .= t.t.'<h2 class="setup-h">'.JText::_('COM_PROJECTS_SETTING_APPEAR_IN_SEARCH').'</h2>'.n;

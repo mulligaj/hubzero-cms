@@ -28,13 +28,12 @@
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+namespace Hubzero\Message;
 
 /**
  * Table class for recording if a user has viewed a message
  */
-class Hubzero_Message_Seen extends JTable
+class Seen extends \JTable
 {
 	/**
 	 * int(11)
@@ -78,13 +77,13 @@ class Hubzero_Message_Seen extends JTable
 		$this->mid = intval($this->mid);
 		if (!$this->mid) 
 		{
-			$this->setError(JText::_('Please provide a message ID.'));
+			$this->setError(\JText::_('Please provide a message ID.'));
 			return false;
 		}
 		$this->uid = intval($this->uid);
 		if (!$this->uid) 
 		{
-			$this->setError(JText::_('Please provide a user ID.'));
+			$this->setError(\JText::_('Please provide a user ID.'));
 			return false;
 		}
 		return true;
@@ -146,7 +145,7 @@ class Hubzero_Message_Seen extends JTable
 		} 
 		else 
 		{
-			$this->_db->setQuery("INSERT INTO $this->_tbl (mid, uid, whenseen) VALUES (" . $this->_db->Quote($this->mid) . ", " . $this->_db->Quote($this->uid) . ", " . $this->_db->Quote($this->whenseen) . ")");
+			$this->_db->setQuery("INSERT INTO $this->_tbl (mid, uid, whenseen) VALUES (" . $this->_db->Quote($this->mid) . ", " . $this->_db->Quote($this->uid). ", " . $this->_db->Quote($this->whenseen) . ")");
 			if ($this->_db->query()) 
 			{
 				$ret = true;
@@ -158,7 +157,7 @@ class Hubzero_Message_Seen extends JTable
 		}
 		if (!$ret) 
 		{
-			$this->setError(strtolower(get_class($this)) . '::store failed <br />' . $this->_db->getErrorMsg());
+			$this->setError(__CLASS__ . '::store failed <br />' . $this->_db->getErrorMsg());
 			return false;
 		} 
 

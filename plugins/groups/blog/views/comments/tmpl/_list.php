@@ -27,7 +27,7 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 <ol class="comments" id="t<?php echo (isset($this->parent) ? $this->parent : '0'); ?>">
 <?php
-if ($this->comments && $this->comments instanceof \Hubzero\ItemList) 
+if ($this->comments && $this->comments instanceof \Hubzero\Base\ItemList) 
 { 
 	$cls = 'odd';
 	if (isset($this->cls))
@@ -39,7 +39,7 @@ if ($this->comments && $this->comments instanceof \Hubzero\ItemList)
 
 	foreach ($this->comments as $comment) 
 	{
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'blog',

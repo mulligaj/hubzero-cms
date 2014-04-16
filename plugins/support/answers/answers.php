@@ -62,26 +62,33 @@ class plgSupportAnswers extends JPlugin
 	 */
 	public function getReportedItem($refid, $category, $parent)
 	{
-		if ($category != 'answer' && $category != 'question' && $category != 'answercomment') 
+		if ($category != 'answer' && $category != 'question') // && $category != 'answercomment' 
 		{
 			return null;
 		}
 
+		$query = '';
+
 		switch ($category)
 		{
 			case 'answer':
-				$query  = "SELECT r.id, r.answer as text, NULL as subject, r.created";
+				$query .= "SELECT r.id, r.answer as text, NULL as subject, r.created";
 				$query .= ", r.anonymous as anon, r.created_by as author, 'answer' as parent_category, NULL as href";
 				$query .= " FROM #__answers_responses AS r";
 				$query .= " WHERE r.state!=2 AND r.id=" . $refid;
 			break;
 
 			case 'question':
-				$query  = "SELECT q.id, q.subject as text, q.created_by as author, q.question as subject, q.created";
+				$query .= "SELECT q.id, q.subject as text, q.created_by as author, q.question as subject, q.created";
 				$query .= ", 'question' as parent_category, q.anonymous as anon, NULL as href";
 				$query .= " FROM #__answers_questions AS q";
 				$query .= " WHERE q.id=" . $refid;
 			break;
+		}
+
+		if (!$query)
+		{
+			return null;
 		}
 
 		$database = JFactory::getDBO();
@@ -91,6 +98,11 @@ class plgSupportAnswers extends JPlugin
 		{
 			foreach ($rows as $key => $row)
 			{
+				if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $row->text, $matches))
+				{
+					$rows[$key]->text = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $row->text);
+				}
+
 				switch ($category)
 				{
 					case 'answer':
@@ -114,37 +126,43 @@ class plgSupportAnswers extends JPlugin
 	 */
 	public function getParentId($parentid, $category)
 	{
-		ximport('Hubzero_Comment');
-
 		$database = JFactory::getDBO();
 		$refid = $parentid;
 
-		if ($category == 'answercomment') 
+		/*if ($category == 'answer') 
 		{
-			$pdata = $this->parent($parentid);
-			$category = $pdata->category;
-			$refid = $pdata->referenceid;
+			$pdata    = $this->parent($parentid);
+			$category = $pdata->get('item_type');
+			$refid    = $pdata->get('item_id');
 
-			if ($pdata->category == 'answercomment') 
+			if ($pdata->get('item_type') == 'answer') 
 			{
 				// Yet another level?
-				$pdata = $this->parent($pdata->referenceid);
-				$category = $pdata->category;
-				$refid = $pdata->referenceid;
+				$pdata    = $this->parent($pdata->get('parent'));
+				$category = $pdata->get('item_type');
+				$refid    = $pdata->get('item_id');
 
-				if ($pdata->category == 'answercomment') 
+				if ($pdata->get('item_type') == 'answer') 
 				{
 					// Yet another level?
-					$pdata = $this->parent($pdata->referenceid);
-					$category = $pdata->category;
-					$refid = $pdata->referenceid;
+					$pdata    = $this->parent($pdata->get('parent'));
+					$category = $pdata->get('item_type');
+					$refid    = $pdata->get('item_id');
 				}
 			}
+		}*/
+		if ($category == 'answercomment') 
+		{
+			$database->setQuery("SELECT item_id FROM `#__item_comments` WHERE id=" . $refid);
+			$response = $database->loadResult();
+
+			$database->setQuery("SELECT question_id FROM `#__answers_responses` WHERE id=" . $response);
+			return $database->loadResult();
 		}
 
 		if ($category == 'answer') 
 		{
-			$database->setQuery("SELECT qid FROM #__answers_responses WHERE id=" . $refid);
+			$database->setQuery("SELECT question_id FROM `#__answers_responses` WHERE id=" . $refid);
 		 	return $database->loadResult();
 		}
 
@@ -164,7 +182,7 @@ class plgSupportAnswers extends JPlugin
 	{
 		$database = JFactory::getDBO();
 
-		$parent = new Hubzero_Comment($database);
+		$parent = new \Hubzero\Item\Comment($database);
 		$parent->load($parentid);
 
 		return $parent;
@@ -188,15 +206,15 @@ class plgSupportAnswers extends JPlugin
 		{
 			case 'answer':
 				return JText::sprintf('Answer to question #%s', $parentid);
-         	break;
+			break;
 
 			case 'question':
 				return JText::sprintf('Question #%s', $parentid);
-         	break;
+			break;
 
 			case 'answercomment':
 				return JText::sprintf('Comment to an answer for question #%s', $parentid);
-         	break;
+			break;
 		}
 	}
 
@@ -222,7 +240,7 @@ class plgSupportAnswers extends JPlugin
 		switch ($category)
 		{
 			case 'answer':
-				$database->setQuery("UPDATE #__answers_responses SET state='2' WHERE id=" . $referenceid);
+				$database->setQuery("UPDATE `#__answers_responses` SET state='2' WHERE id=" . $referenceid);
 				if (!$database->query()) 
 				{
 					$this->setError($database->getErrorMsg());
@@ -244,7 +262,7 @@ class plgSupportAnswers extends JPlugin
 				$responders = array();
 
 				// Get all the answers for this question
-				$database->setQuery("SELECT r.id, r.created_by FROM #__answers_responses AS r WHERE r.qid=" . $referenceid);
+				$database->setQuery("SELECT r.id, r.created_by FROM `#__answers_responses` AS r WHERE r.question_id=" . $referenceid);
 				$answers = $database->loadObjectList();
 
 				if ($answers) 
@@ -252,7 +270,7 @@ class plgSupportAnswers extends JPlugin
 					foreach ($answers as $answer)
 					{
 						// Delete response
-						$database->setQuery("UPDATE #__answers_responses SET state='2' WHERE id=" . $answer->id);
+						$database->setQuery("UPDATE `#__answers_responses` SET state='2' WHERE id=" . $answer->id);
 						if (!$database->query()) 
 						{
 							$this->setError($database->getErrorMsg());
@@ -264,7 +282,7 @@ class plgSupportAnswers extends JPlugin
 					}
 				}
 
-				$database->setQuery("UPDATE #__answers_questions SET state='2', reward='0' WHERE id=" . $referenceid);
+				$database->setQuery("UPDATE `#__answers_questions` SET state='2', reward='0' WHERE id=" . $referenceid);
 				if (!$database->query()) 
 				{
 					$this->setError($database->getErrorMsg());
@@ -273,8 +291,6 @@ class plgSupportAnswers extends JPlugin
 
 				if ($banking && $reward) 
 				{
-					ximport('Hubzero_Bank');
-
 					// Send email to people who answered question with reward
 					if ($responders) 
 					{
@@ -307,7 +323,7 @@ class plgSupportAnswers extends JPlugin
 					}
 
 					// get id of asker
-					$database->setQuery("SELECT created_by FROM #__answers_questions WHERE id=" . $parentid);
+					$database->setQuery("SELECT created_by FROM `#__answers_questions` WHERE id=" . $parentid);
 					$asker = $database->loadResult();
 
 					if ($asker) 
@@ -321,7 +337,7 @@ class plgSupportAnswers extends JPlugin
 						if (isset($asker_id)) 
 						{
 							// Remove hold 
-							$sql = "DELETE FROM #__users_transactions WHERE category='answers' AND type='hold' AND referenceid=" . $parentid . " AND uid='" . $asker_id . "'";
+							$sql = "DELETE FROM `#__users_transactions` WHERE category='answers' AND type='hold' AND referenceid=" . $parentid . " AND uid='" . $asker_id . "'";
 							$database->setQuery($sql);
 							if (!$database->query()) 
 							{
@@ -330,7 +346,7 @@ class plgSupportAnswers extends JPlugin
 							}
 
 							// Make credit adjustment
-							$BTL_Q = new Hubzero_Bank_Teller($database, $asker_id);
+							$BTL_Q = new \Hubzero\Bank\Teller($database, $asker_id);
 							$credit = $BTL_Q->credit_summary();
 							$adjusted = $credit - $reward;
 							$BTL_Q->credit_adjustment($adjusted);
@@ -342,9 +358,7 @@ class plgSupportAnswers extends JPlugin
 			break;
 
 			case 'answercomment':
-				ximport('Hubzero_Comment');
-
-				$comment = new Hubzero_Comment($database);
+				$comment = new \Hubzero\Item\Comment($database);
 				$comment->load($referenceid);
 				$comment->state = 2;
 				if (!$comment->store()) 
@@ -371,7 +385,7 @@ class plgSupportAnswers extends JPlugin
 		$database = JFactory::getDBO();
 
 		// check if question owner assigned a reward for answering his Q 
-		$sql = "SELECT amount FROM #__users_transactions WHERE category='answers' AND type='hold' AND referenceid=" . $id;
+		$sql = "SELECT amount FROM `#__users_transactions` WHERE category='answers' AND type='hold' AND referenceid=" . $id;
 		$database->setQuery($sql);
 
 		return $database->loadResult();

@@ -31,14 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
- * Short description for 'SupportControllerAcl'
- * 
- * Long description (if any) ...
+ * Support controller class for defining permissions
  */
-class SupportControllerAcl extends Hubzero_Controller
+class SupportControllerAcl extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Displays a list of records
@@ -188,9 +184,7 @@ class SupportControllerAcl extends Hubzero_Controller
 				break;
 
 				case 'group':
-					ximport('Hubzero_Group');
-					
-					$group = Hubzero_Group::getInstance($row->foreign_key);
+					$group = \Hubzero\User\Group::getInstance($row->foreign_key);
 					if (!is_object($group))
 					{
 						JError::raiseError(500, JText::_('Cannot find group'));

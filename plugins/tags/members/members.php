@@ -143,8 +143,7 @@ class plgTagsMembers extends JPlugin
 		{
 			if (count($areas) > 1) 
 			{
-				ximport('Hubzero_Document');
-				Hubzero_Document::addComponentStylesheet('com_members');
+				\Hubzero\Document\Assets::addComponentStylesheet('com_members');
 
 				return $f_fields . $f_from;
 			}
@@ -182,8 +181,7 @@ class plgTagsMembers extends JPlugin
 	 */
 	public static function documents()
 	{
-		ximport('Hubzero_Document');
-		Hubzero_Document::addComponentStylesheet('com_members');
+		\Hubzero\Document\Assets::addComponentStylesheet('com_members');
 	}
 
 	/**
@@ -194,9 +192,7 @@ class plgTagsMembers extends JPlugin
 	 */
 	public static function out($row)
 	{
-		ximport('Hubzero_User_Profile');
-		ximport('Hubzero_User_Profile_Helper');
-		$member = Hubzero_User_Profile::getInstance($row->id);
+		$member = \Hubzero\User\Profile::getInstance($row->id);
 
 		if (strstr($row->href, 'index.php')) 
 		{
@@ -205,11 +201,11 @@ class plgTagsMembers extends JPlugin
 		$juri = JURI::getInstance();
 
 		$html  = "\t" . '<li class="member">' . "\n";
-		$html .= "\t\t" . '<p class="photo"><img width="50" height="50" src="' . Hubzero_User_Profile_Helper::getMemberPhoto($member, 0) . '" alt="" /></p>' . "\n";
+		$html .= "\t\t" . '<p class="photo"><img width="50" height="50" src="' . $member->getPicture() . '" alt="" /></p>' . "\n";
 		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '">' . stripslashes($row->title) . '</a></p>' . "\n";
 		if ($row->ftext) 
 		{
-			$html .= "\t\t" . Hubzero_View_Helper_Html::shortenText(Hubzero_View_Helper_Html::purifyText(stripslashes($row->ftext)), 200) . "\n";
+			$html .= "\t\t" . \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->ftext)), 200) . "\n";
 		}
 		$html .= "\t\t" . '<p class="href">' . $juri->base() . ltrim($row->href, DS) . '</p>' . "\n";
 		$html .= "\t" . '</li>' . "\n";

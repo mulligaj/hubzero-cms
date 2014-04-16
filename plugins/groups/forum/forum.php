@@ -31,26 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-
 /**
  * Groups Plugin class for forum entries
  */
-class plgGroupsForum extends Hubzero_Plugin
+class plgGroupsForum extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -63,7 +54,8 @@ class plgGroupsForum extends Hubzero_Plugin
 			'name'             => $this->_name,
 			'title'            => JText::_('PLG_GROUPS_FORUM'),
 			'default_access'   => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f086'
 		);
 		return $area;
 	}
@@ -152,7 +144,6 @@ class plgGroupsForum extends Hubzero_Plugin
 				$arr['html'] = '<p class="warning">' . JText::sprintf('GROUPS_PLUGIN_REQUIRES_MEMBER', ucfirst($active_real)) . '</p>';
 				return $arr;
 			}
-			ximport('Hubzero_Plugin_View');
 
 			//user vars
 			$this->authorized = $authorized;
@@ -160,7 +151,7 @@ class plgGroupsForum extends Hubzero_Plugin
 			//group vars
 			//$this->members = $members;
 			//get the plugins params
-			$p = new Hubzero_Plugin_Params($this->database);
+			$p = new \Hubzero\Plugin\Params($this->database);
 			$this->params = $p->getParams($this->group->get('gidNumber'), 'groups', $this->_name);
 
 			//option and paging vars
@@ -259,9 +250,8 @@ class plgGroupsForum extends Hubzero_Plugin
 			$action = JRequest::getVar('action', $action, 'post');
 
 			//push the stylesheet to the view
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('groups', $this->_name);
-			Hubzero_Document::addPluginScript('groups', $this->_name);
+			\Hubzero\Document\Assets::addPluginStylesheet('groups', $this->_name);
+			\Hubzero\Document\Assets::addPluginScript('groups', $this->_name);
 
 			switch ($action)
 			{
@@ -461,7 +451,7 @@ class plgGroupsForum extends Hubzero_Plugin
 	public function sections()
 	{
 		// Instantiate a vew
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -547,9 +537,10 @@ class plgGroupsForum extends Hubzero_Plugin
 		// Incoming posted data
 		$fields = JRequest::getVar('fields', array(), 'post');
 		$fields = array_map('trim', $fields);
+		$id = (isset($fields['id'])) ? $fields['id'] : null;
 
 		// Instantiate a new table row and bind the incoming data
-		$section = new ForumModelSection($fields['id']);
+		$section = new ForumModelSection($id);
 		if (!$section->bind($fields))
 		{
 			$this->setRedirect(
@@ -663,7 +654,7 @@ class plgGroupsForum extends Hubzero_Plugin
 	 */
 	public function categories()
 	{
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -754,7 +745,7 @@ class plgGroupsForum extends Hubzero_Plugin
 	 */
 	public function search()
 	{
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -843,7 +834,7 @@ class plgGroupsForum extends Hubzero_Plugin
 			return;
 		}
 
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -1027,7 +1018,7 @@ class plgGroupsForum extends Hubzero_Plugin
 	 */
 	public function threads()
 	{
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -1094,7 +1085,7 @@ class plgGroupsForum extends Hubzero_Plugin
 	 */
 	public function editthread($post=null)
 	{
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -1195,7 +1186,7 @@ class plgGroupsForum extends Hubzero_Plugin
 		// Incoming
 		$section = JRequest::getVar('section', '');
 
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 		$fields = array_map('trim', $fields);
 
 		$this->_authorize('thread', intval($fields['id']));
@@ -1319,30 +1310,11 @@ class plgGroupsForum extends Hubzero_Plugin
 		$sef = JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=forum&scope=' . $section . '/' . $category->alias . '/' . $thread . '#c' . $model->id);
 		$forum_message .= "\r\n\r\n" . rtrim($juri->base(), DS) . DS . ltrim($sef, DS) . "\r\n";
 
-		// Translate the message wiki formatting to html
-		/*
-		ximport('Hubzero_Wiki_Parser');
-
-		$p = Hubzero_Wiki_Parser::getInstance();
-		
-		$wikiconfig = array(
-			'option'   => $this->option,
-			'scope'    => 'group' . DS . 'forum',
-			'pagename' => 'group',
-			'pageid'   => $this->group->get('gidNumber'),
-			'filepath' => '',
-			'domain'   => ''
-		);
-		
-		$forum_message = $p->parse("\n".stripslashes($forum_message), $wikiconfig);		
-		*/
-
 		$params = JComponentHelper::getParams('com_groups');
 
 		// Email the group and insert email tokens to allow them to respond to group posts via email
 		if ($params->get('email_comment_processing'))
 		{
-			ximport('Hubzero_EmailToken');
 			// Figure out who should be notified about this comment (all group members for now)
 			$userIDsToEmail = array();
 
@@ -1380,10 +1352,9 @@ class plgGroupsForum extends Hubzero_Plugin
 			$dispatcher = JDispatcher::getInstance();
 
 			// Email each group member separately, each needs a user specific token
-			ximport('Hubzero_EmailToken');
 			foreach ($userIDsToEmail as $userID)
 			{
-				$encryptor = new Hubzero_EmailToken();
+				$encryptor = new \Hubzero\Mail\Token();
 				$jconfig = JFactory::getConfig();
 
 				// Construct User specific Email ThreadToken
@@ -1395,8 +1366,8 @@ class plgGroupsForum extends Hubzero_Plugin
 				$from = array();
 				$from['name']  = $jconfig->getValue('config.sitename') . ' ';
 				$from['email'] = $jconfig->getValue('config.mailfrom');
-				$from['replytoemail'] = 'hgm-' . $token;
-
+				$from['replytoemail'] = 'hgm-' . $token . '@' . $_SERVER['HTTP_HOST'];
+				
 				if (!$dispatcher->trigger('onSendMessage', array('group_message', $subject, $forum_message, $from, array($userID), $this->option, null, '', $this->group->get('gidNumber')))) 
 				{
 					$this->setError(JText::_('GROUPS_ERROR_EMAIL_MEMBERS_FAILED'));
@@ -1709,11 +1680,8 @@ class plgGroupsForum extends Hubzero_Plugin
 			return;
 		}
 
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($filename);
 		$xserver->disposition('inline');
 		$xserver->acceptranges(false); // @TODO fix byte range support
@@ -1832,8 +1800,7 @@ class plgGroupsForum extends Hubzero_Plugin
 		}
 
 		// Output HTML
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -1845,7 +1812,7 @@ class plgGroupsForum extends Hubzero_Plugin
 		$view->config     = $this->params;
 		$view->model      = $this->model;
 
-		$view->settings   = new Hubzero_Plugin_Params($this->database);
+		$view->settings   = new \Hubzero\Plugin\Params($this->database);
 		$view->settings->loadPlugin($this->group->get('gidNumber'), 'groups', $this->_name);
 
 		$view->authorized = $this->authorized;
@@ -1883,7 +1850,7 @@ class plgGroupsForum extends Hubzero_Plugin
 
 		$settings = JRequest::getVar('settings', array(), 'post');
 
-		$row = new Hubzero_Plugin_Params($this->database);
+		$row = new \Hubzero\Plugin\Params($this->database);
 		if (!$row->bind($settings)) 
 		{
 			$this->setError($row->getError());

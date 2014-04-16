@@ -1,7 +1,7 @@
 <?php
 JLoader::import('Hubzero.Api.Controller');
 
-class MembersControllerApi extends Hubzero_Api_Controller
+class MembersControllerApi extends \Hubzero\Component\ApiController
 {
 	function execute()
 	{
@@ -53,13 +53,10 @@ class MembersControllerApi extends Hubzero_Api_Controller
 		//get the userid from authentication token
 		//load user profile from userid
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//check to make sure we have a profile
 		if ($result === false)	return $this->not_found();
-		
-		//
-		ximport("Hubzero_User_Profile_Helper");
 		
 		//get any request vars
 		$format = JRequest::getVar('format', 'json');
@@ -72,7 +69,7 @@ class MembersControllerApi extends Hubzero_Api_Controller
 			'first_name' => $result->get('givenName'),
 			'middle_name' => $result->get('middleName'),
 			'last_name' => $result->get('surname'),
-			'bio' => $result->get('bio'),
+			'bio' => $result->getBio('clean'),
 			'email' => $result->get('email'),
 			'phone' => $result->get('phone'),
 			'url' => $result->get('url'),
@@ -83,8 +80,8 @@ class MembersControllerApi extends Hubzero_Api_Controller
 			'country_origin' => $result->get('countryorigin'),
 			'member_since' => $result->get('registerDate'),
 			'picture' => array(
-				'thumb' => Hubzero_User_Profile_Helper::getMemberPhoto( $result, 0, true ),
-				'full' => Hubzero_User_Profile_Helper::getMemberPhoto( $result, 0, false )
+				'thumb' => \Hubzero\User\Profile\Helper::getMemberPhoto( $result, 0, true ),
+				'full' => \Hubzero\User\Profile\Helper::getMemberPhoto( $result, 0, false )
 			)
 		);
 		
@@ -98,11 +95,11 @@ class MembersControllerApi extends Hubzero_Api_Controller
 	private function mygroups()
 	{
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 
 		if ($result === false)	return $this->not_found();
 		
-		$groups = Hubzero_User_Helper::getGroups( $result->get('uidNumber'), 'members', 0);
+		$groups = \Hubzero\User\Helper::getGroups( $result->get('uidNumber'), 'members', 0);
 		
 		$g = array();
 		foreach($groups as $k => $group)
@@ -123,7 +120,7 @@ class MembersControllerApi extends Hubzero_Api_Controller
 	{
 		//get user from authentication and load their profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		//make sure we have a user
 		if ($result === false)
@@ -238,7 +235,7 @@ class MembersControllerApi extends Hubzero_Api_Controller
 	private function recenttools()
 	{
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 
 		if ($result === false)	return $this->not_found();
 		
@@ -293,13 +290,12 @@ class MembersControllerApi extends Hubzero_Api_Controller
 	private function checkpass()
 	{
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 
 		if ($result === false)	return $this->not_found();
 
 		// Get the password rules
-		ximport('Hubzero_Password_Rule');
-		$password_rules = Hubzero_Password_Rule::getRules();
+		$password_rules = \Hubzero\Password\Rule::getRules();
 
 		$pw_rules = array();
 
@@ -318,7 +314,7 @@ class MembersControllerApi extends Hubzero_Api_Controller
 		// Validate the password
 		if (!empty($pw))
 		{
-			$msg = Hubzero_Password_Rule::validate($pw, $password_rules, $result);
+			$msg = \Hubzero\Password\Rule::validate($pw, $password_rules, $result);
 		}
 		else
 		{
@@ -362,7 +358,7 @@ class MembersControllerApi extends Hubzero_Api_Controller
 	private function diskusage()
 	{
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 
 		if ($result === false)
 		{

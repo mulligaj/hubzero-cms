@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Members controller class for media
  */
-class MembersControllerMedia extends Hubzero_Controller
+class MembersControllerMedia extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -75,7 +73,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 
 		//load profile from id
-		$this->view->profile = Hubzero_User_Profile::getInstance($id);
+		$this->view->profile = \Hubzero\User\Profile::getInstance($id);
 
 		//instantiate view and pass needed vars
 		$this->view->setLayout('upload');
@@ -123,14 +121,14 @@ class MembersControllerMedia extends Hubzero_Controller
 
 		//get the id and load profile
 		$id = JRequest::getVar('id', 0);
-		$profile = Hubzero_User_Profile::getInstance($id);
+		$profile = \Hubzero\User\Profile::getInstance($id);
 		if (!$profile)
 		{
 			return;
 		}
 
 		//define upload directory and make sure its writable
-		$uploadDirectory = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . Hubzero_View_Helper_Html::niceidformat($id) . DS;
+		$uploadDirectory = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . \Hubzero\Utility\String::pad($id) . DS;
 
 		if (!is_dir($uploadDirectory))
 		{
@@ -155,7 +153,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 		if ($size > $sizeLimit) 
 		{
-			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', Hubzero_View_Helper_Html::formatSize($sizeLimit));
+			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			echo json_encode(array('error' => 'File is too large. Max file upload size is ' . $max));
 			return;
 		}
@@ -201,8 +199,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 		
 		//resize image to max 400px and rotate in case user didnt before uploading
-		ximport('Hubzero_Image');
-		$hi = new Hubzero_Image($file);
+		$hi = new \Hubzero\Image\Processor($file);
 		if (count($hi->getErrors()) == 0)
 		{
 			$hi->autoRotate();
@@ -217,7 +214,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 
 		// create thumb
-		$hi = new Hubzero_Image($final_file);
+		$hi = new \Hubzero\Image\Processor($final_file);
 		if (count($hi->getErrors()) == 0)
 		{
 			$hi->resize(50, false, true, true);
@@ -254,7 +251,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 
 		//load the user profile
-		$profile = Hubzero_User_Profile::getInstance($id);
+		$profile = \Hubzero\User\Profile::getInstance($id);
 		if (!$profile)
 		{
 			echo json_encode(array('error' => 'Unable to locate user profile.'));
@@ -296,7 +293,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		$result = array();
 		$result['src']    = $dir . $file;
 		$result['name']   = $file;
-		$result['size']   = Hubzero_View_Helper_Html::formatsize($size);
+		$result['size']   = \Hubzero\Utility\Number::formatBytes($size);
 		$result['width']  = $width . ' <abbr title="pixels">px</abbr>';
 		$result['height'] = $height . ' <abbr title="pixels">px</abbr>';
 
@@ -335,7 +332,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 
 		// Build upload path
-		$dir  = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir  = \Hubzero\Utility\String::pad($id);
 		$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . $dir;
 
 		if (!is_dir($path)) 
@@ -393,7 +390,7 @@ class MembersControllerMedia extends Hubzero_Controller
 			}
 
 			// Instantiate a profile, change some info and save
-			$profile = Hubzero_User_Profile::getInstance($id);
+			$profile = \Hubzero\User\Profile::getInstance($id);
 			$profile->set('picture', $file['name']);
 			if (!$profile->update()) 
 			{
@@ -457,7 +454,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 
 		// Build the file path
-		$dir  = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir  = \Hubzero\Utility\String::pad($id);
 		$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . $dir;
 
 		if (!file_exists($path . DS . $file) or !$file) 
@@ -489,7 +486,7 @@ class MembersControllerMedia extends Hubzero_Controller
 			}
 
 			// Instantiate a profile, change some info and save
-			$profile = Hubzero_User_Profile::getInstance($id);
+			$profile = \Hubzero\User\Profile::getInstance($id);
 			$profile->set('picture', '');
 			if (!$profile->update()) 
 			{
@@ -526,7 +523,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		$this->view->file = $file;
 
 		// Build the file path
-		$dir  = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir  = \Hubzero\Utility\String::pad($id);
 		$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . $dir;
 
 		// Output HTML
@@ -603,7 +600,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 
 		//Load member profile
-		$member = Hubzero_User_Profile::getInstance($id);
+		$member = \Hubzero\User\Profile::getInstance($id);
 
 		// check to make sure we have member profile
 		if (!$member) 
@@ -651,10 +648,8 @@ class MembersControllerMedia extends Hubzero_Controller
 			$blog_config = JPluginHelper::getPlugin('members', 'blog');
 			$blog_params = new $paramsClass($blog_config->params);
 
-			ximport("Hubzero_User_Profile_Helper");
-
 			//build the base path to file based of upload path param
-			$base_path = str_replace('{{uid}}', Hubzero_User_Profile_Helper::niceidformat($member->get('uidNumber')), $blog_params->get('uploadpath'));
+			$base_path = str_replace('{{uid}}', \Hubzero\User\Profile\Helper::niceidformat($member->get('uidNumber')), $blog_params->get('uploadpath'));
 		}
 
 		//build file path
@@ -667,11 +662,8 @@ class MembersControllerMedia extends Hubzero_Controller
 			return;
 		}
 
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Serve up the image
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename(JPATH_ROOT . DS . $file_path);
 		$xserver->disposition('attachment');
 		$xserver->acceptranges(false); // @TODO fix byte range support

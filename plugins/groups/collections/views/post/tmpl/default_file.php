@@ -104,13 +104,13 @@ if ($assets->total() > 0)
 		{
 ?>
 				<li class="type-<?php echo $asset->get('type'); ?>">
-					<a href="<?php echo ($asset->get('type') == 'link') ? $asset->get('filename') : JRoute::_($href . $this->row->get('id') . '&file=' . ltrim($asset->get('filename'), DS)); ?>" <?php echo ($asset->get('type') == 'link') ? 'rel="external"' : ''; ?>>
+					<a href="<?php echo ($asset->get('type') == 'link') ? $asset->get('filename') : JRoute::_($href . $this->row->get('id') . '&file=' . ltrim($asset->get('filename'), DS)); ?>" <?php echo ($asset->get('type') == 'link') ? ' rel="external"' : ''; ?>>
 						<?php echo $asset->get('filename'); ?>
 					</a>
 					<span class="file-meta">
 						<span class="file-size">
 				<?php if ($asset->get('type') != 'link') { ?>
-							<?php echo Hubzero_View_Helper_Html::formatSize(filesize(JPATH_ROOT . $path . DS . ltrim($asset->get('filename'), DS))); ?>
+							<?php echo \Hubzero\Utility\Number::formatBytes(filesize(JPATH_ROOT . $path . DS . ltrim($asset->get('filename'), DS))); ?>
 				<?php } else { ?>
 							<?php 
 							$UrlPtn  = "(?:https?:|mailto:|ftp:|gopher:|news:|file:)" .
@@ -129,7 +129,7 @@ if ($assets->total() > 0)
 						</span>
 				<?php if ($asset->get('description')) { ?>
 						<span class="file-description">
-							<?php echo Hubzero_View_Helper_Html::formatSize(filesize(JPATH_ROOT . $path . DS . ltrim($asset->get('filename'), DS))); ?>
+							<?php echo \Hubzero\Utility\Number::formatBytes(filesize(JPATH_ROOT . $path . DS . ltrim($asset->get('filename'), DS))); ?>
 						</span>
 				<?php } ?>
 					</span>
@@ -142,12 +142,8 @@ if ($assets->total() > 0)
 	}
 }
 ?>
-<?php if ($item->get('description') || $this->row->get('description')) { ?>
+<?php if ($content = $item->description('parsed')) { ?>
 		<div class="description">
-			<?php 
-			$content = ($this->row->get('description')) ? $this->row->get('description') : $item->get('description'); 
-			echo $this->parser->parse(stripslashes($content), $this->wikiconfig, false);
-			//echo ($this->row->get('description')) ? $this->escape(stripslashes($this->row->get('description'))) : $this->escape(stripslashes($item->get('description'))); 
-			?>
+			<?php echo $content; ?>
 		</div>
 <?php } ?>

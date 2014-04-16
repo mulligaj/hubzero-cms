@@ -31,13 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-ximport('Hubzero_Group');
-
 /**
  * Manage a member's group memberships
  */
-class MembersControllerGroups extends Hubzero_Controller
+class MembersControllerGroups extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Add a member to a group
@@ -77,7 +74,7 @@ class MembersControllerGroups extends Hubzero_Controller
 		}
 
 		// Load the group page
-		$group = Hubzero_Group::getInstance($gid);
+		$group = \Hubzero\User\Group::getInstance($gid);
 
 		// Add the user to the group table
 		$group->add($tbl, array($id));
@@ -121,7 +118,7 @@ class MembersControllerGroups extends Hubzero_Controller
 		$filters['sortby'] = 'title';
 
 		// Get a list of all groups
-		$this->view->rows = Hubzero_Group::find($filters);
+		$this->view->rows = \Hubzero\User\Group::find($filters);
 
 		// Set any errors
 		if ($this->getError()) 

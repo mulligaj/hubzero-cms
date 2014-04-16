@@ -30,34 +30,6 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
-
-$bio = '';
-if ($b = $this->instructor->get('bio'))
-{
-	$wikiconfig = array(
-		'option'   => 'com_members',
-		'scope'    => 'members' . DS . 'profile',
-		'pagename' => 'member',
-		'pageid'   => 0,
-		'filepath' => '',
-		'domain'   => '' 
-	);
-	ximport('Hubzero_Wiki_Parser');
-	$p = Hubzero_Wiki_Parser::getInstance();
-
-	/*$appendmore = false;
-	if (strlen($b) > 200) 
-	{
-		$appendmore = true;
-		$b = Hubzero_View_Helper_Html::shortenText($b, 200, 0);
-	}*/
-
-	$bio = $p->parse(stripslashes($b), $wikiconfig, false);
-	/*if (strlen($b) > 200) 
-	{
-		$bio .= '<p><a class="more" href="' . JRoute::_('index.php?option=com_members&id=' . $this->instructor->get('uidNumber')) . '">' . JText::_('More...') . '</a></p>';
-	}*/
-}
 ?>
 <div class="course-instructor">
 	<p class="course-instructor-photo">
@@ -77,11 +49,18 @@ if ($b = $this->instructor->get('bio'))
 		</p>
 	</div><!-- / .course-instructor-content cf -->
 
+	<?php 
+	$params = new JRegistry($this->instructor->get('params'));
+	if ($params->get('access_bio') == 0 // public
+	 || ($params->get('access_bio') == 1 && !JFactory::getUser()->get('guest')) // registered members
+	) {
+	?>
 	<div class="course-instructor-bio">
-		<?php if ($bio) { ?>
-			<?php echo $bio; ?>
+		<?php if ($this->instructor->get('bio')) { ?>
+			<?php echo $this->instructor->getBio('parsed'); ?>
 		<?php } else { ?>
 			<em><?php echo JText::_('This instructor has yet to write their bio.'); ?></em>
 		<?php } ?>
 	</div>
+	<?php } ?>
 </div><!-- / .course-instructor -->

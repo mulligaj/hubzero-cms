@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'tool.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'version.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'resource.php');
@@ -44,7 +42,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpe
 /**
  * Controller class for contributing a tool
  */
-class ToolsControllerAuthors extends Hubzero_Controller
+class ToolsControllerAuthors extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -94,8 +92,6 @@ class ToolsControllerAuthors extends Hubzero_Controller
 			return;
 		}
 
-		ximport('Hubzero_User_Profile');
-
 		// Incoming authors
 		$authid = JRequest::getInt('authid', 0, 'post');
 		$authorsNewstr = trim(JRequest::getVar('new_authors', '', 'post'));
@@ -125,7 +121,7 @@ class ToolsControllerAuthors extends Hubzero_Controller
 			else 
 			{
 				// Perform a check to see if they have a contributors page. If not, we'll need to make one
-				$xprofile = new Hubzero_User_Profile();
+				$xprofile = new \Hubzero\User\Profile();
 				$xprofile->load($authid);
 				if ($xprofile) 
 				{
@@ -196,7 +192,7 @@ class ToolsControllerAuthors extends Hubzero_Controller
 
 				$this->_authorCheck($uid);
 
-				$xprofile = Hubzero_User_Profile::getInstance($juser->get('id'));
+				$xprofile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 				$rcc->subtable     = 'resources';
 				$rcc->subid        = $id;
 				$rcc->authorid     = $uid;
@@ -228,7 +224,7 @@ class ToolsControllerAuthors extends Hubzero_Controller
 	 */
 	private function _authorCheck($id)
 	{
-		$xprofile = Hubzero_User_Profile::getInstance($id);
+		$xprofile = \Hubzero\User\Profile::getInstance($id);
 		if ($xprofile->get('givenName') == '' 
 		 && $xprofile->get('middleName') == '' 
 		 && $xprofile->get('surname') == '') 

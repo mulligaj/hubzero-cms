@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-class NewsletterControllerMailinglist extends Hubzero_Controller
+class NewsletterControllerMailinglist extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Override execute method
@@ -260,12 +260,11 @@ class NewsletterControllerMailinglist extends Hubzero_Controller
 		$this->view->list->load( $mailinglistId );
 		
 		//get list of groups
-		ximport('Hubzero_Group');
 		$filters = array(
 			'fields' => array('gidNumber','description'),
 			'type' => array('hub','project','partner','course')
 		);
-		$this->view->groups = Hubzero_Group::find( $filters );
+		$this->view->groups = \Hubzero\User\Group::find( $filters );
 		
 		//getting vars from do import
 		$this->view->emailBox = $this->emailBox;
@@ -366,8 +365,7 @@ class NewsletterControllerMailinglist extends Hubzero_Controller
 		//do we have an email group
 		if ($this->emailGroup != '' || $this->emailGroup != 0)
 		{
-			ximport('Hubzero_Group');
-			$hg = Hubzero_Group::getInstance( $this->emailGroup );
+			$hg = \Hubzero\User\Group::getInstance( $this->emailGroup );
 			$emailGroupEmails = $hg->getEmails( 'members' );
 		}
 		
@@ -450,7 +448,7 @@ class NewsletterControllerMailinglist extends Hubzero_Controller
 			foreach ($emails as $email)
 			{
 				//send confirmation email from helper
-				Hubzero_Newsletter_Helper::sendMailinglistConfirmationEmail( $email, $newsletterMailinglist, $addedByAdmin = true );
+				NewsletterHelper::sendMailinglistConfirmationEmail( $email, $newsletterMailinglist, $addedByAdmin = true );
 			}
 		}
 		
@@ -619,7 +617,7 @@ class NewsletterControllerMailinglist extends Hubzero_Controller
 		$newsletterMailinglistEmail->load( $id );
 		
 		//send confirmation email
-		Hubzero_Newsletter_Helper::sendMailinglistConfirmationEmail( $newsletterMailinglistEmail->email, $newsletterMailinglist, false );
+		NewsletterHelper::sendMailinglistConfirmationEmail( $newsletterMailinglistEmail->email, $newsletterMailinglist, false );
 		
 		//inform user and redirect
 		$this->_redirect = 'index.php?option=com_newsletter&controller=mailinglist&task=manage&id[]=' . $mid;

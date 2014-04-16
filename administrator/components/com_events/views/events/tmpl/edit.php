@@ -9,15 +9,14 @@ JToolBarHelper::cancel();
 
 $editor = JFactory::getEditor();
 
-ximport('Hubzero_User_Profile');
-$xprofilec = Hubzero_User_Profile::getInstance($this->row->created_by);
-$xprofilem = Hubzero_User_Profile::getInstance($this->row->modified_by);
+$xprofilec = \Hubzero\User\Profile::getInstance($this->row->created_by);
+$xprofilem = \Hubzero\User\Profile::getInstance($this->row->modified_by);
 $userm = is_object($xprofilem) ? $xprofilem->get('name') : '';
 $userc = is_object($xprofilec) ? $xprofilec->get('name') : '';
 
 $params = new JParameter($this->row->params, JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $this->option . DS . 'events.xml');
 ?>
-<script type="text/javascript" src="../components/<?php echo $option; ?>/js/calendar.rc4.js"></script>
+<script type="text/javascript" src="../components/<?php echo $this->option; ?>/js/calendar.rc4.js"></script>
 <script type="text/javascript">
 var HUB = {};
 
@@ -40,7 +39,7 @@ var HUB = {};
 						<td><input type="text" name="title" size="45" maxlength="250" value="<?php echo $this->escape(stripslashes($this->row->title)); ?>" /></td>
 					</tr>
 					<tr>
-						<td class="key"><?php echo JText::_('COM_EVENTS_CAL_LANG_EVENT_CATEGORY'); ?>:</th>
+						<td class="key"><?php echo JText::_('COM_EVENTS_CAL_LANG_EVENT_CATEGORY'); ?>:</td>
 						<td><?php echo EventsHtml::buildCategorySelect($this->row->catid, '', 0, $this->option);?></td>
 					</tr>
 					<tr>

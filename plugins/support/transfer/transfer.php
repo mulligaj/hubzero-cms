@@ -53,10 +53,6 @@ class plgSupportTransfer extends JPlugin
 
 		$upconfig = JComponentHelper::getParams('com_members');
 		$this->banking = $upconfig->get('bankAccounts');
-		if ($this->banking) 
-		{
-			ximport('Hubzero_Bank');
-		}
 	}
 
 	/**
@@ -346,7 +342,7 @@ class plgSupportTransfer extends JPlugin
 					break;
 
 					case 'question':
-						$BT = new Hubzero_Bank_Transaction($database);
+						$BT = new \Hubzero\Bank\Transaction($database);
 						$reward = $BT->getAmount('answers', 'hold', $from_id, $author->get('id'));
 
 						// Remove hold
@@ -355,7 +351,7 @@ class plgSupportTransfer extends JPlugin
 							$BT->deleteRecords('answers', 'hold', $from_id);
 
 							// Make credit adjustment
-							$BTL_Q = new Hubzero_Bank_Teller($database, $author->get('id'));
+							$BTL_Q = new \Hubzero\Bank\Teller($database, $author->get('id'));
 							$credit = $BTL_Q->credit_summary();
 							$adjusted = $credit - $reward;
 							$BTL_Q->credit_adjustment($adjusted);

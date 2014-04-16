@@ -31,28 +31,20 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-ximport('Hubzero_Plugin');
-
+// include role lib
+require_once JPATH_ROOT.DS.'plugins'.DS.'groups'.DS.'members'.DS.'role.php';
 
 /**
  * Groups Plugin class for group members
  */
-class plgGroupsMembers extends Hubzero_Plugin
+class plgGroupsMembers extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -65,7 +57,8 @@ class plgGroupsMembers extends Hubzero_Plugin
 			'name' => 'members',
 			'title' => JText::_('PLG_GROUPS_MEMBERS'),
 			'default_access' => $this->params->get('plugin_access','members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f007'
 		);
 		return $area;
 	}
@@ -112,7 +105,8 @@ class plgGroupsMembers extends Hubzero_Plugin
 		$this->_option = $option;
 		$this->group = $group;
 		$this->_name = substr($option, 4, strlen($option));
-
+		
+		//Create user object
 		$juser = JFactory::getUser();
 
 		// Only perform the following if this is the active tab/plugin
@@ -120,9 +114,6 @@ class plgGroupsMembers extends Hubzero_Plugin
 		{
 			//set group members plugin access level
 			$group_plugin_acl = $access[$active];
-
-			//Create user object
-			$juser = JFactory::getUser();
 
 			//get the group members
 			$members = $group->get('members');
@@ -157,9 +148,8 @@ class plgGroupsMembers extends Hubzero_Plugin
 			$document = JFactory::getDocument();
 			$document->setTitle(JText::_(strtoupper($this->_name)).': '.$this->group->description.': '.JText::_('PLG_GROUPS_MEMBERS'));
 
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('groups', 'members');
-			Hubzero_Document::addPluginScript('groups', 'members');
+			\Hubzero\Document\Assets::addPluginStylesheet('groups', 'members');
+			\Hubzero\Document\Assets::addPluginScript('groups', 'members');
 
 			$paramsClass = 'JParameter';
 			if (version_compare(JVERSION, '1.6', 'ge'))
@@ -206,8 +196,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 				// Get group members based on their status
 				// Note: this needs to happen *after* any potential actions ar performed above
 
-				ximport('Hubzero_Plugin_View');
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'  => 'groups',
 						'element' => 'members',
@@ -232,16 +221,15 @@ class plgGroupsMembers extends Hubzero_Plugin
 				}
 
 				//get messages plugin access level
-				ximport("Hubzero_Group_Helper");
-				$view->messages_acl = Hubzero_Group_Helper::getPluginAccess($group, 'messages');
+				$view->messages_acl = \Hubzero\User\Group\Helper::getPluginAccess($group, 'messages');
 
 				//get all member roles
 				$db = JFactory::getDBO();
-				$sql = "SELECT * FROM #__xgroups_roles WHERE gidNumber='".$group->get('gidNumber')."'";
+				$sql = "SELECT * FROM #__xgroups_roles WHERE gidNumber=".$db->quote($group->get('gidNumber'));
 				$db->setQuery($sql);
 				$view->member_roles = $db->loadAssocList();
 
-				$group_inviteemails = new Hubzero_Group_InviteEmail($db);
+				$group_inviteemails = new \Hubzero\User\Group\InviteEmail($db);
 				$view->current_inviteemails = $group_inviteemails->getInviteEmails($this->group->get('gidNumber'), true);
 
 				switch ($view->filter)
@@ -260,28 +248,23 @@ class plgGroupsMembers extends Hubzero_Plugin
 					break;
 					case 'managers':
 						$view->groupusers = ($view->q) ? $group->search('managers', $view->q) : $group->get('managers');
-						$view->groupusers = ($view->role_filter) ? Hubzero_Group_Helper::search_roles($group, $view->role_filter) : $view->groupusers;
+						$view->groupusers = ($view->role_filter) ? \Hubzero\User\Group\Helper::search_roles($group, $view->role_filter) : $view->groupusers;
 						$view->managers   = $group->get('managers');
 					break;
 					case 'members':
 					default:
 						$view->groupusers = ($view->q) ? $group->search('members', $view->q) : $group->get('members');
-						$view->groupusers = ($view->role_filter) ? Hubzero_Group_Helper::search_roles($group, $view->role_filter) : $view->groupusers;
+						$view->groupusers = ($view->role_filter) ? \Hubzero\User\Group\Helper::search_roles($group, $view->role_filter) : $view->groupusers;
 						$view->managers   = $group->get('managers');
 					break;
 				}
-
-				//callback to check if user is system user
-				function isSystemUser($user) 
-				{
-					return (is_numeric($user) && $user < 1000) ? false : true;
-				}
-
+				
 				//if we dont want to display system users
 				//filter values through callback above and then reset array keys
 				if ($this->display_system_users == 'no' && is_array($view->groupusers)) 
 				{
-					$view->groupusers = array_values(array_filter($view->groupusers, "isSystemUser"));
+					$view->groupusers = array_map(array($this, "isSystemUser"), $view->groupusers);
+					$view->groupusers = array_values(array_filter($view->groupusers));
 				}
 
 				$view->limit = JRequest::getInt('limit', $this->params->get('display_limit', 50));
@@ -317,6 +300,11 @@ class plgGroupsMembers extends Hubzero_Plugin
 
 		// Return the output
 		return $arr;
+	}
+	
+	private function isSystemUser( $userid )
+	{
+		return (is_numeric($userid) && $userid < 1000) ? null : $userid;
 	}
 
 	/**
@@ -435,28 +423,13 @@ class plgGroupsMembers extends Hubzero_Plugin
 
 		// Save changes
 		$this->group->update();
-
-		// Log the changes
-		$juser = JFactory::getUser();
-		foreach ($users as $user)
-		{
-			$log = new XGroupLog($database);
-			$log->gid = $this->group->get('gidNumber');
-			$log->uid = $user;
-			$log->timestamp = JFactory::getDate()->toSql();
-			$log->action = 'membership_approved';
-			$log->actorid = $juser->get('id');
-			if (!$log->store()) 
-			{
-				$this->setError($log->getError());
-			}
-		}
-
-		// Notify the site administrator?
-		if ($admchange) 
-		{
-			$this->notifyAdmin($admchange);
-		}
+		
+		// log invites
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'membership_approved',
+			'comments'  => $users
+		));
 	}
 
 	/**
@@ -522,31 +495,12 @@ class plgGroupsMembers extends Hubzero_Plugin
 		// Save changes
 		$this->group->update();
 
-		// Log the changes
-		$juser = JFactory::getUser();
-		$database = JFactory::getDBO();
-		foreach ($users as $user)
-		{
-			$log = new XGroupLog($database);
-			$log->gid = $this->group->get('gidNumber');
-			$log->uid = $user;
-			$log->timestamp = JFactory::getDate()->toSql();
-			$log->action = 'membership_promoted';
-			$log->actorid = $juser->get('id');
-			if (!$log->store()) 
-			{
-				foreach ($log->getErrors() as $error)
-				{
-					$this->setError($error);
-				}
-			}
-		}
-
-		// Notify the site administrator?
-		if ($admchange) 
-		{
-			$this->notifyAdmin($admchange);
-		}
+		// log invites
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'membership_promoted',
+			'comments'  => $users
+		));
 
 		$start = JRequest::getVar("limitstart", 0);
 		$limit = JRequest::getVar("limit", 25);
@@ -625,31 +579,12 @@ class plgGroupsMembers extends Hubzero_Plugin
 		// Save changes
 		$this->group->update();
 
-		// Log the changes
-		$juser = JFactory::getUser();
-		$database = JFactory::getDBO();
-		foreach ($users as $user)
-		{
-			$log = new XGroupLog($database);
-			$log->gid = $this->group->get('gidNumber');
-			$log->uid = $user;
-			$log->timestamp = JFactory::getDate()->toSql();
-			$log->action = 'membership_demoted';
-			$log->actorid = $juser->get('id');
-			if (!$log->store()) 
-			{
-				foreach ($log->getErrors() as $error)
-				{
-					$this->setError($error);
-				}
-			}
-		}
-
-		// Notify the site administrator?
-		if ($admchange) 
-		{
-			$this->notifyAdmin($admchange);
-		}
+		// log invites
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'membership_demoted',
+			'comments'  => $users
+		));
 
 		$start = JRequest::getVar("limitstart", 0);
 		$limit = JRequest::getVar("limit", 25);
@@ -680,8 +615,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 		$document->setTitle(JText::_(strtoupper($this->_name)).': '.$this->group->get('description').': '.JText::_(strtoupper($this->action)));
 
 		// Cancel membership confirmation screen
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'members',
@@ -792,32 +726,13 @@ class plgGroupsMembers extends Hubzero_Plugin
 
 		// Save changes
 		$this->group->update();
-
-		// Log the changes
-		$juser = JFactory::getUser();
-		$database = JFactory::getDBO();
-		foreach ($users_mem as $user_mem)
-		{
-			$log = new XGroupLog($database);
-			$log->gid = $this->group->get('gidNumber');
-			$log->uid = $user_mem;
-			$log->timestamp = JFactory::getDate()->toSql();
-			$log->action = 'membership_removed';
-			$log->actorid = $juser->get('id');
-			if (!$log->store()) 
-			{
-				foreach ($log->getErrors() as $error)
-				{
-					$this->setError($error);
-				}
-			}
-		}
-
-		// Notify the site administrator?
-		if ($admchange) 
-		{
-			$this->notifyAdmin($admchange);
-		}
+		
+		// log invites
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'membership_removed',
+			'comments'  => $users_mem
+		));
 	}
 
 	/**
@@ -862,8 +777,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 		$document->setTitle(JText::_(strtoupper($this->_name)).': '.$this->group->get('description').': '.JText::_(strtoupper($this->action)));
 
 		// Display form asking for a reason to deny membership
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'members',
@@ -945,31 +859,13 @@ class plgGroupsMembers extends Hubzero_Plugin
 
 		// Save changes
 		$this->group->update();
-
-		// Log the changes
-		$juser = JFactory::getUser();
-		foreach ($users as $user)
-		{
-			$log = new XGroupLog($database);
-			$log->gid = $this->group->get('gidNumber');
-			$log->uid = $user;
-			$log->timestamp = JFactory::getDate()->toSql();
-			$log->action = 'membership_denied';
-			$log->actorid = $juser->get('id');
-			if (!$log->store()) 
-			{
-				foreach ($log->getErrors() as $error)
-				{
-					$this->setError($error);
-				}
-			}
-		}
-
-		// Notify the site administrator?
-		if (count($users) > 0) 
-		{
-			$this->notifyAdmin($admchange);
-		}
+		
+		// log invites
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'membership_denied',
+			'comments'  => $users
+		));
 	}
 
 	/**
@@ -994,8 +890,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 		$document->setTitle(JText::_(strtoupper($this->_name)).': '.$this->group->get('description').': '.JText::_(strtoupper($this->action)));
 
 		// Display form asking for a reason to deny membership
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'members',
@@ -1089,48 +984,91 @@ class plgGroupsMembers extends Hubzero_Plugin
 			$db->setQuery($sql);
 			$db->query();
 		}
+		
+		// log invites
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'membership_invite_cancelled',
+			'comments'  => array_merge($users, $user_emails)
+		));
+	}
+	
+	public function addRole()
+	{
+		$this->editRole();
+	}
+	
+	public function editRole()
+	{
+		$view = new \Hubzero\Plugin\View(
+			array(
+				'folder'  => 'groups',
+				'element' => 'members',
+				'name'    => 'role',
+				'layout'  => 'add'
+			)
+		);
+		
+		// database object
+		$database = JFactory::getDBO();
 
-		// Log the changes
-		$juser = JFactory::getUser();
-		foreach ($users as $user)
+		// load role object
+		$view->role = new GroupsMembersRole($database);
+		$view->role->load(JRequest::getInt('role', 0));
+		
+		// did we pass role back from save?
+		if (isset($this->role) && !is_null($this->role))
 		{
-			$log = new XGroupLog($database);
-			$log->gid = $this->group->get('gidNumber');
-			$log->uid = $user;
-			$log->timestamp = JFactory::getDate()->toSql();
-			$log->action = 'membership_invite_cancelled';
-			$log->actorid = $juser->get('id');
-			if (!$log->store()) 
+			$view->role = $this->role;
+		}
+		
+		// get permissions
+		$view->available_permissions = array(
+			'group.invite' => JText::_('PLG_GROUPS_MEMBERS_ROLE_GROUPINVITE'),
+			'group.edit'   => JText::_('PLG_GROUPS_MEMBERS_ROLE_GROUPEDIT'),
+			'group.pages'   => JText::_('PLG_GROUPS_MEMBERS_ROLE_GROUPPAGES'),
+		);
+		
+		// pass vars to view
+		$view->option     = $this->_option;
+		$view->group      = $this->group;
+		$view->authorized = $this->authorized;
+		if ($this->getError()) 
+		{
+			foreach ($this->getErrors() as $error)
 			{
-				foreach ($log->getErrors() as $error)
-				{
-					$this->setError($error);
-				}
+				$view->setError($error);
 			}
 		}
+		$this->_output = $view->loadTemplate();
+	}
+	
+	public function saveRole()
+	{
+		// get request vars
+		$role = JRequest::getVar('role', array());
+		$role['gidNumber']   = $this->group->get('gidNumber');
+		$role['permissions'] = json_encode($role['permissions']);
+		
+		// database object
+		$database = JFactory::getDBO();
 
-		foreach ($user_emails as $user)
+		// load role object
+		$this->role = new GroupsMembersRole($database);
+		
+		// attempt to save new role
+		if (!$this->role->save($role))
 		{
-			$log = new XGroupLog($database);
-			$log->gid = $this->group->get('gidNumber');
-			$log->uid = $user;
-			$log->timestamp = JFactory::getDate()->toSql();
-			$log->action = 'membership_invite_cancelled';
-			$log->actorid = $juser->get('id');
-			if (!$log->store()) 
-			{
-				foreach ($log->getErrors() as $error)
-				{
-					$this->setError($error);
-				}
-			}
+			$this->setError($this->role->getError());
+			$this->editRole();
+			return;
 		}
-
-		// Notify the site administrator?
-		if (count($users) > 0) 
-		{
-			$this->notifyAdmin($admchange);
-		}
+		
+		$this->redirect(
+			JRoute::_('index.php?option=com_groups&cn='. $this->group->get('cn').'&active=members'),
+			JText::_('PLG_GROUPS_MEMBERS_ROLE_SUCCESS'),
+			'passed'
+		);
 	}
 
 	/**
@@ -1138,6 +1076,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 	 * 
 	 * @return     void
 	 */
+	/*
 	private function addrole()
 	{
 		$app = JFactory::getApplication();
@@ -1165,7 +1104,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 
 		$app->redirect(JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=members'),'','message',true);
 	}
-
+	*/
 	/**
 	 * Remove a member role
 	 * 
@@ -1188,7 +1127,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 		}
 
 		$db = JFactory::getDBO();
-		$sql = "DELETE FROM #__xgroups_member_roles WHERE role=".$db->Quote($role);
+		$sql = "DELETE FROM #__xgroups_member_roles WHERE roleid=".$db->Quote($role);
 		$db->setQuery($sql);
 		$db->query();
 
@@ -1211,7 +1150,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 	 */
 	private function assignrole()
 	{
-		if ($this->authorized != 'manager' && $this->authorized != 'admin') 
+		if ($this->authorized != 'manager') 
 		{
 			return false;
 		}
@@ -1232,12 +1171,12 @@ class plgGroupsMembers extends Hubzero_Plugin
 		$document->setTitle(JText::_(strtoupper($this->_name)).': '.$this->group->get('description').': '.JText::_(strtoupper($this->action)));
 
 		// Cancel membership confirmation screen
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'members',
-				'name'    => 'assignrole'
+				'name'    => 'role',
+				'layout'  => 'assign'
 			)
 		);
 
@@ -1289,7 +1228,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 		}
 
 		$db = JFactory::getDBO();
-		$sql = "INSERT INTO #__xgroups_member_roles(role,uidNumber) VALUES(" . $db->Quote($role) . "," . $db->Quote($uid) . ")";
+		$sql = "INSERT INTO #__xgroups_member_roles(roleid,uidNumber) VALUES(" . $db->Quote($role) . "," . $db->Quote($uid) . ")";
 		$db->setQuery($sql);
 		$db->query();
 
@@ -1323,7 +1262,7 @@ class plgGroupsMembers extends Hubzero_Plugin
 
 		$db = JFactory::getDBO();
 
-		$sql = "DELETE FROM #__xgroups_member_roles WHERE role=" . $db->Quote($role) . " AND uidNumber=" . $db->Quote($uid);
+		$sql = "DELETE FROM #__xgroups_member_roles WHERE roleid=" . $db->Quote($role) . " AND uidNumber=" . $db->Quote($uid);
 		$db->setQuery($sql);
 		$db->query();
 
@@ -1336,89 +1275,6 @@ class plgGroupsMembers extends Hubzero_Plugin
 	}
 
 	/**
-	 * Notify administrator(s) of changes
-	 * 
-	 * @param      string $admchange Log of changes made
-	 * @return     void
-	 */
-	private function notifyAdmin($admchange='')
-	{
-		// Load needed plugins
-		JPluginHelper::importPlugin('xmessage');
-		$dispatcher = JDispatcher::getInstance();
-
-		// Build the message based upon the action chosen
-		switch (strtolower($this->action))
-		{
-			case 'approve':
-				$subject = JText::_('PLG_GROUPS_MESSAGES_SUBJECT_MEMBERSHIP_APPROVED');
-				$type = 'groups_requests_status';
-
-				if (!$dispatcher->trigger('onTakeAction', array('groups_requests_membership', $this->group->get('managers'), $this->_option, $this->group->get('gidNumber')))) 
-				{
-					$this->setError(JText::_('PLG_GROUPS_MESSAGES_ERROR_TAKE_ACTION_FAILED'));
-				}
-			break;
-
-			case 'confirmdeny':
-				$subject = JText::_('PLG_GROUPS_MESSAGES_SUBJECT_MEMBERSHIP_DENIED');
-				$type = 'groups_requests_status';
-
-				if (!$dispatcher->trigger('onTakeAction', array('groups_requests_membership', $this->group->get('managers'), $this->_option, $this->group->get('gidNumber')))) 
-				{
-					$this->setError(JText::_('PLG_GROUPS_MESSAGES_ERROR_TAKE_ACTION_FAILED'));
-				}
-			break;
-
-			case 'confirmremove':
-				$subject = JText::_('PLG_GROUPS_MESSAGES_SUBJECT_MEMBERSHIP_CANCELLED');
-				$type = 'groups_cancelled_me';
-			break;
-
-			case 'confirmcancel':
-				$subject = JText::_('PLG_GROUPS_MESSAGES_SUBJECT_INVITATION_CANCELLED');
-				$type = 'groups_cancelled_me';
-			break;
-
-			case 'promote':
-				$subject = JText::_('PLG_GROUPS_MESSAGES_SUBJECT_NEW_MANAGER');
-				$type = 'groups_membership_status';
-			break;
-
-			case 'demote':
-				$subject = JText::_('PLG_GROUPS_MESSAGES_SUBJECT_REMOVED_MANAGER');
-				$type = 'groups_membership_status';
-			break;
-		}
-
-		// Get the site configuration
-		$jconfig = JFactory::getConfig();
-
-		// Build the URL to attach to the message
-		$juri = JURI::getInstance();
-		$sef = JRoute::_('index.php?option='.$this->_option.'&cn='. $this->group->get('cn'));
-		$sef = ltrim($sef, DS);
-
-		// Message
-		$message  = "You are receiving this message because you belong to a group on ".$jconfig->getValue('config.sitename').", and that group has been modified. Here are some details:\r\n\r\n";
-		$message .= "\t GROUP: ". $this->group->get('description') ." (".$this->group->get('cn').") \r\n";
-		$message .= "\t ".strtoupper($subject).": \r\n";
-		$message .= $admchange." \r\n\r\n";
-		$message .= "Questions? Click on the following link to manage the users in this group:\r\n";
-		$message .= $juri->base() . $sef . "\r\n";
-
-		// Build the "from" data for the e-mail
-		$from = array();
-		$from['name']  = $jconfig->getValue('config.sitename').' '.JText::_(strtoupper($this->_name));
-		$from['email'] = $jconfig->getValue('config.mailfrom');
-
-		// Send the message
-		//if (!$dispatcher->trigger('onSendMessage', array($type, $subject, $message, $from, $this->group->get('managers'), $this->_option))) {
-		//	$this->setError(JText::_('GROUPS_ERROR_EMAIL_MANAGERS_FAILED'));
-		//}
-	}
-
-	/**
 	 * Notify user of changes
 	 * 
 	 * @param      object $targetuser User to message
@@ -1428,18 +1284,19 @@ class plgGroupsMembers extends Hubzero_Plugin
 	{
 		// Get the group information
 		$group = $this->group;
-
+		
 		// Build the SEF referenced in the message
 		$juri = JURI::getInstance();
-		$sef = JRoute::_('index.php?option='.$this->_option.'&cn='. $group->get('cn'));
-		$sef = ltrim($sef, DS);
-
+		$sef  = JRoute::_('index.php?option='.$this->_option.'&cn='. $group->get('cn'));
+		$sef  = ltrim($sef, DS);
+		
 		// Get the site configuration
 		$jconfig = JFactory::getConfig();
-
+		
 		// Start building the subject
 		$subject = '';
-
+		$plain   = '';
+		
 		// Build the e-mail based upon the action chosen
 		switch (strtolower($this->action))
 		{
@@ -1448,11 +1305,9 @@ class plgGroupsMembers extends Hubzero_Plugin
 				$subject .= JText::_('PLG_GROUPS_MESSAGES_SUBJECT_MEMBERSHIP_APPROVED');
 
 				// Message
-				$message  = "Your request for membership in the " . $group->get('description') . " group has been approved.\r\n";
-				$message .= "To view this group go to: \r\n";
-				$message .= $juri->base() . $sef . "\r\n";
-
-				$type = 'groups_approved_denied';
+				$plain  = "Your request for membership in the " . $group->get('description') . " group has been approved.\r\n";
+				$plain .= "To view this group go to: \r\n";
+				$plain .= $juri->base() . $sef . "\r\n";
 			break;
 
 			case 'confirmdeny':
@@ -1463,17 +1318,15 @@ class plgGroupsMembers extends Hubzero_Plugin
 				$subject .= JText::_('PLG_GROUPS_MESSAGES_SUBJECT_MEMBERSHIP_DENIED');
 
 				// Message
-				$message  = "Your request for membership in the " . $group->get('description') . " group has been denied.\r\n\r\n";
+				$plain  = "Your request for membership in the " . $group->get('description') . " group has been denied.\r\n\r\n";
 				if ($reason) 
 				{
-					$message .= stripslashes($reason)."\r\n\r\n";
+					$plain .= stripslashes($reason)."\r\n\r\n";
 				}
-				$message .= "If you feel this is in error, you may try to join the group again, \r\n";
-				$message .= "this time better explaining your credentials and reasons why you should be accepted.\r\n\r\n";
-				$message .= "To join the group go to: \r\n";
-				$message .= $juri->base() . $sef . "\r\n";
-
-				$type = 'groups_approved_denied';
+				$plain .= "If you feel this is in error, you may try to join the group again, \r\n";
+				$plain .= "this time better explaining your credentials and reasons why you should be accepted.\r\n\r\n";
+				$plain .= "To join the group go to: \r\n";
+				$plain .= $juri->base() . $sef . "\r\n";
 			break;
 
 			case 'confirmremove':
@@ -1484,15 +1337,13 @@ class plgGroupsMembers extends Hubzero_Plugin
 				$subject .= JText::_('PLG_GROUPS_MESSAGES_SUBJECT_MEMBERSHIP_CANCELLED');
 
 				// Message
-				$message  = "Your membership in the " . $group->get('description') . " group has been cancelled.\r\n\r\n";
+				$plain  = "Your membership in the " . $group->get('description') . " group has been cancelled.\r\n\r\n";
 				if ($reason) 
 				{
-					$message .= stripslashes($reason)."\r\n\r\n";
+					$plain .= stripslashes($reason)."\r\n\r\n";
 				}
-				$message .= "If you feel this is in error, you may try to join the group again by going to:\r\n";
-				$message .= $juri->base() . $sef . "\r\n";
-
-				$type = 'groups_cancelled_me';
+				$plain .= "If you feel this is in error, you may try to join the group again by going to:\r\n";
+				$plain .= $juri->base() . $sef . "\r\n";
 			break;
 
 			case 'confirmcancel':
@@ -1503,30 +1354,31 @@ class plgGroupsMembers extends Hubzero_Plugin
 				$subject .= JText::_('PLG_GROUPS_MESSAGES_SUBJECT_INVITATION_CANCELLED');
 
 				// Message
-				$message  = "Your invitation for membership in the " . $group->get('description') . " group has been cancelled.\r\n\r\n";
+				$plain  = "Your invitation for membership in the " . $group->get('description') . " group has been cancelled.\r\n\r\n";
 				if ($reason) 
 				{
-					$message .= stripslashes($reason)."\r\n\r\n";
+					$plain .= stripslashes($reason)."\r\n\r\n";
 				}
-				$message .= "If you feel this is in error, you may try to join the group by going to:\r\n";
-				$message .= $juri->base() . $sef . "\r\n";
-
-				$type = 'groups_cancelled_me';
+				$plain .= "If you feel this is in error, you may try to join the group by going to:\r\n";
+				$plain .= $juri->base() . $sef . "\r\n";
 			break;
 		}
-
+		
 		// Build the "from" data for the e-mail
-		$from = array();
-		$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_(strtoupper($this->_name));
-		$from['email'] = $jconfig->getValue('config.mailfrom');
-
-		// Send the message
-		JPluginHelper::importPlugin('xmessage');
-		$dispatcher = JDispatcher::getInstance();
-		if (!$dispatcher->trigger('onSendMessage', array($type, $subject, $message, $from, array($targetuser->get('id')), $this->_option))) 
-		{
-			$this->setError(JText::_('PLG_GROUPS_MESSAGES_ERROR_MSG_MEMBERS_FAILED'));
-		}
+		$from = array(
+			'name'  => $jconfig->getValue('config.sitename') . ' ' . JText::_(strtoupper($this->_name)),
+			'email' => $jconfig->getValue('config.mailfrom')
+		);
+		
+		// create message object
+		$message = new \Hubzero\Mail\Message();
+		
+		// set message details and send
+		$message->setSubject($subject)
+				->addFrom($from['email'], $from['name'])
+				->setTo($targetuser->get('email'))
+				->addPart($plain, 'text/plain')
+				->send();
 	}
 
 	/**
@@ -1552,39 +1404,39 @@ class plgGroupsMembers extends Hubzero_Plugin
 		$reason = JRequest::getVar('reason', '', 'post');
 
 		// Build the "from" info for e-mails
-		$from = array();
-		$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_(strtoupper($this->_name));
-		$from['email'] = $jconfig->getValue('config.mailfrom');
+		$from = array(
+			'name'  => $jconfig->getValue('config.sitename') . ' ' . JText::_(strtoupper($this->_name)),
+			'email' => $jconfig->getValue('config.mailfrom')
+		);
 
 		//create the subject
 		$subject = JText::_('PLG_GROUPS_MESSAGES_SUBJECT_INVITATION_CANCELLED');
 
 		//create the message body
-		$message  = "Your invitation for membership in the " . $group->get('description') . " group has been cancelled.\r\n\r\n";
+		$plain  = "Your invitation for membership in the " . $group->get('description') . " group has been cancelled.\r\n\r\n";
 		if ($reason) 
 		{
-			$message .= stripslashes($reason)."\r\n\r\n";
+			$plain .= stripslashes($reason)."\r\n\r\n";
 		}
-		$message .= "If you feel this is in error, you may try to join the group by going to:\r\n";
-		$message .= $juri->base() . $sef . "\r\n";
+		$plain .= "If you feel this is in error, you may try to join the group by going to:\r\n";
+		$plain .= $juri->base() . $sef . "\r\n";
 
 		//send the message
 		if ($email) 
 		{
-			$args = "-f '" . $from['email'] . "'";
-			$headers  = "MIME-Version: 1.0\n";
-			$headers .= "Content-type: text/plain; charset=utf-8\n";
-			$headers .= 'From: ' . $from['name'] .' <'. $from['email'] . ">\n";
-			$headers .= 'Reply-To: ' . $from['name'] .' <'. $from['email'] . ">\n";
-			$headers .= "X-Priority: 3\n";
-			$headers .= "X-MSMail-Priority: High\n";
-			$headers .= 'X-Mailer: '. $from['name'] ."\n";
-			if (mail($email, $subject, $message, $headers, $args)) 
-			{
-				return true;
-			}
+			// create message object
+			$message = new \Hubzero\Mail\Message();
+		
+			// set message details and send
+			$message->setSubject($subject)
+					->addFrom($from['email'], $from['name'])
+					->setTo($email)
+					->addPart($plain, 'text/plain')
+					->send();
 		}
-		return false;
+		
+		// all good
+		return true;
 	}
 }
 

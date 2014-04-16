@@ -62,9 +62,8 @@ class plgEditorWikiwyg extends JPlugin
 				$script = $this->_name . '.mootools';
 			}
 
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('editors', $this->_name);
-			Hubzero_Document::addPluginScript('editors', $this->_name, $script);
+			\Hubzero\Document\Assets::addPluginStylesheet('editors', $this->_name);
+			\Hubzero\Document\Assets::addPluginScript('editors', $this->_name, $script);
 
 			$this->_pushscripts = false;
 		}
@@ -117,6 +116,10 @@ class plgEditorWikiwyg extends JPlugin
 		{
 			$params['class'] = array($params['class']);
 		}
+		if ($cls = $this->params->get('class'))
+		{
+			$params['class'][] = $cls;
+		}
 		$params['class'][] = 'wiki-toolbar-content';
 		$params['class'] = implode(' ', $params['class']);
 
@@ -126,6 +129,7 @@ class plgEditorWikiwyg extends JPlugin
 			$atts[] = $key .'="' . $value . '"';
 		}
 
+		$content = preg_replace('/^((?:<|&lt;)!-- \{FORMAT:(?:.*)\} --(?:>|&gt;))/i', '', $content);
 		return '<textarea id="' . $id . '" name="' . $name . '" cols="' . $col . '" rows="' . $row . '" ' . implode(' ', $atts) . '>' . $content . '</textarea>' . "\n";
 	}
 }

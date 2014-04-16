@@ -31,13 +31,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
 require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'group.php');
 
 /**
  * Groups controller class for managing membership and group info
  */
-class GroupsControllerMembership extends Hubzero_Controller
+class GroupsControllerMembership extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Displays a list of groups
@@ -70,7 +69,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		}
 
 		// Load the group page
-		$group = new Hubzero_Group();
+		$group = new \Hubzero\User\Group();
 		$group->read($this->view->filters['gid']);
 
 		if (!$this->_authorize($group)) 
@@ -127,8 +126,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		if ($this->view->filters['status'] == '' || $this->view->filters['status'] == 'invitee')
 		{
 			//get group invite emails
-			ximport('Hubzero_Group_InviteEmail');
-			$hubzeroGroupInviteEmail = new Hubzero_Group_InviteEmail( $this->database );
+			$hubzeroGroupInviteEmail = new \Hubzero\User\Group\InviteEmail( $this->database );
 			$inviteemails = $hubzeroGroupInviteEmail->getInviteEmails($group->get('gidNumber'));
 
 			//add invite emails to list
@@ -177,7 +175,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->view->group = new Hubzero_Group();
+		$this->view->group = new \Hubzero\User\Group();
 		$this->view->group->read($gid);
 
 		// Set any errors
@@ -218,7 +216,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->group = new Hubzero_Group();
+		$this->group = new \Hubzero\User\Group();
 		$this->group->read($gid);
 
 		// Set a flag for emailing any changes made
@@ -286,6 +284,13 @@ class GroupsControllerMembership extends Hubzero_Controller
 
 		// Save changes
 		$this->group->update();
+		
+		// log
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'group_members_added',
+			'comments'  => $users
+		));
 
 		if (!JRequest::getInt('no_html', 0))
 		{
@@ -301,6 +306,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 	 *
 	 * @return void
 	 */
+	/*
 	public function acceptTask()
 	{
 		// Check for request forgeries
@@ -309,7 +315,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->group = new Hubzero_Group();
+		$this->group = new \Hubzero\User\Group();
 		$this->group->read($gid);
 
 		// Set a flag for emailing any changes made
@@ -368,21 +374,22 @@ class GroupsControllerMembership extends Hubzero_Controller
 			);
 		}
 	}
+	*/
 
 	/**
 	 * Approves requested membership for user(s)
 	 *
 	 * @return void
 	 */
-	private function approveTask()
+	public function approveTask()
 	{
 		// Check for request forgeries
 		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
-
+		
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->group = new Hubzero_Group();
+		$this->group = new \Hubzero\User\Group();
 		$this->group->read($gid);
 
 		// Set a flag for emailing any changes made
@@ -432,6 +439,13 @@ class GroupsControllerMembership extends Hubzero_Controller
 
 		// Save changes
 		$this->group->update();
+		
+		// log
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'group_members_approved',
+			'comments'  => $users
+		));
 
 		if (!JRequest::getInt('no_html', 0))
 		{
@@ -455,7 +469,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->group = new Hubzero_Group();
+		$this->group = new \Hubzero\User\Group();
 		$this->group->read($gid);
 
 		$users = array();
@@ -497,6 +511,12 @@ class GroupsControllerMembership extends Hubzero_Controller
 
 		// Save changes
 		$this->group->update();
+		
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'group_members_promoted',
+			'comments'  => $users
+		));
 
 		if (!JRequest::getInt('no_html', 0))
 		{
@@ -521,7 +541,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->group = new Hubzero_Group();
+		$this->group = new \Hubzero\User\Group();
 		$this->group->read($gid);
 
 		// Get all managers of this group
@@ -578,6 +598,13 @@ class GroupsControllerMembership extends Hubzero_Controller
 
 		// Save changes
 		$this->group->update();
+		
+		// log
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'group_members_demoted',
+			'comments'  => $users
+		));
 
 		if (!JRequest::getInt('no_html', 0))
 		{
@@ -602,7 +629,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->group = new Hubzero_Group();
+		$this->group = new \Hubzero\User\Group();
 		$this->group->read($gid);
 
 		// Get all the group's managers
@@ -651,6 +678,13 @@ class GroupsControllerMembership extends Hubzero_Controller
 
 		// Save changes
 		$this->group->update();
+		
+		// log
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'group_members_deleted',
+			'comments'  => $users_mem
+		));
 
 		if ($this->getError())
 		{
@@ -680,7 +714,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->group = new Hubzero_Group();
+		$this->group = new \Hubzero\User\Group();
 		$this->group->read($gid);
 
 		$authorized = $this->authorized;
@@ -728,13 +762,19 @@ class GroupsControllerMembership extends Hubzero_Controller
 		//remove any invite emails
 		if (count($useremails) > 0)
 		{
-			ximport('Hubzero_Group_InviteEmail');
-			$hubzeroGroupInviteEmail = new Hubzero_Group_InviteEmail( $this->database );
+			$hubzeroGroupInviteEmail = new \Hubzero\User\Group\InviteEmail( $this->database );
 			$hubzeroGroupInviteEmail->removeInvites( $this->group->get('gidNumber'), $useremails );
 		}
 
 		// Save changes
 		$this->group->update();
+		
+		// log
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'group_members_uninvited',
+			'comments'  => array_merge($users, $useremails)
+		));
 
 		if (!JRequest::getInt('no_html', 0))
 		{
@@ -758,7 +798,7 @@ class GroupsControllerMembership extends Hubzero_Controller
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
-		$this->group = new Hubzero_Group();
+		$this->group = new \Hubzero\User\Group();
 		$this->group->read($gid);
 
 		// An array for the users we're going to deny
@@ -793,6 +833,13 @@ class GroupsControllerMembership extends Hubzero_Controller
 
 		// Save changes
 		$this->group->update();
+		
+		// log
+		GroupsModelLog::log(array(
+			'gidNumber' => $this->group->get('gidNumber'),
+			'action'    => 'group_members_denied',
+			'comments'  => $users
+		));
 
 		if (!JRequest::getInt('no_html', 0))
 		{

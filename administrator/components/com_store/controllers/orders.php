@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for store orders
  */
-class StoreControllerOrders extends Hubzero_Controller
+class StoreControllerOrders extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Execute a task
@@ -47,9 +45,8 @@ class StoreControllerOrders extends Hubzero_Controller
 	{
 		$upconfig = JComponentHelper::getParams('com_members');
 		$this->banking = $upconfig->get('bankAccounts');
-		ximport('Hubzero_Bank');
-		
-		parent::execute();		
+
+		parent::execute();
 	}
 
 	/**
@@ -334,11 +331,8 @@ class StoreControllerOrders extends Hubzero_Controller
 		
 		if (is_file($tempFile))
 		{
-			// Get some needed libraries
-			ximport('Hubzero_Content_Server');
-			
-			$xserver = new Hubzero_Content_Server();
-			$xserver->filename($tempFile);		
+			$xserver = new \Hubzero\Content\Server();
+			$xserver->filename($tempFile);
 			$xserver->serve_inline($tempFile);
 			exit;
 		}
@@ -410,7 +404,7 @@ class StoreControllerOrders extends Hubzero_Controller
 			$this->view->customer = JUser::getInstance($this->view->row->uid);
 
 			// Check available user funds		
-			$BTL = new Hubzero_Bank_Teller($this->database, $this->view->row->uid);
+			$BTL = new \Hubzero\Bank\Teller($this->database, $this->view->row->uid);
 			$balance = $BTL->summary();
 			$credit  = $BTL->credit_summary();
 			$this->view->funds = $balance;
@@ -444,7 +438,6 @@ class StoreControllerOrders extends Hubzero_Controller
 		$statusmsg = '';
 		$email = 1; // turn emailing on/off
 		$emailbody = '';
-		ximport('Hubzero_Bank');
 
 		$data = array_map('trim', $_POST);
 		$action = (isset($data['action'])) ? $data['action'] : '';
@@ -456,14 +449,14 @@ class StoreControllerOrders extends Hubzero_Controller
 			// initiate extended database class
 			$row = new Order($this->database);
 			$row->load($id);
-			$row->notes = Hubzero_Filter::cleanXss($data['notes']);
+			$row->notes = \Hubzero\Utility\Sanitize::clean($data['notes']);
 			$hold = $row->total;
 			$row->total = $cost;
 
 			// get user bank account
-			//$xprofile = Hubzero_User_Profile::getInstance($row->uid);
+			//$xprofile = \Hubzero\User\Profile::getInstance($row->uid);
 			$xprofile = JUser::getInstance($row->uid);
-			$BTL_Q = new Hubzero_Bank_Teller($this->database, $xprofile->get('id'));
+			$BTL_Q = new \Hubzero\Bank\Teller($this->database, $xprofile->get('id'));
 
 			// start email message
 			$emailbody .= JText::_('COM_STORE_THANKYOU').' '.JText::_('COM_STORE_IN_THE').' '.$jconfig->getValue('config.sitename').' '.JText::_('COM_STORE_STORE').'!'."\r\n\r\n";
@@ -575,29 +568,18 @@ class StoreControllerOrders extends Hubzero_Controller
 					$admin_email = $jconfig->getValue('config.mailfrom');
 					$subject     = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_STORE_STORE') . ': ' . JText::_('COM_STORE_EMAIL_UPDATE_SHORT') . ' #' . $id;
 					$from        = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_STORE_STORE');
-					
+
 					$message = new \Hubzero\Mail\Message();
 					$message->setSubject($subject)
-					->addTo($row->email)
-					->addFrom($admin_email, $from)
-					->setPriority('normal');
-					
-					$message->addPart($emailbody, 'text/plain');
-					
+					        ->addTo($row->email)
+					        ->addFrom($admin_email, $from)
+					        ->setPriority('normal')
+					        ->setBody($emailbody);
+
 					$message->addHeader('X-Mailer', 'PHP/' . phpversion())
-					->addHeader('X-Component', $this->_option);
-					
+					        ->addHeader('X-Component', $this->_option);
+
 					$message->send();
-
-					/*
-					ximport('Hubzero_Toolbox');
-					$admin_email = $jconfig->getValue('config.mailfrom');
-					$subject     = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_STORE_STORE') . ': ' . JText::_('COM_STORE_EMAIL_UPDATE_SHORT') . ' #' . $id;
-					$from        = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_STORE_STORE');
-					$hub         = array('email' => $admin_email, 'name' => $from);
-
-					Hubzero_Toolbox::send_email($hub, $row->email, $subject, $emailbody);
-					*/
 				}
 			}
 		}

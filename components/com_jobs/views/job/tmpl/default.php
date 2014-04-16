@@ -47,18 +47,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 	$startdate = ($job->startdate && $job->startdate !='0000-00-00 00:00:00') ? JHTML::_('date',$job->startdate, JText::_('DATE_FORMAT_HZ1')) : 'N/A';
 	$closedate = ($job->closedate && $job->closedate !='0000-00-00 00:00:00') ? JHTML::_('date',$job->closedate, JText::_('DATE_FORMAT_HZ1')) : 'N/A';
 
-	// Transform the wikitext to HTML
-	$wikiconfig = array(
-		'option'   => $this->option,
-		'scope'    => 'job'.DS.$job->code,
-		'pagename' => 'jobs',
-		'pageid'   => $job->code,
-		'filepath' => '',
-		'domain'   => ''
-	);
-	ximport('Hubzero_Wiki_Parser');
-	$p = Hubzero_Wiki_Parser::getInstance();
-	$maintext = $p->parse(stripslashes($job->description), $wikiconfig);
+	$model = new JobsModelJob($job);
+
+	$maintext = $model->content('parsed');
 
 	$owner = ($juser->get('id') == $job->employerid or $this->admin) ? 1 : 0;
 
@@ -129,7 +120,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 		$html .= t.'<div id="jobinfo">'."\n";
 		$html .= t.t.'<h3><span>'.JText::_('COM_JOBS_JOB_REFERENCE_CODE').': '.$job->code.'</span>'.$job->title.' - ';
 		$html .= preg_match('/(.*)http/i', $job->companyWebsite) ? '<a href="'.$job->companyWebsite.'">'.$job->companyName.'</a>' : $job->companyName;
-		$html .= ', '.$job->companyLocation.', '.$job->companyLocationCountry.'</h3>'."\n";
+		$html .= ', '.$job->companyLocation;
+		$html .= $job->companyLocationCountry ? ', ' . strtoupper($job->companyLocationCountry) : '';
+		$html .= '</h3>'."\n";
 		$html .= '<div class="clear"></div>'."\n";
 		$html .= t.t.'<div class="apply"><p>'."\n";
 		if($job->applied) {

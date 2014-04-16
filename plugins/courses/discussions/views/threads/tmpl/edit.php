@@ -31,16 +31,20 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_User_Profile_Helper');
 $juser = JFactory::getUser();
 
 $no_html = JRequest::getInt('no_html', 0);
 
-$base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alias') . '&offering=' . $this->offering->get('alias') . '&active=' . $this->name;
+$base = $this->offering->link() . '&active=' . $this->name;
 if ($this->post->id) {
 	$action = $base . '&unit=' . $this->category->alias . '&b=' . $this->post->id;
 } else {
 	$action = $base . '&unit=' . $this->category->alias;
+}
+
+if (!($this->post instanceof ForumModelPost))
+{
+	$this->post = new ForumModelPost($this->post);
 }
 ?>
 	<form action="<?php echo JRoute::_($base); ?>" method="post" id="commentform" class="comment-edit" enctype="multipart/form-data" data-thread="<?php echo $this->post->get('thread'); ?>">
@@ -55,9 +59,8 @@ if ($this->post->id) {
 			}
 			$now = JFactory::getDate();
 			?>
-			<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($juser, $anon); ?>" alt="<?php echo JText::_('User photo'); ?>" />
+			<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($juser, $anon); ?>" alt="<?php echo JText::_('User photo'); ?>" />
 		</p>
-	
 
 		<fieldset>
 	<?php } ?>
@@ -71,7 +74,8 @@ if ($this->post->id) {
 				</strong> 
 				<span class="permalink">
 					<span class="comment-date-at">@</span>
-					<span class="time"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('TIME_FORMAt_HZ1')); ?></time></span> <span class="comment-date-on"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ON'); ?></span> 
+					<span class="time"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('TIME_FORMAt_HZ1')); ?></time></span> 
+					<span class="comment-date-on"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ON'); ?></span> 
 					<span class="date"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('DATE_FORMAt_HZ1')); ?></time></span>
 				</span>
 			</p>
@@ -80,9 +84,9 @@ if ($this->post->id) {
 			<label for="field_comment">
 				<span class="label-text"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_FIELD_COMMENTS'); ?></span>
 				<?php
-				ximport('Hubzero_Wiki_Editor');
-				$editor = Hubzero_Wiki_Editor::getInstance();
-				echo $editor->display('fields[comment]', 'field_comment', $this->post->get('comment'), 'minimal no-footer', '35', '5');
+				/* <textarea name="fields[comment]" id="field_<?php echo $this->post->get('id'); ?>_comment" cols="35" rows="5"><?php echo $this->escape($this->post->content('raw')); ?></textarea> */
+				
+				echo \JFactory::getEditor()->display('fields[comment]', $this->escape($this->post->content('raw')), '', '', 35, 5, false, 'field_' . $this->post->get('id') . '_comment', null, null, array('class' => 'minimal no-footer'));
 				?>
 			</label>
 		<?php if (!$this->post->get('parent')) { ?>
@@ -145,12 +149,14 @@ if ($this->post->id) {
 
 		<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 		<input type="hidden" name="gid" value="<?php echo $this->course->get('alias'); ?>" />
-		<input type="hidden" name="offering" value="<?php echo $this->course->offering()->get('alias'); ?>" />
+		<input type="hidden" name="offering" value="<?php echo $this->course->offering()->alias(); ?>" />
 		<input type="hidden" name="active" value="discussions" />
 		<input type="hidden" name="action" value="savethread" />
 
 		<input type="hidden" name="section" value="<?php //echo $this->filters['section']; ?>" />
 		<input type="hidden" name="return" value="<?php //echo base64_encode(JRoute::_($base . '&active=outline&unit=' . $this->filters['section'] . '&b=' . $this->category->alias)); ?>" />
+
+		<?php echo JHTML::_('form.token'); ?>
 	<?php if (!$no_html) { ?>
 		<p class="instructions">
 			Click on a comment on the left to view a discussion or start your own above.

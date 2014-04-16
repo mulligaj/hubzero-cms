@@ -1,269 +1,142 @@
 <?php
 /**
- * @copyright	Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
- * @license		GNU General Public License version 2 or later; see LICENSE.txt
+ * HUBzero CMS
+ *
+ * Copyright 2005-2011 Purdue University. All rights reserved.
+ *
+ * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ *
+ * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
+ * software: you can redistribute it and/or modify it under the terms of
+ * the GNU Lesser General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * HUBzero is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * HUBzero is a registered trademark of Purdue University.
+ *
+ * @package   hubzero-cms
+ * @author    Steve Snyder <snyder13@purdue.edu>
+ * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
+ * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-// no direct access
-defined('_JEXEC') or die;
-
-require_once JPATH_SITE.'/components/com_content/router.php';
+// Check to ensure this file is included in Joomla!
+defined('_JEXEC') or die( 'Restricted access' );
 
 /**
- * Content Search plugin
- *
- * @package		Joomla.Plugin
- * @subpackage	Search.content
- * @since		1.6
+ * Search content articles
  */
-class plgSearchContent extends JPlugin
+class plgSearchContent extends SearchPlugin
 {
 	/**
-	 * @return array An array of search areas
+	 * Build search query and add it to the $results
+	 * 
+	 * @param      object $request  SearchModelRequest
+	 * @param      object &$results SearchModelResultSet
+	 * @return     void
 	 */
-	function onContentSearchAreas()
+	public static function onSearch($request, &$results)
 	{
-		static $areas = array(
-			'content' => 'JGLOBAL_ARTICLES'
-			);
-			return $areas;
-	}
+		$terms = $request->get_term_ar();
+		$weight = 'match(c.title, c.introtext, c.`fulltext`) against (\'' . join(' ', $terms['stemmed']) . '\')';
 
-	/**
-	 * Content Search method
-	 * The sql must return the following fields that are used in a common display
-	 * routine: href, title, section, created, text, browsernav
-	 * @param string Target search string
-	 * @param string mathcing option, exact|any|all
-	 * @param string ordering option, newest|oldest|popular|alpha|category
-	 * @param mixed An array if the search it to be restricted to areas, null if search all
-	 */
-	function onContentSearch($text, $phrase='', $ordering='', $areas=null)
-	{
-		$db		= JFactory::getDbo();
-		$app	= JFactory::getApplication();
-		$user	= JFactory::getUser();
-		$groups	= implode(',', $user->getAuthorisedViewLevels());
-		$tag = JFactory::getLanguage()->getTag();
-
-		require_once JPATH_SITE . '/components/com_content/helpers/route.php';
-		require_once JPATH_ADMINISTRATOR . '/components/com_search/helpers/search.php';
-
-		$searchText = $text;
-		if (is_array($areas)) {
-			if (!array_intersect($areas, array_keys($this->onContentSearchAreas()))) {
-				return array();
-			}
-		}
-
-		$sContent		= $this->params->get('search_content',		1);
-		$sArchived		= $this->params->get('search_archived',		1);
-		$limit			= $this->params->def('search_limit',		50);
-
-		$nullDate		= $db->getNullDate();
-		$date = JFactory::getDate();
-		$now = $date->toSql();
-
-		$text = trim($text);
-		if ($text == '') {
-			return array();
-		}
-
-		$wheres = array();
-		switch ($phrase) {
-			case 'exact':
-				$text		= $db->Quote('%'.$db->escape($text, true).'%', false);
-				$wheres2	= array();
-				$wheres2[]	= 'a.title LIKE '.$text;
-				$wheres2[]	= 'a.introtext LIKE '.$text;
-				$wheres2[]	= 'a.fulltext LIKE '.$text;
-				$wheres2[]	= 'a.metakey LIKE '.$text;
-				$wheres2[]	= 'a.metadesc LIKE '.$text;
-				$where		= '(' . implode(') OR (', $wheres2) . ')';
-				break;
-
-			case 'all':
-			case 'any':
-			default:
-				$words = explode(' ', $text);
-				$wheres = array();
-				foreach ($words as $word) {
-					$word		= $db->Quote('%'.$db->escape($word, true).'%', false);
-					$wheres2	= array();
-					$wheres2[]	= 'a.title LIKE '.$word;
-					$wheres2[]	= 'a.introtext LIKE '.$word;
-					$wheres2[]	= 'a.fulltext LIKE '.$word;
-					$wheres2[]	= 'a.metakey LIKE '.$word;
-					$wheres2[]	= 'a.metadesc LIKE '.$word;
-					$wheres[]	= implode(' OR ', $wheres2);
-				}
-				$where = '(' . implode(($phrase == 'all' ? ') AND (' : ') OR ('), $wheres) . ')';
-				break;
-		}
-
-		$morder = '';
-		switch ($ordering) {
-			case 'oldest':
-				$order = 'a.created ASC';
-				break;
-
-			case 'popular':
-				$order = 'a.hits DESC';
-				break;
-
-			case 'alpha':
-				$order = 'a.title ASC';
-				break;
-
-			case 'category':
-				$order = 'c.title ASC, a.title ASC';
-				$morder = 'a.title ASC';
-				break;
-
-			case 'newest':
-			default:
-				$order = 'a.created DESC';
-				break;
-		}
-
-		$rows = array();
-		$query	= $db->getQuery(true);
-
-		// search articles
-		if ($sContent && $limit > 0)
+		$addtl_where = array();
+		foreach ($terms['mandatory'] as $mand)
 		{
-			$query->clear();
-			//sqlsrv changes
-			$case_when = ' CASE WHEN ';
-			$case_when .= $query->charLength('a.alias');
-			$case_when .= ' THEN ';
-			$a_id = $query->castAsChar('a.id');
-			$case_when .= $query->concatenate(array($a_id, 'a.alias'), ':');
-			$case_when .= ' ELSE ';
-			$case_when .= $a_id.' END as slug';
-
-			$case_when1 = ' CASE WHEN ';
-			$case_when1 .= $query->charLength('c.alias');
-			$case_when1 .= ' THEN ';
-			$c_id = $query->castAsChar('c.id');
-			$case_when1 .= $query->concatenate(array($c_id, 'c.alias'), ':');
-			$case_when1 .= ' ELSE ';
-			$case_when1 .= $c_id.' END as catslug';
-
-			$query->select('a.title AS title, a.metadesc, a.metakey, a.created AS created, a.language');
-			$query->select($query->concatenate(array('a.introtext', 'a.fulltext')).' AS text');
-			$query->select('c.title AS section, '.$case_when.','.$case_when1.', '.'\'2\' AS browsernav');
-
-			$query->from('#__content AS a');
-			$query->innerJoin('#__categories AS c ON c.id=a.catid');
-			$query->where('('. $where .')' . 'AND a.state=1 AND c.published = 1 AND a.access IN ('.$groups.') '
-						.'AND c.access IN ('.$groups.') '
-						.'AND (a.publish_up = '.$db->Quote($nullDate).' OR a.publish_up <= '.$db->Quote($now).') '
-						.'AND (a.publish_down = '.$db->Quote($nullDate).' OR a.publish_down >= '.$db->Quote($now).')' );
-			$query->group('a.id, a.title, a.metadesc, a.metakey, a.created, a.introtext, a.fulltext, c.title, a.alias, c.alias, c.id');
-			$query->order($order);
-
-			// Filter by language
-			if ($app->isSite() && $app->getLanguageFilter()) {
-				$query->where('a.language in (' . $db->Quote($tag) . ',' . $db->Quote('*') . ')');
-				$query->where('c.language in (' . $db->Quote($tag) . ',' . $db->Quote('*') . ')');
-			}
-
-			$db->setQuery($query, 0, $limit);
-			$list = $db->loadObjectList();
-			$limit -= count($list);
-
-			if (isset($list))
-			{
-				foreach($list as $key => $item)
-				{
-					$list[$key]->href = ContentHelperRoute::getArticleRoute($item->slug, $item->catslug, $item->language);
-				}
-			}
-			$rows[] = $list;
+			$addtl_where[] = "(c.title LIKE '%$mand%' OR c.introtext LIKE '%$mand%' OR c.`fulltext` LIKE '%$mand%')";
 		}
-
-		// search archived content
-		if ($sArchived && $limit > 0)
+		foreach ($terms['forbidden'] as $forb)
 		{
-			$searchArchived = JText::_('JARCHIVED');
-
-			$query->clear();
-			//sqlsrv changes
-			$case_when = ' CASE WHEN ';
-			$case_when .= $query->charLength('a.alias');
-			$case_when .= ' THEN ';
-			$a_id = $query->castAsChar('a.id');
-			$case_when .= $query->concatenate(array($a_id, 'a.alias'), ':');
-			$case_when .= ' ELSE ';
-			$case_when .= $a_id.' END as slug';
-
-			$case_when1 = ' CASE WHEN ';
-			$case_when1 .= $query->charLength('c.alias');
-			$case_when1 .= ' THEN ';
-			$c_id = $query->castAsChar('c.id');
-			$case_when1 .= $query->concatenate(array($c_id, 'c.alias'), ':');
-			$case_when1 .= ' ELSE ';
-			$case_when1 .= $c_id.' END as catslug';
-
-			$query->select('a.title AS title, a.metadesc, a.metakey, a.created AS created, '
-			.$query->concatenate(array("a.introtext", "a.fulltext")).' AS text,'
-			.$case_when.','.$case_when1.', '
-			.'c.title AS section, \'2\' AS browsernav');
-			//.'CONCAT_WS("/", c.title) AS section, \'2\' AS browsernav' );
-			$query->from('#__content AS a');
-			$query->innerJoin('#__categories AS c ON c.id=a.catid AND c.access IN ('. $groups .')');
-			$query->where('('. $where .') AND a.state = 2 AND c.published = 1 AND a.access IN ('. $groups
-				.') AND c.access IN ('. $groups .') '
-				.'AND (a.publish_up = '.$db->Quote($nullDate).' OR a.publish_up <= '.$db->Quote($now).') '
-				.'AND (a.publish_down = '.$db->Quote($nullDate).' OR a.publish_down >= '.$db->Quote($now).')' );
-			$query->order($order);
-
-
-			// Filter by language
-			if ($app->isSite() && $app->getLanguageFilter()) {
-				$query->where('a.language in (' . $db->Quote($tag) . ',' . $db->Quote('*') . ')');
-				$query->where('c.language in (' . $db->Quote($tag) . ',' . $db->Quote('*') . ')');
-			}
-
-			$db->setQuery($query, 0, $limit);
-			$list3 = $db->loadObjectList();
-
-			// find an itemid for archived to use if there isn't another one
-			$item	= $app->getMenu()->getItems('link', 'index.php?option=com_content&view=archive', true);
-			$itemid = isset($item->id) ? '&Itemid='.$item->id : '';
-
-			if (isset($list3))
-			{
-				foreach($list3 as $key => $item)
-				{
-					$date = JFactory::getDate($item->created);
-
-					$created_month	= $date->format("n");
-					$created_year	= $date->format("Y");
-
-					$list3[$key]->href	= JRoute::_('index.php?option=com_content&view=archive&year='.$created_year.'&month='.$created_month.$itemid);
-				}
-			}
-
-			$rows[] = $list3;
+			$addtl_where[] = "(c.title NOT LIKE '%$forb%' AND c.introtext NOT LIKE '%$forb%' AND c.`fulltext` NOT LIKE '%$forb%')";
 		}
 
-		$results = array();
-		if (count($rows))
+		$user = JFactory::getUser();
+		if (version_compare(JVERSION, '1.6', 'ge'))
 		{
-			foreach($rows as $row)
+			$addtl_where[] = '(c.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . '))';
+		}
+		else 
+		{
+			if ($user->guest)
 			{
-				$new_row = array();
-				foreach($row as $key => $article) {
-					if (searchHelper::checkNoHTML($article, $searchText, array('text', 'title', 'metadesc', 'metakey'))) {
-						$new_row[] = $article;
-					}
-				}
-				$results = array_merge($results, (array) $new_row);
+				$addtl_where[] = '(c.access = 0)';
+			}
+			elseif ($user->usertype != 'Super Administrator')
+			{
+				$addtl_where[] = '((c.access = 0 OR c.access = 1) OR (SELECT 1 FROM #__author_assoc aa WHERE authorid = ' . (int)$user->id . ' AND subtable = \'content\' AND subid = c.id))';
 			}
 		}
 
-		return $results;
+		if (version_compare(JVERSION, '1.6', 'lt'))
+		{
+			$query = "SELECT 
+				c.title,
+				concat(coalesce(c.introtext, ''), coalesce(c.`fulltext`, '')) AS description,
+				CASE
+					WHEN s.name OR ca.name OR c.alias THEN
+						concat(
+							CASE WHEN s.name THEN concat('/', s.name) ELSE '' END,
+							CASE WHEN ca.name AND ca.name != s.name THEN concat('/', ca.name) ELSE '' END,
+							CASE WHEN c.alias THEN concat('/', c.alias) ELSE '' END
+						)
+					ELSE concat('index.php?option=com_content&view=article&id=', c.id) 
+				END AS link,
+				$weight AS weight,
+				publish_up AS date,
+				ca.title AS section,
+				(SELECT group_concat(u1.name separator '\\n') FROM #__author_assoc anames INNER JOIN #__xprofiles u1 ON u1.uidNumber = anames.authorid WHERE subtable = 'content' AND subid = c.id ORDER BY anames.ordering) AS contributors,
+				(SELECT group_concat(ids.authorid separator '\\n') FROM #__author_assoc ids WHERE subtable = 'content' AND subid = c.id ORDER BY ids.ordering) AS contributor_ids
+			FROM #__content c 
+			LEFT JOIN #__sections s 
+				ON s.id = c.sectionid
+			LEFT JOIN #__categories ca
+				ON ca.id = c.catid
+			WHERE 
+				state = 1 AND 
+				(publish_up AND UTC_TIMESTAMP() > publish_up) AND (NOT publish_down OR UTC_TIMESTAMP() < publish_down) 
+				AND $weight > 0".
+				($addtl_where ? ' AND ' . join(' AND ', $addtl_where) : '') .
+			" ORDER BY $weight DESC";
+		}
+		else 
+		{
+			$query = "SELECT 
+				c.title,
+				concat(coalesce(c.introtext, ''), coalesce(c.`fulltext`, '')) AS description,
+				CASE
+					WHEN ca.alias OR c.alias THEN 
+						concat(
+							CASE WHEN ca.alias THEN concat('/', ca.alias) ELSE '' END, 
+							CASE WHEN c.alias THEN concat('/', c.alias) ELSE '' END
+						)
+					ELSE concat('index.php?option=com_content&view=article&id=', c.id) 
+				END AS link,
+				$weight AS weight,
+				publish_up AS date,
+				ca.title AS section,
+				(SELECT group_concat(u1.name separator '\\n') FROM #__author_assoc anames INNER JOIN #__xprofiles u1 ON u1.uidNumber = anames.authorid WHERE subtable = 'content' AND subid = c.id ORDER BY anames.ordering) AS contributors,
+				(SELECT group_concat(ids.authorid separator '\\n') FROM #__author_assoc ids WHERE subtable = 'content' AND subid = c.id ORDER BY ids.ordering) AS contributor_ids
+			FROM #__content c 
+			LEFT JOIN #__categories ca
+				ON ca.id = c.catid
+			WHERE 
+				state = 1 AND 
+				(publish_up AND UTC_TIMESTAMP() > publish_up) AND (NOT publish_down OR UTC_TIMESTAMP() < publish_down) 
+				AND $weight > 0".
+				($addtl_where ? ' AND ' . join(' AND ', $addtl_where) : '') .
+			" ORDER BY $weight DESC";
+		}
+
+		$sql = new SearchResultSQL($query);
+		$results->add($sql);
 	}
 }
+

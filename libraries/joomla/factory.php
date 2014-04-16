@@ -558,6 +558,66 @@ abstract class JFactory
 	}
 
 	/**
+	 * [!] HUBZERO - Moved from Hubzero Factory
+	 * 
+	 * Get the debug logger, creating it if it doesn't exist
+	 * 
+	 * @return     object
+	 */
+	public static function &getLogger()
+	{
+		static $instance;
+
+		if (!($instance instanceof \Hubzero\Log\Writer))
+		{
+			$instance = new \Hubzero\Log\Writer(
+				new \Monolog\Logger(\JFactory::getConfig()->getValue('config.application_env')), 
+				\JDispatcher::getInstance()
+			);
+
+			$path = self::getConfig()->getValue('config.log_path');
+			if (is_dir('/var/log/hubzero'))
+			{
+				$path = '/var/log/hubzero';
+			}
+
+			$instance->useFiles($path . '/cmsdebug.log', 'debug');
+		}
+
+		return $instance;
+	}
+
+	/**
+	 * [!] HUBZERO - Moved from Hubzero Factory
+	 * 
+	 * Get the auth logger, creating it if it doesn't exist
+	 * 
+	 * @return     object
+	 */
+	public static function &getAuthLogger()
+	{
+		static $instance;
+
+		if (!($instance instanceof \Hubzero\Log\Writer))
+		{
+			$instance = new \Hubzero\Log\Writer(
+				new \Monolog\Logger(\JFactory::getConfig()->getValue('config.application_env')), 
+				\JDispatcher::getInstance()
+			);
+
+			$path = self::getConfig()->getValue('config.log_path');
+			if (is_dir('/var/log/hubzero'))
+			{
+				$path = '/var/log/hubzero';
+			}
+
+			$instance->useFiles($path . '/cmsauth.log', 'info');
+		}
+
+		return $instance;
+	}
+
+	/**
 	 * Create a configuration object
 	 *
 	 * @param   string  $file       The path to the configuration file.

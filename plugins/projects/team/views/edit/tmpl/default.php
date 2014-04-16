@@ -48,8 +48,6 @@ $goto  = 'alias='.$this->project->alias;
 JPluginHelper::importPlugin( 'hubzero' );
 $dispatcher = JDispatcher::getInstance();
 
-ximport('Hubzero_User_Profile_Helper');
-
 ?>
 <?php if (!$this->setup) { ?>
 	<h5><?php echo JText::_('COM_PROJECTS_ADD_NEW_MEMBERS').' '.JText::_('COM_PROJECTS_AS').':'; ?></h5>
@@ -124,8 +122,8 @@ ximport('Hubzero_User_Profile_Helper');
 <?php foreach ($this->team as $owner) 
 	{
 					// Get profile thumb image 			
-					$profile = Hubzero_User_Profile::getInstance($owner->userid);
-					$thumb = Hubzero_User_Profile_Helper::getMemberPhoto($profile);
+					$profile = \Hubzero\User\Profile::getInstance($owner->userid);
+					$thumb = \Hubzero\User\Profile\Helper::getMemberPhoto($profile);
 					
 					$username = $owner->username ? $owner->username : $owner->invited_email;
 					$creator = $this->project->created_by_user == $owner->userid ? 1 : 0;
@@ -149,7 +147,7 @@ ximport('Hubzero_User_Profile_Helper');
 				<td><?php echo $owner->fullname; ?><span class="block mini short prominent"><?php echo $username; ?></span></td>
 				<td class="mini nobsp"><?php if(!$creator) { ?><span class="frole owner:<?php echo $owner->id; ?> role:<?php echo $owner->role; ?>" id="r<?php echo $owner->id; ?>"><?php } ?><?php echo $role; ?><?php if(!$creator) { ?></span><?php } ?></td>
 				<td class="mini"><?php echo $owner->status == 1 ? JHTML::_('date', $owner->added, $dateFormat, $tz) : '<span class="invited">'.JText::_('COM_PROJECTS_INVITED').'</span>';  ?></td>				
-				<td><?php echo $owner->groupdesc ? Hubzero_View_Helper_Html::shortenText($owner->groupdesc, 30, 0) : ''; ?><span class="block mini short prominent"><?php echo $owner->groupname; ?></span></td>
+				<td><?php echo $owner->groupdesc ? \Hubzero\Utility\String::truncate($owner->groupdesc, 30) : ''; ?><span class="block mini short prominent"><?php echo $owner->groupname; ?></span></td>
 			</tr>
 <?php } ?>
 			</tbody>

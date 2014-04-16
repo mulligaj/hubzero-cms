@@ -53,7 +53,7 @@ if (JRequest::getInt('nonadmin', 0) == 1)
 
 $this->database = JFactory::getDBO();
 
-$base = 'index.php?option=' . $this->option . '&controller=' . $this->controller . '&gid=' . $this->course->get('alias') . '&offering=' . $this->course->offering()->get('alias') . ($this->course->offering()->section()->get('alias') != '__default' ? ':' . $this->course->offering()->section()->get('alias') : '');
+$base = $this->course->offering()->link();
 
 // Get the current time
 $now = JFactory::getDate()->toSql();
@@ -112,7 +112,7 @@ if (!$this->course->offering()->access('view')) { ?>
 					<div class="unit-availability comingSoon">
 						<!-- <p class="status">Coming soon</p> -->
 						<p class="info">
-							Content for this unit will be available starting <?php echo JFactory::getDate(strtotime($unit->get('publish_up')))->format("F j, Y, g:i a"); ?>.
+							Content for this unit will be available starting <?php echo JHTML::_('date', $unit->get('publish_up'), "F j, Y, g:i a T"); ?>.
 						</p>
 				<?php } else { ?>
 					<div class="unit-availability">

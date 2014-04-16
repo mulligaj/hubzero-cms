@@ -68,6 +68,8 @@ $warning 		  = ($inuse > $approachingQuota) ? 1 : 0;
 
 $lastsync = '';
 
+$connected = $this->oparams->get('google_token') ? true : false;
+
 ?>
 <div id="sync_output" class="hidden"></div>
 
@@ -87,7 +89,7 @@ $lastsync = '';
 			$lastsync = $this->rSync['status'] == 'complete' ? date("c") : $this->params->get($service . '_sync', '');
 			if ($lastsync)
 			{
-				$lastsync = '<span class="faded">Last sync: ' . ProjectsHtml::timeAgo(strtotime($lastsync), false) . ' ' . JText::_('COM_PROJECTS_AGO') . '</span>' ;
+				$lastsync = '<span class="faded">Last sync: ' . ProjectsHtml::timeAgo($lastsync, false) . ' ' . JText::_('COM_PROJECTS_AGO') . '</span>' ;
 			}
 			?>
 	<input type="hidden" name="service-<?php echo $service; ?>" id="service-<?php echo $service; ?>" value="<?php echo !empty($this->connections) && isset($this->connections[$service]) ? 1 : 0; ?>" />	
@@ -114,7 +116,7 @@ $lastsync = '';
 	<?php if (!$this->tool) { ?>
 		<?php 
 			// NEW: connections to external services
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'files',
@@ -141,7 +143,7 @@ $lastsync = '';
 				<a href="<?php echo $this->url . '/?' . $this->do . '=download' . $subdirlink; ?>" class="fmanage js" id="a-download" title="<?php echo JText::_('COM_PROJECTS_DOWNLOAD_TOOLTIP'); ?>"><span><?php echo JText::_('COM_PROJECTS_DOWNLOAD'); ?></span></a>
 				<a href="<?php echo $this->url . '/?' . $this->do . '=move' . $subdirlink; ?>" class="fmanage js" id="a-move" title="<?php echo JText::_('COM_PROJECTS_MOVE_TOOLTIP'); ?>"><span><?php echo JText::_('COM_PROJECTS_MOVE'); ?></span></a>		
 				<a href="<?php echo $this->url . '/?' . $this->do . '=delete' . $subdirlink; ?>" class="fmanage js" id="a-delete" title="<?php echo JText::_('COM_PROJECTS_DELETE_TOOLTIP'); ?>"><span><?php echo JText::_('COM_PROJECTS_DELETE'); ?></span></a>
-				<?php if ($this->sharing && in_array('google', $this->services)) { ?>
+				<?php if ($this->sharing && in_array('google', $this->services) && $connected) { ?>
 				<a href="<?php echo $this->url . '/?' . $this->do . '=share' . $subdirlink; ?>" id="a-share" title="<?php echo JText::_('COM_PROJECTS_SHARE_TOOLTIP'); ?>" class="fmanage js" ><span><?php echo JText::_('COM_PROJECTS_FILES_SHARE'); ?></span></a>
 				<?php } ?>
 				<?php if ($this->fileparams->get('latex')) { ?>				
@@ -231,7 +233,7 @@ $lastsync = '';
 						$dir = $item['item'];
 						
 						// Folder view
-						$view = new Hubzero_Plugin_View(
+						$view = new \Hubzero\Plugin\View(
 							array(
 								'folder'=>'projects',
 								'element'=>'files',
@@ -269,7 +271,7 @@ $lastsync = '';
 						}
 						
 						// Document view
-						$view = new Hubzero_Plugin_View(
+						$view = new \Hubzero\Plugin\View(
 							array(
 								'folder'=>'projects',
 								'element'=>'files',
@@ -295,7 +297,7 @@ $lastsync = '';
 					elseif ($type == 'remote')
 					{						
 						// Remote file
-						$view = new Hubzero_Plugin_View(
+						$view = new \Hubzero\Plugin\View(
 							array(
 								'folder'=>'projects',
 								'element'=>'files',
@@ -355,7 +357,9 @@ $lastsync = '';
 			 <span class="show-quota"><?php echo JText::_('COM_PROJECTS_FILES_QUOTA') . ': ' . ProjectsHtml::formatSize($this->quota); ?></span>
 		</span>
 		<?php } ?>
-		<span class="rightfloat">	
+		<span class="rightfloat">
+			<a href="<?php echo $this->url . '/?' . $this->do . '=trash'; ?>" class="showinbox"><?php echo JText::_('PLG_PROJECTS_FILES_SHOW_TRASH'); ?></a>
+			|	
 			<a href="<?php echo $this->url . '/?' . $this->do . '=status'; ?>" class="showinbox"><?php echo JText::_('COM_PROJECTS_FILES_GIT_STATUS'); ?></a>
 		</span>
 	</p>

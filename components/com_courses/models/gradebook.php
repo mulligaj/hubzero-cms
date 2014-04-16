@@ -144,6 +144,50 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 	}
 
 	/**
+	 * Generate summary statistics
+	 * 
+	 * @param      bool  $section - section only?
+	 * @return     array $stats
+	 */
+	public function summaryStats($section = true)
+	{
+		// Get the grades themselves
+		$filters = array('scope'=>'asset', 'course_id'=>$this->course->get('course_id'));
+
+		if ($section)
+		{
+			$filters['section_id'] = $this->course->offering()->section()->get('id');
+		}
+
+		$results = $this->_tbl->find($filters);
+		$grades  = array();
+
+		// Restructure data
+		foreach ($results as $r)
+		{
+			if ($r->override)
+			{
+				$grades[$r->scope_id][] = $r->override;
+			}
+			else if (!is_null($r->score))
+			{
+				$grades[$r->scope_id][] = $r->score;
+			}
+		}
+
+		// Compute stats
+		foreach ($grades as $asset_id => $grade)
+		{
+			$stats[$asset_id]['responses'] = count($grade);
+			$stats[$asset_id]['average']   = (count($grade) > 0) ? round(array_sum($grade) / count($grade), 2) : NULL;
+			$stats[$asset_id]['min']       = (count($grade) > 0) ? round(min($grade)) : NULL;
+			$stats[$asset_id]['max']       = (count($grade) > 0) ? round(max($grade)) : NULL;
+		}
+
+		return $stats;
+	}
+
+	/**
 	 * Get current progress
 	 *
 	 * At this point, this method only takes into account what students have viewed.
@@ -159,21 +203,27 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 	{
 		$progress_calculation = $this->course->config()->get('progress_calculation', 'all');
 
+		$filters = array(
+			'section_id' => $this->course->offering()->section()->get('id'),
+			'member_id'  => $member_id
+		);
+
 		switch ($progress_calculation)
 		{
+			// Support legacy label of 'forms', as well as new, more accurate label of 'graded'
 			case 'forms':
-				$views = $this->_tbl->getFormCompletions($this->course->get('id'), $member_id);
+			case 'graded':
+				$views = $this->_tbl->getGradedItemCompletions($this->course->get('id'), $member_id);
 			break;
 
+			case 'videos':
+				// Add another filter
+				$filters['asset_type'] = 'video';
 			default:
 				// Get the asset views
-				$assetViews = new CoursesTableAssetViews(JFactory::getDBO());
-				$filters    = array(
-					'section_id' => $this->course->offering()->section()->get('id'),
-					'member_id'  => $member_id
-				);
-
-				$views = $assetViews->find($filters);
+				$database = JFactory::getDBO();
+				$assetViews = new CoursesTableAssetViews($database);
+				$views      = $assetViews->find($filters);
 			break;
 		}
 
@@ -188,7 +238,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 		$counts = array();
 
 		// Calculate unit completion percentage for each student
-		// Note: this is not their score, but rather, simply how many items within the unit they have viewed
+		// Note: this is not their score, but rather, simply how many items within the unit they have viewed/completed
 		foreach ($progress as $member_id=>$m)
 		{
 			foreach ($m as $unit_id=>$unit)
@@ -204,10 +254,20 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 							'state'      => 1
 						)
 					);
-					if ($progress_calculation == 'forms')
+
+					switch ($progress_calculation)
 					{
-						$filters['w']['asset_type'] = 'form';
+						// Support legacy label of 'forms', as well as new, more accurate label of 'graded'
+						case 'forms':
+						case 'graded':
+							$filters['w']['graded'] = true;
+						break;
+
+						case 'videos':
+							$filters['w']['asset_type'] = 'video';
+						break;
 					}
+
 					$counts[$unit_id] = $asset->count($filters);
 				}
 
@@ -256,7 +316,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 		}
 
 		// Get a grade policy object
-		$gradePolicy = new CoursesModelGradePolicies($course->offering()->section()->get('grade_policy_id'));
+		$gradePolicy = new CoursesModelGradePolicies($course->offering()->section()->get('grade_policy_id'), $course->offering()->section()->get('id'));
 
 		// Calculate course grades, start by getting all grades
 		$filters = array('scope'=>'asset', 'member_id'=>$member_id, 'course_id'=>$course_id);
@@ -274,11 +334,11 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 			// Check for overrides
 			if ($grade->override)
 			{
-				$grades[$grade->member_id][$grade->unit_id][$grade->scope_id] = array('score'=>$grade->override, 'type'=>$grade->subtype);
+				$grades[$grade->member_id][$grade->unit_id][$grade->scope_id] = array('score'=>$grade->override, 'weighting'=>$grade->grade_weight);
 			}
 			else
 			{
-				$grades[$grade->member_id][$grade->unit_id][$grade->scope_id] = array('score'=>$grade->score, 'type'=>$grade->subtype);
+				$grades[$grade->member_id][$grade->unit_id][$grade->scope_id] = array('score'=>$grade->score, 'weighting'=>$grade->grade_weight);
 			}
 		}
 
@@ -305,7 +365,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 
 					foreach ($val as $grade)
 					{
-						switch ($grade['type'])
+						switch ($grade['weighting'])
 						{
 							case 'exam':
 								$scores[$member_id]['course_exam_count']++;
@@ -492,7 +552,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 		$filters = array('scope'=>'course', 'scope_id'=>$this->course->get('id'));
 
 		// Get a grade policy object
-		$gradePolicy = new CoursesModelGradePolicies($this->course->offering()->section()->get('grade_policy_id'));
+		$gradePolicy = new CoursesModelGradePolicies($this->course->offering()->section()->get('grade_policy_id'), $this->course->offering()->section()->get('id'));
 
 		// If section only, add appropriate joins to limit by section
 		if ($section)
@@ -587,15 +647,15 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 	public function isEligibleForRecognition($member_id=null)
 	{
 		// Get a grade policy object
-		$gradePolicy = new CoursesModelGradePolicies($this->course->offering()->section()->get('grade_policy_id'));
+		$gradePolicy = new CoursesModelGradePolicies($this->course->offering()->section()->get('grade_policy_id'), $this->course->offering()->section()->get('id'));
 
-		// Get count of forms take
-		$results = $this->_tbl->getFormCompletionCount($this->course->get('id'), $member_id);
+		// Get count of graded items taken
+		$results = $this->_tbl->getGradedItemsCompletionCount($this->course->get('id'), $member_id);
 
 		// Restructure data
 		foreach ($results as $r)
 		{
-			$counts[$r->member_id][$r->subtype] = $r->count;
+			$counts[$r->member_id][$r->grade_weight] = $r->count;
 		}
 
 		// Get weights to determine what counts toward the final grade
@@ -603,8 +663,8 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 		$quiz_weight     = $gradePolicy->get('quiz_weight');
 		$homework_weight = $gradePolicy->get('homework_weight');
 
-		// Get count of total forms
-		$totals = $this->_tbl->getFormCount($this->course->get('id'));
+		// Get count of total graded items
+		$totals = $this->_tbl->getGradedItemsCount($this->course->get('id'));
 		$return = false;
 
 		if (isset($counts))
@@ -678,7 +738,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 
 						// Tell the badge provider that they've earned the badge
 						$request_type   = $cconfig->get('badges_request_type', 'oauth');
-						$badgesHandler  = new Hubzero_Badges(strtoupper($sb->get('provider_name')), $request_type);
+						$badgesHandler  = new \Hubzero\Badges\Wallet(strtoupper($sb->get('provider_name')), $request_type);
 						$badgesProvider = $badgesHandler->getProvider();
 
 						$credentials = new stdClass();

@@ -25,6 +25,8 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$subdirlink = $this->subdir ? a . 'subdir=' . urlencode($this->subdir) : '';
+
 ?>
 <div id="abox-content">
 <?php
@@ -48,7 +50,7 @@ if (!$this->getError()) {
 <ul class="sample">
 	<?php
 		// Display list item with file data
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'files',
@@ -63,10 +65,7 @@ if (!$this->getError()) {
 		$view->multi		= NULL;	
 				
 		if ($this->ext == 'tex' && is_file(JPATH_ROOT . $this->outputDir . DS . $this->embed))
-		{
-			
-			$subdirlink = $this->subdir ? a . 'subdir=' . urlencode($this->subdir) : '';
-			
+		{			
 			$view->extras  = '<span class="rightfloat">';
 			$view->extras .= '<a href="' . $this->url . '/?' . $this->do . '=compile' . $subdirlink . a . 'download=1' . a . 'file=' . $this->item . '" class="i-download">' . JText::_('COM_PROJECTS_DOWNLOAD') . ' PDF</a> ';
 			$view->extras .= '<a href="' . $this->url . '/?' . $this->do . '=compile' . $subdirlink . a . 'commit=1' . a . 'file=' . $this->item . '" class="i-commit">' . JText::_('COM_PROJECTS_FILES_COMMIT_INTO_REPO') . '</a>';

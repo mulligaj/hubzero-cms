@@ -50,7 +50,7 @@ $levels = array(
 
 <div id="content-header-extra">
 	<ul id="useroptions">
-		<li class="last"><a class="course" href="<?php echo JRoute::_('index.php?option='.$this->option.'&gid='.$this->course->get('cn')); ?>"><?php echo JText::_('Back to Course'); ?></a></li>
+		<li class="last"><a class="course" href="<?php echo JRoute::_($this->course->link()); ?>"><?php echo JText::_('Back to Course'); ?></a></li>
 	</ul>
 </div><!-- / #content-header-extra -->
 	<?php
@@ -63,7 +63,7 @@ $levels = array(
 		<div class="explaination">
 			<div id="asset_browser">
 				<p><strong><?php echo JText::_('Upload files or images:'); ?></strong></p>
-				<iframe width="100%" height="300" name="filer" id="filer" src="index.php?option=<?php echo $this->option; ?>&amp;no_html=1&amp;task=media&amp;listdir=<?php echo $this->course->get('gidNumber'); ?>"></iframe>
+				<iframe width="100%" height="300" name="filer" id="filer" src="index.php?option=<?php echo $this->option; ?>&amp;no_html=1&amp;task=media&amp;listdir=<?php echo $this->course->get('id'); ?>"></iframe>
 			</div><!-- / .asset_browser -->
 		</div>
 		
@@ -119,13 +119,10 @@ $levels = array(
 
 			<fieldset id="overview_content">
 				<legend>Enter Custom Overview Content</legend>
-				<label for="course[overview_content]">
+				<label for="field_description">
 					<?php
-						ximport('Hubzero_Wiki_Editor');
-						$editor = Hubzero_Wiki_Editor::getInstance();
-						echo $editor->display('course[overview_content]', 'course[overview_content]', stripslashes($this->course->get('overview_content')), '', '50', '15');
+						echo \JFactory::getEditor()->display('course[description]', $this->escape(stripslashes($this->course->get('description'))), '', '', 35, 50, false, 'field_description');
 					?>
-					<span class="hint"><a class="popup" href="/wiki/Help:WikiFormatting">Wiki formatting</a> is allowed.</span>
 				</label>
 			</fieldset>
 		</fieldset>
@@ -168,6 +165,6 @@ $levels = array(
 		
 		<input type="hidden" name="option" value="<?php echo $this->option; ?>">
 		<input type="hidden" name="task" value="savecustomization">
-		<input type="hidden" name="gidNumber" value="<?php echo $this->course->get('gidNumber'); ?>">
+		<input type="hidden" name="id" value="<?php echo $this->course->get('id'); ?>">
 	</form>
 </div>

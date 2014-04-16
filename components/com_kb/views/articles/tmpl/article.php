@@ -97,7 +97,7 @@ defined('_JEXEC') or die('Restricted access');
 						$view->item   = $this->article;
 						$view->type   = 'entry';
 						$view->vote   = $this->vote;
-						$view->id     = $this->article->get('id');
+						$view->id     = 0; //$this->article->get('id');
 						$view->display();
 					?>
 				</p>
@@ -128,11 +128,7 @@ defined('_JEXEC') or die('Restricted access');
 	</h3>
 
 	<div class="aside">
-	<?php if ($this->article->commentsOpen()) { ?>
-		<p>
-			<a class="icon-add add btn" href="#post-comment"><?php echo JText::_('COM_KB_ADD_COMMENT'); ?></a>
-		</p>
-	<?php } ?>
+
 	</div>
 	<div class="subject">
 		<?php
@@ -167,7 +163,7 @@ defined('_JEXEC') or die('Restricted access');
 		<form method="post" action="<?php echo JRoute::_($this->article->link()); ?>" id="commentform">
 			<p class="comment-member-photo">
 				<span class="comment-anchor"><!-- <a name="post-comment"></a> --></span>
-				<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($this->juser, (!$this->juser->get('guest') ? 0 : 1)); ?>" alt="" />
+				<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($this->juser, (!$this->juser->get('guest') ? 0 : 1)); ?>" alt="" />
 			</p>
 			<fieldset>
 			<?php
@@ -175,9 +171,8 @@ defined('_JEXEC') or die('Restricted access');
 			{
 				if ($this->replyto->get('id')) 
 				{
-					ximport('Hubzero_View_Helper_Html');
 					$name = JText::_('COM_KB_ANONYMOUS');
-					$xuser = Hubzero_User_Profile::getInstance($this->replyto->get('created_by'));
+					$xuser = \Hubzero\User\Profile::getInstance($this->replyto->get('created_by'));
 					if (!$this->replyto->get('anonymous')) 
 					{
 						if (is_object($xuser) && $xuser->get('name')) 
@@ -195,7 +190,7 @@ defined('_JEXEC') or die('Restricted access');
 						<span class="date"><time datetime="<?php echo $this->replyto->created(); ?>"><?php echo JHTML::_('date', $this->replyto->created('date')); ?></time></span>
 					</p>
 					<p>
-						<?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($this->replyto->content('raw')), 300, 0); ?>
+						<?php echo \Hubzero\Utility\String::truncate(stripslashes($this->replyto->content('raw')), 300); ?>
 					</p>
 				</blockquote>
 				<?php
@@ -208,8 +203,7 @@ defined('_JEXEC') or die('Restricted access');
 					<?php echo JText::_('COM_KB_YOUR_COMMENTS'); ?> <span class="required"><?php echo JText::_('COM_KB_REQUIRED'); ?></span>
 				<?php
 				if (!$this->juser->get('guest')) {
-					ximport('Hubzero_Wiki_Editor');
-					echo Hubzero_Wiki_Editor::getInstance()->display('comment[content]', 'commentcontent', '', 'minimal', '40', '15');
+					echo JFactory::getEditor()->display('comment[content]', '', '', '', 40, 15, false, 'commentcontent', null, null, array('class' => 'minimal'));
 				} else {
 					$rtrn = JRoute::_($this->article->link() . '#post-comment');
 					?>
@@ -241,6 +235,7 @@ defined('_JEXEC') or die('Restricted access');
 				<input type="hidden" name="comment[parent]" value="<?php echo $this->escape($this->replyto->get('id')); ?>" />
 				<input type="hidden" name="comment[created]" value="" />
 				<input type="hidden" name="comment[created_by]" value="<?php echo $this->escape($this->juser->get('id')); ?>" />
+				<input type="hidden" name="comment[state]" value="1" />
 				<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 				<input type="hidden" name="task" value="savecomment" />
 

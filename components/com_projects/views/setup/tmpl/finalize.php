@@ -41,7 +41,7 @@ $html  = '';
 
 ?>
 <div id="content-header" class="full">
-	<h2><?php echo $title; ?> <?php if($this->gid && is_object($this->group)) { ?> <?php echo JText::_('COM_PROJECTS_FOR').' '.ucfirst(JText::_('COM_PROJECTS_GROUP')); ?> <a href="<?php echo JRoute::_('index.php?option=com_groups'.a.'cn='.$this->group->get('cn')); ?>"><?php echo Hubzero_View_Helper_Html::shortenText($this->group->get('description'), 50, 0); ?></a><?php } ?></h2>
+	<h2><?php echo $title; ?> <?php if($this->gid && is_object($this->group)) { ?> <?php echo JText::_('COM_PROJECTS_FOR').' '.ucfirst(JText::_('COM_PROJECTS_GROUP')); ?> <a href="<?php echo JRoute::_('index.php?option=com_groups'.a.'cn='.$this->group->get('cn')); ?>"><?php echo \Hubzero\Utility\String::truncate($this->group->get('description'), 50); ?></a><?php } ?></h2>
 </div><!-- / #content-header -->
 
 <div class="main section" id="setup">
@@ -57,9 +57,7 @@ $html  = '';
 		<div class="pinfo">
 			<div class="two columns first">
 			<p class="info_title"><span class="block italic"><?php echo $this->typetitle.' '.strtolower(JText::_('COM_PROJECTS_PROJECT')); ?>:</span> <?php echo $this->project->title; ?> (<span class="aliasname"><?php echo $this->project->alias; ?></span>)</p>
-			<?php if ($this->project->about && $this->project->about != '') { ?>
-			<p class="mini"><?php echo Hubzero_View_Helper_Html::shortenText($this->project->about, 100, 0); ?></p>
-			<?php } ?>
+			
 			<p class="actionlink"><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=setup'.a.$goto).'/?step=0'; ?>">&laquo; <?php echo JText::_('COM_PROJECTS_CHANGE_THIS_INFO'); ?></a></p>
 			</div>
 			<div class="two columns second">
@@ -82,7 +80,7 @@ $html  = '';
 	</div>
 	<form id="hubForm" method="post" action="index.php">
 			<?php if($this->config->get('grantinfo', 0)) { ?>
-			<div class="explaination">
+			<div class="aside">
 				<h4><?php echo JText::_('COM_PROJECTS_SETUP_TERMS_GRANTINFO_WHY'); ?></h4>
 				<p><?php echo JText::_('COM_PROJECTS_SETUP_TERMS_GRANTINFO_BECAUSE'); ?></p>
 			</div>
@@ -105,7 +103,7 @@ $html  = '';
 			</fieldset>
 			<div class="clear"></div>
 			<?php } ?>
-		<div class="explaination">
+		<div class="aside">
 			<?php if($this->config->get('restricted_data', 0)) { ?>
 			<h4><?php echo JText::_('COM_PROJECTS_SETUP_TERMS_PRIVACY_RULE'); ?></h4>
 			<p><?php echo JText::_('COM_PROJECTS_SETUP_TERMS_PRIVACY_RULE_EXPLAIN'); ?> </p>

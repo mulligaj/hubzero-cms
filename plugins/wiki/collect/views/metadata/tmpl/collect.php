@@ -30,17 +30,12 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
-
-//tag editor
-
-ximport('Hubzero_Wiki_Editor');
-$editor = Hubzero_Wiki_Editor::getInstance();
 ?>
 
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
 <?php } ?>
-<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&scope=' . $this->page->scope . '&pagename=' . $this->pagename . '&action=repost'); ?>" method="post" id="hubForm" class="full">
+<form action="<?php echo JRoute::_($this->page->link() . '&action=repost'); ?>" method="post" id="hubForm" class="full">
 	<fieldset>
 		<legend><?php echo JText::_('PLG_WIKI_COLLECT'); ?></legend>
 
@@ -102,47 +97,15 @@ if ($this->groupboards)
 
 		<label for="field_description">
 			<?php echo JText::_('PLG_WIKI_COLLECT_ADD_DESCRIPTION'); ?>
-			<span class="syntax hint">limited <a class="tooltips" href="<?php echo JRoute::_('index.php?option=com_wiki&scope=&pagename=Help:WikiFormatting'); ?>" title="Syntax Reference :: <table class=&quot;wiki-reference&quot;>
-				<tbody>
-					<tr>
-						<td>'''bold'''</td>
-						<td><b>bold</b></td>
-					</tr>
-					<tr>
-						<td>''italic''</td>
-						<td><i>italic</i></td>
-					</tr>
-					<tr>
-						<td>__underline__</td>
-						<td><span style=&quot;text-decoration:underline;&quot;>underline</span></td>
-					</tr>
-					<tr>
-						<td>{{{monospace}}}</td>
-						<td><code>monospace</code></td>
-					</tr>
-					<tr>
-						<td>~~strike-through~~</td>
-						<td><del>strike-through</del></td>
-					</tr>
-					<tr>
-						<td>^superscript^</td>
-						<td><sup>superscript</sup></td>
-					</tr>
-					<tr>
-						<td>,,subscript,,</td>
-						<td><sub>subscript</sub></td>
-					</tr>
-				</tbody>
-			</table>">Wiki formatting</a> is allowed.</span>
-			<?php echo $editor->display('description', 'field_description', '', '', '50', '5'); ?>
+			<?php echo \JFactory::getEditor()->display('description', '', '', '', 35, 5, false, 'field_description', null, null, array('class' => 'minimal no-footer')); ?>
 		</label>
 	</fieldset>
 
 	<input type="hidden" name="item" value="<?php echo $this->escape($this->item_id); ?>" />
 	<input type="hidden" name="no_html" value="<?php echo $this->escape($this->no_html); ?>" />
 
-	<input type="hidden" name="pagename" value="<?php echo $this->escape($this->page->pagename); ?>" />
-	<input type="hidden" name="scope" value="<?php echo $this->escape($this->page->scope); ?>" />
+	<input type="hidden" name="pagename" value="<?php echo $this->escape($this->page->get('pagename')); ?>" />
+	<input type="hidden" name="scope" value="<?php echo $this->escape($this->page->get('scope')); ?>" />
 	<input type="hidden" name="option" value="<?php echo $this->escape($this->option); ?>" />
 	<input type="hidden" name="task" value="display" />
 	<input type="hidden" name="action" value="collect" />

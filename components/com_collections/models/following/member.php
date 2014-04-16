@@ -32,7 +32,6 @@
 defined('_JEXEC') or die('Restricted access');
 
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'following' . DS . 'abstract.php');
-ximport('Hubzero_User_Profile');
 
 /**
  * Model class for following a member
@@ -40,7 +39,7 @@ ximport('Hubzero_User_Profile');
 class CollectionsModelFollowingMember extends CollectionsModelFollowingAbstract
 {
 	/**
-	 * Hubzero_User_Profile
+	 * \Hubzero\User\Profile
 	 * 
 	 * @var object
 	 */
@@ -77,7 +76,7 @@ class CollectionsModelFollowingMember extends CollectionsModelFollowingAbstract
 	{
 		//$this->_db = JFactory::getDBO();
 
-		$this->_obj = Hubzero_User_Profile::getInstance($oid);
+		$this->_obj = \Hubzero\User\Profile::getInstance($oid);
 
 		$this->_baselink = 'index.php?option=com_members&id=' . $this->_obj->get('uidNumber') . '&active=collections';
 	}
@@ -117,8 +116,7 @@ class CollectionsModelFollowingMember extends CollectionsModelFollowingAbstract
 	{
 		if (!isset($this->_image))
 		{
-			ximport('Hubzero_User_Profile_Helper');
-			$this->_image = Hubzero_User_Profile_Helper::getMemberPhoto($this->_obj, 0);
+			$this->_image = \Hubzero\User\Profile\Helper::getMemberPhoto($this->_obj, 0);
 		}
 		return $this->_image;
 	}

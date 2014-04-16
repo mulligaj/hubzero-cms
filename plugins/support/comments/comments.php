@@ -48,30 +48,14 @@ class plgSupportComments extends JPlugin
 	 */
 	public function getReportedItem($refid, $category, $parent)
 	{
-		if (!in_array($category, array('wishcomment', 'answercomment', 'reviewcomment', 'citations', 'citationscomment', 'collection', 'itemcomment'))) 
+		if (!in_array($category, array('wishcomment', 'answercomment', 'reviewcomment', 'citations', 'citationscomment', 'collection', 'itemcomment', 'coursescomment'))) 
 		{
 			return null;
 		}
 
-		switch ($category)
-		{
-			case 'itemcomment':
-			case 'collection':
-			case 'citations':
-			case 'citationscomment':
-				$query  = "SELECT rc.`id`, rc.`content` as `text`, rc.`created_by` as `author`, rc.`created`, NULL as `subject`, rc.`anonymous` as `anon`, concat(rc.`item_type`, 'comment') AS `parent_category`, NULL AS `href` " 
-						. "FROM #__item_comments AS rc "
-						. "WHERE rc.id=" . $refid;
-			break;
-
-			default:
-				$query  = "SELECT rc.id, rc.comment as text, rc.added_by as author, rc.added AS created, NULL as subject, rc.anonymous as anon, NULL AS `href`";
-				$query .= ", CASE rc.category WHEN 'reviewcomment' THEN 'reviewcomment' WHEN 'review' THEN 'reviewcomment' WHEN 'answer' THEN 'answercomment' WHEN 'answercomment' THEN 'answercomment' WHEN 'wishcomment' THEN 'wishcomment' WHEN 'wish' THEN 'wishcomment' END AS parent_category";
-				$query .= " FROM #__comments AS rc";
-				$query .= " WHERE rc.id=" . $refid;
-			break;
-		}
-
+		$query  = "SELECT rc.`id`, rc.`content` as `text`, rc.`created_by` as `author`, rc.`created`, NULL as `subject`, rc.`anonymous` as `anon`, concat(rc.`item_type`, 'comment') AS `parent_category`, NULL AS `href` " 
+				. "FROM #__item_comments AS rc "
+				. "WHERE rc.id=" . $refid;
 		$database = JFactory::getDBO();
 		$database->setQuery($query);
 
@@ -81,10 +65,21 @@ class plgSupportComments extends JPlugin
 			{
 				foreach ($rows as $key => $row)
 				{
+					if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $row->text, $matches))
+					{
+						$rows[$key]->text = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $row->text);
+					}
+
 					switch ($row->parent_category)
 					{
 						case 'collection':
 							$rows[$key]->href = JRoute::_('index.php?option=com_collections&controller=posts&post=' . $parent);
+						break;
+
+						case 'coursescomment':
+							require_once JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php';
+							$course = CoursesModelCourse::getInstance($parent);
+							$rows[$key]->href = JRoute::_($course->link() . '&active=reviews');
 						break;
 
 						case 'citations':
@@ -92,14 +87,22 @@ class plgSupportComments extends JPlugin
 							$rows[$key]->href = JRoute::_('index.php?option=com_citations&task=view&id=' . $parent . '&area=reviews');
 						break;
 
+						case 'review':
 						case 'reviewcomment':
 							$rows[$key]->href = JRoute::_('index.php?option=com_resources&id=' . $parent . '&active=reviews');
 						break;
 
+						case 'pubreview':
+						case 'pubreviewcomment':
+							$rows[$key]->href = JRoute::_('index.php?option=com_publications&id=' . $parent . '&active=reviews');
+						break;
+
+						case 'answer':
 						case 'answercomment':
 							$rows[$key]->href = JRoute::_('index.php?option=com_answers&task=question&id=' . $parent);
 						break;
 
+						case 'wish':
 						case 'wishcomment':
 							$rows[$key]->href = JRoute::_('index.php?option=com_wishlist&task=wish&wishid=' . $parent);
 						break;
@@ -121,33 +124,16 @@ class plgSupportComments extends JPlugin
 	 */
 	public function onReportItem($refid, $category)
 	{
-		if (!in_array($category, array('wishcomment', 'answercomment', 'reviewcomment', 'citations', 'citationscomment', 'collection', 'itemcomment'))) 
+		if (!in_array($category, array('wishcomment', 'answercomment', 'reviewcomment', 'citations', 'citationscomment', 'collection', 'itemcomment', 'coursescomment'))) 
 		{
 			return null;
 		}
 
 		$database = JFactory::getDBO();
 
-		switch ($category)
-		{
-			case 'itemcomment':
-			case 'collection':
-			case 'citations':
-			case 'citationscomment':
-				$comment = new Hubzero_Item_Comment($database);
-				$comment->load($refid);
-				$comment->state = 3;
-			break;
-
-			case 'reviewcomment':
-			case 'answercomment':
-			case 'wishcomment':
-			default:
-				$comment = new Hubzero_Comment($database);
-				$comment->load($refid);
-			break;
-		}
-
+		$comment = new \Hubzero\Item\Comment($database);
+		$comment->load($refid);
+		$comment->state = 3;
 		$comment->store();
 
 		return '';
@@ -163,35 +149,17 @@ class plgSupportComments extends JPlugin
 	 */
 	public function releaseReportedItem($refid, $parent, $category)
 	{
-		if (!in_array($category, array('wishcomment', 'answercomment', 'reviewcomment', 'citations', 'citationscomment', 'collection', 'itemcomment'))) 
+		if (!in_array($category, array('wishcomment', 'answercomment', 'reviewcomment', 'citations', 'citationscomment', 'collection', 'itemcomment', 'coursescomment'))) 
 		{
 			return null;
 		}
 
 		$database = JFactory::getDBO();
 
-		switch ($category)
-		{
-			case 'itemcomment':
-			case 'collection':
-			case 'citations':
-			case 'citationscomment':
-				$comment = new Hubzero_Item_Comment($database);
-				$comment->load($refid);
-				//$comment->anonymous = 0;
-				$comment->state = 1;
-			break;
-
-			case 'reviewcomment':
-			case 'answercomment':
-			case 'wishcomment':
-			default:
-				$comment = new Hubzero_Comment($database);
-				$comment->load($refid);
-				//$comment->anonymous = 0;
-			break;
-		}
-
+		$comment = new \Hubzero\Item\Comment($database);
+		$comment->load($refid);
+		//$comment->anonymous = 0;
+		$comment->state = 1;
 		$comment->store();
 
 		return '';
@@ -208,37 +176,37 @@ class plgSupportComments extends JPlugin
 	 */
 	public function deleteReportedItem($refid, $parent, $category, $message)
 	{
-		if (!in_array($category, array('wishcomment', 'answercomment', 'reviewcomment', 'citations', 'citationscomment', 'collection', 'itemcomment'))) 
+		if (!in_array($category, array('wishcomment', 'answercomment', 'reviewcomment', 'citations', 'citationscomment', 'collection', 'itemcomment', 'coursescomment'))) 
 		{
 			return null;
 		}
 
 		$database = JFactory::getDBO();
 
-		switch ($category)
+		$msg = 'This comment was found to contain objectionable material and was removed by the administrator.';
+
+		$comment = new \Hubzero\Item\Comment($database);
+		$comment->load($refid);
+		if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $comment->content, $matches))
 		{
-			case 'itemcomment':
-			case 'collection':
-			case 'citations':
-			case 'citationscomment':
-				$comment = new Hubzero_Item_Comment($database);
-				$comment->load($refid);
-				//$comment->anonymous = 1;
-				$comment->content = '[[Span(This comment was found to contain objectionable material and was removed by the administrator., class="warning")]]';
-				$comment->state = 1;
-			break;
+			$format = strtolower(trim($matches[1]));
+			switch ($format)
+			{
+				case 'html':
+					$comment->content = '<!-- {FORMAT:HTML} --><span class="warning">' . $msg . '</span>';
+				break;
 
-			case 'reviewcomment':
-			case 'answercomment':
-			case 'wishcomment':
-			default:
-				$comment = new Hubzero_Comment($database);
-				$comment->load($refid);
-				//$comment->anonymous = 1;
-				$comment->comment = '[[Span(This comment was found to contain objectionable material and was removed by the administrator., class="warning")]]';
-			break;
+				case 'wiki':
+				default:
+					$comment->content = '<!-- {FORMAT:WIKI} -->[[Span(' . $msg . ', class="warning")]]';
+				break;
+			}
 		}
-
+		else
+		{
+			$comment->content = '[[Span(' . $msg . ', class="warning")]]';
+		}
+		$comment->state = 1;
 		$comment->store();
 
 		return '';

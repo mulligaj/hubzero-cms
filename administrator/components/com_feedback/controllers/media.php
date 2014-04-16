@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Feedback controller class for handling media (files)
  */
-class FeedbackControllerMedia extends Hubzero_Controller
+class FeedbackControllerMedia extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Execute a task
@@ -85,8 +83,7 @@ class FeedbackControllerMedia extends Hubzero_Controller
 		}
 
 		// Build upload path
-		ximport('Hubzero_View_Helper_Html');
-		$path = JPATH_ROOT . DS . trim($this->config->get('uploadpath', '/site/quotes'), DS) . DS . Hubzero_View_Helper_Html::niceidformat($id);
+		$path = JPATH_ROOT . DS . trim($this->config->get('uploadpath', '/site/quotes'), DS) . DS . \Hubzero\Utility\String::pad($id);
 
 		if (!is_dir($path))
 		{
@@ -194,8 +191,7 @@ class FeedbackControllerMedia extends Hubzero_Controller
 		}
 
 		// Build the file path
-		ximport('Hubzero_View_Helper_Html');
-		$path = JPATH_ROOT . DS . trim($this->config->get('uploadpath', '/site/quotes'), DS) . DS . Hubzero_View_Helper_Html::niceidformat($id);
+		$path = JPATH_ROOT . DS . trim($this->config->get('uploadpath', '/site/quotes'), DS) . DS . \Hubzero\Utility\String::pad($id);
 
 		if (!file_exists($path . DS . $row->picture) or !$row->picture)
 		{
@@ -243,8 +239,7 @@ class FeedbackControllerMedia extends Hubzero_Controller
 		// Do have an ID or do we need to get one?
 		$this->view->id = ($id) ? $id : JRequest::getInt('id', 0);
 
-		ximport('Hubzero_View_Helper_Html');
-		$this->view->dir = Hubzero_View_Helper_Html::niceidformat($this->view->id);
+		$this->view->dir = \Hubzero\Utility\String::pad($this->view->id);
 
 		// Do we have a file or do we need to get one?
 		$this->view->file = ($file) ? $file : JRequest::getVar('file', '');

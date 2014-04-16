@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-class NewsletterControllerNewsletter extends Hubzero_Controller
+class NewsletterControllerNewsletter extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Dependency check
@@ -700,8 +700,7 @@ class NewsletterControllerNewsletter extends Hubzero_Controller
 		//build newsletter for sending
 		$newsletterNewsletterContent = $newsletterNewsletter->buildNewsletter( $newsletterNewsletter );
 		
-		//ximport('Hubzero_Image_MozifyHelper');
-		//$newsletterNewsletterContent = Hubzero_Image_MozifyHelper::mozifyHtml( $newsletterNewsletterContent, 5 );
+		//$newsletterNewsletterContent = \Hubzero\Image\MozifyHelper::mozifyHtml( $newsletterNewsletterContent, 5 );
 		
 		//send campaign
 		$this->_send( $newsletterNewsletter, $newsletterNewsletterContent, $emails, $mailinglistId, $sendingTest = false );
@@ -783,8 +782,23 @@ class NewsletterControllerNewsletter extends Hubzero_Controller
 			foreach ($newsletterContacts as $contact)
 			{
 				$mailSubject = '[SENDING TEST] - ' . $mailSubject;
-				mail($contact, $mailSubject, $mailBody, $mailHeaders, $mailArgs);
+				
+				// create new message
+				$message = new \Hubzero\Mail\Message();
+				
+				foreach (explode("\r\n", $mailHeaders) as $header)
+				{
+					$parts = array_map("trim", explode(':', $header));
+					$message->addHeader($parts[0], $parts[1]);
+				}
+		
+				// build message object and send
+				$message->setSubject($mailSubject)
+						->setTo($contact)
+						->addPart($mailBody, 'text/html')
+						->send();
 			}
+			
 			return true;
 		}
 		

@@ -163,30 +163,32 @@ class UsersModelReset extends JModelForm
 		}
 
 		// Initiate profile classs
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load( $id );
 
-		if (Hubzero_User_Helper::isXDomainUser($user->get('id'))) {
+		if (\Hubzero\User\Helper::isXDomainUser($user->get('id'))) {
 			JError::raiseError( 403, JText::_('This is a linked account. To change your password you must change it using the procedures available where the account you are linked to is managed.') );
 			return;
 		}
 
-		$password_rules = Hubzero_Password_Rule::getRules();
+		$password_rules = \Hubzero\Password\Rule::getRules();
 
 		$password1 = $data['password1'];
 		$password2 = $data['password2'];
 
 		if (!empty($password1)) {
-			$msg = Hubzero_Password_Rule::validate($password1,$password_rules,$profile->get('username'));
+			$msg = \Hubzero\Password\Rule::validate($password1,$password_rules,$profile->get('username'));
 		} else {
 			$msg = array();
 		}
+
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'helpers' . DS . 'utility.php');
 
 		if (!$password1 || !$password2) {
 			$this->setError( JText::_('you must enter your new password twice to ensure we have it correct') );
 		} elseif ($password1 != $password2) {
 			$this->setError( JText::_('the new password and confirmation you entered do not match. Please try again') );
-		} elseif (!Hubzero_Registration_Helper::validpassword($password1)) {
+		} elseif (!RegisterHelperUtility::validpassword($password1)) {
 			$this->setError( JText::_('the password you entered was invalid password. You may be using characters that are not allowed') );
 		} elseif (!empty($msg)) {
 			$this->setError( JText::_('the password does not meet site password requirements. Please choose a password meeting all the requirements listed below.') );
@@ -198,7 +200,7 @@ class UsersModelReset extends JModelForm
 		}
 
 		// Encrypt the password and update the profile
-		$result = Hubzero_User_Password::changePassword($profile->get('username'), $password1);
+		$result = \Hubzero\User\Password::changePassword($profile->get('username'), $password1);
 
 		// Save the changes
 		if (!$result) {

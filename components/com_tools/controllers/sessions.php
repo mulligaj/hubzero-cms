@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.job.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.session.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.view.php');
@@ -41,7 +39,7 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_t
 /**
  * Tools controller class for simulation sessions
  */
-class ToolsControllerSessions extends Hubzero_Controller
+class ToolsControllerSessions extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -342,8 +340,6 @@ class ToolsControllerSessions extends Hubzero_Controller
 			return;
 		}
 
-		ximport('Hubzero_Environment');
-
 		$params = JRequest::getString('params','','default',JREQUEST_ALLOWRAW);
 
 		if (!empty($params))
@@ -371,7 +367,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 						// Replace ~/ prefix with user's home directory
 						if (strncmp($value,"~/",2) === 0)
 						{
-							$xprofile = Hubzero_User_Profile::getInstance($this->juser->get('id'));
+							$xprofile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		
 							$homeDirectory = rtrim($xprofile->get('homeDirectory'),"/");
 	
@@ -476,7 +472,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 		$app->version = JRequest::getVar('version', 'default');
 
 		// Get the user's IP address
-		$app->ip      = Hubzero_Environment::ipAddress();
+		$app->ip      = JRequest::ip();
 
 		// Make sure we have an app to invoke
 		if (!$app->name) 
@@ -536,7 +532,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 		$hasaccess = $this->_getToolAccess($app->name);
 		//$status2 = ($hasaccess) ? "PASSED" : "FAILED";
 
-		//$xlog->logDebug("mw::invoke " . $app->name . " by " . $this->juser->get('username') . " from " . $app->ip . " _getToolAccess " . $status2);
+		//$xlog->debug("mw::invoke " . $app->name . " by " . $this->juser->get('username') . " from " . $app->ip . " _getToolAccess " . $status2);
 
 		if ($this->getError()) 
 		{
@@ -561,7 +557,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 		$jobs = $ms->getCount($this->juser->get('username'));
 
 		// Find out how many sessions the user is ALLOWED to run.
-		$xprofile = Hubzero_Factory::getProfile();
+		$xprofile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		$remain = $xprofile->get('jobsAllowed') - $jobs;
 
 		// Have they reached their session quota?
@@ -708,8 +704,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 		//do we want to share with a group
 		if (isset($group) && $group != 0)
 		{
-			ximport('Hubzero_Group');
-			$hg = Hubzero_Group::getInstance( $group );
+			$hg = \Hubzero\User\Group::getInstance( $group );
 			$members = $hg->get('members');
 			
 			//merge group members with any passed in username field
@@ -903,8 +898,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 		$this->view->rtrn = JRequest::getVar('return', '');
 
 		// Get the user's IP address
-		ximport('Hubzero_Environment');
-		$app->ip = Hubzero_Environment::ipAddress(); //JRequest::getVar('REMOTE_ADDR', '', 'server');
+		$app->ip = JRequest::ip(); //JRequest::getVar('REMOTE_ADDR', '', 'server');
 
 		// Double-check that the user can view this session.
 		$mwdb = ToolsHelperUtils::getMWDBO();
@@ -1039,8 +1033,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 		}
 		
 		//get users groups
-		ximport('Hubzero_User_Helper');
-		$this->view->mygroups = Hubzero_User_Helper::getGroups( $this->juser->get('id'), 'members', 1 );
+		$this->view->mygroups = \Hubzero\User\Helper::getGroups( $this->juser->get('id'), 'members', 1 );
 
 		// Push styles to the document
 		$this->_getStyles($this->_option, 'assets/css/tools.css');
@@ -1049,8 +1042,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 		//$this->_getScripts('assets/js/' . $this->_controller);
 		
 		//add editable plugin
-		//ximport('Hubzero_Document');
-		//Hubzero_Document::addSystemScript('jquery.editable.min');
+		//\Hubzero\Document\Assets::addSystemScript('jquery.editable.min');
 
 		$this->view->app      = $app;
 		$this->view->config   = $this->config;
@@ -1478,53 +1470,52 @@ class ToolsControllerSessions extends Hubzero_Controller
 	 */
 	private function _getToolExportControl($exportcontrol)
 	{
-		$xlog = Hubzero_Factory::getLogger();
+		$xlog = JFactory::getLogger();
 		$exportcontrol = strtolower($exportcontrol);
 
-		ximport('Hubzero_Environment');
-		$ip = Hubzero_Environment::ipAddress();
+		$ip = JRequest::ip();
 
-		$country = Hubzero_Geo::ipcountry($ip);
+		$country = \Hubzero\Geocode\Geocode::ipcountry($ip);
 
 		if (empty($country) && in_array($exportcontrol, array('us', 'd1', 'pu')))
 		{
 			$this->setError('This tool may not be accessed from your unknown current location due to export/license restrictions.');
-			$xlog->logDebug("mw::_getToolExportControl($exportcontrol) FAILED location export control check");
+			$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED location export control check");
 			return false;
 		}
 
-		if (Hubzero_Geo::is_e1nation(Hubzero_Geo::ipcountry($ip))) 
+		if (\Hubzero\Geocode\Geocode::is_e1nation(\Hubzero\Geocode\Geocode::ipcountry($ip))) 
 		{
 			$this->setError('This tool may not be accessed from your current location due to E1 export/license restrictions.');
-			$xlog->logDebug("mw::_getToolExportControl($exportcontrol) FAILED E1 export control check");
+			$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED E1 export control check");
 			return false;
 		}
 
 		switch ($exportcontrol)
 		{
 			case 'us':
-				if (Hubzero_Geo::ipcountry($ip) != 'us') 
+				if (\Hubzero\Geocode\Geocode::ipcountry($ip) != 'us') 
 				{
 					$this->setError('This tool may only be accessed from within the U.S. due to export/licensing restrictions.');
-					$xlog->logDebug("mw::_getToolExportControl($exportcontrol) FAILED US export control check");
+					$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED US export control check");
 					return false;
 				}
 			break;
 
 			case 'd1':
-				if (Hubzero_Geo::is_d1nation(Hubzero_Geo::ipcountry($ip))) 
+				if (\Hubzero\Geocode\Geocode::is_d1nation(\Hubzero\Geocode\Geocode::ipcountry($ip))) 
 				{
 					$this->setError('This tool may not be accessed from your current location due to export/license restrictions.');
-					$xlog->logDebug("mw::_getToolExportControl($exportcontrol) FAILED D1 export control check");
+					$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED D1 export control check");
 					return false;
 				}
 			break;
 
 			case 'pu':
-				if (!Hubzero_Geo::is_iplocation($ip, $exportcontrol)) 
+				if (!\Hubzero\Geocode\Geocode::is_iplocation($ip, $exportcontrol)) 
 				{
 					$this->setError('This tool may only be accessed by authorized users while on the West Lafayette campus of Purdue University due to license restrictions.');
-					$xlog->logDebug("mw::_getToolExportControl($exportControl) FAILED PURDUE export control check");
+					$xlog->debug("mw::_getToolExportControl($exportControl) FAILED PURDUE export control check");
 					return false;
 				}
 			break;
@@ -1542,19 +1533,17 @@ class ToolsControllerSessions extends Hubzero_Controller
 	 */
 	private function _getToolAccess($tool, $login='')
 	{
-		ximport('Hubzero_User_Helper');
-		ximport('Hubzero_Geo');
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'tool.php');
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'group.php');
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'version.php');
 
-		$xlog = Hubzero_Factory::getLogger();
+		$xlog = JFactory::getLogger();
 
 		// Ensure we have a tool
 		if (!$tool) 
 		{
 			$this->setError('No tool provided.');
-			$xlog->logDebug("mw::_getToolAccess($tool,$login) FAILED null tool check");
+			$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null tool check");
 			return false;
 		}
 
@@ -1564,7 +1553,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 			$login = $this->juser->get('username');
 			if ($login == '') 
 			{
-				$xlog->logDebug("mw::_getToolAccess($tool,$login) FAILED null user check");
+				$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null user check");
 				return false;
 			}
 		}
@@ -1575,7 +1564,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 
 		if (empty($tv->id)) 
 		{
-			$xlog->logDebug("mw::_getToolAccess($tool,$login) FAILED null tool version check");
+			$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null tool version check");
 			return false;
 		}
 
@@ -1584,13 +1573,13 @@ class ToolsControllerSessions extends Hubzero_Controller
 		$toolgroups = $this->database->loadObjectList();
 		if (empty($toolgroups)) 
 		{
-			//$xlog->logDebug("mw::_getToolAccess($tool,$login) WARNING: no tool member groups");
+			//$xlog->debug("mw::_getToolAccess($tool,$login) WARNING: no tool member groups");
 		}
 
-		$xgroups = Hubzero_User_Helper::getGroups($this->juser->get('id'), 'members');
+		$xgroups = \Hubzero\User\Helper::getGroups($this->juser->get('id'), 'members');
 		if (empty($xgroups)) 
 		{
-			//$xlog->logDebug("mw::_getToolAccess($tool,$login) WARNING: user not in any groups");
+			//$xlog->debug("mw::_getToolAccess($tool,$login) WARNING: user not in any groups");
 		}
 
 		// Check if the user is in any groups for this app
@@ -1635,17 +1624,17 @@ class ToolsControllerSessions extends Hubzero_Controller
 		{
 			if ($indevgroup) 
 			{
-				//$xlog->logDebug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS GRANTED (USER IN DEVELOPMENT GROUP)");
+				//$xlog->debug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS GRANTED (USER IN DEVELOPMENT GROUP)");
 				return true;
 			}
 			else if ($admin) 
 			{
-				//$xlog->logDebug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
+				//$xlog->debug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
 				return true;
 			}
 			else
 			{
-				$xlog->logDebug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS DENIED (USER NOT IN DEVELOPMENT OR ADMIN GROUPS)");
+				$xlog->debug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS DENIED (USER NOT IN DEVELOPMENT OR ADMIN GROUPS)");
 				$this->setError("The development version of this tool may only be accessed by members of it's development group.");
 				return false;
 			}
@@ -1655,17 +1644,17 @@ class ToolsControllerSessions extends Hubzero_Controller
 			if ($tisGroupControlled) {
 				if ($ingroup) 
 				{
-					//$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ACCESS GROUP)");
+					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ACCESS GROUP)");
 					return true;
 				}
 				else if ($admin) 
 				{
-					//$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
+					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
 					return true;
 				}
 				else 
 				{
-					$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (USER NOT IN ACCESS OR ADMIN GROUPS)");
+					$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (USER NOT IN ACCESS OR ADMIN GROUPS)");
 					$this->setError("This tool may only be accessed by members of it's access control groups.");
 					return false;
 				}
@@ -1674,29 +1663,29 @@ class ToolsControllerSessions extends Hubzero_Controller
 			{
 				if (!$exportAllowed) 
 				{
-					$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (EXPORT DENIED)");
+					$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (EXPORT DENIED)");
 					return false;
 				}
 				else if ($admin) 
 				{
-					//$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
+					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
 					return true;
 				}
 				else if ($indevgroup) 
 				{
-					//$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN DEVELOPMENT GROUP)");
+					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN DEVELOPMENT GROUP)");
 					return true;
 				}
 				else 
 				{
-					//$xlog->logDebug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED");
+					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED");
 					return true;
 				}
 			}
 		}
 		else 
 		{
-			$xlog->logDebug("mw::_getToolAccess($tool,$login): UNPUBLISHED TOOL ACCESS DENIED (TOOL NOT PUBLISHED)");
+			$xlog->debug("mw::_getToolAccess($tool,$login): UNPUBLISHED TOOL ACCESS DENIED (TOOL NOT PUBLISHED)");
 			$this->setError('This tool version is not published.');
 			return false;
 		}

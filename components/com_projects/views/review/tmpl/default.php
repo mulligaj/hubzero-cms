@@ -43,8 +43,7 @@ else {
 			: JText::_('COM_PROJECTS_SAVE');
 }
 
-ximport('Hubzero_User_Profile');
-$profile = Hubzero_User_Profile::getInstance($this->project->created_by_user);
+$profile = \Hubzero\User\Profile::getInstance($this->project->created_by_user);
 $notes = ProjectsHtml::getAdminNotes($this->project->admin_notes, $this->reviewer);
 
 ?>

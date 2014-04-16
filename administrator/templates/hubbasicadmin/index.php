@@ -49,20 +49,7 @@ if ($this->direction == 'rtl') {
 	$doc->addStyleSheet('templates/'.$this->template.'/css/common/rtl.css');
 }
 
-if (JPluginHelper::isEnabled('system', 'debug')) {
-	$doc->addStyleSheet('templates/' . $this->template . '/css/common/debug.css');
-}
-
-//$doc->addScript('templates/' . $this->template . '/js/index.js');
-// Load debug CSS if enabled
-/*if (JPluginHelper::isEnabled('system', 'jquery')) {
-	$doc->addScript('templates/' . $this->template . '/js/jquery.uniform.min.js');
-	$doc->addScriptDeclaration('
-		jQuery(document).ready(function($){
-			$("select, input[type=file]").uniform();
-		});'
-	);
-}*/
+/*
 $doc->addScriptDeclaration('
 	var sTimeout = ((' . $app->getCfg('lifetime') . '-1)*60*1000);
 	function sessionWarning() {
@@ -79,11 +66,11 @@ $doc->addScriptDeclaration('
 		sessionWarning.periodical(sTimeout);
 	});
 ');
+*/
 
-ximport('Hubzero_Browser');
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 
 $juser = JFactory::getUser();
 
@@ -164,14 +151,14 @@ if (version_compare(JVERSION, '1.6', 'ge'))
 				</div><!-- / #toolbar-box -->
 				
 				<section id="main" class="<?php echo JRequest::getCmd('option', ''); ?>">
+					<!-- Notifications begins -->
+					<jdoc:include type="message" />
+					<!-- Notifications ends -->
 					<?php if (!JRequest::getInt('hidemainmenu') && $this->countModules('submenu')): ?>
 					<nav role="navigation" class="sub-navigation">
 						<jdoc:include type="modules" name="submenu" />
 					</nav><!-- / .sub-navigation -->
 					<?php endif; ?>
-					<!-- Notifications begins -->
-					<jdoc:include type="message" />
-					<!-- Notifications ends -->
 					<!-- Content begins -->
 					<jdoc:include type="component" />
 					<!-- Content ends -->

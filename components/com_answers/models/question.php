@@ -36,9 +36,9 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_a
 
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'helpers' . DS . 'economy.php');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'tags.php');
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'abstract.php');
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'response.php');
+require_once(__DIR__ . '/tags.php');
+require_once(__DIR__ . '/abstract.php');
+require_once(__DIR__ . '/response.php');
 
 /**
  * Answers mdoel class for a question
@@ -74,6 +74,13 @@ class AnswersModelQuestion extends AnswersModelAbstract
 	protected $_tbl_name = 'AnswersTableQuestion';
 
 	/**
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_answers.question.question';
+
+	/**
 	 * Class scope
 	 * 
 	 * @var string
@@ -88,7 +95,7 @@ class AnswersModelQuestion extends AnswersModelAbstract
 	private $_comment = null;
 
 	/**
-	 * \Hubzero\ItemList
+	 * \Hubzero\Base\ItemList
 	 * 
 	 * @var object
 	 */
@@ -183,7 +190,7 @@ class AnswersModelQuestion extends AnswersModelAbstract
 
 		if ($this->get('reward', -1) == 1)
 		{
-			$BT = new Hubzero_Bank_Transaction($this->_db);
+			$BT = new \Hubzero\Bank\Transaction($this->_db);
 			$this->set('reward', $BT->getAmount('answers', 'hold', $this->get('id')));
 
 			$AE = new AnswersEconomy($this->_db);
@@ -213,7 +220,7 @@ class AnswersModelQuestion extends AnswersModelAbstract
 			$this->_comment = null;
 
 			// See if we already have a list of comments that we can look through
-			if ($this->_comments instanceof \Hubzero\ItemList)
+			if ($this->_comments instanceof \Hubzero\Base\ItemList)
 			{
 				foreach ($this->_comments as $key => $comment)
 				{
@@ -247,9 +254,9 @@ class AnswersModelQuestion extends AnswersModelAbstract
 	{
 		$tbl = new AnswersTableResponse($this->_db);
 
-		if (!isset($filters['qid']))
+		if (!isset($filters['question_id']))
 		{
-			$filters['qid'] = $this->get('id');
+			$filters['question_id'] = $this->get('id');
 		}
 		if (!isset($filters['state']))
 		{
@@ -301,7 +308,7 @@ class AnswersModelQuestion extends AnswersModelAbstract
 			case 'list':
 			case 'results':
 			default:
-				if (!($this->_comments instanceof \Hubzero\ItemList) || $clear) 
+				if (!($this->_comments instanceof \Hubzero\Base\ItemList) || $clear) 
 				{
 					if ($results = $tbl->getResults($filters))
 					{
@@ -314,7 +321,7 @@ class AnswersModelQuestion extends AnswersModelAbstract
 					{
 						$results = array();
 					}
-					$this->_comments = new \Hubzero\ItemList($results);
+					$this->_comments = new \Hubzero\Base\ItemList($results);
 				}
 				return $this->_comments;
 			break;
@@ -332,9 +339,9 @@ class AnswersModelQuestion extends AnswersModelAbstract
 	{
 		$tbl = new AnswersTableResponse($this->_db);
 
-		if (!isset($filters['qid']))
+		if (!isset($filters['question_id']))
 		{
-			$filters['qid'] = $this->get('id');
+			$filters['question_id'] = $this->get('id');
 		}
 		$filters['state']    = 1;
 		$filters['filterby'] = 'accepted';
@@ -354,7 +361,7 @@ class AnswersModelQuestion extends AnswersModelAbstract
 			case 'list':
 			case 'results':
 			default:
-				if ($this->get('chosen', null) === null || !($this->get('chosen') instanceof \Hubzero\ItemList))
+				if ($this->get('chosen', null) === null || !($this->get('chosen') instanceof \Hubzero\Base\ItemList))
 				{
 					if ($results = $tbl->getResults($filters))
 					{
@@ -367,7 +374,7 @@ class AnswersModelQuestion extends AnswersModelAbstract
 					{
 						$results = array();
 					}
-					$this->set('chosen', new \Hubzero\ItemList($results));
+					$this->set('chosen', new \Hubzero\Base\ItemList($results));
 				}
 				return $this->get('chosen');
 			break;
@@ -521,55 +528,58 @@ class AnswersModelQuestion extends AnswersModelAbstract
 	public function content($as='parsed', $shorten=0)
 	{
 		$as = strtolower($as);
+		$options = array();
 
 		switch ($as)
 		{
 			case 'parsed':
-				if ($this->get('question_parsed'))
+				$content = $this->get('question.parsed', null);
+
+				if ($content === null)
 				{
-					return $this->get('question_parsed');
+					$config = array(
+						'option'   => 'com_answers',
+						'scope'    => 'question',
+						'pagename' => $this->get('id'),
+						'pageid'   => 0,
+						'filepath' => '',
+						'domain'   => ''
+					);
+
+					$content = (string) stripslashes($this->get('question', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('question.parsed', (string) $this->get('question', ''));
+					$this->set('question', $content);
+
+					return $this->content($as, $shorten);
 				}
 
-				$p = Hubzero_Wiki_Parser::getInstance();
-
-				$wikiconfig = array(
-					'option'   => 'com_answers',
-					'scope'    => 'question',
-					'pagename' => $this->get('id'),
-					'pageid'   => 0,
-					'filepath' => '',
-					'domain'   => ''
-				);
-
-				$this->set('question_parsed', $p->parse(stripslashes($this->get('question')), $wikiconfig));
-
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($this->get('question_parsed'), $shorten, 0, 0);
-					if (substr($content, -7) == '&#8230;') 
-					{
-						$content .= '</p>';
-					}
-					return $content;
-				}
-
-				return $this->get('question_parsed');
+				$options['html'] = true;
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->content('parsed'));
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 
 			case 'raw':
 			default:
-				return $this->get('question');
+				$content = stripslashes($this->get('question'));
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+
+		return $content;
 	}
 
 	/**
@@ -582,55 +592,58 @@ class AnswersModelQuestion extends AnswersModelAbstract
 	public function subject($as='parsed', $shorten=0)
 	{
 		$as = strtolower($as);
+		$options = array();
 
 		switch ($as)
 		{
 			case 'parsed':
-				if ($this->get('subject_parsed'))
+				$content = $this->get('subject.parsed', null);
+
+				if ($content === null)
 				{
-					return $this->get('subject_parsed');
+					$config = array(
+						'option'   => 'com_answers',
+						'scope'    => 'question',
+						'pagename' => $this->get('id'),
+						'pageid'   => 0,
+						'filepath' => '',
+						'domain'   => ''
+					);
+
+					$content = (string) stripslashes($this->get('subject', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						'com_answers.question.subject',
+						&$this,
+						&$config
+					));
+
+					$this->set('subject.parsed', (string) $this->get('subject', ''));
+					$this->set('subject', $content);
+
+					return $this->subject($as, $shorten);
 				}
 
-				$p = Hubzero_Wiki_Parser::getInstance();
-
-				$wikiconfig = array(
-					'option'   => 'com_answers',
-					'scope'    => 'question',
-					'pagename' => $this->get('id'),
-					'pageid'   => 0,
-					'filepath' => '',
-					'domain'   => ''
-				);
-
-				$this->set('subject_parsed', $p->parse(stripslashes($this->get('subject')), $wikiconfig));
-
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($this->get('subject_parsed'), $shorten, 0, 0);
-					if (substr($content, -7) == '&#8230;') 
-					{
-						$content .= '</p>';
-					}
-					return $content;
-				}
-
-				return $this->get('subject_parsed');
+				$options['html'] = true;
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->subject('parsed'));
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 
 			case 'raw':
 			default:
-				return $this->get('subject');
+				$content = stripslashes($this->get('subject'));
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+
+		return $content;
 	}
 
 	/**
@@ -649,7 +662,7 @@ class AnswersModelQuestion extends AnswersModelAbstract
 			$aql = new AnswersTableQuestionsLog($this->_db);
 			$this->set(
 				'voted', 
-				$aql->checkVote($this->get('id'), Hubzero_Environment::ipAddress(), $juser->get('id'))
+				$aql->checkVote($this->get('id'), JRequest::ip(), $juser->get('id'))
 			);
 		}
 
@@ -680,11 +693,11 @@ class AnswersModelQuestion extends AnswersModelAbstract
 		$juser = ($user_id) ? JUser::getInstance($user_id) : JFactory::getUser();
 
 		$al = new AnswersTableQuestionsLog($this->_db);
-		$al->qid   = $this->get('id');
-		$al->ip    = Hubzero_Environment::ipAddress();
-		$al->voter = $juser->get('id');
+		$al->question_id = $this->get('id');
+		$al->ip          = JRequest::ip();
+		$al->voter       = $juser->get('id');
 
-		if ($al->checkVote($al->qid, $al->ip, $al->voter))
+		if ($al->checkVote($al->question_id, $al->ip, $al->voter))
 		{
 			$this->setError(JText::_('COM_ANSWERS_NOTICE_ALREADY_VOTED_FOR_QUESTION'));
 			return false;
@@ -757,14 +770,14 @@ class AnswersModelQuestion extends AnswersModelAbstract
 			// Accepted answer is same person as question submitter?
 			if ($this->get('created_by') == $answer->get('created_by'))
 			{
-				$BT = new Hubzero_Bank_Transaction($this->_db);
+				$BT = new \Hubzero\Bank\Transaction($this->_db);
 				$reward = $BT->getAmount('answers', 'hold', $this->get('id'));
 
 				// Remove hold
 				$BT->deleteRecords('answers', 'hold', $this->get('id'));
 
 				// Make credit adjustment
-				$BTL_Q = new Hubzero_Bank_Teller($this->_db, JFactory::getUser()->get('id'));
+				$BTL_Q = new \Hubzero\Bank\Teller($this->_db, JFactory::getUser()->get('id'));
 				$BTL_Q->credit_adjustment($BTL_Q->credit_summary() - $reward);
 			}
 			else 
@@ -798,14 +811,14 @@ class AnswersModelQuestion extends AnswersModelAbstract
 		{
 			// Adjust credits
 			// Remove hold
-			$BT = new Hubzero_Bank_Transaction($this->_db);
+			$BT = new \Hubzero\Bank\Transaction($this->_db);
 			$reward = $BT->getAmount('answers', 'hold', $this->get('id'));
 			$BT->deleteRecords('answers', 'hold', $this->get('id'));
 
 			// Make credit adjustment
 			if (is_object($this->creator()))
 			{
-				$BTL = new Hubzero_Bank_Teller($this->_db, $this->creator('id'));
+				$BTL = new \Hubzero\Bank\Teller($this->_db, $this->creator('id'));
 				$credit = $BTL->credit_summary();
 				$adjusted = $credit - $reward;
 				$BTL->credit_adjustment($adjusted);

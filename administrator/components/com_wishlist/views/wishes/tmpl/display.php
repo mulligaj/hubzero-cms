@@ -132,6 +132,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 			$alt = JText::_('COM_WISHLIST_TRASHED');
 		break;
 		case 0:
+		default;
 			$class = 'unpublish';
 			$task = 'publish';
 			$alt = JText::_('COM_WISHLIST_UNPUBLISHED');
@@ -199,7 +200,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 				</td>
 				<td>
 					<a class="glyph comment" href="index.php?option=<?php echo $this->option ?>&amp;controller=comments&amp;wish=<?php echo $row->id; ?>">
-						<span><?php echo $this->escape(stripslashes($row->comments)); ?></span>
+						<span><?php echo $this->escape(stripslashes($row->numreplies)); ?></span>
 					</a>
 				</td>
 			</tr>

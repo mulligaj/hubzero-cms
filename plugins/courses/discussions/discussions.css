@@ -21,6 +21,12 @@
 		margin: 20px;
 	}
 
+	label .required {
+		text-transform: uppercase;
+		font-size: xx-small;
+		color: red;
+	}
+
 	.ordering-controls {
 		display: block;
 		margin: 0 0 0.2em 0;
@@ -283,7 +289,7 @@
 	.comment-add label {
 		display: block;
 	}
-	.comment-add label span {
+	.comment-add label span.label-text {
 		display: none;
 	}
 	.comment-add .cancelreply {
@@ -840,6 +846,9 @@
 	.comments-panel .comment-content #commentform {
 		padding-top: 0;
 	}
+	#commentform label span.label-text {
+		display: none;
+	}
 	.comments-toolbar span {
 		margin-left: 1.5em;
 		display: inline-block;
@@ -1223,6 +1232,7 @@
 	.entries .edit:before,
 	.entries .delete:before {
 		font-family: "Fontcons";
+		margin-right: 2em;
 	}
 	.entries .edit:before {
 		content: "\270E";
@@ -1304,3 +1314,19 @@
 		*margin-top: -1.5em;
 		*background-position: 0 0;
 	}
+
+@media print {
+	.comments-views {
+		min-height: auto;
+		max-height: 10000px;
+	}
+	.comments-views * {
+		position: static;
+	}
+	.comment-threads {
+		overflow: visible;
+	}
+	.comment-add {
+		display: none;
+	}
+}

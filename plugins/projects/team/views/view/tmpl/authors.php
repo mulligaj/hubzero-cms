@@ -31,8 +31,6 @@ $route = $this->project->provisioned
 	: 'index.php?option=com_projects' . a . 'alias=' . $this->project->alias;
 $p_url = JRoute::_($route . a . 'active=team');
 
-ximport('Hubzero_User_Profile_Helper');
-
 $shown = array();
 ?>
 <div>	
@@ -43,8 +41,8 @@ $shown = array();
 				foreach($this->team as $owner) {
 					
 					// Get profile thumb image 				
-					$profile = Hubzero_User_Profile::getInstance($owner->userid);
-					$thumb = Hubzero_User_Profile_Helper::getMemberPhoto($profile);
+					$profile = \Hubzero\User\Profile::getInstance($owner->userid);
+					$thumb = \Hubzero\User\Profile\Helper::getMemberPhoto($profile);
 					
 					if(in_array($owner->userid, $this->exclude)) {
 						// Skip certain team members if necessary
@@ -89,7 +87,7 @@ $shown = array();
 							$thumb = '';					
 							if($member->picture) {
 								$curthumb = $ih->createThumbName($member->picture);
-								$thumb = $path.DS.Hubzero_View_Helper_Html::niceidformat($member->user_id).DS.$curthumb;
+								$thumb = $path.DS.\Hubzero\Utility\String::pad($member->user_id).DS.$curthumb;
 							}
 							if (!$thumb or !is_file(JPATH_ROOT.$thumb)) {
 								$thumb = $default_thumb;

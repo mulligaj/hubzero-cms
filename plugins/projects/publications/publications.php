@@ -33,6 +33,8 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 jimport( 'joomla.plugin.plugin' );
 
+include_once(JPATH_ROOT . DS . 'components' . DS . 'com_publications' . DS . 'models' . DS . 'publication.php');
+
 /**
  * Project publications
  */
@@ -179,25 +181,22 @@ class plgProjectsPublications extends JPlugin
 		}
 		
 		// Load language file
-		$this->loadLanguage();
-		
+		$this->loadLanguage();		
 		$database = JFactory::getDBO();
-		
-		// Enable views
-		ximport('Hubzero_View_Helper_Html');
-		ximport('Hubzero_Plugin_View');
 				
 		// Get JS & CSS
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginScript('projects', 'publications');
-		Hubzero_Document::addPluginStylesheet('projects', 'publications');
+		\Hubzero\Document\Assets::addPluginScript('projects', 'publications');
+		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'publications');
 				
 		// Import publication helpers
 		require_once( JPATH_ROOT . DS .'components' . DS . 'com_publications' . DS . 'helpers' . DS . 'helper.php' );
 		require_once( JPATH_ROOT . DS .'components' . DS . 'com_publications' . DS . 'helpers' . DS . 'tags.php' );
 		require_once( JPATH_ROOT . DS .'components' . DS . 'com_publications' . DS . 'helpers' . DS . 'html.php' );
-		require_once( JPATH_ROOT . DS . 'plugins' . DS . 'projects' . DS . 'publications' . DS . 'helpers' . DS . 'types.php' );
-		require_once( JPATH_ROOT . DS . 'plugins' . DS . 'projects' . DS . 'publications' . DS . 'helpers' . DS . 'contrib.php' );
+		require_once( JPATH_ROOT . DS .'components' . DS . 'com_publications' 
+			. DS . 'helpers' . DS . 'contrib.php' );
+			
+		// Import required models
+		require_once( JPATH_ROOT . DS .'components' . DS . 'com_publications' . DS . 'models' . DS . 'types.php' );
 				
 		// Get task									
 		$this->_task = JRequest::getVar('action','');
@@ -407,7 +406,7 @@ class plgProjectsPublications extends JPlugin
 		$filters['dev']   	 		= 1; // get dev versions
 		
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -465,47 +464,6 @@ class plgProjectsPublications extends JPlugin
 	}
 	
 	/**
-	 * Get supported master types applicable to individual project
-	 * 
-	 * @return     string
-	 */
-	private function _getAllowedTypes($tChoices) 
-	{
-		$choices = array();
-		
-		if (is_object($this->_project) && $this->_project->id && !empty($tChoices))
-		{
-			foreach ($tChoices as $choice)
-			{
-				$pluginName = is_object($choice) ? $choice->alias : $choice;
-
-				// We need a plugin
-				if (!JPluginHelper::isEnabled('projects', $pluginName))
-				{
-					continue;
-				}
-				
-				$plugin = JPluginHelper::getPlugin('projects', $pluginName);
-				$params = new JParameter($plugin->params);
-				
-				// Get restrictions from plugin params 
-				$projects = $params->get('restricted') ? ProjectsHelper::getParamArray($params->get('restricted')) : array();
-				
-				if (!empty($projects))
-				{
-					if (!in_array($this->_project->alias, $projects))
-					{
-						continue;
-					}
-				}
-
-				$choices[] = $choice;
-			}
-		}
-		return $choices;
-	}
-	
-	/**
 	 * Start a publication
 	 * 
 	 * @return     string
@@ -537,7 +495,7 @@ class plgProjectsPublications extends JPlugin
 		}
 				
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -590,7 +548,7 @@ class plgProjectsPublications extends JPlugin
 		$base = JRequest::getVar('base', 'files');
 			
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -622,8 +580,8 @@ class plgProjectsPublications extends JPlugin
 		}
 		
 		// Get content plugin JS/CSS
-		Hubzero_Document::addPluginScript('projects', $base);
-		Hubzero_Document::addPluginStylesheet('projects', $base);
+		\Hubzero\Document\Assets::addPluginScript('projects', $base);
+		\Hubzero\Document\Assets::addPluginStylesheet('projects', $base);
 		
 		// Contribute process outside of projects
 		if (!is_object($this->_project) or !$this->_project->id) 
@@ -737,7 +695,7 @@ class plgProjectsPublications extends JPlugin
 			return false;
 		}
 				
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -818,7 +776,8 @@ class plgProjectsPublications extends JPlugin
 		// Start url
 		$route = $this->_project->provisioned 
 					? 'index.php?option=com_publications' . a . 'task=submit'
-					: 'index.php?option=com_projects' . a . 'alias=' . $this->_project->alias . a . 'active=publications';		
+					: 'index.php?option=com_projects' . a . 'alias=' 
+						. $this->_project->alias . a . 'active=publications';		
 
 		// If publication not found, raise error
 		if (!$pub) 
@@ -895,7 +854,7 @@ class plgProjectsPublications extends JPlugin
 		
 		if ($section == 'content' || $section == 'gallery')
 		{
-			Hubzero_Document::addPluginScript('projects', 'files');
+			\Hubzero\Document\Assets::addPluginScript('projects', 'files');
 		}
 		
 		// Base of primary content corresponds to master type!
@@ -922,7 +881,7 @@ class plgProjectsPublications extends JPlugin
 		}
 				
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -971,7 +930,8 @@ class plgProjectsPublications extends JPlugin
 				$document->addScript('plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'observer.js');
 				$document->addScript('plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'textboxlist.js');
 				$document->addScript('plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'autocompleter.js');
-				$document->addStyleSheet('plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'autocompleter.css');
+				$document->addStyleSheet('plugins' . DS . 'hubzero' . DS 
+					. 'autocompleter' . DS . 'autocompleter.css');
 			}
 		}
 				
@@ -996,8 +956,8 @@ class plgProjectsPublications extends JPlugin
 				$view->prefix = $this->_config->get('offroot', 0) ? '' : JPATH_ROOT;
 																				
 				// Get Files JS
-				Hubzero_Document::addPluginScript('projects', 'files');
-				Hubzero_Document::addPluginStylesheet('projects', 'files');							
+				\Hubzero\Document\Assets::addPluginScript('projects', 'files');
+				\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files');							
 				break;
 			
 			case 'description':
@@ -1026,10 +986,10 @@ class plgProjectsPublications extends JPlugin
 			case 'access':						
 				// Sys group
 				$cn = $this->_config->get('group_prefix', 'pr-').$this->_project->alias;
-				$view->sysgroup = new Hubzero_Group();
-				if (Hubzero_Group::exists($cn)) 
+				$view->sysgroup = new \Hubzero\User\Group();
+				if (\Hubzero\User\Group::exists($cn)) 
 				{
-					$view->sysgroup = Hubzero_Group::getInstance( $cn );
+					$view->sysgroup = \Hubzero\User\Group::getInstance( $cn );
 				}
 				
 				// Is access restricted?
@@ -1070,7 +1030,25 @@ class plgProjectsPublications extends JPlugin
 					$view->audience = new PublicationAudience( $this->_database );
 				}
 				break;
-			
+				
+			case 'citations':				
+				include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+					. DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
+				include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+					. DS . 'com_citations' . DS . 'tables' . DS . 'association.php' );
+				include_once( JPATH_ROOT . DS . 'components' . DS . 'com_citations' 
+					. DS . 'helpers' . DS . 'format.php' );
+				$view->format = $this->_pubconfig->get('citation_format', 'apa');
+
+				// Get citations for this publication
+				$c = new CitationsCitation( $this->_database );
+				$view->citations = $c->getCitations( 'publication', $row->publication_id );
+				
+				\Hubzero\Document\Assets::addPluginStylesheet('projects', 'links');	
+				\Hubzero\Document\Assets::addPluginScript('projects', 'links');
+				 	
+				break;
+						
 			case 'gallery':
 				// Get screenshots
 				$pScreenshot = new PublicationScreenshot( $this->_database );
@@ -1078,7 +1056,8 @@ class plgProjectsPublications extends JPlugin
 				
 				// Get gallery path
 				$webpath = $this->_pubconfig->get('webpath');
-				$view->gallery_path = $view->helper->buildPath($row->publication_id, $row->id, $webpath, 'gallery');
+				$view->gallery_path = $view->helper->buildPath($row->publication_id, 
+					$row->id, $webpath, 'gallery');
 				
 				// Get project file path
 				$view->fpath = ProjectsHelper::getProjectPath($this->_project->alias, 
@@ -1101,23 +1080,10 @@ class plgProjectsPublications extends JPlugin
 				
 				// Get types
 				$rt = new PublicationCategory( $this->_database );
-				$view->categories = $rt->getContribCategories();										
+				$view->categories = $rt->getContribCategories();
 				break;
 		}
-		
-		//Import the wiki parser
-		ximport('Hubzero_Wiki_Parser');
-		$view->parser = Hubzero_Wiki_Parser::getInstance();
 
-		$view->wikiconfig = array(
-			'option'   => $this->_option,
-			'scope'    => '',
-			'pagename' => 'projects',
-			'pageid'   => '',
-			'filepath' => '',
-			'domain'   => ''
-		);
-						
 		// Get type info
 		$view->_category = new PublicationCategory( $this->_database );
 		$view->_category->load($pub->category);
@@ -1243,7 +1209,7 @@ class plgProjectsPublications extends JPlugin
 				$row->severity	= 'normal';
 				
 				$admingroup = $this->_config->get('admingroup', '');
-				$group = Hubzero_Group::getInstance($admingroup);
+				$group = \Hubzero\User\Group::getInstance($admingroup);
 				$row->group = $group ? $group->get('cn') : '';
 
 				if (!$row->store()) 
@@ -1297,7 +1263,7 @@ class plgProjectsPublications extends JPlugin
 		}
 		else
 		{
-			 $view = new Hubzero_Plugin_View(
+			 $view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'publications',
@@ -1573,7 +1539,7 @@ class plgProjectsPublications extends JPlugin
 					$this->_msg = JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_NEW_VERSION_STARTED');	
 					
 					// Record activity
-					$pubtitle = Hubzero_View_Helper_Html::shortenText($new->title, 100, 0);
+					$pubtitle = \Hubzero\Utility\String::truncate($new->title, 100);
 					$action  = JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_STARTED_VERSION').' '.$new->version_label.' ';
 					$action .=  JText::_('PLG_PROJECTS_PUBLICATIONS_OF_PUBLICATION').' "'.$pubtitle.'"';
 					$objAA = new ProjectActivity ( $this->_database );
@@ -1592,7 +1558,7 @@ class plgProjectsPublications extends JPlugin
 		// Need to ask for new version label	
 		else 
 		{
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'publications',
@@ -1687,7 +1653,7 @@ class plgProjectsPublications extends JPlugin
 		$row->loadVersion($pid, $version);
 					
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -1785,10 +1751,10 @@ class plgProjectsPublications extends JPlugin
 		
 		// Sys group
 		$cn = $this->_config->get('group_prefix', 'pr-').$this->_project->alias;
-		$view->sysgroup = new Hubzero_Group();
-		if (Hubzero_Group::exists($cn)) 
+		$view->sysgroup = new \Hubzero\User\Group();
+		if (\Hubzero\User\Group::exists($cn)) 
 		{
-			$view->sysgroup = Hubzero_Group::getInstance( $cn );
+			$view->sysgroup = \Hubzero\User\Group::getInstance( $cn );
 		}
 		
 		// Is access restricted?
@@ -1803,19 +1769,6 @@ class plgProjectsPublications extends JPlugin
 		// Get JS
 		$document = JFactory::getDocument();
 		$document->addScript('components' . DS . 'com_publications' . DS . 'publications.js');
-		
-		//Import the wiki parser
-		ximport('Hubzero_Wiki_Parser');
-		$view->parser = Hubzero_Wiki_Parser::getInstance();
-
-		$view->wikiconfig = array(
-			'option'   => $this->_option,
-			'scope'    => '',
-			'pagename' => 'projects',
-			'pageid'   => '',
-			'filepath' => '',
-			'domain'   => ''
-		);
 
 		// Output HTML
 		$view->option 		= $this->_option;
@@ -2174,7 +2127,7 @@ class plgProjectsPublications extends JPlugin
 						$title 			= trim(JRequest::getVar( 'title', '', 'post' )); 
 						$title 			= htmlspecialchars($title);
 						$abstract 		= trim(JRequest::getVar( 'abstract', '', 'post' )); 
-						$abstract 		= Hubzero_Filter::cleanXss(htmlspecialchars($abstract));
+						$abstract 		= \Hubzero\Utility\Sanitize::clean(htmlspecialchars($abstract));
 						$description 	= trim(JRequest::getVar( 'description', '', 'post' ));	
 						$description 	= stripslashes($description);
 
@@ -2185,8 +2138,8 @@ class plgProjectsPublications extends JPlugin
 								$this->setError(JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_MISSING_REQUIRED_INFO') );
 							}
 							$row->title 		= $title;
-							$row->abstract 		= $abstract ? Hubzero_View_Helper_Html::shortenText($abstract, 250, 0) : $title;
-							$row->description 	= $description ? $description : $title;						
+							$row->abstract 		= $abstract ? \Hubzero\Utility\String::truncate($abstract, 250) : $title;
+							$row->description 	= $description;						
 						}						
 					}
 					
@@ -2231,10 +2184,10 @@ class plgProjectsPublications extends JPlugin
 						
 						// Sys group
 						$cn = $this->_config->get('group_prefix', 'pr-').$this->_project->alias;
-						$sysgroup = new Hubzero_Group();
-						if (Hubzero_Group::exists($cn)) 
+						$sysgroup = new \Hubzero\User\Group();
+						if (\Hubzero\User\Group::exists($cn)) 
 						{
-							$sysgroup = Hubzero_Group::getInstance( $cn );
+							$sysgroup = \Hubzero\User\Group::getInstance( $cn );
 						}
 
 						$paccess = new PublicationAccess( $this->_database );
@@ -2323,6 +2276,10 @@ class plgProjectsPublications extends JPlugin
 						$objP->category = $cat;
 						$objP->store();
 					}					
+					break;
+					
+				case 'citations':
+					$this->_msg = JText::_('PLG_PROJECTS_PUBLICATIONS_CITATIONS_SAVED');
 					break;
 
 				case 'notes':
@@ -2419,8 +2376,8 @@ class plgProjectsPublications extends JPlugin
 			$managers = $objO->getIds($this->_project->id, 1, 1);
 			if (!empty($managers))
 			{
-				$profile = Hubzero_Factory::getProfile();
-				$profile->load( $this->_uid );
+				$profile = \Hubzero\User\Profile::getInstance($this->_uid);
+
 				$juri = JURI::getInstance();
 				
 				$sef = JRoute::_('index.php?option=' . $this->_option . a 
@@ -2437,7 +2394,7 @@ class plgProjectsPublications extends JPlugin
 					$this->_project, 
 					$managers, 
 					JText::_('COM_PROJECTS_EMAIL_MANAGERS_NEW_PUB_STARTED'),
-					'projects_admin_message', 
+					'projects_admin_notice', 
 					'publication',
 					$profile->get('name') . ' ' 
 						. JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_STARTED_NEW_PUB')
@@ -2667,7 +2624,6 @@ class plgProjectsPublications extends JPlugin
 		if ($pubdate)
 		{
 			$date = explode('-', $pubdate);
-
 			if (count($date) == 3) 
 			{
 				$year 	= $date[0];
@@ -2759,7 +2715,7 @@ class plgProjectsPublications extends JPlugin
 			}
 			
 			// Get dc:contibutor
-			$profile = Hubzero_Factory::getProfile();
+			$profile = \Hubzero\User\Profile::getInstance(JFactory::getUser()->get('id'));
 			$owner 	 = $this->_project->owned_by_user ? $this->_project->owned_by_user : $this->_project->created_by_user;
 			if($profile->load( $owner ))
 			{
@@ -2841,7 +2797,7 @@ class plgProjectsPublications extends JPlugin
 				$this->_msg .= ' <a href="'.JRoute::_('index.php?option=com_publications' . a . 
 					    'id=' . $pid ) .'">'. JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_VIEWIT').'</a>';
 
-				$pubtitle = Hubzero_View_Helper_Html::shortenText($row->title, 100, 0);
+				$pubtitle = \Hubzero\Utility\String::truncate($row->title, 100);
 				$action .= ' '.$row->version_label.' ';
 				$action .=  JText::_('PLG_PROJECTS_PUBLICATIONS_OF_PUBLICATION').' "'.html_entity_decode($pubtitle).'"';
 				$action  = htmlentities($action, ENT_QUOTES, "UTF-8");
@@ -2858,8 +2814,8 @@ class plgProjectsPublications extends JPlugin
 				}
 				
 				// Notify administrator of a new publication
-				$profile = Hubzero_Factory::getProfile();
-				$profile->load( $this->_uid );
+				$profile = \Hubzero\User\Profile::getInstance($this->_uid);
+
 				$juri = JURI::getInstance();
 				
 				$sef = JRoute::_('index.php?option=com_publications' . a . 'id=' . $pid );
@@ -2871,7 +2827,7 @@ class plgProjectsPublications extends JPlugin
 				if ($notify)
 				{
 					$admingroup = $this->_config->get('admingroup', '');
-					$group = Hubzero_Group::getInstance($admingroup);
+					$group = \Hubzero\User\Group::getInstance($admingroup);
 					$admins = array();
 					
 					if ($admingroup && $group)
@@ -2906,7 +2862,7 @@ class plgProjectsPublications extends JPlugin
 						$this->_project, 
 						$managers, 
 						JText::_('COM_PROJECTS_EMAIL_MANAGERS_NEW_PUB_STATUS'),
-						'projects_admin_message', 
+						'projects_admin_notice', 
 						'publication',
 						$profile->get('name') . ' ' . html_entity_decode($action) . ' - ' . $juri->base() 
 							. $sef . '/?version=' . $row->version_number
@@ -3006,7 +2962,7 @@ class plgProjectsPublications extends JPlugin
 		{
 			if (!$this->getError()) 
 			{
-				$pubtitle = Hubzero_View_Helper_Html::shortenText($row->title, 100, 0);
+				$pubtitle = \Hubzero\Utility\String::truncate($row->title, 100);
 				$objAA = new ProjectActivity ( $this->_database );
 				
 				if ($pub->state == 1) 
@@ -3112,7 +3068,7 @@ class plgProjectsPublications extends JPlugin
 		}
 		else 
 		{	
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'publications',
@@ -3197,7 +3153,7 @@ class plgProjectsPublications extends JPlugin
 		}
 
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -3360,10 +3316,7 @@ class plgProjectsPublications extends JPlugin
 		// Get attachment info
 		$att = new PublicationAttachment( $this->_database );
 		$att->loadAttachment($vid, $item, $type );
-				
-		// Get helper
-		$projectsHelper = new ProjectsHelper( $this->_database );
-		
+						
 		// Get project file path
 		$project_path = ProjectsHelper::getProjectPath($this->_project->alias, 
 				$this->_config->get('webpath'), $this->_config->get('offroot', 0));
@@ -3419,7 +3372,7 @@ class plgProjectsPublications extends JPlugin
 		$options = array('download', 'tardownload', 'inlineview', 'invoke', 'video', 'external');
 		
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -3720,7 +3673,7 @@ class plgProjectsPublications extends JPlugin
 		$move 		= JRequest::getInt('move', 0);
 		
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -3777,7 +3730,7 @@ class plgProjectsPublications extends JPlugin
 		}
 		
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -3828,8 +3781,8 @@ class plgProjectsPublications extends JPlugin
 					else
 					{
 						// Instantiate a new registration object
-						ximport('Hubzero_Registration');
-						$xregistration = new Hubzero_Registration();
+						include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'models' . DS . 'registration.php');
+						$xregistration = new RegisterModelRegistration();
 						
 						$regex = '/^([a-zA-Z0-9_.-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-]+)+/';
 						// Is this an email?
@@ -3858,7 +3811,7 @@ class plgProjectsPublications extends JPlugin
 						}
 						else
 						{
-							$profile = Hubzero_User_Profile::getInstance($uid);
+							$profile = \Hubzero\User\Profile::getInstance($uid);
 							$view->author->givenName 		= $profile->get('givenName');
 							$view->author->surname 			= $profile->get('surname');
 							$view->author->picture 			= $profile->get('picture');
@@ -3935,8 +3888,8 @@ class plgProjectsPublications extends JPlugin
 		$objO = new ProjectOwner( $this->_database );
 		
 		// Instantiate a new registration object
-		ximport('Hubzero_Registration');
-		$xregistration = new Hubzero_Registration();
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'models' . DS . 'registration.php');
+		$xregistration = new RegisterModelRegistration();
 		
 		// Get current owners
 		$owners = $objO->getIds($this->_project->id, 'all', 1);		
@@ -3956,7 +3909,7 @@ class plgProjectsPublications extends JPlugin
 			// Check that profile exists
 			if ($uid)
 			{
-				$profile = Hubzero_User_Profile::getInstance($uid);
+				$profile = \Hubzero\User\Profile::getInstance($uid);
 				$uid = $profile->get('uidNumber') ? $uid : 0;				
 			}
 	
@@ -4233,9 +4186,10 @@ class plgProjectsPublications extends JPlugin
 		// Convert
 		if ($raw) 
 		{
-			ximport('Hubzero_Wiki_Parser');
-			$p = Hubzero_Wiki_Parser::getInstance();
-			
+			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'parser.php');
+
+			$p = WikiHelperParser::getInstance();
+
 			// import the wiki parser
 			$wikiconfig = array(
 				'option'   => $this->_option,
@@ -4491,7 +4445,7 @@ class plgProjectsPublications extends JPlugin
 		}
 	
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -4666,7 +4620,7 @@ class plgProjectsPublications extends JPlugin
 		if ($src) 
 		{
 			// Output HTML
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'publications',
@@ -5015,7 +4969,7 @@ class plgProjectsPublications extends JPlugin
 		array_unique($attached);
 				
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -5083,7 +5037,7 @@ class plgProjectsPublications extends JPlugin
 		$objV = new PublicationVersion( $this->_database );	
 		
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -5146,7 +5100,7 @@ class plgProjectsPublications extends JPlugin
 		// Get user info
 		$juser = JFactory::getUser();
 		
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -5228,6 +5182,7 @@ class plgProjectsPublications extends JPlugin
 			'tags'			=> 1,
 			'access'		=> 0,
 			'license'		=> 2,
+			'citations'		=> 1,
 			'notes'			=> 1
 		);
 				
@@ -5355,6 +5310,16 @@ class plgProjectsPublications extends JPlugin
 				$tagsHelper = new PublicationTags( $this->_database);
 				$checked['tags'] = $tagsHelper->countTags($row->publication_id) > 0 ? 1 : 0;
 			}
+			elseif ($value == 'citations')
+			{
+				// Check citations
+				include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+					. DS . 'com_citations' . DS . 'tables' . DS . 'association.php' );
+					
+				$assoc 	= new CitationsAssociation($this->_database);
+				$filters = array('tbl' => 'publication', 'oid' => $row->publication_id);
+				$checked['citations'] = ($assoc->getCount($filters) > 0) ? 1 : 0;		
+			}
 			elseif ($value == 'notes')
 			{
 				// Check release notes
@@ -5461,7 +5426,7 @@ class plgProjectsPublications extends JPlugin
 		$mconfig = JComponentHelper::getParams( 'com_members' );
 			
 		// Build upload path
-		$dir  = Hubzero_View_Helper_Html::niceidformat( $this->_uid );
+		$dir  = \Hubzero\Utility\String::pad( $this->_uid );
 		$path = JPATH_ROOT;
 		if (substr($mconfig->get('webpath', '/site/members'), 0, 1) != DS) 
 		{
@@ -5547,8 +5512,8 @@ class plgProjectsPublications extends JPlugin
 			$gitpath = $this->_config->get('gitpath', '/opt/local/bin/git');
 			
 			// Get author profile (for Git comments)
-			$profile = Hubzero_Factory::getProfile();
-			$profile->load( $this->_uid );
+			$profile = \Hubzero\User\Profile::getInstance($this->_uid);
+
 			$name = $profile->get('name');
 			$email = $profile->get('email');
 			$author = escapeshellarg($name.' <'.$email.'> ');				
@@ -5685,7 +5650,7 @@ class plgProjectsPublications extends JPlugin
 	protected function pubDiskSpace( $option, $project, $action, $config)
 	{
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -6013,13 +5978,56 @@ class plgProjectsPublications extends JPlugin
 		if (!isset($this->_git))
 		{
 			// Git helper
-			include_once( JPATH_ROOT . DS . 'components' . DS .'com_projects' . DS . 'helpers' . DS . 'githelper.php' );
+			include_once( JPATH_ROOT . DS . 'components' . DS .'com_projects' 
+				. DS . 'helpers' . DS . 'githelper.php' );
 			$this->_git = new ProjectsGitHelper(
 				$this->_config->get('gitpath', '/opt/local/bin/git'), 
 				0,
 				$this->_config->get('offroot', 0) ? '' : JPATH_ROOT
 			);			
 		}
+	}
+	
+	/**
+	 * Get supported master types applicable to individual project
+	 * 
+	 * @return     string
+	 */
+	private function _getAllowedTypes($tChoices) 
+	{
+		$choices = array();
+		
+		if (is_object($this->_project) && $this->_project->id && !empty($tChoices))
+		{
+			foreach ($tChoices as $choice)
+			{
+				$pluginName = is_object($choice) ? $choice->alias : $choice;
+
+				// We need a plugin
+				if (!JPluginHelper::isEnabled('projects', $pluginName))
+				{
+					continue;
+				}
+				
+				$plugin = JPluginHelper::getPlugin('projects', $pluginName);
+				$params = new JParameter($plugin->params);
+				
+				// Get restrictions from plugin params 
+				$projects = $params->get('restricted') 
+					? ProjectsHelper::getParamArray($params->get('restricted')) : array();
+				
+				if (!empty($projects))
+				{
+					if (!in_array($this->_project->alias, $projects))
+					{
+						continue;
+					}
+				}
+
+				$choices[] = $choice;
+			}
+		}
+		return $choices;
 	}
 	
 	/**
@@ -6066,12 +6074,9 @@ class plgProjectsPublications extends JPlugin
 			JError::raiseError( 404, JText::_('COM_PROJECTS_FILE_NOT_FOUND'));
 			return;
 		}
-		
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-				
+
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($serve);
 		$xserver->disposition($disp);
 		$xserver->acceptranges(false); // @TODO fix byte range support
@@ -6088,5 +6093,5 @@ class plgProjectsPublications extends JPlugin
 		}
 
 		return;
-	}
+		}
 }

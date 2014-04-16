@@ -37,21 +37,6 @@ require_once( join( DS, array( JPATH_ROOT, 'libraries', 'simplelinkedin-php', 'l
 class plgAuthenticationLinkedIn extends JPlugin
 {
 	/**
-	 * Constructor
-	 *
-	 * For php4 compatability we must not use the __constructor as a constructor for plugins
-	 * because func_get_args ( void ) returns a copy of all passed arguments NOT references.
-	 * This causes problems with cross-referencing necessary for the observer design pattern.
-	 *
-	 * @param object $subject The object to observe
-	 * @param array  $config  An array that holds the plugin configuration
-	 */
-	function plgAuthenticationJoomla(& $subject, $config)
-	{
-		parent::__construct($subject, $config);
-	}
-
-	/**
 	 * Perform logout (not currently used)
 	 *
 	 * @access	public
@@ -116,9 +101,11 @@ class plgAuthenticationLinkedIn extends JPlugin
 	 */
 	public function login(&$credentials, &$options)
 	{
-		$app = JFactory::getApplication();
+		$app  = JFactory::getApplication();
+		$juri = JURI::getInstance();
 
-		$jsession = JFactory::getSession();
+		$jsession   = JFactory::getSession();
+		$b64dreturn = '';
 
 		// Check to see if a return parameter was specified
 		if($return = JRequest::getVar('return', '', 'method', 'base64'))
@@ -135,8 +122,9 @@ class plgAuthenticationLinkedIn extends JPlugin
 		$com_user = (version_compare(JVERSION, '2.5', 'ge')) ? 'com_users' : 'com_user';
 
 		// Set up linkedin configuration
-		$linkedin_config['appKey']    = $this->params->get('api_key');
-		$linkedin_config['appSecret'] = $this->params->get('app_secret');
+		$linkedin_config['appKey']      = $this->params->get('api_key');
+		$linkedin_config['appSecret']   = $this->params->get('app_secret');
+		$linkedin_config['callbackUrl'] = trim($juri->base(), DS) . DS . "index.php?option={$com_user}&view=login";
 
 		// Create Object
 		$linkedin_client = new LinkedIn($linkedin_config);
@@ -258,11 +246,14 @@ class plgAuthenticationLinkedIn extends JPlugin
 	{
 		// Make sure we have authorization
 		$jsession = JFactory::getSession();
+		$juri     = JURI::getInstance();
+
 		if($jsession->get('linkedin.oauth.authorized') == TRUE)
 		{
 			// User initiated LinkedIn connection, set up config
-			$linkedin_config['appKey']    = $this->params->get('api_key');
-			$linkedin_config['appSecret'] = $this->params->get('app_secret');
+			$linkedin_config['appKey']      = $this->params->get('api_key');
+			$linkedin_config['appSecret']   = $this->params->get('app_secret');
+			$linkedin_config['callbackUrl'] = trim($juri->base(), DS) . DS . "index.php?option=com_users&view=login";
 
 			// Create the object
 			$linkedin_client = new LinkedIn($linkedin_config);
@@ -282,7 +273,7 @@ class plgAuthenticationLinkedIn extends JPlugin
 			$full_name  = $first_name . ' ' . $last_name;
 			$username   = (string) $li_id; // (make sure this is unique)
 
-			$hzal = Hubzero_Auth_Link::find_or_create('authentication', 'linkedin', null, $username);
+			$hzal = \Hubzero\Auth\Link::find_or_create('authentication', 'linkedin', null, $username);
 			$hzal->email = (string) $profile->{'email-address'};
 
 			// Set response variables
@@ -381,10 +372,10 @@ class plgAuthenticationLinkedIn extends JPlugin
 			$li_id      = $profile->{'id'};
 			$username   = (string) $li_id; // (make sure this is unique)
 
-			$hzad = Hubzero_Auth_Domain::getInstance('authentication', 'linkedin', '');
+			$hzad = \Hubzero\Auth\Domain::getInstance('authentication', 'linkedin', '');
 
 			// Create the link
-			if(Hubzero_Auth_Link::getInstance($hzad->id, $username))
+			if (\Hubzero\Auth\Link::getInstance($hzad->id, $username))
 			{
 				// This linkedin account is already linked to another hub account
 				$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'), 
@@ -393,7 +384,7 @@ class plgAuthenticationLinkedIn extends JPlugin
 			}
 			else
 			{
-				$hzal = Hubzero_Auth_Link::find_or_create('authentication', 'linkedin', null, $username);
+				$hzal = \Hubzero\Auth\Link::find_or_create('authentication', 'linkedin', null, $username);
 				$hzal->user_id = $juser->get('id');
 				$hzal->email = (string) $profile->{'email-address'};
 				$hzal->update();

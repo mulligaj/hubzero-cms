@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$comment = new Hubzero_Item_Comment($this->database);
+$comment = new \Hubzero\Item\Comment($this->database);
 
 $edit = JRequest::getInt('editcomment', 0);
 
@@ -40,25 +40,18 @@ $edit = JRequest::getInt('editcomment', 0);
 		<h3 class="review-title">
 			<?php echo JText::_('PLG_COURSES_REVIEWS'); ?>
 		</h3>
-	<?php if ($this->comments) {
-		$view = new Hubzero_Plugin_View(
-			array(
-				'folder'  => 'courses',
-				'element' => 'reviews',
-				'name'    => 'view',
-				'layout'  => 'list'
-			)
-		);
-		$view->option     = $this->option;
-		$view->comments   = $this->comments;
-		$view->obj_type   = $this->obj_type;
-		$view->obj        = $this->obj;
-		$view->params     = $this->params;
-		$view->depth      = $this->depth;
-		$view->url        = $this->url;
-		$view->cls        = 'odd';
-		$view->display();
-	} else if ($this->depth <= 1) { ?>
+	<?php if ($this->comments->total() > 0) {
+		$this->view('list')
+		     ->set('option', $this->option)
+		     ->set('comments', $this->comments)
+		     ->set('obj_type', $this->obj_type)
+		     ->set('obj', $this->obj)
+		     ->set('params', $this->params)
+		     ->set('depth', $this->depth)
+		     ->set('url', $this->url)
+		     ->set('cls', 'odd')
+		     ->display();
+	} else if ($this->depth <= 1 && !$this->params->get('access-review-comment')) { ?>
 		<div class="no-reviews">
 			<?php if ($this->obj->isManager()) { ?>
 			<div class="instructions">
@@ -101,12 +94,10 @@ $edit = JRequest::getInt('editcomment', 0);
 				<p class="comment-member-photo">
 					<span class="comment-anchor"></span>
 					<?php
-					ximport('Hubzero_User_Profile');
-					ximport('Hubzero_User_Profile_Helper');
 					$anonymous = 1;
 					if (!$this->juser->get('guest')) 
 					{
-						$jxuser = new Hubzero_User_Profile();
+						$jxuser = new \Hubzero\User\Profile();
 						$jxuser->load($this->juser->get('id'));
 						$anonymous = 0;
 					}
@@ -119,15 +110,13 @@ $edit = JRequest::getInt('editcomment', 0);
 				{
 					if (($replyto = JRequest::getInt('replyto', 0))) 
 					{
-						$reply = new Hubzero_Item_Comment($this->database);
+						$reply = new \Hubzero\Item\Comment($this->database);
 						$reply->load($replyto);
-
-						ximport('Hubzero_View_Helper_Html');
 
 						$name = JText::_('COM_KB_ANONYMOUS');
 						if (!$reply->anonymous) 
 						{
-							$xuser = new Hubzero_User_Profile();
+							$xuser = new \Hubzero\User\Profile();
 							$xuser->load($reply->created_by);
 							if (is_object($xuser) && $xuser->get('name')) 
 							{
@@ -143,7 +132,7 @@ $edit = JRequest::getInt('editcomment', 0);
 							<span class="comment-date-on"><?php echo JText::_('PLG_COURSES_REVIEWS_ON'); ?></span> 
 							<span class="date"><time datetime="<?php echo $reply->created; ?>"><?php echo JHTML::_('date', $reply->created, JText::_('DATE_FORMAt_HZ1')); ?></time></span>
 						</p>
-						<p><?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($reply->content), 300, 0); ?></p>
+						<p><?php echo \Hubzero\Utility\String::truncate(stripslashes($reply->content), 300); ?></p>
 					</blockquote>
 					<?php
 					}
@@ -155,7 +144,7 @@ $edit = JRequest::getInt('editcomment', 0);
 					$comment->load($edit);
 					/*if ($comment->created_by != $this->juser->get('id'))
 					{
-						$comment = new Hubzero_Item_Comment($this->database);
+						$comment = new \Hubzero\Item\Comment($this->database);
 					}*/
 					?>
 					<p class="warning">
@@ -212,8 +201,7 @@ $edit = JRequest::getInt('editcomment', 0);
 					<label>
 						<?php echo JText::_('PLG_COURSES_REVIEWS_YOUR_COMMENTS'); ?>: <span class="required"><?php echo JText::_('PLG_COURSES_REVIEWS_REQUIRED'); ?></span>
 						<?php
-							ximport('Hubzero_Wiki_Editor');
-							echo Hubzero_Wiki_Editor::getInstance()->display('comment[content]', 'commentcontent', $comment->content, 'minimal', '40', '20');
+							echo \JFactory::getEditor()->display('comment[content]', $this->escape(stripslashes($comment->content)), '', '', 35, 20, false, 'commentcontent', null, null, array('class' => 'minimal no-footer'));
 						?>
 					</label>
 
@@ -244,9 +232,6 @@ $edit = JRequest::getInt('editcomment', 0);
 					<div class="sidenote">
 						<p>
 							<strong><?php echo JText::_('PLG_COURSES_REVIEWS_KEEP_RELEVANT'); ?></strong>
-						</p>
-						<p>
-							<?php echo JText::sprintf('PLG_COURSES_REVIEWS_CONTENT_NOTE', JRoute::_('index.php?option=com_wiki&pagename=Help:WikiFormatting')); ?>
 						</p>
 					</div>
 				</fieldset>

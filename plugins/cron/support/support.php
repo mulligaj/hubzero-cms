@@ -264,7 +264,7 @@ class plgCronSupport extends JPlugin
 		$database->setQuery($sql);
 		if (!$database->query())
 		{
-			$logger = \Hubzero_Factory::getLogger();
+			$logger = \JFactory::getLogger();
 			$logger->logError('CRON query failed: ' . $database->getErrorMsg());
 		}
 
@@ -292,7 +292,7 @@ class plgCronSupport extends JPlugin
 
 		if (is_object($params) && $params->get('support_ticketreminder_group'))
 		{
-			$group = Hubzero_Group::getInstance($params->get('support_ticketreminder_group'));
+			$group = \Hubzero\User\Group::getInstance($params->get('support_ticketreminder_group'));
 
 			if ($group)
 			{
@@ -356,25 +356,6 @@ class plgCronSupport extends JPlugin
 		$from['email']     = $jconfig->getValue('config.mailfrom');
 		$from['multipart'] = md5(date('U'));
 
-		//set mail headers
-		$headers  = "MIME-Version: 1.0 \n";
-		if (array_key_exists('multipart', $from))
-		{
-			$headers .= "Content-Type: multipart/alternative;boundary=" . chr(34) . $from['multipart'] . chr(34) . "\r\n";
-		}
-		else
-		{
-			$headers .= "Content-type: text/plain; charset=utf-8\n";
-		}
-		$headers .= "X-Priority: 3\n";
-		$headers .= "X-MSMail-Priority: Normal\n";
-		$headers .= "Importance: Normal\n";
-		$headers .= "X-Mailer: PHP/" . phpversion()  . "\r\n";
-		$headers .= "X-Component: com_support\r\n";
-		$headers .= "X-Component-Object: support_ticket_reminder\r\n";
-		$headers .= "From: " . $from['name'] . " <" . $from['email'] . ">\n";
-		$headers .= "Reply-To: " . $from['name'] . " <" . $from['email'] . ">\n";
-
 		//set mail additional args (mail return path - used for bounces)
 		if ($host = JRequest::getVar('HTTP_HOST', '', 'server'))
 		{
@@ -399,33 +380,41 @@ class plgCronSupport extends JPlugin
 				continue;
 			}
 
+			// Plain text
 			$eview = new JView(array(
 				'base_path' => JPATH_ROOT . DS . 'components' . DS . 'com_support',
 				'name'      => 'emails', 
-				'layout'    => 'tickets'
+				'layout'    => 'tickets_plain'
 			));
 			$eview->option     = 'com_support';
 			$eview->controller = 'tickets';
 			$eview->tickets    = $tickets;
 			$eview->delimiter  = '~!~!~!~!~!~!~!~!~!~!';
-			$eview->boundary   = $from['multipart'];
 			$eview->tickets    = $usertickets;
 
-			$message = $eview->loadTemplate();
-			$message = str_replace("\n", "\r\n", $message);
+			$plain = $eview->loadTemplate();
+			$plain = str_replace("\n", "\r\n", $plain);
 
-			// email
-			if (strpos($juser->get('name'), ','))
-			{
-				$fullEmailAddress = "\"" . $juser->get('name') . "\" <" . $juser->get('email') . ">";
-			}
-			else
-			{
-				$fullEmailAddress = $juser->get('name') . " <" . $juser->get('email') . ">";
-			}
+			// HTML
+			$eview->setLayout('tickets_html');
+
+			$html = $eview->loadTemplate();
+			$html = str_replace("\n", "\r\n", $html);
+
+			// Build message
+			$message = new \Hubzero\Mail\Message();
+			$message->setSubject($subject)
+			        ->addFrom($from['email'], $from['name'])
+			        ->addTo($juser->get('email'), $juser->get('name'))
+			        ->addHeader('X-Component', 'com_support')
+			        ->addHeader('X-Component-Object', 'support_ticket_reminder');
+
+			$message->addPart($plain, 'text/plain');
+
+			$message->addPart($html, 'text/html');
 
 			//set mail
-			if (!mail($fullEmailAddress, $jconfig->getValue('config.sitename') . ' ' . $subject, $message, $headers, $args))
+			if (!$message->send())
 			{
 				$this->setError(JText::sprintf('Failed to mail %s', $fullEmailAddress));
 			}
@@ -745,25 +734,6 @@ class plgCronSupport extends JPlugin
 		$from['email']     = $jconfig->getValue('config.mailfrom');
 		$from['multipart'] = md5(date('U'));
 
-		//set mail headers
-		$headers  = "MIME-Version: 1.0 \n";
-		if (array_key_exists('multipart', $from))
-		{
-			$headers .= "Content-Type: multipart/alternative;boundary=" . chr(34) . $from['multipart'] . chr(34) . "\r\n";
-		}
-		else
-		{
-			$headers .= "Content-type: text/plain; charset=utf-8\n";
-		}
-		$headers .= "X-Priority: 3\n";
-		$headers .= "X-MSMail-Priority: Normal\n";
-		$headers .= "Importance: Normal\n";
-		$headers .= "X-Mailer: PHP/" . phpversion()  . "\r\n";
-		$headers .= "X-Component: com_support\r\n";
-		$headers .= "X-Component-Object: support_ticket_reminder\r\n";
-		$headers .= "From: " . $from['name'] . " <" . $from['email'] . ">\n";
-		$headers .= "Reply-To: " . $from['name'] . " <" . $from['email'] . ">\n";
-
 		//set mail additional args (mail return path - used for bounces)
 		if ($host = JRequest::getVar('HTTP_HOST', '', 'server'))
 		{
@@ -815,7 +785,7 @@ class plgCronSupport extends JPlugin
 			$eview = new JView(array(
 				'base_path' => JPATH_ROOT . DS . 'components' . DS . 'com_support',
 				'name'      => 'emails', 
-				'layout'    => 'ticketlist'
+				'layout'    => 'ticketlist_plain'
 			));
 			$eview->option     = 'com_support';
 			$eview->controller = 'tickets';
@@ -823,25 +793,33 @@ class plgCronSupport extends JPlugin
 			$eview->boundary   = $from['multipart'];
 			$eview->tickets    = $results;
 
-			$message = $eview->loadTemplate();
-			$message = str_replace("\n", "\r\n", $message);
+			$plain = $eview->loadTemplate();
+			$plain = str_replace("\n", "\r\n", $plain);
 
-			// email
-			if (strpos($name, ','))
-			{
-				$fullEmailAddress = '"' . $name . '" <' . $email . '>';
-			}
-			else
-			{
-				$fullEmailAddress = $name . ' <' . $email . '>';
-			}
+			// HTML
+			$eview->setLayout('ticketlist_html');
+
+			$html = $eview->loadTemplate();
+			$html = str_replace("\n", "\r\n", $html);
+
+			// Build message
+			$message = new \Hubzero\Mail\Message();
+			$message->setSubject($subject)
+			        ->addFrom($from['email'], $from['name'])
+			        ->addTo($email, $name)
+			        ->addHeader('X-Component', 'com_support')
+			        ->addHeader('X-Component-Object', 'support_ticket_list');
+
+			$message->addPart($plain, 'text/plain');
+
+			$message->addPart($html, 'text/html');
 
 			//set mail
-			$logger = \Hubzero_Factory::getLogger();
-			if (!mail($fullEmailAddress, $jconfig->getValue('config.sitename') . ' ' . $subject, $message, $headers, $args))
+			$logger = \JFactory::getLogger();
+			if (!$message->send())
 			{
 				//$this->setError(JText::sprintf('Failed to mail %s', $fullEmailAddress));
-				$logger->logError('CRON email failed: ' . JText::sprintf('Failed to mail %s', $fullEmailAddress));
+				$logger->error('CRON email failed: ' . JText::sprintf('Failed to mail %s', $email));
 			}
 			$mailed[] = $email;
 			//echo $message;

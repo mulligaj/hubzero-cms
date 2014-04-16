@@ -125,7 +125,8 @@ defined('_JEXEC') or die( 'Restricted access' );
 		<div class="col span9 omega">
 			<div class="grid">
 <?php
-	$c = new MembersProfile(JFactory::getDBO());
+	$db = JFactory::getDBO();
+	$c = new MembersProfile($db);
 	
 	$filters = array(
 		'limit'  => 4,
@@ -138,11 +139,10 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 	if ($rows = $c->getRecords($filters, false))
 	{
-		ximport('Hubzero_User_Profile_Helper');
 		$i = 0;
 		foreach ($rows as $row)
 		{
-			$contributor = Hubzero_User_Profile::getInstance($row->uidNumber);
+			$contributor = \Hubzero\User\Profile::getInstance($row->uidNumber);
 			if (!$contributor || !$contributor->get('uidNumber'))
 			{
 				continue;
@@ -165,7 +165,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<div class="contributor">
 				<p class="contributor-photo">
 					<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $contributor->get('uidNumber')); ?>">
-						<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($contributor, 0); ?>" alt="<?php echo JText::sprintf('%s\'s photo', $this->escape(stripslashes($contributor->get('name')))); ?>" />
+						<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($contributor, 0); ?>" alt="<?php echo JText::sprintf('%s\'s photo', $this->escape(stripslashes($contributor->get('name')))); ?>" />
 					</a>
 				</p>
 				<div class="contributor-content">
@@ -183,7 +183,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 				</div>
 				<p class="course-instructor-bio">
 				<?php if ($contributor->get('bio')) { ?>
-					<?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($contributor->get('bio')), 200, 0); ?>
+					<?php echo \Hubzero\Utility\String::truncate(stripslashes($contributor->get('bio')), 200); ?>
 				<?php } else { ?>
 					<em><?php echo JText::_('This contributor has yet to write their bio.'); ?></em>
 				<?php } ?>

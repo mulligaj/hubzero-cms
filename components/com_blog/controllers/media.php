@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Blog controller class for media
  */
-class BlogControllerMedia extends Hubzero_Controller
+class BlogControllerMedia extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute task
@@ -98,11 +96,8 @@ class BlogControllerMedia extends Hubzero_Controller
 			return;
 		}
 
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Serve up the image
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($file_path);
 		$xserver->disposition('inline');
 		$xserver->acceptranges(false); // @TODO fix byte range support
@@ -346,12 +341,11 @@ class BlogControllerMedia extends Hubzero_Controller
 		switch ($scope)
 		{
 			case 'member':
-				ximport('Hubzero_View_Helper_Html');
 				jimport('joomla.plugin.plugin');
 				$plugin = JPluginHelper::getPlugin('members', 'blog');
 				$params = new $paramClass($plugin->params);
 				$p = $params->get('uploadpath');
-				$p = str_replace('{{uid}}', Hubzero_View_Helper_Html::niceidformat($id), $p);
+				$p = str_replace('{{uid}}', \Hubzero\Utility\String::pad($id), $p);
 			break;
 
 			case 'group':

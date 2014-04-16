@@ -1,26 +1,28 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for ...
  **/
-class Migration20131016184016PlgGroupsAnnouncements extends Hubzero_Migration
+class Migration20131016184016PlgGroupsAnnouncements extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
 		// add email column
-		if (!$db->tableHasField('#__announcements', 'email'))
+		if (!$this->db->tableHasField('#__announcements', 'email'))
 		{
 			$query = "ALTER TABLE `#__announcements` ADD COLUMN `email` TINYINT(4) DEFAULT 0;";
 		}
 		
 		// add sent column
-		if (!$db->tableHasField('#__announcements', 'sent'))
+		if (!$this->db->tableHasField('#__announcements', 'sent'))
 		{
 			$query .= "ALTER TABLE `#__announcements` ADD COLUMN `sent` TINYINT(4) DEFAULT 0;";
 		}
@@ -31,24 +33,24 @@ class Migration20131016184016PlgGroupsAnnouncements extends Hubzero_Migration
 		
 		if (!empty($query))
 		{
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
 		// add email column
-		if ($db->tableHasField('#__announcements', 'email'))
+		if ($this->db->tableHasField('#__announcements', 'email'))
 		{
 			$query = "ALTER TABLE `#__announcements` DROP COLUMN `email`;";
 		}
 		
 		// add sent column
-		if ($db->tableHasField('#__announcements', 'sent'))
+		if ($this->db->tableHasField('#__announcements', 'sent'))
 		{
 			$query .= "ALTER TABLE `#__announcements` DROP COLUMN `sent`;";
 		}
@@ -58,8 +60,8 @@ class Migration20131016184016PlgGroupsAnnouncements extends Hubzero_Migration
 
 		if (!empty($query))
 		{
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 }

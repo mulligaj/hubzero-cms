@@ -31,27 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-ximport('Hubzero_Plugin');
-
 /**
  * Display sponsors on a resource page
  */
-class plgResourcesGroups extends Hubzero_Plugin
+class plgResourcesGroups extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -92,8 +82,7 @@ class plgResourcesGroups extends Hubzero_Plugin
 		$this->database = JFactory::getDBO();
 
 		// Instantiate a view
-		ximport('Hubzero_Plugin_View');
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'resources',
 				'element' => $this->_name,
@@ -101,15 +90,13 @@ class plgResourcesGroups extends Hubzero_Plugin
 			)
 		);
 
-		ximport('Hubzero_Group');
-		$group = Hubzero_Group::getInstance($resource->group_owner);
+		$group = \Hubzero\User\Group::getInstance($resource->group_owner);
 		if (!$group || !$group->get('gidNumber'))
 		{
 			return $arr;
 		}
 
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('resources', $this->_name);
+		\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
 
 		if ($miniview) 
 		{

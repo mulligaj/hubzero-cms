@@ -31,15 +31,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-
 /**
  * Ajax plugin for time component
  *
  * DEPRECATION NOTICE: deprecate after all are transitioned from the old time dashboard widget
  *                     and after Mike update HUBman.  All internal ajax calls now point to API
  */
-class plgTimeAjax extends Hubzero_Plugin
+class plgTimeAjax extends \Hubzero\Plugin\Plugin
 {
 
 	/**
@@ -527,7 +525,7 @@ class plgTimeAjax extends Hubzero_Plugin
 		$accessgroup = isset($this->config->parameters['accessgroup']) ? trim($this->config->parameters['accessgroup']) : 'time';
 
 		// Check if they're a member of admin group
-		$ugs = Hubzero_User_Helper::getGroups($this->juser->get('id'));
+		$ugs = \Hubzero\User\Helper::getGroups($this->juser->get('id'));
 		if ($ugs && count($ugs) > 0)
 		{
 			foreach ($ugs as $ug)

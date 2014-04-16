@@ -31,12 +31,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
+include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'models' . DS . 'registration.php');
 
 /**
  * Members controller class for profiles
  */
-class MembersControllerProfiles extends Hubzero_Controller
+class MembersControllerProfiles extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -82,7 +82,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 	 */
 	public function incremOptOutTask()
 	{
-		$profile = Hubzero_User_Profile::getInstance($this->juser->get('id'));
+		$profile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 		if (!$profile)
 		{
 			return;
@@ -115,7 +115,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		$restrict = '';
 		/*if ($this->_authorize() !== 'admin')
 		{
-			$profile = Hubzero_User_Profile::getInstance($this->juser->get('id'));
+			$profile = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 			$xgroups = $profile->getGroups('all');
 			$usersgroups = array();
 			if (!empty($xgroups)) 
@@ -173,10 +173,8 @@ class MembersControllerProfiles extends Hubzero_Controller
 		$json = array();
 		if (count($rows) > 0) 
 		{
-			ximport('Hubzero_User_Profile_Helper');
-
 			$default = DS . trim($this->config->get('defaultpic', '/components/com_members/images/profile.gif'), DS);
-			$default = Hubzero_User_Profile_Helper::thumbit($default);
+			$default = \Hubzero\User\Profile\Helper::thumbit($default);
 			foreach ($rows as $row)
 			{
 				$picture = $default;
@@ -188,9 +186,9 @@ class MembersControllerProfiles extends Hubzero_Controller
 				if ($row->public && $row->picture)
 				{
 					$thumb  = DS . trim($this->config->get('webpath', '/site/members'), DS);
-					$thumb .= DS . Hubzero_User_Profile_Helper::niceidformat($row->uidNumber);
+					$thumb .= DS . \Hubzero\User\Profile\Helper::niceidformat($row->uidNumber);
 					$thumb .= DS . ltrim($row->picture, DS);
-					$thumb = Hubzero_User_Profile_Helper::thumbit($thumb);
+					$thumb = \Hubzero\User\Profile\Helper::thumbit($thumb);
 
 					if (file_exists(JPATH_ROOT . $thumb))
 					{
@@ -498,7 +496,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		$this->view->authorized = $this->_authorize($id);
 
 		// Get the member's info
-		$profile = Hubzero_User_Profile::getInstance($id);
+		$profile = \Hubzero\User\Profile::getInstance($id);
 
 		// Ensure we have a member
 		if (!is_object($profile) || (!$profile->get('name') && !$profile->get('surname'))) 
@@ -614,8 +612,6 @@ class MembersControllerProfiles extends Hubzero_Controller
 			die('insecure connection and redirection failed');
 		}
 
-		ximport('Hubzero_User_Password');
-
 		// Set the page title
 		$title  = JText::_(strtoupper($this->_name));
 		$title .= ($this->_task) ? ': ' . JText::_(strtoupper($this->_task)) : '';
@@ -675,7 +671,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		}
 
 		// Initiate profile class
-		$profile = Hubzero_User_Profile::getInstance($id);
+		$profile = \Hubzero\User\Profile::getInstance($id);
 
 		// Ensure we have a member
 		if (!$profile->get('name')) 
@@ -703,10 +699,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		);
 
 		// Load some needed libraries
-		ximport('Hubzero_Registration_Helper');
-		ximport('Hubzero_User_Helper');
-
-		if (Hubzero_User_Helper::isXDomainUser($this->juser->get('id'))) 
+		if (\Hubzero\User\Helper::isXDomainUser($this->juser->get('id'))) 
 		{
 			JError::raiseError(403, JText::_('MEMBERS_PASS_CHANGE_LINKED_ACCOUNT'));
 			return;
@@ -732,8 +725,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		$this->view->newpass2 = $newpass2;
 		$this->view->validated = true;
 
-		ximport('Hubzero_Password_Rule');
-		$password_rules = Hubzero_Password_Rule::getRules();
+		$password_rules = \Hubzero\Password\Rule::getRules();
 
 		$this->view->password_rules = array();
 
@@ -747,7 +739,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 
 		if (!empty($newpass)) 
 		{
-			$msg = Hubzero_Password_Rule::validate($newpass, $password_rules, $profile->get('username'));
+			$msg = \Hubzero\Password\Rule::validate($newpass, $password_rules, $profile->get('username'));
 		}
 		else 
 		{
@@ -768,7 +760,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 
 		$passrules = false;
 
-		if (!Hubzero_User_Password::passwordMatches($profile->get('uidNumber'), $oldpass, true)) 
+		if (!\Hubzero\User\Password::passwordMatches($profile->get('uidNumber'), $oldpass, true)) 
 		{
 			$this->setError(JText::_('MEMBERS_PASS_INCORRECT'));
 		} 
@@ -824,7 +816,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		}
 
 		// Encrypt the password and update the profile
-		$result = Hubzero_User_Password::changePassword($profile->get('uidNumber'), $newpass);
+		$result = \Hubzero\User\Password::changePassword($profile->get('uidNumber'), $newpass);
 
 		// Save the changes
 		if (!$result)
@@ -928,7 +920,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		$this->_getStyles();
 
 		// Initiate profile class
-		$profile = Hubzero_User_Profile::getInstance($id);
+		$profile = \Hubzero\User\Profile::getInstance($id);
 
 		// Ensure we have a member
 		if (!$profile->get('name'))
@@ -1084,11 +1076,15 @@ class MembersControllerProfiles extends Hubzero_Controller
 
 			$message .= $url . "\r\n";
 
-			// Get the administrator's email address
-			$emailadmin = $jconfig->getValue('config.mailfrom');
+			$msg = new \Hubzero\Mail\Message();
+			$msg->setSubject($subject)
+			    ->addTo($jconfig->getValue('config.mailfrom'))
+			    ->addFrom($jconfig->getValue('config.mailfrom'), $jconfig->getValue('config.sitename') . ' Administrator')
+			    ->addHeader('X-Component', $this->_option)
+			    ->setBody($message);
 
 			// Send an e-mail to admin
-			if (!Hubzero_Toolbox::send_email($emailadmin, $subject, $message)) 
+			if (!$msg->send())
 			{
 				return JError::raiseError(500, 'xHUB Internal Error: Error mailing resource request to site administrator(s).');
 			}
@@ -1123,8 +1119,8 @@ class MembersControllerProfiles extends Hubzero_Controller
 	/**
 	 * Show a form for editing a profile
 	 * 
-	 * @param      object $xregistration Hubzero_Registration
-	 * @param      object $profile       Hubzero_User_Profile
+	 * @param      object $xregistration RegisterModelRegistration
+	 * @param      object $profile       \Hubzero\User\Profile
 	 * @return     void
 	 */
 	public function editTask($xregistration=null, $profile=null)
@@ -1188,7 +1184,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		// Note: if we already have one then we just came from $this->save()
 		if (!is_object($profile)) 
 		{
-			$profile = Hubzero_User_Profile::getInstance($id);
+			$profile = \Hubzero\User\Profile::getInstance($id);
 		}
 
 		// Ensure we have a member
@@ -1216,16 +1212,11 @@ class MembersControllerProfiles extends Hubzero_Controller
 			'index.php?option=' . $this->_option . '&id=' . $profile->get('uidNumber') . '&task=' . $this->_task
 		);
 
-		// Load some needed libraries
-		ximport('Hubzero_Toolbox');
-		ximport('Hubzero_Registration');
-		ximport('Hubzero_Registration_Helper');
-
 		// Instantiate an xregistration object if we don't already have one
 		// Note: if we already have one then we just came from $this->save()
 		if (!is_object($xregistration)) 
 		{
-			$xregistration = new Hubzero_Registration();
+			$xregistration = new RegisterModelRegistration();
 		}
 		$this->view->xregistration = $xregistration;
 
@@ -1334,10 +1325,6 @@ class MembersControllerProfiles extends Hubzero_Controller
 			return false;
 		} 
 
-		ximport('Hubzero_Toolbox');
-		ximport('Hubzero_Registration');
-		ximport('Hubzero_Registration_Helper');
-
 		$no_html = JRequest::getVar("no_html", 0);
 
 		// Incoming user ID
@@ -1351,12 +1338,12 @@ class MembersControllerProfiles extends Hubzero_Controller
 		}
 
 		// Incoming profile edits
-		$p = JRequest::getVar('profile', array(), 'post');
+		$p = JRequest::getVar('profile', array(), 'post', 'none', 2);
 		$n = JRequest::getVar('name', array(), 'post');
 		$a = JRequest::getVar('access', array(), 'post');
 
 		// Load the profile
-		$profile = Hubzero_User_Profile::getInstance($id);
+		$profile = \Hubzero\User\Profile::getInstance($id);
 
 		$oldemail = $profile->get('email');
 
@@ -1396,8 +1383,8 @@ class MembersControllerProfiles extends Hubzero_Controller
 			JRequest::setVar('interests', $tags, 'post');
 		}
 
-		// Instantiate a new Hubzero_Registration
-		$xregistration = new Hubzero_Registration();
+		// Instantiate a new RegisterModelRegistration
+		$xregistration = new RegisterModelRegistration();
 		$xregistration->loadPOST();
 
 		// Push the posted data to the profile
@@ -1410,7 +1397,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 			if ($oldemail != $xregistration->_registration['email']) 
 			{
 				// Get a new confirmation code
-				$confirm = Hubzero_Registration_Helper::genemailconfirm();
+				$confirm = RegisterHelperUtility::genemailconfirm();
 
 				$profile->set('emailConfirmed', $confirm);
 			}
@@ -1616,8 +1603,15 @@ class MembersControllerProfiles extends Hubzero_Controller
 		$message = $eview->loadTemplate();
 		$message = str_replace("\n", "\r\n", $message);
 
+		$msg = new \Hubzero\Mail\Message();
+		$msg->setSubject($subject)
+		    ->addTo($email)
+		    ->addFrom($jconfig->getValue('config.mailfrom'), $jconfig->getValue('config.sitename') . ' Administrator')
+		    ->addHeader('X-Component', $this->_option)
+		    ->setBody($message);
+
 		// Send the email
-		if (Hubzero_Toolbox::send_email($email, $subject, $message)) 
+		if ($msg->send()) 
 		{
 			$msg = 'A confirmation email has been sent to "'. htmlentities($email,ENT_COMPAT,'UTF-8') .'". You must click the link in that email to re-activate your account.';
 		} 
@@ -1658,7 +1652,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 		if (is_array($p)) 
 		{
 			// Load the profile
-			$profile = Hubzero_User_Profile::getInstance($id);
+			$profile = \Hubzero\User\Profile::getInstance($id);
 
 			foreach ($p as $k=>$v)
 			{
@@ -1742,7 +1736,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 				{
 					if ($user) 
 					{
-						$xprofile = Hubzero_User_Profile::getInstance($prevuser);
+						$xprofile = \Hubzero\User\Profile::getInstance($prevuser);
 
 						$users[$prevuser] = $user;
 						$users[$prevuser]['name'] = $xprofile->get('name');
@@ -1757,7 +1751,7 @@ class MembersControllerProfiles extends Hubzero_Controller
 			}
 			if ($user) 
 			{
-				$xprofile = Hubzero_User_Profile::getInstance($prevuser);
+				$xprofile = \Hubzero\User\Profile::getInstance($prevuser);
 
 				$users[$prevuser] = $user;
 				$users[$prevuser]['name'] = $xprofile->get('name');

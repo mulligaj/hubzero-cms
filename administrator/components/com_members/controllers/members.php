@@ -31,12 +31,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
+include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'models' . DS . 'registration.php');
 
 /**
  * Manage site members
  */
-class MembersControllerMembers extends Hubzero_Controller
+class MembersControllerMembers extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of site members
@@ -149,6 +149,8 @@ class MembersControllerMembers extends Hubzero_Controller
 	 */
 	public function addTask()
 	{
+		JRequest::setVar('hidemainmenu', 1);
+
 		// Set any errors
 		if ($this->getError()) 
 		{
@@ -160,6 +162,95 @@ class MembersControllerMembers extends Hubzero_Controller
 
 		// Output the HTML
 		$this->view->display();
+	}
+
+	/**
+	 * Create a new user
+	 * 
+	 * @param      integer $redirect Redirect to main listing?
+	 * @return     void
+	 */
+	public function newTask($redirect=1)
+	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
+		// Incoming profile edits
+		$p = JRequest::getVar('profile', array(), 'post', 'none', 2);
+
+		// Initialize new usertype setting
+		$usersConfig = JComponentHelper::getParams('com_users');
+		$newUsertype = $usersConfig->get('new_usertype');
+		if (!$newUsertype) 
+		{
+			$db = JFactory::getDbo();
+			$query = $db->getQuery(true)
+				->select('id')
+				->from('#__usergroups')
+				->where('title = "Registered"');
+			$db->setQuery($query);
+			$newUsertype = $db->loadResult();
+		}
+
+		$name  = trim($p['givenName']).' ';
+		$name .= (trim($p['middleName']) != '') ? trim($p['middleName']).' ' : '';
+		$name .= trim($p['surname']);
+
+		$date = JFactory::getDate();
+		$user = JUser::getInstance();
+		$user->set('username', trim($p['username']));
+		$user->set('name', $name);
+		$user->set('email', trim($p['email']));
+		$user->set('id', 0);
+		$user->set('groups', array($newUsertype));
+		$user->set('registerDate', $date->toMySQL());
+		$user->set('password', trim($p['password']));
+		$user->set('password_clear', trim($p['password']));
+		$user->save();
+		$user->set('password_clear', '');
+
+		// Attempt to get the new user
+		$profile = \Hubzero\User\Profile::getInstance($user->get('id'));
+		$result  = is_object($profile);
+
+		// Did we successfully create an account?
+		if ($result)
+		{
+			// Set the new info
+			$profile->set('givenName', trim($p['givenName']));
+			$profile->set('middleName', trim($p['middleName']));
+			$profile->set('surname', trim($p['surname']));
+			$profile->set('name', $name);
+			$profile->set('emailConfirmed', -rand(1, pow(2, 31)-1));
+			$profile->set('public', 0);
+			$profile->set('password', '');
+			$result = $profile->store();
+		}
+
+		if ($result)
+		{
+			$result = \Hubzero\User\Password::changePassword($profile->get('uidNumber'), $p['password']);
+			// Set password back here in case anything else down the line is looking for it
+			$profile->set('password', $p['password']);
+			$profile->store();
+		}
+
+		// Did we successfully create/update an account?
+		if (!$result)
+		{
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				$profile->getError(),
+				'error'
+			);
+			return;
+		}
+
+		// Redirect
+		$this->setRedirect(
+			JRoute::_('index.php?option='.$this->_option.'&controller='.$this->_controller.'&task=edit&id[]='.$profile->get('uidNumber'), false),
+			JText::_('MEMBER_SAVED')
+		);
 	}
 
 	/**
@@ -191,10 +282,10 @@ class MembersControllerMembers extends Hubzero_Controller
 		}
 
 		// Initiate database class and load info
-		$this->view->profile = new Hubzero_User_Profile();
+		$this->view->profile = new \Hubzero\User\Profile();
 		$this->view->profile->load($id);
 
-		$this->view->password = Hubzero_User_Password::getInstance($id);
+		$this->view->password = \Hubzero\User\Password::getInstance($id);
 
 		// Get the user's interests (tags)
 		include_once(JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'helpers' . DS . 'tags.php');
@@ -247,10 +338,10 @@ class MembersControllerMembers extends Hubzero_Controller
 		}
 
 		// Incoming profile edits
-		$p = JRequest::getVar('profile', array(), 'post');
+		$p = JRequest::getVar('profile', array(), 'post', 'none', 2);
 
 		// Load the profile
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($id);
 
 		// Set the new info
@@ -299,8 +390,7 @@ class MembersControllerMembers extends Hubzero_Controller
 		} 
 		else 
 		{
-			ximport('Hubzero_Registration_Helper');
-			$confirm = Hubzero_Registration_Helper::genemailconfirm();
+			$confirm = RegisterHelperUtility::genemailconfirm();
 			$profile->set('emailConfirmed', $confirm);
 		}
 
@@ -388,12 +478,10 @@ class MembersControllerMembers extends Hubzero_Controller
 		$newpass = trim(JRequest::getVar('newpass', '', 'post'));
 		if ($newpass != '')
 		{
-			ximport('Hubzero_User_Helper');
-
-			Hubzero_User_Password::changePassword( $profile->get('username'), $newpass);
+			\Hubzero\User\Password::changePassword( $profile->get('username'), $newpass);
 		}
 
-		$passinfo = Hubzero_User_Password::getInstance($id);
+		$passinfo = \Hubzero\User\Password::getInstance($id);
 
 		if (is_object($passinfo))
 		{
@@ -488,7 +576,7 @@ class MembersControllerMembers extends Hubzero_Controller
 				$id = intval($id);
 				
 				// Delete any associated pictures
-				$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . Hubzero_View_Helper_Html::niceidformat($id);
+				$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . \Hubzero\Utility\String::pad($id);
 				if (!file_exists($path . DS . $file) or !$file) 
 				{
 					$this->setError(JText::_('FILE_NOT_FOUND'));
@@ -504,7 +592,7 @@ class MembersControllerMembers extends Hubzero_Controller
 				$assoc->deleteAssociations();
 
 				// Remove the profile
-				$profile = new Hubzero_User_Profile();
+				$profile = new \Hubzero\User\Profile();
 				$profile->load($id);
 				$profile->delete();
 			}
@@ -564,7 +652,7 @@ class MembersControllerMembers extends Hubzero_Controller
 		foreach ($ids as $id)
 		{
 			// Load the profile
-			$profile = new Hubzero_User_Profile();
+			$profile = new \Hubzero\User\Profile();
 			$profile->load(intval($id));
 
 			if ($state) 
@@ -573,8 +661,7 @@ class MembersControllerMembers extends Hubzero_Controller
 			} 
 			else 
 			{
-				ximport('Hubzero_Registration_Helper');
-				$confirm = Hubzero_Registration_Helper::genemailconfirm();
+				$confirm = RegisterHelperUtility::genemailconfirm();
 				$profile->set('emailConfirmed', $confirm);
 			}
 
@@ -642,10 +729,8 @@ class MembersControllerMembers extends Hubzero_Controller
 		$json = array();
 		if (count($rows) > 0) 
 		{
-			ximport('Hubzero_User_Profile_Helper');
-
 			$default = DS . trim($this->config->get('defaultpic', '/components/com_members/images/profile.gif'), DS);
-			$default = Hubzero_User_Profile_Helper::thumbit($default);
+			$default = \Hubzero\User\Profile\Helper::thumbit($default);
 			foreach ($rows as $row)
 			{
 				$picture = $default;
@@ -657,9 +742,9 @@ class MembersControllerMembers extends Hubzero_Controller
 				if ($row->public && $row->picture)
 				{
 					$thumb  = $base . DS . trim($this->config->get('webpath', '/site/members'), DS);
-					$thumb .= DS . Hubzero_User_Profile_Helper::niceidformat($row->uidNumber);
+					$thumb .= DS . \Hubzero\User\Profile\Helper::niceidformat($row->uidNumber);
 					$thumb .= DS . ltrim($row->picture, DS);
-					$thumb = Hubzero_User_Profile_Helper::thumbit($thumb);
+					$thumb = \Hubzero\User\Profile\Helper::thumbit($thumb);
 
 					if (file_exists(JPATH_ROOT . $thumb))
 					{

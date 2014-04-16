@@ -1,26 +1,28 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for adding courses cron plugin
  **/
-class Migration20131216011106PlgCronCourses extends Hubzero_Migration
+class Migration20131216011106PlgCronCourses extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
-		self::addPluginEntry('cron', 'courses');
+		$this->addPluginEntry('cron', 'courses');
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
-		self::deletePluginEntry('cron', 'courses');
+		$this->deletePluginEntry('cron', 'courses');
 	}
 }

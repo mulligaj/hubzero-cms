@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Document');
-
 $config = JFactory::getConfig();
 $juser = JFactory::getUser();
 
@@ -46,10 +44,9 @@ else
 	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js');
 }
 
-ximport('Hubzero_Browser');
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 
 $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle());
 ?>
@@ -60,14 +57,12 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 <!--[if IE 9 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie9"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
 	<head>
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo Hubzero_Document::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'pagination', 'tabs', 'tags', 'comments', 'voting', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'pagination', 'tabs', 'tags', 'comments', 'voting', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/main.css" />
 		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/print.css" />
 
 		<jdoc:include type="head" />
-<?php if (JPluginHelper::isEnabled('system', 'debug')) { ?>
-		<link rel="stylesheet" type="text/css" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/debug.css" />
-<?php } ?>
+
 		<!--[if IE 9]>
 			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie9.css" />
 		<![endif]-->
@@ -85,7 +80,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 			<p class="skip" id="to-content"><a href="#content">Skip to content</a></p>
 <?php if ($this->countModules('helppane')) : ?>
 			<p id="tab">
-				<a href="/support/" title="Need help? Send a trouble report to our support team.">
+				<a href="<?php echo JRoute::_('index.php?option=com_support'); ?>" title="Need help? Send a trouble report to our support team.">
 					<span>Need Help?</span>
 				</a>
 			</p>
@@ -109,9 +104,8 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 <?php
 	if (!$juser->get('guest')) {
 		// Find the user's most recent support tickets
-		ximport('Hubzero_Message_Helper');
 		$database = JFactory::getDBO();
-		$recipient = new Hubzero_Message_Recipient($database);
+		$recipient = new \Hubzero\Message\Recipient($database);
 		$rows = $recipient->getUnreadMessages($juser->get('id'), 0);
 ?>
 					<li id="logout"><a href="<?php echo JRoute::_('index.php?option=com_logout'); ?>"><span><?php echo JText::_('Logout'); ?></span></a></li>

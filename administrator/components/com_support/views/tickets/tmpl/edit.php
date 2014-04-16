@@ -40,17 +40,16 @@ JToolBarHelper::help('ticket.html', true);
 
 $juser = JFactory::getUser();
 
-ximport('Hubzero_User');
-$user = new Hubzero_User_Profile();
-//$user = Hubzero_User::getInstance($juser->get('id'));
+$user = new \Hubzero\User\Profile();
+
 $user->load($juser->get('id'));
 $unknown = true;
 $name = '';
 $usertype = JText::_('Unknown');
 $notify = array();
 
-$submitter = new Hubzero_User_Profile();
- // = Hubzero_User::getInstance($this->row->login);
+$submitter = new \Hubzero\User\Profile();
+
 if ($this->row->login) 
 {
 	$submitter->load($this->row->login);
@@ -88,10 +87,10 @@ if (!$name)
 	$notify[] = $name;
 }
 
-$owner = new Hubzero_User_Profile();
+$owner = new \Hubzero\User\Profile();
 if ($this->row->owner)
 {
-	$owner->load($this->row->owner); // = Hubzero_User::getInstance($this->row->owner);
+	$owner->load($this->row->owner);
 	if (is_object($owner) && $owner->get('name')) 
 	{
 		$notify[] = $this->escape(stripslashes($owner->get('name'))) . ' (' . $this->escape(stripslashes($owner->get('username'))) . ')';
@@ -100,8 +99,6 @@ if ($this->row->owner)
 
 //jimport('joomla.html.editor');
 //$editor = JEditor::getInstance();
-
-ximport('Hubzero_User_Profile');
 
 JPluginHelper::importPlugin( 'hubzero' );
 $dispatcher = JDispatcher::getInstance();
@@ -130,7 +127,7 @@ if ($this->row->id) {
 		}*/
 		
 		/*$name = $this->escape($this->row->name);
-		$xuser = new Hubzero_User_Profile();
+		$xuser = new \Hubzero\User\Profile();
 		if ($this->row->login) {
 			$xuser->load($this->row->login);
 			if (is_object($xuser) && $xuser->get('name')) {
@@ -152,7 +149,7 @@ if ($this->row->id) {
 			<div class="ticket">
 				<p class="ticket-member-photo">
 					<span class="ticket-anchor"><a name="t<?php echo $this->row->id; ?>"></a></span>
-					<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($submitter, $unknown); ?>" alt="" />
+					<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($submitter, $unknown); ?>" alt="" />
 				</p>
 				<div class="ticket-head">
 					<strong>
@@ -226,7 +223,6 @@ if ($this->row->id) {
 					<td><?php 
 					if ($this->row->owner) 
 					{
-						//$owner = Hubzero_User::getInstance($this->row->owner);
 						if (is_object($owner))
 						{
 							echo '<a rel="profile" href="index.php?option=com_members&amp;task=edit&amp;id[]=' . $owner->get('uidNumber') . '">' . $this->escape(stripslashes($owner->get('name'))) . '</a>';
@@ -275,7 +271,7 @@ if ($this->row->id) {
 			
 			<ol class="comments">
 <?php
-			$useri = new Hubzero_User_Profile();
+			$useri = new \Hubzero\User\Profile();
 			foreach ($this->comments as $comment)
 			{
 				if ($comment->access == 1) {
@@ -305,7 +301,7 @@ if ($this->row->id) {
 				<li class="<?php echo $access .' comment'; ?>" id="c<?php echo $comment->id; ?>">
 					<p class="comment-member-photo">
 						<span class="comment-anchor"><a name="c<?php echo $comment->id; ?>"></a></span>
-						<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($useri, $anon); ?>" alt="<?php echo JText::_('profile_image'); ?>" />
+						<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($useri, $anon); ?>" alt="<?php echo JText::_('profile_image'); ?>" />
 					</p>
 					<p class="comment-head">
 						<strong>
@@ -515,7 +511,7 @@ if ($this->row->id) {
 			<div class="new ticket">
 				<p class="ticket-member-photo">
 					<span class="ticket-anchor"><a name="new"></a></span>
-					<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($user, 0); ?>" alt="<?php echo JText::_('profile_image'); ?>" />
+					<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($user, 0); ?>" alt="<?php echo JText::_('profile_image'); ?>" />
 				</p>
 				
 				<fieldset class="ticket-head">

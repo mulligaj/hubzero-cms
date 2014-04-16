@@ -31,7 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_View_Helper_Html');
 ?>
 <div<?php echo ($this->params->get('moduleclass')) ? ' class="' . $this->params->get('moduleclass') . '"' : ''; ?>>
 	<h4><?php echo JText::_('MOD_MYWISHES_SUBMITTED'); ?></h4>
@@ -42,11 +41,11 @@ ximport('Hubzero_View_Helper_Html');
 		<?php
 		foreach ($this->rows1 as $row) 
 		{
-			$when = Hubzero_View_Helper_Html::timeAgo($row->proposed);
+			$when = JHTML::_('date.relative', $row->proposed);
 		?>
 		<li class="wishlist">
-			<a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=wish&id=' . $row->wishlist . '&wishid=' . $row->id); ?>" class="tooltips" title="<?php echo $this->escape(stripslashes($row->subject)) . ' :: ' . Hubzero_View_Helper_Html::shortenText($this->escape(stripslashes($row->about)), 160); ?>">
-				#<?php echo $row->id; ?>: <?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($row->subject), 35, 0); ?>
+			<a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=wish&id=' . $row->wishlist . '&wishid=' . $row->id); ?>" class="tooltips" title="<?php echo $this->escape(stripslashes($row->subject)) . ' :: ' . \Hubzero\Utility\String::truncate($this->escape(stripslashes($row->about)), 160); ?>">
+				#<?php echo $row->id; ?>: <?php echo \Hubzero\Utility\String::truncate(stripslashes($row->subject), 35); ?>
 			</a>
 			<span>
 				<span class="<?php 
@@ -81,11 +80,11 @@ ximport('Hubzero_View_Helper_Html');
 		<?php
 		foreach ($this->rows2 as $row) 
 		{
-			$when = Hubzero_View_Helper_Html::timeAgo($row->proposed);
+			$when = JHTML::_('date.relative', $row->proposed);
 		?>
 		<li class="wishlist">
-			<a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=wish&id=' . $row->wishlist . '&wishid=' . $row->id); ?>" class="tooltips" title="<?php echo $this->escape(stripslashes($row->subject)) . ' :: ' . Hubzero_View_Helper_Html::shortenText($this->escape(stripslashes($row->about)), 160); ?>">
-				#<?php echo $row->id; ?>: <?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($row->subject), 35, 0); ?>
+			<a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=wish&id=' . $row->wishlist . '&wishid=' . $row->id); ?>" class="tooltips" title="<?php echo $this->escape(stripslashes($row->subject)) . ' :: ' . \Hubzero\Utility\String::truncate($this->escape(stripslashes($row->about)), 160); ?>">
+				#<?php echo $row->id; ?>: <?php echo \Hubzero\Utility\String::truncate(stripslashes($row->subject), 35); ?>
 			</a>
 			<span>
 				<span class="<?php 

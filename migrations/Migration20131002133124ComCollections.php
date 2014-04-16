@@ -1,28 +1,30 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for collection plugin entries
  **/
-class Migration20131002133124ComCollections extends Hubzero_Migration
+class Migration20131002133124ComCollections extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
-		self::addPluginEntry('members', 'collections', 0);
-		self::addPluginEntry('groups', 'collections', 0);
+		$this->addPluginEntry('members', 'collections', 0);
+		$this->addPluginEntry('groups', 'collections', 0);
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
-		self::deletePluginEntry('members', 'collections');
-		self::deletePluginEntry('groups', 'collections');
+		$this->deletePluginEntry('members', 'collections');
+		$this->deletePluginEntry('groups', 'collections');
 	}
 }

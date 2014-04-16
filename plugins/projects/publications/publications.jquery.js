@@ -83,6 +83,10 @@ HUB.ProjectPublications = {
 		{						
 			HUB.ProjectPublications.panelNotes();
 		}
+		if (section == 'citations') 
+		{						
+			HUB.ProjectPublications.panelCitations();
+		}
 		
 		// Enable/disable save button
 		HUB.ProjectPublications.checkBtn();	
@@ -136,6 +140,31 @@ HUB.ProjectPublications = {
 		}
 	},
 	
+	// CITATIONS
+	panelCitations: function()
+	{
+		var $ = this.jQuery;
+		
+		// Confirm delete
+		$('.c-delete').each(function(i, el) {
+			var link = $(el).find("a");
+			
+			var coord = $($(link).parent().parent()).position();
+			
+			$(link).on('click', function(e) {	
+				e.preventDefault();
+				if (HUB.Projects) {
+					HUB.Projects.addConfirm($(link), 'Permanently delete this entry?', 'yes, delete', 'cancel');
+					if ($('#confirm-box')) {
+						$('#confirm-box').css('font-size', '1em');
+						$('#confirm-box').css('left', coord.left).css('top', coord.top + 200);
+					}					
+				}
+			});
+		});
+		
+	},
+		
 	// CONTENT
 	panelContent: function(gallery)
 	{

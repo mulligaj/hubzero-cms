@@ -31,21 +31,11 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-ximport('Hubzero_Environment');
-
 /**
  * Wishlist controller class
  */
-class WishlistController extends Hubzero_Controller
+class WishlistController extends \Hubzero\Component\SiteController
 {
-	/**
-	 * Description for '_error'
-	 * 
-	 * @var unknown
-	 */
-	private $_error = NULL;
-
 	/**
 	 * Short description for '__construct'
 	 * 
@@ -193,11 +183,6 @@ class WishlistController extends Hubzero_Controller
 		$banking = $upconfig->get('bankAccounts');
 		$this->banking = $this->config->get('banking') && $banking ? $this->config->get('banking') : 0;
 
-		if ($banking) 
-		{
-			ximport('Hubzero_Bank');
-		}
-
 		switch($this->getTask())
 		{
 			case 'wishlist':    $this->wishlist();      break;
@@ -264,7 +249,7 @@ class WishlistController extends Hubzero_Controller
 		{
 			$this->_title .= ' - ' . $this->_list_title;
 		}
-		if ($this->_task && !in_array($this->_task, array('wishlist', 'wish'))) 
+		if ($this->_task && in_array($this->_task, array('settings', 'add'))) 
 		{
 			$this->_title .= ': ' . JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task));
 		}
@@ -279,7 +264,7 @@ class WishlistController extends Hubzero_Controller
 	 * @return     void
 	 */
 	private function _buildPathway($wishlist)
-	{
+	{		
 		$app = JFactory::getApplication();
 		$pathway = $app->getPathway();
 		$pathway->setPathway(array());
@@ -391,8 +376,7 @@ class WishlistController extends Hubzero_Controller
 				break;
 			
 			case 'group':
-				ximport('Hubzero_Group');	
-				$group = Hubzero_Group::getInstance($wishlist->referenceid);
+				$group = \Hubzero\User\Group::getInstance($wishlist->referenceid);
 				if ($group)
 				{
 					$title = JText::_('Group') . ' "' . $group->get('cn') . '"';
@@ -463,8 +447,7 @@ class WishlistController extends Hubzero_Controller
 				break;
 			
 			case 'group':
-				ximport('Hubzero_Group');
-				$group = Hubzero_Group::getInstance($wishlist->referenceid);
+				$group = \Hubzero\User\Group::getInstance($wishlist->referenceid);
 				$pathway->addItem('Groups','index.php?option=com_groups');
 				$pathway->addItem($group->get('description'),
 				 	'index.php?option=com_groups&cn='.$group->get('cn'));
@@ -539,8 +522,6 @@ class WishlistController extends Hubzero_Controller
 	 */
 	public function wishlist()
 	{
-		ximport('Hubzero_Group');
-
 		$database = JFactory::getDBO();
 		$juser 	  = JFactory::getUser();
 
@@ -601,10 +582,11 @@ class WishlistController extends Hubzero_Controller
 			else if (!$id && $cat == 'group') 
 			{
 				// create private list for group
-				if (Hubzero_Group::exists($refid)) 
+				if (\Hubzero\User\Group::exists($refid)) 
 				{
-					$group = Hubzero_Group::getInstance($refid);
-					$id = $obj->createlist($cat, $refid, 0, $group->cn.' '.JText::_('COM_WISHLIST_NAME_GROUP'));
+					$group = \Hubzero\User\Group::getInstance($refid);
+					$id = $obj->createlist($cat, $refid, 0, $group->cn 
+						. ' '.JText::_('COM_WISHLIST_NAME_GROUP'));
 				}
 			}
 		}
@@ -700,12 +682,14 @@ class WishlistController extends Hubzero_Controller
 			$sp_filters = $filters;
 			$sp_filters['filterby'] = 'granted';
 			$wishlist->granted_count = $objWish->get_count($wishlist->id, $sp_filters, $this->_admin, $juser);
-			$wishlist->granted_percentage = $total > 0 && $wishlist->granted_count > 0 ?  round(($wishlist->granted_count/$total) * 100, 0) : 0;
+			$wishlist->granted_percentage = $total > 0 && $wishlist->granted_count > 0 
+				?  round(($wishlist->granted_count/$total) * 100, 0) : 0;
 
 			// Some extras
 			$wishlist->saved = $saved;
 			$wishlist->banking = $this->banking ? $this->banking : 0;
-			$wishlist->banking = $wishlist->category=='user' ? 0 : $this->banking; // do not allow points for individual wish lists		
+			$wishlist->banking = $wishlist->category=='user' 
+				? 0 : $this->banking; // do not allow points for individual wish lists		
 		}
 
 		// Initiate paging
@@ -714,18 +698,19 @@ class WishlistController extends Hubzero_Controller
 
 		JRequest::setVar('id', $id);
 
-		$view = new JView(array('name'=>'wishlist' , 'base_path' => JPATH_ROOT . DS . 'components' . DS . $this->_option));
-		$view->title = $this->_title;
-		$view->config = $this->config;
-		$view->option = $this->_option;
-		$view->task = $this->_task;
-		$view->admin = $this->_admin;
-		$view->juser = $juser;
-		$view->pageNav = $pageNav;
+		$view = new JView(array('name'=>'wishlist' , 
+			'base_path' => JPATH_ROOT . DS . 'components' . DS . $this->_option));
+		$view->title 	= $this->_title;
+		$view->config 	= $this->config;
+		$view->option 	= $this->_option;
+		$view->task 	= $this->_task;
+		$view->admin 	= $this->_admin;
+		$view->juser 	= $juser;
+		$view->pageNav 	= $pageNav;
 		$view->wishlist = $wishlist;
-		$view->filters = $filters;
+		$view->filters 	= $filters;
 		$view->database = $database;
-		$view->abuse = true;
+		$view->abuse 	= true;
 		if ($this->getError()) 
 		{
 			$view->setError($this->getError());
@@ -776,6 +761,12 @@ class WishlistController extends Hubzero_Controller
 		{
 			// get admin priviliges
 			$this->authorize_admin();
+			
+			// Get List Title
+			$this->_list_title = $this->getListTitle($wishlist);
+						
+			// Build page title			
+			$this->_buildTitle();
 
 			// who are list owners?
 			$objOwner = new WishlistOwner($database);
@@ -785,15 +776,10 @@ class WishlistController extends Hubzero_Controller
 			$wishlist->advisory = $owners['advisory'];
 			$wishlist->groups 	= $owners['groups'];
 
-			// Get List Title
-			$this->_list_title = $this->getListTitle($wishlist);
-
-			$this->_buildTitle();
-
 			// Set the pathway
-			$this->_wishpath  = 'index.php?option=' . $this->_option . '&task=wish&category=' . $cat 
-				. '&rid=' . $refid . '&wishid='.$wishid;
-			$this->_wishtitle = Hubzero_View_Helper_Html::shortenText($wish->subject, 80, 0);
+			$this->_wishpath  = 'index.php?option=' . $this->_option . '&task=wish&category=' 
+				. $cat . '&rid=' . $refid . '&wishid='.$wishid;
+			$this->_wishtitle = \Hubzero\Utility\String::truncate($wish->subject, 80);
 			$this->_buildPathway($wishlist);
 
 			// Push some styles to the template
@@ -863,8 +849,10 @@ class WishlistController extends Hubzero_Controller
 			$filters = self::getFilters($this->_admin);
 
 			// Get the next and previous wishes
-			$wish->prev = $objWish->getWishId('prev', $wishid, $wish->wishlist, $this->_admin, $juser->get('id'), $filters);
-			$wish->next = $objWish->getWishId('next', $wishid, $wish->wishlist, $this->_admin, $juser->get('id'), $filters);
+			$wish->prev = $objWish->getWishId('prev', $wishid, $wish->wishlist, 
+				$this->_admin, $juser->get('id'), $filters);
+			$wish->next = $objWish->getWishId('next', $wishid, $wish->wishlist, 
+				$this->_admin, $juser->get('id'), $filters);
 
 			// Update average value for importance (this is tricky MySQL)
 			$votesplit = $this->config->get('votesplit')  ? trim($this->config->get('votesplit')) : 0;
@@ -901,10 +889,11 @@ class WishlistController extends Hubzero_Controller
 			}
 
 			// Get comments
-			$wish->replies = $this->getComments($wishid, $wishid, 'wish', 0, $abuse = true, $wishlist->owners, $this->_admin);
+			$wish->replies = $this->getComments($wishid, 0, 'wish', 0, $abuse = true, 
+			$wishlist->owners, $this->_admin);
 
 			// Do some text cleanup
-			$wish->subject = stripslashes($wish->subject);
+			/*$wish->subject = stripslashes($wish->subject);
 			$wish->subject = str_replace('&quote;', '&quot;', $wish->subject);
 			$wish->subject = htmlspecialchars($wish->subject);
 
@@ -914,7 +903,7 @@ class WishlistController extends Hubzero_Controller
 			{
 				$wish->about = str_replace("<br />", '', $wish->about);
 				$wish->about = nl2br($wish->about);
-			}
+			}*/
 
 			// Build owners drop-down for assigning wishes
 			$wish->assignlist = $this->userSelect('assigned', $wishlist->owners, $wish->assigned, 1);
@@ -937,7 +926,7 @@ class WishlistController extends Hubzero_Controller
 			// check available user funds	
 			if ($action == 'addbonus' && $this->banking) 
 			{
-				$BTL 		= new Hubzero_Bank_Teller($database, $juser->get('id'));
+				$BTL 		= new \Hubzero\Bank\Teller($database, $juser->get('id'));
 				$balance 	= $BTL->summary();
 				$credit 	= $BTL->credit_summary();
 				$funds 		= $balance - $credit;
@@ -954,7 +943,7 @@ class WishlistController extends Hubzero_Controller
 
 				if ($wishlist->category=='group') 
 				{
-					$group = Hubzero_Group::getInstance($wishlist->referenceid);
+					$group = \Hubzero\User\Group::getInstance($wishlist->referenceid);
 					$wishlist->cn = $group->cn;
 				}
 			}
@@ -988,9 +977,9 @@ class WishlistController extends Hubzero_Controller
 
 		if ($this->_task=='reply') 
 		{
-			$addcomment = new Hubzero_Comment($database);
-			$addcomment->referenceid = $this->referenceid;
-			$addcomment->category = $this->cat;
+			$addcomment = new \Hubzero\Item\Comment($database);
+			$addcomment->item_id = $this->referenceid;
+			$addcomment->item_type = $this->cat;
 		} 
 		else 
 		{
@@ -1086,7 +1075,7 @@ class WishlistController extends Hubzero_Controller
 			return;
 		}
 		$obj->description  = rtrim(stripslashes($obj->description));
-		$obj->description  = Hubzero_Filter::cleanXss($obj->description);
+		$obj->description  = \Hubzero\Utility\Sanitize::clean($obj->description);
 		$obj->description  = nl2br($obj->description);
 
 		// check content
@@ -1152,22 +1141,22 @@ class WishlistController extends Hubzero_Controller
 			JError::raiseError(404, JText::_('COM_WISHLIST_ERROR_WISHLIST_NOT_FOUND'));
 			return;
 		}
+		
+		// Get List Title
+		$this->_list_title = $this->getListTitle($wishlist);
+					
+		// Build page title			
+		$this->_buildTitle();
+		
+		// Set the pathway
+		$this->_listid = $id;
+		$this->_buildPathway($wishlist);
 
 		// Push some styles to the template
 		$this->_getStyles();
 
 		// Push some scripts to the template
 		$this->_getScripts();
-
-		// Get List Title
-		$this->_list_title = $this->getListTitle($wishlist);
-					
-		// Build page title			
-		$this->_buildTitle();
-
-		// Set the pathway
-		$this->_listid = $id;
-		$this->_buildPathway($wishlist);
 
 		// Login required
 		if ($juser->get('guest')) 
@@ -1178,11 +1167,11 @@ class WishlistController extends Hubzero_Controller
 		}
 
 		// who are list owners?
-		$objOwner = new WishlistOwner($database);
-		$objG 	  = new WishlistOwnerGroup($database);
-		$owners   = $objOwner->get_owners($wishlist->id, $this->admingroup , $wishlist);
-		$wishlist->owners = $owners['individuals'];
-		$wishlist->groups = $owners['groups'];
+		$objOwner 			= new WishlistOwner($database);
+		$objG 	  			= new WishlistOwnerGroup($database);
+		$owners   			= $objOwner->get_owners($wishlist->id, $this->admingroup , $wishlist);
+		$wishlist->owners 	= $owners['individuals'];
+		$wishlist->groups 	= $owners['groups'];
 		$wishlist->advisory = $owners['advisory'];
 
 		// get admin priviliges
@@ -1195,7 +1184,7 @@ class WishlistController extends Hubzero_Controller
 			{
 				$this->_admin = 2;
 			}
-			else if (in_array($juser->get('id'), $wishlist->advisory)) 
+			elseif (in_array($juser->get('id'), $wishlist->advisory)) 
 			{
 				$this->_admin = 3;
 			}
@@ -1205,13 +1194,14 @@ class WishlistController extends Hubzero_Controller
 		$wishlist->nativeowners = $nativeowners['individuals'];
 		$wishlist->nativegroups = $nativeowners['groups'];
 
-		$wishlist->allow_advisory = $this->config->get('allow_advisory') ? $this->config->get('allow_advisory') : 0;
+		$wishlist->allow_advisory = $this->config->get('allow_advisory') 
+			? $this->config->get('allow_advisory') : 0;
 
-		$view = new JView(array('name'=>'settings'));
-		$view->title = $this->_title;
-		$view->option = $this->_option;
-		$view->admin = $this->_admin;
-		$view->juser = $juser;
+		$view 			= new JView(array('name'=>'settings'));
+		$view->title 	= $this->_title;
+		$view->option 	= $this->_option;
+		$view->admin 	= $this->_admin;
+		$view->juser 	= $juser;
 		$view->wishlist = $wishlist;
 		if ($this->getError()) 
 		{
@@ -1258,16 +1248,16 @@ class WishlistController extends Hubzero_Controller
 			JError::raiseError(404, JText::_('COM_WISHLIST_ERROR_WISHLIST_NOT_FOUND'));
 			return;
 		}
-
+		
 		// Get List Title
 		$this->_list_title = $this->getListTitle($wishlist);
-
+					
 		// Login required
 		if ($juser->get('guest')) 
 		{
 			// Build page title			
 			$this->_buildTitle();
-
+			
 			// Set the pathway
 			$this->_buildPathway($wishlist);
 			$this->login();
@@ -1316,18 +1306,11 @@ class WishlistController extends Hubzero_Controller
 		// We don't want to create a whole new revision if just the tags were changed
 		if ($old->pagetext != $page->pagetext or (!$create_revision && $pageid)) 
 		{
-			// Transform the wikitext to HTML
-			$wikiconfig = array(
-				'option'   => $this->_option,
-				'scope'    => 'wishlist' . DS . $wishlist->id,
-				'pagename' => $objWish->id,
-				'pageid'   => $objWish->id,
-				'filepath' => '',
-				'domain'   => ''
-			);
-			ximport('Hubzero_Wiki_Parser');
-			$p = Hubzero_Wiki_Parser::getInstance();
-			$page->pagehtml = $p->parse($page->pagetext, $wikiconfig);
+			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'plan.php');
+
+			$plan = new WishlistModelPlan($page);
+
+			$page->pagehtml = $plan->content('parsed');
 
 			// Store content
 			if (!$page->store()) 
@@ -1376,7 +1359,7 @@ class WishlistController extends Hubzero_Controller
 
 			$name = JText::_('COM_WISHLIST_UNKNOWN');
 			$login = JText::_('COM_WISHLIST_UNKNOWN');
-			$ruser = Hubzero_User_Profile::getInstance($objWish->proposed_by);
+			$ruser = \Hubzero\User\Profile::getInstance($objWish->proposed_by);
 			if (is_object($ruser)) 
 			{
 				$name  = $ruser->get('name');
@@ -1388,7 +1371,7 @@ class WishlistController extends Hubzero_Controller
 			}
 
 			$message  = '----------------------------'.r.n;
-			$message .= JText::_('COM_WISHLIST_WISH').' #'.$objWish->id.', ' . $this->_list_title.' '.JText::_('WISHLIST').r.n;
+			$message .= JText::_('COM_WISHLIST_WISH').' #'.$objWish->id.', '.$this->_list_title.' '.JText::_('WISHLIST').r.n;
 			$message .= JText::_('COM_WISHLIST_WISH_DETAILS_SUMMARY').': '.stripslashes($objWish->subject).r.n;
 			$message .= JText::_('COM_WISHLIST_PROPOSED_ON').' '.JHTML::_('date',$objWish->proposed, JText::_('DATE_FORMAT_HZ1'));
 			$message .= ' '.JText::_('COM_WISHLIST_BY').' '.$name.' ';
@@ -1495,8 +1478,10 @@ class WishlistController extends Hubzero_Controller
 
 		// Set the pathway
 		$this->_taskpath = $wishid
-							? 'index.php?option=' . $this->_option . '&task=editwish&category=' . $category . '&rid=' . $refid . '&wishid=' . $wishid
-							: 'index.php?option=' . $this->_option . '&task=add&category=' . $category . '&rid=' . $refid;
+							? 'index.php?option=' . $this->_option . '&task=editwish&category=' 
+								. $category . '&rid=' . $refid . '&wishid=' . $wishid
+							: 'index.php?option=' . $this->_option . '&task=add&category=' 
+								. $category . '&rid=' . $refid;
 		$this->_taskname = $wishid
 							? JText::_('COM_WISHLIST_EDITWISH')
 							: JText::_('COM_WISHLIST_ADD');
@@ -1536,7 +1521,7 @@ class WishlistController extends Hubzero_Controller
 		$funds = 0;
 		if ($this->banking) 
 		{
-			$BTL = new Hubzero_Bank_Teller($database, $juser->get('id'));
+			$BTL = new \Hubzero\Bank\Teller($database, $juser->get('id'));
 			$balance = $BTL->summary();
 			$credit  = $BTL->credit_summary();
 			$funds   = $balance - $credit;
@@ -1661,8 +1646,10 @@ class WishlistController extends Hubzero_Controller
 		{
 			// Set the pathway
 			$this->_taskpath = $wishid
-							? 'index.php?option=' . $this->_option . '&task=editwish&category=' . $wishlist->category . '&rid=' . $wishlist->referenceid . '&wishid='.$wishid
-							: 'index.php?option=' . $this->_option . '&task=add&category=' . $wishlist->category . '&rid='.$wishlist->referenceid;
+							? 'index.php?option=' . $this->_option . '&task=editwish&category=' 
+							. $wishlist->category . '&rid=' . $wishlist->referenceid . '&wishid='.$wishid
+							: 'index.php?option=' . $this->_option . '&task=add&category=' 
+							. $wishlist->category . '&rid='.$wishlist->referenceid;
 			$this->_taskname = $wishid
 								? JText::_('COM_WISHLIST_EDITWISH')
 								: JText::_('COM_WISHLIST_ADD');
@@ -1691,7 +1678,7 @@ class WishlistController extends Hubzero_Controller
 
 		$row->anonymous 	= JRequest::getInt('anonymous', 0);
 		$row->private	    = JRequest::getInt('private', 0);
-		$row->about     	= Hubzero_Filter::cleanXss($row->about);
+		$row->about     	= \Hubzero\Utility\Sanitize::clean($row->about);
 		$row->proposed    	= ($wishid) ? $row->proposed : JFactory::getDate()->toSql();
 
 		// check content
@@ -1743,7 +1730,7 @@ class WishlistController extends Hubzero_Controller
 				}
 			}
 
-			$subject = JText::_(strtoupper($this->_name)).', '.JText::_('COM_WISHLIST_NEW_WISH').' '.JText::_('COM_WISHLIST_FOR').' '.$this->_list_title.' '.JText::_('from').' '.$name;
+			$subject = JText::_(strtoupper($this->_name)).', '.JText::_('COM_WISHLIST_NEW_WISH').' '.JText::_('COM_WISHLIST_FOR').' '. $this->_list_title.' '.JText::_('from').' '.$name;
 			$from = array();
 			$from['name']  = $jconfig->getValue('config.sitename').' '.JText::_(strtoupper($this->_name));
 			$from['email'] = $jconfig->getValue('config.mailfrom');
@@ -1762,7 +1749,7 @@ class WishlistController extends Hubzero_Controller
 			$message .= '----------------------------'."\r\n\r\n";
 			if (!$wishid)
 			{
-				$message .= $row->about;
+				$message .= strip_tags($row->about);
 				$message .= "\r\n\r\n";
 			}
 
@@ -1779,9 +1766,9 @@ class WishlistController extends Hubzero_Controller
 		}
 
 		if ($reward && $this->banking) 
-		{
+		{	
 			// put the  amount on hold
-			$BTL = new Hubzero_Bank_Teller($database, $juser->get('id'));
+			$BTL = new \Hubzero\Bank\Teller($database, $juser->get('id'));
 			$BTL->hold($reward, JText::_('COM_WISHLIST_BANKING_HOLD') . ' #' . $row->id . ' ' . JText::_('COM_WISHLIST_FOR') . ' ' . $this->_list_title, 'wish', $row->id);
 		}
 
@@ -1835,10 +1822,12 @@ class WishlistController extends Hubzero_Controller
 			// Login required
 			if ($juser->get('guest')) 
 			{
+				// Set page title
 				$this->_buildTitle();
 
 				// Set the pathway
-				$this->_taskpath = 'index.php?option=' . $this->_option . '&task=editwish&category=' . $wishlist->category . '&rid=' . $wishlist->referenceid . '&wishid=' . $wishid;
+				$this->_taskpath = 'index.php?option=' . $this->_option . '&task=editwish&category=' 
+					. $wishlist->category . '&rid=' . $wishlist->referenceid . '&wishid=' . $wishid;
 				$this->_taskname = JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task));
 				$this->_buildPathway($wishlist);
 				$this->login();
@@ -1929,7 +1918,7 @@ class WishlistController extends Hubzero_Controller
 
 					$name = JText::_('COM_WISHLIST_UNKNOWN');
 					$login = JText::_('COM_WISHLIST_UNKNOWN');
-					$ruser = Hubzero_User_Profile::getInstance($objWish->proposed_by);
+					$ruser = \Hubzero\User\Profile::getInstance($objWish->proposed_by);
 					if (is_object($ruser)) 
 					{
 						$name = $ruser->get('name');
@@ -1939,11 +1928,17 @@ class WishlistController extends Hubzero_Controller
 					{
 						$name = JText::_('COM_WISHLIST_ANONYMOUS');
 					}
+					
+					$this->_list_title = $wishlist->category == 'general' 
+						? $wishlist->title : ucfirst($wishlist->category) . ' #' . $wishlist->referenceid;
 
 					$message  = '----------------------------'."\r\n";
-					$message .= JText::_('COM_WISHLIST_WISH').' #'.$objWish->id.', '.$this->_list_title.' '.JText::_('COM_WISHLIST')."\r\n";
-					$message .= JText::_('COM_WISHLIST_WISH_DETAILS_SUMMARY').': '.stripslashes($objWish->subject)."\r\n";
-					$message .= JText::_('COM_WISHLIST_PROPOSED_ON').' '.JHTML::_('date',$objWish->proposed, JText::_('DATE_FORMAT_HZ1'));
+					$message .= JText::_('COM_WISHLIST_WISH').' #'.$objWish->id.', ' 
+						. $this->_list_title.' '.JText::_('COM_WISHLIST')."\r\n";
+					$message .= JText::_('COM_WISHLIST_WISH_DETAILS_SUMMARY') 
+						. ': '.stripslashes($objWish->subject)."\r\n";
+					$message .= JText::_('COM_WISHLIST_PROPOSED_ON').' ' 
+						. JHTML::_('date', $objWish->proposed, JText::_('DATE_FORMAT_HZ1'));
 					$message .= ' '.JText::_('COM_WISHLIST_BY').' '.$name.' ';
 					$message .= $objWish->anonymous ? '' : '('.$login.')';
 					$message .= "\r\n\r\n";
@@ -1958,9 +1953,12 @@ class WishlistController extends Hubzero_Controller
 					{
 						$message .= JText::_('COM_WISHLIST_MSG_WISH_STATUS_CHANGED_TO').' '.$status.' '.JText::_('COM_WISHLIST_BY_LIST_ADMINS').'.'."\r\n";
 					}
-					$url = $live_site.JRoute::_('index.php?option=' . $this->_option . '&task=wish&category=' . $cat . '&rid=' . $refid . '&wishid=' . $wishid);
-					$message .= JText::_('COM_WISHLIST_GO_TO').' '.$url.' '.JText::_('COM_WISHLIST_TO_VIEW_YOUR_WISH').'.';
-					$as_mes  .= JText::_('COM_WISHLIST_GO_TO').' '.$url.' '.JText::_('COM_WISHLIST_TO_VIEW_YOUR_ASSIGNED_WISH').'.';
+					$url = $live_site.JRoute::_('index.php?option=' . $this->_option 
+						. '&task=wish&category=' . $cat . '&rid=' . $refid . '&wishid=' . $wishid);
+					$message .= JText::_('COM_WISHLIST_GO_TO').' ' . $url 
+						. ' '.JText::_('COM_WISHLIST_TO_VIEW_YOUR_WISH').'.';
+					$as_mes  .= JText::_('COM_WISHLIST_GO_TO') . ' ' . $url 
+						. ' '.JText::_('COM_WISHLIST_TO_VIEW_YOUR_ASSIGNED_WISH').'.';
 				}
 			}
 			// no status change, only information
@@ -1983,14 +1981,16 @@ class WishlistController extends Hubzero_Controller
 					JPluginHelper::importPlugin('xmessage');
 					$dispatcher = JDispatcher::getInstance();
 
-					if (!$dispatcher->trigger('onSendMessage', array('wishlist_status_changed', $subject1, $message, $from, array($objWish->proposed_by), $this->_option))) 
+					if (!$dispatcher->trigger('onSendMessage', array('wishlist_status_changed', 
+						$subject1, $message, $from, array($objWish->proposed_by), $this->_option))) 
 					{
 						$this->setError(JText::_('COM_WISHLIST_ERROR_FAILED_MSG_AUTHOR'));
 					}
 
 					if ($objWish->assigned && $objWish->proposed_by != $objWish->assigned && $status=='accepted') 
 					{
-						if (!$dispatcher->trigger('onSendMessage', array('wishlist_wish_assigned', $subject2, $as_mes, $from, array($objWish->assigned), $this->_option))) 
+						if (!$dispatcher->trigger('onSendMessage', array('wishlist_wish_assigned', $subject2,
+						 	$as_mes, $from, array($objWish->assigned), $this->_option))) 
 						{
 							$this->setError(JText::_('COM_WISHLIST_ERROR_FAILED_MSG_ASSIGNEE'));
 						}
@@ -2011,8 +2011,6 @@ class WishlistController extends Hubzero_Controller
 	 */
 	public function movewish()
 	{
-		ximport('Hubzero_Group');
-
 		$database = JFactory::getDBO();
 		$juser = JFactory::getUser();
 		$live_site = rtrim(JURI::base(), '/');
@@ -2075,9 +2073,9 @@ class WishlistController extends Hubzero_Controller
 			// Get group id from cn
 			if ($category == 'group') 
 			{
-				if (Hubzero_Group::exists($cn)) 
+				if (\Hubzero\User\Group::exists($cn)) 
 				{
-					$group = Hubzero_Group::getInstance($cn);
+					$group = \Hubzero\User\Group::getInstance($cn);
 					$refid = $group->gidNumber;
 				}
 				else 
@@ -2110,9 +2108,9 @@ class WishlistController extends Hubzero_Controller
 			else if ($category == 'group' && !$newlist) 
 			{
 				// create private list for group
-				if (Hubzero_Group::exists($refid)) 
+				if (\Hubzero\User\Group::exists($refid)) 
 				{
-					$group = Hubzero_Group::getInstance($refid);
+					$group = \Hubzero\User\Group::getInstance($refid);
 					$newlist = $obj->createlist($cat, $refid, 0, $group->cn . ' ' . JText::_('COM_WISHLIST_GROUP'));
 				}
 			}
@@ -2159,18 +2157,18 @@ class WishlistController extends Hubzero_Controller
 					// delete comments if option chosen
 					if (!$options['keepcomments']) 
 					{
-						$reply = new Hubzero_Comment($database);
-						$comments1 = $reply->getResults(array('id'=>$wishid, 'category'=>'wish'));
+						$reply = new \Hubzero\Item\Comment($database);
+						$comments1 = $reply->getResults(array('item_id'=>$wishid, 'item_type'=>'wish', 'parent' => 0));
 						if (count($comments1) > 0) 
 						{
 							foreach ($comments1 as $comment1)
 							{
-								$comments2 = $reply->getResults(array('id'=>$comment1->id, 'category'=>'wishcomment'));
+								$comments2 = $reply->getResults(array('item_id'=>$wishid, 'item_type'=>'wish', 'parent' => $comment1->id));
 								if (count($comments2) > 0) 
 								{
 									foreach ($comments2 as $comment2)
 									{
-										$comments3 = $reply->getResults(array('id'=>$comment2->id, 'category'=>'wishcomment'));
+										$comments3 = $reply->getResults(array('item_id'=>$wishid, 'item_type'=>'wish', 'parent' => $comment2->id));
 										if (count($comments3) > 0) 
 										{
 											foreach ($comments3 as $comment3)
@@ -2203,7 +2201,7 @@ class WishlistController extends Hubzero_Controller
 
 					$name = JText::_('COM_WISHLIST_UNKNOWN');
 					$login = JText::_('COM_WISHLIST_UNKNOWN');
-					$ruser = Hubzero_User_Profile::getInstance($objWish->proposed_by);
+					$ruser = \Hubzero\User\Profile::getInstance($objWish->proposed_by);
 					if (is_object($ruser)) 
 					{
 						$name  = $ruser->get('name');
@@ -2302,10 +2300,11 @@ class WishlistController extends Hubzero_Controller
 		
 		// Get List Title
 		$this->_list_title = $this->getListTitle($wishlist);
-
+					
 		// Login required
 		if ($juser->get('guest')) 
-		{				
+		{
+			// Set page title			
 			$this->_buildTitle();
 
 			// Set the pathway
@@ -2315,7 +2314,7 @@ class WishlistController extends Hubzero_Controller
 		}
 
 		// check available user funds
-		$BTL = new Hubzero_Bank_Teller($database, $juser->get('id'));
+		$BTL = new \Hubzero\Bank\Teller($database, $juser->get('id'));
 		$balance = $BTL->summary();
 		$credit  = $BTL->credit_summary();
 		$funds   = $balance - $credit;
@@ -2337,9 +2336,9 @@ class WishlistController extends Hubzero_Controller
 			JError::raiseError(500, JText::_('COM_WISHLIST_ERROR_NO_FUNDS'));
 			return;
 		}
-
+		
 		// put the  amount on hold
-		$BTL = new Hubzero_Bank_Teller($database, $juser->get('id'));
+		$BTL = new \Hubzero\Bank\Teller($database, $juser->get('id'));
 		$BTL->hold($amount, JText::_('COM_WISHLIST_BANKING_HOLD').' #'.$wishid.' '.JText::_('COM_WISHLIST_FOR').' '.$this->_list_title, 'wish', $wishid);
 
 		$this->_redirect = JRoute::_('index.php?option=' . $this->_option . '&task=wish&category=' . $wishlist->category . '&rid=' . $wishlist->referenceid . '&wishid=' . $wishid);
@@ -2392,7 +2391,7 @@ class WishlistController extends Hubzero_Controller
 				$this->login();
 				return;
 			}
-			
+
 			// get admin priviliges
 			$this->authorize_admin($wishlist->id);
 
@@ -2672,7 +2671,7 @@ class WishlistController extends Hubzero_Controller
 					}
 
 					// average values
-					$imp = ($votesplit && $divisor) ? $imp/$divisor: $imp/$num;
+					$imp = ($votesplit && $divisor) ? $imp/$divisor : ($num ? $imp/$num : 0);
 					$eff = ($num - $skipped) != 0 ? $eff/($num - $skipped) : 0;
 					$weight_i = ($num - $skipped) != 0 ? $weight_i : 7;
 
@@ -2777,9 +2776,9 @@ class WishlistController extends Hubzero_Controller
 			return;
 		}
 
-		if ($id && $category) 
+		if ($wishid && $category) 
 		{
-			$row = new Hubzero_Comment($database);
+			$row = new \Hubzero\Item\Comment($database);
 			if (!$row->bind($_POST)) 
 			{
 				JError::raiseError(500, $row->getError());
@@ -2787,17 +2786,15 @@ class WishlistController extends Hubzero_Controller
 			}
 
 			// Perform some text cleaning, etc.
-			$row->comment   = $row->comment == JText::_('COM_WISHLIST_ENTER_COMMENTS') ? '' : $row->comment;
-			//$row->comment   = Hubzero_View_Helper_Html::purifyText($row->comment);
-			$attachment     = $this->upload($wishid);
-			$row->comment  .= ($attachment) ? "\n" . $attachment : '';
-			//$row->comment   = nl2br($row->comment);
-			//$row->comment   = str_replace('<br>', '<br />', $row->comment);
-			$row->anonymous = ($row->anonymous == 1 || $row->anonymous == '1') ? $row->anonymous : 0;
-			$row->added     = $when;
-			$row->state     = 0;
-			$row->category  = $category;
-			$row->added_by  = $juser->get('id');
+			$row->content    = $row->content == JText::_('COM_WISHLIST_ENTER_COMMENTS') ? '' : $row->content;
+			$attachment      = $this->upload($wishid);
+			$row->content   .= ($attachment) ? "\n" . $attachment : '';
+			$row->anonymous  = ($row->anonymous == 1 || $row->anonymous == '1') ? $row->anonymous : 0;
+			$row->created    = $when;
+			$row->state      = 0;
+			$row->item_id    = $wishid;
+			$row->item_type  = $category;
+			$row->created_by = $juser->get('id');
 
 			// Check for missing (required) fields
 			if (!$row->check()) 
@@ -2823,7 +2820,7 @@ class WishlistController extends Hubzero_Controller
 
 				$name = JText::_('UNKNOWN');
 				$login = JText::_('UNKNOWN');
-				$ruser = Hubzero_User_Profile::getInstance($row->added_by);
+				$ruser = \Hubzero\User\Profile::getInstance($row->created_by);
 				if (is_object($ruser)) 
 				{
 					$name = $ruser->get('name');
@@ -2858,14 +2855,18 @@ class WishlistController extends Hubzero_Controller
 
 				// for others included in the conversation thread.
 				$subject4 = JText::_(strtoupper($this->_name)).', '.$name.' '.JText::_('COM_WISHLIST_MSG_COMMENTED_AFTER_YOU').' #'.$wishid;
+				
+				$this->_list_title = $wishlist->category == 'general' 
+					? $wishlist->title : ucfirst($wishlist->category) . ' #' . $wishlist->referenceid;
 
-				$message  = JText::_('COM_WISHLIST_WISH').' #'.$wishid.', '.$this->_list_title.' '.JText::_('COM_WISHLIST') . "\r\n";
+				$message  = JText::_('COM_WISHLIST_WISH').' #'.$wishid.', ' . $this->_list_title 
+					. ' '.JText::_('COM_WISHLIST') . "\r\n";
 				$message .= JText::_('COM_WISHLIST_WISH_DETAILS_SUMMARY').': '.stripslashes($objWish->subject) . "\r\n";
 				$message .= '----------------------------' . "\r\n";
 				$message .= JText::_('COM_WISHLIST_MSG_COMMENT_BY').' '.$name.' ';
 				$message .= $row->anonymous ? '' : '('.$login.')';
-				$message .= ' '.JText::_('COM_WISHLIST_MSG_POSTED_ON').' '.JHTML::_('date',$row->added, JText::_('DATE_FORMAT_HZ1')).':' . "\r\n";
-				$message .= $attach->parse(Hubzero_View_Helper_Html::purifyText($row->comment)) . "\r\n\r\n";
+				$message .= ' '.JText::_('COM_WISHLIST_MSG_POSTED_ON').' '.JHTML::_('date',$row->created, JText::_('DATE_FORMAT_HZ1')).':' . "\r\n";
+				$message .= $attach->parse(\Hubzero\Utility\Sanitize::clean($row->content)) . "\r\n\r\n";
 				$message .= "\r\n";
 
 				$message .= '----------------------------' . "\r\n";
@@ -2878,7 +2879,7 @@ class WishlistController extends Hubzero_Controller
 				// collect ids of people who were already emailed
 				$contacted = array();
 
-				if ($objWish->proposed_by != $row->added_by) 
+				if ($objWish->proposed_by != $row->created_by) 
 				{
 					$contacted[] = 	$objWish->proposed_by;
 
@@ -2889,7 +2890,7 @@ class WishlistController extends Hubzero_Controller
 					}
 				} // -- end send to wish author
 
-				if ($objWish->assigned && $objWish->assigned != $row->added_by && !in_array($objWish->assigned, $contacted)) 
+				if ($objWish->assigned && $objWish->assigned != $row->created_by && !in_array($objWish->assigned, $contacted)) 
 				{
 					$contacted[] = $objWish->assigned;
 
@@ -2901,17 +2902,17 @@ class WishlistController extends Hubzero_Controller
 				} // -- end send message to person to who wish is assigned
 
 				// get comment author if reply is posted to a comment
-				if ($category=='wishcomment') 
+				if ($row->parent) 
 				{
-					$parent = new Hubzero_Comment($database);
-					$parent->load($id);
-					$cuser = JUser::getInstance($parent->added_by);
+					$parent = new \Hubzero\Item\Comment($database);
+					$parent->load($row->parent);
+					$cuser = JUser::getInstance($parent->created_by);
 
 					// send message to comment author
-					if (is_object($cuser) && $parent->added_by != $row->added_by && !in_array($parent->added_by, $contacted)) 
+					if (is_object($cuser) && $parent->created_by != $row->created_by && !in_array($parent->created_by, $contacted)) 
 					{
-						$contacted[] = 	$parent->added_by;
-						if (!$dispatcher->trigger('onSendMessage', array('wishlist_comment_thread', $subject3, $message, $from, array($parent->added_by), $this->_option))) 
+						$contacted[] = 	$parent->created_by;
+						if (!$dispatcher->trigger('onSendMessage', array('wishlist_comment_thread', $subject3, $message, $from, array($parent->created_by), $this->_option))) 
 						{
 							$this->setError(JText::_('COM_WISHLIST_ERROR_FAILED_MSG_COMMENTOR'));
 						}
@@ -2919,7 +2920,7 @@ class WishlistController extends Hubzero_Controller
 				}
 
 				// get all users who commented
-				$commentors = self::getComments($wishid, $wishid, 'wish', 0, false, array(), 0, 1, 1);
+				$commentors = self::getComments($wishid, 0, 'wish', 0, false, array(), 0, 1, 1);
 				$comm = array_diff($commentors, $contacted);
 
 				if (count($comm) > 0) 
@@ -2950,7 +2951,7 @@ class WishlistController extends Hubzero_Controller
 		// Incoming
 		$replyid = JRequest::getInt('replyid', 0);
 
-		$row = new Hubzero_Comment($database);
+		$row = new \Hubzero\Item\Comment($database);
 
 		// Do we have a reply ID?
 		if (!$replyid or !$row->load($replyid)) 
@@ -2958,10 +2959,10 @@ class WishlistController extends Hubzero_Controller
 			$this->setError(JText::_('COM_WISHLIST_ERROR_REPLY_NOT_FOUND'));
 			return;
 		}
-		if ($row->added_by == $juser->get('id')) 
+		if ($row->created_by == $juser->get('id')) 
 		{
 			// Delete the comment
-			$row->state = 4;
+			$row->state = 2;
 
 			if (!$row->store()) 
 			{
@@ -2997,7 +2998,6 @@ class WishlistController extends Hubzero_Controller
 		$wishid = JRequest::getInt('wishid', 0);
 		$rid    = JRequest::getInt('refid', 0);
 		$cat    = JRequest::getVar('cat', '');
-		//$page   = JRequest::getVar('page', 1);
 
 		// is the user logged in?
 		if ($juser->get('guest')) 
@@ -3043,8 +3043,7 @@ class WishlistController extends Hubzero_Controller
 		$page = JRequest::getVar('page', 'wishlist');
 		$cat  = 'wish';
 		$vote = JRequest::getWord('vote', ''); // assuming text only vote. Fix for sql injection ticket 1182
-		ximport('Hubzero_Environment');
-		$ip   = Hubzero_Environment::ipAddress();
+		$ip   = JRequest::ip();
 
 		if (!$id) 
 		{
@@ -3059,6 +3058,12 @@ class WishlistController extends Hubzero_Controller
 		$objWishlist = new Wishlist($database);
 		$listid = $row->wishlist;
 		$wishlist = $objWishlist->get_wishlist($listid);
+		
+		if (!$wishlist) 
+		{
+			JError::raiseError(404, JText::_('COM_WISHLIST_ERROR_WISHLIST_NOT_FOUND'));
+			return;
+		}
 
 		// Login required
 		if ($juser->get('guest')) 
@@ -3187,10 +3192,10 @@ class WishlistController extends Hubzero_Controller
 		$live_site = rtrim(JURI::base(),'/');
 
 		$level++;
-		$hc = new Hubzero_Comment($database);
+		$hc = new \Hubzero\Item\Comment($database);
 		$authors = array();
 
-		$comments = $hc->getResults(array('id' => $itemid, 'category' => $category), 1 , 1);
+		$comments = $hc->find(array('item_id' => $parentid, 'item_type' => $category, 'parent' => $itemid), 1 , 1);
 
 		if ($comments) 
 		{
@@ -3207,31 +3212,33 @@ class WishlistController extends Hubzero_Controller
 
 			foreach ($comments as $comment)
 			{
+				/*$database->setQuery("SELECT count(*) FROM `#__abuse_reports` AS RR WHERE RR.referenceid=" . $comment->id . " AND RR.state=0 AND RR.category='wish'");
+				$comment->reports = $database->loadResult();
 
-				$comment->comment = stripslashes($comment->comment);
+				$comment->content = stripslashes($comment->content);
 				if (!$skipattachments) 
 				{
 					$attach->description = '';
-					if (!strstr($comment->comment, '</p>') && !strstr($comment->comment, '<pre class="wiki">')) 
+					if (!strstr($comment->content, '</p>') && !strstr($comment->content, '<pre class="wiki">')) 
 					{
-						$comment->comment = preg_replace('/<br\\s*?\/??>/i', '', $comment->comment);
-						//$comment->comment = htmlentities($comment->comment, ENT_COMPAT, 'UTF-8');
-						//$comment->comment = nl2br($comment->comment);
-						//$comment->comment = str_replace("\t", '&nbsp;&nbsp;&nbsp;&nbsp;', $comment->comment);
+						$comment->content = preg_replace('/<br\\s*?\/??>/i', '', $comment->content);
+						//$comment->content = htmlentities($comment->content, ENT_COMPAT, 'UTF-8');
+						//$comment->content = nl2br($comment->content);
+						//$comment->content = str_replace("\t", '&nbsp;&nbsp;&nbsp;&nbsp;', $comment->content);
 					}
-					$comment->comment    = $attach->parse($comment->comment);
+					$comment->content    = $attach->parse($comment->content);
 					$comment->attachment = $attach->description;
-				}
+				}*/
 
 				// get authors excluding current commentator
-				if ($comment->added_by != $juser->get('id')) 
+				if ($comment->created_by != $juser->get('id')) 
 				{
-					$authors[] = $comment->added_by;
+					$authors[] = $comment->created_by;
 				}
 
-				$comment->replies = self::getComments($parentid, $comment->id, 'wishcomment', $level, $abuse, $owners, $admin, $skipattachments, $getauthors);
+				$comment->replies = self::getComments($parentid, $comment->id, 'wish', $level, $abuse, $owners, $admin, $skipattachments, $getauthors);
 				$comment->admin = 0;
-				if (in_array($comment->added_by, $owners)) 
+				if (in_array($comment->created_by, $owners)) 
 				{
 					$comment->admin = 1;  // this is a comment by list owner
 				}
@@ -3725,9 +3732,6 @@ class WishlistController extends Hubzero_Controller
 	 */
 	public function download()
 	{
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		$database = JFactory::getDBO();
 
 		$file = JRequest::getVar('file', '');
@@ -3750,34 +3754,6 @@ class WishlistController extends Hubzero_Controller
 		if (!$attachment->wish || empty($attachment->filename)) 
 		{
 			JError::raiseError(404, JText::_('COM_WISHLIST_FILE_NOT_FOUND'));
-			return;
-		}
-		if (preg_match("/^\s*http[s]{0,1}:/i", $attachment->filename)) 
-		{
-			JError::raiseError(404, JText::_('COM_WISHLIST_BAD_FILE_PATH'));
-			return;
-		}
-		if (preg_match("/^\s*[\/]{0,1}index.php\?/i", $attachment->filename)) 
-		{
-			JError::raiseError(404, JText::_('COM_WISHLIST_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow windows drive letter
-		if (preg_match("/^\s*[.]:/", $attachment->filename)) 
-		{
-			JError::raiseError(404, JText::_('COM_WISHLIST_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow \
-		if (strpos('\\', $attachment->filename)) 
-		{
-			JError::raiseError(404, JText::_('COM_WISHLIST_BAD_FILE_PATH'));
-			return;
-		}
-		// Disallow ..
-		if (strpos('..', $attachment->filename)) 
-		{
-			JError::raiseError(404, JText::_('COM_WISHLIST_BAD_FILE_PATH'));
 			return;
 		}
 
@@ -3804,7 +3780,7 @@ class WishlistController extends Hubzero_Controller
 		}
 
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($filename);
 		$xserver->disposition('attachment');
 		$xserver->acceptranges(false); // @TODO fix byte range support

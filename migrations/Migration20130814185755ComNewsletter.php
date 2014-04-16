@@ -1,17 +1,19 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for ...
  **/
-class Migration20130814185755ComNewsletter extends Hubzero_Migration
+class Migration20130814185755ComNewsletter extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
 		$query = "CREATE TABLE IF NOT EXISTS `#__email_bounces` (
 					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -29,22 +31,22 @@ class Migration20130814185755ComNewsletter extends Hubzero_Migration
 
 		if (!empty($query))
 		{
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
 		$query = "DROP TABLE IF EXISTS `#__email_bounces`";
 
 		if (!empty($query))
 		{
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 }

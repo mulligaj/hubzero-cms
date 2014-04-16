@@ -36,7 +36,7 @@ defined('_JEXEC') or die('Restricted access');
 		</div><!-- / .aside -->
 		<div class="subject thread">
 		<?php if ($this->comments) {
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'hubzero',
 					'element' => 'comments',
@@ -68,57 +68,21 @@ defined('_JEXEC') or die('Restricted access');
 			<?php echo JText::_('PLG_HUBZERO_COMMENTS_POST_A_COMMENT'); ?>
 		</h3>
 		<div class="aside">
-			<table class="wiki-reference">
-				<caption><?php echo JText::_('PLG_HUBZERO_COMMENTS_WIKI_SYNTAX_REFERENCE'); ?></caption>
-				<tbody>
-					<tr>
-						<td>'''bold'''</td>
-						<td><b>bold</b></td>
-					</tr>
-					<tr>
-						<td>''italic''</td>
-						<td><i>italic</i></td>
-					</tr>
-					<tr>
-						<td>__underline__</td>
-						<td><span style="text-decoration:underline;">underline</span></td>
-					</tr>
-					<tr>
-						<td>{{{monospace}}}</td>
-						<td><code>monospace</code></td>
-					</tr>
-					<tr>
-						<td>~~strike-through~~</td>
-						<td><del>strike-through</del></td>
-					</tr>
-					<tr>
-						<td>^superscript^</td>
-						<td><sup>superscript</sup></td>
-					</tr>
-					<tr>
-						<td>,,subscript,,</td>
-						<td><sub>subscript</sub></td>
-					</tr>
-				</tbody>
-			</table>
+
 		</div><!-- / .aside -->
 		<div class="subject">
 			<form method="post" action="<?php echo JRoute::_($this->url); ?>" id="commentform" enctype="multipart/form-data">
 				<p class="comment-member-photo">
-					<span class="comment-anchor"></span>
 					<?php
-						ximport('Hubzero_User_Profile');
-						ximport('Hubzero_User_Profile_Helper');
-						
 						$anonymous = 1;
 						if (!$this->juser->get('guest')) 
 						{
-							$jxuser = new Hubzero_User_Profile();
+							$jxuser = new \Hubzero\User\Profile();
 							$jxuser->load($this->juser->get('id'));
 							$anonymous = 0;
 						}
 					?>
-					<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($jxuser, $anonymous); ?>" alt="" />
+					<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($jxuser, $anonymous); ?>" alt="" />
 				</p>
 				<fieldset>
 				<?php
@@ -126,15 +90,13 @@ defined('_JEXEC') or die('Restricted access');
 				{
 					if (($replyto = JRequest::getInt('replyto', 0))) 
 					{
-						$reply = new Hubzero_Item_Comment($this->database);
+						$reply = new \Hubzero\Item\Comment($this->database);
 						$reply->load($replyto);
-
-						ximport('Hubzero_View_Helper_Html');
 
 						$name = JText::_('COM_KB_ANONYMOUS');
 						if (!$reply->anonymous) 
 						{
-							$xuser = new Hubzero_User_Profile();
+							$xuser = new \Hubzero\User\Profile();
 							$xuser->load($reply->created_by);
 							if (is_object($xuser) && $xuser->get('name')) 
 							{
@@ -150,39 +112,25 @@ defined('_JEXEC') or die('Restricted access');
 							<span class="comment-date-on"><?php echo JText::_('COM_ANSWERS_ON'); ?></span> 
 							<span class="date"><time datetime="<?php echo $reply->created; ?>"><?php echo JHTML::_('date', $reply->created, JText::_('DATE_FORMAT_HZ1')); ?></time></span>
 						</p>
-						<p><?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($reply->content), 300, 0); ?></p>
+						<p><?php echo \Hubzero\Utility\String::truncate(stripslashes($reply->content), 300); ?></p>
 					</blockquote>
 						<?php
 					}
 				}
 
-				$comment = new Hubzero_Item_Comment($this->database);
+				$comment = new \Hubzero\Item\Comment($this->database);
 				$comment->parent = JRequest::getInt('replyto', 0);
 				if (($edit = JRequest::getInt('editcomment', 0))) 
 				{
 					$comment->load($edit);
-					//if ($comment->created_by != $this->juser->get('id'))
-					//{
-					//	$comment = new Hubzero_Item_Comment($this->database);
-					//}
 				}
 				?>
 					<label for="commentcontent">
-						<?php echo JText::_('PLG_HUBZERO_COMMENTS_YOUR_COMMENTS'); ?>: <span class="required"><?php echo JText::_('PLG_HUBZERO_COMMENTS_REQUIRED'); ?></span>
+						<?php echo JText::_('PLG_HUBZERO_COMMENTS_YOUR_COMMENTS'); ?>:
 						<?php
 							if (!$this->juser->get('guest')) 
 							{
-								ximport('Hubzero_Wiki_Editor');
-								$editor = Hubzero_Wiki_Editor::getInstance();
-								echo $editor->display('comment[content]', 'commentcontent', $comment->content, 'minimal no-footer', '40', '15');
-							/*} else {
-								$rtrn = JRoute::_('index.php?option='.$this->option.'&section='.$this->section->alias.'&category='.$this->category->alias.'&alias='.$this->article->alias.'#post-comment');
-								?>
-								<p class="warning">
-									You must <a href="/login?return=<?php echo base64_encode($rtrn); ?>">log in</a> to post comments.
-								</p>
-								<?php
-							*/
+								echo \JFactory::getEditor()->display('comment[content]', '', '', '', 35, 15, false, 'commentcontent', null, null, array('class' => 'minimal no-footer'));
 							}
 						?>
 					</label>
@@ -192,7 +140,6 @@ defined('_JEXEC') or die('Restricted access');
 						<input type="file" name="commentFile" id="commentFile" />
 					</label>
 
-				<?php //if (!$this->juser->get('guest')) { ?>
 					<label id="comment-anonymous-label">
 						<input class="option" type="checkbox" name="comment[anonymous]" id="comment-anonymous" value="1"<?php if ($comment->anonymous) { echo ' checked="checked"'; } ?> />
 						<?php echo JText::_('PLG_HUBZERO_COMMENTS_POST_ANONYMOUSLY'); ?>
@@ -201,12 +148,7 @@ defined('_JEXEC') or die('Restricted access');
 					<p class="submit">
 						<input type="submit" name="submit" value="<?php echo JText::_('PLG_HUBZERO_COMMENTS_POST_COMMENT'); ?>" />
 					</p>
-				<?php //} ?>
-				<?php /*} else { ?>
-					<p class="warning">
-						<?php echo JText::_('PLG_HUBZERO_COMMENTS_THREAD_CLOSED'); ?>
-					</p>
-				<?php }*/ ?>
+
 					<input type="hidden" name="comment[id]" value="<?php echo $comment->id; ?>" />
 					<input type="hidden" name="comment[item_id]" value="<?php echo $this->obj->id; ?>" />
 					<input type="hidden" name="comment[item_type]" value="<?php echo $this->obj_type; ?>" />
@@ -222,7 +164,7 @@ defined('_JEXEC') or die('Restricted access');
 							<strong><?php echo JText::_('PLG_HUBZERO_COMMENTS_KEEP_RELEVANT'); ?></strong>
 						</p>
 						<p>
-							Line breaks and paragraphs are automatically converted. URLs (starting with http://) or email addresses will automatically be linked. <a href="<?php echo JRoute::_('index.php?option=com_wiki&pagename=Help:WikiFormatting'); ?>" class="popup">Wiki syntax</a> is supported.
+							URLs (starting with http://) or email addresses will automatically be linked.
 						</p>
 					</div>
 				</fieldset>

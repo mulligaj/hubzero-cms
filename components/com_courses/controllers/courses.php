@@ -31,14 +31,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'courses.php');
 
 /**
  * Courses controller class
  */
-class CoursesControllerCourses extends Hubzero_Controller
+class CoursesControllerCourses extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -156,10 +154,11 @@ class CoursesControllerCourses extends Hubzero_Controller
 				if ($mytags = $mt->get_tag_string($this->juser->get('id')))
 				{
 					$this->view->interestingcourses = $model->courses(array(
-						'tags'  => $mytags, 
+						'tag'   => $mytags, 
+						'tag_any' => true,
 						'limit' => 10, 
 						'state' => 1
-					));
+					), true);
 				}
 			}
 		}
@@ -171,7 +170,7 @@ class CoursesControllerCourses extends Hubzero_Controller
 				'limit' => 3, 
 				'sort'  => 'students', 
 				'state' => 1
-			));
+			), true);
 		}
 
 		// Output HTML
@@ -196,6 +195,15 @@ class CoursesControllerCourses extends Hubzero_Controller
 		$this->view->filters['state']  = 1;
 		$this->view->filters['search'] = JRequest::getVar('search', '');
 		$this->view->filters['sortby'] = strtolower(JRequest::getWord('sortby', 'title'));
+		$this->view->filters['group']  = JRequest::getVar('group', '');
+		if ($this->view->filters['group'])
+		{
+			$group = \Hubzero\User\Group::getInstance($this->view->filters['group']);
+			if ($group)
+			{
+				$this->view->filters['group_id'] = $group->get('gidNumber');
+			}
+		}
 		if (!in_array($this->view->filters['sortby'], array('alias', 'title', 'popularity')))
 		{
 			$this->view->filters['sortby'] = 'title';

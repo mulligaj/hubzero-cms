@@ -27,15 +27,15 @@ defined('_JEXEC') or die('Restricted access'); ?>
 			</tr>
 		</thead>
 		<tbody>
-	<?php foreach ($this->votes as $vote) : ?>
+	<?php foreach ($this->votes as $vote) : ?> 
 			<tr class="sectiontableentry<?php echo $vote->odd; ?>">
 				<td>
 					<div class="graph">
-						<strong class="bar <?php echo $tdclass; ?>" style="width: <?php echo $this->escape($vote->percent); ?>%;"><span><?php echo $this->escape($vote->percent); ?>%</span></strong>
+						<strong class="bar <?php echo $vote->class; ?>" style="width: <?php echo $this->escape($vote->percent); ?>%;"><span><?php echo $this->escape($vote->percent); ?>%</span></strong>
 					</div>
 				</td>
 				<td>
-					<?php echo $this->escape(stripslashes($vote->text)); ?>
+					<?php echo stripslashes($vote->text); ?>
 				</td>
 				<td class="votes">
 					<?php echo $this->escape($vote->hits); ?>

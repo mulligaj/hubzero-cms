@@ -1,13 +1,15 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-class Migration20121009000000ComWiki extends Hubzero_Migration
+class Migration20121009000000ComWiki extends Base
 {
-	protected static function up($db)
+	public function up()
 	{
-		if ($db->tableExists('#__plugins'))
+		if ($this->db->tableExists('#__plugins'))
 		{
 			$query = "UPDATE `#__plugins` SET element='wiki' WHERE element='topics';\n";
 		}
@@ -16,7 +18,7 @@ class Migration20121009000000ComWiki extends Hubzero_Migration
 			$query = "UPDATE `#__extensions` SET element='wiki' WHERE element='topics';\n";
 		}
 
-		$db->setQuery($query);
-		$db->query();
+		$this->db->setQuery($query);
+		$this->db->query();
 	}
 }

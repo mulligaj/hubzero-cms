@@ -123,6 +123,8 @@ class plgAuthenticationFacebook extends JPlugin
 	{
 		$app = JFactory::getApplication();
 
+		$return = '';
+		$b64dreturn = '';
 		if($return = JRequest::getVar('return', '', 'method', 'base64'))
 		{
 			$b64dreturn = base64_decode($return);
@@ -167,6 +169,7 @@ class plgAuthenticationFacebook extends JPlugin
 		}
 
 		// Check if a return is specified
+		$return = '';
 		if ($view->return)
 		{
 			$return = "&return=" . $view->return;
@@ -252,7 +255,7 @@ class plgAuthenticationFacebook extends JPlugin
 			$username = $user_profile['id'];
 
 			// Create the hubzero auth link
-			$hzal = Hubzero_Auth_Link::find_or_create('authentication', 'facebook', null, $username);
+			$hzal = \Hubzero\Auth\Link::find_or_create('authentication', 'facebook', null, $username);
 			$hzal->email = $user_profile['email'];
 
 			// Set response variables
@@ -320,10 +323,10 @@ class plgAuthenticationFacebook extends JPlugin
 			// Get unique username
 			$username = $user_profile['id'];
 
-			$hzad = Hubzero_Auth_Domain::getInstance('authentication', 'facebook', '');
+			$hzad = \Hubzero\Auth\Domain::getInstance('authentication', 'facebook', '');
 
 			// Create the link
-			if(Hubzero_Auth_Link::getInstance($hzad->id, $username))
+			if (\Hubzero\Auth\Link::getInstance($hzad->id, $username))
 			{
 				// This facebook account is already linked to another hub account
 				$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'), 
@@ -332,7 +335,7 @@ class plgAuthenticationFacebook extends JPlugin
 			}
 			else
 			{
-				$hzal = Hubzero_Auth_Link::find_or_create('authentication', 'facebook', null, $username);
+				$hzal = \Hubzero\Auth\Link::find_or_create('authentication', 'facebook', null, $username);
 				$hzal->user_id = $juser->get('id');
 				$hzal->email   = $user_profile['email'];
 				$hzal->update();
@@ -359,15 +362,11 @@ class plgAuthenticationFacebook extends JPlugin
 	public static function getInfo($params)
 	{
 		// Set up the config for the sdk instance
-		$params = explode("\n", trim($params));
-		foreach ($params as $k => $v)
-		{
-			list($key, $value) = explode("=", $v);
-			$p[$key] = $value;
-		}
+		$params = json_decode($params);
+
 		$config           = array();
-		$config['appId']  = $p['app_id'];
-		$config['secret'] = $p['app_secret'];
+		$config['appId']  = $params->app_id;
+		$config['secret'] = $params->app_secret;
 
 		// Create instance and get the facebook user_id
 		$facebook = new Facebook($config);

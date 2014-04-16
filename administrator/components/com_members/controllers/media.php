@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Manage files for a member
  */
-class MembersControllerMedia extends Hubzero_Controller
+class MembersControllerMedia extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Upload a file
@@ -68,7 +66,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		$curfile = JRequest::getVar('curfile', '');
 
 		// Build upload path
-		$dir  = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir  = \Hubzero\Utility\String::pad($id);
 		$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . $dir;
 
 		if (!is_dir($path)) 
@@ -127,7 +125,7 @@ class MembersControllerMedia extends Hubzero_Controller
 			}
 
 			// Instantiate a profile, change some info and save
-			$profile = new Hubzero_User_Profile();
+			$profile = new \Hubzero\User\Profile();
 			$profile->load($id);
 			$profile->set('picture', $file['name']);
 			if (!$profile->update()) 
@@ -191,7 +189,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		}
 
 		// Build the file path
-		$dir  = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir  = \Hubzero\Utility\String::pad($id);
 		$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . $dir;
 
 		if (!file_exists($path . DS . $file) or !$file) 
@@ -226,7 +224,7 @@ class MembersControllerMedia extends Hubzero_Controller
 			}
 
 			// Instantiate a profile, change some info and save
-			$profile = new Hubzero_User_Profile();
+			$profile = new \Hubzero\User\Profile();
 			$profile->load($id);
 			$profile->set('picture', '');
 			if (!$profile->update()) 
@@ -268,7 +266,7 @@ class MembersControllerMedia extends Hubzero_Controller
 		$this->view->file = $file;
 
 		// Build the file path
-		$this->view->dir  = Hubzero_View_Helper_Html::niceidformat($id);
+		$this->view->dir  = \Hubzero\Utility\String::pad($id);
 		$this->view->path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . $this->view->dir;
 
 		// Set any errors

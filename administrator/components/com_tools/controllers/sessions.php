@@ -31,17 +31,15 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-ximport('Hubzero_Controller');
-
-require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'mw.job.php');
-require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'mw.session.php');
-require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'mw.view.php');
-require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'mw.viewperm.php');
+require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.job.php');
+require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.session.php');
+require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.view.php');
+require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.viewperm.php');
 
 /**
  * Controller class for tool sessions
  */
-class ToolsControllerSessions extends Hubzero_Controller
+class ToolsControllerSessions extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of hosts
@@ -64,6 +62,11 @@ class ToolsControllerSessions extends Hubzero_Controller
 		$this->view->filters['appname']     = urldecode($app->getUserStateFromRequest(
 			$this->_option . '.' . $this->_controller . '.appname', 
 			'appname', 
+			''
+		));
+		$this->view->filters['exechost']     = urldecode($app->getUserStateFromRequest(
+			$this->_option . '.' . $this->_controller . '.exechost', 
+			'exechost', 
 			''
 		));
 		// Sorting
@@ -92,7 +95,7 @@ class ToolsControllerSessions extends Hubzero_Controller
 		);
 		// In case limit has been changed, adjust limitstart accordingly
 		$this->view->filters['start'] = ($this->view->filters['limit'] != 0 ? (floor($this->view->filters['start'] / $this->view->filters['limit']) * $this->view->filters['limit']) : 0);
-
+		
 		// Get the middleware database
 		$mwdb = MwUtils::getMWDBO();
 

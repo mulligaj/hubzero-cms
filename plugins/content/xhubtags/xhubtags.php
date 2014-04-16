@@ -75,6 +75,11 @@ class plgContentXhubtags extends JPlugin
 	 */
 	public function onContentPrepare($context, &$article, &$params, $page = 0)
 	{
+		if (($article instanceof \Hubzero\Base\Object) || $context != 'com_content.article')
+		{
+			return;
+		}
+
 		// simple performance check to determine whether bot should process further
 		if (strpos($article->text, '{xhub') === false) 
 		{
@@ -164,9 +169,7 @@ class plgContentXhubtags extends JPlugin
 			$style[2] = $this->params->def('style', 'none');
 		}
 
-		ximport('Hubzero_Module_Helper');
-
-		return Hubzero_Module_Helper::renderModules($position[2], $style[2]);
+		return \Hubzero\Module\Helper::renderModules($position[2], $style[2]);
 	}
 
 	/**
@@ -282,19 +285,17 @@ class plgContentXhubtags extends JPlugin
 			preg_match($regex, $options, $module);
 		}
 
-		ximport('Hubzero_Document');
-
 		if (empty($component) && empty($module))
 		{
-			return ''; //substr(Hubzero_Document::getHubImage($file[2]),1);
+			return ''; //substr(\Hubzero\Document\Assets::getHubImage($file[2]),1);
 		}
 		else if (!empty($component))
 		{
-			return substr(Hubzero_Document::getComponentImage($component[2], $file[2]), 1);
+			return substr(\Hubzero\Document\Assets::getComponentImage($component[2], $file[2]), 1);
 		}
 		else if (!empty($module))
 		{
-			return substr(Hubzero_Dcoument::getModuleImage($module[2],$file[2]),1);
+			return substr(\Hubzero\Document\Assets::getModuleImage($module[2],$file[2]),1);
 		}
 
 		return '';

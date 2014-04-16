@@ -27,7 +27,7 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 <ol class="comments" id="t<?php echo (isset($this->parent) ? $this->parent : '0'); ?>">
 <?php
-if (isset($this->comments) && $this->comments instanceof \Hubzero\ItemList) 
+if (isset($this->comments) && $this->comments instanceof \Hubzero\Base\ItemList) 
 { 
 	$cls = 'odd';
 	if (isset($this->cls))
@@ -47,6 +47,7 @@ if (isset($this->comments) && $this->comments instanceof \Hubzero\ItemList)
 				'layout'  => '_comment'
 			)
 		);
+		$view->item_id    = $this->item_id;
 		$view->option     = $this->option;
 		$view->comment    = $comment;
 		$view->config     = $this->config;

@@ -142,10 +142,6 @@ class plgProjectsTeam extends JPlugin
 			
 			$database = JFactory::getDBO();
 			
-			// Enable views
-			ximport('Hubzero_View_Helper_Html');
-			ximport('Hubzero_Plugin_View');
-			
 			// Set vars									
 			$this->_task 		= $action ? $action : JRequest::getVar('action','');
 			$this->_project 	= $project;
@@ -167,9 +163,8 @@ class plgProjectsTeam extends JPlugin
 			
 			// Add CSS and JS
 			$document = JFactory::getDocument();
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginScript('projects', 'team');
-			Hubzero_Document::addPluginStylesheet('projects', 'team');
+			\Hubzero\Document\Assets::addPluginScript('projects', 'team');
+			\Hubzero\Document\Assets::addPluginStylesheet('projects', 'team');
 			
 			switch($this->_task) 
 			{	
@@ -254,7 +249,7 @@ class plgProjectsTeam extends JPlugin
 		$setup  = $this->_task == 'setup' ? 1 : 0;
 				
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'team',
@@ -332,7 +327,7 @@ class plgProjectsTeam extends JPlugin
 		}
 				
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'team',
@@ -414,8 +409,8 @@ class plgProjectsTeam extends JPlugin
 		$objO = new ProjectOwner($this->_database);
 		
 		// Instantiate a new registration object
-		ximport('Hubzero_Registration');
-		$xregistration = new Hubzero_Registration();
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'models' . DS . 'registration.php');
+		$xregistration = new RegisterModelRegistration();
 							
 		// Owner names not supplied
 		if (!$members && !$groups) 
@@ -573,7 +568,8 @@ class plgProjectsTeam extends JPlugin
 						if ($left) 
 						{
 							$note .= ' '.JText::_('COM_PROJECTS_AND').' '.$left.' '.JText::_('COM_PROJECTS_MORE').' ';
-							$note .= $left == 1 ? JText::_('COM_PROJECTS_ACTIVITY_PERSON') : JText::_('COM_PROJECTS_ACTIVITY_PERSONS');
+							$note .= $left == 1 ? JText::_('COM_PROJECTS_ACTIVITY_PERSON') 
+								: JText::_('COM_PROJECTS_ACTIVITY_PERSONS');
 						}	
 						break;
 					}
@@ -664,7 +660,7 @@ class plgProjectsTeam extends JPlugin
 		if ($this->_task == 'delete') 
 		{
 			// Output HTML
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'team',
@@ -778,7 +774,7 @@ class plgProjectsTeam extends JPlugin
 		else 
 		{
 			// Output HTML
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'team',
@@ -857,7 +853,7 @@ class plgProjectsTeam extends JPlugin
 		if ($this->_task == 'changerole') 
 		{
 			// Output HTML
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'projects',
 					'element'=>'team',
@@ -976,18 +972,19 @@ class plgProjectsTeam extends JPlugin
 		}
 		
 		// Message body for HUB user
-		$eview = new Hubzero_Plugin_View(
+		$eview = new \Hubzero\Plugin\View(
 			array(
-				'folder'=>'projects',
-				'element'=>'team',
-				'name'=>'emails',
-				'layout'=>'invite'
+				'folder'	=>'projects',
+				'element'	=>'team',
+				'name'		=>'emails',
+				'layout'	=>'invite_plain'
 			)
 		);	
 		
 		// Get profile of author group
-		if ($this->_project->owned_by_group) {			
-			$eview->nativegroup = Hubzero_Group::getInstance( $this->_project->owned_by_group);
+		if ($this->_project->owned_by_group) 
+		{			
+			$eview->nativegroup = \Hubzero\User\Group::getInstance( $this->_project->owned_by_group);
 		}
 		
 		$eview->option 			= $this->_option;
@@ -1001,8 +998,15 @@ class plgProjectsTeam extends JPlugin
 		$eview->email 			= $email;
 		$eview->role 			= $role;
 		$eview->pub 			= isset($pub) ? $pub : '';
-		$message 				= $eview->loadTemplate();
-		$message 				= str_replace("\n", "\r\n", $message);
+		$eview->delimiter  		= '';
+		
+		$message['plaintext'] 	= $eview->loadTemplate();
+		$message['plaintext'] 	= str_replace("\n", "\r\n", $message['plaintext']);
+		
+		// HTML email
+		$eview->setLayout('invite_html');
+		$message['multipart'] 	= $eview->loadTemplate();
+		$message['multipart'] 	= str_replace("\n", "\r\n", $message['multipart']);
 		
 		if ($uid) 
 		{
@@ -1015,8 +1019,10 @@ class plgProjectsTeam extends JPlugin
 				return true;
 			}
 		}
-		else {			
-			if (ProjectsHtml::email($email, $jconfig->getValue('config.sitename').': '.$subject, $message, $from)) {
+		else 
+		{			
+			if (ProjectsHtml::email($email, $jconfig->getValue('config.sitename').': '.$subject, $message, $from)) 
+			{
 				return true;
 			}
 		}
@@ -1066,7 +1072,7 @@ class plgProjectsTeam extends JPlugin
 		}
 				
 		// Output HTML
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'team',

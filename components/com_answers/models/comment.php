@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'abstract.php');
+require_once(__DIR__ . '/abstract.php');
 
 /**
  * Answers model for a comment
@@ -43,17 +43,24 @@ class AnswersModelComment extends AnswersModelAbstract
 	 * 
 	 * @var string
 	 */
-	protected $_tbl_name = 'Hubzero_Comment';
+	protected $_tbl_name = '\\Hubzero\\Item\\Comment';
+
+	/**
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_answers.comment.content';
 
 	/**
 	 * Class scope
 	 * 
 	 * @var string
 	 */
-	protected $_scope = 'answercomment';
+	protected $_scope = 'answer';
 
 	/**
-	 * \Hubzero\ItemList
+	 * \Hubzero\Base\ItemList
 	 * 
 	 * @var object
 	 */
@@ -74,17 +81,25 @@ class AnswersModelComment extends AnswersModelAbstract
 	private $_base = null;
 
 	/**
-	 * Constructor
+	 * Was the entry reported?
 	 * 
-	 * @param      integer $id ID or alias
-	 * @return     void
+	 * @return     boolean True if reported, False if not
 	 */
-	public function __construct($oid)
+	public function isReported()
 	{
-		parent::__construct($oid);
-
-		$this->set('created', $this->get('added'));
-		$this->set('created_by', $this->get('added_by'));
+		if ($this->get('reports', -1) > 0)
+		{
+			return true;
+		}
+		// Reports hasn't been set
+		if ($this->get('reports', -1) == -1) 
+		{
+			if ($this->get('state') == 3)
+			{
+				$this->set('reports', 1);
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -97,13 +112,17 @@ class AnswersModelComment extends AnswersModelAbstract
 	 */
 	public function replies($rtrn='list', $filters=array(), $clear=false)
 	{
-		if (!isset($filters['id']))
+		if (!isset($filters['parent']))
 		{
-			$filters['id'] = $this->get('id');
+			$filters['parent'] = $this->get('id');
 		}
-		if (!isset($filters['category']))
+		if (!isset($filters['item_type']))
 		{
-			$filters['category'] = 'answercomment';
+			$filters['item_type'] = $this->get('item_type');
+		}
+		if (!isset($filters['item_id']))
+		{
+			$filters['item_id'] = $this->get('item_id');
 		}
 
 		switch (strtolower($rtrn))
@@ -139,7 +158,7 @@ class AnswersModelComment extends AnswersModelAbstract
 			case 'list':
 			case 'results':
 			default:
-				if (!($this->_comments instanceof \Hubzero\ItemList) || $clear)
+				if (!($this->_comments instanceof \Hubzero\Base\ItemList) || $clear)
 				{
 					if ($this->get('replies', null) !== null)
 					{
@@ -147,7 +166,7 @@ class AnswersModelComment extends AnswersModelAbstract
 					}
 					else
 					{
-						$results = $this->_tbl->getResults($filters);
+						$results = $this->_tbl->find($filters);
 					}
 
 					if ($results)
@@ -155,13 +174,14 @@ class AnswersModelComment extends AnswersModelAbstract
 						foreach ($results as $key => $result)
 						{
 							$results[$key] = new AnswersModelComment($result);
+							$results[$key]->set('question_id', $this->get('question_id'));
 						}
 					}
 					else
 					{
 						$results = array();
 					}
-					$this->_comments = new \Hubzero\ItemList($results);
+					$this->_comments = new \Hubzero\Base\ItemList($results);
 				}
 				return $this->_comments;
 			break;
@@ -178,60 +198,57 @@ class AnswersModelComment extends AnswersModelAbstract
 	public function content($as='parsed', $shorten=0)
 	{
 		$as = strtolower($as);
+		$options = array();
 
 		switch ($as)
 		{
 			case 'parsed':
-				if ($this->get('comment_parsed'))
+				$content = $this->get('content.parsed', null);
+
+				if ($content === null)
 				{
-					return $this->get('comment_parsed');
+					$config = array(
+						'option'   => 'com_answers',
+						'scope'    => 'question',
+						'pagename' => $this->get('id'),
+						'pageid'   => 0,
+						'filepath' => '',
+						'domain'   => ''
+					);
+
+					$content = (string) stripslashes($this->get('content', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('content.parsed', (string) $this->get('content', ''));
+					$this->set('content', $content);
+
+					return $this->content($as, $shorten);
 				}
 
-				$p = Hubzero_Wiki_Parser::getInstance();
-
-				$wikiconfig = array(
-					'option'   => 'com_answers',
-					'scope'    => 'question',
-					'pagename' => $this->get('id'),
-					'pageid'   => 0,
-					'filepath' => '',
-					'domain'   => ''
-				);
-
-				$this->set('comment_parsed', $p->parse(stripslashes($this->get('comment')), $wikiconfig));
-
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($this->get('comment_parsed'), $shorten, 0, 0);
-					if (substr($content, -7) == '&#8230;') 
-					{
-						$content .= '</p>';
-					}
-					return $content;
-				}
-
-				return $this->get('comment_parsed');
+				$options['html'] = true;
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->content('parsed'));
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
 			break;
 
 			case 'raw':
 			default:
-				$content = $this->get('comment');
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
+				$content = $this->get('content');
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+
+		return $content;
 	}
 
 	/**
@@ -245,7 +262,13 @@ class AnswersModelComment extends AnswersModelAbstract
 	{
 		if (!isset($this->_base))
 		{
-			$this->_base = 'index.php?option=com_answers&task=question&id=' . $this->get('qid');
+			if (!$this->get('question_id'))
+			{
+				$answer = AnswersModelResponse::getInstance($this->get('item_id'));
+
+				$this->set('question_id', $answer->get('question_id'));
+			}
+			$this->_base = 'index.php?option=com_answers&task=question&id=' . $this->get('question_id');
 		}
 		$link = $this->_base;
 
@@ -265,7 +288,7 @@ class AnswersModelComment extends AnswersModelAbstract
 			break;
 
 			case 'report':
-				$link = 'index.php?option=com_support&task=reportabuse&category=comment&id=' . $this->get('id') . '&parent=' . $this->get('qid');
+				$link = 'index.php?option=com_support&task=reportabuse&category=itemcomment&id=' . $this->get('id') . '&parent=' . $this->get('question_id');
 			break;
 
 			case 'permalink':
@@ -284,13 +307,6 @@ class AnswersModelComment extends AnswersModelAbstract
 	 */
 	public function delete()
 	{
-		// Ensure we have a database to work with
-		if (empty($this->_db))
-		{
-			$this->setError(JText::_('Database not found.'));
-			return false;
-		}
-
 		// Can't delete what doesn't exist
 		if (!$this->exists()) 
 		{

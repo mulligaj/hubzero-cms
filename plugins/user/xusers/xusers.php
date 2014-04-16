@@ -102,7 +102,7 @@ class plgUserXusers extends JPlugin
 		}
 
 		// log login to auth log
-		Hubzero_Factory::getAuthLogger()->logAuth($juser->get('id') . ' [' . $juser->get('username') . '] ' . $_SERVER['REMOTE_ADDR'] . ' login');
+		JFactory::getAuthLogger()->info($juser->get('id') . ' [' . $juser->get('username') . '] ' . $_SERVER['REMOTE_ADDR'] . ' login');
 		
 		// correct apache log data
 		apache_note('auth','login');
@@ -231,10 +231,7 @@ class plgUserXusers extends JPlugin
 	 */
 	public function onAfterStoreUser($user, $isnew, $succes, $msg)
 	{
-		ximport('Hubzero_User_Profile');
-		ximport('Hubzero_User_Password');
-
-		$xprofile = Hubzero_User_Profile::getInstance($user['id']);
+		$xprofile = \Hubzero\User\Profile::getInstance($user['id']);
 
 		if (!is_object($xprofile)) {
 						
@@ -303,7 +300,7 @@ class plgUserXusers extends JPlugin
 				}
 			}
 			
-			$xprofile = new Hubzero_User_Profile();
+			$xprofile = new \Hubzero\User\Profile();
 			
 			$xprofile->set('gidNumber', $params->get('gidNumber', '100'));
 			$xprofile->set('gid', $params->get('gid', 'users'));
@@ -329,7 +326,7 @@ class plgUserXusers extends JPlugin
 			$result = $xprofile->create();
 
 			if (!$result) {
-				return JError::raiseError('500', 'xHUB Internal Error: Unable to create Hubzero_User_Profile record');
+				return JError::raiseError('500', 'xHUB Internal Error: Unable to create \Hubzero\User\Profile record');
 			}
 		}
 		else {
@@ -431,19 +428,16 @@ class plgUserXusers extends JPlugin
 	 */
 	public function onAfterDeleteUser($user, $succes, $msg)
 	{
-		ximport('Hubzero_User_Profile');
-		ximport('Hubzero_Auth_Link');
-
-		$xprofile = Hubzero_User_Profile::getInstance($user['id']);
+		$xprofile = \Hubzero\User\Profile::getInstance($user['id']);
 		
 		// remove user from groups
-		Hubzero_User_Helper::removeUserFromGroups($user['id']);
+		\Hubzero\User\Helper::removeUserFromGroups($user['id']);
 
 		if (is_object($xprofile)) {
 			$xprofile->delete();
 		}
 
-		Hubzero_Auth_Link::delete_by_user_id($user['id']);
+		\Hubzero\Auth\Link::delete_by_user_id($user['id']);
 
 		// Check if quota exists for the user
 		require_once JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'users_quotas.php';
@@ -472,9 +466,9 @@ class plgUserXusers extends JPlugin
 	 */
 	public function onLogoutUser($user, $options = array())
 	{
-		$authlog = Hubzero_Factory::getAuthLogger();
+		$authlog = JFactory::getAuthLogger();
 		
-		$authlog->logAuth($user['username'] . ' ' . $_SERVER['REMOTE_ADDR'] . ' logout');
+		$authlog->info($user['username'] . ' ' . $_SERVER['REMOTE_ADDR'] . ' logout');
 		
 		apache_note('auth','logout');
 

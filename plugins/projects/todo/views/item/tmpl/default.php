@@ -51,7 +51,7 @@ if($this->item->duedate && $this->item->duedate != '0000-00-00 00:00:00' && $thi
 $deletable = ($this->project->role == 1 or $this->item->created_by == $this->uid) ? 1 : 0;
 
 // Get actors' names
-$profile = Hubzero_Factory::getProfile();
+$profile = \Hubzero\User\Profile::getInstance(JFactory::getUser()->get('id'));
 $closedby = '';
 $author = '';
 
@@ -68,7 +68,7 @@ if($this->item->state == 1) {
 }
 
 // Due?
-$due = ($this->item->duedate && $this->item->duedate != '0000-00-00 00:00:00' ) ? JHTML::_('date', $this->item->duedate, $dateFormat, $tz) : '';
+$due = ($this->item->duedate && $this->item->duedate != '0000-00-00 00:00:00' ) ? JHTML::_('date', strtotime($this->item->duedate), 'm/d/Y') : '';
 
 // Author name
 $profile->load( $this->item->created_by );	
@@ -81,7 +81,7 @@ $goto  = 'alias=' . $this->project->alias;
 	<h3 class="todo"><a href="<?php echo JRoute::_('index.php?option='.$this->option.'&id='.$this->project->id.'&active=todo'); ?>"><?php echo $this->title; ?></a>
 	<?php if($this->item->todolist) { ?> &raquo; <a href="<?php echo JRoute::_('index.php?option='.$this->option.'&id='.$this->project->id.'&active=todo').'/?list='.$this->item->color; ?>"><span class="indlist <?php echo 'pin_'.$this->item->color; ?>"><?php echo $this->item->todolist; ?></span></a> <?php } ?>		
 	<?php if($this->item->state == 1) { ?> &raquo; <span class="indlist completedtd"><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto.'&active=todo').'/?state=1'; ?>"><?php echo ucfirst(JText::_('COM_PROJECTS_COMPLETED')); ?></a></span> <?php } ?>
-	&raquo; <span class="itemname"><?php echo Hubzero_View_Helper_Html::shortenText($this->item->content, 60, 0); ?></span>
+	&raquo; <span class="itemname"><?php echo \Hubzero\Utility\String::truncate($this->item->content, 60); ?></span>
 	</h3>
 </div>
 	<?php
@@ -108,7 +108,7 @@ $goto  = 'alias=' . $this->project->alias;
 					<?php if(count($this->lists) > 0 ) { ?>
 						<label><?php echo ucfirst(JText::_('COM_PROJECTS_TODO_CHOOSE_LIST')); ?>:
 							<select name="list">
-								<option value="" <?php if($this->item->color == '') echo 'selected="selected"'?>><?php echo JText::_('COM_PROJECTS_ADD_TO_NO_LIST'); ?></option>
+								<option value="none" <?php if($this->item->color == '') echo 'selected="selected"'?>><?php echo JText::_('COM_PROJECTS_ADD_TO_NO_LIST'); ?></option>
 							<?php foreach($this->lists as $list) { 
 							?>
 								<option value="<?php echo $list->color; ?>" <?php if($list->color == $this->item->color) echo 'selected="selected"'?>><?php echo stripslashes($list->todolist); ?></option>
@@ -127,9 +127,9 @@ $goto  = 'alias=' . $this->project->alias;
 						</select>
 					</label>
 					<label><?php echo ucfirst(JText::_('COM_PROJECTS_DUE')); ?>
-						<input type="text" name="due" id="dued" class="duebox" value="<?php echo $due; ?>" />
+						<input type="text" name="due" id="dued" class="duebox" placeholder="mm/dd/yyyy" value="<?php echo $due; ?>" />
 					</label>
-					<input type="submit" value="<?php echo JText::_('COM_PROJECTS_SAVE'); ?>" />
+					<input type="submit" value="<?php echo JText::_('COM_PROJECTS_SAVE'); ?>" class="btn" />
 					<?php } else if($this->item->state == 1) { ?>
 						<p class="td-info"><?php echo JText::_('COM_PROJECTS_TODO_CHECKED_OFF').' '.JHTML::_('date', $this->item->closed, $dateFormat, $tz).' '.JText::_('COM_PROJECTS_BY').' '.ProjectsHtml::shortenName($closedby); ?></p>	
 						<p class="td-info"><?php echo JText::_('COM_PROJECTS_TODO_TOOK').' '.$diff.' '.JText::_('COM_PROJECTS_TODO_TO_COMPLETE'); ?></p>	
@@ -171,7 +171,7 @@ $goto  = 'alias=' . $this->project->alias;
 						<input type="hidden" name="active" value="todo" />
 						<input type="hidden" name="itemid" value="<?php echo $this->item->id; ?>" />
 						<input type="hidden" name="parent_activity" value="<?php echo $this->item->activityid; ?>" />
-						<p class="blog-submit"><input type="submit" class="c-submit" id="c-submit" value="<?php echo JText::_('COM_PROJECTS_ADD_COMMENT'); ?>" /></p>
+						<p class="blog-submit"><input type="submit" class="btn" id="c-submit" value="<?php echo JText::_('COM_PROJECTS_ADD_COMMENT'); ?>" /></p>
 				</div>
 			</form>
 		</div>

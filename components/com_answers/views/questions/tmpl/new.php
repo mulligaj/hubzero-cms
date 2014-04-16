@@ -52,7 +52,6 @@ defined('_JEXEC') or die( 'Restricted access' );
 	<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="post" id="hubForm">
 		<div class="explaination">
 			<p><?php echo JText::_('COM_ANSWERS_BE_POLITE'); ?></p>
-			<p><?php echo JText::_('COM_ANSWERS_NO_HTML'); ?></p>
 		<?php if ($this->config->get('banking')) { ?>
 			<p class="help">
 				<strong><?php echo JText::_('COM_ANSWERS_WHAT_IS_REWARD'); ?></strong><br />
@@ -99,14 +98,12 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<label for="field-question">
 				<?php echo JText::_('COM_ANSWERS_ASK_DETAILS'); ?>:<br />
 				<?php
-					ximport('Hubzero_Wiki_Editor');
-					echo Hubzero_Wiki_Editor::getInstance()->display(
+					echo $this->helpers()->editor(
 						'fields[question]', // name
-						'field-question',   // id 
 						stripslashes($this->question->get('question', '')), // content
-						'',    // classname
-						'35',  // cols
-						'10'   // rows
+						35,  // cols
+						10,   // rows
+						'field-question'   // id 
 					);
 				?>
 			</label>

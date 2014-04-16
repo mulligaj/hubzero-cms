@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for tags
  */
-class TagsControllerTags extends Hubzero_Controller
+class TagsControllerTags extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -590,7 +588,7 @@ class TagsControllerTags extends Hubzero_Controller
 				//$link = JRoute::_($row->href);
 
 				// Strip html from feed item description text
-				$description = html_entity_decode(Hubzero_View_Helper_Html::shortenText(Hubzero_View_Helper_Html::purifyText(stripslashes($row->ftext)),300,0));
+				$description = html_entity_decode(\Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->ftext)),300));
 				$author = '';
 				@$date = ($row->publish_up ? date('r', strtotime($row->publish_up)) : '');
 
@@ -722,7 +720,7 @@ class TagsControllerTags extends Hubzero_Controller
 		$this->_getStyles();
 
 		// Push scripts to the document
-		$this->_getScripts('assets/js/tags');
+		$this->_getScripts(); //'assets/js/tags');
 
 		$this->view->config = $this->config;
 

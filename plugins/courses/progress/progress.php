@@ -65,7 +65,8 @@ class plgCoursesProgress extends JPlugin
 			'name' => $this->_name,
 			'title' => JText::_('PLG_COURSES_' . strtoupper($this->_name)),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => true
+			'display_menu_tab' => true,
+			'icon' => 'f012'
 		);
 		return $area;
 	}
@@ -119,11 +120,11 @@ class plgCoursesProgress extends JPlugin
 
 		$this->member = $course->offering()->section()->member(JFactory::getUser()->get('id'));
 		$this->course = $course;
-		$this->base   = 'index.php?option=com_courses&gid=' . $this->course->get('alias') . '&offering=' . $this->course->offering()->get('alias');
-		$this->base  .= ($this->course->offering()->section()->get('alias') != '__default' ? ':' . $this->course->offering()->section()->get('alias') : '');
+		$this->base   = $course->offering()->link();
+		$this->db     = JFactory::getDBO();
 
 		// Instantiate a vew
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'courses',
 				'element' => $active,
@@ -138,10 +139,13 @@ class plgCoursesProgress extends JPlugin
 
 		switch (JRequest::getWord('action'))
 		{
+			case 'assessmentdetails':   $this->assessmentdetails();   break;
 			case 'getprogressrows':     $this->getprogressrows();     break;
 			case 'getprogressdata':     $this->getprogressdata();     break;
 			case 'getgradebookdata':    $this->getgradebookdata();    break;
+			case 'getreportsdata':      $this->getreportsdata();      break;
 			case 'exportcsv':           $this->exportcsv();           break;
+			case 'downloadresponses':   $this->downloadresponses();   break;
 			case 'savegradebookitem':   $this->savegradebookitem();   break;
 			case 'deletegradebookitem': $this->deletegradebookitem(); break;
 			case 'savegradebookentry':  $this->savegradebookentry();  break;
@@ -167,9 +171,9 @@ class plgCoursesProgress extends JPlugin
 		$layout = ($this->course->offering()->section()->access('manage')) ? 'instructor' : 'student';
 
 		// If this is an instructor, see if they want the overall view, or an individual student
-		if($layout == 'instructor')
+		if ($layout == 'instructor')
 		{
-			if($student_id = JRequest::getInt('id', false))
+			if ($student_id = JRequest::getInt('id', false))
 			{
 				$layout = 'student';
 				$this->view->member = $this->course->offering()->section()->member($student_id);
@@ -177,9 +181,34 @@ class plgCoursesProgress extends JPlugin
 		}
 
 		// Add some styles to the view
-		Hubzero_Document::addPluginStylesheet('courses', 'progress', $layout.'.css');
-		Hubzero_Document::addPluginScript('courses', 'progress', $layout.'progress');
-		Hubzero_Document::addSystemScript('handlebars');
+		\Hubzero\Document\Assets::addPluginStylesheet('courses', 'progress', $layout.'.css');
+		\Hubzero\Document\Assets::addPluginScript('courses', 'progress', $layout.'progress');
+		\Hubzero\Document\Assets::addSystemScript('handlebars');
+		\Hubzero\Document\Assets::addSystemStylesheet('contentbox.css');
+		\Hubzero\Document\Assets::addSystemScript('contentbox');
+		\Hubzero\Document\Assets::addSystemScript('jquery.uniform.min');
+
+		// Set the layout
+		$this->view->setLayout($layout);
+	}
+
+	/**
+	 * Render assessment details partial view
+	 *
+	 * @return void
+	 **/
+	private function assessmentdetails()
+	{
+		$layout = 'assessmentdetails_partial';
+
+		$asset_id = JRequest::getInt('asset_id', false);
+
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'formReport.php';
+
+		$this->view->details = CoursesModelFormReport::getLetterResponseCountsForAssetId($this->db, $asset_id, $this->course->offering()->section()->get('id'));
+
+		\Hubzero\Document\Assets::addPluginStylesheet('courses', 'progress', 'assessmentdetails.css');
+		\Hubzero\Document\Assets::addPluginScript('courses', 'progress', 'assessmentdetails');
 
 		// Set the layout
 		$this->view->setLayout($layout);
@@ -207,32 +236,38 @@ class plgCoursesProgress extends JPlugin
 		$members    = $this->course->offering()->section()->members(array('student'=>1, 'limit'=>$limit, 'start'=>$start));
 		$member_ids = array();
 		$mems       = array();
+		$grades     = null;
+		$progress   = null;
+		$passing    = null;
 
-		foreach ($members as $m)
+		if (count($members) > 0)
 		{
-			$member_ids[] = $m->get('id');
-			$mems[] = array(
-				'id'        => $m->get('id'),
-				'user_id'   => $m->get('user_id'),
-				'name'      => JFactory::getUser($m->get('user_id'))->get('name'),
-				'thumb'     => ltrim(Hubzero_User_Profile_Helper::getMemberPhoto($m->get('user_id'), 0, true), DS),
-				'full'      => ltrim(Hubzero_User_Profile_Helper::getMemberPhoto($m->get('user_id'), 0, false), DS),
-				'enrolled'  => (($m->get('enrolled') != '0000-00-00 00:00:00')
-									? JFactory::getDate(strtotime($m->get('enrolled')))->format('M j, Y')
-									: 'unknown'),
-				'lastvisit' => ((JFactory::getUser($m->get('user_id'))->get('lastvisitDate') != '0000-00-00 00:00:00')
-									? JFactory::getDate(strtotime(JFactory::getUser($m->get('user_id'))->get('lastvisitDate')))->format('M j, Y')
-									: 'never')
-			);
+			foreach ($members as $m)
+			{
+				$member_ids[] = $m->get('id');
+				$mems[] = array(
+					'id'        => $m->get('id'),
+					'user_id'   => $m->get('user_id'),
+					'name'      => JFactory::getUser($m->get('user_id'))->get('name'),
+					'thumb'     => ltrim(\Hubzero\User\Profile\Helper::getMemberPhoto($m->get('user_id'), 0, true), DS),
+					'full'      => ltrim(\Hubzero\User\Profile\Helper::getMemberPhoto($m->get('user_id'), 0, false), DS),
+					'enrolled'  => (($m->get('enrolled') != '0000-00-00 00:00:00')
+										? JFactory::getDate(strtotime($m->get('enrolled')))->format('M j, Y')
+										: 'unknown'),
+					'lastvisit' => ((JFactory::getUser($m->get('user_id'))->get('lastvisitDate') != '0000-00-00 00:00:00')
+										? JFactory::getDate(strtotime(JFactory::getUser($m->get('user_id'))->get('lastvisitDate')))->format('M j, Y')
+										: 'never')
+				);
+			}
+
+			// Refresh the grades
+			$this->course->offering()->gradebook()->refresh($member_ids);
+
+			// Get the grades
+			$grades    = $this->course->offering()->gradebook()->grades(array('unit', 'course'));
+			$progress  = $this->course->offering()->gradebook()->progress($member_ids);
+			$passing   = $this->course->offering()->gradebook()->passing($member_ids);
 		}
-
-		// Refresh the grades
-		$this->course->offering()->gradebook()->refresh($member_ids);
-
-		// Get the grades
-		$grades    = $this->course->offering()->gradebook()->grades(array('unit', 'course'));
-		$progress  = $this->course->offering()->gradebook()->progress($member_ids);
-		$passing   = $this->course->offering()->gradebook()->passing($member_ids);
 
 		echo json_encode(
 			array(
@@ -261,7 +296,7 @@ class plgCoursesProgress extends JPlugin
 		}
 
 		// Get the grading policy
-		$gradePolicy = new CoursesModelGradePolicies($this->course->offering()->section()->get('grade_policy_id'));
+		$gradePolicy = new CoursesModelGradePolicies($this->course->offering()->section()->get('grade_policy_id'), $this->course->offering()->section()->get('id'));
 		$policy = new stdClass();
 		$policy->description     = $gradePolicy->get('description');
 		$policy->exam_weight     = $gradePolicy->get('exam_weight') * 100;
@@ -330,7 +365,7 @@ class plgCoursesProgress extends JPlugin
 				'w' => array(
 					'course_id'  => $this->course->get('id'),
 					'section_id' => $this->course->offering()->section()->get('id'),
-					'asset_type' => 'form',
+					'graded'     => true,
 					'state'      => 1
 				),
 				'order_by'  => 'title',
@@ -344,6 +379,47 @@ class plgCoursesProgress extends JPlugin
 				'members'   => $mems,
 				'grades'    => $grades,
 				'canManage' => (($this->course->access('manage')) ? true : false)
+			)
+		);
+		exit();
+	}
+
+	/**
+	 * Get data for reports view
+	 *
+	 * @return void
+	 **/
+	private function getreportsdata()
+	{
+		// Only allow for instructors
+		if (!$this->course->offering()->section()->access('manage'))
+		{
+			echo json_encode(array('success'=>false));
+			exit();
+		}
+
+		// Get the grades
+		$stats = $this->course->offering()->gradebook()->summaryStats();
+
+		// Get the assets
+		$asset  = new CoursesTableAsset(JFactory::getDBO());
+		$assets = $asset->find(
+			array(
+				'w' => array(
+					'course_id'  => $this->course->get('id'),
+					'section_id' => $this->course->offering()->section()->get('id'),
+					'graded'     => true,
+					'state'      => 1
+				),
+				'order_by'  => 'title',
+				'order_dir' => 'ASC'
+			)
+		);
+
+		echo json_encode(
+			array(
+				'stats'  => $stats,
+				'assets' => $assets
 			)
 		);
 		exit();
@@ -379,7 +455,7 @@ class plgCoursesProgress extends JPlugin
 				'w' => array(
 					'course_id'  => $this->course->get('id'),
 					'section_id' => $this->course->offering()->section()->get('id'),
-					'asset_type' => 'form',
+					'graded'     => true,
 					'state'      => 1
 				),
 				'order_by'  => 'title',
@@ -387,8 +463,8 @@ class plgCoursesProgress extends JPlugin
 			)
 		);
 
-		$section  = ($this->course->offering()->section()->get('alias') != '__default') ? '.'.$this->course->offering()->section()->get('alias') : '';
-		$filename = $this->course->get('alias') . $section . '.gradebook.csv';
+		$section  = $this->course->offering()->section()->get('alias');
+		$filename = $this->course->get('alias') . '.' . $section . '.gradebook.csv';
 
 		// Set content type headers
 		header("Content-type: application/csv");
@@ -422,6 +498,125 @@ class plgCoursesProgress extends JPlugin
 	}
 
 	/**
+	 * Generate detailed responses CSV files and zip and offer up as download
+	 *
+	 * @return void
+	 **/
+	private function downloadresponses()
+	{
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'formReport.php';
+
+		// Only allow for instructors
+		if (!$this->course->offering()->section()->access('manage'))
+		{
+			JError::raiseError('403', 'Sorry, you don\'t have permission to do this');
+		}
+
+		if (!$asset_ids = JRequest::getVar('assets', false))
+		{
+			JError::raiseError('422', 'Sorry, we don\'t know what results you\'re trying to retrieve');
+		}
+
+		$protected = 'site' . DS . 'protected';
+		$tmp       = $protected . DS . 'tmp';
+
+		// We're going to temporarily house this in JPATH_ROOT/site/protected/tmp
+		if (!JFolder::exists($protected))
+		{
+			JError::raiseError('500', 'Missing temporary directory');
+		}
+
+		// Make sure tmp folder exists
+		if (!JFolder::exists($tmp))
+		{
+			JFolder::create($tmp);
+		}
+		else
+		{
+			// Folder was already there - do a sanity check and make sure no old responses zips are lying around
+			$files = JFolder::files($tmp);
+
+			if ($files && count($files) > 0)
+			{
+				foreach ($files as $file)
+				{
+					if (strstr($file, 'responses.zip') !== false)
+					{
+						JFile::delete($tmp . DS . $file);
+					}
+				}
+			}
+		}
+
+		// Get the individual asset ids
+		$asset_ids = explode('-', $asset_ids);
+
+		// Set up our zip archive
+		$zip       = new ZipArchive();
+		$path      = JPATH_ROOT . DS . $tmp . DS . time() . '.responses.zip';
+		$zip->open($path, ZipArchive::CREATE);
+
+		// Loop through the assets
+		foreach ($asset_ids as $asset_id)
+		{
+			// Is it a number?
+			if (!is_numeric($asset_id))
+			{
+				continue;
+			}
+
+			// Get the rest of the asset row
+			$asset = new CoursesTableAsset($this->db);
+			$asset->load($asset_id);
+
+			// Make sure asset is a part of this course
+			if ($asset->get('course_id') != $this->course->get('id'))
+			{
+				continue;
+			}
+
+			if ($details = CoursesModelFormReport::getLetterResponsesForAssetId($this->db, $asset_id, true, $this->course->offering()->section()->get('id')))
+			{
+				$output = implode(',', $details['headers']) . "\n";
+				if (isset($details['responses']) && count($details['responses']) > 0)
+				{
+					foreach ($details['responses'] as $response)
+					{
+						$output .= implode(',', $response) . "\n";
+					}
+				}
+				$zip->addFromString($asset_id . '.responses.csv', $output);
+			}
+			else
+			{
+				continue;
+			}
+		}
+
+		// Close the zip archive handler
+		$zip->close();
+
+		if (is_file($path))
+		{
+			// Set up the server
+			$xserver = new \Hubzero\Content\Server();
+			$xserver->filename($path);
+			$xserver->saveas('responses.zip');
+			$xserver->disposition('attachment');
+			$xserver->acceptranges(false);
+
+			// Serve the file
+			$xserver->serve();
+
+			// Now delete the file
+			JFile::delete($path);
+		}
+
+		// All done!
+		exit();
+	}
+
+	/**
 	 * Save a gradebook item
 	 *
 	 * @return void
@@ -449,17 +644,24 @@ class plgCoursesProgress extends JPlugin
 		{
 			$asset->load($asset_id);
 			$asset->set('title', JRequest::getVar('title', $asset->get('title')));
-			$asset->set('subtype', JRequest::getWord('type', $asset->get('subtype')));
+			$asset->set('grade_weight', JRequest::getWord('type', $asset->get('grade_weight')));
+
+			if ($asset->get('type') == 'form')
+			{
+				$asset->set('subtype', JRequest::getWord('type', $asset->get('grade_weight')));
+			}
 		}
 		else
 		{
 			$asset->set('title', 'New Item');
-			$asset->set('type', 'form');
-			$asset->set('subtype', 'exam');
+			$asset->set('type', 'gradebook');
+			$asset->set('subtype', 'auxiliary');
 			$asset->set('created', JFactory::getDate()->toSql());
 			$asset->set('created_by', JFactory::getUser()->get('id'));
 			$asset->set('state', 1);
 			$asset->set('course_id', $this->course->get('id'));
+			$asset->set('graded', 1);
+			$asset->set('grade_weight', 'exam');
 		}
 
 		if (!$asset->store())
@@ -499,7 +701,12 @@ class plgCoursesProgress extends JPlugin
 		if ($asset_id = JRequest::getInt('asset_id', false))
 		{
 			$asset->load($asset_id);
-			$asset->set('state', 2);
+			$asset->set('graded', 0);
+
+			if ($asset->get('type') == 'gradebook')
+			{
+				$asset->set('state', 2);
+			}
 		}
 		else
 		{
@@ -711,18 +918,6 @@ class plgCoursesProgress extends JPlugin
 			$section = $this->course->offering()->section();
 			$section->set('grade_policy_id', $gp->get('id'));
 			$section->store();
-		}
-
-		// If section managers can't edit, then also make the above change for all sections of this course
-		if (!$this->course->config()->get('section_grade_policy', true))
-		{
-			$sections = $this->course->offering()->sections();
-
-			foreach ($sections as $s)
-			{
-				$s->set('grade_policy_id', $gp->get('id'));
-				$s->store();
-			}
 		}
 
 		if (JRequest::getInt('no_html', false))

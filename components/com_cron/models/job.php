@@ -47,7 +47,7 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_c
 /**
  * Table class for a cron job model
  */
-class CronModelJob extends \Hubzero\Model
+class CronModelJob extends \Hubzero\Base\Model
 {
 	/**
 	 * Table class name
@@ -167,6 +167,76 @@ class CronModelJob extends \Hubzero\Model
 			$this->_expression = Cron\CronExpression::factory($this->get('recurrence'));
 		}
 		return $this->_expression;
+	}
+
+	/**
+	 * Check if the job is available
+	 * 
+	 * @return     boolean
+	 */
+	public function isAvailable()
+	{
+		// If it doesn't exist or isn't published
+		if (!$this->exists() || !$this->isPublished())
+		{
+			return false;
+		}
+
+		// Make sure the item is published and within the available time range
+		if ($this->started() && !$this->ended()) 
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Has the job started?
+	 * 
+	 * @return     boolean
+	 */
+	public function started()
+	{
+		if (!$this->exists() || !$this->isPublished()) 
+		{
+			return false;
+		}
+
+		$now = \JHTML::_('date', \JFactory::getDate(), 'Y-m-d H:i:s'); //\JFactory::getDate()->toSql();
+
+		if ($this->get('publish_up') 
+		 && $this->get('publish_up') != $this->_db->getNullDate() 
+		 && $this->get('publish_up') > $now) 
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Has the job ended?
+	 * 
+	 * @return     boolean
+	 */
+	public function ended()
+	{
+		if (!$this->exists() || !$this->isPublished()) 
+		{
+			return true;
+		}
+
+		$now = \JHTML::_('date', \JFactory::getDate(), 'Y-m-d H:i:s'); //\JFactory::getDate()->toSql();
+
+		if ($this->get('publish_down') 
+		 && $this->get('publish_down') != $this->_db->getNullDate() 
+		 && $this->get('publish_down') <= $now) 
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

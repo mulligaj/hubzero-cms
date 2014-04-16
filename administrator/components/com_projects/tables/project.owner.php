@@ -369,8 +369,8 @@ class ProjectOwner extends JTable
 	/**
 	 * Get email from user profile
 	 * 
-	 * @param      integer $projectid
-	 * @param      integer $uid
+	 * @param      string 	$name
+	 * @param      integer 	$projectid
 	 * @return     integer or NULL
 	 */
 	public function getProfileEmail( $name = '', $projectid = NULL )
@@ -384,6 +384,29 @@ class ProjectOwner extends JTable
 		$query  .=  " FROM #__xprofiles as x ";
 		$query  .=  " JOIN $this->_tbl AS o ON x.uidNumber=o.userid AND o.projectid=$projectid ";
 		$query  .= " WHERE x.name = '" . $name . "' ";
+		
+		$this->_db->setQuery( $query );
+		return $this->_db->loadResult();		
+	}
+	
+	/**
+	 * Get user ID profile
+	 * 
+	 * @param      string 	$email
+	 * @param      integer 	$projectid
+	 * @return     integer or NULL
+	 */
+	public function getProfileId ( $email = '', $projectid = NULL )
+	{
+		if ($projectid === NULL or !$email) 
+		{
+			return false;
+		}
+		
+		$query   =  "SELECT x.uidNumber ";
+		$query  .=  " FROM #__xprofiles as x ";
+		$query  .=  " JOIN $this->_tbl AS o ON x.uidNumber=o.userid AND o.projectid=$projectid ";
+		$query  .= " WHERE x.email = '" . $email . "' ";
 		
 		$this->_db->setQuery( $query );
 		return $this->_db->loadResult();		
@@ -829,10 +852,10 @@ class ProjectOwner extends JTable
 		if ($alias) 
 		{
 			$cn = $prefix . $alias;
-			$group = new Hubzero_Group();
-			if (Hubzero_Group::exists($cn)) 
+			$group = new \Hubzero\User\Group();
+			if (\Hubzero\User\Group::exists($cn)) 
 			{
-				$group = Hubzero_Group::getInstance( $cn );
+				$group = \Hubzero\User\Group::getInstance( $cn );
 			}
 			else 
 			{								
@@ -840,7 +863,7 @@ class ProjectOwner extends JTable
 				$group->set('cn',$cn);			
 				$group->set('gidNumber', 0);		
 				$group->create();
-				$group = Hubzero_Group::getInstance( $cn );
+				$group = \Hubzero\User\Group::getInstance( $cn );
 			}
 			$members  = $this->getIds ( $alias, $role = '0', 1 );
 			$managers = $this->getIds ( $alias, $role = '1', 1 );
@@ -1150,7 +1173,7 @@ class ProjectOwner extends JTable
 		// Group members added
 		if ($groupid && !$userid) 
 		{
-			$group = Hubzero_Group::getInstance( $groupid);
+			$group = \Hubzero\User\Group::getInstance( $groupid);
 			$gidNumber = $group ? $group->get('gidNumber') : 0;
 			
 			if ($gidNumber) 

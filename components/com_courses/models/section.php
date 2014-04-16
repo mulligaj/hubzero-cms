@@ -122,12 +122,19 @@ class CoursesModelSection extends CoursesModelAbstract
 	private $_badge = NULL;
 
 	/**
+	 * JRegistry
+	 * 
+	 * @var object
+	 */
+	private $_params = NULL;
+
+	/**
 	 * Constructor
 	 * 
 	 * @param      integer $id Course offering ID or alias
 	 * @return     void
 	 */
-	public function __construct($oid, $offering_id=null)
+	public function __construct($oid=null, $offering_id=null)
 	{
 		$this->_db = JFactory::getDBO();
 
@@ -135,15 +142,14 @@ class CoursesModelSection extends CoursesModelAbstract
 
 		if (is_numeric($oid) || is_string($oid))
 		{
-			$this->_tbl->load($oid, $offering_id);
+			if ($oid)
+			{
+				$this->_tbl->load($oid, $offering_id);
+			}
 		}
-		else if (is_object($oid))
+		else if (is_object($oid) || is_array($oid))
 		{
-			$this->_tbl->bind($oid);
-		}
-		else if (is_array($oid))
-		{
-			$this->_tbl->bind($oid);
+			$this->bind($oid);
 		}
 
 		if (!$this->exists() && $offering_id)
@@ -188,7 +194,7 @@ class CoursesModelSection extends CoursesModelAbstract
 
 		if (!isset($instances[$key])) 
 		{
-			$instances[$key] = new CoursesModelSection($oid, $offering_id);
+			$instances[$key] = new self($oid, $offering_id);
 		}
 
 		return $instances[$key];
@@ -426,7 +432,7 @@ class CoursesModelSection extends CoursesModelAbstract
 			return $tbl->count($filters);
 		}
 
-		if (!isset($this->_dates) || !is_a($this->_dates, 'CoursesModelIterator') || $clear)
+		if (!($this->_dates instanceof CoursesModelIterator) || $clear)
 		{
 			$tbl = new CoursesTableSectionDate($this->_db);
 
@@ -577,10 +583,8 @@ class CoursesModelSection extends CoursesModelAbstract
 
 		$value = parent::store($check);
 
-		JPluginHelper::importPlugin('courses');
-
-		//$dispatcher = JDispatcher::getInstance();
-		JDispatcher::getInstance()->trigger('onAfterSaveSection', array($this, $isNew));
+		$this->importPlugin('courses')
+		     ->trigger('onAfterSaveSection', array($this, $isNew));
 
 		if ($isNew)
 		{
@@ -616,8 +620,8 @@ class CoursesModelSection extends CoursesModelAbstract
 
 		$value = parent::delete();
 
-		JPluginHelper::importPlugin('courses');
-		JDispatcher::getInstance()->trigger('onAfterDeleteSection', array($this));
+		$this->importPlugin('courses')
+		     ->trigger('onAfterDeleteSection', array($this));
 
 		return $value;
 	}
@@ -678,7 +682,7 @@ class CoursesModelSection extends CoursesModelAbstract
 			return $tbl->count($filters);
 		}
 
-		if (!isset($this->_codes) || !is_a($this->_codes, 'CoursesModelIterator') || $clear)
+		if (!($this->_codes instanceof CoursesModelIterator) || $clear)
 		{
 			$tbl = new CoursesTableSectionCode($this->_db);
 
@@ -745,5 +749,97 @@ class CoursesModelSection extends CoursesModelAbstract
 		}
 
 		return $this->_badge; 
+	}
+
+	/**
+	 * Mark this section as the default for this offering
+	 * 
+	 * @return  boolean
+	 */
+	public function makeDefault()
+	{
+		if (!$this->exists() || !$this->get('offering_id'))
+		{
+			return true;
+		}
+
+		$sections = $this->_tbl->find(array('offering_id' => $this->get('offering_id')));
+		foreach ($sections as $section)
+		{
+			$section = new CoursesModelSection($section);
+			$section->set('is_default', 0);
+			$section->store(false);
+		}
+
+		$this->set('is_default', 1);
+
+		return $this->store(false);
+	}
+
+	/**
+	 * Get a param value
+	 * 
+	 * @param	   string $key     Property to return
+	 * @param	   mixed  $default Default value to return
+	 * @return     mixed
+	 */
+	public function params($key='', $default=null)
+	{
+		if (!($this->_params instanceof JRegistry))
+		{
+			$this->_params = new JRegistry($this->get('params'));
+		}
+		if ($key)
+		{
+			return $this->_params->get((string) $key, $default);
+		}
+		return $this->_params;
+	}
+
+	/**
+	 * Get the section logo
+	 *
+	 * @param      string $rtrn Property to return
+	 * @return     string
+	 */
+	public function logo($rtrn='')
+	{
+		$rtrn = strtolower(trim($rtrn));
+
+		// Return just the file name
+		if ($rtrn == 'file')
+		{
+			return $this->params('logo');
+		}
+
+		// We need the course ID
+		if (!$this->get('course_id'))
+		{
+			$offering = CoursesModelOffering::getInstance($this->get('offering_id'));
+			$this->set('course_id', $offering->get('course_id'));
+		}
+
+		// Build the path
+		$path = '/' . trim($this->config('uploadpath', '/site/courses'), '/') . '/' . $this->get('course_id') . '/sections/' . $this->get('id');
+
+		// Return just the upload path?
+		if ($rtrn == 'path')
+		{
+			return $path;
+		}
+
+		// Do we have a logo set?
+		if ($file = $this->params('logo'))
+		{
+			// Return the web path to the image
+			$path .= '/' . $file;
+			if (file_exists(JPATH_ROOT . $path))
+			{
+				$path = str_replace('/administrator', '', \JURI::base(true)) . $path;
+			}
+			return $path;
+		}
+
+		return '';
 	}
 }

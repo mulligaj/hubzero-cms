@@ -88,7 +88,6 @@
 		cursor: pointer;
 	}
 	input[type="submit"].started:hover {
-		background: #FFFFFF;
 		cursor: default;
 	}
 	
@@ -130,7 +129,10 @@
 		z-index: 999;
 	}
 	#preview-window pre {
-		font-size: 90%;
+		font-size: 80%;
+		line-height: 1.3em;
+		text-align: left;
+		white-space: pre-line;
 	}
 	#preview-image {
 		text-align: center;
@@ -302,6 +304,11 @@
 		background: #fcfcfc;
 		padding: 0.5em 1em;
 		width: 70%;
+	}
+	table.revisions td.commit-details pre {
+		line-height: 1.3em;
+		text-align: left;
+		white-space: pre-line;
 	}
 	table.revisions td.commit-options {
 		width: 10%;
@@ -563,6 +570,9 @@
 	.i-delete:before {
 		content: "\f014";
 	}
+	.com_projects .delete:before {
+		margin-right: 0.3em;
+	}
 	.fmanage {
 		color: #000;
 	}
@@ -600,6 +610,18 @@
 		position: absolute;
 		margin-left: -16px;
 		margin-top: 1px;
+	}
+	.icon-image:before, .icon-folder:before {
+		content: "\f0f5";
+		color: #CCC;
+		width: 16px;
+		height: 16px;
+		font-size: 16px;
+		font-family: 'Fontcons';
+		margin-right: 2px;
+	}
+	.icon-folder:before {
+		content: "\f07b";
 	}
 	#manage_assets a#a-folder:hover:after {
 		color: #FFF;
@@ -842,6 +864,16 @@
 		color: green;
 	}
 	
+/* Untracked files
+--------------------------------------------- */
+	table.listing tbody tr.mline .fileoptions {
+		display: none;
+		margin-left: 3em;
+	}
+	table.listing tbody tr.mline:hover .fileoptions {
+		display: inline;
+	}
+	
 /* Renaming & tex files
 --------------------------------------------- */
 	.rename, .tex-menu {
@@ -850,6 +882,7 @@
 		padding: 0.2em 2em;
 		margin-left: 1em;
 	}
+
 	table.listing tbody tr.mline:hover .rename,
 	table.listing tbody tr.i-selected .rename,
 	table.listing tbody tr.mline:hover .tex-menu,

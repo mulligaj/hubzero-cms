@@ -30,8 +30,6 @@
 
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Document');
-
 $config = JFactory::getConfig();
 $juser = JFactory::getUser();
 
@@ -48,10 +46,9 @@ else
 	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js');
 }
 
-ximport('Hubzero_Browser');
-$browser = new Hubzero_Browser();
-$b = $browser->getBrowser();
-$v = $browser->getBrowserMajorVersion();
+$browser = new \Hubzero\Browser\Detector();
+$b = $browser->name();
+$v = $browser->major();
 
 $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle());
 ?>
@@ -62,14 +59,12 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 <!--[if IE 9 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie9"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
 	<head>
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo Hubzero_Document::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'pagination', 'tabs', 'tags', 'tooltip', 'comments', 'voting', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'pagination', 'tabs', 'tags', 'tooltip', 'comments', 'voting', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/main.css" />
 		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/print.css" />
-		
+
 		<jdoc:include type="head" />
-<?php if (JPluginHelper::isEnabled('system', 'debug')) { ?>
-		<link rel="stylesheet" type="text/css" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/debug.css" />
-<?php } ?>
+
 		<!--[if IE 10]>
 			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie10.css" />
 		<![endif]-->
@@ -92,7 +87,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					<div id="topbar">
 						<ul>
 							<li><a href="#content"><?php echo JText::_('TPL_HUBBASIC_SKIP'); ?></a></li>
-							<li><a href="/about/contact"><?php echo JText::_('TPL_HUBBASIC_CONTACT'); ?></a></li>
+							<li><a href="<?php echo $this->baseurl; ?>/about/contact"><?php echo JText::_('TPL_HUBBASIC_CONTACT'); ?></a></li>
 						</ul>
 						<jdoc:include type="modules" name="search" />
 <?php if ($this->countModules('helppane')) : ?>
@@ -114,12 +109,10 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 
 							<ul id="account" class="<?php echo (!$juser->get('guest')) ? 'loggedin' : 'loggedout'; ?>">
 <?php if (!$juser->get('guest')) { 
-		ximport('Hubzero_User_Profile');
-		ximport('Hubzero_User_Profile_Helper');
-		$profile = Hubzero_User_Profile::getInstance($juser->get('id'));
+		$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 ?>
 								<li id="account-info">
-									<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($profile); ?>" alt="<?php echo $juser->get('name'); ?>" width="30" height="30" />
+									<img src="<?php echo $profile->getPicture(); ?>" alt="<?php echo $juser->get('name'); ?>" width="30" height="30" />
 									<a class="account-details" href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id')); ?>">
 										<?php echo stripslashes($juser->get('name')); ?> 
 										<span class="account-email"><?php echo $juser->get('email'); ?></span>

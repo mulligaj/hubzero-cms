@@ -140,10 +140,11 @@ if ($this->admin && !$this->getError()) {
 		} // end if ($tags)
 	} // end if ($this->wishlist->category == 'general')
 	
+	$html = '';
 	if (isset($this->wishlist->resource) && $this->wishlist->category == 'resource') {
 		$html  = '<p>'.JText::sprintf('COM_WISHLIST_THIS_LIST_IS_FOR_RES', strtolower(substr($this->wishlist->resource->typetitle,0,strlen($this->wishlist->resource->typetitle) - 1)).' '.JText::_('COM_WISHLIST_RESOURCE_ENTITLED').' <a href="'.JRoute::_('index.php?option=com_resources&id='.$this->wishlist->referenceid).'">'.$this->escape($this->wishlist->resource->title).'</a>').'.</p>';
 	} else if ($this->wishlist->description) {
-	//	$html  = '<p>'.$this->escape($this->wishlist->description).'<p>';
+		// $html  = '<p>'.$this->escape($this->wishlist->description).'<p>';
 	} else {
 		$html  = '<p>'.JText::sprintf('COM_WISHLIST_HELP_US_IMPROVE', $sitename).'</p>';
 	}				
@@ -167,8 +168,7 @@ if ($this->admin && !$this->getError()) {
 	 && count($this->wishlist->items) >= 10 
 	 && $this->wishlist->category == 'general' 
 	 && $this->filters['filterby'] == 'all') {
-		ximport('Hubzero_Module_Helper');
-		echo Hubzero_Module_Helper::renderModules('wishvoters');
+		echo \Hubzero\Module\Helper::renderModules('wishvoters');
 	}
 ?>
 		</div><!-- / .aside -->
@@ -313,7 +313,7 @@ if ($this->admin && !$this->getError()) {
 							<th class="<?php echo $status; ?>">
 								<span class="entry-id"><?php echo $item->id; ?></span>
 							</th>
-							<td>
+							<td<?php if ($item->reports) { echo ' colspan="' . ($this->wishlist->banking ? 4 : 3) . '"'; } ?>>
 						<?php if (!$item->reports) { ?>
 								<a class="entry-title" href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=wish&category='.$this->wishlist->category.'&rid='.$this->wishlist->referenceid .'&wishid='.$item->id . $filters); ?>"><?php echo $item->subject; ?></a><br />
 								<span class="entry-details">

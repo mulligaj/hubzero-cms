@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-
 /**
  * Hubs plugin for time component
  */
-class plgTimeHubs extends Hubzero_Plugin
+class plgTimeHubs extends \Hubzero\Plugin\Plugin
 {
 
 	/**
@@ -48,9 +46,6 @@ class plgTimeHubs extends Hubzero_Plugin
 	{
 		parent::__construct($subject, $config);
 
-		// Load plugin parameters
-		$this->_plugin = JPluginHelper::getPlugin( 'time', 'hubs' );
-		$this->_params = new JParameter( $this->_plugin->params );
 		$this->loadLanguage();
 	}
 
@@ -93,10 +88,10 @@ class plgTimeHubs extends Hubzero_Plugin
 		);
 
 		// Set some values for use later
-		$this->_option   =  $option;
-		$this->action    =  $action;
-		$this->active    =  $active;
-		$this->db        =  JFactory::getDBO();
+		$this->_option   = $option;
+		$this->action    = $action;
+		$this->active    = $active;
+		$this->db        = JFactory::getDBO();
 		$this->juser     = JFactory::getUser();
 		$this->mainframe = JFactory::getApplication();
 
@@ -109,9 +104,8 @@ class plgTimeHubs extends Hubzero_Plugin
 		require_once(JPATH_ROOT.DS.'plugins'.DS.'time'.DS.'helpers'.DS.'filters.php');
 
 		// Add some styles to the view
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('time','hubs');
-		Hubzero_Document::addPluginScript('time','hubs');
+		\Hubzero\Document\Assets::addPluginStylesheet('time','hubs');
+		\Hubzero\Document\Assets::addPluginScript('time','hubs');
 
 		// Only perform the following if this is the active tab/plugin
 		if ($return == 'html') {
@@ -151,8 +145,7 @@ class plgTimeHubs extends Hubzero_Plugin
 		$hubs = new TimeHubs($this->db);
 
 		// Create a new plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'time',
 				'element'=>'hubs',
@@ -201,8 +194,7 @@ class plgTimeHubs extends Hubzero_Plugin
 	private function _edit($hub=null, $contacts=null)
 	{
 		// Create a new plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'time',
 				'element'=>'hubs',
@@ -225,6 +217,12 @@ class plgTimeHubs extends Hubzero_Plugin
 			$hub->load($hid);
 			$view->row = $hub;
 		}
+
+		include_once(__DIR__ . '/hub.php');
+		$obj = new TimeModelHub($view->row);
+
+		// Parse the notes for the view
+		$view->row->notes = $obj->notes('raw');
 
 		// Check if we have a contacts array coming in - if so, use that
 		if (is_array($contacts))
@@ -268,8 +266,7 @@ class plgTimeHubs extends Hubzero_Plugin
 	private function _read_only()
 	{
 		// Create a new plugin view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'time',
 				'element'=>'hubs',
@@ -312,23 +309,11 @@ class plgTimeHubs extends Hubzero_Plugin
 		$hours            = $records->getSummaryHoursByHub(1, $view->row->id);
 		$view->totalHours = ($hours) ? $hours[0]->hours : 0;
 
-		// Import the wiki parser
-		ximport('Hubzero_Wiki_Parser');
-
-		// Set up the wiki configuration
-		$wikiconfig = array(
-			'option'   => $this->option,
-			'scope'    => 'time',
-			'pagename' => 'hubs',
-			'pageid'   => $view->row->id,
-			'filepath' => '',
-			'domain'   => $view->row->id
-		);
-
-		$p = Hubzero_Wiki_Parser::getInstance();
+		include_once(__DIR__ . '/hub.php');
+		$obj = new TimeModelHub($view->row);
 
 		// Parse the notes for the view
-		$view->row->notes = $p->parse("\n" . stripslashes($view->row->notes), $wikiconfig);
+		$view->row->notes = $obj->notes('parsed');
 
 		// If viewing an entry from a page other than the first, take the user back to that page if they click "all xxx"
 		$view->start = ($this->mainframe->getUserState("$this->option.$this->active.start") != 0) 
@@ -351,7 +336,7 @@ class plgTimeHubs extends Hubzero_Plugin
 	private function _save()
 	{
 		// Incoming posted data
-		$hub      = JRequest::getVar('hub', array(), 'post');
+		$hub      = JRequest::getVar('hub', array(), 'post', 'none', 2);
 		$hub      = array_map('trim', $hub);
 		$contacts = JRequest::getVar('contact', array(), 'post');
 
@@ -373,7 +358,7 @@ class plgTimeHubs extends Hubzero_Plugin
 		}
 
 		// Save the contacts info
-		foreach($contacts as $contact)
+		foreach ($contacts as $contact)
 		{
 			// Add the hub id to the contact array
 			$contact['hub_id'] = $hubs->id;
@@ -382,7 +367,7 @@ class plgTimeHubs extends Hubzero_Plugin
 			$contact = array_map('trim', $contact);
 
 			// First check and make sure we don't save an empty contact
-			if($contact['name'] == 'name' || $contact['phone'] == 'phone' || $contact['email'] == 'email' || $contact['role'] == 'role')
+			if ($contact['name'] == 'name' || $contact['phone'] == 'phone' || $contact['email'] == 'email' || $contact['role'] == 'role')
 			{
 				break;
 			}
@@ -391,7 +376,7 @@ class plgTimeHubs extends Hubzero_Plugin
 			$contactObj = new TimeContacts($this->db);
 
 			// Save the contact info
-			if(!$contactObj->save($contact));
+			if (!$contactObj->save($contact));
 			{
 				// Something went wrong...return errors (probably from 'check')
 				$this->addPluginMessage($contactObj->getError(), 'error');
@@ -406,7 +391,7 @@ class plgTimeHubs extends Hubzero_Plugin
 		}
 
 		// If we had errors, redirect back to edit
-		if($has_errors == true)
+		if ($has_errors == true)
 		{
 			return $this->_edit($hubs, $contactsObjArray);
 		}

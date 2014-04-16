@@ -60,7 +60,7 @@ foreach ($this->versions as $version) {
 	}
 }
 
-$endPath = '&raquo; <span class="subheader">' . JText::_('COM_PROJECTS_FILES_SHOW_REV_HISTORY_FOR') . ' <span class="italic">' . ProjectsHtml::shortenFileName($this->file, 40) . '</span></span>';
+$endPath = ' &raquo; <span class="subheader">' . JText::_('COM_PROJECTS_FILES_SHOW_REV_HISTORY_FOR') . ' <span class="italic">' . ProjectsHtml::shortenFileName($this->file, 40) . '</span></span>';
 
 $ext = explode('.', $this->file);
 $ext = count($ext) > 1 ? end($ext) : '';
@@ -100,7 +100,7 @@ if ($this->getError()) {
 			<ul class="sample">
 				<?php
 					// Display list item with file data
-					$view = new Hubzero_Plugin_View(
+					$view = new \Hubzero\Plugin\View(
 						array(
 							'folder'=>'projects',
 							'element'=>'files',
@@ -117,7 +117,7 @@ if ($this->getError()) {
 					
 					if ($allowDiff && !$this->getError()) 
 					{
-						$view->extras = '<input type="submit" id="rundiff" value="Diff Revisions" class="rightfloat" />';
+						$view->extras = '<input type="submit" id="rundiff" value="Diff Revisions" class="btn rightfloat" />';
 					}
 					echo $view->loadTemplate();
 				?>
@@ -240,7 +240,7 @@ if ($this->getError()) {
 						<div class="commitcontent"><?php if ($version['content'] && in_array($version['commitStatus'], array('A', 'M'))) 
 						{	
 							$over = strlen($version['content']) >= $charLimit ? 1 : 0;
-							$content = $over ? Hubzero_View_Helper_Html::shortenText($version['content'], $charLimit, 0) : $version['content'];
+							$content = $over ? \Hubzero\Utility\String::truncate($version['content'], $charLimit) : $version['content'];
 							
 							echo '<div class="short-txt" id="short-' . $i . '"><pre>' . $content . '</pre>';
 							if ($over)

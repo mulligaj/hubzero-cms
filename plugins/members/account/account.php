@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-
 /**
  * Account Plugin class for members
  *
@@ -40,21 +38,14 @@ ximport('Hubzero_Plugin');
  * as well as uploading/managing ssh keys, and adding or remove linked accounts
  *
  */
-class plgMembersAccount extends Hubzero_Plugin
+class plgMembersAccount extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Event call to determine if this plugin should return data
@@ -72,6 +63,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		if ($user->get('id') == $member->get('uidNumber'))
 		{
 			$areas['account'] = JText::_('PLG_MEMBERS_ACCOUNT');
+			$areas['icon'] = 'f085';
 		}
 
 		return $areas;
@@ -106,9 +98,6 @@ class plgMembersAccount extends Hubzero_Plugin
 			'metadata'=>''
 		);
 
-		// Imports (needed for view and metadata)
-		ximport('Hubzero_User_Password');
-
 		// Initialize a few things (needed for view and metadata)
 		$this->member = $member;
 
@@ -124,16 +113,10 @@ class plgMembersAccount extends Hubzero_Plugin
 				die('insecure connection and redirection failed');
 			}
 
-			// Import a few things (just needed for views)
-			ximport('Hubzero_Document');
-			ximport('Hubzero_Plugin_View');
-			ximport('Hubzero_Auth_Link');
-			ximport('Hubzero_Auth_Domain');
-
 			// Add stylesheet
-			Hubzero_Document::addPluginStylesheet('members', 'account');
-			Hubzero_Document::addPluginScript('members', 'account');
-			Hubzero_Document::addSystemScript('jquery.hoverIntent');
+			\Hubzero\Document\Assets::addPluginStylesheet('members', 'account');
+			\Hubzero\Document\Assets::addPluginScript('members', 'account');
+			\Hubzero\Document\Assets::addSystemScript('jquery.hoverIntent');
 
 			// Add providers stylesheet
 			$doc = JFactory::getDocument();
@@ -214,7 +197,7 @@ class plgMembersAccount extends Hubzero_Plugin
 	private function _view()
 	{
 		// Setup our view
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'account',
@@ -224,18 +207,26 @@ class plgMembersAccount extends Hubzero_Plugin
 
 		// Get linked accounts, if any
 		$view->domains_avail = JPluginHelper::getPlugin('authentication');
-		$view->hzalaccounts  = Hubzero_Auth_Link::find_by_user_id($this->user->get("id"));
+		$view->hzalaccounts  = \Hubzero\Auth\Link::find_by_user_id($this->user->get("id"));
 
 		// Put the used domains into an array with details available from the providers (if applicable)
 		$view->domains_used = array();
 		$view->domain_names = array();
 		if($view->hzalaccounts)
 		{
+			$i = 0;
 			foreach($view->hzalaccounts as $authenticators)
 			{
 				JPluginHelper::importPlugin('authentication');
 
 				$plugin = JPluginHelper::getPlugin('authentication', $authenticators['auth_domain_name']);
+
+				// Make sure we got the plugin
+				if (!is_object($plugin))
+				{
+					unset($view->hzalaccounts[$i]);
+					continue;
+				}
 
 				$className = 'plg'.$plugin->type.$plugin->name;
 
@@ -251,6 +242,9 @@ class plgMembersAccount extends Hubzero_Plugin
 
 				$view->domains_used[] = array('name' => $authenticators['auth_domain_name'], 'details' => $details);
 				$view->domain_names[] = $authenticators['auth_domain_name'];
+
+				// Increment index
+				$i++;
 			}
 		}
 
@@ -265,7 +259,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		}
 
 		// Determine what type of password change the user needs
-		$hzup = Hubzero_User_Password::getInstance($this->member->get('uidNumber'));
+		$hzup = \Hubzero\User\Password::getInstance($this->member->get('uidNumber'));
 		if(!empty($hzup->passhash))
 		{
 			// A password has already been set, now check if they're logged in with a linked account
@@ -293,8 +287,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		$view->key = $this->readKey();
 
 		// Get the password rules
-		ximport('Hubzero_Password_Rule');
-		$password_rules = Hubzero_Password_Rule::getRules();
+		$password_rules = \Hubzero\Password\Rule::getRules();
 
 		// Get the password rule descriptions
 		$view->password_rules = array();
@@ -338,8 +331,6 @@ class plgMembersAccount extends Hubzero_Plugin
 		// Import helpers/classes
 		jimport('joomla.mail.helper');
 		jimport('joomla.user.helper');
-		ximport('Hubzero_Auth_Link');
-		ximport('Hubzero_User_Password');
 
 		// Make sure they're logged in
 		if ($this->user->get('guest'))
@@ -354,7 +345,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		}
 
 		// Make sure this is an auth link account (i.e. no password set)
-		$hzup = Hubzero_User_Password::getInstance($this->member->get('uidNumber'));
+		$hzup = \Hubzero\User\Password::getInstance($this->member->get('uidNumber'));
 		if(!empty($hzup->passhash))
 		{
 			JError::raiseError(404, JText::_('PLG_MEMBERS_ACCOUNT_NOT_LINKED_ACCOUNT'));
@@ -409,7 +400,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		$change = JRequest::getVar('change', '', 'post');
 
 		// Create the view
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'account',
@@ -527,7 +518,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		$change    = JRequest::getVar('change', '', 'post');
 
 		// Create the view
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'account',
@@ -541,8 +532,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		$view->id     = $this->user->get('id');
 
 		// Get the password rules
-		ximport('Hubzero_Password_Rule');
-		$password_rules = Hubzero_Password_Rule::getRules();
+		$password_rules = \Hubzero\Password\Rule::getRules();
 
 		// Get the password rule descriptions
 		$view->password_rules = array();
@@ -565,13 +555,10 @@ class plgMembersAccount extends Hubzero_Plugin
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Load some needed libraries
-		ximport('Hubzero_Registration_Helper');
-		ximport('Hubzero_User_Helper');
-		ximport('Hubzero_User_Profile');
 		jimport('joomla.user.helper');
 
 		// Initiate profile classs
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($this->user->get('id'));
 
 		// Fire the onBeforeStoreUser trigger
@@ -582,7 +569,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		// Validate the password against password rules
 		if (!empty($password1))
 		{
-			$msg = Hubzero_Password_Rule::validate($password1, $password_rules, $profile->get('username'));
+			$msg = \Hubzero\Password\Rule::validate($password1, $password_rules, $profile->get('username'));
 		}
 		else
 		{
@@ -629,7 +616,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		}
 
 		// No errors, so let's move on - encrypt the password and update the profile
-		$result = Hubzero_User_Password::changePassword($profile->get('uidNumber'), $password1);
+		$result = \Hubzero\User\Password::changePassword($profile->get('uidNumber'), $password1);
 
 		// Save the changes
 		if (!$result)
@@ -678,18 +665,15 @@ class plgMembersAccount extends Hubzero_Plugin
 	 */
 	private function _unlink()
 	{
-		// Import a few things
-		ximport('Hubzero_User_Password');
-		
 		// Get the id of the account to be unlinked
 		$hzal_id = JRequest::getInt('hzal_id', null);
 
 		// Get instance
-		$hzal = Hubzero_Auth_Link::find_by_id($hzal_id);
+		$hzal = \Hubzero\Auth\Link::find_by_id($hzal_id);
 
 		// Determine what type of password change the user needs
-		$hzup = Hubzero_User_Password::getInstance($this->member->get('uidNumber'));
-		if(empty($hzup->passhash) && count(Hubzero_Auth_Link::find_by_user_id($this->member->get('uidNumber'))) <= 1)
+		$hzup = \Hubzero\User\Password::getInstance($this->member->get('uidNumber'));
+		if(empty($hzup->passhash) && count(\Hubzero\Auth\Link::find_by_user_id($this->member->get('uidNumber'))) <= 1)
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=account'),
@@ -720,7 +704,7 @@ class plgMembersAccount extends Hubzero_Plugin
 	 */
 	private function getPassInfo()
 	{
-		$hzup = Hubzero_User_Password::getInstance($this->member->get('uidNumber'));
+		$hzup = \Hubzero\User\Password::getInstance($this->member->get('uidNumber'));
 
 		// Check to see if password expiration is even enforced
 		if(empty($hzup->passhash) || $hzup->shadowMax === NULL)
@@ -948,7 +932,7 @@ class plgMembersAccount extends Hubzero_Plugin
 	 */
 	private function sendEmail($token)
 	{
-		ximport('Hubzero_Toolbox');
+		$jconfig = JFactory::getConfig();
 
 		// Create the email with the new token
 		$url      = rtrim(JURI::base(),'/');
@@ -957,8 +941,14 @@ class plgMembersAccount extends Hubzero_Plugin
 		$message  = 'You have requested to set your local password at ' . $url . "\n\n";
 		$message .= 'Your reset token is: ' . $token;
 
+		$msg = new \Hubzero\Mail\Message();
+		$msg->setSubject($subject)
+		    ->addTo($this->user->get('email'))
+		    ->addFrom($jconfig->getValue('config.mailfrom'), $jconfig->getValue('config.sitename') . ' Administrator')
+		    ->setBody($message);
+
 		// Send the email
-		if (!Hubzero_Toolbox::send_email($this->user->get('email'), $subject, $message))
+		if (!$msg->send())
 		{
 			JError::raiseError(500, JText::_('PLG_MEMBERS_ACCOUNT_CONFIRMATION_EMAIL_NOT_SENT'));
 			return;
@@ -975,8 +965,7 @@ class plgMembersAccount extends Hubzero_Plugin
 	public function checkPass()
 	{
 		// Get the password rules
-		ximport('Hubzero_Password_Rule');
-		$password_rules = Hubzero_Password_Rule::getRules();
+		$password_rules = \Hubzero\Password\Rule::getRules();
 
 		$pw_rules = array();
 
@@ -995,7 +984,7 @@ class plgMembersAccount extends Hubzero_Plugin
 		// Validate the password
 		if (!empty($pw))
 		{
-			$msg = Hubzero_Password_Rule::validate($pw, $password_rules, $this->member->get('username'));
+			$msg = \Hubzero\Password\Rule::validate($pw, $password_rules, $this->member->get('username'));
 		}
 		else
 		{

@@ -92,6 +92,7 @@ $juser = JFactory::getUser();
 					$url .= ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
 					$url .= ($this->filters['sortby'] ? '&sortby=' . $this->escape($this->filters['sortby']) : '');
 					$url .= ($this->filters['index']  ? '&index=' . $this->escape($this->filters['index'])   : '');
+					$url .= ($this->filters['group']  ? '&group=' . $this->escape($this->filters['group'])   : '');
 
 					$tags = $this->model->parseTags($this->filters['tag']);
 					foreach ($tags as $tag)
@@ -111,11 +112,33 @@ $juser = JFactory::getUser();
 				<?php } ?>
 			</div><!-- / .container -->
 
+			<?php if ($this->filters['group']) { ?>
+				<div class="course-group">
+					<?php
+					$group = \Hubzero\User\Group::getInstance($this->filters['group']);
+					?>
+					<p class="course-group-descripion">
+						<?php echo JText::_('Brought to you by:'); ?>
+					</p>
+					<h3 class="course-group-title">
+						<a href="<?php echo JRoute::_('index.php?option=com_courses&task=browse&group=' . $group->get('cn')); ?>">
+							<?php echo $this->escape(stripslashes($group->get('description'))); ?>
+						</a>
+					</h3>
+					<p class="course-group-img">
+						<a href="<?php echo JRoute::_('index.php?option=com_courses&task=browse&group=' . $group->get('cn')); ?>">
+							<img src="<?php echo $group->getLogo(); ?>" width="50" alt="<?php echo $this->escape(stripslashes($group->get('description'))); ?> group image" />
+						</a>
+					</p>
+				</div>
+			<?php } ?>
+
 			<div class="container">
 				<?php
 				$qs  = ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
 				$qs .= ($this->filters['index']  ? '&index=' . $this->escape($this->filters['index'])   : '');
 				$qs .= ($this->filters['tag']    ? '&tag=' . $this->escape($this->filters['tag'])       : '');
+				$qs .= ($this->filters['group']  ? '&group=' . $this->escape($this->filters['group'])   : '');
 				?>
 				<ul class="entries-menu order-options">
 					<li><a<?php echo ($this->filters['sortby'] == 'title') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=title' . $qs); ?>" title="Sort by title">&darr; Title</a></li>
@@ -128,6 +151,7 @@ $juser = JFactory::getUser();
 				$url .= ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
 				$url .= ($this->filters['sortby'] ? '&sortby=' . $this->escape($this->filters['sortby']) : '');
 				$url .= ($this->filters['tag']    ? '&tag=' . $this->escape($this->filters['tag'])       : '');
+				$url .= ($this->filters['group']  ? '&group=' . $this->escape($this->filters['group'])   : '');
 
 				$html  = '<a href="' . JRoute::_($url) . '"';
 				if ($this->filters['index'] == '') 
@@ -187,8 +211,6 @@ $juser = JFactory::getUser();
 				<?php
 				if ($this->courses->total() > 0) 
 				{
-					ximport('Hubzero_User_Profile_Helper');
-					ximport('Hubzero_View_Helper_Html');
 					foreach ($this->courses as $course)
 					{
 						//get status
@@ -212,7 +234,7 @@ $juser = JFactory::getUser();
 								<span class="entry-id"><?php echo $course->get('id'); ?></span>
 							</th>
 							<td>
-								<a class="entry-title" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&gid=' . $course->get('alias')); ?>">
+								<a class="entry-title" href="<?php echo JRoute::_($course->link()); ?>">
 									<?php echo $this->escape(stripslashes($course->get('title'))); ?>
 								</a><br />
 							<?php
@@ -222,7 +244,7 @@ $juser = JFactory::getUser();
 									$names = array();
 									foreach ($instructors as $i)
 									{
-										$instructor = Hubzero_User_Profile::getInstance($i->get('user_id'));
+										$instructor = \Hubzero\User\Profile::getInstance($i->get('user_id'));
 
 										$names[] = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $i->get('user_id')) . '">' . $this->escape(stripslashes($instructor->get('name'))) . '</a>';
 									}
@@ -233,27 +255,16 @@ $juser = JFactory::getUser();
 							<?php
 								}
 							?>
-								<?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($course->get('blurb')), 200); ?>
+								<span class="entry-content">
+									<?php echo \Hubzero\Utility\String::truncate(stripslashes($course->get('blurb')), 200); ?>
+								</span>
 							</td>
-						<?php /*if ($course->access('manage')) { ?>
-							<td>
-								<span class="<?php echo $status; ?> status"><?php
-									switch ($status)
-									{
-										case 'manager': echo JText::_('COM_COURSES_STATUS_MANAGER'); break;
-										case 'new': echo JText::_('COM_COURSES_STATUS_NEW_COURSE'); break;
-										case 'member': echo JText::_('COM_COURSES_STATUS_APPROVED'); break;
-										default: break;
-									}
-								?></span>
-							</td>
-					<?php }*/ ?>
 						</tr>
 				<?php 
 					} // for loop 
 				} else { ?>
 						<tr>
-							<td colspan="<?php echo ($this->authorized) ? '4' : '3'; ?>">
+							<td colspan="2<?php //echo ($this->authorized) ? '4' : '3'; ?>">
 								<p class="warning"><?php echo JText::_('No results found'); ?></p>
 							</td>
 						</tr>

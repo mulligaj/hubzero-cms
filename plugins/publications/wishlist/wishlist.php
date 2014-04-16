@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-	
 /**
  * Publications Plugin class for wishes
  */
@@ -137,12 +135,10 @@ class plgPublicationsWishlist extends JPlugin
 		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.php' );
 		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.plan.php' );
 		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.owner.php' );
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS 
-			. 'tables' . DS . 'wishlist.owner.group.php' );
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.owner.group.php' );
 		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.php' );
 		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.rank.php' );
 		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.attachment.php' );
-		ximport('Hubzero_View_Helper_Html');
 		require_once( JPATH_ROOT . DS . 'components' . DS . $option . DS . 'controllers' . DS . 'wishlist.php' );
 		
 		// Configure controller
@@ -178,7 +174,7 @@ class plgPublicationsWishlist extends JPlugin
 		
 		if (!$wishlist) 
 		{
-			$html = '<p class="error">' . JText::_('COM_WISHLIST_ERROR_LIST_NOT_FOUNDD') . '</p>';
+			$html = '<p class="error">' . JText::_('COM_WISHLIST_ERROR_LIST_NOT_FOUND') . '</p>';
 		} 
 		else 
 		{
@@ -213,10 +209,7 @@ class plgPublicationsWishlist extends JPlugin
 			if ($rtrn != 'metadata') 
 			{
 				// Add the CSS to the template
-				WishlistController::_getStyles();
-				
-				// Thumbs voting CSS & JS
-				WishlistController::_getStyles('com_answers', 'vote.css');
+				\Hubzero\Document\Assets::addPluginStylesheet('groups', 'wishlist');
 				
 				// Get wishes
 				$wishlist->items = $objWish->get_wishes($wishlist->id, $filters, $admin, $juser);
@@ -233,8 +226,7 @@ class plgPublicationsWishlist extends JPlugin
 
 				// HTML output
 				// Instantiate a view
-				ximport('Hubzero_Plugin_View');
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'=>'publications',
 						'element'=>'wishlist',
@@ -264,9 +256,8 @@ class plgPublicationsWishlist extends JPlugin
 		$metadata = '';
 
 		if ($rtrn == 'all' || $rtrn == 'metadata') 
-		{		
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+		{
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'publications',
 					'element' => 'wishlist',

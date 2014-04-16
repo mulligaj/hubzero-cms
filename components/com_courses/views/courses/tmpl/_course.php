@@ -46,20 +46,18 @@ switch ($this->columns)
 	case 3: $columns = 'three'; break;
 	case 4: $columns = 'four';  break;
 }
-
-ximport('Hubzero_View_Helper_Html');
 ?>
 <div class="<?php echo $columns; ?> columns <?php echo $cls; ?>">
 	<div class="course-list">
 		<div class="details">
 			<h3>
-				<a href="<?php echo JRoute::_('index.php?option=com_courses&controller=course&gid=' . $this->course->get('alias')); ?>">
+				<a href="<?php echo JRoute::_($this->course->link()); ?>">
 					<?php echo $this->escape(stripslashes($this->course->get('title'))); ?>
 				</a>
 			</h3>
 		<?php if ($this->course->get('blurb')) { ?>
 			<p>
-				<?php echo Hubzero_View_Helper_Html::shortenText($this->escape(stripslashes($this->course->get('blurb'))), 150, 0, 0); ?>
+				<?php echo \Hubzero\Utility\String::truncate($this->escape(stripslashes($this->course->get('blurb'))), 150); ?>
 			</p>
 		<?php } ?>
 		<?php if ($this->course->isManager()) { ?>

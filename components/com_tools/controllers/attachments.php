@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 include_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'helpers' . DS . 'contribute.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'tool.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'version.php');
@@ -43,7 +41,7 @@ include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpe
 /**
  * Controller class for contributing a tool
  */
-class ToolsControllerAttachments extends Hubzero_Controller
+class ToolsControllerAttachments extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -571,9 +569,8 @@ class ToolsControllerAttachments extends Hubzero_Controller
 		// otherwise superadmins can only act if they are also a member of the component admin group
 		if (($admingroup = trim($this->config->get('admingroup', '')))) 
 		{
-			ximport('Hubzero_User_Helper');
 			// Check if they're a member of admin group
-			$ugs = Hubzero_User_Helper::getGroups($this->juser->get('id'));
+			$ugs = \Hubzero\User\Helper::getGroups($this->juser->get('id'));
 			if ($ugs && count($ugs) > 0) 
 			{
 				$admingroup = strtolower($admingroup);

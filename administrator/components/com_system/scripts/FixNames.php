@@ -33,8 +33,6 @@ defined('_JEXEC') or die('Restricted access');
 
 ini_set('memory_limit', '512M');
 
-ximport('Hubzero_User_Profile');
-
 /**
  * Script for fixing names
  */
@@ -91,7 +89,7 @@ class FixNames extends SystemHelperScript
 	 */
 	private function _fixName($name)
 	{
-		$xprofile = new Hubzero_User_Profile();
+		$xprofile = new \Hubzero\User\Profile();
 
 		if ($xprofile->load($name) === false)
 		{

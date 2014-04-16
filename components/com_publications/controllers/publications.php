@@ -31,13 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-ximport('Hubzero_Controller');
-ximport('Hubzero_Environment');
-
 /**
- * Primary component controller (extends Hubzero_Controller)
+ * Primary component controller (extends \Hubzero\Component\SiteController)
  */
-class PublicationsControllerPublications extends Hubzero_Controller
+class PublicationsControllerPublications extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -55,12 +52,6 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		{
 			$this->_redirect = JRoute::_('index.php?option=com_resources');
 			return;
-		}
-		
-		// Check for necessary db setup
-		if ($this->_config->get( 'dbcheck', 1 ))
-		{
-			$this->_checkTables();
 		}
 		
 		// Logging
@@ -95,59 +86,21 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			$this->_task = 'intro';
 		}
 		
-		switch ($this->_task) 
-		{
-			// Individual publication-specific actions/views
-			case 'view':       
-				$this->_view();       
-				break;
-			
-			// Serve up content
-			case 'serve':	 
-			case 'download': 
-			case 'video':
-			case 'play': 
-			case 'watch':
-				$this->_serve();		
-				break;
-				
-			case 'wiki':
-				$this->_wikiPage();
-				break;
-				
-			case 'citation':   
-				$this->_citation();   
-				break;
-				
-			case 'license':    
-				$this->_license();    
-				break;
-			
-			// Publication discovery
-			case 'browse':   
-				$this->_browse();     
-				break;
-				
-			// Contribute
-			case 'submit':
-			case 'edit':
-			case 'start':   
-				$this->_contribute();     
-				break;
-			
-			// AJAX
-			case 'plugin':     
-				$this->_plugin();     
-				break;
-			case 'savetags':   
-				$this->_savetags();   
-				break;
-						
-			default: 
-				$this->_task = 'intro';
-				$this->_intro(); 
-				break;
-		}
+		// Set the default task
+		$this->registerTask('__default', 'intro');
+		
+		// Register tasks
+		$this->registerTask('download', 'serve');
+		$this->registerTask('video', 'serve');
+		$this->registerTask('play', 'serve');
+		$this->registerTask('watch', 'serve');
+		
+		$this->registerTask('wiki', 'wikipage');
+		$this->registerTask('submit', 'contribute');
+		$this->registerTask('edit', 'contribute');
+		$this->registerTask('start', 'contribute');
+		
+		parent::execute();
 	}
 	
 	/**
@@ -276,27 +229,6 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	}
 	
 	/**
-	 * Check for necessary db tables
-	 * 
-	 * @return     void
-	 */
-	protected function _checkTables()
-	{
-		$tables = $this->database->getTableList();
-		$prefix = $this->database->getPrefix();
-		
-		// Enable publication logs (NEW)
-		if (!in_array($prefix . 'publication_logs', $tables)) 
-		{
-			require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_publications' . DS . 'helpers' . DS . 'install.php');
-
-			$installHelper = new PubInstall($this->database, $tables);			
-			$installHelper->installLogs();
-		}		
-	}
-	
-	/**
 	 * Set notifications
 	 * 
 	 * @param  string $message
@@ -357,7 +289,8 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 */
 	protected function _login() 
 	{		
-		$rtrn = JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->_option . '&task=' . $this->_task), 'server');
+		$rtrn = JRequest::getVar('REQUEST_URI', 
+			JRoute::_('index.php?option=' . $this->_option . '&task=' . $this->_task), 'server');
 		$this->setRedirect(
 			JRoute::_('index.php?option=com_login&return=' . base64_encode($rtrn)),
 			$this->_msg,
@@ -370,9 +303,9 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 * 
 	 * @return     void
 	 */	
-	protected function _intro() 
-	{
-		$this->_task = 'intro';
+	public function introTask() 
+	{				
+		$this->view->setLayout('intro');
 		
 		// Push some styles to the template
 		$this->_getStyles();
@@ -388,50 +321,51 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		$this->_buildPathway();		
 		
 		// Instantiate a new view
-		$view 					= new JView( array('name'=>'intro') );
-		$view->title 			= $this->_title;
-		$view->option 			= $this->_option;
-		$view->database 		= $this->database;
-		$view->config 			= $this->config;
-		$view->contributable 	= $this->_contributable;
+		$this->view->title 			= $this->_title;
+		$this->view->option 		= $this->_option;
+		$this->view->database 		= $this->database;
+		$this->view->config 		= $this->config;
+		$this->view->contributable 	= $this->_contributable;
 		
-		$view->filters = array();
-		$view->filters['sortby'] = 'date_published';
-		$view->filters['limit']  = 10;
-		$view->filters['start']  = JRequest::getInt( 'limitstart', 0 );
+		$this->view->filters 		   = array();
+		$this->view->filters['sortby'] = 'date_published';
+		$this->view->filters['limit']  = 10;
+		$this->view->filters['start']  = JRequest::getInt( 'limitstart', 0 );
 		
 		// Instantiate a publication object
 		$rr = new Publication( $this->database );
 		
 		// Get most recent pubs
-		$view->results = $rr->getRecords( $view->filters );
+		$this->view->results = $rr->getRecords( $this->view->filters );
 		
 		// Get most popular/oldest pubs
-		$view->filters['sortby'] = 'popularity';
-		$view->best = $rr->getRecords( $view->filters );
+		$this->view->filters['sortby'] = 'popularity';
+		$this->view->best = $rr->getRecords( $this->view->filters );
 		
 		// Get publications helper
 		$helper = new PublicationHelper($this->database);
-		$view->helper = $helper;
+		$this->view->helper = $helper;
 		
 		// Get major types
 		$t = new PublicationCategory( $this->database );
-		$view->categories = $t->getCategories(array('itemCount' => 1));
+		$this->view->categories = $t->getCategories(array('itemCount' => 1));
 				
-		// Output HTML
 		if ($this->getError()) 
 		{
-			$view->setError( $this->getError() );
+			foreach ($this->getErrors() as $error)
+			{
+				$this->view->setError($error);
+			}
 		}
-		$view->display();
+		$this->view->display();
 	}
 
 	/**
-	 * Intro to projects (main view)
+	 * Browse publications
 	 * 
 	 * @return     void
 	 */	
-	protected function _browse()
+	public function browseTask()
 	{
 		// Instantiate a new view
 		$view = new JView( array('name'=>'browse') );
@@ -530,7 +464,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 * 
 	 * @return     void
 	 */	
-	protected function _view()
+	public function viewTask()
 	{
 		// Incoming
 		$id       = JRequest::getInt( 'id', 0 );            // Resource ID (primary method of identifying a resource)
@@ -567,7 +501,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			else 
 			{
 				$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NOT_FOUND') );
-				$this->_intro();
+				$this->introTask();
 				return;	
 			}
 		}
@@ -619,8 +553,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		}
 				
 		// Get groups user has access to
-		ximport('Hubzero_User_Helper');
-		$xgroups = Hubzero_User_Helper::getGroups($this->juser->get('id'), 'all');
+		$xgroups = \Hubzero\User\Helper::getGroups($this->juser->get('id'), 'all');
 		$usersgroups = $this->getGroupProperty($xgroups);
 
 		// Extra authorization for restricted publications
@@ -639,7 +572,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			if ($restricted) 
 			{
 				$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NO_ACCESS') );
-				$this->_intro();
+				$this->introTask();
 				return;
 			}
 		}
@@ -650,7 +583,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		if (!$authorized && $publication->published_up > $now)
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NO_ACCESS') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 		
@@ -658,7 +591,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		if ($publication->state == 2) 
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_DELETED') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 
@@ -764,19 +697,6 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		$body = '';
 		if ($tab == 'about') 
 		{
-			//Import the wiki parser
-			ximport('Hubzero_Wiki_Parser');
-			$parser = Hubzero_Wiki_Parser::getInstance();
-
-			$wikiconfig = array(
-				'option'   => $this->_option,
-				'scope'    => '',
-				'pagename' => 'projects',
-				'pageid'   => '',
-				'filepath' => '',
-				'domain'   => ''
-			);
-
 			// Build the HTML of the "about" tab
 			$view = new JView( array('name'=>'about') );
 			$view->option 		= $this->_option;
@@ -790,8 +710,6 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			$view->sections 	= $sections;
 			$view->authors 		= $authors;
 			$view->params 		= $params;
-			$view->parser 		= $parser;
-			$view->wikiconfig 	= $wikiconfig;
 			$body = $view->loadTemplate();
 			
 			// Log page view (public pubs only)
@@ -1002,11 +920,8 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 * 
 	 * @return     void
 	 */	
-	protected function _serve()
+	public function serveTask()
 	{
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Incoming	
 		$version  = JRequest::getVar( 'v', '' );            // Get version number of a publication
 		$aid	  = JRequest::getInt( 'a', 0 );             // Attachment id 
@@ -1057,7 +972,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		if ($publication->state == 0 || $publication->state == 2)
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NO_ACCESS') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 		
@@ -1164,7 +1079,13 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			$archPath = $helper->buildPath($publication->id, $publication->version_id, $base_path);
 			
 			// Get archival package
-			$downloadable = $this->_archiveFiles ($publication->id, $publication->version_id, $archPath, $tarname, $publication->state);
+			$downloadable = $this->_archiveFiles (
+				$publication->id, 
+				$publication->version_id, 
+				$archPath, 
+				$tarname, 
+				$publication->state
+			);
 		}
 		elseif ($render == 'video' || $this->task == 'video' || $serveas == 'video')
 		{
@@ -1204,8 +1125,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 					
 					$view->googleView	= $pparams->get('googleview'); 
 					
-					ximport('Hubzero_Content_Mimetypes');
-					$mt = new Hubzero_Content_Mimetypes();
+					$mt = new \Hubzero\Content\Mimetypes();
 							
 					$view->mimetype 	= $mt->getMimeType(JPATH_ROOT . $path . DS . $pPath);
 					$view->type 		= strtolower(array_shift(explode('/', $view->mimetype)));
@@ -1248,7 +1168,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			if ($pType == 'note')
 			{
 				// Serve wiki page
-				$this->_wikiPage();
+				$this->wikipageTask();
 				return;
 			}
 		}
@@ -1276,7 +1196,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		}
 		
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($downloadable['path']);
 		$xserver->disposition($disp);
 		$xserver->acceptranges(false); // @TODO fix byte range support
@@ -1302,9 +1222,6 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 */	
 	protected function _serveData()
 	{
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Incoming
 		$pid      	= JRequest::getInt( 'id', 0 );	
 		$vid  	  	= JRequest::getInt( 'vid', 0 );   
@@ -1326,7 +1243,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		if (!$objPV->load($vid))
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NOT_FOUND') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 
@@ -1338,7 +1255,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		if (!$publication) 
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NOT_FOUND') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 
@@ -1357,7 +1274,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		}
 
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename(JPATH_ROOT . $path . DS . $file);
 		$xserver->disposition($disp);
 		$xserver->acceptranges(false); // @TODO fix byte range support
@@ -1381,7 +1298,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 * 
 	 * @return     void
 	 */
-	protected function _wikiPage()
+	public function wikipageTask()
 	{			
 		// Get requested page id
 		$pageid = count($this->attachments) > 0 && $this->attachments[0]->object_id 
@@ -1866,11 +1783,11 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	}
 
 	/**
-	 * Display a license for a resource
+	 * Display a license for a publication
 	 * 
 	 * @return     void
 	 */	
-	protected function _license()
+	public function licenseTask()
 	{
 		// Incoming
 		$id       = JRequest::getInt( 'id', 0 );	
@@ -1900,12 +1817,10 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			$title = JText::_('COM_PUBLICATIONS_PAGE_UNAVAILABLE');
 		}
 
-		// Instantiate a new view
-		$view = new JView( array('name'=>'license') );
-		$view->option = $this->_option;
-		$view->config = $this->config;
-		$view->publication = $publication;
-		$view->title = $title;
+		$this->view->option 		= $this->_option;
+		$this->view->config 		= $this->config;
+		$this->view->publication 	= $publication;
+		$this->view->title 			= $title;
 
 		// Output HTML
 		if ($this->getError()) 
@@ -1916,11 +1831,11 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	}
 
 	/**
-	 * Download a citation for a resource
+	 * Download a citation for a publication
 	 * 
 	 * @return     void
 	 */	
-	protected function _citation()
+	public function citationTask()
 	{		
 		$monthFormat = "%b";
 		$yearFormat = "%Y";
@@ -1954,7 +1869,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		if (!$publication) 
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NOT_FOUND') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 		
@@ -2089,7 +2004,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 * 
 	 * @return     string
 	 */	
-	protected function _plugin()
+	public function pluginTask()
 	{
 		// Incoming
 		$trigger = trim(JRequest::getVar( 'trigger', '' ));
@@ -2258,7 +2173,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 * 
 	 * @return     void
 	 */	
-	protected function _contribute()
+	public function contributeTask()
 	{					
 		// Incoming
 		$pid     = JRequest::getInt('pid', 0);
@@ -2297,8 +2212,8 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		$this->_getStyles();
 		
 		// Add projects stylesheet
-		Hubzero_Document::addComponentStylesheet('com_projects');
-		Hubzero_Document::addComponentScript('com_projects', 'assets/js/projects');
+		\Hubzero\Document\Assets::addComponentStylesheet('com_projects');
+		\Hubzero\Document\Assets::addComponentScript('com_projects', 'assets/js/projects');
 
 		// Set page title
 		$this->_task_title = JText::_('COM_PUBLICATIONS_SUBMIT');
@@ -2371,7 +2286,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			
 			if ($creatorgroup) 
 			{	
-				$cgroup = Hubzero_Group::getInstance($creatorgroup);
+				$cgroup = \Hubzero\User\Group::getInstance($creatorgroup);
 				if ($cgroup)
 				{
 					if (!$cgroup->is_member_of('members',$this->juser->get('id')) &&
@@ -2446,7 +2361,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 	 * 
 	 * @return     void
 	 */	
-	protected function _savetags()
+	public function savetagsTask()
 	{
 		// Check if they are logged in
 		if ($this->juser->get('guest')) 
@@ -2485,7 +2400,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		if (!$publication) 
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NOT_FOUND') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 		
@@ -2493,7 +2408,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		if ($publication->access == 1 && $this->juser->get('guest')) 
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NO_ACCESS') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 		
@@ -2506,7 +2421,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			if (!$authorized && $restricted = $this->_checkGroupAccess($publication, $version)) 
 			{
 				$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NO_ACCESS') );
-				$this->_intro();
+				$this->introTask();
 				return;
 			}
 		}
@@ -2555,7 +2470,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 		else 
 		{			
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NO_ACCESS') );
-			$this->_intro();
+			$this->introTask();
 			return;
 		}
 
@@ -2624,8 +2539,7 @@ class PublicationsControllerPublications extends Hubzero_Controller
 			// Get the groups the user has access to
 			if (empty($usersgroups)) 
 			{
-				ximport('Hubzero_User_Helper');
-				$xgroups = Hubzero_User_Helper::getGroups($this->juser->get('id'), 'all');
+				$xgroups = \Hubzero\User\Helper::getGroups($this->juser->get('id'), 'all');
 				$usersgroups = $this->getGroupProperty($xgroups);
 			}
 		} 

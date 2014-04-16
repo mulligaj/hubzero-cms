@@ -157,8 +157,7 @@ class plgResourcesQuestions extends JPlugin
 		// Are we returning metadata?
 		if ($rtrn == 'all' || $rtrn == 'metadata') 
 		{
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'resources',
 					'element' => $this->_name,
@@ -181,13 +180,10 @@ class plgResourcesQuestions extends JPlugin
 	 */
 	private function _browse()
 	{
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('resources', $this->_name);
+		\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
 
 		// Instantiate a view
-		ximport('Hubzero_View_Helper_Html');
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'resources',
 				'element' => $this->_name,
@@ -245,11 +241,9 @@ class plgResourcesQuestions extends JPlugin
 		$lang = JFactory::getLanguage();
 		$lang->load('com_answers');
 
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('resources', $this->_name);
+		\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'resources',
 				'element' => $this->_name,
@@ -279,7 +273,7 @@ class plgResourcesQuestions extends JPlugin
 		{
 			$juser = JFactory::getUser();
 
-			$BTL = new Hubzero_Bank_Teller($this->database, $juser->get('id'));
+			$BTL = new \Hubzero\Bank\Teller($this->database, $juser->get('id'));
 			$funds = $BTL->summary() - $BTL->credit_summary();
 			$view->funds = ($funds > 0) ? $funds : 0;
 		}
@@ -367,7 +361,7 @@ class plgResourcesQuestions extends JPlugin
 		// Hold the reward for this question if we're banking
 		if ($reward && $this->banking) 
 		{
-			$BTL = new Hubzero_Bank_Teller($this->database, $this->juser->get('id'));
+			$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 			$BTL->hold($reward, JText::_('COM_ANSWERS_HOLD_REWARD_FOR_BEST_ANSWER'), 'answers', $row->get('id'));
 		}
 
@@ -461,20 +455,8 @@ class plgResourcesQuestions extends JPlugin
 			$message['plaintext'] = $eview->loadTemplate();
 			$message['plaintext'] = str_replace("\n", "\r\n", $message['plaintext']);
 
-			// Build the message	
-			$eview = new JView(array(
-				'base_path' => JPATH_ROOT . DS . 'components' . DS . 'com_answers',
-				'name'   => 'emails',
-				'layout' => 'question'
-			));
-			$eview->option    = 'com_answers';
-			$eview->jconfig   = $jconfig;
-			$eview->sitename  = $jconfig->getValue('config.sitename');
-			$eview->juser     = $juser;
-			$eview->question  = $row;
-			$eview->id        = $row->get('id', 0);
-			$eview->boundary  = $from['multipart'];
-			$eview->plaintext = $message['plaintext'];
+			// HTML message
+			$eview->setLayout('question_html');
 
 			$message['multipart'] = $eview->loadTemplate();
 			$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);

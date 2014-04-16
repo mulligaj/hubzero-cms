@@ -197,7 +197,7 @@ if (!$this->question->get('anonymous'))
 						<?php echo JText::_('COM_ANSWERS_REPORT_ABUSE'); ?>
 					</a>
 				</span>
-			<?php if ($this->question->get('created_by') == $this->juser->get('username') && $this->question->isOpen()) { ?>
+			<?php if ($this->question->get('created_by') == $this->juser->get('id') && $this->question->isOpen()) { ?>
 				<span>
 					<a class="icon-delete delete" href="<?php echo JRoute::_($this->question->link('delete')); ?>" title="<?php echo JText::_('COM_ANSWERS_DELETE_QUESTION'); ?>">
 						<?php echo JText::_('COM_ANSWERS_DELETE'); ?>
@@ -319,55 +319,22 @@ if (!$this->question->get('anonymous'))
 		</h3>
 		<div class="aside">
 			<div class="container">
-				<table class="wiki-reference">
-					<caption>Wiki Syntax Reference</caption>
-					<tbody>
-						<tr>
-							<td>'''bold'''</td>
-							<td><b>bold</b></td>
-						</tr>
-						<tr>
-							<td>''italic''</td>
-							<td><i>italic</i></td>
-						</tr>
-						<tr>
-							<td>__underline__</td>
-							<td><span style="text-decoration:underline;">underline</span></td>
-						</tr>
-						<tr>
-							<td>{{{monospace}}}</td>
-							<td><code>monospace</code></td>
-						</tr>
-						<tr>
-							<td>~~strike-through~~</td>
-							<td><del>strike-through</del></td>
-						</tr>
-						<tr>
-							<td>^superscript^</td>
-							<td><sup>superscript</sup></td>
-						</tr>
-						<tr>
-							<td>,,subscript,,</td>
-							<td><sub>subscript</sub></td>
-						</tr>
-					</tbody>
-				</table>
 			</div><!-- / .container -->
 		</div><!-- / .aside -->
 		<div class="subject">
 			<?php if (!$this->juser->get('guest')) { ?>
 			<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="post" id="commentform">
 				<p class="comment-member-photo">
-					<span class="comment-anchor"><!-- <a name="answerform"></a> --></span>
+					<span class="comment-anchor"></span>
 					<?php
-						$jxuser = Hubzero_User_Profile::getInstance($this->juser->get('id'));
+						$jxuser = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 						if (!$this->juser->get('guest')) {
 							$anon = 0;
 						} else {
 							$anon = 1;
 						}
 					?>
-					<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($jxuser, $anon); ?>" alt="<?php echo JText::_('COM_ANSWERS_MEMBER_PICTURE'); ?>" />
+					<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($jxuser, $anon); ?>" alt="<?php echo JText::_('COM_ANSWERS_MEMBER_PICTURE'); ?>" />
 				</p>
 				<fieldset>
 					<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
@@ -377,14 +344,12 @@ if (!$this->question->get('anonymous'))
 					<?php echo JHTML::_('form.token'); ?>
 
 					<input type="hidden" name="response[id]" value="0" />
-					<input type="hidden" name="response[qid]" value="<?php echo $this->question->get('id'); ?>" />
+					<input type="hidden" name="response[question_id]" value="<?php echo $this->question->get('id'); ?>" />
 
 					<label for="responseanswer">
 						<?php echo JText::_('COM_ANSWERS_YOUR_RESPONSE'); ?>:
 						<?php
-						ximport('Hubzero_Wiki_Editor');
-						$editor = Hubzero_Wiki_Editor::getInstance();
-						echo $editor->display('response[answer]', 'responseanswer', '', 'minimal', '50', '10');
+						echo $this->helpers()->editor('response[answer]', '', 50, 10, 'responseanswer', array('class' => 'minimal'));
 						?>
 					</label>
 
@@ -402,7 +367,7 @@ if (!$this->question->get('anonymous'))
 							<strong><?php echo JText::_('COM_ANSWERS_COMMENT_KEEP_RELEVANT'); ?></strong>
 						</p>
 						<p>
-							<?php echo JText::_('COM_ANSWERS_COMMENT_HELP'); ?> <a href="<?php echo JRoute::_('index.php?option=com_wiki&scope=&pagename=Help:WikiFormatting'); ?>" class="popup">Wiki syntax</a> is supported.
+							<?php echo JText::_('COM_ANSWERS_COMMENT_HELP'); ?>
 						</p>
 					</div>
 				</fieldset>
@@ -437,6 +402,7 @@ if (!$this->question->get('anonymous'))
 					'layout'  => '_list'
 				)
 			);
+			$view->item_id    = 0;
 			$view->parent     = 0;
 			$view->cls        = 'odd';
 			$view->depth      = 0;
@@ -462,7 +428,7 @@ if (!$this->question->get('anonymous'))
 		</h3>
 
 		<div class="aside">
-		<?php if ($this->question->isOpen() && $this->responding!=1 && !$this->question->isReported() && $this->question->get('created_by') != $this->juser->get('username')) { ?>
+		<?php if ($this->question->isOpen() && $this->responding!=1 && !$this->question->isReported() && $this->question->get('created_by') != $this->juser->get('id')) { ?>
 			<div class="container">
 			<p><a class="icon-add add btn" href="<?php 
 			$route = JRoute::_($this->question->link('answer'), false, true);
@@ -471,7 +437,7 @@ if (!$this->question->get('anonymous'))
 			</div><!-- / .container -->
 		<?php } ?>
 		
-		<?php if ($this->juser->get('username') == $this->question->get('created_by') && $this->question->isOpen()) { ?>
+		<?php if ($this->juser->get('id') == $this->question->get('created_by') && $this->question->isOpen()) { ?>
 			<div class="container">
 				<p class="info"><?php echo JText::_('COM_ANSWERS_DO_NOT_FORGET_TO_CLOSE') . ($this->question->config('banking') ? ' ' . JText::_('COM_ANSWERS_DO_NOT_FORGET_TO_CLOSE_POINTS') : ''); ?></p>
 			</div><!-- / .container -->
@@ -487,6 +453,7 @@ if (!$this->question->get('anonymous'))
 					'layout'  => '_list'
 				)
 			);
+			$view->item_id    = 0;
 			$view->parent     = 0;
 			$view->cls        = 'odd';
 			$view->depth      = 0;

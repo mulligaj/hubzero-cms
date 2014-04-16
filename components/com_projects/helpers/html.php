@@ -172,7 +172,7 @@ class ProjectsHtml
 	 */
 	public static function timeAgo($timestamp, $utc = true) 
 	{
-		$timestamp = Hubzero_View_Helper_Html::mkt($timestamp);
+		$timestamp = strtotime($timestamp);
 		
 		// Get current time
 		$current_time = $utc ? strtotime(JFactory::getDate()) : strtotime(date('c'));
@@ -652,17 +652,23 @@ class ProjectsHtml
 		$image  = $view->project->picture 
 			&& file_exists( JPATH_ROOT . $path . DS . $view->project->picture ) 
 			? $path . DS . $view->project->picture 
-			: ProjectsHtml::getThumbSrc($view->project->id, 
-				$view->project->alias, $view->project->picture, $view->config);
-		?>
-	<div id="pimage">
-		<a href="<?php echo JRoute::_('index.php?option=' . $view->option . a . 'alias='
-		.$view->project->alias); ?>" title="<?php echo $view->project->title . ' - ' 
-		. JText::_('COM_PROJECTS_VIEW_UPDATES'); ?>">
-			<img src="<?php echo $image;  ?>" alt="<?php echo $view->project->title; ?>" /></a>
-	</div>	
+			: NULL; ?>
+		<div id="pimage">
+			<a href="<?php echo JRoute::_('index.php?option=' . $view->option . a . 'alias='
+			.$view->project->alias); ?>" title="<?php echo $view->project->title . ' - ' 
+			. JText::_('COM_PROJECTS_VIEW_UPDATES'); ?>">
+	<?php
+		if ($image) {
+		?>		
+			<img src="<?php echo $image;  ?>" alt="<?php echo $view->project->title; ?>" /></a>	
 	<?php 
-	}
+ 		}
+		else
+		{ ?>
+			<span class="defaultimage">&nbsp;</span>
+	<?php } ?>
+		</a></div>
+	<?php }
 	
 	/**
 	 * Write member options
@@ -770,14 +776,14 @@ class ProjectsHtml
 		<div class="pthumb"><a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto); ?>" title="<?php echo JText::_('COM_PROJECTS_VIEW_UPDATES'); ?>"><img src="<?php echo ProjectsHtml::getThumbSrc($view->project->id, $view->project->alias, $view->project->picture, $view->config); ?>" alt="<?php echo $view->project->title; ?>" /></a></div>
 		<?php } ?>
 		<div class="ptitle">
-			<h2><a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto); ?>"><?php echo Hubzero_View_Helper_Html::shortenText($view->project->title, 50, 0); ?> <span>(<?php echo $view->project->alias; ?>)</span></a></h2>
+			<h2><a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto); ?>"><?php echo \Hubzero\Utility\String::truncate($view->project->title, 50); ?> <span>(<?php echo $view->project->alias; ?>)</span></a></h2>
 			<?php if($back)  { ?>
 			<h3 class="returnln"><?php echo JText::_('COM_PROJECTS_RETURN_TO'); ?> <a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto); ?>"><?php echo JText::_('COM_PROJECTS_PROJECT_PAGE'); ?></a></h3>
 			<?php } else { ?>
 			<h3 <?php if($underline) { echo 'class="returnln"'; } ?>><?php echo $start .' '.JText::_('COM_PROJECTS_BY').' '; 
 			if($view->project->owned_by_group) 
 			{	
-				$group = Hubzero_Group::getInstance( $view->project->owned_by_group );	
+				$group = \Hubzero\User\Group::getInstance( $view->project->owned_by_group );	
 				if($group) 
 				{
 					echo ' '.JText::_('COM_PROJECTS_GROUP').' <a href="/groups/'.$group->get('cn').'">'.$group->get('cn').'</a>';
@@ -825,6 +831,9 @@ class ProjectsHtml
 	
 		if ($picname) 
 		{
+			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS 
+				. 'helpers' . DS . 'imghandler.php' );
+			
 			$ih = new ProjectsImgHandler();
 			$thumb = $ih->createThumbName($picname);
 			$src = $thumb && file_exists( JPATH_ROOT . $path . DS . $thumb ) ? $path . DS . $thumb :  '';
@@ -849,7 +858,7 @@ class ProjectsHtml
 	public static function toolDevHeader( $option, $config, $project, $tool, $active, $bcrumb = '')
 	{
 		// tool-only tab menu 
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'tools',
@@ -1238,6 +1247,33 @@ class ProjectsHtml
 		return $name;
 	}
 	
+	/**
+	 * Makes file name safe to use
+	 *
+	 * @param string $file The name of the file [not full path]
+	 * @return string The sanitized string
+	 */
+	public static function makeSafeFile($file) 
+	{
+	//	$regex = array('#(\.){2,}#', '#[^A-Za-z0-9\.\_\- ]#', '#^\.#');
+		$regex = array('#(\.){2,}#', '#[^A-Za-z0-9\.\_\- ]#');
+		return preg_replace($regex, '', $file);
+	}
+	
+	/**
+	 * Makes path name safe to use.
+	 *
+	 * @access	public
+	 * @param	string The full path to sanitise.
+	 * @return	string The sanitised string.
+	 */
+	public static function makeSafeDir($path)
+	{
+		$ds = (DS == '\\') ? '\\' . DS : DS;
+		$regex = array('#[^A-Za-z0-9:\_\-' . $ds . ' ]#');
+		return preg_replace($regex, '', $path);
+	}
+	
 	//----------------------------------------------------------
 	// Reviewers
 	//----------------------------------------------------------
@@ -1312,7 +1348,7 @@ class ProjectsHtml
 				
 			if($shorten)
 			{
-				$note   = Hubzero_View_Helper_Html::shortenText($note, $shorten, 0);
+				$note   = \Hubzero\Utility\String::truncate($note, $shorten);
 			}
 			if($showmeta)
 			{
@@ -1360,26 +1396,32 @@ class ProjectsHtml
 	 * 
 	 * @param      string $email
 	 * @param      string $subject
-	 * @param      string $message
+	 * @param      string $body
 	 * @param      array $from
 	 * @return     void
 	 */	
-	public static function email($email, $subject, $message, $from) 
+	public static function email($email, $subject, $body, $from) 
 	{
 		if ($from) 
 		{
-			$args = "-f '" . $from['email'] . "'";
-			$headers  = "MIME-Version: 1.0\n";
-			$headers .= "Content-type: text/plain; charset=utf-8\n";
-			$headers .= 'From: ' . $from['name'] .' <'. $from['email'] . ">\n";
-			$headers .= 'Reply-To: ' . $from['name'] .' <'. $from['email'] . ">\n";
-			$headers .= "X-Priority: 3\n";
-			$headers .= "X-MSMail-Priority: High\n";
-			$headers .= 'X-Mailer: '. $from['name'] ."\n";
-			if (mail($email, $subject, $message, $headers, $args)) 
+			$body_plain = is_array($body) && isset($body['plaintext']) ? $body['plaintext'] : $body;
+			$body_html  = is_array($body) && isset($body['multipart']) ? $body['multipart'] : NULL;
+			
+			$message = new \Hubzero\Mail\Message();
+			$message->setSubject($subject)
+				->addTo($email, $email)
+				->addFrom($from['email'], $from['name'])
+				->setPriority('normal');
+
+			$message->addPart($body_plain, 'text/plain');
+			
+			if ($body_html)	
 			{
-				return true;
+				$message->addPart($body_html, 'text/html');
 			}
+			
+			$message->send();
+			
 		}
 		return false;
 	}

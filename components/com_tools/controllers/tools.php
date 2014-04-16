@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for tools (default)
  */
-class ToolsControllerTools extends Hubzero_Controller
+class ToolsControllerTools extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -121,8 +119,7 @@ class ToolsControllerTools extends Hubzero_Controller
 		$this->view->apps = $model->getApplicationTools();
 
 		// Get the forge image
-		ximport('Hubzero_Document');
-		$this->view->image = Hubzero_Document::getComponentImage($this->_option, 'forge.png', 1);
+		$this->view->image = \Hubzero\Document\Assets::getComponentImage($this->_option, 'forge.png', 1);
 
 		// Get some vars to fill in text
 		$this->view->title = $this->_title;
@@ -173,11 +170,9 @@ class ToolsControllerTools extends Hubzero_Controller
 			exit;
 		}
 
-		ximport('Hubzero_Document');
-
 		if ($type == 'css')
 		{
-			$file = JPATH_SITE . Hubzero_Document::getComponentStylesheet($this->_option, $file);
+			$file = JPATH_SITE . \Hubzero\Document\Assets::getComponentStylesheet($this->_option, $file);
 
 			if (is_readable($file)) 
 			{
@@ -204,8 +199,7 @@ class ToolsControllerTools extends Hubzero_Controller
 	 */
 	public function imageTask()
 	{
-		ximport('Hubzero_Document');
-		$image = JPATH_SITE . Hubzero_Document::getComponentImage($this->_option, 'forge.png', 1);
+		$image = JPATH_SITE . \Hubzero\Document\Assets::getComponentImage($this->_option, 'forge.png', 1);
 
 		if (is_readable($image)) 
 		{
@@ -224,8 +218,7 @@ class ToolsControllerTools extends Hubzero_Controller
 	 */
 	public function cssTask()
 	{
-		ximport('Hubzero_Document');
-		$file = JPATH_SITE . Hubzero_Document::getComponentStylesheet($this->_option, 'site_css.css');
+		$file = JPATH_SITE . \Hubzero\Document\Assets::getComponentStylesheet($this->_option, 'site_css.css');
 
 		if (is_readable($file)) 
 		{

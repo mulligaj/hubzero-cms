@@ -36,7 +36,7 @@ JLoader::import('Hubzero.Api.Controller');
 /**
  * API controller for the projects component
  */
-class ProjectsControllerApi extends Hubzero_Api_Controller
+class ProjectsControllerApi extends \Hubzero\Component\ApiController
 {
 	/**
 	 * Execute!
@@ -96,7 +96,7 @@ class ProjectsControllerApi extends Hubzero_Api_Controller
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
 				
-		$result = Hubzero_User_Profile::getInstance($userid);
+		$result = \Hubzero\User\Profile::getInstance($userid);
 		
 		// make sure we have a user
 		if ($result === false)	return $this->_not_found('User not found');

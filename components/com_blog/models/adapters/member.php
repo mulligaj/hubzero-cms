@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'adapters' . DS . 'abstract.php');
+require_once(__DIR__ . '/abstract.php');
 
 /**
  * Adapter class for an entry link for member blog
@@ -60,14 +60,13 @@ class BlogModelAdapterMember extends BlogModelAdapterAbstract
 		$this->_segments['id']     = $scope_id;
 		$this->_segments['active'] = 'blog';
 
-		$this->_item = Hubzero_User_Profile::getInstance($scope_id);
+		$this->_item = \Hubzero\User\Profile::getInstance($scope_id);
 
 		$config = new JRegistry(
 			JPluginHelper::getPlugin('members', 'blog')->params
 		);
 
-		ximport('Hubzero_View_Helper_Html');
-		$id = Hubzero_View_Helper_Html::niceidformat($this->get('scope_id'));
+		$id = \Hubzero\Utility\String::pad($this->get('scope_id'));
 
 		$this->set('path', str_replace('{{uid}}', $id, $config->get('uploadpath', '/site/members/{{uid}}/blog')));
 		$this->set('scope', $this->get('scope_id') . '/blog');

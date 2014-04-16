@@ -32,9 +32,8 @@
 defined('_JEXEC') or die('Restricted access');
 
 //add styles and scripts
-ximport('Hubzero_Document');
-Hubzero_Document::addPluginStylesheet('groups', $this->name);
-Hubzero_Document::addPluginScript('groups', $this->name);
+$this->css();
+$this->js();
 ?>
 
 <?php if ($this->authorized == 'manager') : ?>
@@ -65,7 +64,7 @@ Hubzero_Document::addPluginScript('groups', $this->name);
 			<?php if ($this->total > 0) : ?>
 				<?php foreach ($this->rows as $row) : ?>
 					<?php
-						$view = new Hubzero_Plugin_View(
+						$view = new \Hubzero\Plugin\View(
 							array(
 								'folder'  => 'groups',
 								'element' => 'announcements',
@@ -77,7 +76,7 @@ Hubzero_Document::addPluginScript('groups', $this->name);
 						$view->group        = $this->group;
 						$view->juser        = $this->juser;
 						$view->authorized   = $this->authorized;
-						$view->announcement = $row;
+						$view->announcement = new GroupsModelAnnouncement($row);
 						$view->showClose    = false;
 						$view->display();
 					?>

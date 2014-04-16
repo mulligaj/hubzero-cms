@@ -1,21 +1,23 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for ...
  **/
-class Migration20131112130740ComUsage extends Hubzero_Migration
+class Migration20131112130740ComUsage extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
 		// Get stats DB object
-		$config     = JComponentHelper::getParams('com_usage');
-		$siteConfig = JFactory::getConfig();
+		$config     = \JComponentHelper::getParams('com_usage');
+		$siteConfig = \JFactory::getConfig();
 
 		$options['driver']   = $config->get('statsDBDriver');
 		$options['host']     = $config->get('statsDBHost');
@@ -49,7 +51,7 @@ class Migration20131112130740ComUsage extends Hubzero_Migration
 
 		try
 		{
-			$statsDb = JDatabase::getInstance($options);
+			$statsDb = \JDatabase::getInstance($options);
 		}
 		catch (Exception $e)
 		{
@@ -59,19 +61,19 @@ class Migration20131112130740ComUsage extends Hubzero_Migration
 
 		$options['driver'] = $originalDriver;
 
-		if ($db->tableExists('#__extensions'))
+		if ($this->db->tableExists('#__extensions'))
 		{
 			$query = 'SELECT `params` FROM `#__extensions` WHERE element = "com_usage"';
-			$db->setQuery($query);
-			$result = $db->loadResult();
+			$this->db->setQuery($query);
+			$result = $this->db->loadResult();
 
 			$params = (array) json_decode($result);
 		}
 		else
 		{
 			$query = 'SELECT `params` FROM `#__plugins` WHERE element = "com_usage"';
-			$db->setQuery($query);
-			$result = $db->loadResult();
+			$this->db->setQuery($query);
+			$result = $this->db->loadResult();
 
 			$params = array();
 
@@ -99,13 +101,13 @@ class Migration20131112130740ComUsage extends Hubzero_Migration
 		$params['statsDBPassword'] = $options['password'];
 		$params['statsDBDatabase'] = $options['database'];
 
-		if ($db->tableExists('#__extensions'))
+		if ($this->db->tableExists('#__extensions'))
 		{
 			$params = json_encode($params);
 
-			$query = 'UPDATE `#__extensions` SET params = '.$db->quote($params).' WHERE element = "com_usage"';
-			$db->setQuery($query);
-			$db->query();
+			$query = 'UPDATE `#__extensions` SET params = '.$this->db->quote($params).' WHERE element = "com_usage"';
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 		else
 		{
@@ -117,14 +119,14 @@ class Migration20131112130740ComUsage extends Hubzero_Migration
 
 			$params = $p;
 
-			$query = 'UPDATE `#__plugins` SET params = '.$db->quote($params).' WHERE element = "com_usage"';
-			$db->setQuery($query);
-			$db->query();
+			$query = 'UPDATE `#__plugins` SET params = '.$this->db->quote($params).' WHERE element = "com_usage"';
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 
 		// Set up return if needed
-		$return = new stdClass();
-		$return->error = new stdClass();
+		$return = new \stdClass();
+		$return->error = new \stdClass();
 		$return->error->type = 'warning';
 		$return->error->message = 'Failed to create stats table. Try running again with elevated privileges';
 

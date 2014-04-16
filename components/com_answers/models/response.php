@@ -33,8 +33,8 @@ defined('_JEXEC') or die('Restricted access');
 
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_answers' . DS . 'tables' . DS . 'log.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_answers' . DS . 'tables' . DS . 'response.php');
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'abstract.php');
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'comment.php');
+require_once(__DIR__ . '/abstract.php');
+require_once(__DIR__ . '/comment.php');
 
 /**
  * Answers model for a question response
@@ -49,6 +49,13 @@ class AnswersModelResponse extends AnswersModelAbstract
 	protected $_tbl_name = 'AnswersTableResponse';
 
 	/**
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_answers.response.answer';
+
+	/**
 	 * Class scope
 	 * 
 	 * @var string
@@ -56,7 +63,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 	protected $_scope = 'answer';
 
 	/**
-	 * \Hubzero\ItemList
+	 * \Hubzero\Base\ItemList
 	 * 
 	 * @var object
 	 */
@@ -86,13 +93,17 @@ class AnswersModelResponse extends AnswersModelAbstract
 	 */
 	public function replies($rtrn='list', $filters=array(), $clear=false)
 	{
-		if (!isset($filters['id']))
+		if (!isset($filters['item_id']))
 		{
-			$filters['id'] = $this->get('id');
+			$filters['item_id'] = $this->get('id');
 		}
-		if (!isset($filters['category']))
+		if (!isset($filters['item_type']))
 		{
-			$filters['category'] = 'answer';
+			$filters['item_type'] = 'answer';
+		}
+		if (!isset($filters['parent']))
+		{
+			$filters['parent'] = 0;
 		}
 
 		switch (strtolower($rtrn))
@@ -128,9 +139,9 @@ class AnswersModelResponse extends AnswersModelAbstract
 			case 'list':
 			case 'results':
 			default:
-				if (!($this->_comments instanceof \Hubzero\ItemList) || $clear)
+				if (!($this->_comments instanceof \Hubzero\Base\ItemList) || $clear)
 				{
-					$tbl = new Hubzero_Comment($this->_db);
+					$tbl = new \Hubzero\Item\Comment($this->_db);
 
 					if ($this->get('replies', null) !== null)
 					{
@@ -138,7 +149,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 					}
 					else
 					{
-						$results = $tbl->getResults($filters);
+						$results = $tbl->find($filters);
 					}
 
 					if ($results)
@@ -146,13 +157,14 @@ class AnswersModelResponse extends AnswersModelAbstract
 						foreach ($results as $key => $result)
 						{
 							$results[$key] = new AnswersModelComment($result);
+							$results[$key]->set('question_id', $this->get('question_id'));
 						}
 					}
 					else
 					{
 						$results = array();
 					}
-					$this->_comments = new \Hubzero\ItemList($results);
+					$this->_comments = new \Hubzero\Base\ItemList($results);
 				}
 				return $this->_comments;
 			break;
@@ -169,60 +181,57 @@ class AnswersModelResponse extends AnswersModelAbstract
 	public function content($as='parsed', $shorten=0)
 	{
 		$as = strtolower($as);
+		$options = array();
 
 		switch ($as)
 		{
 			case 'parsed':
-				if ($this->get('answer_parsed'))
+				$content = $this->get('answer.parsed', null);
+
+				if ($content === null)
 				{
-					return $this->get('answer_parsed');
+					$config = array(
+						'option'   => 'com_answers',
+						'scope'    => 'question',
+						'pagename' => $this->get('id'),
+						'pageid'   => 0,
+						'filepath' => '',
+						'domain'   => ''
+					);
+
+					$content = (string) stripslashes($this->get('answer', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('answer.parsed', (string) $this->get('answer', ''));
+					$this->set('answer', $content);
+
+					return $this->content($as, $shorten);
 				}
 
-				$p = Hubzero_Wiki_Parser::getInstance();
-
-				$wikiconfig = array(
-					'option'   => 'com_answers',
-					'scope'    => 'question',
-					'pagename' => $this->get('id'),
-					'pageid'   => 0,
-					'filepath' => '',
-					'domain'   => ''
-				);
-
-				$this->set('answer_parsed', $p->parse(stripslashes($this->get('answer')), $wikiconfig));
-
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($this->get('answer_parsed'), $shorten, 0, 0);
-					if (substr($content, -7) == '&#8230;') 
-					{
-						$content .= '</p>';
-					}
-					return $content;
-				}
-
-				return $this->get('answer_parsed');
+				$options['html'] = true;
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->content('parsed'));
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
 			break;
 
 			case 'raw':
 			default:
 				$content = $this->get('answer');
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+
+		return $content;
 	}
 
 	/**
@@ -236,7 +245,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 	{
 		if (!isset($this->_base))
 		{
-			$this->_base = 'index.php?option=com_answers&task=question&id=' . $this->get('qid');
+			$this->_base = 'index.php?option=com_answers&task=question&id=' . $this->get('question_id');
 		}
 		$link = $this->_base;
 
@@ -256,12 +265,12 @@ class AnswersModelResponse extends AnswersModelAbstract
 			break;
 
 			case 'accept':
-				$link  = 'index.php?option=com_answers&task=accept&id=' . $this->get('qid') . '&rid=' . $this->get('id');
-				//$link .= '&task=accept&id' . $this->get('qid') . '&rid=' . $this->get('id');
+				$link  = 'index.php?option=com_answers&task=accept&id=' . $this->get('question_id') . '&rid=' . $this->get('id');
+				//$link .= '&task=accept&id' . $this->get('question_id') . '&rid=' . $this->get('id');
 			break;
 
 			case 'report':
-				$link = 'index.php?option=com_support&task=reportabuse&category=comment&id=' . $this->get('id') . '&parent=' . $this->get('qid');
+				$link = 'index.php?option=com_support&task=reportabuse&category=answer&id=' . $this->get('id') . '&parent=' . $this->get('question_id');
 			break;
 
 			case 'permalink':
@@ -381,7 +390,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 		{
 			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'question.php');
 
-			$aq = new AnswersModelQuestion($this->get('qid'));
+			$aq = new AnswersModelQuestion($this->get('question_id'));
 			if ($aq->exists() && $aq->get('state') != 1)
 			{
 				$aq->set('state', 1);
@@ -392,7 +401,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 				{
 					// Calculate and distribute earned points
 					$AE = new AnswersEconomy($this->_db);
-					$AE->distribute_points($this->get('qid'), $aq->get('created_by'), $this->get('created_by'), 'closure');
+					$AE->distribute_points($this->get('question_id'), $aq->get('created_by'), $this->get('created_by'), 'closure');
 
 					// Load the plugins
 					JPluginHelper::importPlugin('xmessage');
@@ -404,7 +413,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 							'answers_reply_submitted', 
 							array($aq->creator('id')), 
 							'com_answers', 
-							$this->get('qid')
+							$this->get('question_id')
 						))
 					)
 					{
@@ -431,13 +440,6 @@ class AnswersModelResponse extends AnswersModelAbstract
 	 */
 	public function delete()
 	{
-		// Ensure we have a database to work with
-		if (empty($this->_db))
-		{
-			$this->setError(JText::_('Database not found.'));
-			return false;
-		}
-
 		// Can't delete what doesn't exist
 		if (!$this->exists()) 
 		{

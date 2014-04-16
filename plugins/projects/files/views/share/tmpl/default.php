@@ -58,7 +58,7 @@ if (!$this->getError()) {
 		<ul class="sample">
 			<?php
 				// Display list item with file data
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'=>'projects',
 						'element'=>'files',
@@ -122,8 +122,8 @@ if (!$this->getError()) {
 			<?php echo $this->type == 'folder' 
 				? '<input type="hidden" name="folder" value="'.$this->item.'" />'
 				: '<input type="hidden" name="asset" value="'.$this->item.'" />'; ?>
-			<input type="submit" value="<?php echo $remoteControl ? JText::_('COM_PROJECTS_FILES_ACTION_UNSHARE') : JText::_('COM_PROJECTS_FILES_ACTION_SHARE'); ?>" id="submit-ajaxform" />
-			<input type="reset" id="cancel-action" value="<?php echo JText::_('COM_PROJECTS_CANCEL'); ?>" />
+			<input type="submit" value="<?php echo $remoteControl ? JText::_('COM_PROJECTS_FILES_ACTION_UNSHARE') : JText::_('COM_PROJECTS_FILES_ACTION_SHARE'); ?>" id="submit-ajaxform" class="btn" />
+			<input type="reset" id="cancel-action" class="btn btn-cancel" value="<?php echo JText::_('COM_PROJECTS_CANCEL'); ?>" />
 		</p>		
 	</fieldset>
 </form>

@@ -1,36 +1,38 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for ...
  **/
-class Migration20130809152737ComCourses extends Hubzero_Migration
+class Migration20130809152737ComCourses extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
-		if (!$db->tableHasField('#__courses_pages', 'section_id'))
+		if (!$this->db->tableHasField('#__courses_pages', 'section_id'))
 		{
 			$query = "ALTER TABLE `#__courses_pages` ADD `section_id` INT(11)  NOT NULL  DEFAULT '0'  AFTER `offering_id`;";
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
-		if ($db->tableHasField('#__courses_pages', 'section_id'))
+		if ($this->db->tableHasField('#__courses_pages', 'section_id'))
 		{
 			$query = "ALTER TABLE `#__courses_pages` DROP `section_id`;";
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 }

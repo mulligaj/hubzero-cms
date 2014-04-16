@@ -78,9 +78,9 @@ class plgSupportResources extends JPlugin
 		} 
 		else if ($category == 'reviewcomment') 
 		{
-			$query  = "SELECT rr.id, rr.comment as text, rr.added AS created, rr.added_by as author, 
+			$query  = "SELECT rr.id, rr.content as text, rr.created, rr.created_by as author, 
 						NULL as subject, 'reviewcomment' as parent_category, rr.anonymous as anon 
-						FROM #__comments AS rr 
+						FROM #__item_comments AS rr 
 						WHERE rr.id=" . $refid;
 		}
 
@@ -91,6 +91,10 @@ class plgSupportResources extends JPlugin
 		{
 			foreach ($rows as $key => $row)
 			{
+				if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $row->text, $matches))
+				{
+					$rows[$key]->text = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $row->text);
+				}
 				$rows[$key]->href = ($parent) ? JRoute::_('index.php?option=com_resources&id=' . $parent . '&active=reviews') : '';
 			}
 		}
@@ -106,8 +110,6 @@ class plgSupportResources extends JPlugin
 	 */
 	public function getParentId($parentid, $category)
 	{
-		ximport('Hubzero_Comment');
-
 		$database = JFactory::getDBO();
 		$refid = $parentid;
 
@@ -151,7 +153,7 @@ class plgSupportResources extends JPlugin
 	{
 		$database = JFactory::getDBO();
 
-		$parent = new Hubzero_Comment($database);
+		$parent = new \Hubzero\Item\Comment($database);
 		$parent->load($parentid);
 
 		return $parent;
@@ -199,6 +201,8 @@ class plgSupportResources extends JPlugin
 			return null;
 		}
 
+		$msg = 'This comment was found to contain objectionable material and was removed by the administrator.';
+
 		$database = JFactory::getDBO();
 
 		switch ($category)
@@ -211,7 +215,25 @@ class plgSupportResources extends JPlugin
 				$review = new ResourcesReview($database);
 				$review->load($referenceid);
 				//$comment->anonymous = 1;
-				$review->comment = '[[Span(This comment was found to contain objectionable material and was removed by the administrator., class="warning")]]';
+				if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $review->comment, $matches))
+				{
+					$format = strtolower(trim($matches[1]));
+					switch ($format)
+					{
+						case 'html':
+							$review->comment = '<!-- {FORMAT:HTML} --><span class="warning">' . $msg . '</span>';
+						break;
+
+						case 'wiki':
+						default:
+							$review->comment = '<!-- {FORMAT:WIKI} -->[[Span(' . $msg . ', class="warning")]]';
+						break;
+					}
+				}
+				else
+				{
+					$review->comment = '[[Span(' . $msg . ', class="warning")]]';
+				}
 				$review->store();
 
 				//$review->delete($referenceid);
@@ -230,12 +252,29 @@ class plgSupportResources extends JPlugin
 			break;
 
 			case 'reviewcomment':
-				ximport('Hubzero_Comment');
-
-				$comment = new Hubzero_Comment($database);
+				$comment = new \Hubzero\Item\Comment($database);
 				$comment->load($referenceid);
 				//$comment->state = 2;
-				$comment->comment = '[[Span(This comment was found to contain objectionable material and was removed by the administrator., class="warning")]]';
+				if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $comment->content, $matches))
+				{
+					$format = strtolower(trim($matches[1]));
+					switch ($format)
+					{
+						case 'html':
+							$comment->content = '<!-- {FORMAT:HTML} --><span class="warning">' . $msg . '</span>';
+						break;
+
+						case 'wiki':
+						default:
+							$comment->content = '<!-- {FORMAT:WIKI} -->[[Span(' . $msg . ', class="warning")]]';
+						break;
+					}
+				}
+				else
+				{
+					$comment->content = '[[Span(' . $msg . ', class="warning")]]';
+				}
+
 				if (!$comment->store()) 
 				{
 					$this->setError($comment->getError());

@@ -31,30 +31,27 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
-include_once(JPATH_ROOT . DS . 'plugins' . DS . 'courses' . DS . 'reviews' . DS . 'tables' . DS . 'review.php');
+//include_once(JPATH_ROOT . DS . 'plugins' . DS . 'courses' . DS . 'reviews' . DS . 'tables' . DS . 'review.php');
+include_once(JPATH_ROOT . DS . 'plugins' . DS . 'courses' . DS . 'reviews' . DS . 'models' . DS . 'comment.php');
 
 /**
  * Resources Plugin class for review
  */
-class plgCoursesReviews extends JPlugin
+class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 {
-	private $_pushscripts = true;
+	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
+	 */
+	protected $_autoloadLanguage = true;
 
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Push scripts to the document?
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	private $_pushscripts = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -104,25 +101,19 @@ class plgCoursesReviews extends JPlugin
 		// Get reviews for this resource
 		$database = JFactory::getDBO();
 
-		ximport('Hubzero_Item_Comment');
-
-		$tbl = new Hubzero_Item_Comment($database);
+		$tbl = new \Hubzero\Item\Comment($database);
 
 		$this->option     = JRequest::getCmd('option', 'com_courses');
 		$this->controller = JRequest::getWord('controller', 'course');
 
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('courses', $this->_name);
+		\Hubzero\Document\Assets::addPluginStylesheet('courses', $this->_name);
 
 		// Are we returning any HTML?
 		if ($rtrn == 'all' || $rtrn == 'html') 
 		{
-			Hubzero_Document::addPluginScript('courses', $this->_name);
+			\Hubzero\Document\Assets::addPluginScript('courses', $this->_name);
 
-			ximport('Hubzero_Item_Vote');
-			ximport('Hubzero_Plugin_View');
-
-			$this->view = new Hubzero_Plugin_View(
+			$this->view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'courses',
 					'element' => $this->_name,
@@ -136,7 +127,7 @@ class plgCoursesReviews extends JPlugin
 			$this->view->controller = $this->controller;
 			$this->view->obj      = $this->obj      = $course;
 			$this->view->obj_type = $this->obj_type = substr($this->option, 4);
-			$this->view->url      = $this->url      = JRoute::_('index.php?option=' . $this->option . '&gid=' . $this->obj->get('alias') . '&active=' . $this->_name, false, true);
+			$this->view->url      = $this->url      = JRoute::_($course->link() . '&active=' . $this->_name, false, true);
 			$this->view->depth    = 0;
 			$this->view->tbl      = $tbl;
 
@@ -174,8 +165,7 @@ class plgCoursesReviews extends JPlugin
 		// Build the HTML meant for the "about" tab's metadata overview
 		if ($rtrn == 'html' || $rtrn == 'metadata') 
 		{
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'courses',
 					'element' => $this->_name,
@@ -307,7 +297,7 @@ class plgCoursesReviews extends JPlugin
 	 */
 	public function redirect($url, $msg='', $msgType='')
 	{
-		$url = ($url != '') ? $url : JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->option . '&id=' . $this->obj->get('id') . '&active=reviews'), 'server');
+		$url = ($url != '') ? $url : JRequest::getVar('REQUEST_URI', JRoute::_($this->obj->link() . '&active=reviews'), 'server');
 		$url = str_replace('&amp;', '&', $url);
 
 		$msg = ($msg) ? $msg : '';
@@ -318,6 +308,19 @@ class plgCoursesReviews extends JPlugin
 			$app = JFactory::getApplication();
 			$app->redirect($url, $msg, $msgType);
 		}
+	}
+
+	/**
+	 * Redirect to login page
+	 *
+	 * @return    void
+	 */
+	protected function _login() 
+	{
+		$return = base64_encode(JRequest::getVar('REQUEST_URI', JRoute::_($this->obj->link() . '&active=reviews', false, true), 'server'));
+		$this->redirect(
+			JRoute::_('index.php?option=com_users&view=login&return=' . $return, false)
+		);
 	}
 
 	/**
@@ -337,7 +340,7 @@ class plgCoursesReviews extends JPlugin
 		$no_html = JRequest::getInt('no_html', 0);
 
 		// Get comments on this article
-		$v = new Hubzero_Item_Vote($this->database);
+		$v = new \Hubzero\Item\Vote($this->database);
 		$v->created_by = $this->juser->get('id');
 		$v->item_type  = 'comment';
 
@@ -377,7 +380,7 @@ class plgCoursesReviews extends JPlugin
 
 		$this->view->setLayout('vote');
 
-		$this->view->item = new Hubzero_Item_Comment($this->database);
+		$this->view->item = new \Hubzero\Item\Comment($this->database);
 		$this->view->item->load($v->item_id);
 		if ($v->vote == 1)
 		{
@@ -425,12 +428,27 @@ class plgCoursesReviews extends JPlugin
 	protected function _view() 
 	{
 		// Get comments on this article
-		$this->view->comments = $this->view->tbl->getComments(
+		/*$this->view->comments = $this->view->tbl->getComments(
 			$this->obj_type, 
 			$this->obj->get('id'),
 			0,
 			$this->params->get('comments_limit', 25)
-		);
+		);*/
+		$comments = $this->view->tbl->find(array(
+			'item_type'   => $this->obj_type, 
+			'item_id'     => $this->obj->get('id'),
+			'parent'      => 0,
+			'state'       => 1,
+			'limit'       => $this->params->get('comments_limit', 25)
+		));
+		if ($comments)
+		{
+			foreach ($comments as $k => $comment)
+			{
+				$comments[$k] = new CoursesModelComment($comment);
+			}
+		}
+		$this->view->comments = new \Hubzero\Base\ItemList($comments);
 
 		if ($this->getError()) 
 		{
@@ -463,10 +481,10 @@ class plgCoursesReviews extends JPlugin
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
-		$comment = JRequest::getVar('comment', array(), 'post');
+		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
 
 		// Instantiate a new comment object and pass it the data
-		$row = new Hubzero_Item_Comment($this->database);
+		$row = new \Hubzero\Item\Comment($this->database);
 		if (!$row->bind($comment)) 
 		{
 			$this->redirect(
@@ -544,7 +562,7 @@ class plgCoursesReviews extends JPlugin
 		}
 
 		// Initiate a blog comment object
-		$comment = new Hubzero_Item_Comment($this->database);
+		$comment = new \Hubzero\Item\Comment($this->database);
 		$comment->load($id);
 
 		if ($this->juser->get('id') != $comment->created_by 

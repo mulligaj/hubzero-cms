@@ -31,12 +31,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'entry.php');
+require_once(__DIR__ . '/entry.php');
 
 /**
  * Blog model class
  */
-class BlogModel extends JObject
+class BlogModel extends \Hubzero\Base\Object
 {
 	/**
 	 * BlogTableEntry
@@ -53,7 +53,7 @@ class BlogModel extends JObject
 	private $_entry = null;
 
 	/**
-	 * \Hubzero\ItemList
+	 * \Hubzero\Base\ItemList
 	 * 
 	 * @var object
 	 */
@@ -125,7 +125,7 @@ class BlogModel extends JObject
 
 		if (!isset($instances[$key])) 
 		{
-			$instances[$key] = new BlogModel($scope, $scope_id);
+			$instances[$key] = new self($scope, $scope_id);
 		}
 
 		return $instances[$key];
@@ -172,7 +172,7 @@ class BlogModel extends JObject
 		 || ($id !== null && (int) $this->_entry->get('id') != $id && (string) $this->_entry->get('alias') != $id))
 		{
 			/*$this->_entry = null;
-			if (isset($this->_entries) && ($this->_entries instanceof \Hubzero\ItemList))
+			if (isset($this->_entries) && ($this->_entries instanceof \Hubzero\Base\ItemList))
 			{
 				foreach ($this->_entries as $key => $entry)
 				{
@@ -227,6 +227,7 @@ class BlogModel extends JObject
 				$filters['start'] = 0;
 				$filters['sort'] = 'publish_up';
 				$filters['sort_Dir'] = 'ASC';
+				$filters['order'] = $filters['sort'] . ' ' . $filters['sort_Dir'];
 				$results = $this->_tbl->getRecords($filters);
 				$res = isset($results[0]) ? $results[0] : null;
 				return new BlogModelEntry($res);
@@ -244,7 +245,7 @@ class BlogModel extends JObject
 				{
 					$results = array();
 				}
-				return new \Hubzero\ItemList($results);
+				return new \Hubzero\Base\ItemList($results);
 			break;
 
 			case 'recent':
@@ -259,13 +260,13 @@ class BlogModel extends JObject
 				{
 					$results = array();
 				}
-				return new \Hubzero\ItemList($results);
+				return new \Hubzero\Base\ItemList($results);
 			break;
 
 			case 'list':
 			case 'results':
 			default:
-				//if (!($this->_entries instanceof \Hubzero\ItemList))
+				//if (!($this->_entries instanceof \Hubzero\Base\ItemList))
 				//{
 					if ($results = $this->_tbl->getRecords($filters))
 					{
@@ -278,9 +279,9 @@ class BlogModel extends JObject
 					{
 						$results = array();
 					}
-					//$this->_entries = new \Hubzero\ItemList($results);
+					//$this->_entries = new \Hubzero\Base\ItemList($results);
 				//}
-				return new \Hubzero\ItemList($results);
+				return new \Hubzero\Base\ItemList($results);
 			break;
 		}
 		return null;

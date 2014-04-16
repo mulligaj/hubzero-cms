@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Feedback controller class
  */
-class FeedbackControllerFeedback extends Hubzero_Controller
+class FeedbackControllerFeedback extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determine task and execute it
@@ -164,8 +162,7 @@ class FeedbackControllerFeedback extends Hubzero_Controller
 		// Push some styles to the template
 		$this->_getStyles();
 
-		ximport('Hubzero_User_Profile');
-		$this->view->user = Hubzero_User_Profile::getInstance($this->juser->get('id'));
+		$this->view->user = \Hubzero\User\Profile::getInstance($this->juser->get('id'));
 
 		if (!is_object($row))
 		{
@@ -257,7 +254,7 @@ class FeedbackControllerFeedback extends Hubzero_Controller
 		}
 
 		// Code cleaner for xhtml transitional compliance
-		$row->quote = Hubzero_View_Helper_Html::purifyText($row->quote);
+		$row->quote = \Hubzero\Utility\Sanitize::stripAll($row->quote);
 		$row->quote = str_replace('<br>', '<br />', $row->quote);
 		$row->date  = JFactory::getDate()->toSql();
 		$row->picture = basename($row->picture);

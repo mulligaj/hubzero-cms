@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_User_Profile_Helper');
-
 $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=' . $this->name;
 ?>
 
@@ -102,26 +100,13 @@ if ($this->rows->total() > 0)
 	?>
 	<div id="posts">
 	<?php
-	ximport('Hubzero_Wiki_Parser');
-
-	$wikiconfig = array(
-		'option'   => $this->option,
-		'scope'    => 'collections',
-		'pagename' => 'collections',
-		'pageid'   => 0,
-		'filepath' => '',
-		'domain'   => 'collection'
-	);
-
-	$p = Hubzero_Wiki_Parser::getInstance();
-
 	foreach ($this->rows as $row)
 	{
 ?>
 		<div class="post collection <?php echo ($row->get('access') == 4) ? 'private' : 'public'; echo ($row->get('is_default')) ? ' default' : ''; ?>" id="b<?php echo $row->get('id'); ?>" data-id="<?php echo $row->get('id'); ?>">
 			<div class="content">
 				<?php
-						$view = new Hubzero_Plugin_View(
+						$view = new \Hubzero\Plugin\View(
 							array(
 								'folder'  => 'members',
 								'element' => $this->name,
@@ -131,8 +116,6 @@ if ($this->rows->total() > 0)
 						);
 						$view->row        = $row;
 						$view->collection = $row;
-						$view->parser     = $p;
-						$view->wikiconfig = $wikiconfig;
 						$view->display();
 				?>
 				<div class="meta">
@@ -177,7 +160,7 @@ if ($this->rows->total() > 0)
 				<?php if ($row->get('object_type') == 'member' && $row->get('object_id') != $this->juser->get('id')) { ?>
 				<div class="convo attribution clearfix">
 					<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->get('created_by')); ?>" title="<?php echo $this->escape(stripslashes($row->creator()->get('name'))); ?>" class="img-link">
-						<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($row->creator(), 0); ?>" alt="<?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_PROFILE_PICTURE', $this->escape(stripslashes($row->creator()->get('name')))); ?>" />
+						<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($row->creator(), 0); ?>" alt="<?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_PROFILE_PICTURE', $this->escape(stripslashes($row->creator()->get('name')))); ?>" />
 					</a>
 					<p>
 						<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->get('created_by')); ?>">
@@ -187,9 +170,9 @@ if ($this->rows->total() > 0)
 						<br />
 						<span class="entry-date">
 							<span class="entry-date-at"><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_AT'); ?></span> 
-							<span class="date"><time datetime="<?php echo $row->get('created'); ?>"><?php echo JHTML::_('date', $row->get('created'), JText::_('TIME_FORMAt_HZ1')); ?></time></span> 
+							<span class="date"><time datetime="<?php echo $row->created(); ?>"><?php echo $row->created('time'); ?></time></span> 
 							<span class="entry-date-on"><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_ON'); ?></span> 
-							<span class="time"><time datetime="<?php echo $row->get('created'); ?>"><?php echo JHTML::_('date', $row->get('created'), JText::_('DATE_FORMAt_HZ1')); ?></time></span>
+							<span class="time"><time datetime="<?php echo $row->created(); ?>"><?php echo $row->created('date'); ?></time></span>
 						</span>
 					</p>
 				</div><!-- / .attribution -->

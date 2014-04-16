@@ -49,7 +49,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 	$status = $this->task != 'addjob' ? $job->status : 4; // draft mode	
 	
-	$hubzero_Geo = new Hubzero_Geo();
+	$hubzero_Geo = new \Hubzero\Geocode\Geocode();
 	$countries = $hubzero_Geo->getcountries();
 ?>
 <div id="content-header">
@@ -76,15 +76,15 @@ defined('_JEXEC') or die( 'Restricted access' );
 	<?php }
 		$html = '';
 
+		$model = new JobsModelJob($job);
+
 		$job->title = trim(stripslashes($job->title));
-		$job->description = trim(stripslashes($job->description));
-		$job->description = preg_replace('/<br\\s*?\/??>/i', "", $job->description);
-		$job->description = $jobsHtml->txt_unpee($job->description);
+		$job->description = $model->content('raw');
 		$job->companyLocation = $id ? $job->companyLocation : $employer->companyLocation;
 		$job->companyLocationCountry = $id ? $job->companyLocationCountry : $this->escape($hubzero_Geo->getcountry($profile->get('countryresident')));
 		$job->companyName = $id ? $job->companyName : $employer->companyName;
 		$job->companyWebsite = $id ? $job->companyWebsite : $employer->companyWebsite;
-		$usonly = (isset($this->config->parameters['usonly'])) ? $this->config->parameters['usonly'] : 0;
+		$usonly = $this->config->get('usonly', 0);
 ?>
 <div class="main section">
 	<form id="hubForm" method="post" action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
@@ -109,7 +109,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 				<?php echo JText::_('COM_JOBS_EDITJOB_JOB_LOCATION'); ?>: <span class="required"><?php echo JText::_('COM_JOBS_REQUIRED'); ?></span>
 				<input name="companyLocation" maxlength="190" id="companyLocation" type="text" value="<?php echo $this->escape(stripslashes($job->companyLocation)); ?>" />
 			</label>
-		<?php if (!$usonly && !empty($countries)) { ?>
+		<?php if ($usonly == 0 && !empty($countries)) { ?>
 			<label for="companyLocationCountry">
 				<?php echo JText::_('COM_JOBS_EDITJOB_COUNTRY'); ?>: <span class="required"><?php echo JText::_('COM_JOBS_REQUIRED'); ?></span>
 				<select name="companyLocationCountry" id="companyLocationCountry">
@@ -147,11 +147,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<legend><?php echo JText::_('COM_JOBS_EDITJOB_JOB_DESCRIPTION'); ?> <span class="required"><?php echo JText::_('COM_JOBS_REQUIRED'); ?></span></legend>
 			<label>
 				&nbsp;
-			<?php 
-				ximport('Hubzero_Wiki_Editor');
-				$editor = Hubzero_Wiki_Editor::getInstance();
-				echo $editor->display('description', 'description', $job->description, 'no-image-macro no-file-macro', '10', '25');
-			?>
+				<?php
+				echo \JFactory::getEditor()->display('description', $this->escape($job->description), '', '', 50, 25, false, 'description');
+				?>
 			</label>
 		</fieldset>
 

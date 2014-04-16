@@ -547,6 +547,9 @@
 	.entry-content th {
 		background-color: #f7f7f7;
 	}
+	.entry-content hr {
+		clear: left;
+	}
 
 	.entry-content fieldset {
 		border: 1px solid #ccc;
@@ -603,7 +606,7 @@
 	.comment-add label {
 		display: block;
 	}
-	.comment-add label span {
+	.comment-add label span.label-text {
 		display: none;
 	}
 	.comment-add .cancelreply {

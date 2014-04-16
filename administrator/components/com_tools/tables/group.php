@@ -118,17 +118,15 @@ class ToolGroup extends  JTable
 	 */
 	public function saveGroup($toolid=NULL, $devgroup, $members, $exist)
 	{
-		ximport('Hubzero_Group');
-
 		if (!$toolid or !$devgroup) 
 		{
 			return false;
 		}
 
 		$members = ToolsHelperUtils::transform($members, 'uidNumber');
-		$group = new Hubzero_Group();
+		$group = new \Hubzero\User\Group();
 
-		if (Hubzero_Group::exists($devgroup)) 
+		if (\Hubzero\User\Group::exists($devgroup)) 
 		{
 			$group->read($devgroup);
 			$existing_members = ToolsHelperUtils::transform(Tool::getToolDevelopers($toolid), 'uidNumber');
@@ -170,15 +168,14 @@ class ToolGroup extends  JTable
 	 */
 	public function saveMemberGroups($toolid=NULL, $newgroups, $editversion='dev', $membergroups=array())
 	{
-		ximport('Hubzero_Tool');
-		ximport('Hubzero_Group');
-
 		if (!$toolid) 
 		{
 			return false;
 		}
 
-		$membergroups = Hubzero_Tool::getToolGroups($toolid);
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'tool.php');
+
+		$membergroups = ToolsModelTool::getToolGroups($toolid);
 		$membergroups = ToolsHelperUtils::transform($membergroups, 'cn');
 		$newgroups = ToolsHelperUtils::transform($newgroups, 'cn');
 		$to_delete = array_diff($membergroups, $newgroups);
@@ -197,7 +194,7 @@ class ToolGroup extends  JTable
 		{
 			foreach ($newgroups as $newgroup) 
 			{
-				if (Hubzero_Group::exists($newgroup) && !in_array($newgroup, $membergroups)) 
+				if (\Hubzero\User\Group::exists($newgroup) && !in_array($newgroup, $membergroups)) 
 				{
 					// create an entry in tool_groups table
 					$this->save($newgroup, $toolid, '0');
@@ -219,8 +216,6 @@ class ToolGroup extends  JTable
 	 */
 	public function writeMemberGroups($new, $id, $database, &$err='')
 	{
-		ximport('Hubzero_Group');
-
 		$toolhelper = new ToolsHelperUtils();
 
 		$groups    = is_array($new) ? $new : $toolhelper->makeArray($new);
@@ -232,7 +227,7 @@ class ToolGroup extends  JTable
 		{
 			foreach ($groups as $group) 
 			{
-				if (Hubzero_Group::exists($group)) 
+				if (\Hubzero\User\Group::exists($group)) 
 				{
 					if ($id) 
 					{ 

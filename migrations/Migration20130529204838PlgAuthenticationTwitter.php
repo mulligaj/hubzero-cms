@@ -1,26 +1,28 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for adding twitter authentication plugin
  **/
-class Migration20130529204838PlgAuthenticationTwitter extends Hubzero_Migration
+class Migration20130529204838PlgAuthenticationTwitter extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
-		self::addPluginEntry('authentication', 'twitter', 0);
+		$this->addPluginEntry('authentication', 'twitter', 0);
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
-		self::deletePluginEntry('authentication', 'twitter');
+		$this->deletePluginEntry('authentication', 'twitter');
 	}
 }

@@ -151,6 +151,8 @@ if (!jq) {
 	var jq = $;
 }
 
+var scrp = null;
+
 jQuery(document).ready(function(jq){
 	var $ = jq;
 
@@ -167,7 +169,15 @@ jQuery(document).ready(function(jq){
 			},
 			beforeLoad: function() {
 				var rid = $('#rid').val();
-				$(this).attr('href', '/index.php?option=com_resources&task=plugin&trigger=onResourcesFavorite&no_html=1&rid='+rid);	
+				$(this).attr('href', '/index.php?option=com_resources&task=plugin&trigger=onResourcesFavorite&active=collect&no_html=1&rid='+rid);	
+			},
+			afterLoad: function(current, previous) {
+				scrp = current.content.match(/<script type=\"text\/javascript\">(.*)<\/script>/ig);
+				current.content = current.content.replace(/<script(.*)<\/script>/ig, '');
+			},
+			beforeShow: function() {
+				scrp = scrp[0].replace(/<script type=\"text\/javascript\">/ig, '').replace(/<\/script>/ig, '');
+				eval(scrp);
 			},
 			afterShow: function() {
 				var el = this.element;

@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for bulletin boards
  */
-class CollectionsControllerPosts extends Hubzero_Controller
+class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -196,6 +194,9 @@ class CollectionsControllerPosts extends Hubzero_Controller
 	 */
 	public function saveTask()
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Login is required
 		if ($this->juser->get('guest')) 
 		{
@@ -203,7 +204,7 @@ class CollectionsControllerPosts extends Hubzero_Controller
 		}
 
 		// Incoming
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 
 		// Get model
 		$row = new CollectionsModelItem();
@@ -295,6 +296,9 @@ class CollectionsControllerPosts extends Hubzero_Controller
 	 */
 	public function savecommentTask()
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Ensure the user is logged in
 		if ($this->juser->get('guest')) 
 		{
@@ -302,11 +306,10 @@ class CollectionsControllerPosts extends Hubzero_Controller
 		}
 
 		// Incoming
-		$comment = JRequest::getVar('comment', array(), 'post');
+		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
 
 		// Instantiate a new comment object and pass it the data
-		ximport('Hubzero_Item_Comment');
-		$row = new Hubzero_Item_Comment($this->database);
+		$row = new \Hubzero\Item\Comment($this->database);
 		if (!$row->bind($comment)) 
 		{
 			$this->setError($row->getError());
@@ -351,8 +354,7 @@ class CollectionsControllerPosts extends Hubzero_Controller
 		}
 
 		// Initiate a whiteboard comment object
-		ximport('Hubzero_Item_Comment');
-		$comment = new Hubzero_Item_Comment($this->database);
+		$comment = new \Hubzero\Item\Comment($this->database);
 		$comment->load($id);
 		$comment->state = 2;
 

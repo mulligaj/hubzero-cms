@@ -39,8 +39,6 @@ JToolBarHelper::deleteList();
 JToolBarHelper::spacer();
 JToolBarHelper::help('tickets.html', true);
 
-ximport('Hubzero_User_Profile');
-
 JHTML::_('behavior.tooltip');
 ?>
 
@@ -62,7 +60,7 @@ JHTML::_('behavior.tooltip');
 			{ 
 				?>
 					<li<?php if (intval($this->filters['show']) == $query->id) { echo ' class="active"'; }?>>
-						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;show=<?php echo $query->id; ?>">
+						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;show=<?php echo $query->id . (intval($this->filters['show']) != $query->id ? '&amp;search=' : ''); ?>">
 							<?php echo $this->escape(stripslashes($query->title)); ?> <span><?php echo $query->count; ?></span>
 						</a>
 						<a class="modal copy" href="index.php?option=<?php echo $this->option; ?>&amp;controller=queries&amp;task=edit&amp;tmpl=component&amp;id[]=<?php echo $query->id; ?>" title="<?php echo JText::_('Edit'); ?>" rel="{handler: 'iframe', size: {x: 570, y: 550}}">
@@ -91,14 +89,14 @@ JHTML::_('behavior.tooltip');
 				<h3 data-views="my-views"><span><?php echo JText::_('Mine'); ?></span></h3>
 				<ul id="my-views" class="views">
 					<li<?php if (intval($this->filters['show']) == -1) { echo ' class="active"'; }?>>
-						<a class="my-watchlist" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;show=-1&amp;limitstart=0'); ?>">
+						<a class="my-watchlist" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;show=-1&amp;limitstart=0<?php echo  (intval($this->filters['show']) != $query->id ? '&amp;search=' : ''); ?>">
 							<?php echo $this->escape(JText::_('Watch list')); ?> <span><?php echo $this->watchcount; ?></span>
 						</a>
 					</li>
 		<?php if (count($this->queries['mine']) > 0) { ?>
 			<?php foreach ($this->queries['mine'] as $query) { ?>
 					<li<?php if (intval($this->filters['show']) == $query->id) { echo ' class="active"'; }?>>
-						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;show=<?php echo $query->id; ?>">
+						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;show=<?php echo $query->id . (intval($this->filters['show']) != $query->id ? '&amp;search=' : ''); ?>">
 							<?php echo $this->escape(stripslashes($query->title)); ?> <span><?php echo $query->count; ?></span>
 						</a>
 						<a class="modal copy" href="index.php?option=<?php echo $this->option; ?>&amp;controller=queries&amp;task=edit&amp;tmpl=component&amp;id[]=<?php echo $query->id; ?>" title="<?php echo JText::_('Edit'); ?>" rel="{handler: 'iframe', size: {x: 570, y: 550}}">
@@ -117,7 +115,7 @@ JHTML::_('behavior.tooltip');
 		<?php if (count($this->queries['custom']) > 0) { ?>
 			<?php foreach ($this->queries['custom'] as $query) { ?>
 					<li<?php if (intval($this->filters['show']) == $query->id) { echo ' class="active"'; }?>>
-						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;show=<?php echo $query->id; ?>">
+						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;show=<?php echo $query->id . (intval($this->filters['show']) != $query->id ? '&amp;search=' : ''); ?>">
 							<?php echo $this->escape(stripslashes($query->title)); ?> <span><?php echo $query->count; ?></span>
 						</a>
 						<a class="delete" href="index.php?option=<?php echo $this->option; ?>&amp;controller=queries&amp;task=remove&amp;id[]=<?php echo $query->id; ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo JText::_('Delete'); ?>">
@@ -205,8 +203,6 @@ JHTML::_('behavior.tooltip');
 					</tfoot>
 					<tbody>
 			<?php
-			ximport('Hubzero_View_Helper_Html');
-
 			$k = 0;
 			$database = JFactory::getDBO();
 			$sc = new SupportComment($database);
@@ -309,7 +305,7 @@ JHTML::_('behavior.tooltip');
 									</span>
 			<?php if ($lastcomment && $lastcomment != '0000-00-00 00:00:00') { ?>
 									<span class="ticket-activity">
-										<time datetime="<?php echo $lastcomment; ?>"><?php echo Hubzero_View_Helper_Html::timeAgo(Hubzero_View_Helper_Html::mkt(JHTML::_('date', $lastcomment, JFactory::getDBO()->getDateFormat()))); ?></time>
+										<time datetime="<?php echo $lastcomment; ?>"><?php echo JHTML::_('date.relative', JHTML::_('date', $lastcomment, $tsformat)); ?></time>
 									</span>
 			<?php } ?>
 								</p>
@@ -331,8 +327,8 @@ JHTML::_('behavior.tooltip');
 									</span>
 			<?php } ?>
 			<?php if ($row->owner) { 
-						$owner = Hubzero_User_Profile::getInstance($row->owner);
-						$picture = Hubzero_User_Profile_Helper::getMemberPhoto($owner, 0);
+						$owner = \Hubzero\User\Profile::getInstance($row->owner);
+						$picture = \Hubzero\User\Profile\Helper::getMemberPhoto($owner, 0);
 			?>
 									<span class="ticket-owner hasTip" title="<?php echo JText::_('Assigned to'); ?>::<img border=&quot;1&quot; src=&quot;<?php echo $picture; ?>&quot; name=&quot;imagelib&quot; alt=&quot;User photo&quot; width=&quot;40&quot; height=&quot;40&quot; style=&quot;float: left; margin-right: 0.5em;&quot; /><?php echo $this->escape(stripslashes($owner->get('username'))); ?><br /><?php echo ($owner->get('organization')) ? $this->escape(stripslashes($owner->get('organization'))) : '[organization unknown]'; ?>">
 										<?php echo $this->escape(stripslashes($owner->get('name'))); ?>

@@ -31,14 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
- * Short description for 'SupportControllerTaggroups'
- * 
- * Long description (if any) ...
+ * Support controller class for managing tag/group association
  */
-class SupportControllerTaggroups extends Hubzero_Controller
+class SupportControllerTaggroups extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Displays a list of tickets
@@ -112,8 +108,6 @@ class SupportControllerTaggroups extends Hubzero_Controller
 		JRequest::setVar('hidemainmenu', 1);
 		
 		$this->view->setLayout('edit');
-		
-		ximport('Hubzero_Group');
 
 		if (is_object($row))
 		{
@@ -132,7 +126,7 @@ class SupportControllerTaggroups extends Hubzero_Controller
 		$this->view->tag = new TagsTableTag($this->database);
 		$this->view->tag->load($this->view->row->tagid);
 
-		$this->view->group = Hubzero_Group::getInstance($this->view->row->groupid);
+		$this->view->group = \Hubzero\User\Group::getInstance($this->view->row->groupid);
 
 		// Set any errors
 		if ($this->getError())
@@ -153,8 +147,6 @@ class SupportControllerTaggroups extends Hubzero_Controller
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
-
-		ximport('Hubzero_Group');
 
 		$taggroup = JRequest::getVar('taggroup', array(), 'post');
 
@@ -184,7 +176,7 @@ class SupportControllerTaggroups extends Hubzero_Controller
 		$group = trim(JRequest::getVar('group', '', 'post'));
 
 		// Attempt to load the group
-		$hzg = Hubzero_Group::getInstance($group);
+		$hzg = \Hubzero\User\Group::getInstance($group);
 
 		// Set the group ID
 		if ($hzg->get('gidNumber'))

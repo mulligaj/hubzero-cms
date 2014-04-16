@@ -1,21 +1,23 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for new joomla search/finder tables
  **/
-class Migration20130924000006ComFinder extends Hubzero_Migration
+class Migration20130924000006ComFinder extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
 		$query = "";
 
-		if (!$db->tableExists('#__finder_filters'))
+		if (!$this->db->tableExists('#__finder_filters'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_filters` (
 							`filter_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
@@ -38,7 +40,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links'))
+		if (!$this->db->tableExists('#__finder_links'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links` (
 							`link_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
@@ -72,7 +74,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms0'))
+		if (!$this->db->tableExists('#__finder_links_terms0'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms0` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -86,7 +88,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms1'))
+		if (!$this->db->tableExists('#__finder_links_terms1'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms1` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -100,7 +102,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms2'))
+		if (!$this->db->tableExists('#__finder_links_terms2'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms2` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -114,7 +116,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms3'))
+		if (!$this->db->tableExists('#__finder_links_terms3'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms3` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -128,7 +130,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms4'))
+		if (!$this->db->tableExists('#__finder_links_terms4'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms4` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -142,7 +144,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms5'))
+		if (!$this->db->tableExists('#__finder_links_terms5'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms5` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -156,7 +158,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms6'))
+		if (!$this->db->tableExists('#__finder_links_terms6'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms6` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -170,7 +172,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms7'))
+		if (!$this->db->tableExists('#__finder_links_terms7'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms7` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -184,7 +186,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms8'))
+		if (!$this->db->tableExists('#__finder_links_terms8'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms8` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -198,7 +200,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_terms9'))
+		if (!$this->db->tableExists('#__finder_links_terms9'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_terms9` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -212,7 +214,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_termsa'))
+		if (!$this->db->tableExists('#__finder_links_termsa'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_termsa` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -226,7 +228,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_termsb'))
+		if (!$this->db->tableExists('#__finder_links_termsb'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_termsb` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -240,7 +242,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_termsc'))
+		if (!$this->db->tableExists('#__finder_links_termsc'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_termsc` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -254,7 +256,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_termsd'))
+		if (!$this->db->tableExists('#__finder_links_termsd'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_termsd` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -268,7 +270,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_termse'))
+		if (!$this->db->tableExists('#__finder_links_termse'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_termse` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -282,7 +284,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_links_termsf'))
+		if (!$this->db->tableExists('#__finder_links_termsf'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_links_termsf` (
 							`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -296,7 +298,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_taxonomy'))
+		if (!$this->db->tableExists('#__finder_taxonomy'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_taxonomy` (
 						`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
@@ -320,7 +322,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 
 		}
 
-		if (!$db->tableExists('#__finder_taxonomy_map'))
+		if (!$this->db->tableExists('#__finder_taxonomy_map'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_taxonomy_map` (
 						`link_id` INT(10) UNSIGNED NOT NULL ,
@@ -333,7 +335,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_terms'))
+		if (!$this->db->tableExists('#__finder_terms'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_terms` (
 						`term_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
@@ -354,7 +356,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_terms_common'))
+		if (!$this->db->tableExists('#__finder_terms_common'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_terms_common` (
 						`term` VARCHAR(75) NOT NULL ,
@@ -483,7 +485,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						('yours', 'en');";
 		}
 
-		if (!$db->tableExists('#__finder_tokens'))
+		if (!$this->db->tableExists('#__finder_tokens'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_tokens` (
 						`term` VARCHAR(75) NOT NULL ,
@@ -499,7 +501,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_tokens_aggregate'))
+		if (!$this->db->tableExists('#__finder_tokens_aggregate'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_tokens_aggregate` (
 						`term_id` INT(10) UNSIGNED NOT NULL ,
@@ -519,7 +521,7 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 						COLLATE = utf8_general_ci;\n";
 		}
 
-		if (!$db->tableExists('#__finder_types'))
+		if (!$this->db->tableExists('#__finder_types'))
 		{
 			$query .= "CREATE  TABLE IF NOT EXISTS `#__finder_types` (
 						`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT ,
@@ -534,8 +536,8 @@ class Migration20130924000006ComFinder extends Hubzero_Migration
 
 		if (!empty($query))
 		{
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 }

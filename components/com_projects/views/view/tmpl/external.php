@@ -38,25 +38,10 @@ $html  = '';
 
 // Do some text cleanup
 $this->project->title = ProjectsHtml::cleanText($this->project->title);
-$this->project->about = rtrim(stripslashes(ProjectsHtml::cleanText($this->project->about)));
 
-// Transform the wikitext to HTML
-ximport('Hubzero_Wiki_Parser');
-$p = Hubzero_Wiki_Parser::getInstance();
+$project = new ProjectsModelProject($this->project);
 
-ximport('Hubzero_Plugin_View');	
-
-//import the wiki parser
-$wikiconfig = array(
-	'option'   => $this->option,
-	'scope'    => $this->project->alias.DS.'notes',
-	'pagename' => 'projects',
-	'pageid'   => $this->project->id,
-	'filepath' => $this->config->get('webpath'),
-	'domain'   => $this->project->alias
-);
-
-$this->project->about = $p->parse( $this->project->about, $wikiconfig );
+$this->project->about = $project->about('parsed');
 
 $privacy = $this->project->private ? JText::_('COM_PROJECTS_PROJECT_PRIVATE_SEARCH') : JText::_('COM_PROJECTS_PROJECT_PUBLIC_SEARCH');
 $typetitle = $this->project->projecttype;
@@ -153,7 +138,7 @@ else
 	<?php if ($this->params->get('publications_public', 0)) 
 	{ 
 		// Show team		
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
@@ -168,7 +153,7 @@ else
 	<?php if ($this->params->get('files_public', 0)) 
 	{ 
 		// Show team	
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'files',
@@ -183,7 +168,7 @@ else
 	<?php if ($this->params->get('notes_public', 0)) 
 	{ 
 		// Show team	
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'notes',
@@ -198,7 +183,7 @@ else
 	<?php if ($this->params->get('team_public', 0)) 
 	{ 
 		// Show team	
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'projects',
 				'element'=>'team',

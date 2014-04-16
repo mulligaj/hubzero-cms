@@ -79,7 +79,6 @@ if (count($this->rows) > 0)
 		switch ($this->filters['type'])
 		{
 			case 'profiles':
-				ximport('Hubzero_User_Profile');
 				include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'profile.php');
 				include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'association.php');
 				$mconfig = JComponentHelper::getParams('com_members');
@@ -102,7 +101,6 @@ if (count($this->rows) > 0)
 			break;
 			case 'all':
 			default:
-				ximport('Hubzero_User_Profile');
 				include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'profile.php');
 				include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'association.php');
 				require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_answers' . DS . 'tables' . DS . 'question.php');
@@ -180,14 +178,14 @@ if (count($this->rows) > 0)
 					{
 						$html .= '<p class="featured-img"><img width="50" height="50" src="' . $thumb . '" alt="" /></p>' . "\n";
 					}
-					$html .= '<p class="title"><a href="' . JRoute::_($href) . '">' . $this->escape(stripslashes($row->title)) . '</a></p>' . "\n";
+					$html .= '<p class="title"><a href="' . JRoute::_($href) . '">' . $this->escape(strip_tags(stripslashes($row->title))) . '</a></p>' . "\n";
 					$html .= '<p class="details">' . JText::_('COM_FEATURES_FEATURED') . ' ' . JHTML::_('date', $fh->featured, JText::_('DATE_FORMAT_HZ1')) . ' ' . JText::_('COM_FEATURES_IN') . ' ' . JText::_(strtoupper($this->option) . '_' . strtoupper($fh->tbl));
 					if ($this->config->get('access-manage-component')) {
 						$html .= ' <span>|</span> <a class="delete" href="' . JRoute::_('index.php?option=' . $this->option . '&task=delete&id=' . $fh->id) . '">' . JText::_('COM_FEATURES_DELETE') . '</a>' . "\n";
 						$html .= ' <span>|</span> <a class="edit" href="' . JRoute::_('index.php?option=' . $this->option . '&task=edit&id=' . $fh->id) . '">' . JText::_('COM_FEATURES_EDIT') . '</a>' . "\n";
 					}
 					$html .= '</p>' . "\n";
-					$html .= Hubzero_View_Helper_Html::shortenText($this->escape(strip_tags($row->introtext)), $txt_length, 1) . "\n";
+					$html .= \Hubzero\Utility\String::truncate($this->escape(strip_tags($row->introtext)), $txt_length) . "\n";
 					$html .= '</li>' . "\n";
 				break;
 
@@ -224,7 +222,7 @@ if (count($this->rows) > 0)
 					{
 						$html .= '<p class="featured-img"><img width="50" height="50" src="' . $thumb . '" alt="" /></p>' . "\n";
 					}
-					$html .= '<p class="title"><a href="' . JRoute::_($href) . '">' . $this->escape(stripslashes($row->title)) . '</a></p>' . "\n";
+					$html .= '<p class="title"><a href="' . JRoute::_($href) . '">' . $this->escape(strip_tags(stripslashes($row->title))) . '</a></p>' . "\n";
 					$html .= '<p class="details">' . JText::_('COM_FEATURES_FEATURED') . ' ' . JHTML::_('date', $fh->featured, JText::_('DATE_FORMAT_HZ1')) . ' ' . JText::_('COM_FEATURES_IN') . ' ' . JText::_(strtoupper($this->option) . '_' . strtoupper($fh->tbl));
 					if ($this->config->get('access-manage-component')) 
 					{
@@ -232,7 +230,7 @@ if (count($this->rows) > 0)
 						$html .= ' <span>|</span> <a class="edit" href="' . JRoute::_('index.php?option=' . $this->option . '&task=edit&id=' . $fh->id) . '">' . JText::_('COM_FEATURES_EDIT') . '</a>' . "\n";
 					}
 					$html .= '</p>' . "\n";
-					$html .= Hubzero_View_Helper_Html::shortenText($this->escape(strip_tags($row->introtext)), $txt_length, 1) . "\n";
+					$html .= \Hubzero\Utility\String::truncate($this->escape(strip_tags($row->introtext)), $txt_length) . "\n";
 					$html .= '</li>' . "\n";
 				break;
 
@@ -269,7 +267,7 @@ if (count($this->rows) > 0)
 					{
 						$html .= '<p class="featured-img"><img width="50" height="50" src="' . $thumb . '" alt="" /></p>' . "\n";
 					}
-					$html .= '<p class="title"><a href="' . JRoute::_('index.php?option=com_answers&task=question&id='.$row->id) . '">' . $this->escape(stripslashes($row->subject)) . '</a></p>' . "\n";
+					$html .= '<p class="title"><a href="' . JRoute::_('index.php?option=com_answers&task=question&id='.$row->id) . '">' . $this->escape(strip_tags(stripslashes($row->subject))) . '</a></p>' . "\n";
 					$html .= '<p class="details">' . JText::_('COM_FEATURES_FEATURED') . ' ' . JHTML::_('date', $fh->featured, JText::_('DATE_FORMAT_HZ1')) . ' ' . JText::_('COM_FEATURES_IN') . ' ' . JText::_(strtoupper($this->option) . '_' . strtoupper($fh->tbl));
 					if ($this->config->get('access-manage-component')) 
 					{
@@ -280,7 +278,7 @@ if (count($this->rows) > 0)
 					$html .= '<p><span>' . JText::sprintf('COM_FEATURES_ASKED_BY', $name) . '</span> - <span>'.$when.' ago</span> - <span>';
 					$html .= ($row->rcount == 1) ? JText::sprintf('COM_FEATURES_RESPONSE', $row->rcount) : JText::sprintf('COM_FEATURES_RESPONSES', $row->rcount);
 					$html .= '</span></p>' . "\n";
-					$html .= Hubzero_View_Helper_Html::shortenText($this->escape(strip_tags($row->question)), $txt_length, 1) . "\n";
+					$html .= \Hubzero\Utility\String::truncate($this->escape(strip_tags($row->question)), $txt_length) . "\n";
 					$html .= '</li>' . "\n";
 				break;
 
@@ -298,9 +296,9 @@ if (count($this->rows) > 0)
 					$id = $row->uidNumber;
 
 					// Load their bio
-					$profile = new Hubzero_User_Profile();
+					$profile = new \Hubzero\User\Profile();
 					$profile->load($row->uidNumber);
-					$txt = $profile->get('bio');
+					$txt = $profile->getBio('parsed');
 
 					// Do we have a picture?
 					$thumb = '';
@@ -335,7 +333,7 @@ if (count($this->rows) > 0)
 					{
 						$html .= '<p class="featured-img"><img width="50" height="50" src="' . $thumb . '" alt="" /></p>' . "\n";
 					}
-					$html .= '<p class="title"><a href="' . JRoute::_('index.php?option=com_members&id='.$id) . '">' . stripslashes($title) . '</a></p>' . "\n";
+					$html .= '<p class="title"><a href="' . JRoute::_('index.php?option=com_members&id='.$id) . '">' . strip_tags(stripslashes($title)) . '</a></p>' . "\n";
 					$html .= '<p class="details">' . JText::_('COM_FEATURES_FEATURED') . ' ' . JHTML::_('date', $fh->featured, JText::_('DATE_FORMAT_HZ1')) . ' ' . JText::_('COM_FEATURES_IN') . ' ' . JText::_(strtoupper($this->option) . '_' . strtoupper($fh->tbl));
 					if ($this->config->get('access-manage-component')) 
 					{
@@ -343,7 +341,7 @@ if (count($this->rows) > 0)
 						$html .= ' <span>|</span> <a class="edit" href="' . JRoute::_('index.php?option=' . $this->option . '&task=edit&id=' . $fh->id) . '">' . JText::_('COM_FEATURES_EDIT') . '</a>' . "\n";
 					}
 					$html .= '</p>' . "\n";
-					$html .= Hubzero_View_Helper_Html::shortenText($this->escape(strip_tags($txt)), $txt_length, 1) . "\n";
+					$html .= \Hubzero\Utility\String::truncate($this->escape(strip_tags($txt)), $txt_length) . "\n";
 					$html .= '</li>' . "\n";
 				break;
 			}

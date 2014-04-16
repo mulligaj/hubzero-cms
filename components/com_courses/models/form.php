@@ -244,13 +244,14 @@ class PdfForm
 		closedir($dir);
 		natsort($images);
 
-		$base = preg_replace('#^'.preg_quote(JPATH_BASE).'#', '', $base);
-
 		$idx = 0;
-
 		foreach ($images as $img)
 		{
-			$fun($base.'/'.$img, ++$idx);
+			$session_id = JFactory::getSession()->getId();
+			$secret     = JFactory::getConfig()->getValue('secret');
+			$token      = hash('sha256', $session_id . ':' . $secret);
+			$path       = '/api/courses/form/image?id='.$this->getId().'&file='.$img.'&token='.$token;
+			$fun($path, ++$idx);
 		}
 	}
 
@@ -323,6 +324,7 @@ class PdfForm
 				$im->resizeImage(582,0, Imagick::FILTER_MITCHELL, 1);
 				$im->sharpenImage(5, 0.5);
 				$im->borderImage('white', 15, 15);
+				$im->paintTransparentImage($im->getImagePixelColor(0,0), 0.0, 0);
 				$im->writeImage($this->base . $fid . DS . ($this->pages + 1) . '.png');
 			}
 		}
@@ -494,7 +496,11 @@ class PdfForm
 	public function setAssetType()
 	{
 		$dbh = self::getDbh();
-		$dbh->setQuery('UPDATE `#__courses_assets` SET `subtype` = ' . $dbh->Quote(JRequest::getWord('type', 'quiz')) . ' WHERE id = ' . $this->getAssetId());
+		$query  = 'UPDATE `#__courses_assets`';
+		$query .= ' SET `subtype` = ' . $dbh->Quote(JRequest::getWord('type', 'quiz'));
+		$query .= ', `grade_weight` = ' . $dbh->Quote(JRequest::getWord('type', 'quiz'));
+		$query .= ' WHERE id = ' . $this->getAssetId();
+		$dbh->setQuery($query);
 
 		$dbh->query();
 	}
@@ -577,7 +583,7 @@ class PdfForm
 	 *
 	 * @return array
 	 **/
-	public function getQuestionAnswerMap($answers)
+	public function getQuestionAnswerMap($answers, $ended=FALSE)
 	{
 		$dbh = self::getDBH();
 		$fid = $this->getId();
@@ -602,6 +608,11 @@ class PdfForm
 				$rv[$row['id']] = array(NULL, $row['answer_id']);
 				$complete = FALSE;
 			}
+		}
+
+		if ($ended)
+		{
+			$complete = TRUE;
 		}
 
 		return array($complete, $rv);

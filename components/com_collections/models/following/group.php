@@ -32,7 +32,6 @@
 defined('_JEXEC') or die('Restricted access');
 
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'following' . DS . 'abstract.php');
-ximport('Hubzero_Group');
 
 /**
  * Model class for following a group
@@ -40,7 +39,7 @@ ximport('Hubzero_Group');
 class CollectionsModelFollowingGroup extends CollectionsModelFollowingAbstract
 {
 	/**
-	 * Hubzero_Group
+	 * \Hubzero\User\Group
 	 * 
 	 * @var object
 	 */
@@ -77,7 +76,7 @@ class CollectionsModelFollowingGroup extends CollectionsModelFollowingAbstract
 	{
 		//$this->_db = JFactory::getDBO();
 
-		$this->_obj = Hubzero_Group::getInstance($oid);
+		$this->_obj = \Hubzero\User\Group::getInstance($oid);
 
 		$this->_baselink = 'index.php?option=com_groups&cn=' . $this->_obj->get('cn') . '&active=collections';
 	}

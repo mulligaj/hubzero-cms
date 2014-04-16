@@ -62,37 +62,9 @@ class CoursesModelManager extends CoursesModelMember
 		{
 			$this->_tbl->load($uid, $cid, $oid, $sid, 0);
 		}
-		else if (is_object($uid))
+		else if (is_object($uid) || is_array($uid))
 		{
-			$this->_tbl->bind($uid);
-
-			$properties = $this->_tbl->getProperties();
-			foreach (get_object_vars($uid) as $key => $property)
-			{
-				if (!array_key_exists($key, $properties))
-				{
-					$this->_tbl->set('__' . $key, $property);
-				}
-			}
-		}
-		else if (is_array($uid))
-		{
-			$this->_tbl->bind($uid);
-
-			$properties = $this->_tbl->getProperties();
-			foreach (array_keys($uid) as $key)
-			{
-				if (!array_key_exists($key, $properties))
-				{
-					$this->_tbl->set('__' . $key, $uid[$key]);
-				}
-			}
-		}
-
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
+			$this->bind($uid);
 		}
 
 		if (!$this->get('role_permissions'))
@@ -100,7 +72,6 @@ class CoursesModelManager extends CoursesModelMember
 			$result = new CoursesTableRole($this->_db);
 			if ($result->load($this->get('role_id')))
 			{
-				$properties = $result->getProperties();
 				foreach ($result->getProperties() as $key => $property)
 				{
 					$this->_tbl->set('__role_' . $key, $property);
@@ -117,7 +88,7 @@ class CoursesModelManager extends CoursesModelMember
 	 *
 	 * @param      string $pagename The page to load
 	 * @param      string $scope    The page scope
-	 * @return     object WikiPage
+	 * @return     object CoursesModelMember
 	 */
 	static function &getInstance($uid=null, $cid=0, $oid=0, $sid=0)
 	{
@@ -130,7 +101,7 @@ class CoursesModelManager extends CoursesModelMember
 
 		if (!isset($instances[$oid . '_' . $uid])) 
 		{
-			$instances[$oid . '_' . $uid] = new CoursesModelManager($uid, $cid, $oid, $sid);
+			$instances[$oid . '_' . $uid] = new self($uid, $cid, $oid, $sid);
 		}
 
 		return $instances[$oid . '_' . $uid];

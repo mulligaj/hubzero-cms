@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for featured items
  */
-class FeaturesControllerItems extends Hubzero_Controller
+class FeaturesControllerItems extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
@@ -200,6 +198,8 @@ class FeaturesControllerItems extends Hubzero_Controller
 			}
 		}
 
+		$this->view->notifications = $this->getComponentMessage();
+
 		$this->view->display();
 	}
 
@@ -210,6 +210,9 @@ class FeaturesControllerItems extends Hubzero_Controller
 	 */
 	public function saveTask()
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Check if they are authorized to make changes
 		if (!$this->config->get('access-manage-component')) 
 		{
@@ -218,6 +221,8 @@ class FeaturesControllerItems extends Hubzero_Controller
 			);
 			return;
 		}
+
+		$fields = JRequest::getVar('fields', array(), 'post');
 
 		// Instantiate an object and bind the incoming data
 		$row = new FeaturesHistory($this->database);

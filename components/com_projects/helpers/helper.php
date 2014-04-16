@@ -287,7 +287,7 @@ class ProjectsHelper extends JObject {
 	public function saveWikiAttachment( $page, $file, $uid = 0 )
 	{
 		// Create database entry
-		$attachment 				= new WikiPageAttachment($this->_db);
+		$attachment 				= new WikiTableAttachment($this->_db);
 		$attachment->pageid      	= $page->id;
 		$attachment->filename    	= $file;
 		$attachment->description 	= '';
@@ -467,7 +467,7 @@ class ProjectsHelper extends JObject {
 	 * @param      string 	$reviewer
 	 * @return     void
 	 */	
-	public function sendHUBMessage( 
+	public static function sendHUBMessage( 
 		$option, $config, $project, 
 		$addressees = array(), $subject = '', 
 		$component = '', $layout = '', 
@@ -490,8 +490,11 @@ class ProjectsHelper extends JObject {
 		$from['name']  = $jconfig->getValue('config.sitename').' '.JText::_('COM_PROJECTS');
 		$from['email'] = $jconfig->getValue('config.mailfrom');
 		
+		// Html email
+		$from['multipart'] = md5(date('U'));
+		
 		// Get message body
-		$eview 					= new JView( array('name'=>'emails', 'layout'=> $layout ) );
+		$eview 					= new JView( array('name'=>'emails', 'layout'=> $layout . '_plain' ) );
 		$eview->option 			= $option;
 		$eview->hubShortName 	= $jconfig->getValue('config.sitename');
 		$eview->project 		= $project;
@@ -503,10 +506,16 @@ class ProjectsHelper extends JObject {
 		// Get profile of author group
 		if ($project->owned_by_group) 
 		{
-			$eview->nativegroup = Hubzero_Group::getInstance( $project->owned_by_group );	
+			$eview->nativegroup = \Hubzero\User\Group::getInstance( $project->owned_by_group );	
 		}
-		$body = $eview->loadTemplate();
-		$body = str_replace("\n", "\r\n", $body);
+		$body = array();
+		$body['plaintext'] 	= $eview->loadTemplate();
+		$body['plaintext'] 	= str_replace("\n", "\r\n", $body['plaintext']);
+
+		// HTML email
+		$eview->setLayout($layout . '_html');
+		$body['multipart'] = $eview->loadTemplate();
+		$body['multipart'] = str_replace("\n", "\r\n", $body['multipart']);
 
 		// Send HUB message
 		JPluginHelper::importPlugin( 'xmessage' );
@@ -633,124 +642,6 @@ class ProjectsHelper extends JObject {
 				return $versions;
 			}
 		}
-	}
-	
-	/**
-	 * Parse html of external web page
-	 * 
-	 * @param      string 		$html
-	 * @param      string 		$tag
-	 * @param      boolean 		$selfclosing
-	 * @param      boolean 		$return_the_entire_ta
-	 * @param      string 		$charset
-	 * @return     array
-	 */	
-	public function extract_tags( $html, $tag, $selfclosing = null, $return_the_entire_tag = false, $charset = 'ISO-8859-1' ){
-
-		if ( is_array($tag) )
-		{
-			$tag = implode('|', $tag);
-		}
-
-		//If the user didn't specify if $tag is a self-closing tag we try to auto-detect it
-		//by checking against a list of known self-closing tags.
-		$selfclosing_tags = array( 'area', 'base', 'basefont', 'br', 'hr', 'input', 'img', 'link', 'meta', 'col', 'param' );
-		if ( is_null($selfclosing) )
-		{
-			$selfclosing = in_array( $tag, $selfclosing_tags );
-		}
-
-		//The regexp is different for normal and self-closing tags because I can't figure out 
-		//how to make a sufficiently robust unified one.
-		if ( $selfclosing )
-		{
-			$tag_pattern = 
-				'@<(?P<tag>'.$tag.')			# <tag
-				(?P<attributes>\s[^>]+)?		# attributes, if any
-				\s*/?>					# /> or just >, being lenient here 
-				@xsi';
-		} 
-		else 
-		{
-			$tag_pattern = 
-				'@<(?P<tag>'.$tag.')			# <tag
-				(?P<attributes>\s[^>]+)?		# attributes, if any
-				\s*>					# >
-				(?P<contents>.*?)			# tag contents
-				</(?P=tag)>				# the closing </tag>
-				@xsi';
-		}
-
-		$attribute_pattern = 
-			'@
-			(?P<name>\w+)							# attribute name
-			\s*=\s*
-			(
-				(?P<quote>[\"\'])(?P<value_quoted>.*?)(?P=quote)	# a quoted value
-				|							# or
-				(?P<value_unquoted>[^\s"\']+?)(?:\s+|$)			# an unquoted value (terminated by whitespace or EOF) 
-			)
-			@xsi';
-
-		// Find all tags 
-		if ( !preg_match_all($tag_pattern, $html, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE ) )
-		{
-			//Return an empty array if we didn't find anything
-			return array();
-		}
-
-		$tags = array();
-		
-		foreach ($matches as $match)
-		{
-			//Parse tag attributes, if any
-			$attributes = array();
-			if ( !empty($match['attributes'][0]) )
-			{ 
-				if ( preg_match_all( $attribute_pattern, $match['attributes'][0], $attribute_data, PREG_SET_ORDER ) )
-				{
-					//Turn the attribute data into a name->value array
-					foreach ($attribute_data as $attr)
-					{
-						if ( !empty($attr['value_quoted']) )
-						{
-							$value = $attr['value_quoted'];
-						} 
-						elseif ( !empty($attr['value_unquoted']) )
-						{
-							$value = $attr['value_unquoted'];
-						} 
-						else 
-						{
-							$value = '';
-						}
-
-						//Passing the value through html_entity_decode is handy when you want
-						//to extract link URLs or something like that. You might want to remove
-						//or modify this call if it doesn't fit your situation.
-						$value = html_entity_decode( $value, ENT_QUOTES, $charset );
-
-						$attributes[$attr['name']] = $value;
-					}
-				}
-			}
-
-			$tag = array(
-				'tag_name' => $match['tag'][0],
-				'offset' => $match[0][1], 
-				'contents' => !empty($match['contents']) ? $match['contents'][0] : '', //empty for self-closing tags
-				'attributes' => $attributes, 
-			);
-			
-			if ( $return_the_entire_tag )
-			{
-				$tag['full_tag'] = $match[0][0]; 			
-			}
-
-			$tags[] = $tag;
-		}
-
-		return $tags;
 	}
 	
 	/**
@@ -909,7 +800,7 @@ class ProjectsHelper extends JObject {
 		$wiki_config = JComponentHelper::getParams( 'com_wiki' ); 	
 		
 		// Get wiki upload path
-		$previewPath = ProjectsHelper::getWikiPath($page->id);		
+		$previewPath = ProjectsHelper::getWikiPath($page->get('id'));		
 		
 		// Get joomla libraries
 		jimport('joomla.filesystem.folder');
@@ -1035,7 +926,7 @@ class ProjectsHelper extends JObject {
 				$html = str_replace($replace, $href, $html);										
 				
 				// Replace reference
-				$replace = $page->scope. DS . $page->pagename . DS . 'Image:' . $file;
+				$replace = $page->get('scope'). DS . $page->get('pagename') . DS . 'Image:' . $file;
 				$replace = preg_quote($replace, '/');
 				$html = preg_replace("/\/projects\/$replace/", $link, $html);				
 			}
@@ -1089,7 +980,7 @@ class ProjectsHelper extends JObject {
 				$objSt = new ProjectPubStamp( $database );
 
 				// Get page id
-				$page = new WikiPage( $database );		
+				$page = new WikiTablePage( $database );		
 				if ($page->load( basename($pagename), $scope)) 
 				{								
 					$pubstamp = NULL;
@@ -1128,7 +1019,8 @@ class ProjectsHelper extends JObject {
 	 *
 	 * @return     mixed
 	 */
-	public static function parseProjectFileRefs( $page, $pagetext, $projectid, $alias, $publication = NULL, $html = '', $copy = false) 
+	public static function parseProjectFileRefs( $page, $pagetext, $projectid, $alias, 
+		$publication = NULL, $html = '', $copy = false) 
 	{
 		if (!$page || !$pagetext || !$projectid || !$alias)
 		{
@@ -1148,7 +1040,7 @@ class ProjectsHelper extends JObject {
 		$database = JFactory::getDBO();
 		
 		// Get wiki upload path
-		$previewPath = ProjectsHelper::getWikiPath($page->id);
+		$previewPath = ProjectsHelper::getWikiPath($page->get('id'));
 		
 		if ($copy == true)
 		{
@@ -1176,7 +1068,8 @@ class ProjectsHelper extends JObject {
 			
 			$pubconfig = JComponentHelper::getParams( 'com_publications' );
 			$base_path = $pubconfig->get('webpath');
-			$pubPath = PublicationHelper::buildPath($publication->id, $publication->version_id, $base_path, 'wikicontent', $root = 0);
+			$pubPath = PublicationHelper::buildPath($publication->id, $publication->version_id, 
+				$base_path, 'wikicontent', $root = 0);
 			
 			if (!is_dir(JPATH_ROOT . $pubPath))
 			{
@@ -1254,7 +1147,7 @@ class ProjectsHelper extends JObject {
 				
 				if ($pubstamp)
 				{
-					$link = JRoute::_('index.php?option=com_projects' . a . 'task=get') . '/?s=' . $pubstamp;
+					$link = JRoute::_('index.php?option=com_projects&task=get') . '/?s=' . $pubstamp;
 				}
 				else
 				{
@@ -1267,17 +1160,74 @@ class ProjectsHelper extends JObject {
 				$html = preg_replace("/\\(file:". $fname . " not found\\)/", $href, $html);			
 				
 				// Replace reference
-				$replace = $page->scope. DS . $page->pagename . DS . 'File:' . $file;
+				$replace = $page->get('scope'). DS . $page->get('pagename') . DS . 'File:' . $file;
 				$replace = preg_quote($replace, '/');
 				$html = preg_replace("/\/projects\/$replace/", $link, $html);
 				
 				// Replace image reference
-				$replace = $page->scope. DS . $page->pagename . DS . 'Image:' . $file;
+				$replace = $page->get('scope'). DS . $page->get('pagename') . DS . 'Image:' . $file;
 				$replace = preg_quote($replace, '/');
 				$html = preg_replace("/\/projects\/$replace/", $link, $html);
 			}
 		}
 		
 		return $html;			
+	}
+	
+	/**
+	 * Authorize reviewer
+	 * 
+	 * @return     void
+	 */
+	public static function checkReviewerAuth($reviewer, $config)
+	{
+		if ($reviewer != 'sponsored' && $reviewer != 'sensitive' && $reviewer != 'general')
+		{
+			return false;
+		}
+		
+		$juser = JFactory::getUser();
+		if ($juser->get('guest'))
+		{
+			return false;
+		}
+		
+		$sdata_group 	= $config->get('sdata_group', '');
+		$ginfo_group 	= $config->get('ginfo_group', '');
+		$admingroup 	= $config->get('admingroup', '');
+		$group      	= '';
+		$authorized 	= false;
+		
+		// Get authorized group	
+		if ($reviewer == 'sensitive' && $sdata_group)
+		{
+			$group = \Hubzero\User\Group::getInstance($sdata_group);
+		}
+		elseif ($reviewer == 'sponsored' && $ginfo_group)
+		{
+			$group = \Hubzero\User\Group::getInstance($ginfo_group);
+		}
+		elseif ($reviewer == 'general' && $admingroup)
+		{
+			$group = \Hubzero\User\Group::getInstance($admingroup);
+		}
+			
+		if ($group)
+		{
+			// Check if they're a member of this group
+			$ugs = \Hubzero\User\Helper::getGroups($juser->get('id'));
+			if ($ugs && count($ugs) > 0) 
+			{
+				foreach ($ugs as $ug)
+				{
+					if ($group && $ug->cn == $group->get('cn')) 
+					{
+						$authorized = true;
+					}
+				}
+			}
+		}
+		
+		return $authorized;
 	}
 }

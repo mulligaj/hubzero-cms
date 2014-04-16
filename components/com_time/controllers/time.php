@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
- * Primary component controller (extends Hubzero_Controller)
+ * Primary component controller (extends \Hubzero\Component\SiteController)
  */
-class TimeController extends Hubzero_Controller
+class TimeController extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute function
@@ -167,8 +165,7 @@ class TimeController extends Hubzero_Controller
 			$this->_getScripts();
 		}
 
-		ximport('Hubzero_Document');
-		Hubzero_Document::addSystemScript('jquery.infinitescroll');
+		\Hubzero\Document\Assets::addSystemScript('jquery.infinitescroll');
 	}
 
 	/**
@@ -332,7 +329,7 @@ class TimeController extends Hubzero_Controller
 		$accessgroup = isset($this->config->parameters['accessgroup']) ? trim($this->config->parameters['accessgroup']) : 'time';
 
 		// Check if they're a member of admin group
-		$ugs = Hubzero_User_Helper::getGroups($this->juser->get('id'));
+		$ugs = \Hubzero\User\Helper::getGroups($this->juser->get('id'));
 		if ($ugs && count($ugs) > 0)
 		{
 			foreach ($ugs as $ug)

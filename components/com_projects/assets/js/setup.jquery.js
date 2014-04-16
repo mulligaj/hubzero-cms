@@ -134,7 +134,7 @@ HUB.ProjectSetup = {
 						HUB.ProjectSetup.watchInput($('#verified').val(), $('#ptitle').val().length, $('#describe'), $('#moveon'));
 					}), 500);
 				});
-
+				
 				$('#ptitle').on('keydown', function(e) {
 					if (keyupTimerA) {
 						clearTimeout(keyupTimerA);
@@ -164,14 +164,14 @@ HUB.ProjectSetup = {
 		}
 
 		// Verifier for project alias
-		if ($('#verificationarea').length) {
+		if ($('#verificationarea')) {
 			var keyupTimerB = '';			
-
+			
 			$('#name').on('keydown', function(eventInstance) {
 				if (keyupTimerB) {
 					clearTimeout(keyupTimerB);
 				}
-
+				
 				var eventInstance = eventInstance || window.event;
 				var key = eventInstance.keyCode || eventInstance.which;
 
@@ -181,12 +181,12 @@ HUB.ProjectSetup = {
 				  	eventInstance.preventDefault(); 
 				}
 			});
-
+				
 			$('#name').on('keyup', function(e) {
 
 				// Clean up entered value
 				//$(this).val(HUB.Projects.cleanupText($(this).val()));
-
+				
 				$('#verificationarea').empty();
 				var keyupTimerB = setTimeout((function() {  
 					$('#verificationarea').append('<p id="loading-section"></p>');
@@ -259,7 +259,7 @@ HUB.ProjectSetup = {
 	
 	watchInput: function(verified, supplied, elshow, elhide) 
 	{
-		if (verified==1 && supplied > 2) {
+		if (verified == 1 && supplied > 2) {
 			elhide.css('display', 'none');
 			elshow.css('display', 'block');
 		} else {

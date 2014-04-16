@@ -122,7 +122,7 @@ class plgMembersWiki extends JPlugin
 		}
 
 		// Do we have a member ID?
-		if (get_class($member) == 'Hubzero_User_Profile') 
+		if ($member instanceof \Hubzero\User\Profile) 
 		{
 			if (!$member->get('uidNumber')) 
 			{
@@ -150,7 +150,7 @@ class plgMembersWiki extends JPlugin
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'tables' . DS . 'page.php');
 
 		// Instantiate some needed objects
-		$wp = new WikiPage($database);
+		$wp = new WikiTablePage($database);
 
 		// Build query
 		$filters = array();
@@ -179,8 +179,6 @@ class plgMembersWiki extends JPlugin
 
 			if ($rows) 
 			{
-				ximport('Hubzero_View_Helper_Html');
-
 				foreach ($rows as $key => $row)
 				{
 					if ($row->area != '' && $row->category != '') 
@@ -226,7 +224,7 @@ class plgMembersWiki extends JPlugin
 			//if ($row->access == 1) {
 			//	$html .= "\t\t".'<p class="warning">' . JText::_('PLG_MEMBERS_TOPICS_NOT_AUTHORIZED') . '</p>' ."\n";
 			//} else {
-				$html .= "\t\t" . Hubzero_View_Helper_Html::shortenText(stripslashes($row->text)) . "\n";
+				$html .= "\t\t<p>" . \Hubzero\Utility\String::truncate(strip_tags(stripslashes($row->text)), 300) . "</p>\n";
 			//}
 		}
 		$html .= "\t" . '</li>' . "\n";
@@ -269,7 +267,7 @@ class plgMembersWiki extends JPlugin
 		}
 
 		// Do we have a member ID?
-		if (get_class($member) == 'Hubzero_User_Profile') 
+		if (get_class($member) == '\Hubzero\User\Profile') 
 		{
 			if (!$member->get('uidNumber')) 
 			{
@@ -325,8 +323,6 @@ class plgMembersWiki extends JPlugin
 
 			if ($rows) 
 			{
-				ximport('Hubzero_View_Helper_Html');
-
 				foreach ($rows as $key => $row)
 				{
 					if ($row->group_cn != '' && $row->scope != '') 

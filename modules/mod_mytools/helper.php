@@ -35,7 +35,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Module class for displaying a user's recently used/favorite tools
  */
-class modToolList extends Hubzero_Module
+class modToolList extends \Hubzero\Module\Module
 {
 	/**
 	 * Get a list of applications that the user might invoke.
@@ -45,8 +45,7 @@ class modToolList extends Hubzero_Module
 	 */
 	private function _getToollist($lst=NULL)
 	{
-		ximport('Hubzero_Tool');
-		ximport('Hubzero_Tool_Version');
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'tool.php');
 
 		$toollist = array();
 
@@ -70,7 +69,7 @@ class modToolList extends Hubzero_Module
 						$rev = (is_array($bits) && count($bits > 1)) ? array_pop($bits) : '';
 						$item = trim(implode('_r', $bits));
 					}
-					/*$thistool = Hubzero_Tool_Version::getVersionInfo('', 'current', $item, '');
+					/*$thistool = ToolsModelVersion::getVersionInfo('', 'current', $item, '');
 
 					if (is_array($thistool) && isset($thistool[0])) 
 					{
@@ -79,7 +78,7 @@ class modToolList extends Hubzero_Module
 					}*/
 					$items[] = $item;
 				}
-				$tools = Hubzero_Tool_Version::getVersionInfo('', 'current', $items, '');
+				$tools = ToolsModelVersion::getVersionInfo('', 'current', $items, '');
 			} 
 			else 
 			{
@@ -89,7 +88,7 @@ class modToolList extends Hubzero_Module
 		else 
 		{
 			// Get all available tools
-			$tools = Hubzero_Tool::getMyTools();
+			$tools = ToolsModelTool::getMyTools();
 		}
 
 		$toolnames = array();
@@ -314,9 +313,8 @@ class modToolList extends Hubzero_Module
 			$document = JFactory::getDocument();
 
 			// Push the module CSS to the template
-			ximport('Hubzero_Document');
-			Hubzero_Document::addModuleStyleSheet($this->module->module);
-			Hubzero_Document::addModuleScript($this->module->module);
+			$this->css();
+			$this->js();
 
 			// Get a list of recent tools
 			$rt = new RecentTool($database);

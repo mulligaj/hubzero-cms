@@ -30,24 +30,16 @@
 
 defined('_JEXEC') or die( 'Restricted access' );
 
-ximport('Hubzero_Wiki_Parser');
-$view = new Hubzero_Plugin_View(
-	array(
-		'folder'  => 'courses',
-		'element' => 'pages',
-		'name'    => 'pages',
-		'layout'  => 'default_menu'
-	)
-);
-$view->option     = $this->option;
-$view->controller = $this->controller;
-$view->course     = $this->course;
-$view->offering   = $this->offering;
-$view->page       = $this->model;
-$view->pages      = $this->pages;
-$view->display();
+$this->view('default_menu')
+     ->set('option', $this->option)
+     ->set('controller', $this->controller)
+     ->set('course', $this->course)
+     ->set('offering', $this->offering)
+     ->set('page', $this->model)
+     ->set('pages', $this->pages)
+     ->display();
 
-$base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alias') . '&offering=' . $this->offering->get('alias') . ($this->offering->section()->get('alias') != '__default' ? ':' . $this->offering->section()->get('alias') : '') . '&active=pages';
+$base = $this->offering->link() . '&active=pages';
 ?>
 
 <div class="pages-wrap">
@@ -93,10 +85,8 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 				<label for="fields_content">
 					<?php echo JText::_('PLG_COURSES_PAGES_FIELD_CONTENT'); ?> <span class="required"><?php echo JText::_('PLG_COURSES_PAGES_REQUIRED'); ?></span>
 					<?php
-						ximport('Hubzero_Wiki_Editor');
-						echo Hubzero_Wiki_Editor::getInstance()->display('fields[content]', 'field_content', stripslashes($this->model->get('content')), '', '50', '50');
+						echo \JFactory::getEditor()->display('fields[content]', $this->escape(stripslashes($this->model->get('content'))), '', '', 35, 50, false, 'field_content', null, null, array('class' => 'minimal no-footer'));
 					?>
-					<span class="hint"><?php echo JText::sprintf('PLG_COURSES_PAGES_FIELD_CONTENT_HINT', JRoute::_('index.php?option=com_wiki&scope=&pagename=Help:WikiFormatting'), JRoute::_('index.php?option=com_wiki&scope=&pagename=Help:WikiMacros')); ?></span>
 				</label>
 
 				<div class="field-wrap">
@@ -135,7 +125,7 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 			<input type="hidden" name="gid" value="<?php echo $this->course->get('alias'); ?>" />
 			<input type="hidden" name="active" value="pages" />
 			<input type="hidden" name="action" value="save" />
-			<input type="hidden" name="offering" value="<?php echo $this->offering->get('alias') . ($this->offering->section()->get('alias') != '__default' ? ':' . $this->offering->section()->get('alias') : ''); ?>" />
+			<input type="hidden" name="offering" value="<?php echo $this->offering->alias(); ?>" />
 		</form>
 
 		<div class="clear"></div>

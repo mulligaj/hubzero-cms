@@ -35,7 +35,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Module class for displaying a slideshow
  */
-class modSlideshow extends Hubzero_Module
+class modSlideshow extends \Hubzero\Module\Module
 {
 	/**
 	 * Path to find slideshow content
@@ -51,8 +51,6 @@ class modSlideshow extends Hubzero_Module
 	 */
 	public function display()
 	{
-		ximport('Hubzero_Document');
-
 		$image_dir = trim($this->params->get('image_dir', 'site/slideshow'), DS);
 		
 		$alias          = $this->params->get('alias', '');
@@ -65,7 +63,7 @@ class modSlideshow extends Hubzero_Module
 		$noflash        = $this->params->get('stype', 0);
 		$noflash_link   = $this->params->get('noflash_link', '');
 
-		$swffile = rtrim(Hubzero_Document::getModuleImage($this->module->module, 'banner' . $width . 'x' . $height . '.swf'), '.swf');
+		$swffile = rtrim(\Hubzero\Document\Assets::getModuleImage($this->module->module, 'banner' . $width . 'x' . $height . '.swf'), '.swf');
 
 		jimport('joomla.filesystem.folder');
 		jimport('joomla.filesystem.file');
@@ -162,10 +160,8 @@ class modSlideshow extends Hubzero_Module
 
 		if (!$noflash) 
 		{
-			Hubzero_Document::addModuleScript($this->module->module);
-	
-			$document = JFactory::getDocument();
-			$document->addScriptDeclaration('HUB.ModSlideshow.src="' . $swffile . '"; HUB.ModSlideshow.alias="' . $alias . '"; HUB.ModSlideshow.height="' . $height . '"; HUB.ModSlideshow.width="' . $width . '"');
+			$this->js();
+			$this->js('HUB.ModSlideshow.src="' . $swffile . '"; HUB.ModSlideshow.alias="' . $alias . '"; HUB.ModSlideshow.height="' . $height . '"; HUB.ModSlideshow.width="' . $width . '"');
 		}
 
 		$this->width = $width;

@@ -31,27 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-ximport('Hubzero_Plugin');
-
 /**
  * Groups Plugin class for messages
  */
-class plgGroupsMessages extends Hubzero_Plugin
+class plgGroupsMessages extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -64,7 +54,8 @@ class plgGroupsMessages extends Hubzero_Plugin
 			'name' => 'messages',
 			'title' => JText::_('PLG_GROUPS_MESSAGES'),
 			'default_access' => $this->params->get('plugin_access','members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => '2709'
 		);
 		return $area;
 	}
@@ -151,12 +142,8 @@ class plgGroupsMessages extends Hubzero_Plugin
 			}
 
 			//push styles to the view
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('groups','messages');
-            Hubzero_Document::addPluginScript('groups','messages');
-
-			// Load some needed libraries
-			ximport('Hubzero_Message_Helper');
+			\Hubzero\Document\Assets::addPluginStylesheet('groups','messages');
+			\Hubzero\Document\Assets::addPluginScript('groups','messages');
 
 			$task = strtolower(trim($action));
 
@@ -193,7 +180,7 @@ class plgGroupsMessages extends Hubzero_Plugin
 
 		// Instantiate our message object
 		$database = JFactory::getDBO();
-		$recipient = new Hubzero_Message_Message($database);
+		$recipient = new \Hubzero\Message\Message($database);
 
 		// Retrieve data
 		$total = $recipient->getSentMessagesCount($filters);
@@ -209,8 +196,7 @@ class plgGroupsMessages extends Hubzero_Plugin
 		);
 
 		// Instantiate a view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'messages',
@@ -256,7 +242,7 @@ class plgGroupsMessages extends Hubzero_Plugin
 		$database = JFactory::getDBO();
 
 		// Load the message and parse it
-		$xmessage = new Hubzero_Message_Message($database);
+		$xmessage = new \Hubzero\Message\Message($database);
 		$xmessage->load($message);
 		$xmessage->message = stripslashes($xmessage->message);
 		$xmessage->message = str_replace("\n", "\n ", $xmessage->message);
@@ -270,8 +256,7 @@ class plgGroupsMessages extends Hubzero_Plugin
 		}
 
 		// Instantiate the view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'messages',
@@ -315,8 +300,7 @@ class plgGroupsMessages extends Hubzero_Plugin
 		$document->setTitle(JText::_(strtoupper($this->_name)).': '.$this->group->get('description').': '.JText::_('PLG_GROUPS_MESSAGES_SEND'));
 
 		// Instantiate a vew
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => 'messages',
@@ -326,7 +310,7 @@ class plgGroupsMessages extends Hubzero_Plugin
 
 		//get all member roles
 		$db = JFactory::getDBO();
-		$sql = "SELECT * FROM #__xgroups_roles WHERE gidNumber='".$this->group->get('gidNumber')."'";
+		$sql = "SELECT * FROM #__xgroups_roles WHERE gidNumber=".$db->quote($this->group->get('gidNumber'));
 		$db->setQuery($sql);
 		$member_roles = $db->loadAssocList();
 
@@ -426,44 +410,89 @@ class plgGroupsMessages extends Hubzero_Plugin
 			break;
 		}
 
-		$message .= "\r\n------------------------------------------------\r\n\r\n";
-
 		// Incoming message and subject
-		$subject = JRequest::getVar('subject', JText::_('PLG_GROUPS_MESSAGES_SUBJECT'));
-		$message .= JRequest::getVar('message', '');
+		$s = JRequest::getVar('subject', JText::_('PLG_GROUPS_MESSAGES_SUBJECT'));
+		$m = JRequest::getVar('message', '');
 
 		// Ensure we have a message
-		if (!$subject || !$message) 
+		if (!$s || !$m) 
 		{
 			$html  = '<p class="error">You must enter all required fields</p>';
 			$html .= $this->_create();
 			return $html;
 		}
+		
+		// get all group members
+		$recipients = array();
+		foreach ($mbrs as $mbr)
+		{
+			if ($profile = \Hubzero\User\Profile::getInstance($mbr))
+			{
+				$recipients[$profile->get('email')] = $profile->get('name');
+			}
+		}
+		
+		// add invite emails if sending to invitees
+		if ($action == 'group_invitees_message')
+		{
+			// Get invite emails
+			$db = JFactory::getDBO();
+			$group_inviteemails = new \Hubzero\User\Group\InviteEmail($db);
+			$current_inviteemails = $group_inviteemails->getInviteEmails($this->group->get('gidNumber'), true);
 
-		// Add a link to the group page to the bottom of the message
+			foreach ($current_inviteemails as $current_inviteemail)
+			{
+				$recipients[$current_inviteemail] = $current_inviteemail;
+			}
+		}
+
+		// define from details
+		$config = JFactory::getConfig();
+		$from = array(
+			'name'  => $this->group->get('description') . " Group on " . $config->getValue("fromname"),
+			'email' => $config->getValue("mailfrom")
+		);
+		
+		// create url
 		$juri = JURI::getInstance();
 		$sef = JRoute::_('index.php?option='.$this->_option.'&cn='. $this->group->get('cn'));
 		$sef = ltrim($sef, DS);
-
-		$message .= "\r\n\r\n------------------------------------------------\r\n". $juri->base().$sef . "\r\n";
-
-		// Build the "from" data for the e-mail
-		$from = array();
-		$config = JFactory::getConfig();
-		$from['name'] = $this->group->get('description') . " Group on " . $config->getValue("fromname");
-		$from['email'] = $config->getValue("mailfrom");
-		$from['replytoname'] = 'DO NOT REPLY TO THIS MESSAGE';
-		$from['replytoemail'] = 'do-not-reply@' . $_SERVER['HTTP_HOST'];
 		
-		//append "on behalf..." to subject
-		$subject .= " [Email sent on Behalf of " . $juser->get('name') . "]";
+		// create subject
+		$subject = $s . " [Email sent on Behalf of " . $juser->get('name') . "]";
 		
-		// Send the message
-		JPluginHelper::importPlugin('xmessage');
-		$dispatcher = JDispatcher::getInstance();
-		if (!$dispatcher->trigger('onSendMessage', array('group_message', $subject, $message, $from, $mbrs, $this->_option, null, '', $group_id))) 
+		//message
+		$plain  = JText::sprintf('PLG_GROUPS_MESSAGES_FROM_GROUP', $this->group->get('cn')); 
+		$plain .= "\r\n------------------------------------------------\r\n\r\n";
+		$plain .= $m;
+		
+		// create message
+		$plain .= "\r\n\r\n------------------------------------------------\r\n". $juri->base().$sef . "\r\n";
+		
+		// create message object
+		$message = new \Hubzero\Mail\Message();
+		
+		// set message details and send
+		$message->setSubject($subject)
+				->addFrom($from['email'], $from['name'])
+				->setTo($recipients)
+				->addPart($plain, 'text/plain')
+				->send();
+
+		// add invite emails if sending to invitees
+		if ($action == 'group_invitees_message')
 		{
-			$this->setError(JText::_('GROUPS_ERROR_EMAIL_MEMBERS_FAILED'));
+			// Get invite emails
+			$db = JFactory::getDBO();
+			$group_inviteemails = new Hubzero_Group_InviteEmail($db);
+			$current_inviteemails = $group_inviteemails->getInviteEmails($this->group->get('gidNumber'), true);
+
+			$headers  = 'From: ' . $from['name'] . ' <' . $from['email'] . '>' . "\r\n";
+			$headers .= 'Reply-To: ' . $from['replytoname'] . ' <' . $from['replytoemail'] . '>' . "\r\n";
+			foreach ($current_inviteemails as $current_inviteemail)
+			{
+				mail($current_inviteemail, $subject, $message, $headers);
+			}
 		}
 
 		// add invite emails if sending to invitees
@@ -485,19 +514,12 @@ class plgGroupsMessages extends Hubzero_Plugin
 		// Log the action
 		if ($action) 
 		{
-			$database = JFactory::getDBO();
-			$log = new XGroupLog($database);
-			$log->gid = $this->group->get('gidNumber');
-			$log->timestamp = JFactory::getDate()->toSql();
-			$log->action = $action;
-			$log->actorid = $juser->get('id');
-			if (!$log->store()) 
-			{
-				foreach ($log->getErrors() as $error)
-				{
-					$this->setError($error);
-				}
-			}
+			// log invites
+			GroupsModelLog::log(array(
+				'gidNumber' => $this->group->get('gidNumber'),
+				'action'    => $action,
+				'comments'  => array($juser->get('id'))
+			));
 		}
 
 		// Determine if we're returning HTML or not

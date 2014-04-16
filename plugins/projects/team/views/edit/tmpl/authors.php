@@ -25,8 +25,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-ximport('Hubzero_User_Profile_Helper');
-
 ?>
 <div id="abox-content">
 <?php if($this->ajax) { ?>
@@ -73,8 +71,8 @@ else
 <?php foreach ($this->team as $owner) 
 	{
 					// Get profile thumb image 			
-					$profile = Hubzero_User_Profile::getInstance($owner->userid);
-					$thumb = Hubzero_User_Profile_Helper::getMemberPhoto($profile);
+					$profile = \Hubzero\User\Profile::getInstance($owner->userid);
+					$thumb = \Hubzero\User\Profile\Helper::getMemberPhoto($profile);
 					
 					// Determine css class for user
 					$username 	= $owner->username ? $owner->username : $owner->invited_email;

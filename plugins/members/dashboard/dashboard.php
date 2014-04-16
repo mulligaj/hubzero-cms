@@ -29,27 +29,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-ximport('Hubzero_Plugin');
-
 /**
  * Members Plugin class for dashboard
  */
-class plgMembersDashboard extends Hubzero_Plugin
+class plgMembersDashboard extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Event call to determine if this plugin should return data
@@ -67,6 +57,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 		if ($user->get('id') == $member->get('uidNumber'))
 		{
 			$areas['dashboard'] = JText::_('PLG_MEMBERS_DASHBOARD');
+			$areas['icon'] = 'f009';
 		}
 
 		return $areas;
@@ -109,11 +100,9 @@ class plgMembersDashboard extends Hubzero_Plugin
 
 			$this->_act = JRequest::getVar('act', 'customize');
 
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('members', 'dashboard');
+			\Hubzero\Document\Assets::addPluginStylesheet('members', 'dashboard');
 
-			ximport('Hubzero_Plugin_View');
-			$this->view = new Hubzero_Plugin_View(
+			$this->view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'members',
 					'element' => 'dashboard',
@@ -167,12 +156,11 @@ class plgMembersDashboard extends Hubzero_Plugin
 	{
 		if ($this->params->get('allow_customization', 0) != 1) 
 		{
-			ximport('Hubzero_Document');
 			if (!JPluginHelper::isEnabled('system', 'jquery'))
 			{
-				Hubzero_Document::addPluginScript('members', 'dashboard', 'xsortables');
+				\Hubzero\Document\Assets::addPluginScript('members', 'dashboard', 'xsortables');
 			}
-			Hubzero_Document::addPluginScript('members', 'dashboard');
+			\Hubzero\Document\Assets::addPluginScript('members', 'dashboard');
 		}
 
 		$this->num_default = $this->params->get('defaultNumber', 6);
@@ -185,7 +173,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 		$this->modules = $mp->loadPosition($this->member->get('uidNumber'), $this->params->get('position', 'myhub'));
 
 		// No preferences found
-		if (trim($myhub->prefs) == '') 
+		if (trim($myhub->prefs) == '' && (!$myhub->modified || $myhub->modified == '0000-00-00 00:00:00'))
 		{
 			// Create a default set of preferences
 			$myhub->uid = $this->member->get('uidNumber');
@@ -352,7 +340,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 				}
 
 				// Instantiate a view
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'  => 'members',
 						'element' => 'dashboard',
@@ -415,7 +403,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 		}
 
 		// Instantiate a view
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'dashboard',
@@ -442,7 +430,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 		// Incoming
 		$ids = JRequest::getVar('mids', '');
 
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'dashboard',
@@ -545,7 +533,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 	protected function getmodule($extras=false, $act='')
 	{
 		// Instantiate a view
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'dashboard',
@@ -824,7 +812,6 @@ class plgMembersDashboard extends Hubzero_Plugin
 	{
 		$task = ($task) ?  $task : 'default';
 
-		ximport('Hubzero_Plugin_View');
 		include_once(JPATH_ROOT . DS . 'plugins' . DS . 'members' . DS . 'dashboard' . DS . 'tables' . DS . 'params.php');
 		include_once(JPATH_ROOT . DS . 'plugins' . DS . 'members' . DS . 'dashboard' . DS . 'tables' . DS . 'prefs.php');
 
@@ -848,7 +835,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 	public function defaultTask()
 	{
 		// Instantiate a view
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'dashboard',
@@ -946,7 +933,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 	 */
 	public function selectTask()
 	{
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'dashboard',
@@ -1128,8 +1115,7 @@ class plgMembersDashboard extends Hubzero_Plugin
 	 */
 	protected function addmoduleTask()
 	{
-		ximport('Hubzero_User_Profile');
-		$this->member = Hubzero_User_Profile::getInstance(JFactory::getUser()->get('id'));
+		$this->member = \Hubzero\User\Profile::getInstance(JFactory::getUser()->get('id'));
 		if ($this->addmodule() == 'ERROR')
 		{
 			return 'ERROR';

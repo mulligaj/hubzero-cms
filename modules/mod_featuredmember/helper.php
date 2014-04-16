@@ -35,7 +35,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Module class for displaying featured members
  */
-class modFeaturedmember extends Hubzero_Module
+class modFeaturedmember extends \Hubzero\Module\Module
 {
 	/**
 	 * Generate module contents
@@ -51,8 +51,6 @@ class modFeaturedmember extends Hubzero_Module
 			$this->setError(JText::_('FeaturesHistory class missing'));
 			return false;
 		}
-
-		ximport('Hubzero_User_Profile');
 
 		$database = JFactory::getDBO();
 
@@ -155,7 +153,7 @@ class modFeaturedmember extends Hubzero_Module
 				}
 
 				// Load their bio
-				$this->profile = Hubzero_User_Profile::getInstance($this->row->uidNumber);
+				$this->profile = \Hubzero\User\Profile::getInstance($this->row->uidNumber);
 
 				if (trim(strip_tags($this->profile->get('bio'))) == '') 
 				{
@@ -167,8 +165,6 @@ class modFeaturedmember extends Hubzero_Module
 		// Did we have a result to display?
 		if ($this->row) 
 		{
-			ximport('Hubzero_View_Helper_Html');
-
 			$config = JComponentHelper::getParams('com_members');
 
 			// Is this a content article or a member profile?
@@ -179,7 +175,7 @@ class modFeaturedmember extends Hubzero_Module
 				$this->id    = $this->row->created_by_alias;
 				$this->txt   = $this->row->introtext;
 
-				$this->profile = Hubzero_User_Profile::getInstance($id);
+				$this->profile = \Hubzero\User\Profile::getInstance($id);
 				$this->row->picture = $this->profile->get('picture');
 
 				// Check if the article has been saved in the feature history
@@ -196,7 +192,7 @@ class modFeaturedmember extends Hubzero_Module
 			{
 				if (!isset($this->profile) && !is_object($this->profile)) 
 				{
-					$this->profile = Hubzero_User_Profile::getInstance($this->row->uidNumber);
+					$this->profile = \Hubzero\User\Profile::getInstance($this->row->uidNumber);
 				}
 
 				$paramsClass = 'JParameter';
@@ -213,7 +209,7 @@ class modFeaturedmember extends Hubzero_Module
 				 || ($this->params->get('access_bio') == 1 && !$juser->get('guest'))
 				) 
 				{
-					$this->txt = $this->profile->get('bio');
+					$this->txt = $this->profile->getBio('parsed');
 				} 
 				else 
 				{
@@ -238,49 +234,7 @@ class modFeaturedmember extends Hubzero_Module
 				}
 			}
 
-			// Do we have a picture?
-			$thumb = '';
-			if (isset($this->row->picture) && $this->row->picture != '') 
-			{
-				// Yes - so build the path to it
-				$thumb  = DS . trim($config->get('webpath', '/site/members'), DS);
-				$thumb .= DS . Hubzero_View_Helper_Html::niceidformat($this->row->uidNumber) . DS . $this->row->picture;
-
-				// No - use default picture
-				if (is_file(JPATH_ROOT . $thumb)) 
-				{
-					// Build a thumbnail filename based off the picture name
-					$thumb = Hubzero_View_Helper_Html::thumbit($thumb);
-
-					if (!is_file(JPATH_ROOT . $thumb)) 
-					{
-						// Create a thumbnail image
-						include_once(JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'helpers' . DS . 'imghandler.php');
-
-						$ih = new MembersImgHandler();
-						$ih->set('image', $this->row->picture);
-						$ih->set('path', JPATH_ROOT . DS . trim($config->get('webpath', '/site/members'), DS) . DS . Hubzero_View_Helper_Html::niceidformat($this->row->uidNumber) . DS);
-						$ih->set('maxWidth', 50);
-						$ih->set('maxHeight', 50);
-						$ih->set('cropratio', '1:1');
-						$ih->set('outputName', $ih->createThumbName());
-						if (!$ih->process()) 
-						{
-							$this->setError($ih->getError());
-						}
-					}
-				}
-			}
-
-			// No - use default picture
-			if (!is_file(JPATH_ROOT . $thumb)) 
-			{
-				$thumb = DS . ltrim($config->get('defaultpic', '/components/com_members/images/profile.gif'), DS);
-				// Build a thumbnail filename based off the picture name
-				$thumb = Hubzero_View_Helper_Html::thumbit($thumb);
-			}
-
-			$this->thumb   = $thumb;
+			$this->thumb   = $this->profile->getPicture();
 			$this->filters = $filters;
 
 			require(JModuleHelper::getLayoutPath($this->module->module));

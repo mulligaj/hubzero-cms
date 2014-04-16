@@ -37,7 +37,7 @@ defined('_JEXEC') or die('Restricted access');
 	$jt = new JobType($database);
 	$jc = new JobCategory($database);
 
-	$profile = Hubzero_User_Profile::getInstance($this->seeker->uid);
+	$profile = \Hubzero\User\Profile::getInstance($this->seeker->uid);
 
 	$jobtype = $jt->getType($this->seeker->sought_type, strtolower(JText::_('PLG_MEMBERS_RESUME_TYPE_ANY')));
 	$jobcat  = $jc->getCat($this->seeker->sought_cid, strtolower(JText::_('PLG_MEMBERS_RESUME_CATEGORY_ANY')));
@@ -47,8 +47,7 @@ defined('_JEXEC') or die('Restricted access');
 	// Get the configured upload path
 		$base_path = DS . trim($this->params->get('webpath', '/site/members'), DS);
 
-		ximport('Hubzero_View_Helper_Html');
-		$path = $base_path . DS . Hubzero_View_Helper_Html::niceidformat($this->seeker->uid);
+		$path = $base_path . DS . \Hubzero\Utility\String::pad($this->seeker->uid);
 
 		if (!is_dir(JPATH_ROOT . $path)) 
 		{
@@ -61,9 +60,9 @@ defined('_JEXEC') or die('Restricted access');
 
 	$resume = is_file(JPATH_ROOT . $path . DS . $this->seeker->filename) ? $path . DS . $this->seeker->filename : '';
 ?>
-	<div class="aboutme<?php echo $this->seeker->mine && $list ? ' mine' : ''; echo isset($this->seeker->shortlisted) && $this->seeker->shortlisted ? ' shortlisted' : ''; ?>">
+	<div class="aboutme<?php echo $this->seeker->mine && $this->list ? ' mine' : ''; echo isset($this->seeker->shortlisted) && $this->seeker->shortlisted ? ' shortlisted' : ''; ?>">
 		<div class="thumb">
-			<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($profile); ?>" alt="<?php echo $this->seeker->name; ?>" />
+			<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($profile); ?>" alt="<?php echo $this->seeker->name; ?>" />
 		</div>
 
 		<div class="aboutlb">

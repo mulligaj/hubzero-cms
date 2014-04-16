@@ -58,6 +58,7 @@ class plgMembersBlog extends JPlugin
 	public function &onMembersAreas($user, $member)
 	{
 		$areas['blog'] = JText::_('PLG_MEMBERS_BLOG');
+		$areas['icon'] = 'f075';
 		return $areas;
 	}
 
@@ -102,13 +103,12 @@ class plgMembersBlog extends JPlugin
 			//$this->authorized = $authorized;
 			$this->database = JFactory::getDBO();
 
-			$p = new Hubzero_Plugin_Params($this->database);
+			$p = new \Hubzero\Plugin\Params($this->database);
 			$this->params = $p->getParams($this->member->get('uidNumber'), 'members', $this->_name);
 
 			// Push styles to the template
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('members', $this->_name);
-			Hubzero_Document::addPluginScript('members', $this->_name);
+			\Hubzero\Document\Assets::addPluginStylesheet('members', $this->_name);
+			\Hubzero\Document\Assets::addPluginScript('members', $this->_name);
 
 			// Append to document the title
 			$document = JFactory::getDocument();
@@ -268,8 +268,7 @@ class plgMembersBlog extends JPlugin
 	 */
 	private function _browse() 
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => $this->_name,
@@ -409,10 +408,10 @@ class plgMembersBlog extends JPlugin
 
 				// Strip html from feed item description text
 				$item->description = $row->content('parsed');
-				$item->description = html_entity_decode(Hubzero_View_Helper_Html::purifyText($item->description));
+				$item->description = html_entity_decode(\Hubzero\Utility\Sanitize::stripAll($item->description));
 				if ($this->params->get('feed_entries') == 'partial') 
 				{
-					$item->description = Hubzero_View_Helper_Html::shortenText($item->description, 300, 0);
+					$item->description = \Hubzero\Utility\String::truncate($item->description, 300);
 				}
 
 				// Load individual item creator class
@@ -438,8 +437,7 @@ class plgMembersBlog extends JPlugin
 	 */
 	private function _entry() 
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => $this->_name,
@@ -550,8 +548,7 @@ class plgMembersBlog extends JPlugin
 		}
 
 		// Instantiate view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => $this->_name,
@@ -592,9 +589,9 @@ class plgMembersBlog extends JPlugin
 			}
 		}
 
-		Hubzero_Document::addSystemScript('jquery.timepicker');
-		Hubzero_Document::addSystemStylesheet('jquery.datepicker.css');
-		Hubzero_Document::addSystemStylesheet('jquery.timepicker.css');
+		\Hubzero\Document\Assets::addSystemScript('jquery.timepicker');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.datepicker.css');
+		\Hubzero\Document\Assets::addSystemStylesheet('jquery.timepicker.css');
 
 		// Render view
 		return $view->loadTemplate();
@@ -691,8 +688,7 @@ class plgMembersBlog extends JPlugin
 			}
 
 			// Output HTML
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'members',
 					'element' => $this->_name,
@@ -745,7 +741,7 @@ class plgMembersBlog extends JPlugin
 		}
 
 		// Incoming
-		$comment = JRequest::getVar('comment', array(), 'post');
+		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
 
 		// Instantiate a new comment object and pass it the data
 		$row = new BlogModelComment($comment['id']);
@@ -855,8 +851,7 @@ class plgMembersBlog extends JPlugin
 		}
 
 		// Output HTML
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => $this->_name,
@@ -868,7 +863,7 @@ class plgMembersBlog extends JPlugin
 		$view->task     = $this->task;
 		$view->config   = $this->params;
 
-		$view->settings = new Hubzero_Plugin_Params($this->database);
+		$view->settings = new \Hubzero\Plugin\Params($this->database);
 		$view->settings->loadPlugin($this->member->get('uidNumber'), 'members', $this->_name);
 
 		$view->message  = (isset($this->message)) ? $this->message : '';
@@ -904,7 +899,7 @@ class plgMembersBlog extends JPlugin
 
 		$settings = JRequest::getVar('settings', array(), 'post');
 
-		$row = new Hubzero_Plugin_Params($this->database);
+		$row = new \Hubzero\Plugin\Params($this->database);
 		if (!$row->bind($settings)) 
 		{
 			$this->setError($row->getError());

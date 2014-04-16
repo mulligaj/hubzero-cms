@@ -34,8 +34,8 @@ defined('_JEXEC') or die( 'Restricted access' );
 /**
  * Projects Git helper class
  */
-class ProjectsGitHelper extends JObject {
-		
+class ProjectsGitHelper extends JObject 
+{
 	/**
 	 * Git path
 	 * 
@@ -96,8 +96,7 @@ class ProjectsGitHelper extends JObject {
 			}
 
 			// Get author profile
-			$profile = Hubzero_Factory::getProfile();
-			$profile->load( $this->_uid );
+			$profile = \Hubzero\User\Profile::getInstance($this->_uid);
 
 			$name    = $profile->get('name');
 			$email   = $profile->get('email');
@@ -146,7 +145,7 @@ class ProjectsGitHelper extends JObject {
 	 *
 	 * @return     string
 	 */
-	public function showTextContent($fpath = '', $max = 100)
+	public function showTextContent($fpath = '', $max = 1000)
 	{		
 		if (!$fpath)
 		{
@@ -565,7 +564,7 @@ class ProjectsGitHelper extends JObject {
 	 * @param      string	$type		'file' or 'folder'
 	 * @param      string	&$commitMsg
 	 *
-	 * @return     array to be parsed
+	 * @return     integer
 	 */
 	public function gitMove ($path = '', $from = '', $where = '', $type = 'file', &$commitMsg = '' ) 
 	{
@@ -597,19 +596,124 @@ class ProjectsGitHelper extends JObject {
 	}
 	
 	/**
+	 * Git checkout
+	 * 
+	 * @param      string	$path
+	 * @param      string	$item
+	 * @param      string	$hash	
+	 *
+	 * @return     boolean
+	 */
+	public function gitCheckout ($path = '', $item = '' , $hash = '') 
+	{
+		if (!$path || !$item || !$hash)
+		{
+			return false;
+		}
+		
+		chdir($this->_prefix . $path);
+		exec($this->_gitpath . ' checkout ' . $hash . ' -- ' . escapeshellarg($item) . ' 2>&1', $out);
+					
+		return true;		
+	}
+	
+	/**
 	 * Ls files
 	 * 
-	 * @param      string	$path		Repo path
-	 * @param      string	$subdir		Local directory path
+	 * @param      string	$path			Repo path
+	 * @param      string	$subdir			Local directory path
+	 * @param      boolean	$showUntracked	Show/hide untracked files
 	 *
 	 * @return     array
 	 */
-	public function getFiles ($path = '', $subdir = '') 
+	public function getFiles ($path = '', $subdir = '', $showUntracked = false) 
 	{
+		$call = $showUntracked 
+			? ' ls-files --others --exclude-standard ' . escapeshellarg($subdir)
+			: ' ls-files --exclude-standard ' . escapeshellarg($subdir);
+		
 		// Get Git status
-		$out = $this->callGit($path, ' ls-files --exclude-standard ' . escapeshellarg($subdir) );
+		$out = $this->callGit($path, $call );
 				
 		return $out && substr($out[0], 0, 5) == 'fatal' ? array() : $out;
+	}
+	
+	/**
+	 * List deleted files
+	 * 
+	 * @param      string	$path	
+	 *
+	 * @return     array to be parsed
+	 */
+	public function listDeleted ($path = '') 
+	{
+		$out = array();
+		
+		$call = 'log --diff-filter=D --pretty=format:%H ';
+		
+		chdir($this->_prefix . $path);
+		exec($this->_gitpath . ' ' . $call . '  2>&1', $out);
+		
+		$files = array();
+		
+		if (count($out) == 0)
+		{
+			return $files;
+		}
+		
+		// Go through hashes and get file names
+		foreach ($out as $hash)
+		{
+			// Get filename and change
+			$fileinfo = $this->callGit( $path, 'diff --name-status ' . $hash . '^ ' . $hash );
+			
+			$time     = $this->gitLog($path, '', $hash, 'timestamp');
+			$author   = $this->gitLog($path, '', $hash, 'author');
+			
+			// Go through files
+			foreach ($fileinfo as $line) 
+			{
+				$n = substr($line, 0, 1);
+
+				if ($n == 'f')
+				{
+					break;
+				}
+				else
+				{
+					$filename = trim(substr($line, 1));	
+					$size 	  = $this->gitLog($path, $filename, $hash . '^', 'size');
+					$message  = $this->gitLog($path, $filename, $hash , 'message');
+					
+					// File is still there - skip
+					if (is_file( $path . DS . $filename))
+					{
+						continue;
+					}
+					
+					if (basename($filename) == '.gitignore')
+					{
+						continue;
+					}
+					
+					// File renamed/moved - skip
+					if (strstr(strtolower($message), 'moved file ') || strstr(strtolower($message), 'moved folder '))
+					{
+						continue;
+					}
+										
+					$files[$filename] = array(
+						'hash'			=> $hash,
+						'author'		=> $author,
+						'date'			=> date('c', $time),
+						'size'			=> $size,
+						'message'		=> $message
+					);	
+				}
+			}
+		}
+
+		return $files;
 	}
 				
 	/**
@@ -619,14 +723,14 @@ class ProjectsGitHelper extends JObject {
 	 *
 	 * @return     array
 	 */
-	public function getChanges ($path = '', $localPath = '', $synced = '', $localDir = '', &$localRenames, $connections) 
+	public function getChanges ($path = '', $localPath = '', $synced = '', 
+		$localDir = '', &$localRenames, $connections) 
 	{
 		// Collector array
 		$locals = array();
 		
 		// MIME types		
-		ximport('Hubzero_Content_Mimetypes');
-		$mt = new Hubzero_Content_Mimetypes();
+		$mt = new \Hubzero\Content\Mimetypes();
 		
 		// Initial sync
 		if ($synced == 1)
@@ -937,7 +1041,8 @@ class ProjectsGitHelper extends JObject {
 	 *
 	 * @return     array of version info
 	 */
-	public function sortLocalRevisions($local_path = '', $path, &$versions = array(), &$timestamps = array(), $original = 0 )
+	public function sortLocalRevisions($local_path = '', $path, 
+		&$versions = array(), &$timestamps = array(), $original = 0 )
 	{
 		// Get local file history
 		$hashes = $this->getLocalFileHistory($path, $local_path, '--');
@@ -1012,7 +1117,7 @@ class ProjectsGitHelper extends JObject {
 				// Exctract file content for certain statuses
 				if (in_array($revision['commitStatus'], array('A', 'M', 'R')) && $content)
 				{
-					$revision['content'] = $this->filterASCII($content);
+					$revision['content'] = $this->filterASCII($content, false, false, 10000);
 				}				
 										
 				$versions[] = $revision;
@@ -1028,27 +1133,13 @@ class ProjectsGitHelper extends JObject {
 	 *
 	 * @return     integer
 	 */
-	public function IsBinary($file) 
+	public function isBinary($file) 
 	{ 
-	  	if (file_exists($file)) 
-		{   	
-			if (!is_file($file)) 
-			{
-				return 0;
-			} 
+ 		// MIME types		
+		$mt = new \Hubzero\Content\Mimetypes();
+		$mime = $mt->getMimeType( $file );
 
-	    	$fh  = fopen($file, "r"); 
-	    	$blk = fread($fh, 512); 
-	    	fclose($fh); 
-	    	clearstatcache(); 
-
-	    	return ( 
-		      0 or substr_count($blk, "^ -~")/512 > 0.3 
-		        or substr_count($blk, "\x00") > 0 
-		    ); 
-	  	}
-	 
-	  	return 0; 
+		return substr($mime, 0, 4) == 'text' ? false : true;
 	}
 	
 	/**
@@ -1243,7 +1334,14 @@ class ProjectsGitHelper extends JObject {
 				&& $previous && $previous['commitStatus'] == 'A'
 			)
 			{
-				$versions[$k - 1]['change'] = JText::_('COM_PROJECTS_FILE_STATUS_RENAMED');
+				if ($versions[$k - 1]['size'] != $versions[$k]['size'])
+				{
+					$versions[$k - 1]['change'] = JText::_('COM_PROJECTS_FILE_STATUS_RENAMED_AND_MODIFIED');
+				}
+				else
+				{
+					$versions[$k - 1]['change'] = JText::_('COM_PROJECTS_FILE_STATUS_RENAMED');
+				}
 				$versions[$k - 1]['commitStatus'] = 'R';
 			}
 			

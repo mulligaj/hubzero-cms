@@ -80,8 +80,8 @@ class plgMembersProjects extends JPlugin
 		if ($user->get('id') == $member->get('uidNumber'))
 		{
 			$areas['projects'] = JText::_('PLG_MEMBERS_PROJECTS');
+			$areas['icon'] = 'f03f';
 		}
-
 		return $areas;
 	}
 
@@ -118,7 +118,6 @@ class plgMembersProjects extends JPlugin
 		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_projects' . DS . 'tables' . DS . 'project.php');
 		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS . 'helpers' . DS . 'html.php');
 		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS . 'helpers' . DS . 'imghandler.php');
-		ximport('Hubzero_View_Helper_Html');
 
 		// Set filters
 		$filters = array();
@@ -136,8 +135,7 @@ class plgMembersProjects extends JPlugin
 		$this->_juser = $user;
 
 		// Add stylesheet
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('members', 'projects');
+		\Hubzero\Document\Assets::addPluginStylesheet('members', 'projects');
 
 		if ($returnhtml) 
 		{
@@ -175,8 +173,7 @@ class plgMembersProjects extends JPlugin
 	protected function _view($which = 'all') 
 	{
 		// Build the final HTML		
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'projects',
@@ -234,8 +231,7 @@ class plgMembersProjects extends JPlugin
 		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_projects' . DS . 'tables' . DS . 'project.microblog.php');
 
 		// Build the final HTML
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'projects',

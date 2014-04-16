@@ -34,7 +34,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Wiki table class for page version
  */
-class WikiPageRevision extends JTable
+class WikiTableRevision extends JTable
 {
 	/**
 	 * int(11) Primary key

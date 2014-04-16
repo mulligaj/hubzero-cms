@@ -60,7 +60,8 @@ class plgMembersFavorites extends JPlugin
 	public function &onMembersAreas($user, $member)
 	{
 		$areas = array(
-			'favorites' => JText::_('PLG_MEMBERS_FAVORITES')
+			'favorites' => JText::_('PLG_MEMBERS_FAVORITES'),
+			'icon' => '2665'
 		);
 		return $areas;
 	}
@@ -168,7 +169,7 @@ class plgMembersFavorites extends JPlugin
 			{
 				// No sub-categories - this should be easy
 				$cats[$i]['title'] = $t;
-				$cats[$i]['total'] = (!is_array($totals[$i])) ? $totals[$i] : 0;
+				$cats[$i]['total'] = (isset($totals[$i]) && !is_array($totals[$i])) ? $totals[$i] : 0;
 			}
 
 			// Add to the overall total
@@ -207,11 +208,9 @@ class plgMembersFavorites extends JPlugin
 				$active = '';
 			}
 
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('members', 'favorites');
+			\Hubzero\Document\Assets::addPluginStylesheet('members', 'favorites');
 
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'members',
 					'element' => 'favorites',

@@ -61,10 +61,7 @@ if (count($this->notifications) > 0)
 		<h3>Questions?</h3>
 		<ul>
 			<li>
-				<a href="<?php echo JRoute::_('index.php?option=com_kb&section=courses&alias=faq'); ?>">Courses FAQ</a>
-			</li>
-			<li>
-				<a href="<?php echo JRoute::_('index.php?option=com_kb&section=courses&alias=guide'); ?>">Course Guidelines</a>
+				<a class="popup" href="<?php echo JRoute::_('index.php?option=com_help&component=' . substr($this->option, 4) . '&page=index'); ?>">Need Help?</a>
 			</li>
 		</ul>
 	</div><!-- / .aside -->
@@ -138,14 +135,12 @@ if (count($this->notifications) > 0)
 							$count = 0;
 							foreach ($mycourses as $course)
 							{
-								$view = new JView(array(
-									'name'   => 'courses',
-									'layout' => '_course'
-								));
-								$view->count   = $count;
-								$view->columns = 2;
-								$view->course  = $course;
-								$view->display();
+								$this->view('_course')
+								     ->set('count', $count)
+								     ->set('columns', 2)
+								     ->set('course', $course)
+								     ->display();
+
 
 								if ($count == 1) 
 								{
@@ -185,14 +180,11 @@ if (count($this->notifications) > 0)
 							$count = 0;
 							foreach ($this->interestingcourses as $course)
 							{
-								$view = new JView(array(
-									'name'   => 'courses',
-									'layout' => '_course'
-								));
-								$view->count   = $count;
-								$view->columns = 2;
-								$view->course  = $course;
-								$view->display();
+								$this->view('_course')
+								     ->set('count', $count)
+								     ->set('columns', 2)
+								     ->set('course', $course)
+								     ->display();
 
 								if ($count == 1) 
 								{
@@ -231,19 +223,16 @@ if (count($this->notifications) > 0)
 						$count = 0;
 						foreach ($this->popularcourses as $course)
 						{
-							$view = new JView(array(
-								'name'   => 'courses',
-								'layout' => '_course'
-							));
-							$view->count   = $count;
-							$view->columns = 2;
-							$view->course  = $course;
-							$view->display();
+							$this->view('_course')
+							     ->set('count', $count)
+							     ->set('columns', 2)
+							     ->set('course', $course)
+							     ->display();
 
 							if ($count == 1) 
 							{
 								$count = 0;
-								echo '<div class="clear"></div>';	
+								echo '<div class="clear"></div>';
 							}
 							else
 							{

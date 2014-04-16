@@ -55,7 +55,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<input type="hidden" name="question[id]" value="<?php echo $this->escape($this->row->get('id')); ?>" />
 			<input type="hidden" name="question[email]" value="1" />
 			<input type="hidden" name="question[state]" value="0" />
-			<input type="hidden" name="question[created_by]" value="<?php echo $this->escape($this->juser->get('username')); ?>" />
+			<input type="hidden" name="question[created_by]" value="<?php echo $this->escape($this->juser->get('id')); ?>" />
 
 			<label for="field-anonymous">
 				<input class="option" type="checkbox" name="question[anonymous]" id="field-anonymous" value="1" /> 
@@ -82,8 +82,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<label for="field-question">
 				<?php echo JText::_('COM_ANSWERS_ASK_DETAILS'); ?>:<br />
 				<?php
-				ximport('Hubzero_Wiki_Editor');
-				echo Hubzero_Wiki_Editor::getInstance()->display('question[question]', 'field-question', $this->escape(stripslashes($this->row->get('question'))), '', '50', '10');
+				echo JFactory::getEditor()->display('question[question]', $this->escape(stripslashes($this->row->get('question'))), '', '', 50, 10, false, 'field-question');
 				?>
 				<span class="hint"><a class="popup" href="<?php echo JRoute::_('index.php?option=com_wiki&scope=&pagename=Help:WikiFormatting'); ?>">Wiki formatting</a> is allowed.</span>
 			</label>
@@ -96,7 +95,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 				<?php echo JText::_('COM_ANSWERS_YOU_HAVE'); ?> <strong><?php echo $this->escape($this->funds); ?></strong> <?php echo JText::_('COM_ANSWERS_POINTS_TO_SPEND'); ?>
 			</label>
 		<?php } else { ?>
-			<input type="hidden" name="question[reward'" value="0" />
+			<input type="hidden" name="question[reward]" value="0" />
 		<?php } ?>
 		</fieldset>
 

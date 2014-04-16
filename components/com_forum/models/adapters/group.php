@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'models' . DS . 'adapters' . DS . 'abstract.php');
+require_once(__DIR__ . '/abstract.php');
 
 /**
  * Adapter class for a forum post link for group forum
@@ -55,10 +55,18 @@ class ForumModelAdapterGroup extends ForumModelAdapterAbstract
 	 */
 	public function __construct($scope_id)
 	{
-		$group = Hubzero_Group::getInstance($scope_id);
+		$group = \Hubzero\User\Group::getInstance($scope_id);
+
+		if (!$group)
+		{
+			$group = new \Hubzero\User\Group();
+			$group->set('cn', '_unknown_');
+		}
 
 		$this->_segments['cn']     = $group->get('cn');
 		$this->_segments['active'] = 'forum';
+
+		$this->_name = $group->get('cn');
 	}
 
 	/**

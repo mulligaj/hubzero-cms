@@ -97,7 +97,7 @@ else
 			</fieldset>	
 		 		<div class="c-inner">
 			<?php if($canedit) { ?>
-					<span class="c-submit"><input type="submit" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" id="c-continue" /></span>
+					<span class="c-submit"><input type="submit" class="btn" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" id="c-continue" /></span>
 			<?php } ?>
 					<h5><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_GALLERY'); ?>: </h5>
 						
@@ -120,8 +120,7 @@ else
 								<li class="<?php echo 'attached-' . $i; ?> c-drag <?php if($gone) { echo 'i-missing'; } ?>" id="clone-file::<?php echo urlencode($shot->filename); ?>">
 									<?php								
 										// Screenshot HTML
-										ximport('Hubzero_Plugin_View');
-										$view = new Hubzero_Plugin_View(
+										$view = new \Hubzero\Plugin\View(
 											array(
 												'folder'=>'projects',
 												'element'=>'publications',

@@ -1240,8 +1240,6 @@ class CartModelCart
 		// Initialize $genericDiscountsTotal -- the total sum of all non-item discounts
 		$genericDiscountsTotal = 0;
 		
-		ximport('Hubzero_Storefront_Coupons');
-		
 		/* 
 			Ititialize a global SKU/Other object to coupon mapping. 
 			The coupons are ordered by time applied, so if there is more than one coupon for one SKU, 
@@ -1273,7 +1271,7 @@ class CartModelCart
 				$itemCoupon = false;
 			}
 			
-			$coupon = Hubzero_Storefront_Coupons::getCouponInfo($cn->cnId, $itemCoupon); // Load objects for itemCoupons only
+			$coupon = StorefrontModelCoupons::getCouponInfo($cn->cnId, $itemCoupon); // Load objects for itemCoupons only
 						
 			// check if coupon applies and if it does, get the perk info 			
 			/*
@@ -1539,8 +1537,7 @@ class CartModelCart
 	 */
 	public function removeCoupon($cnId)
 	{		
-		ximport('Hubzero_Storefront_Coupons');
-		$coupons = new Hubzero_Storefront_Coupons;
+		$coupons = new StorefrontModelCoupons;
 				
 		// If user is logged in return coupon back to the coupons pool.
 		$juser = JFactory::getUser();

@@ -30,15 +30,13 @@ $live_site = rtrim(JURI::base(),'/');
 $developer_url = $live_site = "https://" . preg_replace('#^(https://|http://)#','',$live_site);
 $project_path 	= $this->config->get('project_path', '/tools/');
 $dev_suffix 	= $this->config->get('dev_suffix', '_dev');
-
-ximport('Hubzero_View_Helper_Html');
 ?>
 <div id="content-header">
 	<h2><?php echo $this->title; ?></h2>
 </div><!-- / #content-header -->
 <div id="content-header-extra">
 	<ul id="useroptions">
-		<li class="last"><a class="add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=create'); ?>"><?php echo JText::_('COM_TOOLS_CONTRIBTOOL_NEW_TOOL'); ?></a></li>
+		<li class="last"><a class="icon-add add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=create'); ?>"><?php echo JText::_('COM_TOOLS_CONTRIBTOOL_NEW_TOOL'); ?></a></li>
 	</ul>
 </div><!-- / #content-header-extra -->
 

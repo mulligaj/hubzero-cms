@@ -31,6 +31,8 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$this->css();
+
 $now = JFactory::getDate();
 
 $year  = JHTML::_('date', $now, 'Y');
@@ -51,7 +53,7 @@ $query  = "SELECT sd.*
 $database->setQuery($query);
 $rows = $database->loadObjectList();
 
-$base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alias') . '&offering=' . $this->offering->get('alias') . ($this->offering->section()->get('alias') != '__default' ? ':' . $this->offering->section()->get('alias') : '');
+$base = $this->offering->link();
 ?>
 
 	<h3 class="heading">
@@ -101,8 +103,9 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 				</div>
 			<?php if ($rows) { ?>
 				<ul class="dashboard-timeline">
-				<?php foreach ($rows as $i => $row) { 
-
+				<?php 
+				foreach ($rows as $i => $row) 
+				{
 					switch ($row->scope)
 					{
 						case 'unit':
@@ -138,7 +141,8 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 					{
 						break;
 					}
-				} ?>
+				}
+				?>
 				</ul>
 			<?php } else { ?>
 				<ul class="dashboard-timeline">
@@ -160,59 +164,3 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 
 	$after = $dispatcher->trigger('onCourseDashboard', array($this->course, $this->offering));
 	echo implode("\n", $after);
-/*
-	<div class="sub-section discussions">
-		<div class="sub-section-overview">
-			<h3>
-				<a name="discussions"></a>
-				<?php echo JText::_('Discussions'); ?>
-			</h3>
-			<p>These are the latest discussions posts, ordered newest to oldest.</p>
-		</div>
-		<div class="sub-section-content">
-		
-		<?php 
-		if ($this->comments) 
-		{ 
-			ximport('Hubzero_Wiki_Parser');
-
-			$wikiconfig = array(
-				'option'   => $this->option,
-				'scope'    => 'forum',
-				'pagename' => 'forum',
-				'pageid'   => $this->post->id,
-				'filepath' => '',
-				'domain'   => $this->post->id
-			);
-			$p = Hubzero_Wiki_Parser::getInstance();
-
-			$view = new Hubzero_Plugin_View(
-				array(
-					'folder'  => 'courses',
-					'element' => 'dashboard',
-					'name'    => 'overview',
-					'layout'  => 'list'
-				)
-			);
-			$view->option     = $this->option;
-			$view->comments   = $this->comments;
-			$view->post       = $this->post;
-			$view->unit       = ''; //$this->category->alias;//$this->unit->get('alias');
-			$view->lecture    = $this->post->id;
-			$view->config     = $this->params;
-			$view->depth      = 0;
-			$view->cls        = 'odd';
-			$view->base       = $base . '&active=forum';
-			$view->parser     = $p;
-			$view->wikiconfig = $wikiconfig;
-			$view->attach     = $this->attach;
-			$view->course     = $this->course;
-			$view->offering   = $this->offering;
-			$view->display();
-		}
-			?>
-		</div>
-		<div class="clear"></div>
-	</div>
-*/?>
-

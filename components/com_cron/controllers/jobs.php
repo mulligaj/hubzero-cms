@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for bulletin boards
  */
-class CronControllerJobs extends Hubzero_Controller
+class CronControllerJobs extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -57,9 +55,7 @@ class CronControllerJobs extends Hubzero_Controller
 	 */
 	public function displayTask()
 	{
-		ximport('Hubzero_Environment');
-
-		$ip = Hubzero_Environment::ipAddress();
+		$ip = JRequest::ip();
 
 		$ips = explode(',', $this->config->get('whitelist', '127.0.0.1'));
 
@@ -78,21 +74,22 @@ class CronControllerJobs extends Hubzero_Controller
 		$model = new CronModelJobs();
 
 		$filters = array(
-			'state'    => 1,
-			'next_run' => JHTML::_('date', JFactory::getDate()->toSql(), 'Y-m-d H:i:s')
+			'state'     => 1,
+			'available' => true,
+			'next_run'  => JHTML::_('date', JFactory::getDate()->toSql(), 'Y-m-d H:i:s')
 		);
 
 		$output = new stdClass;
 		$output->jobs = array();
 
-		if (($results = $model->jobs('list', $filters)))
+		if ($results = $model->jobs('list', $filters))
 		{
 			JPluginHelper::importPlugin('cron');
 			$dispatcher = JDispatcher::getInstance();
 
 			foreach ($results as $job)
 			{
-				if ($job->get('active'))
+				if ($job->get('active') || !$job->isAvailable())
 				{
 					continue;
 				}

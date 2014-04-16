@@ -199,11 +199,11 @@ class CollectionsTablePost extends JTable
 		{
 			$where[] = "p.item_id=" . $this->_db->Quote($filters['item_id']);
 		}
-		if (isset($filters['state'])) 
+		if (isset($filters['state']) && $filters['state'] >= 0) 
 		{
 			$where[] = "i.state=" . $this->_db->Quote($filters['state']);
 		}
-		if (isset($filters['access'])) 
+		if (isset($filters['access']) && $filters['access'] >= 0) 
 		{
 			$where[] = "i.access=" . $this->_db->Quote($filters['access']);
 			$where[] = "c.access=" . $this->_db->Quote($filters['access']);
@@ -272,6 +272,7 @@ class CollectionsTablePost extends JTable
 				i.created AS item_created, 
 				i.created_by AS item_created_by,
 				i.positive AS item_positive, 
+				i.access AS item_access, 
 				i.negative AS item_negative, 
 				i.type AS item_type, 
 				i.object_id As item_object_id,

@@ -49,8 +49,8 @@ class ForumModelAttachment extends ForumModelAbstract
 	/**
 	 * Constructor
 	 * 
-	 * @param      mixed   $oid        ID (integer), alias (string), array or object
-	 * @param      integer $section_id Section ID
+	 * @param      mixed   $oid ID (integer), alias (string), array or object
+	 * @param      integer $pid Post ID
 	 * @return     void
 	 */
 	public function __construct($oid=null, $pid=null)

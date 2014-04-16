@@ -84,11 +84,32 @@ class Message extends \Swift_Message
 	 *
 	 * @return object
 	 */
-	public function send($transporter='mail', $options=array())
+	public function send($transporter='', $options=array())
 	{
+		$config = \JFactory::getConfig();
+
+		$transporter = $transporter ? $transporter : $config->getValue('config.mailer');
+
 		switch (strtolower($transporter))
 		{
 			case 'smtp':
+				if (!isset($options['host']))
+				{
+					$options['host'] = $config->getValue('config.smtphost');
+				}
+				if (!isset($options['port']))
+				{
+					$options['port'] = $config->getValue('config.smtpport');
+				}
+				if (!isset($options['username']))
+				{
+					$options['username'] = $config->getValue('config.smtpuser');
+				}
+				if (!isset($options['password']))
+				{
+					$options['password'] = $config->getValue('config.smtppass');
+				}
+
 				if (!empty($options))
 				{
 					$transport = \Swift_SmtpTransport::newInstance($options['host'], $options['port']);
@@ -121,6 +142,9 @@ class Message extends \Swift_Message
 		$mailer = \Swift_Mailer::newInstance($transport);
 		$result = $mailer->send($this, $this->_failures);
 
+		$log = \JFactory::getLogger();
+		$log->info(\JText::sprintf('Mail sent to %s', json_encode($this->getTo())));
+
 		return $result;
 	}
 
@@ -145,5 +169,43 @@ class Message extends \Swift_Message
 	{
 		$encryptor = new Token();
 		return $encryptor->buildEmailToken(1, 1, $user_id, $object_id);
+	}
+
+	/**
+	 * Add an attachment
+	 *
+	 * @param   mixed  $attachment File path (string) or object (Swift_Mime_MimeEntity)
+	 * @param   string $filename   Optional filename to set
+	 * @return  object
+	 */
+	public function addAttachment($attachment, $filename=null)
+	{
+		if (!($attachment instanceof Swift_Mime_MimeEntity))
+		{
+			$attachment = \Swift_Attachment::fromPath($attachment);
+		}
+
+		if ($filename && is_string($filename))
+		{
+			$attachment->setFilename($filename);
+		}
+
+		return $this->attach($attachment);
+	}
+
+	/**
+	 * Remove an attachment
+	 *
+	 * @param   mixed  $attachment File path (string) or object (Swift_Mime_MimeEntity)
+	 * @return  object
+	 */
+	public function removeAttachment($attachment)
+	{
+		if (!($attachment instanceof Swift_Mime_MimeEntity))
+		{
+			$attachment = \Swift_Attachment::fromPath($attachment);
+		}
+
+		return $this->detach($attachment);
 	}
 }

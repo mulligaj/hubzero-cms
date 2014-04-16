@@ -133,8 +133,8 @@ class PublicationHelper extends JObject
 		
 		$base = DS . trim($base, DS);
 
-		$pub_dir 		=  Hubzero_View_Helper_Html::niceidformat( $pid );
-		$version_dir 	=  Hubzero_View_Helper_Html::niceidformat( $vid );
+		$pub_dir 		=  \Hubzero\Utility\String::pad( $pid );
+		$version_dir 	=  \Hubzero\Utility\String::pad( $vid );
 		$path 			= $base . DS . $pub_dir . DS . $version_dir;
 		$path 			= $filedir ? $path . DS . $filedir : $path;
 		$path 			= $root ? JPATH_ROOT . $path : $path;
@@ -247,7 +247,7 @@ class PublicationHelper extends JObject
 		{
 			foreach ($rows as $row)
 			{
-				$path = DS . $base . DS . Hubzero_View_Helper_Html::niceidformat( $row->id );
+				$path = DS . $base . DS . \Hubzero\Utility\String::pad( $row->id );
 				$used = $used + PublicationHelper::computeDiskUsage($path, JPATH_ROOT, false);
 			}
 		}
@@ -379,7 +379,7 @@ class PublicationHelper extends JObject
 			if (count($names) > 0) 
 			{
 				$html = '<p>' . ucfirst(JText::_('By')) . ' ';
-				$html .= count($names) > 1  ? implode( ', ', $names ) : implode( ', ', $names_s )  ;
+				$html .= count($names) > 1 && count($orgs) > 1  ? implode( ', ', $names ) : implode( ', ', $names_s )  ;
 				$html .= '</p>';
 			}
 			if ($showorgs && count($orgs) > 0) 
@@ -428,9 +428,9 @@ class PublicationHelper extends JObject
 					continue;
 				}
 				if ($contributor->lastName || $contributor->firstName) 
-				{
-					$name = stripslashes($contributor->firstName) .' ';
-					$name .= stripslashes($contributor->lastName);
+				{					
+					$name  = stripslashes($contributor->lastName);
+					$name .= ', ' . substr(stripslashes($contributor->firstName), 0, 1) . '.';
 				} 
 				else 
 				{
@@ -463,7 +463,7 @@ class PublicationHelper extends JObject
 	 */
 	public function getThumb ($pid = 0, $versionid = 0, $config, $force = false, $cat = '')
 	{
-		// Get publication firectory path
+		// Get publication directory path
 		$webpath = $config->get('webpath', 'site/publications');
 		$path = $this->buildPath($pid, $versionid, $webpath);
 		
@@ -875,7 +875,7 @@ class PublicationHelper extends JObject
 		$pubUrl    = JRoute::_($url . a . 'pid=' . $pub->id) .'?version=' . $pub->version_number;
 		?>
 		<div id="plg-header">
-			<h3 class="publications c-header"><a href="<?php echo $url; ?>" title="<?php echo $tabtitle; ?>"><?php echo $tabtitle; ?></a> &raquo; <span class="restype indlist"><?php echo $typetitle; ?></span> <span class="indlist">"<?php if ($append) { echo '<a href="' . $pubUrl . '" >'; } ?><?php echo Hubzero_View_Helper_Html::shortenText($pub->title, 65, 0); ?>"<?php if ($append) { echo '</a>'; } ?></span>
+			<h3 class="publications c-header"><a href="<?php echo $url; ?>" title="<?php echo $tabtitle; ?>"><?php echo $tabtitle; ?></a> &raquo; <span class="restype indlist"><?php echo $typetitle; ?></span> <span class="indlist">"<?php if ($append) { echo '<a href="' . $pubUrl . '" >'; } ?><?php echo \Hubzero\Utility\String::truncate($pub->title, 65); ?>"<?php if ($append) { echo '</a>'; } ?></span>
 			<?php if ($append) { echo $append; } ?>
 			</h3>
 		</div>
@@ -894,7 +894,7 @@ class PublicationHelper extends JObject
 	{
 	?>
 		<h3 class="prov-header">
-			<a href="<?php echo $url; ?>"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_MY_SUBMISSIONS')); ?></a> &raquo; "<?php echo Hubzero_View_Helper_Html::shortenText($pub->title, 65, 0); ?>"
+			<a href="<?php echo $url; ?>"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_MY_SUBMISSIONS')); ?></a> &raquo; "<?php echo \Hubzero\Utility\String::truncate($pub->title, 65); ?>"
 			<?php if ($append) { echo $append; } ?>
 		</h3>
 	<?php	

@@ -31,31 +31,19 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-jimport( 'joomla.plugin.plugin' );
-
 /**
  * Short description for 'plgCoursesMemberOptions'
  * 
  * Long description (if any) ...
  */
-class plgCoursesMemberOptions extends JPlugin
+class plgCoursesMemberOptions extends \Hubzero\Plugin\Plugin
 {
-
 	/**
-	 * Short description for 'plgCoursesMemberOptions'
-	 * 
-	 * Long description (if any) ...
-	 * 
-	 * @param      unknown &$subject Parameter description (if any) ...
-	 * @param      unknown $config Parameter description (if any) ...
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function plgCoursesMemberOptions(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-		
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Short description for 'onCourseAreas'
@@ -75,7 +63,6 @@ class plgCoursesMemberOptions extends JPlugin
 
 		return $area;
 	}
-	//-----------
 
 	/**
 	 * Short description for 'onCourse'
@@ -94,8 +81,6 @@ class plgCoursesMemberOptions extends JPlugin
 	 */
 	public function onCourse( $course, $option, $authorized, $limit=0, $limitstart=0, $action='', $access, $areas=null)
 	{
-		ximport('Hubzero_Document');
-
 		// The output array we're returning
 		$arr = array(
 			'html'=>''
@@ -143,8 +128,7 @@ class plgCoursesMemberOptions extends JPlugin
 	{
 		// HTML output
 		// Instantiate a view
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'=>'courses',
 				'element'=>'memberoptions',
@@ -191,8 +175,6 @@ class plgCoursesMemberOptions extends JPlugin
 	 */
 	protected function save($course, $user, $recvEmailOptionID, $recvEmailOptionValue)
 	{
-		/* @var $course Hubzero_Course */
-
 		$postSaveRedirect = JRequest::getVar('postsaveredirect', '');
 		
 		//instantaite database object
@@ -203,22 +185,26 @@ class plgCoursesMemberOptions extends JPlugin
 		$row = new courses_MemberOption($database);
 
 		//bind the data
-		$rowdata = array( 'id' => $recvEmailOptionID,
-				'userid' => $user->id,
-				'gidNumber' => $course->get('gidNumber'),
-				'optionname' => COURSES_MEMBEROPTION_TYPE_DISCUSSION_NOTIFICIATION,
-				'optionvalue' => $recvEmailOptionValue );
+		$rowdata = array(
+			'id' => $recvEmailOptionID,
+			'userid' => $user->id,
+			'gidNumber' => $course->get('gidNumber'),
+			'optionname' => COURSES_MEMBEROPTION_TYPE_DISCUSSION_NOTIFICIATION,
+			'optionvalue' => $recvEmailOptionValue
+		);
 
 		$row->bind($rowdata);
 
 		// Check content
-		if (!$row->check()) {
+		if (!$row->check()) 
+		{
 			$this->setError( $row->getError() );
 			return;
 		}
 
 		// Store content
-		if (!$row->store()) {
+		if (!$row->store()) 
+		{
 			$this->setError( $row->getError() );
 			return $this->edittopic();
 		}
@@ -226,12 +212,11 @@ class plgCoursesMemberOptions extends JPlugin
 		$app = JFactory::getApplication();
 		$app->enqueueMessage('You have successfully updated your email settings','Message');
 		
-		if(!$postSaveRedirect)
-			$app->redirect( JRoute::_('index.php?option=' . $this->option . '&gid=' . $this->course->get('cn') . '&active=memberoptions&task=edit' ) );
+		if (!$postSaveRedirect)
+			$app->redirect( JRoute::_($this->course->link() . '&active=memberoptions&task=edit' ) );
 		else
 			$app->redirect( $postSaveRedirect );
 
 	}
-
 }
 

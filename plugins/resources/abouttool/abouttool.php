@@ -102,12 +102,10 @@ class plgResourcesAbouttool extends JPlugin
 
 		if ($rtrn == 'all' || $rtrn == 'html') 
 		{
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStyleSheet('resources', 'abouttool');
+			\Hubzero\Document\Assets::addPluginStyleSheet('resources', 'abouttool');
 
 			// Instantiate a view
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'resources',
 					'element' => 'abouttool',
@@ -122,8 +120,7 @@ class plgResourcesAbouttool extends JPlugin
 
 			/*if (!$view->juser->get('guest')) 
 			{
-				ximport('Hubzero_User_Helper');
-				$xgroups = Hubzero_User_Helper::getGroups($view->juser->get('id'), 'all');
+				$xgroups = \Hubzero\User\Helper::getGroups($view->juser->get('id'), 'all');
 				// Get the groups the user has access to
 				$view->usersgroups = $this->_getUsersGroups($xgroups);
 			} 

@@ -31,24 +31,19 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+include_once(__DIR__ . DS . 'announcement.php');
+
 /**
  * Group Announcements
  */
-class plgGroupsAnnouncements extends Hubzero_Plugin
+class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -61,7 +56,8 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 			'name' => $this->_name,
 			'title' => JText::_('COM_GROUPS_ANNOUNCEMENTS'),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f095'
 		);
 		return $area;
 	}
@@ -71,11 +67,10 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 	 *
 	 * @return     string
 	 */
-	public function onBeforeGroup( $group, $option, $authorized )
+	public function onBeforeGroup( $group, $authorized )
 	{
 		//creat view object
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -86,14 +81,14 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		
 		//vars for view
 		$view->authorized = $authorized;
-		$view->option     = $option;
+		$view->option     = 'com_groups';
 		$view->group      = $group;
 		$view->name       = $this->_name;
 		$view->juser      = JFactory::getUser();
 		$view->database   = JFactory::getDBO();
 		
 		// get plugin access
-		$access = Hubzero_Group_Helper::getPluginAccess($group, 'announcements');
+		$access = \Hubzero\User\Group\Helper::getPluginAccess($group, 'announcements');
 		
 		//if set to nobody make sure cant access
 		//check if guest and force login if plugin access is registered or members
@@ -114,9 +109,9 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		$view->filters['published'] = 1;
 		
 		//create new announcement Object
-		$hubzeroAnnouncement = new Hubzero_Announcement( $view->database );
-		$view->total = $hubzeroAnnouncement->count( $view->filters );
-		$view->rows  = $hubzeroAnnouncement->find( $view->filters );
+		$hubzeroAnnouncement = new \Hubzero\Item\Announcement($view->database);
+		$view->total = $hubzeroAnnouncement->count($view->filters);
+		$view->rows  = $hubzeroAnnouncement->find($view->filters);
 		
 		//display list of announcements
 		return $view->loadTemplate();
@@ -230,8 +225,8 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		);
 		
 		//instantiate announcement object and get count
-		$hubzeroAnnouncement = new Hubzero_Announcement( $this->database );
-		$total = $hubzeroAnnouncement->count( $filters );
+		$hubzeroAnnouncement = new \Hubzero\Item\Announcement($this->database);
+		$total = $hubzeroAnnouncement->count($filters);
 		
 		//set metadata for menu
 		$arr['metadata']['count'] = $total;
@@ -250,8 +245,7 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 	{
 		// Get course members based on their status
 		// Note: this needs to happen *after* any potential actions ar performed above
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -284,9 +278,9 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		}
 		
 		//create new announcement Object
-		$hubzeroAnnouncement = new Hubzero_Announcement( $this->database );
-		$view->total = $hubzeroAnnouncement->count( $view->filters );
-		$view->rows  = $hubzeroAnnouncement->find( $view->filters );
+		$hubzeroAnnouncement = new \Hubzero\Item\Announcement($this->database);
+		$view->total = $hubzeroAnnouncement->count($view->filters);
+		$view->rows  = $hubzeroAnnouncement->find($view->filters);
 		
 		//get any errors
 		if ($this->getError()) 
@@ -309,8 +303,7 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 	private function _edit()
 	{
 		//create view object
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'groups',
 				'element' => $this->_name,
@@ -322,7 +315,7 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		$id = JRequest::getInt('id', 0);
 		
 		//create new announcement Object
-		$view->announcement = new Hubzero_Announcement($this->database);
+		$view->announcement = new \Hubzero\Item\Announcement($this->database);
 		
 		//if we have an id load that announcemnt
 		if (isset($id) && $id != 0)
@@ -362,6 +355,9 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 	 */
 	private function _save()
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		//verify were authorized
 		if ($this->authorized != 'manager')
 		{
@@ -370,7 +366,7 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		}
 		
 		// Incoming
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 		$fields = array_map('trim', $fields);
 		
 		// email announcement
@@ -410,7 +406,7 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		}
 		
 		//announcement model
-		$announcement = new Hubzero_Announcement( $this->database );
+		$announcement = new \Hubzero\Item\Announcement($this->database);
 		
 		//attempt to save
 		if (!$announcement->save($fields))
@@ -429,11 +425,13 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 			$announcement->sent = 1;
 			$announcement->save($announcement);
 		}
-		
+
 		//success!
-		$redirect = JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=announcements');
-		$message  = JText::_('PLG_GROUPS_ANNOUNCEMENTS_SUCCESSFULLY_CREATED');
-		$this->redirect( $redirect, $message, 'success');
+		$this->redirect(
+			JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=announcements'),
+			JText::_('PLG_GROUPS_ANNOUNCEMENTS_SUCCESSFULLY_CREATED'),
+			'success'
+		);
 		return;
 	}
 
@@ -455,12 +453,11 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		$id = JRequest::getInt('id', 0);
 		
 		//announcement model
-		$announcement = new Hubzero_Announcement( $this->database );
+		$announcement = new \Hubzero\Item\Announcement($this->database);
 		$announcement->load( $id );
 		
 		//load created by user profile
-		ximport('Hubzero_User_Profile');
-		$profile = Hubzero_User_Profile::getInstance( $announcement->created_by );
+		$profile = \Hubzero\User\Profile::getInstance( $announcement->created_by );
 		
 		//make sure we are the one who created it
 		if ($announcement->created_by != $this->juser->get('id'))
@@ -470,7 +467,7 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 		}
 		
 		//set to deleted state
-		$announcement->state = ANNOUNCEMENT_STATE_DELETED;
+		$announcement->archive();
 		
 		//attempt to delete announcement
 		if (!$announcement->save( $announcement ))
@@ -478,10 +475,12 @@ class plgGroupsAnnouncements extends Hubzero_Plugin
 			$this->setError(JText::_('PLG_GROUPS_ANNOUNCEMENTS_UNABLE_TO_DELETE'));
 			return $this->_list();
 		}
-		
-		$redirect = JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=announcements');
-		$message  = JText::_('PLG_GROUPS_ANNOUNCEMENTS_SUCCESSFULLY_DELETED');
-		$this->redirect( $redirect, $message, 'success');
+
+		$this->redirect(
+			JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=announcements'),
+			JText::_('PLG_GROUPS_ANNOUNCEMENTS_SUCCESSFULLY_DELETED'),
+			'success'
+		);
 		return;
 	}
 }

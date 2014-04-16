@@ -29,26 +29,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Members Plugin class for profile
  */
-class plgMembersProfile extends Hubzero_Plugin
+class plgMembersProfile extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Event call to determine if this plugin should return data
@@ -59,10 +50,10 @@ class plgMembersProfile extends Hubzero_Plugin
 	 */
 	public function &onMembersAreas($user, $member)
 	{
-		$areas = array();
-		
-		$areas['profile'] = JText::_('PLG_MEMBERS_PROFILE');
-				
+		$areas = array(
+			'profile' => JText::_('PLG_MEMBERS_PROFILE'),
+			'icon' => 'f007'
+		);
 		return $areas;
 	}
 
@@ -92,6 +83,7 @@ class plgMembersProfile extends Hubzero_Plugin
 		
 		//include address library
 		require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'address.php' );
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'models' . DS . 'registration.php');
 
 		$arr = array(
 			'html' => '',
@@ -130,9 +122,6 @@ class plgMembersProfile extends Hubzero_Plugin
 	private function view()
 	{
 		$app = JFactory::getApplication();
-		
-		// Load some needed libraries
-		ximport('Hubzero_Registration');
 
 		// Find out which fields are hidden, optional, or required
 		$registration               = new JObject();
@@ -166,10 +155,9 @@ class plgMembersProfile extends Hubzero_Plugin
 		$plugin = JPluginHelper::getPlugin("members", "profile");
 		$params = new $paramsClass( $plugin->params );
 		$params->merge($rparams);
-        
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('members', 'profile');
-		Hubzero_Document::addPluginScript('members', 'profile');
+
+		\Hubzero\Document\Assets::addPluginStylesheet('members', 'profile');
+		\Hubzero\Document\Assets::addPluginScript('members', 'profile');
 		
 		if (JPluginHelper::isEnabled('system', 'jquery'))
 		{
@@ -177,8 +165,7 @@ class plgMembersProfile extends Hubzero_Plugin
 			$document->addScript("/media/system/js/jquery.fileuploader.js");
 		}
 
-		ximport('Hubzero_Plugin_View');
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'profile',
@@ -191,9 +178,9 @@ class plgMembersProfile extends Hubzero_Plugin
 		$session = JFactory::getSession();
 		if ($session->get('registration.incomplete'))
 		{
-			$xreg = new Hubzero_Registration();
+			$xreg = new RegisterModelRegistration();
 			$juser =  JFactory::getUser(); 
-			$xprofile = Hubzero_Factory::getProfile();
+			$xprofile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 
 			if (is_object($xprofile)) 
 			{
@@ -316,7 +303,7 @@ class plgMembersProfile extends Hubzero_Plugin
 		unset($fields->_errors);
 
 		//load the user profile
-		$registration = new Hubzero_Registration();
+		$registration = new RegisterModelRegistration();
 		$registration->loadProfile($profile);
 
 		//add tags to the registration object
@@ -375,8 +362,7 @@ class plgMembersProfile extends Hubzero_Plugin
 	 */
 	public function editAddress()
 	{
-		ximport('Hubzero_Plugin_View');
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'profile',
@@ -387,10 +373,9 @@ class plgMembersProfile extends Hubzero_Plugin
 		
 		//get request vars
 		$this->view->addressId = JRequest::getInt('addressid', 0);
-		
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginStylesheet('members', 'profile');
-		Hubzero_Document::addPluginScript('members', 'profile');
+
+		\Hubzero\Document\Assets::addPluginStylesheet('members', 'profile');
+		\Hubzero\Document\Assets::addPluginScript('members', 'profile');
 		
 		//get member addresses
 		$this->view->address = new MembersAddress( JFactory::getDBO() );

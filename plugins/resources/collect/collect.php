@@ -97,12 +97,10 @@ class plgResourcesCollect extends JPlugin
 			if ($rtrn == 'all' || $rtrn == 'metadata') 
 			{
 				// Push some scripts to the template
-				ximport('Hubzero_Document');
-				Hubzero_Document::addPluginScript('resources', $this->_name);
-				Hubzero_Document::addPluginStylesheet('resources', $this->_name);
+				\Hubzero\Document\Assets::addPluginScript('resources', $this->_name);
+				\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
 
-				ximport('Hubzero_Plugin_View');
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'  => 'resources',
 						'element' => $this->_name,
@@ -133,6 +131,10 @@ class plgResourcesCollect extends JPlugin
 	 */
 	public function onResourcesFavorite($option)
 	{
+		if (JRequest::getWord('active', '') != 'collect')
+		{
+			return;
+		}
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'collections.php');
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tables' . DS . 'item.php');
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tables' . DS . 'post.php');
@@ -200,8 +202,7 @@ class plgResourcesCollect extends JPlugin
 		// No board ID selected so present repost form
 		if (!$collection_id && !$collection_title)
 		{
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'resources',
 					'element' => $this->_name,
@@ -263,7 +264,7 @@ class plgResourcesCollect extends JPlugin
 				// No record found -- we're OK to add one
 				$stick->item_id       = $item_id;
 				$stick->collection_id = $collection_id;
-				$stick->description   = JRequest::getVar('description', '');
+				$stick->description   = JRequest::getVar('description', '', 'none', 2);
 				if ($stick->check()) 
 				{
 					// Store new content

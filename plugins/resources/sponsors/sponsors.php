@@ -31,27 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-ximport('Hubzero_Plugin');
-
 /**
  * Display sponsors on a resource page
  */
-class plgResourcesSponsors extends Hubzero_Plugin
+class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
@@ -87,8 +77,7 @@ class plgResourcesSponsors extends Hubzero_Plugin
 		$this->database = JFactory::getDBO();
 
 		// Instantiate a view
-		ximport('Hubzero_Plugin_View');
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'resources',
 				'element' => 'sponsors',
@@ -173,7 +162,6 @@ class plgResourcesSponsors extends Hubzero_Plugin
 	{
 		$task = ($task) ?  $task : 'default';
 
-		ximport('Hubzero_Plugin_View');
 		require_once(JPATH_ROOT . DS . 'plugins' . DS . 'resources' . DS . 'sponsors' . DS . 'tables' . DS . 'sponsor.php');
 
 		$this->_option     = $option;
@@ -194,7 +182,7 @@ class plgResourcesSponsors extends Hubzero_Plugin
 	public function defaultTask()
 	{
 		// Instantiate a view
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'resources',
 				'element' => 'sponsors',
@@ -276,7 +264,7 @@ class plgResourcesSponsors extends Hubzero_Plugin
 	 */
 	public function editTask($row=null)
 	{
-		$this->view = new Hubzero_Plugin_View(
+		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'resources',
 				'element' => 'sponsors',

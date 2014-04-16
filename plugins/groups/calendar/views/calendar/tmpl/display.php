@@ -51,130 +51,90 @@ defined('_JEXEC') or die( 'Restricted access' );
 	</ul>
 <?php endif; ?>
 
-<div class="" id="calendar-box">
-	<form id="goto_date" name="goto_date" action="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->cn.'&active=calendar'); ?>" method="get">
-		<div id="calendar-nav">
-			<div class="date-title">
-				<?php echo date("F Y", mktime(0,0,0,$this->month,1,$this->year)); ?>
-			</div>
-			<select name="month" id="month-picker">
-				<?php 
-					for($i=1, $n=12; $i<=$n; $i++)
-					{
-						$sel = ($i == $this->month) ? 'selected' : '';
-						$val = (strlen((string)$i) == 1) ? '0' . $i : $i;
-						echo "<option {$sel} value=\"{$val}\">" . date("F",mktime(0,0,0,$i,1,2020)) . "</option>";
-					}
-				?>
-			</select>
-			<select name="year" id="year-picker">
-				<?php
-					$year_start = date("Y");
-					$year_end = $year_start + 15;
-					for ($i=($year_start-1); $i<$year_end; $i++) 
-					{
-						$sel = ($i == $this->year) ? 'selected' : '';
-						echo "<option {$sel} value=\"{$i}\">" . date("Y",mktime(0,0,0,1,1,$i)) . "</option>";
-					}
-				?>
-			</select>
-			<noscript>
-				<input type="submit" value="Go" />
-			</noscript>
-			<!--[if IE 8]>
-				<input type="submit" value="Go" />
-			<![endif]-->
-			
-			<label>
-				<!--[if IE 8]>
-					<input type="submit" value="Go" />
-				<![endif]-->
-				<select name="calendar" id="calendar-picker">
-					<option value="0"><?php echo JText::_('All Calendars'); ?></option>
-					<?php foreach ($this->calendars as $calendar) : ?>
-						<?php $sel = ($calendar->id == $this->calendar) ? 'selected="selected"' : ''; ?>
-						<option <?php echo $sel; ?> data-img="/plugins/groups/calendar/images/swatch-<?php echo ($calendar->color) ? strtolower($calendar->color) : 'gray'; ?>.png" value="<?php echo $calendar->id; ?>"><?php echo $calendar->title; ?></option>
-					<?php endforeach; ?>
-				</select>
-			</label>
-			
-			<br class="clear" />
-		</div>
-		
-		<?php echo $this->calendarHTML; ?>	
-		<?php
-			$thisCalendar            = new stdClass;
-			$thisCalendar->id        = 0;
-			$thisCalendar->published = 1;
-			$thisCalendar->title     = "All Calendars";
-			foreach($this->calendars as $calendar)
-			{
-				if ($calendar->id == $this->calendar)
-				{
-					$thisCalendar = $calendar;
-				}
-			}
-		?>
-		<?php if ($this->params->get('allow_subscriptions', 1)) : ?>
-			<div id="subscribe-nav">
-				<a class="popup" href="<?php echo JRoute::_('index.php?option=com_help&component=groups&extension=calendar&page=subscriptions') ;?>">
-					<?php echo JText::_('Need Help?'); ?>
-				</a>
-				<div class="title">
-					<?php echo JText::_('Subscribe'); ?>
-				</div>
-			</div>
-			<div id="subscribe">
-				
-				<p class="info">
-					<?php echo JText::_('If you are prompted to enter a username & password when subscribing to a calendar, enter your HUB credentials.'); ?>
-				</p>
-				<br />
-				<p><strong><?php echo JText::_('Select the calendars you wish to subscribe to:'); ?></strong></p>
-				
-				<label>
-					<input type="checkbox" value="0" checked="checked" />
-					<img src="/plugins/groups/calendar/images/swatch-gray.png" />
-					<?php echo JText::_('Uncategorized Events'); ?>
-				</label>
-				<?php $cals = array(0); ?>
-				<?php foreach ($this->calendars as $calendar) : ?>
-					<?php
-						$enabled = false;
-						if ($calendar->published == 1)
-						{
-							$enabled = true;
-							$cals[] = $calendar->id;
-						}
-					?>
-					<label <?php echo (!$enabled) ? 'class="disabled"' : '' ?>>
-						<input <?php echo (!$enabled) ? 'disabled="disabled"' : 'checked="checked"'; ?> name="subscribe[]"  type="checkbox" value="<?php echo $calendar->id; ?>" />
-						<?php if ($calendar->color) : ?>
-							<img src="/plugins/groups/calendar/images/swatch-<?php echo $calendar->color; ?>.png" />
-						<?php else : ?>
-							<img src="/plugins/groups/calendar/images/swatch-gray.png" />
-						<?php endif; ?>
-						<?php echo $calendar->title; ?>
-						<?php
-							if(!$enabled)
-							{
-								echo JText::_('(Calendar is not publishing events.)');
-							}
-						?>
-					</label>
+<?php $quickCreate = ($this->params->get('allow_quick_create', 1) && in_array($this->juser->get('id'), $this->group->get('members'))) ? true : 0; ?>
+<div id="calendar" 
+	data-base="<?php echo JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=calendar'); ?>" 
+	data-month="<?php echo $this->month; ?>" 
+	data-year="<?php echo $this->year; ?>"
+	data-event-quickcreate="<?php echo $quickCreate; ?>"></div>
+
+<select name="calendar" id="calendar-picker">
+	<option value="0"><?php echo JText::_('All Calendars'); ?></option>
+	<?php foreach ($this->calendars as $calendar) : ?>
+		<?php $sel = ($calendar->get('id') == $this->calendar) ? 'selected="selected"' : ''; ?>
+		<option <?php echo $sel; ?> data-img="/plugins/groups/calendar/images/swatch-<?php echo ($calendar->get('color')) ? strtolower($calendar->get('color')) : 'gray'; ?>.png" value="<?php echo $calendar->get('id'); ?>"><?php echo $calendar->get('title'); ?></option>
+	<?php endforeach; ?>
+</select>
+
+
+<div class="subject group-calendar-subject event-list">
+	<div class="container">
+		<h3><?php echo JText::_('Events List'); ?></h3>
+		<?php if ($this->eventsCount > 0) : ?>
+			<ol class="calendar-entries">
+				<?php foreach ($this->events as $event) : ?>
+					<li>
+						<h4 class="entry-title">
+							<a href="<?php echo $event->link(); ?>">
+								<?php echo $event->get('title'); ?>
+							</a>
+						</h4>
+						<dl class="entry-meta">
+							<dd class="calendar">
+								in <?php echo ($event->calendar()->get('id')) ? $event->calendar()->get('title') : 'Uncategorized'; ?>
+							</dd>
+							<?php if ($event->get('publish_down') != '0000-00-00 00:00:00') : ?>
+								<dd class="start-and-end">
+									<?php echo JHTML::_('date', $event->get('publish_up'), 'l, F d, Y @ g:i a'); ?>
+									&mdash;
+									<?php echo JHTML::_('date', $event->get('publish_down'), 'l, F d, Y @ g:i a'); ?>
+								</dd>
+							<?php else : ?>
+								<dd class="date">
+									<?php echo JHTML::_('date',  $event->get('publish_up'), 'l, F d, Y'); ?>
+								<dd>
+								<dd class="time">
+									<?php echo JHTML::_('date',  $event->get('publish_up'), JText::_('TIME_FORMAT_HZ1')); ?>
+								<dd>
+							<?php endif; ?>
+						</dl>
+						<div class="entry-content">
+							<p>
+								<?php 
+									$content = strip_tags($event->get('content'));
+									echo ($content) ? Hubzero\Utility\String::truncate($content, 500) : '<em>no content</em>'; 
+								?>
+							</p>
+						</div>
+					</li>
 				<?php endforeach; ?>
-				
-				<?php
-					$link = $_SERVER['HTTP_HOST'] . DS . 'groups' . DS . $this->group->get('cn') . DS . 'calendar' . DS . 'subscribe' . DS . implode(',', $cals) . '.ics';
-					$httpsLink = 'https://' . $link;
-					$webcalLink = 'webcal://' . $link;
-				?>
-				<br />
-				<label id="subscribe-link"><strong><?php echo JText::_('Click the subscribe button to the right or add the link below to add as a calendar subscription:'); ?></strong>
-					<input type="text" value="<?php echo $httpsLink; ?>" /> 
-					<a class="btn feed download https" href="<?php echo $httpsLink; ?>">Download</a>
-					<a class="btn feed subscribe-webcal webcal" href="<?php echo $webcalLink; ?>">Subscribe</a>
-				</label>
-			</div>
+			</ol>
+
+			<?php 
+				jimport('joomla.html.pagination');
+				$pageNav = new JPagination(
+					$this->eventsCount, 
+					$this->filters['start'], 
+					$this->filters['limit']
+				);
+				$pageNav->setAdditionalUrlParam('cn', $this->group->get('cn'));
+				$pageNav->setAdditionalUrlParam('active', 'calendar');
+				echo $pageNav->getListFooter();
+			?>
+		<?php else : ?>
+			<p class="warning"><?php echo JText::_('PLG_GROUPS_CALENDAR_NO_ENTRIES_FOUND'); ?></p>
 		<?php endif; ?>
-</div><!-- / subject -->
+	</div>
+</div>
+
+
+<?php
+	if ($this->params->get('allow_subscriptions', 1))
+	{
+		$this->view('subscribe')
+			->set('calendar', $this->calendar)
+			->set('calendars', $this->calendars)
+			->set('group', $this->group)
+			->display();
+	}
+?>

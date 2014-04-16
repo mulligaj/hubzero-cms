@@ -105,18 +105,11 @@ class plgResourcesFavorite extends JPlugin
 			if ($rtrn == 'all' || $rtrn == 'metadata') 
 			{
 				// Push some scripts to the template
-				ximport('Hubzero_Document');
-				Hubzero_Document::addPluginScript('resources', 'favorite');
-
-				ximport('Hubzero_Favorite');
-				if (!class_exists('Hubzero_Favorite')) 
-				{
-					return $arr;
-				}
+				\Hubzero\Document\Assets::addPluginScript('resources', 'favorite');
 
 				$database = JFactory::getDBO();
 
-				$fav = new Hubzero_Favorite($database);
+				$fav = new \Hubzero\Item\Favorite($database);
 				$fav->loadFavorite($juser->get('id'), $model->resource->id, 'resources');
 				if (!$fav->id) 
 				{
@@ -129,8 +122,7 @@ class plgResourcesFavorite extends JPlugin
 					$cls = 'faved';
 				}
 
-				ximport('Hubzero_Plugin_View');
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'  => 'resources',
 						'element' => 'favorite',
@@ -156,6 +148,11 @@ class plgResourcesFavorite extends JPlugin
 	 */
 	public function onResourcesFavorite($option)
 	{
+		if (JRequest::getWord('active', '') != 'favorite')
+		{
+			return;
+		}
+
 		$rid = JRequest::getInt('rid', 0);
 
 		$arr = array('html' => '');
@@ -177,11 +174,9 @@ class plgResourcesFavorite extends JPlugin
 		$juser = JFactory::getUser();
 		if (!$juser->get('guest')) 
 		{
-			ximport('Hubzero_Favorite');
-
 			$database = JFactory::getDBO();
 
-			$fav = new Hubzero_Favorite($database);
+			$fav = new \Hubzero\Item\Favorite($database);
 			$fav->loadFavorite($juser->get('id'), $oid, 'resources');
 
 			if (!$fav->id) 

@@ -37,7 +37,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'mod
 /**
  * Courses model class for a course
  */
-class CollectionsModelItem extends \Hubzero\Model
+class CollectionsModelItem extends \Hubzero\Base\Model
 {
 	/**
 	 * Table class name
@@ -45,6 +45,13 @@ class CollectionsModelItem extends \Hubzero\Model
 	 * @var strong
 	 */
 	protected $_tbl_name = 'CollectionsTableItem';
+
+	/**
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_collections.item.description';
 
 	/**
 	 * CoursesTableInstance
@@ -59,13 +66,6 @@ class CollectionsModelItem extends \Hubzero\Model
 	 * @var object
 	 */
 	private $_modifier = NULL;
-
-	/**
-	 * JDatabase
-	 * 
-	 * @var object
-	 */
-	//private $_db = NULL;
 
 	/**
 	 * Container for properties
@@ -107,7 +107,7 @@ class CollectionsModelItem extends \Hubzero\Model
 			{
 				if (substr($oid, 0, 3) == 'tmp')
 				{
-					$this->_tbl->loadByDescription($oid);
+					$this->_tbl->loadByTitle($oid);
 				}
 				else
 				{
@@ -151,7 +151,7 @@ class CollectionsModelItem extends \Hubzero\Model
 
 		if (!isset($instances[$key])) 
 		{
-			$instances[$key] = new CollectionsModelItem($oid);
+			$instances[$key] = new self($oid);
 		}
 
 		return $instances[$key];
@@ -196,56 +196,27 @@ class CollectionsModelItem extends \Hubzero\Model
 	}
 
 	/**
-	 * Modifies a property of the object, creating it if it does not already exist.
-	 *
-	 * @access	public
-	 * @param	string $property The name of the property
-	 * @param	mixed  $value The value of the property to set
-	 * @return	mixed Previous value of the property
-	 * @see		setProperties()
-	 * @since	1.5
-	 */
-	/*public function set($property, $value = null)
-	{
-		return $this->_tbl->set($property, $value);
-	}*/
-
-	/**
-	 * Check if the resource exists
+	 * Return a formatted timestamp
 	 * 
-	 * @param      mixed $idx Index value
-	 * @return     array
+	 * @param      string $as What format to return
+	 * @return     boolean
 	 */
-	/*public function exists()
+	public function created($as='')
 	{
-		if ($this->get('id') && (int) $this->get('id') > 0) 
+		switch (strtolower($as))
 		{
-			return true;
-		}
-		return false;
-	}*/
+			case 'date':
+				return JHTML::_('date', $this->get('created'), JText::_('DATE_FORMAT_HZ1'));
+			break;
 
-	/**
-	 * Get the creator of this entry
-	 * 
-	 * Accepts an optional property name. If provided
-	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
-	 *
-	 * @return     mixed
-	 */
-	public function creator($property=null)
-	{
-		if (!isset($this->_creator) || !is_object($this->_creator))
-		{
-			ximport('Hubzero_User_Profile');
-			$this->_creator = Hubzero_User_Profile::getInstance($this->get('created_by'));
+			case 'time':
+				return JHTML::_('date', $this->get('created'), JText::_('TIME_FORMAT_HZ1'));
+			break;
+
+			default:
+				return $this->get('created');
+			break;
 		}
-		if ($property && $this->_creator instanceof Hubzero_User_Profile)
-		{
-			return $this->_creator->get($property);
-		}
-		return $this->_creator;
 	}
 
 	/**
@@ -253,20 +224,45 @@ class CollectionsModelItem extends \Hubzero\Model
 	 * 
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
+	 * it returns the entire user object
 	 *
-	 * @return     mixed
+	 * @param   string $property
+	 * @return  mixed
+	 */
+	public function creator($property=null)
+	{
+		if (!($this->_creator instanceof \Hubzero\User\Profile))
+		{
+			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+		}
+		if ($property)
+		{
+			$property = ($property == 'id' ? 'uidNumber' : $property);
+			return $this->_creator->get($property);
+		}
+		return $this->_creator;
+	}
+
+	/**
+	 * Get the modifier of this entry
+	 * 
+	 * Accepts an optional property name. If provided
+	 * it will return that property value. Otherwise,
+	 * it returns the entire user object
+	 *
+	 * @param   string $property
+	 * @return  mixed
 	 */
 	public function modifier($property=null)
 	{
-		if (!isset($this->_modifier) || !is_object($this->_modifier))
+		if (!($this->_modifier instanceof \Hubzero\User\Profile))
 		{
-			ximport('Hubzero_User_Profile');
-			$this->_modifier = Hubzero_User_Profile::getInstance($this->get('modified_by'));
+			$this->_modifier = \Hubzero\User\Profile::getInstance($this->get('modified_by'));
 		}
-		if ($property && $this->_creator instanceof Hubzero_User_Profile)
+		if ($property)
 		{
-			return $this->_creator->get($property);
+			$property = ($property == 'id' ? 'uidNumber' : $property);
+			return $this->_modifier->get($property);
 		}
 		return $this->_modifier;
 	}
@@ -282,8 +278,7 @@ class CollectionsModelItem extends \Hubzero\Model
 		{
 			$total = 0;
 
-			ximport('Hubzero_Item_Comment');
-			$bc = new Hubzero_Item_Comment($this->_db);
+			$bc = new \Hubzero\Item\Comment($this->_db);
 
 			if (($results = $bc->getComments('collection', $this->get('id'))))
 			{
@@ -322,7 +317,7 @@ class CollectionsModelItem extends \Hubzero\Model
 	 */
 	public function assets($filters=array())
 	{
-		if (!isset($this->_assets) || !($this->_assets instanceof \Hubzero\ItemList))
+		if (!isset($this->_assets) || !($this->_assets instanceof \Hubzero\Base\ItemList))
 		{
 			$tbl = new CollectionsTableAsset($this->_db);
 
@@ -343,7 +338,7 @@ class CollectionsModelItem extends \Hubzero\Model
 				$results = array();
 			}
 
-			$this->_assets = new \Hubzero\ItemList($results);
+			$this->_assets = new \Hubzero\Base\ItemList($results);
 		}
 		return $this->_assets;
 	}
@@ -356,9 +351,9 @@ class CollectionsModelItem extends \Hubzero\Model
 	 */
 	public function addAsset($asset=null)
 	{
-		if (!isset($this->_assets) || !($this->_assets instanceof \Hubzero\ItemList))
+		if (!isset($this->_assets) || !($this->_assets instanceof \Hubzero\Base\ItemList))
 		{
-			$this->_assets = new \Hubzero\ItemList(array());
+			$this->_assets = new \Hubzero\Base\ItemList(array());
 		}
 		if ($asset)
 		{
@@ -543,17 +538,6 @@ class CollectionsModelItem extends \Hubzero\Model
 	}
 
 	/**
-	 * Bind data to the model's table object
-	 * 
-	 * @param      mixed $data Array or object
-	 * @return     boolean True on success, false if errors
-	 */
-	/*public function bind($data=null)
-	{
-		return $this->_tbl->bind($data);
-	}*/
-
-	/**
 	 * Store content
 	 * Can be passed a boolean to turn off check() method
 	 *
@@ -614,7 +598,7 @@ class CollectionsModelItem extends \Hubzero\Model
 			if (!is_dir($path)) 
 			{
 				jimport('joomla.filesystem.folder');
-				if (!JFolder::create($path)) 
+				if (!JFolder::create($path, 0777)) 
 				{
 					$this->setError(JText::_('Error uploading. Unable to create path.'));
 					return false;
@@ -679,6 +663,86 @@ class CollectionsModelItem extends \Hubzero\Model
 		$bt->tag_object($this->get('created_by'), $this->get('id'), $this->get('_tags', ''), 1, 1);
 
 		return true;
+	}
+
+	/**
+	 * Get the content of the entry
+	 * 
+	 * @param      string  $as      Format to return state in [text, number]
+	 * @param      integer $shorten Number of characters to shorten text to
+	 * @return     string
+	 */
+	public function description($as='parsed', $shorten=0)
+	{
+		$as = strtolower($as);
+		$options = array();
+
+		switch ($as)
+		{
+			case 'parsed':
+				$content = $this->get('description.parsed', null);
+				if ($content === null)
+				{
+					$config = array(
+						'option'   => $this->get('option', JRequest::getCmd('option', 'com_collections')),
+						'scope'    => 'collections',
+						'pagename' => 'collections',
+						'pageid'   => 0,
+						'filepath' => '',
+						'domain'   => 'collection'
+					);
+
+					$content = stripslashes((string) $this->get('description', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('description.parsed', (string) $this->get('description', ''));
+					$this->set('description', $content);
+
+					return $this->description($as, $shorten);
+				}
+				$options['html'] = true;
+			break;
+
+			case 'clean':
+				$content = strip_tags($this->description('parsed'));
+			break;
+
+			case 'raw':
+			default:
+				$content = stripslashes($this->get('description'));
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
+			break;
+		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten);
+		}
+		return $content;
+	}
+
+	/**
+	 * Get the item type
+	 * 
+	 * @return     string
+	 */
+	public function type()
+	{
+		if ($this->get('state') == 2)
+		{
+			$this->set('type', 'deleted');
+		}
+
+		$type = $this->get('type');
+		if (!in_array($type, array('collection', 'deleted', 'image', 'file', 'text', 'link')))
+		{
+			$type = 'link';
+		}
+		return $type;
 	}
 }
 

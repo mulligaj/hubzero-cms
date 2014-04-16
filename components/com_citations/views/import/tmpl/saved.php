@@ -31,14 +31,11 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-//helper lib
-ximport('Hubzero_View_Helper_Html');
-
 //citation params
 $label = $this->config->get("citation_label", "number");
 $rollover = $this->config->get("citation_rollover", "no");
-$citationsFormat = new CitationsFormat( $this->database );
-$template = $citationsFormat->getDefaultFormat()->format;
+$citationsFormat = new CitationFormat( $this->database );
+$template = $citationsFormat->getDefaultFormat();
 
 //batch downloads
 $batch_download = $this->config->get("citation_batch_download", 1);

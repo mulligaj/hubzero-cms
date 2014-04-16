@@ -37,7 +37,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'mod
 /**
  * Courses model class for a course
  */
-class CollectionsModelPost extends \Hubzero\Model
+class CollectionsModelPost extends \Hubzero\Base\Model
 {
 	/**
 	 * Table class name
@@ -47,7 +47,14 @@ class CollectionsModelPost extends \Hubzero\Model
 	protected $_tbl_name = 'CollectionsTablePost';
 
 	/**
-	 * Hubzero_User_Profile
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_collections.post.description';
+
+	/**
+	 * \Hubzero\User\Profile
 	 * 
 	 * @var object
 	 */
@@ -68,79 +75,6 @@ class CollectionsModelPost extends \Hubzero\Model
 	private $_data = null;
 
 	/**
-	 * Constructor
-	 * 
-	 * @param      integer $id  Resource ID or alias
-	 * @param      object  &$db JDatabase
-	 * @return     void
-	 */
-	/*public function __construct($oid=null)
-	{
-		$this->_db = JFactory::getDBO();
-
-		$this->_tbl = new CollectionsTablePost($this->_db);
-
-		$item = null;
-
-		if (is_numeric($oid) || is_string($oid))
-		{
-			if ($oid)
-			{
-				$this->_tbl->load($oid);
-			}
-		}
-		else if (is_object($oid))
-		{
-			$this->_tbl->bind($oid);
-
-			$item = new stdClass;
-
-			$properties = get_object_vars($this->_tbl);
-			foreach (get_object_vars($oid) as $key => $property)
-			{
-				if (substr($key, 0, strlen('item_')) == 'item_')
-				{
-					$nk = substr($key, strlen('item_'));
-					$item->$nk = $property;
-					continue;
-				}
-				if (!array_key_exists($key, $properties))
-				{
-					$this->_tbl->set($key, $property);
-				}
-			}
-		}
-		else if (is_array($oid))
-		{
-			$this->_tbl->bind($oid);
-
-			$item = new stdClass;
-
-			$properties = get_object_vars($this->_tbl);
-			foreach (array_keys($oid) as $key)
-			{
-				if (substr($key, 0, strlen('item_')) == 'item_')
-				{
-					$nk = substr($key, strlen('item_'));
-					$item->$nk = $oid[$key];
-					continue;
-				}
-				if (!array_key_exists($key, $properties))
-				{
-					$this->_tbl->set($key, $oid[$key]);
-				}
-			}
-		}
-
-		//if (is_object($oid) && isset($oid->title))
-		if (is_object($item))
-		{
-			$this->item($item);
-			//$this->set('item_id', $this->item()->get('id'));
-		}
-	}*/
-
-	/**
 	 * Returns a reference to a wiki page object
 	 *
 	 * This method must be invoked as:
@@ -148,7 +82,7 @@ class CollectionsModelPost extends \Hubzero\Model
 	 *
 	 * @param      string $pagename The page to load
 	 * @param      string $scope    The page scope
-	 * @return     object WikiPage
+	 * @return     object CollectionsModelPost
 	 */
 	static function &getInstance($oid=null)
 	{
@@ -174,7 +108,7 @@ class CollectionsModelPost extends \Hubzero\Model
 
 		if (!isset($instances[$key])) 
 		{
-			$instances[$key] = new CollectionsModelPost($oid);
+			$instances[$key] = new self($oid);
 		}
 
 		return $instances[$key];
@@ -255,7 +189,7 @@ class CollectionsModelPost extends \Hubzero\Model
 	 */
 	public function item($oid=null)
 	{
-		if (!isset($this->_data) || !($this->_data instanceof CollectionsModelItem))
+		if (!($this->_data instanceof CollectionsModelItem))
 		{
 			if ($oid === null)
 			{
@@ -263,6 +197,10 @@ class CollectionsModelPost extends \Hubzero\Model
 			}
 
 			$this->_data = new CollectionsModelItem($oid);
+			if ($d = $this->description('raw'))
+			{
+				$this->_data->set('description', $this->get('description'));
+			}
 		}
 
 		return $this->_data;
@@ -331,23 +269,48 @@ class CollectionsModelPost extends \Hubzero\Model
 	}
 
 	/**
+	 * Return a formatted timestamp
+	 * 
+	 * @param      string $as What format to return
+	 * @return     boolean
+	 */
+	public function created($as='')
+	{
+		switch (strtolower($as))
+		{
+			case 'date':
+				return JHTML::_('date', $this->get('created'), JText::_('DATE_FORMAT_HZ1'));
+			break;
+
+			case 'time':
+				return JHTML::_('date', $this->get('created'), JText::_('TIME_FORMAT_HZ1'));
+			break;
+
+			default:
+				return $this->get('created');
+			break;
+		}
+	}
+
+	/**
 	 * Get the creator of this entry
 	 * 
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
+	 * it returns the entire user object
 	 *
-	 * @return     mixed
+	 * @param   string $property
+	 * @return  mixed
 	 */
 	public function creator($property=null)
 	{
-		if (!isset($this->_creator) || !is_object($this->_creator))
+		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
-			ximport('Hubzero_User_Profile');
-			$this->_creator = Hubzero_User_Profile::getInstance($this->get('created_by'));
+			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
 		}
-		if ($property && $this->_creator instanceof Hubzero_User_Profile)
+		if ($property)
 		{
+			$property = ($property == 'id' ? 'uidNumber' : $property);
 			return $this->_creator->get($property);
 		}
 		return $this->_creator;
@@ -380,7 +343,7 @@ class CollectionsModelPost extends \Hubzero\Model
 
 			if (!class_exists($cls))
 			{
-				$path = dirname(__FILE__) . '/adapters/' . $scope . '.php';
+				$path = __DIR__ . '/adapters/' . $scope . '.php';
 				if (!is_file($path))
 				{
 					throw new \InvalidArgumentException(JText::sprintf('Invalid scope of "%s"', $scope));
@@ -393,6 +356,66 @@ class CollectionsModelPost extends \Hubzero\Model
 			$this->_adapter->set('alias', $this->get('alias'));
 		}
 		return $this->_adapter;
+	}
+
+	/**
+	 * Get the content of the entry
+	 * 
+	 * @param      string  $as      Format to return state in [text, number]
+	 * @param      integer $shorten Number of characters to shorten text to
+	 * @return     string
+	 */
+	public function description($as='parsed', $shorten=0)
+	{
+		$as = strtolower($as);
+		$options = array();
+
+		switch ($as)
+		{
+			case 'parsed':
+				$content = $this->get('description.parsed', null);
+				if ($content === null)
+				{
+					$config = array(
+						'option'   => $this->get('option', JRequest::getCmd('option', 'com_collections')),
+						'scope'    => 'collections',
+						'pagename' => 'collections',
+						'pageid'   => 0,
+						'filepath' => '',
+						'domain'   => 'collection'
+					);
+
+					$content = stripslashes((string) $this->get('description', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('description.parsed', (string) $this->get('description', ''));
+					$this->set('description', $content);
+
+					return $this->description($as, $shorten);
+				}
+				$options['html'] = true;
+			break;
+
+			case 'clean':
+				$content = strip_tags($this->description('parsed'));
+			break;
+
+			case 'raw':
+			default:
+				$content = stripslashes($this->get('description'));
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
+			break;
+		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten);
+		}
+		return $content;
 	}
 }
 

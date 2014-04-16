@@ -48,13 +48,6 @@ class EventsEvent extends JTable
 	 * 
 	 * @var integer
 	 */
-	var $sid              = NULL;
-
-	/**
-	 * int(11)
-	 * 
-	 * @var integer
-	 */
 	var $catid            = NULL;
 	
 	/**
@@ -121,20 +114,6 @@ class EventsEvent extends JTable
 	var $extra_info       = NULL;
 
 	/**
-	 * varchar(8)
-	 * 
-	 * @var string
-	 */
-	var $color_bar        = NULL;
-
-	/**
-	 * int(1)
-	 * 
-	 * @var integer
-	 */
-	var $useCatColor      = NULL;
-
-	/**
 	 * int(3)
 	 * 
 	 * @var integer
@@ -163,13 +142,6 @@ class EventsEvent extends JTable
 	var $created_by       = NULL;
 
 	/**
-	 * varchar(100)
-	 * 
-	 * @var string
-	 */
-	var $created_by_alias = NULL;
-
-	/**
 	 * datetime(0000-00-00 00:00:00)
 	 * 
 	 * @var string
@@ -182,20 +154,6 @@ class EventsEvent extends JTable
 	 * @var integer
 	 */
 	var $modified_by      = NULL;
-
-	/**
-	 * int(11)
-	 * 
-	 * @var integer
-	 */
-	var $checked_out      = NULL;
-
-	/**
-	 * datetime(0000-00-00 00:00:00)
-	 * 
-	 * @var string
-	 */
-	var $checked_out_time = NULL;
 
 	/**
 	 * datetime(0000-00-00 00:00:00)
@@ -219,81 +177,11 @@ class EventsEvent extends JTable
 	var $publish_down     = NULL;
 
 	/**
-	 * text
-	 * 
-	 * @var string
-	 */
-	var $images           = NULL;
-
-	/**
-	 * varchar(1)
-	 * 
-	 * @var integer
-	 */
-	var $reccurtype       = NULL;
-
-	/**
-	 * varchar(4)
-	 * 
-	 * @var string
-	 */
-	var $reccurday        = NULL;
-
-	/**
-	 * varchar(20)
-	 * 
-	 * @var string
-	 */
-	var $reccurweekdays   = NULL;
-
-	/**
-	 * varchar(10)
-	 * 
-	 * @var string
-	 */
-	var $reccurweeks      = NULL;
-
-	/**
 	 * int(1)
 	 * 
 	 * @var integer
 	 */
 	var $approved         = NULL;
-
-	/**
-	 * int(1)
-	 * 
-	 * @var integer
-	 */
-	var $announcement     = NULL;
-
-	/**
-	 * int(11)
-	 * 
-	 * @var integer
-	 */
-	var $ordering         = NULL;
-
-	/**
-	 * int(1)
-	 * 
-	 * @var integer
-	 */
-	var $archived         = NULL;
-
-	/**
-	 * int(11)
-	 * 
-	 * @var integer
-	 */
-	var $access           = NULL;
-
-	/**
-	 * int(11)
-	 * 
-	 * @var integer
-	 */
-	var $hits             = NULL;
 
 	/**
 	 * datetime(0000-00-00 00:00:00)
@@ -713,6 +601,115 @@ class EventsEvent extends JTable
 
 		$this->_db->setQuery($query);
 		return $this->_db->loadObjectList();
+	}
+
+	/**
+	 * Find all events matching filters
+	 * 
+	 * @param      array   $filters
+	 * @return     array
+	 */
+	public function find( $filters = array() )
+	{
+		$sql  = "SELECT * FROM {$this->_tbl}";
+		$sql .= $this->_buildQuery( $filters );
+
+		$this->_db->setQuery($sql);
+		return $this->_db->loadObjectList();
+	}
+	
+	/**
+	 * Get count of events matching filters
+	 * 
+	 * @param      array   $filters
+	 * @return     int
+	 */
+	public function count( $filters = array() )
+	{
+		$sql  = "SELECT COUNT(*) FROM {$this->_tbl}";
+		$sql .= $this->_buildQuery( $filters );
+		
+		$this->_db->setQuery($sql);
+		return $this->_db->loadResult();
+	}
+	
+	/**
+	 * Build query string for getting list or count of events
+	 * 
+	 * @param      array   $filters
+	 * @return     string
+	 */
+	private function _buildQuery( $filters = array() )
+	{
+		// var to hold conditions
+		$where = array();
+		$sql   = '';
+
+		// scope 
+		if (isset($filters['scope']))
+		{
+			$where[] = "scope=" . $this->_db->quote( $filters['scope'] );
+		}
+
+		// scope_id
+		if (isset($filters['scope_id']))
+		{
+			$where[] = "scope_id=" . $this->_db->quote( $filters['scope_id'] );
+		}
+
+		// calendar_id
+		if (isset($filters['calendar_id']))
+		{
+			if ($filters['calendar_id'] == '0')
+			{
+				$where[] = "(calendar_id IS NULL OR calendar_id=0)";
+			}
+			else
+			{
+				$where[] = "calendar_id=" . $this->_db->quote( $filters['calendar_id'] );
+			}
+		}
+		
+		// published
+		if (isset($filters['state']) && is_array($filters['state']))
+		{
+			$where[] = "state IN (" . implode(',', $filters['state']) . ")";
+		}
+
+		// publish up/down
+		if (isset($filters['publish_up']) && isset($filters['publish_down']))
+		{
+			$q = "(publish_up >=" . $this->_db->quote( $filters['publish_up'] );
+			$q .= " OR (publish_down <> '0000-00-00 00:00:00' AND publish_down <=" . $this->_db->quote( $filters['publish_down'] ) . "))";
+			$where[] = $q;
+		}
+
+		// repeating event?
+		if (isset($filters['repeating']))
+		{
+			$where[] = "(repeating_rule IS NOT NULL AND repeating_rule<>'')";
+		}
+		
+		// if we have and conditions
+		if (count($where) > 0)
+		{
+			$sql .= " WHERE " . implode(" AND ", $where);
+		}
+
+		// specify order?
+		if (isset($filters['orderby']))
+		{
+			$sql .= " ORDER BY " . $filters['orderby']; 
+		}
+
+		// limit and start
+		if (isset($filters['limit']))
+		{
+			$start = (isset($filters['start'])) ? $filters['start'] : 0;
+			$sql .= " LIMIT " . $start . ", " . $filters['limit'];
+		}
+		
+		return $sql;
 	}
 }
 

@@ -65,7 +65,7 @@ function submitbutton(pressbutton)
 	<fieldset id="filter-bar">
 		<div class="col width-30 fltlft">
 			<label for="filter_search"><?php echo JText::_('COM_COURSES_SEARCH'); ?>:</label> 
-			<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" />
+			<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('Enter name, username, or ID'); ?>" />
 		</div>
 		<div class="col width-70 fltrt">
 			<label for="filter_offering"><?php echo JText::_('Offering'); ?>:</label> 
@@ -147,6 +147,7 @@ function submitbutton(pressbutton)
 				<th scope="col"><?php echo JText::_('Course : Offering'); ?></th>
 			<?php } ?>
 				<th scope="col"><?php echo JText::_('Section'); ?></th>
+				<th scope="col"><?php echo JText::_('Cert.'); ?></th>
 				<th scope="col"><?php echo JText::_('Enrolled'); ?></th>
 			</tr>
 		</thead>
@@ -206,6 +207,11 @@ foreach ($this->rows as $row)
 			<?php } ?>
 				<td>
 					<?php echo ($section->exists()) ? $this->escape(stripslashes($section->get('title'))) : JText::_('(none)'); ?>
+				</td>
+				<td>
+					<span class="state <?php echo ($row->get('token') ? 'publish' : 'unpublish'); ?>">
+						<span> <?php echo ($row->get('token') ? 'redeemed' : ''); ?></span>
+					</span>
 				</td>
 				<td>
 				<?php if ($row->get('enrolled') && $row->get('enrolled') != '0000-00-00 00:00:00') { ?>

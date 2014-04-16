@@ -183,9 +183,7 @@ if (!$this->app->sess) {
 			<div class="col span8">
 				<p class="share-member-photo" id="shareform">
 					<?php
-					ximport('Hubzero_User_Profile');
-
-					$jxuser = new Hubzero_User_Profile();
+					$jxuser = new \Hubzero\User\Profile();
 					$jxuser->load($juser->get('id'));
 					?>
 					<img src="<?php echo $jxuser->getPicture(); ?>" alt="" />
@@ -255,33 +253,16 @@ if (!$this->app->sess) {
 							</td>
 						</tr>
 				<?php } else {
-					ximport('Hubzero_View_Helper_Html');
-					
-					$config = JComponentHelper::getParams('com_members');
-					$thumb = $config->get('webpath');
-					$thumb = DS . trim($thumb, DS);
-
-					$dfthumb = $config->get('defaultpic');
-					$dfthumb = DS . ltrim($dfthumb, DS);
-					$dfthumb = Hubzero_View_Helper_Html::thumbit($dfthumb);
-					
 					foreach ($this->shares as $row)
 					{
 						if ($row->viewuser != $juser->get('username')) 
 						{ 
-							$user = Hubzero_User_Profile::getInstance($row->viewuser);
+							$user = \Hubzero\User\Profile::getInstance($row->viewuser);
 
 							$id = ($user->get('uidNumber') < 0) ? 'n' . -$user->get('uidNumber') : $user->get('uidNumber');
 
 							// User picture
-							$uthumb = '';
-							if ($user->get('picture')) 
-							{
-								$uthumb = $thumb . DS . Hubzero_View_Helper_Html::niceidformat($user->get('uidNumber')) . DS . $user->get('picture');
-								$uthumb = Hubzero_View_Helper_Html::thumbit($uthumb);
-							}
-
-							$p = ($uthumb && is_file(JPATH_ROOT . $uthumb)) ? $uthumb : $dfthumb;
+							$p = $user->getPicture();
 						?>
 						<tr>
 							<th class="entry-img">

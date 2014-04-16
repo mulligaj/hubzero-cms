@@ -29,9 +29,8 @@
  */
 
 defined('_JEXEC') or die( 'Restricted access' );
-$juser = JFactory::getUser();
 
-ximport('Hubzero_User_Profile_Helper');
+$juser = JFactory::getUser();
 ?>
 	<div id="content-header">
 		<h2><?php echo JText::_('COM_FORUM'); ?></h2>
@@ -84,7 +83,6 @@ ximport('Hubzero_User_Profile_Helper');
 				<label for="field-description">
 					<?php echo JText::_('COM_FORUM_FIELD_DESCRIPTION'); ?>
 					<textarea name="fields[description]" id="field-description" cols="35" rows="5"><?php echo $this->escape(stripslashes($this->category->get('description'))); ?></textarea>
-					<span class="hint"><?php echo JText::_('COM_FORUM_CATEGORY_WIKI_HINT'); ?></span>
 				</label>
 			</fieldset>
 			<div class="clear"></div>

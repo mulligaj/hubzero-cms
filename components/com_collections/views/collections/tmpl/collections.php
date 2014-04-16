@@ -31,10 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-//import helper class
-ximport('Hubzero_View_Helper_Html');
-ximport('Hubzero_Document');
-
 //$assets = array();
 //$ids = array();
 $likes = 0;
@@ -93,54 +89,26 @@ $base = 'index.php?option=' . $this->option;
 	</fieldset>
 
 	<div class="main section">
-		<div id="posts">
+		<div id="posts" data-base="<?php echo JURI::base(true); ?>">
 <?php 
 if ($this->rows->total() > 0) 
 {
-	ximport('Hubzero_User_Profile');
-	ximport('Hubzero_User_Profile_Helper');
-
-	ximport('Hubzero_Wiki_Parser');
-
-	$wikiconfig = array(
-		'option'   => $this->option,
-		'scope'    => 'collections',
-		'pagename' => 'collections',
-		'pageid'   => 0,
-		'filepath' => '',
-		'domain'   => 'collection'
-	);
-
-	$p = Hubzero_Wiki_Parser::getInstance();
-
 	foreach ($this->rows as $row)
 	{
 		$item = $row->item();
-
-		if ($item->get('state') == 2)
-		{
-			$item->set('type', 'deleted');
-		}
-		$type = $item->get('type');
-		if (!in_array($type, array('collection', 'deleted', 'image', 'file', 'text', 'link')))
-		{
-			$type = 'link';
-		}
 ?>
-		<div class="post <?php echo $type; ?>" id="b<?php echo $row->get('id'); ?>" data-id="<?php echo $row->get('id'); ?>" data-closeup-url="<?php echo JRoute::_($base . '&controller=collection&id=' . $row->get('id')); ?>" data-width="600" data-height="350">
+		<div class="post <?php echo $item->type(); ?>" id="b<?php echo $row->get('id'); ?>" data-id="<?php echo $row->get('id'); ?>" data-closeup-url="<?php echo JRoute::_($base . '&controller=collection&id=' . $row->get('id')); ?>" data-width="600" data-height="350">
 			<div class="content">
 				<?php
 					$view = new JView(
 						array(
 							'name'    => 'posts',
-							'layout'  => 'display_' . $type
+							'layout'  => 'display_' . $item->type()
 						)
 					);
 					$view->option     = $this->option;
 					$view->params     = $this->config;
 					$view->row        = $row;
-					$view->parser     = $p;
-					$view->wikiconfig = $wikiconfig;
 					$view->display();
 				?>
 			<?php if (count($item->tags()) > 0) { ?>
@@ -192,7 +160,7 @@ if ($this->rows->total() > 0)
 				</div><!-- / .meta -->
 				<div class="convo attribution clearfix">
 					<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->creator()->get('id') . '&active=collections'); ?>" title="<?php echo $this->escape(stripslashes($row->creator()->get('name'))); ?>" class="img-link">
-						<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($row->creator(), 0); ?>" alt="<?php echo JText::sprintf('COM_COLLECTIONS_PROFILE_PICTURE', $this->escape(stripslashes($row->creator()->get('name')))); ?>" />
+						<img src="<?php echo $row->creator()->getPicture(); ?>" alt="<?php echo JText::sprintf('COM_COLLECTIONS_PROFILE_PICTURE', $this->escape(stripslashes($row->creator()->get('name')))); ?>" />
 					</a>
 					<p>
 						<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->creator()->get('id') . '&active=collections'); ?>">

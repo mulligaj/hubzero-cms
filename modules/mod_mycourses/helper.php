@@ -35,7 +35,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Module class for displaying a list of groups for a user
  */
-class modMyCourses extends Hubzero_Module
+class modMyCourses extends \Hubzero\Module\Module
 {
 	/**
 	 * Get groups for a user
@@ -49,12 +49,15 @@ class modMyCourses extends Hubzero_Module
 		$db = JFactory::getDBO();
 
 		// Get all groups the user is a member of
-		/*$query1 = "SELECT c.id, c.alias, c.title, c.created AS enrolled, NULL AS starts, NULL AS ends, 'manager' AS role, NULL AS offering_alias, NULL AS offering_title, NULL AS section_alias, NULL AS section_title
+		$query = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default 
 					FROM #__courses AS c 
-					JOIN #__courses_managers AS m ON m.course_id=c.id
-					WHERE m.user_id=" . $uid;*/
+					JOIN #__courses_members AS m ON m.course_id=c.id
+					LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
+					LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
+					LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
+					WHERE m.user_id=" . $db->quote($uid);
 
-		$query2 = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title
+		/*$query2 = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default 
 					FROM #__courses AS c 
 					JOIN #__courses_members AS m ON m.course_id=c.id
 					LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
@@ -62,7 +65,7 @@ class modMyCourses extends Hubzero_Module
 					LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
 					WHERE m.user_id=" . $uid . " AND m.student=0 AND r.alias='manager'";
 
-		$query3 = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title
+		$query3 = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default 
 					FROM #__courses AS c 
 					JOIN #__courses_members AS m ON m.course_id=c.id
 					LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
@@ -70,7 +73,7 @@ class modMyCourses extends Hubzero_Module
 					LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
 					WHERE m.user_id=" . $uid . " AND m.student=0 AND r.alias='instructor'";
 
-		$query4 = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title
+		$query4 = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default 
 					FROM #__courses AS c 
 					JOIN #__courses_members AS m ON m.course_id=c.id
 					LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
@@ -78,7 +81,7 @@ class modMyCourses extends Hubzero_Module
 					LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
 					WHERE m.user_id=" . $uid . " AND m.student=1 AND c.state=1";
 
-		$query5 = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title
+		$query5 = "SELECT c.id, c.state, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default 
 					FROM #__courses AS c 
 					JOIN #__courses_members AS m ON m.course_id=c.id
 					LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
@@ -103,7 +106,7 @@ class modMyCourses extends Hubzero_Module
 			case 'ta':
 				$query = $query5;
 			break;
-		}
+		}*/
 
 		$db->setQuery($query);
 
@@ -133,16 +136,8 @@ class modMyCourses extends Hubzero_Module
 		// Get the user's groups
 		$this->courses = $this->_getCourses($juser->get('id'), 'all');
 
-		/*$groups = array();
-		foreach ($members as $mem)
-		{
-			$groups[] = $mem;
-		}
-		$this->$courses = $groups;*/
-
 		// Push the module CSS to the template
-		ximport('Hubzero_Document');
-		Hubzero_Document::addModuleStyleSheet($this->module->module);
+		$this->css();
 
 		require(JModuleHelper::getLayoutPath($this->module->module));
 	}

@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 //require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'section.php');
 //require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'offering.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
@@ -40,7 +38,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models'
 /**
  * Courses controller class for managing membership and course info
  */
-class CoursesControllerCertificates extends Hubzero_Controller
+class CoursesControllerCertificates extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Displays a list of courses
@@ -204,7 +202,7 @@ class CoursesControllerCertificates extends Hubzero_Controller
 		// Incoming
 		$fields = JRequest::getVar('fields', array(), 'post');
 
-		// Instantiate an Hubzero_Course object
+		// Instantiate a Course object
 		$model = new CoursesModelSectionCode($fields['id']);
 
 		if (!$model->bind($fields))
@@ -372,10 +370,7 @@ class CoursesControllerCertificates extends Hubzero_Controller
 
 		if (is_file($tempFile))
 		{
-			// Get some needed libraries
-			ximport('Hubzero_Content_Server');
-			
-			$xserver = new Hubzero_Content_Server();
+			$xserver = new \Hubzero\Content\Server();
 			$xserver->filename($tempFile);		
 			$xserver->serve_inline($tempFile);
 			exit;

@@ -136,8 +136,6 @@ $altdir = ($dir == 'ASC') ? 'DESC' : 'ASC';
 <?php
 if ($rows) 
 {
-	ximport('Hubzero_View_Helper_Html');
-	ximport('Hubzero_User_Profile');
 	jimport('joomla.filesystem.file');
 
 	$dateFormat = '%d %b %Y';
@@ -153,11 +151,11 @@ if ($rows)
 		$fsize = JText::_('(unknown)');
 		if (is_file(JPATH_ROOT . DS . trim($this->config->get('filepath', '/site/wiki'), DS) . DS . $row->pageid . DS . $row->filename))
 		{
-			$fsize = Hubzero_View_Helper_Html::formatSize(filesize(JPATH_ROOT . DS . trim($this->config->get('filepath', '/site/wiki'), DS) . DS . $row->pageid . DS . $row->filename));
+			$fsize = \Hubzero\Utility\Number::formatBytes(filesize(JPATH_ROOT . DS . trim($this->config->get('filepath', '/site/wiki'), DS) . DS . $row->pageid . DS . $row->filename));
 		}
 
 		$name = JText::_('(unknown)');
-		$xprofile = Hubzero_User_Profile::getInstance($row->created_by);
+		$xprofile = \Hubzero\User\Profile::getInstance($row->created_by);
 		if (is_object($xprofile))
 		{
 			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $row->created_by) . '">' . $this->escape(stripslashes($xprofile->get('name'))) . '</a>';

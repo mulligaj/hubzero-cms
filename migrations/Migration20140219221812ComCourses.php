@@ -1,37 +1,39 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for getting rid of duplicate section date entries
  **/
-class Migration20140219221812ComCourses extends Hubzero_Migration
+class Migration20140219221812ComCourses extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
 		$query  = "SELECT count(id) AS num, section_id, scope, scope_id";
 		$query .= " FROM `#__courses_offering_section_dates`";
 		$query .= " GROUP BY `section_id`, `scope`, `scope_id`";
 		$query .= " HAVING num > 1";
 
-		$db->setQuery($query);
-		$results = $db->loadObjectList();
+		$this->db->setQuery($query);
+		$results = $this->db->loadObjectList();
 
 		if ($results && count($results) > 0)
 		{
 			foreach ($results as $result)
 			{
 				$query  = "SELECT * FROM `#__courses_offering_section_dates` WHERE";
-				$query .= " section_id = " . $db->quote($result->section_id);
-				$query .= " AND scope = " . $db->quote($result->scope);
-				$query .= " AND scope_id = " . $db->quote($result->scope_id);
+				$query .= " section_id = " . $this->db->quote($result->section_id);
+				$query .= " AND scope = " . $this->db->quote($result->scope);
+				$query .= " AND scope_id = " . $this->db->quote($result->scope_id);
 
-				$db->setQuery($query);
-				$rows = $db->loadObjectList();
+				$this->db->setQuery($query);
+				$rows = $this->db->loadObjectList();
 
 				if ($rows && count($rows) > 1)
 				{
@@ -41,10 +43,10 @@ class Migration20140219221812ComCourses extends Hubzero_Migration
 					foreach ($rows as $row)
 					{
 						$query  = "DELETE FROM `#__courses_offering_section_dates`";
-						$query .= " WHERE id = " . $db->quote($row->id);
+						$query .= " WHERE id = " . $this->db->quote($row->id);
 
-						$db->setQuery($query);
-						$db->query();
+						$this->db->setQuery($query);
+						$this->db->query();
 					}
 				}
 			}

@@ -31,16 +31,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-//import Hubzero Controller Class
-ximport('Hubzero_Controller');
-
 //import filesystem library
 jimport('joomla.filesystem.folder');
 
 /**
  * Help controller class
  */
-class HelpControllerHelp extends Hubzero_Controller
+class HelpControllerHelp extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Method to set the document path
@@ -159,8 +156,11 @@ class HelpControllerHelp extends Hubzero_Controller
 			JError::raiseError( 404, JText::_('Help page not found.') );
 		}
 		
-		//get file modified time
-		$this->view->modified = filemtime($finalHelpPage);
+		// set vars for views
+		$this->view->modified  = filemtime($finalHelpPage);
+		$this->view->component = $component;
+		$this->view->extension = $extension;
+		$this->view->page      = $page;
 		
 		//display
 		$this->view->display();

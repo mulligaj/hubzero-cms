@@ -31,11 +31,30 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_User_Profile');
-
 $juser = JFactory::getUser();
 
-$first = $this->model->entries('first');
+$filters = array(
+	'scope' => $this->config->get('show_from', 'site'),
+	'state' => 'public',
+	'group_id' => 0,
+	'authorized' => false
+);
+if ($filters['scope'] == 'both')
+{
+	$filters['scope'] = '';
+}
+if (!$juser->get('guest')) 
+{
+	$filters['state'] = 'registered';
+
+	if ($this->config->get('access-manage-component')) 
+	{
+		$filters['state'] = 'all';
+		$filters['authorized'] = true;
+	}
+}
+
+$first = $this->model->entries('first', $filters);
 
 $entry_year  = substr($this->row->get('publish_up'), 0, 4);
 $entry_month = substr($this->row->get('publish_up'), 5, 2);
@@ -197,7 +216,7 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 			<?php } ?>
 			<?php if ($juser->get('id') == $this->row->get('created_by')) { ?>
 				<dd class="state">
-					<?php echo JText::_('COM_BLOG_STATE_' . strtoupper($row->state('text'))); ?>
+					<?php echo JText::_('COM_BLOG_STATE_' . strtoupper($this->row->state('text'))); ?>
 				</dd>
 				<dd class="entry-options">
 					<a class="edit" href="<?php echo JRoute::_($this->row->link('edit')); ?>" title="<?php echo JText::_('COM_BLOG_EDIT'); ?>">
@@ -233,8 +252,8 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 							</a>
 						</h4>
 						<p class="entry-author-bio">
-						<?php if ($bio = $this->row->creator('bio')) { ?>
-							<?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($bio), 300, 0); ?>
+						<?php if ($this->row->creator('bio')) { ?>
+							<?php echo $this->row->creator()->getBio('parsed', 300); ?>
 						<?php } else { ?>
 							<em><?php echo JText::_('COM_BLOG_AUTHOR_NO_BIO'); ?></em>
 						<?php } ?>
@@ -314,9 +333,9 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 		<form method="post" action="<?php echo JRoute::_($this->row->link()); ?>" id="commentform">
 			<p class="comment-member-photo">
 				<?php
-				$jxuser = new Hubzero_User_Profile; //::getInstance($juser->get('id'));
+				$jxuser = new \Hubzero\User\Profile; //::getInstance($juser->get('id'));
 				if (!$juser->get('guest')) {
-					$jxuser = Hubzero_User_Profile::getInstance($juser->get('id'));
+					$jxuser = \Hubzero\User\Profile::getInstance($juser->get('id'));
 					$anonymous = 0;
 				} else {
 					$anonymous = 1;
@@ -331,11 +350,10 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 			{
 				if ($replyto->exists()) 
 				{
-					ximport('Hubzero_View_Helper_Html');
 					$name = JText::_('COM_BLOG_ANONYMOUS');
 					if (!$replyto->get('anonymous')) 
 					{
-						$xuser = Hubzero_User_Profile::getInstance($replyto->get('created_by'));
+						$xuser = \Hubzero\User\Profile::getInstance($replyto->get('created_by'));
 						if (is_object($xuser) && $xuser->get('name')) 
 						{
 							$name = '<a href="'.JRoute::_('index.php?option=com_members&id=' . $replyto->get('created_by')) . '">' . stripslashes($xuser->get('name')) . '</a>';
@@ -351,7 +369,7 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 						<span class="date"><time datetime="<?php echo $replyto->get('created'); ?>"><?php echo $replyto->created('date'); ?></time></span>
 					</p>
 					<p>
-						<?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($replyto->get('content')), 300, 0); ?>
+						<?php echo \Hubzero\Utility\String::truncate(stripslashes($replyto->get('content')), 300); ?>
 					</p>
 				</blockquote>
 				<?php
@@ -360,10 +378,9 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 			?>
 				<?php if (!$juser->get('guest')) { ?>
 				<label for="commentcontent">
-					Your <?php echo ($replyto->exists()) ? 'reply' : 'comments'; ?>: <span class="required"><?php echo JText::_('COM_BLOG_REQUIRED'); ?></span>
+					Your <?php echo ($replyto->exists()) ? 'reply' : 'comments'; ?>:
 					<?php
-						ximport('Hubzero_Wiki_Editor');
-						echo Hubzero_Wiki_Editor::getInstance()->display('comment[content]', 'commentcontent', '', 'minimal', '40', '15');
+						echo \JFactory::getEditor()->display('comment[content]', '', '', '', 40, 15, false, 'commentcontent', null, null, array('class' => 'minimal no-footer'));
 					?>
 				</label>
 				<?php } else { ?>

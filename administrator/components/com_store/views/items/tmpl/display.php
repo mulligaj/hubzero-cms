@@ -98,7 +98,6 @@ public function submitbutton(pressbutton)
 		</tfoot>
 		<tbody>
 <?php
-ximport('Hubzero_View_Helper_Html');
 $k = 0;
 for ($i=0, $n=count($this->rows); $i < $n; $i++)
 {
@@ -157,7 +156,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 <?php } ?>
 				</td>
 				<td>
-					<?php echo Hubzero_View_Helper_Html::shortenText(stripslashes($row->description), 300); ?></td>
+					<?php echo \Hubzero\Utility\String::truncate(stripslashes($row->description), 300); ?></td>
 				<td>
 					<?php echo $this->escape(stripslashes($row->price)); ?>
 				</td>

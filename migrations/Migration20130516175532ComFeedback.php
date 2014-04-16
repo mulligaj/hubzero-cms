@@ -1,19 +1,21 @@
 <?php
 
+use Hubzero\Content\Migration\Base;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
 /**
  * Migration script for ...
  **/
-class Migration20130516175532ComFeedback extends Hubzero_Migration
+class Migration20130516175532ComFeedback extends Base
 {
 	/**
 	 * Up
 	 **/
-	protected static function up($db)
+	public function up()
 	{
-		if ($db->tableExists('#__components'))
+		if ($this->db->tableExists('#__components'))
 		{
 			$query = "UPDATE `#__components` SET `params` = REPLACE(`params`,'/components/com_feedback/images/contributor.gif','/components/com_feedback/assets/img/contributor.gif') WHERE `option` = 'com_feedback';";
 		}
@@ -24,17 +26,17 @@ class Migration20130516175532ComFeedback extends Hubzero_Migration
 
 		if (!empty($query))
 		{
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 
 	/**
 	 * Down
 	 **/
-	protected static function down($db)
+	public function down()
 	{
-		if ($db->tableExists('#__components'))
+		if ($this->db->tableExists('#__components'))
 		{
 			$query = "UPDATE `#__components` SET `params` = REPLACE(`params`,'/components/com_feedback/assets/img/contributor.gif','/components/com_feedback/images/contributor.gif') WHERE `option` = 'com_feedback';";
 		}
@@ -45,8 +47,8 @@ class Migration20130516175532ComFeedback extends Hubzero_Migration
 
 		if (!empty($query))
 		{
-			$db->setQuery($query);
-			$db->query();
+			$this->db->setQuery($query);
+			$this->db->query();
 		}
 	}
 }

@@ -156,7 +156,7 @@ CREATE TABLE `#__announcements` (
 
 CREATE TABLE `#__answers_log` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `rid` int(11) unsigned NOT NULL DEFAULT '0',
+  `response_id` int(11) unsigned NOT NULL DEFAULT '0',
   `ip` varchar(15) NOT NULL DEFAULT '',
   `helpful` varchar(10) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
@@ -168,7 +168,7 @@ CREATE TABLE `#__answers_questions` (
   `subject` varchar(250) NOT NULL DEFAULT '',
   `question` text NOT NULL,
   `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `created_by` varchar(50) NOT NULL DEFAULT '',
+  `created_by` int(11) unsigned NOT NULL DEFAULT '0',
   `state` tinyint(3) NOT NULL DEFAULT '0',
   `anonymous` tinyint(2) unsigned NOT NULL DEFAULT '0',
   `email` tinyint(2) unsigned NOT NULL DEFAULT '0',
@@ -184,7 +184,7 @@ CREATE TABLE `#__answers_questions` (
 
 CREATE TABLE `#__answers_questions_log` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `qid` int(11) unsigned NOT NULL DEFAULT '0',
+  `question_id` int(11) unsigned NOT NULL DEFAULT '0',
   `expires` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `voter` int(11) NOT NULL DEFAULT '0',
   `ip` varchar(15) NOT NULL DEFAULT '',
@@ -195,9 +195,9 @@ CREATE TABLE `#__answers_questions_log` (
 
 CREATE TABLE `#__answers_responses` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `qid` int(11) unsigned NOT NULL DEFAULT '0',
+  `question_id` int(11) unsigned NOT NULL DEFAULT '0',
   `answer` text NOT NULL,
-  `created_by` varchar(50) NOT NULL DEFAULT '',
+  `created_by` int(11) unsigned NOT NULL DEFAULT '0',
   `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `helpful` int(11) unsigned NOT NULL DEFAULT '0',
   `nothelpful` int(11) unsigned NOT NULL DEFAULT '0',
@@ -674,20 +674,6 @@ CREATE TABLE `#__collections_votes` (
   KEY `idx_item_id_user_id` (`item_id`,`user_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-CREATE TABLE `#__comments` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `referenceid` varchar(11) DEFAULT NULL,
-  `category` varchar(50) DEFAULT NULL,
-  `comment` text,
-  `added` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `added_by` int(11) DEFAULT NULL,
-  `state` tinyint(3) NOT NULL DEFAULT '0',
-  `anonymous` tinyint(2) NOT NULL DEFAULT '0',
-  `email` tinyint(2) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  FULLTEXT KEY `ftidx_comment` (`comment`),
-  FULLTEXT KEY `ftidx_referenceid` (`referenceid`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 CREATE TABLE `#__courses` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `alias` varchar(255) NOT NULL DEFAULT '',

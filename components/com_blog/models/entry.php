@@ -38,7 +38,7 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . 
 /**
  * Courses model class for a forum
  */
-class BlogModelEntry extends \Hubzero\Model
+class BlogModelEntry extends \Hubzero\Base\Model
 {
 	/**
 	 * Table name
@@ -48,6 +48,13 @@ class BlogModelEntry extends \Hubzero\Model
 	protected $_tbl_name = 'BlogTableEntry';
 
 	/**
+	 * Model context
+	 * 
+	 * @var string
+	 */
+	protected $_context = 'com_blog.entry.content';
+
+	/**
 	 * BlogModelComment
 	 * 
 	 * @var object
@@ -55,7 +62,7 @@ class BlogModelEntry extends \Hubzero\Model
 	private $_comment = null;
 
 	/**
-	 * \Hubzero\ItemList
+	 * \Hubzero\Base\ItemList
 	 * 
 	 * @var object
 	 */
@@ -123,12 +130,7 @@ class BlogModelEntry extends \Hubzero\Model
 			$this->bind($oid);
 		}
 
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-		$this->params = new $paramsClass($this->_tbl->get('params'));
+		$this->params = new JRegistry($this->_tbl->get('params'));
 	}
 
 	/**
@@ -153,7 +155,7 @@ class BlogModelEntry extends \Hubzero\Model
 
 		if (!isset($instances[$oid])) 
 		{
-			$instances[$oid] = new BlogModelEntry($oid, $scope, $group_id);
+			$instances[$oid] = new self($oid, $scope, $group_id);
 		}
 
 		return $instances[$oid];
@@ -242,11 +244,11 @@ class BlogModelEntry extends \Hubzero\Model
 	 */
 	public function creator($property=null)
 	{
-		if (!isset($this->_creator) || !is_object($this->_creator))
+		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
-			$this->_creator = Hubzero_User_Profile::getInstance($this->get('created_by'));
+			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
 		}
-		if ($property && $this->_creator instanceof Hubzero_User_Profile)
+		if ($property)
 		{
 			$property = ($property == 'id') ? 'uidNumber' : $property;
 			if ($property == 'picture')
@@ -270,7 +272,7 @@ class BlogModelEntry extends \Hubzero\Model
 		 || ($id !== null && (int) $this->_comment->get('id') != $id))
 		{
 			$this->_comment = null;
-			if (isset($this->_comments) && is_a($this->_comments, 'BlogModelIterator'))
+			if ($this->_comments instanceof \Hubzero\Base\ItemList)
 			{
 				foreach ($this->_comments as $key => $comment)
 				{
@@ -343,7 +345,7 @@ class BlogModelEntry extends \Hubzero\Model
 			case 'list':
 			case 'results':
 			default:
-				if (!($this->_comments instanceof \Hubzero\ItemList) || $clear)
+				if (!($this->_comments instanceof \Hubzero\Base\ItemList) || $clear)
 				{
 					if ($results = $tbl->getAllComments($this->get('id')))
 					{
@@ -360,7 +362,7 @@ class BlogModelEntry extends \Hubzero\Model
 					{
 						$results = array();
 					}
-					$this->_comments = new \Hubzero\ItemList($results);
+					$this->_comments = new \Hubzero\Base\ItemList($results);
 				}
 				return $this->_comments;
 			break;
@@ -493,7 +495,7 @@ class BlogModelEntry extends \Hubzero\Model
 
 			if (!class_exists($cls))
 			{
-				$path = dirname(__FILE__) . '/adapters/' . $scope . '.php';
+				$path = __DIR__ . '/adapters/' . $scope . '.php';
 				if (!is_file($path))
 				{
 					throw new \InvalidArgumentException(JText::sprintf('Invalid scope of "%s"', $scope));
@@ -543,66 +545,59 @@ class BlogModelEntry extends \Hubzero\Model
 	public function content($as='parsed', $shorten=0)
 	{
 		$as = strtolower($as);
+		$options = array();
 
 		switch ($as)
 		{
 			case 'parsed':
-				if (($content = $this->get('content_parsed')))
+				$content = $this->get('content.parsed', null);
+
+				if ($content === null)
 				{
-					if ($shorten)
-					{
-						$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 0);
-						if (substr($content, -7) == '&#8230;') 
-						{
-							$content .= '</p>';
-						}
-					}
-					return $content;
+					$scope  = JHTML::_('date', $this->get('publish_up'), 'Y') . '/';
+					$scope .= JHTML::_('date', $this->get('publish_up'), 'm');
+
+					$config = array(
+						'option'   => $this->_adapter()->get('option'),
+						'scope'    => $this->_adapter()->get('scope') . '/' . $scope,
+						'pagename' => $this->get('alias'),
+						'pageid'   => 0, //$this->get('id'),
+						'filepath' => $this->_adapter()->get('path'),
+						'domain'   => ''
+					);
+
+					$content = (string) stripslashes($this->get('content', ''));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('content.parsed', (string) $this->get('content', ''));
+					$this->set('content', $content);
+
+					return $this->content($as, $shorten);
 				}
 
-				$scope  = JHTML::_('date', $this->get('publish_up'), 'Y') . '/';
-				$scope .= JHTML::_('date', $this->get('publish_up'), 'm');
-
-				$config = array(
-					'option'   => $this->_adapter()->get('option'),
-					'scope'    => $this->_adapter()->get('scope') . '/' . $scope,
-					'pagename' => $this->get('alias'),
-					'pageid'   => 0, //$this->get('id'),
-					'filepath' => $this->_adapter()->get('path'),
-					'domain'   => ''
-				);
-
-				$content = $this->importPlugin('hubzero')->trigger('onWikiParseText', array(
-					stripslashes($this->get('content')), 
-					$config,  // options
-					true,     // full parse
-					true      // new parser?
-				));
-
-				$this->set('content_parsed', implode('', $content));
-
-				return $this->content($as, $shorten);
+				$options['html'] = true;
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->content('parsed'));
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
 			break;
 
 			case 'raw':
 			default:
 				$content = stripslashes($this->get('content'));
-				if ($shorten)
-				{
-					$content = Hubzero_View_Helper_Html::shortenText($content, $shorten, 0, 1);
-				}
-				return $content;
+				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+		return $content;
 	}
 
 	/**

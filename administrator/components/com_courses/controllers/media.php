@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Methods for listing and managing files and folders
  */
-class CoursesControllerMedia extends Hubzero_Controller
+class CoursesControllerMedia extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Build file path
@@ -136,8 +134,7 @@ class CoursesControllerMedia extends Hubzero_Controller
 		}
 		if ($size > $sizeLimit) 
 		{
-			ximport('Hubzero_View_Helper_Html');
-			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', Hubzero_View_Helper_Html::formatSize($sizeLimit));
+			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			echo json_encode(array('error' => JText::sprintf('File is too large. Max file upload size is %s', $max)));
 			return;
 		}

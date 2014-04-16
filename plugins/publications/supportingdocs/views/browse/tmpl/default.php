@@ -52,8 +52,7 @@ if($this->docs) {
 			case 'file': 
 			default:
 			
-				ximport('Hubzero_Content_Mimetypes');
-				$mt = new Hubzero_Content_Mimetypes();
+				$mt = new \Hubzero\Content\Mimetypes();
 				
 				$mimetype 	= $mt->getMimeType($child->path);
 				$type 		= strtolower(array_shift(explode('/', $mimetype)));
@@ -121,6 +120,6 @@ if($this->docs) {
 	echo $dls; 
 ?>
 <?php } else { ?>
-	<p class="nocontent"><?php echo JText::_('PLG_PUBLICATION_SUPPORTINGDOCS_NONE_FOUND'); ?></p>
+	<p class="noresults"><?php echo JText::_('PLG_PUBLICATION_SUPPORTINGDOCS_NONE_FOUND'); ?></p>
 <?php } ?>
 </div><!-- / .supportingdocs -->

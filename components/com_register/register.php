@@ -40,13 +40,10 @@ if (version_compare(JVERSION, '1.6', 'lt'))
 
 jimport('joomla.application.component.helper');
 
-ximport('Hubzero_Registration');
-ximport('Hubzero_Registration_Helper');
-ximport('Hubzero_User_Profile');
-ximport('Hubzero_User_Helper');
-ximport('Hubzero_Toolbox');
+require_once(JPATH_COMPONENT . DS . 'models' . DS . 'registration.php');
 require_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'html.php');
 require_once(JPATH_COMPONENT . DS . 'controller.php');
+include_once(JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'helpers' . DS . 'tags.php');
 
 // Instantiate controller
 $controller = new RegisterController();

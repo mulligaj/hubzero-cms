@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Plugin');
-	
 /**
  * Publications Plugin class for usage
  */
@@ -165,12 +163,10 @@ class plgPublicationsUsage extends JPlugin
 		// Are we returning HTML?
 		if ($rtrn == 'all' || $rtrn == 'html') 
 		{
-			ximport('Hubzero_Document');
-			Hubzero_Document::addComponentStylesheet('com_usage');
+			\Hubzero\Document\Assets::addComponentStylesheet('com_usage');
 			
 			// Instantiate a view
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'=>'publications',
 					'element'=>'usage',

@@ -34,8 +34,7 @@ defined('_JEXEC') or die('Restricted access');
 $base = rtrim(JURI::getInstance()->base(true), '/');
 
 // Push scripts to document
-ximport('Hubzero_Document');
-Hubzero_Document::addPluginStylesheet('resources', 'usage');
+\Hubzero\Document\Assets::addPluginStylesheet('resources', 'usage');
 $document = JFactory::getDocument();
 if (!JPluginHelper::isEnabled('system', 'jquery'))
 {
@@ -415,8 +414,7 @@ if ($results)
 							$i++;
 						}
 
-						ximport('Hubzero_Geo');
-						$codes = Hubzero_Geo::getCodesByNames($names);
+						$codes = \Hubzero\Geocode\Geocode::getCodesByNames($names);
 
 						$cls = 'even';
 						//$pie = array();

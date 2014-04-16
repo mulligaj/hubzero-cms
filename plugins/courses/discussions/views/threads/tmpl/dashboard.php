@@ -34,18 +34,7 @@ defined('_JEXEC') or die('Restricted access');
 $juser = JFactory::getUser();
 $database = JFactory::getDBO();
 
-$wikiconfig = array(
-	'option'   => $this->option,
-	'scope'    => 'forum',
-	'pagename' => 'forum',
-	'pageid'   => 0,
-	'filepath' => '',
-	'domain'   => 0
-);
-ximport('Hubzero_Wiki_Parser');
-$p = Hubzero_Wiki_Parser::getInstance();
-
-$base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alias') . '&offering=' . $this->course->offering()->get('alias') . ($this->course->offering()->section()->get('alias') != '__default' ? ':' . $this->course->offering()->section()->get('alias') : '');
+$base = $this->course->offering()->link();
 
 $instructors = array();
 
@@ -89,6 +78,7 @@ if (count($inst) > 0)
 							
 							<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 							<input type="hidden" name="gid" value="<?php echo $this->course->get('alias'); ?>" />
+							<input type="hidden" name="offering" value="<?php echo $this->course->offering()->alias(); ?>" />
 							<input type="hidden" name="active" value="discussions" />
 							<input type="hidden" name="action" value="search" />
 						</fieldset>
@@ -124,28 +114,20 @@ if (count($inst) > 0)
 						</div><!-- / .category-header -->
 						<div class="category-content">
 							<?php 
-							//print_r($this->post);
-							$view = new Hubzero_Plugin_View(
-								array(
-									'folder'  => 'courses',
-									'element' => 'discussions',
-									'name'    => 'threads',
-									'layout'  => '_threads'
-								)
-							);
-							$view->category    = 'categoryreplies';
-							$view->option      = $this->option;
-							$view->threads     = $this->post->find($filters);
-							$view->unit        = ''; //$row->alias; //$this->unit;
-							$view->lecture     = 0; //$this->lecture;
-							$view->config      = $this->config;
-							$view->instructors = $instructors;
-							$view->cls         = 'odd';
-							$view->base        = $base;
-							$view->course      = $this->course;
-							$view->prfx        = 'mine';
-							$view->active      = $this->thread;
-							$view->display();
+							$this->view('_threads')
+							     ->set('category', 'categoryreplies')
+							     ->set('option', $this->option)
+							     ->set('threads', $this->post->find($filters))
+							     ->set('unit', '')
+							     ->set('lecture', 0)
+							     ->set('config', $this->config)
+							     ->set('instructors', $instructors)
+							     ->set('cls', 'odd')
+							     ->set('base', $base)
+							     ->set('course', $this->course)
+							     ->set('prfx', 'mine')
+							     ->set('active', $this->thread)
+							     ->display();
 							?>
 						</div><!-- / .category-content -->
 					</div><!-- / .category -->
@@ -169,27 +151,20 @@ if (count($inst) > 0)
 						</div><!-- / .category-header -->
 						<div class="category-content">
 							<?php 
-							$view = new Hubzero_Plugin_View(
-								array(
-									'folder'  => 'courses',
-									'element' => 'discussions',
-									'name'    => 'threads',
-									'layout'  => '_threads'
-								)
-							);
-							$view->category    = 'categorynew';
-							$view->option      = $this->option;
-							$view->threads     = $this->post->find($filters);
-							$view->unit        = ''; //$row->alias; //$this->unit;
-							$view->lecture     = 0; //$this->lecture;
-							$view->config      = $this->config;
-							$view->instructors = $instructors;
-							$view->cls         = 'odd';
-							$view->base        = $base;
-							$view->course      = $this->course;
-							$view->prfx        = 'new';
-							$view->active      = $this->thread;
-							$view->display();
+							$this->view('_threads')
+							     ->set('category', 'categorynew')
+							     ->set('option', $this->option)
+							     ->set('threads', $this->post->find($filters))
+							     ->set('unit', '')
+							     ->set('lecture', 0)
+							     ->set('config', $this->config)
+							     ->set('instructors', $instructors)
+							     ->set('cls', 'odd')
+							     ->set('base', $base)
+							     ->set('course', $this->course)
+							     ->set('prfx', 'new')
+							     ->set('active', $this->thread)
+							     ->display();
 							?>
 						</div><!-- / .category -->
 					</div><!-- / .category -->
@@ -208,14 +183,14 @@ if (count($inst) > 0)
 						<p class="comment-member-photo">
 							<a class="comment-anchor" name="commentform"></a>
 							<?php
-							$anone = 1;
+							$anon = 1;
 							if (!$juser->get('guest')) 
 							{
 								$anon = 0;
 							}
 							$now = JFactory::getDate();
 							?>
-							<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($juser, $anon); ?>" alt="<?php echo JText::_('User photo'); ?>" />
+							<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($juser, $anon); ?>" alt="<?php echo JText::_('User photo'); ?>" />
 						</p>
 
 						<fieldset>
@@ -228,7 +203,8 @@ if (count($inst) > 0)
 								</strong> 
 								<span class="permalink">
 									<span class="comment-date-at">@</span>
-									<span class="time"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('TIME_FORMAt_HZ1')); ?></time></span> <span class="comment-date-on"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ON'); ?></span> 
+									<span class="time"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('TIME_FORMAt_HZ1')); ?></time></span> 
+									<span class="comment-date-on"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ON'); ?></span> 
 									<span class="date"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('DATE_FORMAt_HZ1')); ?></time></span>
 								</span>
 							</p>
@@ -236,9 +212,7 @@ if (count($inst) > 0)
 							<label for="field_comment">
 								<span class="label-text"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_FIELD_COMMENTS'); ?></span>
 								<?php
-								ximport('Hubzero_Wiki_Editor');
-								$editor = Hubzero_Wiki_Editor::getInstance();
-								echo $editor->display('fields[comment]', 'field_comment', '', 'minimal no-footer', '35', '5');
+								echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 5, false, 'field_comment', null, null, array('class' => 'minimal no-footer'));
 								?>
 							</label>
 
@@ -254,30 +228,30 @@ if (count($inst) > 0)
 									<span class="label-text"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_FIELD_CATEGORY'); ?></span>
 									<select name="fields[category_id]" id="field-category_id">
 										<option value="0"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_FIELD_CATEGORY_SELECT'); ?></option>
-				<?php
+							<?php
 								foreach ($this->sections as $section)
 								{
 									if ($section->categories) 
 									{
-				?>
+							?>
 										<optgroup label="<?php echo $this->escape(stripslashes($section->title)); ?>">
-				<?php
+							<?php
 										foreach ($section->categories as $category)
 										{
 											if ($category->closed)
 											{
 												continue;
 											}
-				?>
+							?>
 										<option value="<?php echo $category->id; ?>"><?php echo $this->escape(stripslashes($category->title)); ?></option>
-				<?php
+							<?php
 										}
-				?>
+							?>
 										</optgroup>
-				<?php
+							<?php
 									}
 								}
-				?>
+							?>
 									</select>
 								</label>
 								</div>
@@ -303,9 +277,11 @@ if (count($inst) > 0)
 
 						<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 						<input type="hidden" name="gid" value="<?php echo $this->course->get('alias'); ?>" />
-						<input type="hidden" name="offering" value="<?php echo $this->course->offering()->get('alias'); ?>" />
+						<input type="hidden" name="offering" value="<?php echo $this->course->offering()->alias(); ?>" />
 						<input type="hidden" name="active" value="discussions" />
 						<input type="hidden" name="action" value="savethread" />
+
+						<?php echo JHTML::_('form.token'); ?>
 
 						<p class="instructions">
 							<?php echo JText::_('Click on a comment on the left to view a discussion or start your own above.'); ?>
@@ -313,11 +289,6 @@ if (count($inst) > 0)
 					</form>
 
 					<div class="comment-thread"><?php if ($this->data) { echo $this->data->html; } ?></div>
-					<!-- 
-					<input type="hidden" name="lastchange" id="lastchange" value="" />
-					<input type="hidden" name="lastid" id="lastid" value="" />
-					<input type="hidden" name="parent-thread" id="parent-thread" value="" />
-					-->
 				</div><!-- / .comments-frame -->
 			</div><!-- / .comments-panel -->
 

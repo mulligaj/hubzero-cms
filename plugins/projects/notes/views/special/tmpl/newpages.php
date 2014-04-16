@@ -128,8 +128,6 @@ $altdir = ($dir == 'ASC') ? 'DESC' : 'ASC';
 <?php
 if ($rows) 
 {
-	ximport('Hubzero_User_Profile');
-
 	$dateFormat = '%d %b %Y';
 	$tz = 0;
 	if (version_compare(JVERSION, '1.6', 'ge'))
@@ -141,7 +139,7 @@ if ($rows)
 	foreach ($rows as $row)
 	{
 		$name = JText::_('(unknown)');
-		$xprofile = Hubzero_User_Profile::getInstance($row->created_by);
+		$xprofile = \Hubzero\User\Profile::getInstance($row->created_by);
 		if (is_object($xprofile))
 		{
 			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $row->created_by) . '">' . $this->escape(stripslashes($xprofile->get('name'))) . '</a>';

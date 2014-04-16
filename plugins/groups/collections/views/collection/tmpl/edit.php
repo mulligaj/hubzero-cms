@@ -67,7 +67,7 @@ $default = $this->params->get('access-plugin');
 
 		<label for="field-description">
 			<?php echo JText::_('Description'); ?> <span class="optional"><?php echo JText::_('optional'); ?></span>
-			<textarea name="fields[description]" id="field-description" cols="35" rows="5"><?php echo $this->escape(stripslashes($this->entry->get('description'))); ?></textarea>
+			<?php echo \JFactory::getEditor()->display('fields[description]', $this->escape(stripslashes($this->entry->description('raw'))), '', '', 35, 5, false, 'field-description', null, null, array('class' => 'minimal no-footer')); ?>
 		</label>
 	</fieldset>
 
@@ -77,11 +77,12 @@ $default = $this->params->get('access-plugin');
 	<input type="hidden" name="fields[created]" value="<?php echo $this->entry->get('created'); ?>" />
 	<input type="hidden" name="fields[created_by]" value="<?php echo $this->entry->get('created_by'); ?>" />
 	<input type="hidden" name="fields[state]" value="<?php echo $this->entry->get('state'); ?>" />
-	<input type="hidden" name="fields[access]" value="<?php echo $this->params->get('access-plugin'); ?>" />
 
 	<input type="hidden" name="cn" value="<?php echo $this->group->get('cn'); ?>" />
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="active" value="<?php echo $this->name; ?>" />
+
+	<?php echo JHTML::_('form.token'); ?>
 	<input type="hidden" name="action" value="savecollection" />
 
 	<p class="submit">

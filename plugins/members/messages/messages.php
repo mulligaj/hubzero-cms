@@ -29,28 +29,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-// Load some needed libraries
-ximport('Hubzero_Plugin');
-ximport('Hubzero_Message_Helper');
-
 /**
  * Members Plugin class for messages
  */
-class plgMembersMessages extends Hubzero_Plugin
+class plgMembersMessages extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Event call to determine if this plugin should return data
@@ -68,6 +57,7 @@ class plgMembersMessages extends Hubzero_Plugin
 		if ($user->get('id') == $member->get('uidNumber'))
 		{
 			$areas['messages'] = JText::_('PLG_MEMBERS_MESSAGES');
+			$areas['icon'] = '2709';
 		}
 
 		return $areas;
@@ -117,8 +107,7 @@ class plgMembersMessages extends Hubzero_Plugin
 			$this->app = JFactory::getApplication();
 			$this->jconfig = JFactory::getConfig();
 
-			ximport('Hubzero_Document');
-			Hubzero_Document::addPluginStylesheet('members', 'messages');
+			\Hubzero\Document\Assets::addPluginStylesheet('members', 'messages');
 
 			$task = JRequest::getVar('action','');
 			if (!$task) 
@@ -161,8 +150,7 @@ class plgMembersMessages extends Hubzero_Plugin
 			}
 
 			//html for the messages
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'members',
 					'element' => 'messages',
@@ -196,7 +184,7 @@ class plgMembersMessages extends Hubzero_Plugin
 		$arr['metadata'] = array();
 
 		//get the number of unread messages
-		$recipient = new Hubzero_Message_Recipient($database);
+		$recipient = new \Hubzero\Message\Recipient($database);
 		$inboxCount = $recipient->getMessagesCount($member->get('uidNumber'), array('state' => '0')); 
 		$unreadMessages = $recipient->getUnreadMessages($member->get('uidNumber'), 0); 
 
@@ -226,10 +214,9 @@ class plgMembersMessages extends Hubzero_Plugin
 	public function inbox($database, $option, $member) 
 	{
 		// Push some scripts to the template
-		Hubzero_Document::addPluginScript('members', 'messages');
+		\Hubzero\Document\Assets::addPluginScript('members', 'messages');
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'messages',
@@ -259,7 +246,7 @@ class plgMembersMessages extends Hubzero_Plugin
 		$view->filter = JRequest::getVar('filter', '');
 		$filters['filter'] = ($view->filter) ? 'com_' . $view->filter : '';
 
-		$recipient = new Hubzero_Message_Recipient($database);
+		$recipient = new \Hubzero\Message\Recipient($database);
 
 		$view->total = $recipient->getMessagesCount($member->get('uidNumber'), $filters);
 
@@ -272,7 +259,7 @@ class plgMembersMessages extends Hubzero_Plugin
 			$filters['limit']
 		);
 
-		$xmc = new Hubzero_Message_Component($database);
+		$xmc = new \Hubzero\Message\Component($database);
 		$view->components = $xmc->getComponents();
 
 		$pageNav->setAdditionalUrlParam('id', $member->get('uidNumber'));
@@ -296,11 +283,9 @@ class plgMembersMessages extends Hubzero_Plugin
 	public function archive($database, $option, $member) 
 	{
 		// Push some scripts to the template
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginScript('members', 'messages', 'messages');
+		\Hubzero\Document\Assets::addPluginScript('members', 'messages', 'messages');
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'messages',
@@ -329,7 +314,7 @@ class plgMembersMessages extends Hubzero_Plugin
 		$view->filter = JRequest::getVar('filter', '');
 		$filters['filter'] = ($view->filter) ? 'com_' . $view->filter : '';
 
-		$recipient = new Hubzero_Message_Recipient($database);
+		$recipient = new \Hubzero\Message\Recipient($database);
 
 		$view->total = $recipient->getMessagesCount($member->get('uidNumber'), $filters);
 
@@ -342,7 +327,7 @@ class plgMembersMessages extends Hubzero_Plugin
 			$filters['limit']
 		);
 
-		$xmc = new Hubzero_Message_Component($database);
+		$xmc = new \Hubzero\Message\Component($database);
 		$view->components = $xmc->getComponents();
 
 		$pageNav->setAdditionalUrlParam('id', $member->get('uidNumber'));
@@ -366,11 +351,9 @@ class plgMembersMessages extends Hubzero_Plugin
 	public function trash($database, $option, $member) 
 	{
 		// Push some scripts to the template
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginScript('members', 'messages', 'messages');
+		\Hubzero\Document\Assets::addPluginScript('members', 'messages', 'messages');
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'messages',
@@ -399,7 +382,7 @@ class plgMembersMessages extends Hubzero_Plugin
 		$view->filter = JRequest::getVar('filter', '');
 		$filters['filter'] = ($view->filter) ? 'com_' . $view->filter : '';
 
-		$recipient = new Hubzero_Message_Recipient($database);
+		$recipient = new \Hubzero\Message\Recipient($database);
 
 		$view->total = $recipient->getMessagesCount($member->get('uidNumber'), $filters);
 
@@ -412,7 +395,7 @@ class plgMembersMessages extends Hubzero_Plugin
 			$filters['limit']
 		);
 
-		$xmc = new Hubzero_Message_Component($database);
+		$xmc = new \Hubzero\Message\Component($database);
 		$view->components = $xmc->getComponents();
 
 		$pageNav->setAdditionalUrlParam('id', $member->get('uidNumber'));
@@ -443,11 +426,9 @@ class plgMembersMessages extends Hubzero_Plugin
 	public function sent($database, $option, $member) 
 	{
 		// Push some scripts to the template
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginScript('members', 'messages', 'messages');
+		\Hubzero\Document\Assets::addPluginScript('members', 'messages', 'messages');
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'messages',
@@ -474,7 +455,7 @@ class plgMembersMessages extends Hubzero_Plugin
 		);
 		$filters['created_by'] = $member->get('uidNumber');
 
-		$recipient = new Hubzero_Message_Message($database);
+		$recipient = new \Hubzero\Message\Message($database);
 
 		$view->total = $recipient->getSentMessagesCount($filters);
 
@@ -515,14 +496,12 @@ class plgMembersMessages extends Hubzero_Plugin
 	public function settings($database, $option, $member) 
 	{
 		// Push some scripts to the template
-		ximport('Hubzero_Document');
-		Hubzero_Document::addPluginScript('members', 'messages', 'messages');
+		\Hubzero\Document\Assets::addPluginScript('members', 'messages', 'messages');
 
-		$xmc = new Hubzero_Message_Component($database);
+		$xmc = new \Hubzero\Message\Component($database);
 		$components = $xmc->getRecords();
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'messages',
@@ -559,7 +538,7 @@ class plgMembersMessages extends Hubzero_Plugin
 		$default_method = null;
 
 		// Instantiate our notify object
-		$notify = new Hubzero_Message_Notify($database);
+		$notify = new \Hubzero\Message\Notify($database);
 
 		// Get the user's selected methods
 		$methods = $notify->getRecords($member->get('uidNumber'));
@@ -612,8 +591,7 @@ class plgMembersMessages extends Hubzero_Plugin
 	 */
 	private function create($database, $option, $member) 
 	{
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'messages',
@@ -658,11 +636,11 @@ class plgMembersMessages extends Hubzero_Plugin
 	 */
 	public function view($database, $option, $member, $mid) 
 	{
-		$xmessage = new Hubzero_Message_Message($database);
+		$xmessage = new \Hubzero\Message\Message($database);
 		$xmessage->load($mid);
 		$xmessage->message = stripslashes($xmessage->message);
 
-		$xmr = new Hubzero_Message_Recipient($database);
+		$xmr = new \Hubzero\Message\Recipient($database);
 		$xmr->loadRecord($mid, $member->get('uidNumber'));
 
 		$xmessage->message = str_replace("\n","\n ",$xmessage->message);
@@ -676,7 +654,7 @@ class plgMembersMessages extends Hubzero_Plugin
 			$xmessage->component = substr($xmessage->component, 4);
 		}
 
-		$xseen = new Hubzero_Message_Seen($database);
+		$xseen = new \Hubzero\Message\Seen($database);
 		$xseen->mid = $mid;
 		$xseen->uid = $member->get('uidNumber');
 		$xseen->loadRecord();
@@ -700,8 +678,7 @@ class plgMembersMessages extends Hubzero_Plugin
 			$from = JText::sprintf('PLG_MEMBERS_MESSAGES_SYSTEM', $xmessage->component);
 		}
 
-		ximport('Hubzero_Plugin_View');
-		$view = new Hubzero_Plugin_View(
+		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
 				'element' => 'messages',
@@ -736,13 +713,13 @@ class plgMembersMessages extends Hubzero_Plugin
 	{
 		$limit = JRequest::getInt('limit', $this->jconfig->getValue('config.list_limit'));
 		$start = JRequest::getInt('limitstart', 0);
-		$mids  = JRequest::getVar('mid',array());
+		$mids  = JRequest::getVar('mid', array());
 
 		if (count($mids) > 0) 
 		{
 			foreach ($mids as $mid) 
 			{
-				$recipient = new Hubzero_Message_Recipient($database);
+				$recipient = new \Hubzero\Message\Recipient($database);
 				$recipient->mid = $mid;
 				$recipient->uid = $member->get('uidNumber');
 				$recipient->loadRecord();
@@ -752,7 +729,7 @@ class plgMembersMessages extends Hubzero_Plugin
 					$this->setError($recipient->getError());
 				}
 
-				$xseen = new Hubzero_Message_Seen($database);
+				$xseen = new \Hubzero\Message\Seen($database);
 				$xseen->mid = $mid;
 				$xseen->uid = $member->get('uidNumber');
 				$xseen->loadRecord();
@@ -762,9 +739,13 @@ class plgMembersMessages extends Hubzero_Plugin
 					$xseen->store(true);
 				}
 			}
+			$this->addPluginMessage("You have successfully moved <b><u>" . count($mids) . "</u></b> message(s) to your archive.", "passed");
+		}
+		else
+		{
+			$this->addPluginMessage("No messages selected.", "warning");
 		}
 
-		$this->addPluginMessage("You have successfully moved <b><u>" . count($mids) . "</u></b> message(s) to your archive.", "passed");
 		return $this->redirect(JRoute::_('index.php?option=com_members&id=' . $member->get('uidNumber') . '&active=messages&task=' . JRequest::getWord('activetab', 'archive') . '&start=' . $start . '&limit=' . $limit));
 	}
 
@@ -780,24 +761,29 @@ class plgMembersMessages extends Hubzero_Plugin
 	{
 		$limit = JRequest::getInt('limit', $this->jconfig->getValue('config.list_limit'));
 		$start = JRequest::getInt('limitstart', 0);
-		$mids = JRequest::getVar('mid',array());
+		$mids = JRequest::getVar('mid', array());
 
 		if (count($mids) > 0) 
 		{
 			foreach ($mids as $mid) 
 			{
-				$recipient = new Hubzero_Message_Recipient($database);
+				$recipient = new \Hubzero\Message\Recipient($database);
 				$recipient->mid = $mid;
 				$recipient->uid = $member->get('uidNumber');
 				$recipient->loadRecord();
 				$recipient->state = 0;
-				if (!$recipient->store()) {
+				if (!$recipient->store()) 
+				{
 					$this->setError($recipient->getError());
 				}
 			}
+			$this->addPluginMessage("You have successfully moved <b><u>" . count($mids) . "</u></b> message(s) to your inbox.", "passed");
+		}
+		else
+		{
+			$this->addPluginMessage("No messages selected.", "warning");
 		}
 
-		$this->addPluginMessage("You have successfully moved <b><u>" . count($mids) . "</u></b> message(s) to your inbox.", "passed");
 		return $this->redirect(JRoute::_('index.php?option=com_members&id=' . $member->get('uidNumber') . '&active=messages&task=' . JRequest::getWord('activetab', 'inbox') . '&start=' . $start . '&limit=' . $limit));
 	}
 
@@ -813,18 +799,18 @@ class plgMembersMessages extends Hubzero_Plugin
 	{
 		$limit = JRequest::getInt('limit', $this->jconfig->getValue('config.list_limit'));
 		$start = JRequest::getInt('limitstart', 0);
-		$mids  = JRequest::getVar('mid',array());
+		$mids  = JRequest::getVar('mid', array());
 
 		if (count($mids) > 0) 
 		{
 			foreach ($mids as $mid) 
 			{
-				$recipient = new Hubzero_Message_Recipient($database);
+				$recipient = new \Hubzero\Message\Recipient($database);
 				$recipient->mid = $mid;
 				$recipient->uid = $member->get('uidNumber');
 				$recipient->loadRecord();
 
-				$xseen = new Hubzero_Message_Seen($database);
+				$xseen = new \Hubzero\Message\Seen($database);
 				$xseen->mid = $mid;
 				$xseen->uid = $member->get('uidNumber');
 				$xseen->loadRecord();
@@ -841,9 +827,13 @@ class plgMembersMessages extends Hubzero_Plugin
 					$this->setError($recipient->getError());
 				}
 			}
+			$this->addPluginMessage("You have successfully moved <b><u>" . count($mids) . "</u></b> message(s) to your trash.", "passed");
+		}
+		else
+		{
+			$this->addPluginMessage("No messages selected.", "warning");
 		}
 
-		$this->addPluginMessage("You have successfully moved <b><u>" . count($mids) . "</u></b> message(s) to your trash.", "passed");
 		return $this->redirect(JRoute::_('index.php?option=com_members&id=' . $member->get('uidNumber') . '&active=messages&task=' . JRequest::getWord('activetab', 'trash') . '&start=' . $start . '&limit=' . $limit));
 	}
 
@@ -857,7 +847,7 @@ class plgMembersMessages extends Hubzero_Plugin
 	 */
 	public function emptytrash($database, $option, $member) 
 	{
-		$recipient = new Hubzero_Message_Recipient($database);
+		$recipient = new \Hubzero\Message\Recipient($database);
 		$recipient->uid = $member->get('uidNumber');
 		if (!$recipient->deleteTrash()) 
 		{
@@ -879,13 +869,13 @@ class plgMembersMessages extends Hubzero_Plugin
 	{
 		$limit = JRequest::getInt('limit', $this->jconfig->getValue('config.list_limit'));
 		$start = JRequest::getInt('limitstart', 0);
-		$mids  = JRequest::getVar('mid', array(0));
+		$mids  = JRequest::getVar('mid', array());
 
 		if (count($mids) > 0) 
 		{
 			foreach ($mids as $mid) 
 			{
-				$recipient = new Hubzero_Message_Recipient($database);
+				$recipient = new \Hubzero\Message\Recipient($database);
 				$recipient->mid = $mid;
 				$recipient->uid = $member->get('uidNumber');
 				$recipient->loadRecord();
@@ -894,9 +884,13 @@ class plgMembersMessages extends Hubzero_Plugin
 					$this->setError($recipient->getError());
 				}
 			}
+			$this->addPluginMessage('You have successfully deleted <b><u>' . count($mids) . '</u></b> message(s).', 'passed');
+		}
+		else
+		{
+			$this->addPluginMessage("No messages selected.", "warning");
 		}
 
-		$this->addPluginMessage('You have successfully deleted <b><u>' . count($mids) . '</u></b> message(s).', 'passed');
 		return $this->redirect(JRoute::_('index.php?option=com_members&id=' . $member->get('uidNumber') . '&active=messages&task=' . JRequest::getWord('activetab', 'inbox') . '&start=' . $start . '&limit=' . $limit));
 	}
 
@@ -912,13 +906,13 @@ class plgMembersMessages extends Hubzero_Plugin
 	{
 		$limit = JRequest::getInt('limit', $this->jconfig->getValue('config.list_limit'));
 		$start = JRequest::getInt('limitstart', 0);
-		$ids   = JRequest::getVar('mid', array(0));
+		$ids   = JRequest::getVar('mid', array());
 
 		if (count($ids) > 0) 
 		{
 			foreach ($ids as $mid) 
 			{
-				$xseen = new Hubzero_Message_Seen($database);
+				$xseen = new \Hubzero\Message\Seen($database);
 				$xseen->mid = $mid;
 				$xseen->uid = $member->get('uidNumber');
 				$xseen->loadRecord();
@@ -928,9 +922,13 @@ class plgMembersMessages extends Hubzero_Plugin
 					$xseen->store(true);
 				}
 			}
+			$this->addPluginMessage('You have successfully marked <b><u>' . count($ids) . '</u></b> message(s) as read.', 'passed');
+		}
+		else
+		{
+			$this->addPluginMessage("No messages selected.", "warning");
 		}
 
-		$this->addPluginMessage('You have successfully marked <b><u>' . count($ids) . '</u></b> message(s) as read.', 'passed');
 		return $this->redirect(JRoute::_('index.php?option=com_members&id=' . $member->get('uidNumber') . '&active=messages&task=' . JRequest::getWord('activetab', 'inbox') . '&start=' . $start . '&limit=' . $limit));
 	}
 
@@ -946,17 +944,22 @@ class plgMembersMessages extends Hubzero_Plugin
 	{
 		$limit = JRequest::getInt('limit', $this->jconfig->getValue('config.list_limit'));
 		$start = JRequest::getInt('limitstart', 0);
-		$ids   = JRequest::getVar('mid',array(0));
+		$ids   = JRequest::getVar('mid', array());
 
 		if (count($ids) > 0) 
 		{
-			$sql = "DELETE FROM #__xmessage_seen WHERE `uid`=" . $member->get('uidNumber') . " AND `mid` IN(" . implode(',', $ids) . ")";
+			$sql = "DELETE FROM `#__xmessage_seen` WHERE `uid`=" . $member->get('uidNumber') . " AND `mid` IN(" . implode(',', $ids) . ")";
 			$database = JFactory::getDBO();
 			$database->setQuery($sql);
 			$database->query();
+
+			$this->addPluginMessage('You have successfully marked <b><u>' . count($ids) . '</u></b> message(s) as unread.', 'passed');
+		}
+		else
+		{
+			$this->addPluginMessage("No messages selected.", "warning");
 		}
 
-		$this->addPluginMessage('You have successfully marked <b><u>' . count($ids) . '</u></b> message(s) as unread.', 'passed');
 		return $this->redirect(JRoute::_('index.php?option=com_members&id=' . $member->get('uidNumber') . '&active=messages&task=' . JRequest::getWord('activetab', 'inbox') . '&start=' . $start . '&limit=' . $limit));
 	}
 
@@ -986,7 +989,7 @@ class plgMembersMessages extends Hubzero_Plugin
 					if ($v) 
 					{
 						// Instantiate a Notify object and set its values
-						$notify = new Hubzero_Message_Notify($database);
+						$notify = new \Hubzero\Message\Notify($database);
 						$notify->uid = $member->get('uidNumber');
 						$notify->method = $v;
 						$notify->type = $key;
@@ -1010,7 +1013,7 @@ class plgMembersMessages extends Hubzero_Plugin
 				}
 			}
 
-			$notify = new Hubzero_Message_Notify($database);
+			$notify = new \Hubzero\Message\Notify($database);
 			foreach ($ids as $key=>$value) 
 			{
 				foreach ($value as $k=>$v) 
@@ -1036,7 +1039,7 @@ class plgMembersMessages extends Hubzero_Plugin
 			// This creates a single entry to let the system know that the user has explicitly chosen "none" for all options
 			// It ensures we can know the difference between someone who has never changed their settings (thus, no database entries) 
 			// and someone who purposely wants everything turned off.
-			$notify = new Hubzero_Message_Notify($database);
+			$notify = new \Hubzero\Message\Notify($database);
 			$notify->uid = $member->get('uidNumber');
 
 			$records = $notify->getRecords($member->get('uidNumber'), 'all');

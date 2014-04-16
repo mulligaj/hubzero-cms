@@ -35,7 +35,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 /**
  * Module class for displaying the latest messages
  */
-class modMyMessages extends Hubzero_Module
+class modMyMessages extends \Hubzero\Module\Module
 {
 	/**
 	 * Display module content
@@ -51,9 +51,7 @@ class modMyMessages extends Hubzero_Module
 		$limit = intval($this->params->get('limit', 10));
 
 		// Find the user's most recent support tickets
-		ximport('Hubzero_Message_Helper');
-
-		$recipient = new Hubzero_Message_Recipient($database);
+		$recipient = new \Hubzero\Message\Recipient($database);
 		$this->rows = $recipient->getUnreadMessages($this->juser->get('id'), $limit);
 
 		if ($recipient->getError())
@@ -62,8 +60,7 @@ class modMyMessages extends Hubzero_Module
 		}
 
 		// Push the module CSS to the template
-		ximport('Hubzero_Document');
-		Hubzero_Document::addModuleStyleSheet($this->module->module);
+		$this->css();
 
 		require(JModuleHelper::getLayoutPath($this->module->module));
 	}

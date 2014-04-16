@@ -31,13 +31,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'post.php');
 
 /**
  * Collections controller class for media
  */
-class CollectionsControllerMedia extends Hubzero_Controller
+class CollectionsControllerMedia extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Download a file
@@ -88,11 +87,8 @@ class CollectionsControllerMedia extends Hubzero_Controller
 		jimport('joomla.filesystem.file');
 		$ext = strtolower(JFile::getExt($filename));
 
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-
 		// Initiate a new content server and serve up the file
-		$xserver = new Hubzero_Content_Server();
+		$xserver = new \Hubzero\Content\Server();
 		$xserver->filename($filename);
 		$xserver->disposition('attachment');
 		if (in_array($ext, array('jpg','jpeg','jpe','png','gif')))
@@ -146,7 +142,7 @@ class CollectionsControllerMedia extends Hubzero_Controller
 			if (!$item->exists())
 			{
 				$item->set('state', 0);
-				$item->set('description', $listdir);
+				$item->set('title', $listdir);
 				if (!$item->store())
 				{
 					$this->setError($item->getError());
@@ -200,7 +196,7 @@ class CollectionsControllerMedia extends Hubzero_Controller
 			{
 				$item->set('id', 0);
 				$item->set('state', 0);
-				$item->set('description', $listdir);
+				$item->set('title', $listdir);
 				if (!$item->store())
 				{
 					echo json_encode(array(
@@ -274,7 +270,7 @@ class CollectionsControllerMedia extends Hubzero_Controller
 			if (!$item->exists())
 			{
 				$item->set('state', 0);
-				$item->set('description', $listdir);
+				$item->set('title', $listdir);
 				if (!$item->store())
 				{
 					echo json_encode(array(
@@ -334,8 +330,7 @@ class CollectionsControllerMedia extends Hubzero_Controller
 		}
 		if ($size > $sizeLimit) 
 		{
-			ximport('Hubzero_View_Helper_Html');
-			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', Hubzero_View_Helper_Html::formatSize($sizeLimit));
+			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			echo json_encode(array('error' => JText::sprintf('File is too large. Max file upload size is %s', $max)));
 			return;
 		}

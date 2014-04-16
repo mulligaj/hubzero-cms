@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Manage resource entries
  */
-class ResourcesControllerItems extends Hubzero_Controller
+class ResourcesControllerItems extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Executes a task
@@ -781,13 +779,12 @@ class ResourcesControllerItems extends Hubzero_Controller
 		if ($this->view->row->standalone == 1)
 		{
 			// Get groups
-			ximport('Hubzero_Group');
 			$filters = array();
 			$filters['authorized'] = 'admin';
 			$filters['fields'] = array('cn','description','published','gidNumber','type');
 			$filters['type'] = array(1,3);
 			$filters['sortby'] = 'description';
-			$groups = Hubzero_Group::find($filters);
+			$groups = \Hubzero\User\Group::find($filters);
 
 			// Build <select> of groups
 			$this->view->lists['groups'] = ResourcesHtml::selectGroup($groups, $this->view->row->group_owner);
@@ -899,7 +896,7 @@ class ResourcesControllerItems extends Hubzero_Controller
 		$row->publish_up = JFactory::getDate($row->publish_up, JFactory::getConfig()->get('offset'))->toSql();
 		
 		// publish down
-		if (!$row->published_down || trim($row->published_down) == '0000-00-00 00:00:00' 
+		if (!$row->publish_down || trim($row->publish_down) == '0000-00-00 00:00:00' 
 			|| trim($row->publish_down) == 'Never')
 		{
 			$row->publish_down = '0000-00-00 00:00:00';
@@ -969,7 +966,6 @@ class ResourcesControllerItems extends Hubzero_Controller
 
 			$nbtag = $_POST['nbtag'];
 			$found = array();
-
 			foreach ($nbtag as $tagname => $tagcontent)
 			{
 				$f = '';
@@ -1812,8 +1808,7 @@ class ResourcesControllerItems extends Hubzero_Controller
 		$rid = JRequest::getInt('rid', 0);
 
 		// Get the member's info
-		ximport('Hubzero_User_Profile');
-		$profile = new Hubzero_User_Profile();
+		$profile = new \Hubzero\User\Profile();
 		$profile->load($this->view->id);
 
 		if (!is_object($profile) || !$profile->get('uidNumber'))

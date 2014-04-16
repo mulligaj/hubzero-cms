@@ -156,7 +156,7 @@ class CoursesTableSection extends JTable
 	 *
 	 * @param      string $pagename The page to load
 	 * @param      string $scope    The page scope
-	 * @return     object WikiPage
+	 * @return     object CoursesTableSection
 	 */
 	public static function getInstance($type, $prefix = 'JTable', $config = array())
 	{
@@ -198,7 +198,14 @@ class CoursesTableSection extends JTable
 			return parent::load($oid);
 		}
 
-		$query = "SELECT * FROM $this->_tbl WHERE alias=" . $this->_db->Quote(trim($oid)) . " AND offering_id=" . $this->_db->Quote(intval($offering_id));
+		if ($oid == '!!default!!')
+		{
+			$query = "SELECT * FROM $this->_tbl WHERE `is_default`=1 AND `offering_id`=" . $this->_db->Quote(intval($offering_id)) . " LIMIT 1";
+		}
+		else
+		{
+			$query = "SELECT * FROM $this->_tbl WHERE `alias`=" . $this->_db->Quote(trim($oid)) . " AND offering_id=" . $this->_db->Quote(intval($offering_id));
+		}
 
 		$this->_db->setQuery($query);
 		if ($result = $this->_db->loadAssoc()) 
@@ -338,7 +345,7 @@ class CoursesTableSection extends JTable
 		{
 			$filters['sort'] = 'os.title';
 		}
-		if (!isset($filters['sort_Dir']) || !in_array(strtoupper($filters['sort_Dir']), 'ASC', 'DESC')) 
+		if (!isset($filters['sort_Dir']) || !in_array(strtoupper($filters['sort_Dir']), array('ASC', 'DESC'))) 
 		{
 			$filters['sort_Dir'] = 'ASC';
 		}

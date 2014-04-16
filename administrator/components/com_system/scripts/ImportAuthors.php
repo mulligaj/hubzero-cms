@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_User_Profile');
-
 /**
  * Script for importing authors
  */
@@ -135,7 +133,7 @@ class ImportAuthors extends SystemHelperScript
 			$row = $this->_db->loadAssoc();
 		}
 
-		$xprofile = Hubzero_User_Profile::getInstance($row['id']);
+		$xprofile = \Hubzero\User\Profile::getInstance($row['id']);
 
 		if (!is_object($xprofile))
 		{

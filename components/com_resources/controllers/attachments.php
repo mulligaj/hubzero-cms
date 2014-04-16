@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'resource.php');
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'assoc.php');
 include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'helper.php');
@@ -40,7 +38,7 @@ include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpe
 /**
  * Controller class for contributing a tool
  */
-class ResourcesControllerAttachments extends Hubzero_Controller
+class ResourcesControllerAttachments extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
@@ -177,7 +175,7 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 		$asset->access       = 0;
 		$asset->path         = urldecode(JRequest::getVar('url', 'http://'));
 		$asset->type         = 11;
-		if (!Hubzero_Validate::validurl($asset->path))
+		if (!\Hubzero\Utility\Validate::url($asset->path))
 		{
 			echo json_encode(array(
 				'success'   => false, 
@@ -320,8 +318,7 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 		}
 		if ($size > $sizeLimit) 
 		{
-			ximport('Hubzero_View_Helper_Html');
-			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', Hubzero_View_Helper_Html::formatSize($sizeLimit));
+			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			echo json_encode(array(
 				'error' => JText::sprintf('File is too large. Max file upload size is %s', $max)
 			));
@@ -891,7 +888,6 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 	 */
 	public function deleteTask()
 	{
-
 		// Incoming parent ID
 		$pid = JRequest::getInt('pid', 0);
 		if (!$pid) 
@@ -931,7 +927,7 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 		// Build the path
 		$path = $this->_buildUploadPath($listdir, '');
 
-		$base   = JPATH_ROOT . '/' . trim($this->config->get('webpath', '/site/resources'), '/');
+		$base  = JPATH_ROOT . '/' . trim($this->config->get('webpath', '/site/resources'), '/');
 		$baseY = $base . '/'. JFactory::getDate($row->created)->format("Y");
 		$baseM = $baseY . '/' . JFactory::getDate($row->created)->format("m");
 
@@ -979,7 +975,7 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 			$g = array_pop($bits);
 			foreach ($bits as $bit)
 			{
-				if ($bit == '/' || $bit == $year || $bit == $month || $bit == Hubzero_View_Helper_Html::niceidformat($id)) 
+				if ($bit == '/' || $bit == $year || $bit == $month || $bit == \Hubzero\Utility\String::pad($id)) 
 				{
 					$b .= ($bit != DS) ? DS . $bit : '';
 				} 
@@ -988,15 +984,25 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 					$p[] = $bit;
 				}
 			}
+
 			if (count($p) > 1) 
 			{
 				$p = array_reverse($p);
 				foreach ($p as $v)
 				{
+					if (!trim($v))
+					{
+						continue;
+					}
+
 					$npath = JPATH_ROOT . $uploadPath . $b . DS . $v;
 
 					// Check if the folder even exists
-					if (!is_dir($npath) or !$npath) 
+					if (!is_dir($npath) 
+					 or !$npath 
+					 or rtrim($npath, '/') == $base
+					 or rtrim($npath, '/') == $baseY 
+					 or rtrim($npath, '/') == $baseM) 
 					{
 						$this->setError(JText::_('COM_CONTRIBUTE_DIRECTORY_NOT_FOUND'));
 					} 
@@ -1163,7 +1169,7 @@ class ResourcesControllerAttachments extends Hubzero_Controller
 			$dir_year  = JFactory::getDate()->format('Y');
 			$dir_month = JFactory::getDate()->format('m');
 		}
-		$dir_id = Hubzero_View_Helper_Html::niceidformat($id);
+		$dir_id = \Hubzero\Utility\String::pad($id);
 
 		$path = $base . DS . $dir_year . DS . $dir_month . DS . $dir_id;
 

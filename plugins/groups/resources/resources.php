@@ -31,14 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-ximport('Hubzero_Plugin');
+include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'type.php');
+include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'resource.php');
 
 /**
  * Groups Plugin class for resources
  */
-class plgGroupsResources extends Hubzero_Plugin
+class plgGroupsResources extends \Hubzero\Plugin\Plugin
 {
+	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
+	 */
+	protected $_autoloadLanguage = true;
+
 	/**
 	 * Resource areas
 	 * 
@@ -61,23 +68,6 @@ class plgGroupsResources extends Hubzero_Plugin
 	private $_total = null;
 
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'type.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'resource.php');
-	}
-
-	/**
 	 * Return the alias and name for this category of content
 	 * 
 	 * @return     array
@@ -88,7 +78,8 @@ class plgGroupsResources extends Hubzero_Plugin
 			'name' => 'resources',
 			'title' => JText::_('PLG_GROUPS_RESOURCES'),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f02d'
 		);
 		return $area;
 	}
@@ -169,7 +160,7 @@ class plgGroupsResources extends Hubzero_Plugin
 			require_once JPATH_BASE.'/components/com_hubgraph/client.php';
 			$hgConf = HubgraphConfiguration::instance();
 			if ($hgConf->isOptionEnabled('com_groups')) {
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'   => 'groups',
 						'element'  => 'resources',
@@ -177,8 +168,7 @@ class plgGroupsResources extends Hubzero_Plugin
 					)
 				);
 
-				ximport('Hubzero_Document');
-				Hubzero_Document::addPluginStylesheet('groups', 'resources');
+				\Hubzero\Document\Assets::addPluginStylesheet('groups', 'resources');
 
 				// Pass the view some info
 				$view->option = $option;
@@ -320,8 +310,7 @@ class plgGroupsResources extends Hubzero_Plugin
 		{
 			case 'html':
 				// Instantiate a vew
-				ximport('Hubzero_Plugin_View');
-				$view = new Hubzero_Plugin_View(
+				$view = new \Hubzero\Plugin\View(
 					array(
 						'folder'  => 'groups',
 						'element' => 'resources',
@@ -330,8 +319,7 @@ class plgGroupsResources extends Hubzero_Plugin
 				);
 
 				//push the stylesheet to the view
-				ximport('Hubzero_Document');
-				Hubzero_Document::addPluginStylesheet('groups', 'resources');
+				\Hubzero\Document\Assets::addPluginStylesheet('groups', 'resources');
 
 				// Pass the view some info
 				$view->option = $option;
@@ -653,8 +641,7 @@ class plgGroupsResources extends Hubzero_Plugin
 		$document = JFactory::getDocument();
 		$document->addScript('components' . DS . 'com_resources' . DS . 'assets' . DS . 'css' . DS . 'resources.js');
 
-		ximport('Hubzero_Document');
-		Hubzero_Document::addComponentStylesheet('com_resources');
+		\Hubzero\Document\Assets::addComponentStylesheet('com_resources');
 
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'helper.php');
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'usage.php');
@@ -788,11 +775,11 @@ class plgGroupsResources extends Hubzero_Plugin
 		$html .= '</p>' . "\n";
 		if ($row->itext) 
 		{
-			$html .= "\t\t".Hubzero_View_Helper_Html::shortenText(Hubzero_View_Helper_Html::purifyText(stripslashes($row->itext)), 200) . "\n";
+			$html .= "\t\t".\Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::clean(stripslashes($row->itext)), 200) . "\n";
 		} 
 		else if ($row->ftext) 
 		{
-			$html .= "\t\t".Hubzero_View_Helper_Html::shortenText(Hubzero_View_Helper_Html::purifyText(stripslashes($row->ftext)), 200) . "\n";
+			$html .= "\t\t".\Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::clean(stripslashes($row->ftext)), 200) . "\n";
 		}
 		$html .= "\t\t" . '<p class="href">'.$juri->base() . ltrim($row->href, DS) . '</p>' . "\n";
 		$html .= "\t" . '</li>' . "\n";

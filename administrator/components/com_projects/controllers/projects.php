@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Manage projects
  */
-class ProjectsControllerProjects extends Hubzero_Controller
+class ProjectsControllerProjects extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Executes a task
@@ -112,10 +110,14 @@ class ProjectsControllerProjects extends Hubzero_Controller
 			
 		// Get filters
 		$view->filters = array();
-		$view->filters['search'] 		= urldecode($app->getUserStateFromRequest($this->_option.'.search', 'search', ''));
-		$view->filters['search_field'] 	= urldecode($app->getUserStateFromRequest($this->_option.'.search_field', 'search_field', 'title'));
-		$view->filters['sortby']  		= trim($app->getUserStateFromRequest($this->_option.'.sort', 'filter_order', 'id'));
-		$view->filters['sortdir'] 		= trim($app->getUserStateFromRequest($this->_option.'.sortdir', 'filter_order_Dir', 'DESC'));
+		$view->filters['search'] 		= urldecode($app->getUserStateFromRequest($this->_option 
+										. '.search', 'search', ''));
+		$view->filters['search_field'] 	= urldecode($app->getUserStateFromRequest($this->_option 
+										. '.search_field', 'search_field', 'title'));
+		$view->filters['sortby']  		= trim($app->getUserStateFromRequest($this->_option 
+										. '.sort', 'filter_order', 'id'));
+		$view->filters['sortdir'] 		= trim($app->getUserStateFromRequest($this->_option
+										. '.sortdir', 'filter_order_Dir', 'DESC'));
 		$view->filters['authorized'] 	= true;
 		$view->filters['getowner'] 		= 1;
 		$view->filters['activity'] 		= 1;
@@ -146,7 +148,8 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		// Check that master path is there
 		if ($this->_config->get('offroot') && !is_dir($this->_config->get('webpath')))
 		{			
-			$view->setError( JText::_('Master directory does not exist. Administrator must fix this! ')  . $this->_config->get('webpath') );	
+			$view->setError( JText::_('Master directory does not exist. Administrator must fix this! ')  
+				. $this->_config->get('webpath') );	
 		}		
 		
 		// Output the HTML
@@ -199,15 +202,17 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		{
 			if (!$obj->loadProject($id)) 
 			{
-				$this->_message = JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND');
-				$this->_redirect = 'index.php?option='.$this->_option;
+				$this->setRedirect('index.php?option=' . $this->_option, 
+					JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND'), 
+					'error');
 				return;
 			}
 		}
 		if (!$id) 
 		{
-			$this->_message = JText::_('COM_PROJECTS_NOTICE_NEW_PROJECT_FRONT_END');
-			$this->_redirect = 'index.php?option='.$this->_option;
+			$this->setRedirect('index.php?option=' . $this->_option, 
+				JText::_('COM_PROJECTS_NOTICE_NEW_PROJECT_FRONT_END'), 
+				'error');
 			return;
 		}
 		
@@ -284,7 +289,7 @@ class ProjectsControllerProjects extends Hubzero_Controller
 	{
 		$this->saveTask(true);
 	}
-
+	
 	/**
 	 * Saves a project
 	 * Redirects to main listing
@@ -306,22 +311,26 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		$formdata 	= $_POST;
 		$id 		= JRequest::getVar( 'id', 0 );
 		$action 	= JRequest::getVar( 'admin_action', '' );
-		$message 	= rtrim(Hubzero_Filter::cleanXss(JRequest::getVar( 'message', '' )));
+		$message 	= rtrim(\Hubzero\Utility\Sanitize::clean(JRequest::getVar( 'message', '' )));
 		
 		// Initiate extended database class
 		$obj = new Project( $this->database );
 		if (!$id or !$obj->loadProject($id)) 
 		{
-			$this->setError( JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND') );
-			return false;
+			$this->setRedirect('index.php?option=' . $this->_option, 
+				JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND'), 
+				'error');
+			return;
 		}
 		
 		$obj->title 		= $formdata['title'] ? rtrim($formdata['title']) : $obj->title;
-		$obj->about 		= rtrim(Hubzero_Filter::cleanXss($formdata['about']));
+		$obj->about 		= rtrim(\Hubzero\Utility\Sanitize::clean($formdata['about']));
 		$obj->type 			= isset($formdata['type']) ? $formdata['type'] : 1;
 		$obj->modified 		= JFactory::getDate()->toSql();
 		$obj->modified_by 	= $this->juser->get('id');
 		$obj->private 		= JRequest::getVar( 'private', 0 );
+		
+		$this->_message = JText::_('COM_PROJECTS_SUCCESS_SAVED');
 		
 		// Was project suspended?
 		$suspended = false;
@@ -329,12 +338,7 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		{
 			$suspended = $objAA->checkActivity( $id, JText::_('COM_PROJECTS_ACTIVITY_PROJECT_SUSPENDED'));
 		}
-		
-		// Email config
-		$jconfig 		= JFactory::getConfig();
-		$from 			= array();
-		$from['name']  	= $jconfig->getValue('config.sitename').' '.JText::_('COM_PROJECTS');
-		$from['email'] 	= $jconfig->getValue('config.mailfrom');
+				
 		$subject 		= JText::_('COM_PROJECTS_PROJECT').' "'.$obj->alias.'" ';
 		$sendmail 		= 0;
 		$project 		= $obj->getProject($id, $this->juser->get('id'));
@@ -352,12 +356,14 @@ class ProjectsControllerProjects extends Hubzero_Controller
 					$obj->state = 2;  
 				 	$what = JText::_('COM_PROJECTS_ACTIVITY_PROJECT_DELETED');
 					$subject .= JText::_('COM_PROJECTS_MSG_ADMIN_DELETED');
+					$this->_message = JText::_('COM_PROJECTS_SUCCESS_DELETED');
 				break;
 				
 				case 'suspend':      
 					$obj->state = 0;   
 					$what = JText::_('COM_PROJECTS_ACTIVITY_PROJECT_SUSPENDED');   
-					$subject .= JText::_('COM_PROJECTS_MSG_ADMIN_SUSPENDED');  
+					$subject .= JText::_('COM_PROJECTS_MSG_ADMIN_SUSPENDED'); 
+					$this->_message = JText::_('COM_PROJECTS_SUCCESS_SUSPENDED'); 
 				break;
 				
 				case 'reinstate':    
@@ -367,7 +373,11 @@ class ProjectsControllerProjects extends Hubzero_Controller
 						: JText::_('COM_PROJECTS_ACTIVITY_PROJECT_ACTIVATED');  
 					$subject .= $suspended 
 						? JText::_('COM_PROJECTS_MSG_ADMIN_REINSTATED') 
-						: JText::_('COM_PROJECTS_MSG_ADMIN_ACTIVATED') ;     
+						: JText::_('COM_PROJECTS_MSG_ADMIN_ACTIVATED') ;  
+						
+					$this->_message = $suspended 
+						? JText::_('COM_PROJECTS_SUCCESS_REINSTATED')
+						: JText::_('COM_PROJECTS_SUCCESS_ACTIVATED');   
 				break;
 			}
 			
@@ -375,10 +385,11 @@ class ProjectsControllerProjects extends Hubzero_Controller
 			$objAA->recordActivity( $obj->id, $this->juser->get('id'), $what, 0, '', '', 'project', 0, $admin = 1 );
 			$sendmail = 1;
 		}
-		else if($message) 
+		elseif ($message) 
 		{
 			$subject .= ' - '.JText::_('COM_PROJECTS_MSG_ADMIN_NEW_MESSAGE');
-			$sendmail = 1;  
+			$sendmail = 1; 
+			$this->_message = JText::_('COM_PROJECTS_SUCCESS_MESSAGE_SENT'); 
 		}
 		
 		// Save changes
@@ -417,34 +428,39 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		// Send message
 		if ($this->_config->get('messaging', 0) && $sendmail && count($managers) > 0) 
 		{
+			// Email config
+			$jconfig 		= JFactory::getConfig();
+			$from 			= array();
+			$from['name']  	= $jconfig->getValue('config.sitename').' '.JText::_('COM_PROJECTS');
+			$from['email'] 	= $jconfig->getValue('config.mailfrom');
+
+			// Html email
+			$from['multipart'] = md5(date('U'));
+			
 			// Get message body
-			$eview = new JView( array('name'=>'emails' ) );
-			$eview->option = $this->_option;
-			$eview->subject = $subject;
-			$eview->action = $action;
-			$eview->hubShortName = $jconfig->getValue('config.sitename');
-			$eview->project = $project;
-			$livesite = $jconfig->getValue('config.live_site');
-			$eview->url = $livesite.DS.'projects' . DS . $project->alias;
-			$eview->params = new JParameter( $obj->params );
-			$eview->config = $this->_config;
-			$body = $eview->loadTemplate();
-			if ($message) 
-			{
-				$body.=  JText::_('COM_PROJECTS_MSG_MESSAGE_FROM_ADMIN').': '."\n".$message;
-			}	
-			$body = str_replace("\n\n", "\n", $body);		
+			$eview 					= new JView( array('name'=>'emails', 'layout' => 'admin_plain' ) );
+			$eview->option 			= $this->_option;
+			$eview->subject 		= $subject;
+			$eview->action 			= $action;
+			$eview->project 		= $project;
+			$eview->message			= $message; 
+						
+			$body = array();
+			$body['plaintext'] 	= $eview->loadTemplate();
+			$body['plaintext'] 	= str_replace("\n", "\r\n", $body['plaintext']);
+
+			// HTML email
+			$eview->setLayout('admin_html');
+			$body['multipart'] = $eview->loadTemplate();
+			$body['multipart'] = str_replace("\n", "\r\n", $body['multipart']);		
 		
 			// Send HUB message
 			JPluginHelper::importPlugin( 'xmessage' );
 			$dispatcher = JDispatcher::getInstance();
-			$dispatcher->trigger( 'onSendMessage', array( 'projects_admin_message', $subject, 
-				$body, $from, $managers, $this->_option ));
+			$dispatcher->trigger( 'onSendMessage', 
+				array( 'projects_admin_notice', $subject, $body, $from, $managers, $this->_option ));
 		}
-		
-		// Redirect
-		$this->_message = JText::_('Item successfully saved');
-		
+				
 		// Redirect to edit view?
 		if ($redirect)
 		{
@@ -515,8 +531,10 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		$obj = new Project( $this->database );
 		if (!$id or !$obj->loadProject($id)) 
 		{
-			$this->setError( JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND') );
-			return false;
+			$this->setRedirect('index.php?option=' . $this->_option, 
+				JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND'), 
+				'error');
+			return;
 		}
 		
 		// Get project group
@@ -535,8 +553,7 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		$objO->removeOwners ( $id, '', 0, $permanent, '', $all = 1 );
 		
 		// Erase owner group
-		ximport('Hubzero_Group');
-		$group = new Hubzero_Group();
+		$group = new \Hubzero\User\Group();
 		$group->read( $prgroup );
 		if ($group) 
 		{
@@ -578,11 +595,11 @@ class ProjectsControllerProjects extends Hubzero_Controller
 			WHERE p.group_cn='".$prgroup."' AND p.scope LIKE '".$masterscope."%' " );
 		$notes = $this->database->loadObjectList();
 		
-		if($notes) 
+		if ($notes) 
 		{
-			foreach($notes as $note) 
+			foreach ($notes as $note) 
 			{
-				$page = new WikiPage( $this->database );
+				$page = new WikiTablePage( $this->database );
 						
 				// Delete the page's history, tags, comments, etc.
 				$page->deleteBits( $note->id );
@@ -598,35 +615,20 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		$dispatcher->trigger( 'eraseRepo', array($identifier) );
 		
 		// Delete base dir for .git repos
-		$dir = $alias;
-		$prefix = $this->_config->get('offroot', 0) ? '' : JPATH_ROOT ;		
+		$dir 		= $alias;
+		$prefix 	= $this->_config->get('offroot', 0) ? '' : JPATH_ROOT ;				
+		$repodir 	= DS . trim($this->_config->get('webpath'), DS);		
+		$path 		= $prefix . $repodir . DS . $dir;
 		
-		$repodir = $this->_config->get('webpath');
-		if (substr($repodir, 0, 1) != DS) 
-		{
-			$repodir = DS.$repodir;
-		}
-		if (substr($repodir, -1, 1) == DS) 
-		{
-			$repodir = substr($repodir, 0, (strlen($repodir) - 1));
-		}
-		$path = $prefix.$repodir.DS.$dir;
 		if (is_dir($path)) 
 		{
 			JFolder::delete( $path);			
 		}
 		
 		// Delete images/preview directories
-		$webdir = $this->_config->get('imagepath', '/site/projects');
-		if (substr($webdir, 0, 1) != DS) 
-		{
-			$webdir = DS.$webdir;
-		}
-		if (substr($webdir, -1, 1) == DS) 
-		{
-			$webdir = substr($webdir, 0, (strlen($webdir) - 1));
-		}
-		$webpath = JPATH_ROOT.$webdir.DS.$dir;
+		$webdir = DS . trim($this->_config->get('imagepath', '/site/projects'), DS);
+		$webpath = JPATH_ROOT . $webdir . DS . $dir;
+		
 		if (is_dir($webpath)) 
 		{
 			JFolder::delete( $webpath);
@@ -644,6 +646,71 @@ class ProjectsControllerProjects extends Hubzero_Controller
 	}
 	
 	/**
+	 * Add and commit untracked/changed files
+	 * 
+	 * This is helpful in case git add/commit failed during file upload
+	 *
+	 * @return     void
+	 */
+	public function gitaddTask() 
+	{
+		$id   = JRequest::getVar( 'id', 0 );
+		$file = JRequest::getVar( 'file', '' );
+		
+		// Initiate extended database class
+		$obj = new Project( $this->database );
+		if (!$id or !$obj->loadProject($id)) 
+		{
+			$this->setRedirect('index.php?option=' . $this->_option, 
+				JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND'), 
+				'error');
+			return;
+		}
+		
+		$url = 'index.php?option=' . $this->_option . '&task=edit&id=' . $id;
+		
+		if (!$file)
+		{			
+			$this->setRedirect($url, 
+				JText::_('Please specify a file/directory path to add and commit into project'), 
+				'error');
+			return;
+		}
+		
+		// Delete base dir for .git repos
+		$prefix  = $this->_config->get('offroot', 0) ? '' : JPATH_ROOT ;				
+		$repodir = trim($this->_config->get('webpath'), DS);
+		$path 	 = $prefix . DS . $repodir . DS . $obj->alias . DS . 'files';
+		
+		if (!is_file($path . DS . $file))
+		{
+			$this->setRedirect($url, 
+				JText::_('Error: File not found in the project, cannot add and commit'), 
+				'error');
+			return;
+		}
+				
+		// Git helper
+		include_once( JPATH_ROOT . DS . 'components' . DS .'com_projects' 
+			. DS . 'helpers' . DS . 'githelper.php' );
+		$gitHelper = new ProjectsGitHelper(
+			$this->_config->get('gitpath', '/opt/local/bin/git'), 
+			$obj->owned_by_user,
+			$this->_config->get('offroot', 0) ? '' : JPATH_ROOT
+		);
+		
+		$commitMsg = '';
+		
+		// Git add & commit
+		$gitHelper->gitAdd($path, $file, $commitMsg);
+		$gitHelper->gitCommit($path, $commitMsg);
+		
+		// Redirect
+		$this->_redirect = 'index.php?option=' . $this->_option . '&task=edit&id=' . $id;
+		$this->_message = JText::_('File checked into project Git repo');
+	}
+	
+	/**
 	 * Optimize git repo
 	 * 
 	 * @return     void
@@ -656,8 +723,10 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		$obj = new Project( $this->database );
 		if (!$id or !$obj->loadProject($id)) 
 		{
-			$this->setError( JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND') );
-			return false;
+			$this->setRedirect('index.php?option=' . $this->_option, 
+				JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND'), 
+				'error');
+			return;
 		}
 		
 		// Get Disk Usage
@@ -687,25 +756,25 @@ class ProjectsControllerProjects extends Hubzero_Controller
 		$obj = new Project( $this->database );
 		if (!$id or !$obj->loadProject($id)) 
 		{
-			$this->setError( JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND') );
-			return false;
+			$this->setRedirect('index.php?option=' . $this->_option, 
+				JText::_('COM_PROJECTS_NOTICE_ID_NOT_FOUND'), 
+				'error');
+			return;
 		}
 		
 		// Unlock sync
 		$obj->saveParam($id, $service . '_sync_lock', '');
-				
-		// Get some needed libraries
-		ximport('Hubzero_Content_Server');
-		
+
 		// Get log file
 		$prefix = $this->_config->get('offroot', 0) ? '' : JPATH_ROOT ;				
 		$repodir = trim($this->_config->get('webpath'), DS);		
-		$sfile 	 = $prefix . DS . $repodir . DS . $obj->alias . DS . 'logs' . DS . 'sync.' . JFactory::getDate()->format('Y-m') . '.log';
+		$sfile 	 = $prefix . DS . $repodir . DS . $obj->alias . DS . 'logs' 
+			. DS . 'sync.' . JFactory::getDate()->format('Y-m') . '.log';
 		
 		if (file_exists($sfile))
 		{
 			// Serve up file
-			$xserver = new Hubzero_Content_Server();
+			$xserver = new \Hubzero\Content\Server();
 			$xserver->filename($sfile);
 			$xserver->disposition('attachment');
 			$xserver->acceptranges(false);

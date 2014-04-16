@@ -31,13 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-ximport('Hubzero_Plugin');
-
 /**
  * Groups Plugin class for wishlist
  */
-class plgGroupsWishlist extends Hubzero_Plugin
+class plgGroupsWishlist extends \Hubzero\Plugin\Plugin
 {
 	/**
 	 * Constructor
@@ -71,7 +68,8 @@ class plgGroupsWishlist extends Hubzero_Plugin
 			'name' => 'wishlist',
 			'title' => JText::_('PLG_GROUPS_WISHLIST'),
 			'default_access' => $this->params->get('plugin_access', 'members'),
-			'display_menu_tab' => $this->params->get('display_tab', 1)
+			'display_menu_tab' => $this->params->get('display_tab', 1),
+			'icon' => 'f078'
 		);
 
 		return $area;
@@ -90,7 +88,8 @@ class plgGroupsWishlist extends Hubzero_Plugin
 	 * @param      array   $areas      Active area(s)
 	 * @return     array
 	 */
-	public function onGroup($group, $option, $authorized, $limit=0, $limitstart=0, $action='', $access, $areas=null)
+	public function onGroup($group, $option, $authorized, $limit=0, 
+		$limitstart=0, $action='', $access, $areas=null)
 	{
 		$return = 'html';
 		$active = 'wishlist';
@@ -122,14 +121,13 @@ class plgGroupsWishlist extends Hubzero_Plugin
 		if ($return == 'html') 
 		{
 			//set group members plugin access level
-			$group_plugin_acl = $access[$active];
-
-			
+			$group_plugin_acl = $access[$active];			
 
 			//if set to nobody make sure cant access
 			if ($group_plugin_acl == 'nobody') 
 			{
-				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_OFF', ucfirst($active)) . '</p>';
+				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_OFF', 
+					ucfirst($active)) . '</p>';
 				return $arr;
 			}
 
@@ -137,9 +135,12 @@ class plgGroupsWishlist extends Hubzero_Plugin
 			if ($juser->get('guest') 
 			 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members')) 
 			{
-				$url = JRoute::_('index.php?option=com_groups&cn='.$group->get('cn').'&active='.$active, false, true);
+				$url = JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn')
+					. '&active=' . $active, false, true);
 				$message = JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active));
-				$this->redirect(JRoute::_('index.php?option=com_user' . (version_compare(JVERSION, '1.6', 'lt') ? '' : 's') . '&view=login&return=' . $url, false), $message, 'warning' );
+				$this->redirect(JRoute::_('index.php?option=com_user' 
+					. (version_compare(JVERSION, '1.6', 'lt') ? '' : 's') 
+					. '&view=login&return=' . $url, false), $message, 'warning' );
 				return;
 			}
 
@@ -148,7 +149,8 @@ class plgGroupsWishlist extends Hubzero_Plugin
 			 && $group_plugin_acl == 'members' 
 			 && $authorized != 'admin') 
 			{
-				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_REQUIRES_MEMBER', ucfirst($active)) . '</p>';
+				$arr['html'] = '<p class="info">' 
+					. JText::sprintf('GROUPS_PLUGIN_REQUIRES_MEMBER', ucfirst($active)) . '</p>';
 				return $arr;
 			}
 		}
@@ -165,19 +167,22 @@ class plgGroupsWishlist extends Hubzero_Plugin
 			$this->action = $action;
 
 			//include com_wishlist files
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.plan.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.owner.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.owner.group.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.rank.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.attachment.php');
-			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'controllers' . DS . 'wishlist.php');
-
-			//import hubzero libararys
-			ximport('Hubzero_View_Helper_Html');
-			ximport('Hubzero_Group');
-			ximport('Hubzero_Document');
+			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.php');
+			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.plan.php');
+			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.owner.php');
+			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.owner.group.php');
+			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.php');
+			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.rank.php');
+			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.attachment.php');
+			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' 
+				. DS . 'controllers' . DS . 'wishlist.php');
 
 			//set some more vars
 			$gid = $this->group->get('gidNumber');
@@ -206,9 +211,9 @@ class plgGroupsWishlist extends Hubzero_Plugin
 			if (!$id) 
 			{
 				// create private list for group
-				if (Hubzero_Group::exists($gid)) 
+				if (\Hubzero\User\Group::exists($gid)) 
 				{
-					$group = Hubzero_Group::getInstance($gid);
+					$group = \Hubzero\User\Group::getInstance($gid);
 					$id = $obj->createlist($category, $gid, 0, $cn . ' ' . JText::_('WISHLIST_NAME_GROUP'));
 				}
 			}
@@ -260,8 +265,7 @@ class plgGroupsWishlist extends Hubzero_Plugin
 
 			// HTML output
 			// Instantiate a view
-			ximport('Hubzero_Plugin_View');
-			$view = new Hubzero_Plugin_View(
+			$view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'groups',
 					'element' => 'wishlist',
@@ -270,7 +274,7 @@ class plgGroupsWishlist extends Hubzero_Plugin
 			);
 
 			//push the stylesheet to the view
-			Hubzero_Document::addPluginStylesheet('groups', 'wishlist');
+			\Hubzero\Document\Assets::addPluginStylesheet('groups', 'wishlist');
 
 			// Pass the view some info
 			$view->option = $option;

@@ -184,7 +184,7 @@ if (!$this->filters['filterby'] == 'none')
 
 					$cls  = ($row->isclosed())   ? 'answered' : '';
 					$cls  = ($row->isReported()) ? 'flagged'  : $cls;
-					$cls .= ($row->get('created_by') == $juser->get('username')) ? ' mine' : '';
+					$cls .= ($row->get('created_by') == $juser->get('id')) ? ' mine' : '';
 				?>
 						<tr<?php echo ($cls) ? ' class="'.$cls.'"' : ''; ?>>
 							<th>
@@ -193,7 +193,7 @@ if (!$this->filters['filterby'] == 'none')
 							<td>
 							<?php if (!$row->isReported()) { ?>
 								<a class="entry-title" href="<?php echo JRoute::_($row->link()); ?>">
-									<?php echo $this->escape(stripslashes($row->get('subject'))); ?>
+									<?php echo $this->escape($row->subject('clean')); ?>
 								</a><br />
 							<?php } else { ?>
 								<span class="entry-title">

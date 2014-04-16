@@ -32,8 +32,6 @@ defined('_JEXEC') or die('Restricted access');
 
 $juser = JFactory::getUser();
 
-ximport('Hubzero_User_Profile_Helper');
-
 $this->category->set('section_alias', $this->filters['section']);
 
 $this->thread->set('section', $this->filters['section']);
@@ -108,7 +106,8 @@ $this->thread->set('category', $this->category->get('alias'));
 			foreach ($this->thread->attachments() as $attachment) 
 			{
 				$cls = 'file';
-				$title = $attachment->get('description', $attachment->get('filename'));
+				$title = trim($attachment->get('description', $attachment->get('filename')));
+				$title = ($title ? $title : $attachment->get('filename'));
 				if (preg_match("/bmp|gif|jpg|jpe|jpeg|png/i", $attachment->get('filename')))
 				{
 					$cls = 'img';
@@ -193,7 +192,7 @@ $this->thread->set('category', $this->category->get('alias'));
 				$anon = (!$juser->get('guest') ? 0 : 1); 
 				$now  = JFactory::getDate();
 				?>
-				<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($juser, $anon); ?>" alt="<?php echo JText::_('COM_FORUM_USER_PHOTO'); ?>" />
+				<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($juser, $anon); ?>" alt="<?php echo JText::_('COM_FORUM_USER_PHOTO'); ?>" />
 			</p>
 
 			<fieldset>
@@ -215,9 +214,7 @@ $this->thread->set('category', $this->category->get('alias'));
 				<label for="fieldcomment">
 					<?php echo JText::_('COM_FORUM_FIELD_COMMENTS'); ?>
 					<?php
-					ximport('Hubzero_Wiki_Editor');
-					$editor = Hubzero_Wiki_Editor::getInstance();
-					echo $editor->display('fields[comment]', 'fieldcomment', '', '', '35', '15');
+					echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 15, false, 'fieldcomment', null, null, array('class' => 'minimal no-footer'));
 					?>
 				</label>
 
@@ -267,9 +264,6 @@ $this->thread->set('category', $this->category->get('alias'));
 				<div class="sidenote">
 					<p>
 						<strong><?php echo JText::_('COM_FORUM_KEEP_POLITE'); ?></strong>
-					</p>
-					<p>
-						<?php echo JText::_('COM_FORUM_WIKI_HINT'); ?>
 					</p>
 				</div>
 			</fieldset>

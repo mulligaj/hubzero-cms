@@ -31,14 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$juser = JFactory::getUser();
-$database = JFactory::getDBO();
-
-//ximport('Hubzero_View_Helper_Html');
-//ximport('Hubzero_User_Profile');
-ximport('Hubzero_User_Profile_Helper');
-
-$base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alias') . '&offering=' . $this->course->offering()->get('alias') . ($this->course->offering()->section()->get('alias') != '__default' ? ':' . $this->course->offering()->section()->get('alias') : '');
+$base = $this->course->offering()->link();
 ?>
 <div id="comments-container" data-action="<?php echo JRoute::_($base . '&active=outline&unit=' . $this->unit->get('alias') . '&b=' . $this->lecture->get('alias')); ?>">
 
@@ -80,51 +73,40 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 						</div>
 					</div>
 					<div class="category category-results">
-						<!-- <div class="category-header">
-							<span class="category-title"><?php echo JText::_('Discussions'); ?></span>
-							<span class="category-discussions count"><?php echo count($this->threads); ?></span>
-						</div> -->
 						<div class="category-content">
-					<?php 
-					$threads_lastchange = '0000-00-00 00:00:00';
-					if ($this->threads)
-					{
-						$threads_lastchange = $this->threads[0]->created;
-						$category = $this->threads[0]->category_id;
-					}
+							<?php 
+							$threads_lastchange = '0000-00-00 00:00:00';
+							if ($this->threads)
+							{
+								$threads_lastchange = $this->threads[0]->created;
+								$category = $this->threads[0]->category_id;
+							}
 
-					$instructors = array();
-					$inst = $this->course->instructors();
-					if (count($inst) > 0) 
-					{
-						foreach ($inst as $i)
-						{
-							$instructors[] = $i->get('user_id');
-						}
-					}
-
-					$cview = new Hubzero_Plugin_View(
-						array(
-							'folder'  => 'courses',
-							'element' => 'discussions',
-							'name'    => 'threads',
-							'layout'  => '_threads'
-						)
-					);
-					$cview->category   = 'category' . $this->post->category_id;
-					$cview->option     = $this->option;
-					$cview->threads    = $this->threads;
-					$cview->unit       = $this->unit->get('alias');
-					$cview->lecture    = $this->lecture->get('alias');
-					$cview->config     = $this->config;
-					$cview->cls        = 'odd';
-					$cview->base       = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alias') . '&offering=' . $this->course->offering()->get('alias') . '&active=outline';
-					$cview->course     = $this->course;
-					$cview->search     = $this->filters['search'];
-					$cview->active     = $this->thread;
-					$cview->display();
-					?>
-					<input type="hidden" name="threads_lastchange" id="threads_lastchange" value="<?php echo $threads_lastchange; ?>" />
+							$instructors = array();
+							$inst = $this->course->instructors();
+							if (count($inst) > 0) 
+							{
+								foreach ($inst as $i)
+								{
+									$instructors[] = $i->get('user_id');
+								}
+							}
+							$this->view('_threads')
+							     ->set('category', 'category' . $this->post->category_id)
+							     ->set('option', $this->option)
+							     ->set('threads', $this->threads)
+							     ->set('unit', $this->unit->get('alias'))
+							     ->set('lecture', $this->lecture->get('alias'))
+							     ->set('config', $this->config)
+							     ->set('cls', 'odd')
+							     ->set('instructors', $instructors)
+							     ->set('base', $base . '&active=outline')
+							     ->set('course', $this->course)
+							     ->set('search', $this->filters['search'])
+							     ->set('active', $this->thread)
+							     ->display();
+							?>
+							<input type="hidden" name="threads_lastchange" id="threads_lastchange" value="<?php echo $threads_lastchange; ?>" />
 						</div>
 					</div>
 				</div><!-- / .comment-threads -->
@@ -132,7 +114,7 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 
 			<div class="comments-panel">
 				<div class="comments-toolbar">
-					<p><span class="comments" data-comments="%s comments" data-add="Start a discussion">Start a discussion</span><!--  <span class="instructor-comments">0 instructor comments</span> --></p>
+					<p><span class="comments" data-comments="%s comments" data-add="Start a discussion"><?php echo JText::_('Start a discussion'); ?></span></p>
 				</div>
 				<div class="comments-frame">
 
@@ -140,14 +122,15 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 						<p class="comment-member-photo">
 							<a class="comment-anchor" name="commentform"></a>
 							<?php
+							$juser = JFactory::getUser();
 							$anone = 1;
 							if (!$juser->get('guest')) 
 							{
 								$anon = 0;
 							}
-							$now = JFactory::getDate();
+							$now = JFactory::getDate()->toSql();
 							?>
-							<img src="<?php echo Hubzero_User_Profile_Helper::getMemberPhoto($juser, $anon); ?>" alt="<?php echo JText::_('User photo'); ?>" />
+							<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($juser, $anon); ?>" alt="<?php echo JText::_('User photo'); ?>" />
 						</p>
 
 						<fieldset>
@@ -160,7 +143,8 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 								</strong> 
 								<span class="permalink">
 									<span class="comment-date-at">@</span>
-									<span class="time"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('TIME_FORMAt_HZ1')); ?></time></span> <span class="comment-date-on"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ON'); ?></span> 
+									<span class="time"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('TIME_FORMAt_HZ1')); ?></time></span> 
+									<span class="comment-date-on"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ON'); ?></span> 
 									<span class="date"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('DATE_FORMAt_HZ1')); ?></time></span>
 								</span>
 							</p>
@@ -168,9 +152,7 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 							<label for="field_comment">
 								<span class="label-text"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_FIELD_COMMENTS'); ?></span>
 								<?php
-								ximport('Hubzero_Wiki_Editor');
-								$editor = Hubzero_Wiki_Editor::getInstance();
-								echo $editor->display('fields[comment]', 'field_comment', '', 'minimal no-footer', '35', '5');
+								echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 5, false, 'field_comment', null, null, array('class' => 'minimal no-footer'));
 								?>
 							</label>
 
@@ -200,11 +182,13 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 
 						<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 						<input type="hidden" name="gid" value="<?php echo $this->course->get('alias'); ?>" />
-						<input type="hidden" name="offering" value="<?php echo $this->course->offering()->get('alias'); ?>" />
+						<input type="hidden" name="offering" value="<?php echo $this->course->offering()->alias(); ?>" />
 						<input type="hidden" name="active" value="discussions" />
 						<input type="hidden" name="action" value="savethread" />
 						<input type="hidden" name="section" value="<?php echo $this->filters['section']; ?>" />
 						<input type="hidden" name="return" value="<?php echo base64_encode(JRoute::_($base . '&active=outline&unit=' . $this->unit->get('alias') . '&b=' . $this->lecture->get('alias'))); ?>" />
+
+						<?php echo JHTML::_('form.token'); ?>
 
 						<p class="instructions">
 							<?php echo JText::_('Click on a comment on the left to view a discussion or start your own above.'); ?>
@@ -212,11 +196,6 @@ $base = 'index.php?option=' . $this->option . '&gid=' . $this->course->get('alia
 					</form>
 
 					<div class="comment-thread"><?php if ($this->data) { echo $this->data->html; } ?></div>
-					<!-- 
-					<input type="hidden" name="lastchange" id="lastchange" value="" />
-					<input type="hidden" name="lastid" id="lastid" value="" />
-					<input type="hidden" name="parent-thread" id="parent-thread" value="" />
-					-->
 
 				</div><!-- / .comments-frame -->
 			</div><!-- / .comments-panel -->

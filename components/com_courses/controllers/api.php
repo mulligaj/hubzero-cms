@@ -36,7 +36,7 @@ JLoader::import('Hubzero.Api.Controller');
 /**
  * API controller for the time component
  */
-class CoursesControllerApi extends Hubzero_Api_Controller
+class CoursesControllerApi extends \Hubzero\Component\ApiController
 {
 	/**
 	 * Execute!
@@ -95,8 +95,20 @@ class CoursesControllerApi extends Hubzero_Api_Controller
 				}
 			break;
 
+			// Forms
+			case 'form':
+				switch ($this->segments[1])
+				{
+					case 'image': $this->formImage();        break;
+					default:      $this->method_not_found(); break;
+				}
+			break;
+
 			// Passport
 			case 'passport':                $this->passport();             break;
+
+			// Unity
+			case 'unityscoresave':          $this->unityScoreSave();       break;
 
 			default:                       	$this->method_not_found();     break;
 		}
@@ -676,8 +688,24 @@ class CoursesControllerApi extends Hubzero_Api_Controller
 			$asset->set('state', $state);
 		}
 
+		// If we have a state coming in as an int
+		if ($graded = JRequest::getInt('graded', false))
+		{
+			$asset->set('graded', $graded);
+			// By default, weight asset as a 'homework' type
+			$grade_weight = $asset->get('grade_weight');
+			if (empty($grade_weight))
+			{
+				$asset->set('grade_weight', 'homework');
+			}
+		}
+		elseif ($graded = JRequest::getInt('edit_graded', false))
+		{
+			$asset->set('graded', 0);
+		}
+
 		// If we have content
-		if($content = JRequest::getVar('content', false))
+		if($content = JRequest::getVar('content', false, 'default', 'none', 2))
 		{
 			$asset->set('content', $content);
 		}
@@ -1118,7 +1146,57 @@ class CoursesControllerApi extends Hubzero_Api_Controller
 		// Return message
 		$this->setMessage(array('form_id' => $formId), 200, 'OK');
 	}
-	
+
+	/**
+	 * Get form image
+	 * 
+	 * @return 200 OK on success
+	 */
+	private function formImage()
+	{
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'form.php';
+
+		$id = JRequest::getInt('id', 0);
+
+		$filename = JRequest::getVar('file', '');
+		$filename = urldecode($filename);
+		$filename = JPATH_ROOT . DS . 'site' . DS . 'courses' . DS . 'forms' . DS . $id . DS . ltrim($filename, DS);
+
+		// Ensure the file exist
+		if (!file_exists($filename)) 
+		{
+			// Return message
+			$this->setMessage('Image not found', 404, 'Not Found');
+			return;
+		}
+
+		// Add silly simple security check
+		$token      = JRequest::getString('token', false);
+		$session_id = JFactory::getSession()->getId();
+		$secret     = JFactory::getConfig()->getValue('secret');
+		$hash       = hash('sha256', $session_id . ':' . $secret);
+
+		if ($token !== $hash)
+		{
+			$this->setMessage('You don\'t have permission to do this', 401, 'Not Authorized');
+			return;
+		}
+
+		// Initiate a new content server and serve up the file
+		header("HTTP/1.1 200 OK");
+		$xserver = new \Hubzero\Content\Server();
+		$xserver->filename($filename);
+		$xserver->disposition('inline');
+		$xserver->acceptranges(false);
+
+		if (!$xserver->serve())
+		{
+			// Return message
+			$this->setMessage('Failed to serve the image', 500, 'Server Error');
+			return;
+		}
+	}
+
 	/**
 	 * Passport badges. Placeholder for now.
 	 * 
@@ -1161,14 +1239,14 @@ class CoursesControllerApi extends Hubzero_Api_Controller
 		}
 
 		// Find user by email
-		$user_email = Hubzero_User_Profile_Helper::find_by_email($user_email);
+		$user_email = \Hubzero\User\Profile\Helper::find_by_email($user_email);
 
 		if (empty($user_email[0]))
 		{
 			$this->errorMessage(404, 'User was not found');
 			return;
 		}
-		$user = Hubzero_User_Profile::getInstance($user_email[0]);
+		$user = \Hubzero\User\Profile::getInstance($user_email[0]);
 		if ($user === false)
 		{
 			$this->errorMessage(404, 'User was not found');
@@ -1270,6 +1348,140 @@ class CoursesControllerApi extends Hubzero_Api_Controller
 		$this->setMessage(array('form_id' => $formId, 'deployment_id' => $depId), 200, 'OK');
 	}
 
+	/**
+	 * Process grade save from unity app
+	 * 
+	 * @return 200 OK on success
+	 */
+	private function unityScoreSave()
+	{
+		// Set the responce type
+		$this->setMessageType($this->format);
+
+		$user_id = JFactory::getApplication()->getAuthn('user_id');
+
+		if (!$user_id || !is_numeric($user_id))
+		{
+			$this->setMessage("Unauthorized", 403, 'Unauthorized');
+			return;
+		}
+
+		// Parse some things out of the referer
+		$referer = (!empty($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : JRequest::getVar('referrer');
+		preg_match('/\/asset\/([[:digit:]]*)/', $referer, $matches);
+
+		if (!$asset_id = $matches[1])
+		{
+			$this->setMessage("Failed to get asset ID", 422, 'Unprocessable Entity');
+			return;
+		}
+
+		// Get course info...this seems a little wonky
+		preg_match('/\/courses\/([[:alnum:]]*)\/([[:alnum:]\:]*)/', $referer, $matches);
+
+		$course_alias   = $matches[1];
+		$offering_alias = $matches[2];
+		$section_alias  = null;
+
+		if (strpos($offering_alias, ":"))
+		{
+			$parts = explode(":", $offering_alias);
+			$offering_alias = $parts[0];
+			$section_alias  = $parts[1];
+		}
+
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php';
+
+		$course = CoursesModelCourse::getInstance($course_alias);
+		$course->offering($offering_alias);
+		$course->offering()->section($section_alias);
+		$section_id = $course->offering()->section()->get('id');
+
+		$member = CoursesModelMember::getInstance($user_id, 0, 0, $section_id);
+
+		if (!$member_id = $member->get('id'))
+		{
+			$this->setMessage("Failed to get course member ID", 422, 'Unprocessable Entity');
+			return;
+		}
+
+		if (!$data = JRequest::getVar('payload', false))
+		{
+			$this->setMessage("Missing payload", 422, 'Unprocessable Entity');
+			return;
+		}
+
+		// Get the key and IV - Trim the first xx characters from the payload for IV
+		$key  = $course->config()->get('unity_key', 0);
+		$iv   = substr($data, 0, 32);
+		$data = substr($data, 32);
+
+		$message = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key, base64_decode($data), MCRYPT_MODE_CBC, $iv);
+		$message = trim($message);
+		$message = json_decode($message);
+
+		if (!$message || !is_object($message))
+		{
+			$this->setMessage("Failed to decode message", 500, 'Internal error');
+			return;
+		}
+
+		// Get timestamp
+		$now = JFactory::getDate()->toSql();
+
+		// Save the unity details
+		require_once JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'asset.unity.php';
+		$unity = new CoursesTableAssetUnity($this->db);
+		$unity->set('member_id', $member_id);
+		$unity->set('asset_id', $asset_id);
+		$unity->set('created', $now);
+		$unity->set('passed', (($message->passed) ? 1 : 0));
+		$unity->set('details', $message->details);
+		if (!$unity->store())
+		{
+			$this->setMessage($unity->getError(), 500, 'Internal error');
+			return;
+		}
+
+		// Now set/update the gradebook item
+		require_once JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'grade.book.php';
+		$gradebook = new CoursesTableGradeBook($this->db);
+		$gradebook->loadByUserAndAssetId($member_id, $asset_id);
+
+		// Score is either 100 or 0
+		$score = ($message->passed) ? 100 : 0;
+
+		// See if gradebook entry already exists
+		if ($gradebook->get('id'))
+		{
+			// Entry does exist, see if current score is better than previous score
+			if ($score > $gradebook->get('score'))
+			{
+				$gradebook->set('score', $score);
+				if (!$gradebook->store())
+				{
+					$this->setMessage($gradebook->getError(), 500, 'Internal error');
+					return;
+				}
+			}
+		}
+		else
+		{
+			$gradebook->set('member_id', $member_id);
+			$gradebook->set('score', $score);
+			$gradebook->set('scope', 'asset');
+			$gradebook->set('scope_id', $asset_id);
+			if (!$gradebook->store())
+			{
+				$this->setMessage($gradebook->getError(), 500, 'Internal error');
+				return;
+			}
+		}
+
+		// Return message
+		$this->setMessage(array('success' => true), 200, 'OK');
+	}
+
 	//--------------------------
 	// Miscelaneous methods
 	//--------------------------
@@ -1301,7 +1513,7 @@ class CoursesControllerApi extends Hubzero_Api_Controller
 
 		//get the userid and attempt to load user profile
 		$userid = JFactory::getApplication()->getAuthn('user_id');
-		$user = Hubzero_User_Profile::getInstance($userid);
+		$user = \Hubzero\User\Profile::getInstance($userid);
 		//make sure we have a user
 		if ($user === false)
 		{

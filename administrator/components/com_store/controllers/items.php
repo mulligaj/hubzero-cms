@@ -31,12 +31,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-ximport('Hubzero_Controller');
-
 /**
  * Controller class for store items
  */
-class StoreControllerItems extends Hubzero_Controller
+class StoreControllerItems extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Execute a task
@@ -47,10 +45,6 @@ class StoreControllerItems extends Hubzero_Controller
 	{
 		$upconfig = JComponentHelper::getParams('com_members');
 		$this->banking = $upconfig->get('bankAccounts');
-		if ($this->banking)
-		{
-			ximport('Hubzero_Bank');
-		}
 
 		parent::execute();
 	}
@@ -230,7 +224,7 @@ class StoreControllerItems extends Hubzero_Controller
 		}
 
 		// code cleaner
-		$row->description = Hubzero_Filter::cleanXss($row->description);
+		$row->description = \Hubzero\Utility\Sanitize::clean($row->description);
 		if (!$id)
 		{
 			$row->created = $row->created ? $row->created : JFactory::getDate()->toSql();

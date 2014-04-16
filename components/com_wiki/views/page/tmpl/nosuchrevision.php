@@ -30,30 +30,25 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
-
-$mode = $this->page->params->get('mode', 'wiki');
 ?>
 <div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>" class="full">
 	<h2><?php echo $this->escape($this->title); ?></h2>
 	<?php
-	if (!$mode || ($mode && $mode != 'static')) {
+	if (!$this->page->isStatic()) 
+	{
 		$view = new JView(array(
 			'base_path' => $this->base_path, 
 			'name'      => 'page',
 			'layout'    => 'authors'
 		));
-		$view->option = $this->option;
 		$view->page   = $this->page;
-		$view->task   = $this->task;
-		$view->config = $this->config;
-		//$view->revision = $this->revision;
 		$view->display();
 	}
 	?>
 </div><!-- /#content-header -->
 
 <?php
-if ($this->page->id) 
+if ($this->page->exists()) 
 {
 	$view = new JView(array(
 		'base_path' => $this->base_path, 
@@ -61,6 +56,7 @@ if ($this->page->id)
 		'layout'    => 'submenu'
 	));
 	$view->option = $this->option;
+	$view->controller = $this->controller;
 	$view->page   = $this->page;
 	$view->task   = $this->task;
 	$view->config = $this->config;
@@ -70,6 +66,5 @@ if ($this->page->id)
 ?>
 
 <div class="main section">
-	<p class="warning">A page could not be found matching the version number <?php echo $this->version; ?>.</p>
-	<div class="clear"></div>
+	<p class="warning"><?php echo JText::sprintf('A page could not be found matching the version number "%s".', $this->version); ?></p>
 </div><!-- / .main section -->

@@ -569,15 +569,21 @@ HUB.CoursesOutline = {
 										setTimeout(function(){
 											if (!loaded) {
 												$.fancybox.close();
-												var msg  = 'Oops, something went wrong trying to preview this asset. ';
-													msg += 'It may be that preview isn\'t available for this asset, ';
-													msg += 'or that trying again will solve the problem.';
-												HUB.CoursesOutline.message.show(msg, 7500);
+												window.open(t.attr('href'), '_blank');
 											}
-										},10000);
+										},5000);
 									},
-									afterLoad: function() {
+									afterLoad: function( upcoming, current ) {
 										loaded = true;
+
+										// Check to make sure the iframe actually loaded some content...if not, open a new window with the page
+										// Try to account for x-frame-options preventing iframe loading
+										try {
+											var body = $(upcoming.content[0]).contents().find('body').html().length;
+										} catch(err) {
+											window.open(t.attr('href'), '_blank');
+											$.fancybox.close();
+										}
 									}
 								});
 							break;
@@ -1282,20 +1288,14 @@ HUB.CoursesOutline = {
 			// Show sortable handles, edit and delete on hover
 			$(selector).hoverIntent({
 				over: function () {
-					$(this).find('.sortable-handle').show('slide', 250);
-					$(this).find('.asset-group-edit').show('slide', 250);
-					$(this).not('.add-new').animate({"padding-left":60}, 250);
-					$(this).find('.sortable-assets-handle').show('slide', 250);
-					$(this).find('.asset:not(.nofiles)').animate({"margin-left":30}, 250);
-					$(this).find('.asset-delete, .asset-preview, .asset-edit, .asset-edit-deployment').animate({"opacity":0.8}, 250);
+					$(this).find('.asset-group-controls').show('slide', 250);
+					$(this).find('.asset-group-item-container').animate({"padding-left" : 50}, 250);
+					$(this).addClass('asset-group-item-hover');
 				},
 				out: function () {
-					$(this).find('.sortable-handle').hide('slide', 250);
-					$(this).find('.asset-group-edit').hide('slide', 250);
-					$(this).not('.add-new').animate({"padding-left":10}, 250);
-					$(this).find('.sortable-assets-handle').hide('slide', 250);
-					$(this).find('.asset:not(.nofiles)').animate({"margin-left":10}, 250);
-					$(this).find('.asset-delete, .asset-preview, .asset-edit, .asset-edit-deployment').animate({"opacity":0}, 250);
+					$(this).find('.asset-group-controls').hide('slide', 250);
+					$(this).find('.asset-group-item-container').animate({"padding-left" : 0}, 250);
+					$(this).removeClass('asset-group-item-hover');
 				},
 				timeout: 150,
 				interval: 150
@@ -1335,8 +1335,8 @@ HUB.CoursesOutline = {
 		 */
 		edit: function ( e ) {
 			var $ = HUB.CoursesOutline.jQuery,
-			ag    = $(this).parent('.asset-group-item'),
-			form  = $(this).siblings('.uploadfiles').find('.uploadfiles-form'),
+			ag    = $(this).parents('.asset-group-item'),
+			form  = ag.find('.uploadfiles-form'),
 			src   = '/courses/'+form.find('input[name="course_id"]').val()+'/'+form.find('input[name="offering"]').val()+'/outline?action=build';
 			src  += '&scope=assetgroup&scope_id='+form.find('input[name="scope_id"]').val()+'&tmpl=component';
 
@@ -1501,8 +1501,10 @@ HUB.CoursesOutline = {
 			// Default asset group item template
 			item : [
 				'<li class="asset-group-item" id="assetgroupitem_<%= assetgroup_id %>" style="<%= assetgroup_style %>">',
-					'<div class="sortable-handle"></div>',
-					'<div class="asset-group-edit"></div>',
+					'<div class="asset-group-controls">',
+						'<div class="sortable-handle"></div>',
+						'<div class="asset-group-edit"></div>',
+					'</div>',
 					'<div class="uploadfiles">',
 						'<p>Drag files here to upload</p>',
 						'<p>or</p>',
@@ -1631,7 +1633,15 @@ HUB.CoursesOutline = {
 
 			$(selector).each(HUB.CoursesOutline.unit.resizeProgressBar);
 
-			$(selector + ' .datepicker').datepicker({
+			$(selector + ' .datepicker').datetimepicker({
+				duration: '',
+				showTime: true,
+				constrainInput: false,
+				stepMinutes: 1,
+				stepHours: 1,
+				altTimeField: '',
+				time24h: true,
+				timeFormat: 'HH:mm:00',
 				dateFormat: 'yy-mm-dd'
 			});
 		},
@@ -1687,8 +1697,10 @@ HUB.CoursesOutline = {
 		/*
 		 * Show/hide edit form
 		 */
-		toggleEditForm: function () {
+		toggleEditForm: function ( e ) {
 			var $ = HUB.CoursesOutline.jQuery;
+
+			e.preventDefault();
 
 			var editContainer = $(this).parents('.unit-edit-container');
 			editContainer.find('.unit-edit').slideToggle(500, function () {
@@ -1902,78 +1914,3 @@ HUB.CoursesOutline = {
 		}
 	}
 };
-
-/* ------------------ */
-// Content box plugin //
-/* ------------------ */
-
-(function( $ ) {
-
-	var settings = {},
-		methods  = {
-			init : function ( options ) {
-				// Create some defaults, extending them with any options that were provided
-				settings = $.extend( {
-					element     : $('.content-box'),
-					title       : 'Edit Item',
-					src         : '/courses',
-					onAfterLoad : function ( content ) {}
-				}, options);
-
-				// Add close on escape
-				$(document).bind('keydown', function ( e ) {
-					if(e.which == 27) {
-						methods.close();
-					}
-				});
-
-				// Add close on click of close button
-				settings.element.find('.content-box-close').on('click', function () {
-					methods.close();
-				});
-
-				// Finally, execute show
-				methods.show();
-			},
-			show : function () {
-				$('.content-box-header span').html(settings.title);
-				settings.element.find('.loading-bar').show();
-				settings.element.show('slide', {'direction':'down'}, 500, function () {
-					$(this).siblings('.content-box-overlay').fadeIn(100);
-					$(this).find('.content-box-inner').append('<iframe src="'+settings.src+'"></iframe>');
-
-					// Execute after load function
-					settings.element.find('iframe').load(function () {
-						var content = $(this).contents();
-
-						// Add close on escape within iframe as well
-						content.bind('keydown', function ( e ) {
-							if(e.which == 27) {
-								methods.close();
-							}
-						});
-
-						settings.element.find('.loading-bar').hide();
-						settings.onAfterLoad( content );
-					});
-				});
-			},
-			close : function () {
-				settings.element.find('iframe').remove();
-				settings.element.hide('slide', {'direction':'down'}, 500, function () {
-					$('.content-box-overlay').fadeOut(100);
-				});
-			}
-	};
-
-	$.contentBox = function ( method ) {
-		// Method calling logic
-		if ( methods[ method ] ) {
-			return methods[ method ].apply( this, Array.prototype.slice.call( arguments, 1 ));
-		} else if ( typeof method === 'object' || !method ) {
-			return methods.init.apply( this, arguments );
-		} else {
-			$.error( 'Method ' + method + ' does not exist on jQuery.contentBox' );
-		}
-	};
-})( jQuery );

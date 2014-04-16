@@ -28,7 +28,7 @@ class JRouterSite extends JRouter
 	public function parse(&$uri)
 	{
 		$vars = array();
-
+		
 		// Get the application
 		$app = JApplication::getInstance('site');
 
@@ -165,7 +165,7 @@ class JRouterSite extends JRouter
 				}
 			}
 
-			$xprofile = Hubzero_Factory::getProfile();
+			$xprofile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 
 			if (is_object($xprofile) && ($xprofile->get('emailConfirmed') != 1) && ($xprofile->get('emailConfirmed') != 3))
 			{
@@ -337,6 +337,9 @@ class JRouterSite extends JRouter
 	{
 		$vars	= array();
 		$app	= JApplication::getInstance('site');
+		
+		// Call System plugin to before parsing sef route
+		JDispatcher::getInstance()->trigger('onBeforeParseSefRoute', array($uri));
 
 		/* START: HUBzero Extension for SEF Groups */
 		$app = JFactory::getApplication();
@@ -356,9 +359,8 @@ class JRouterSite extends JRouter
 
 				if ( ($rdomainname == $sdomainname) || ($rdomain = $sfqdn))
 				{
-					ximport('Hubzero_Group');
 					$suri = JURI::getInstance();
-					$group = Hubzero_Group::getInstance($rhostname);
+					$group = \Hubzero\User\Group::getInstance($rhostname);
 
 					if (!empty($group) && ($group->type == 3)) // only special groups get internal redirection abilities
 					{
@@ -525,9 +527,9 @@ class JRouterSite extends JRouter
 			if ($segments[0] == 'search') {   // @FIXME: search component should probably be configurable
 				$plugin = JPluginHelper::getPlugin( 'system', 'hubzero' );
 				$param = new JParameter( $plugin->params );
-				$search = $param->get('search','ysearch');
+				$search = $param->get('search','search');
 				if (empty($search)) {
-					$search = 'ysearch';
+					$search = 'search';
 				}
 				$segments[0] = $search;
 			}
@@ -631,6 +633,9 @@ class JRouterSite extends JRouter
 				$vars = $item->query;
 			}
 		}
+		
+		// Call System plugin to before parsing sef route
+		JDispatcher::getInstance()->trigger('onAfterParseSefRoute', array($vars));
 
 		/* START: HUBzero Extension to pass common query parameters to apache (for logging) */
 		if (!empty($vars['option']))
@@ -644,7 +649,7 @@ class JRouterSite extends JRouter
 		if (!empty($vars['id']))
 			apache_note('action',$vars['id']);
 		/* END: HUBzero Extension to pass common query parameters to apache (for logging) */
-
+		
 		return $vars;
 	}
 
@@ -654,6 +659,9 @@ class JRouterSite extends JRouter
 
 	protected function _buildSefRoute(&$uri)
 	{
+		// Call System plugin to before parsing sef route
+		JDispatcher::getInstance()->trigger('onBeforeBuildSefRoute', array($uri));
+		
 		// Get the route
 		$route = $uri->getPath();
 
@@ -776,6 +784,9 @@ class JRouterSite extends JRouter
 		//Set query again in the URI
 		$uri->setQuery($query);
 		$uri->setPath($route);
+		
+		// Call System plugin to before parsing sef route
+		JDispatcher::getInstance()->trigger('onAfterBuildSefRoute', array($uri));
 	}
 
 	protected function _processParseRules(&$uri)
