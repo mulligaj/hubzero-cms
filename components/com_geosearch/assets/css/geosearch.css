@@ -123,3 +123,9 @@ input[type="button"]  {
 .clear-right{ 
 	clear:right; 
 }
+.list p {
+	background: #fff;
+	padding: 20px;
+	font-style: italic;
+	color: #aaa;
+}

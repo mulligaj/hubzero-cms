@@ -397,6 +397,7 @@ $doc->addScriptDeclaration($js);
 							<p><?php if (in_array("orgs",$this->resources)) { echo JText::_('COM_GEOSEARCH_NO_ORGS'); } ?></p>
 							<?php } ?>
                             <?php echo $this->pagenavhtml; ?>
+                            <br class="clear" />
                         </div>
 				</div><!-- / .container-block -->
 			</div><!-- / .container -->
