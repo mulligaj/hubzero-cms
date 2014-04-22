@@ -216,6 +216,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 				}
 				
 				$search = "public = 1 AND (uidNumber IN (" . implode(',', $u) . "))";
+				$search = "public = 1 ";
 				$all = 0;
 			} 
 			else 
@@ -239,7 +240,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 			// clear ids var if no results
 			if (count($this->view->members) == 0) 
 			{
-				$this->view->uids = 0;
+				$this->view->uids = array();
 			}
 
 			// get MemberTags Object
@@ -255,6 +256,8 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 			$J = new Job($this->database);
 			$filters['search'] = '';
 			$filters['sortby'] = '';
+			$filters['active'] = 1;
+			
 			if (isset($jids) && $jids != "") 
 			{
 				$jobs = array();
@@ -266,7 +269,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 			} 
 			else 
 			{
-				$this->view->jobs = $J->get_openings($filters, 0, 1);
+				$this->view->jobs = $J->get_openings($filters, 0, 0);
 			}
 
 			// clear ids var if no results
@@ -792,6 +795,9 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 				$data[$match[1]] = $match[2];
 			}
 		}
+		echo '<pre>';
+		print_r($data);
+		echo '</pre>';
 		return $data;
 	}
 	
