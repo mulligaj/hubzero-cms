@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-//import user profile lib
-ximport('Hubzero_User_Profile');
 
 //remove $this 
 $juser = $this->juser;
@@ -41,7 +39,7 @@ $database = $this->database;
 $citation = $this->citation;
 
 //load user profile
-$profile = Hubzero_User_Profile::getInstance( $citation->uid );
+$profile = \Hubzero\User\Profile::getInstance( $citation->uid );
 
 //get citation type
 $ct = new CitationsType($database);
@@ -599,6 +597,12 @@ $area = JRequest::getVar('area', 'about');
 		{
 			$coinsData[] = 'rft.au=' . trim($a);
 		}
+	}
+
+	//add journal to coins
+	if($citation->journal)
+	{
+		$coinsData[] = 'rft.jtitle=' . $citation->journal;
 	}
 	
 	//replace chars
