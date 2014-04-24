@@ -72,7 +72,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 		}
 		else
 		{
-			$this->view->uids = array();
+			//$this->view->uids = array();
 		}
 
 		// Location search
@@ -173,7 +173,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 		$this->view->distance = $distance;
 		$this->view->location = $location;
 		$this->view->unit = $unit;
-		
+
 		// get xprofiles
 		if (in_array("members",$resources)) 
 		{
@@ -216,7 +216,6 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 				}
 				
 				$search = "public = 1 AND (uidNumber IN (" . implode(',', $u) . "))";
-				$search = "public = 1 ";
 				$all = 0;
 			} 
 			else 
@@ -393,6 +392,13 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 		$pageNav->setAdditionalUrlParam("location",$location);
 		$pagenavhtml = $pageNav->getListFooter();
 		$this->view->pagenavhtml = $pagenavhtml;
+
+
+		// if we have no users, use -999 which will return no users in js
+		if (empty($this->view->uids))
+		{
+			$this->view->uids[] = -999; 
+		}
 		
 		// Output HTML
 		if ($this->getError()) 

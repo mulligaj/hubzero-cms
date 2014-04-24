@@ -229,7 +229,7 @@ $doc->addScriptDeclaration($js);
 					<h3><?php echo JText::_('COM_GEOSEARCH_LIST'); ?></h3>
 							<div class="list">
 							<?php 
-								if (isset($this->members))  {
+								if (isset($this->members) && count($this->members) > 0)  {
 									foreach ($this->members as $row) {
 										if ($row->surname != "") {
 											$name = $row->surname.", ".$row->givenName;
@@ -268,7 +268,7 @@ $doc->addScriptDeclaration($js);
 							<?php 
 								} 
 							} else { ?>
-							<p><?php if (in_array("members",$this->resources)) { echo JText::_('COM_GEOSEARCH_NO_MEMBERS'); } ?></p>
+							<?php if (in_array("members",$this->resources)) { echo '<p>'.JText::_('COM_GEOSEARCH_NO_MEMBERS').'</p>'; } ?>
 							
                             <?php 
 							}
@@ -297,7 +297,7 @@ $doc->addScriptDeclaration($js);
 							<?php 
 									}
 								} else { ?>
-                            <p><?php if (in_array("jobs",$this->resources)) { echo JText::_('COM_GEOSEARCH_NO_JOBS'); } ?></p>
+                            <?php if (in_array("jobs",$this->resources)) { echo '<p>'.JText::_('COM_GEOSEARCH_NO_JOBS').'</p>'; } ?>
                             
                              <?php 
 								}
@@ -352,7 +352,7 @@ $doc->addScriptDeclaration($js);
                                  </div>
 							<?php }
 								} else { ?>
-							<p><?php if (in_array("events",$this->resources)) { echo JText::_('COM_GEOSEARCH_NO_EVENTS'); } ?></p>
+							<?php if (in_array("events",$this->resources)) { echo '<p>'.JText::_('COM_GEOSEARCH_NO_EVENTS').'</p>'; } ?>
 							<?php }
 								if (isset($this->orgs) && count($this->orgs) > 0)  {
 									foreach ($this->orgs as $row) { 
@@ -394,7 +394,7 @@ $doc->addScriptDeclaration($js);
                                  </div>
 							<?php }
 								} else { ?>
-							<p><?php if (in_array("orgs",$this->resources)) { echo JText::_('COM_GEOSEARCH_NO_ORGS'); } ?></p>
+							<?php if (in_array("orgs",$this->resources)) { echo '<p>' . JText::_('COM_GEOSEARCH_NO_ORGS') . '</p>'; } ?>
 							<?php } ?>
                             <?php echo $this->pagenavhtml; ?>
                             <br class="clear" />
