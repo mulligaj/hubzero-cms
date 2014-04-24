@@ -393,9 +393,10 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 		$pagenavhtml = $pageNav->getListFooter();
 		$this->view->pagenavhtml = $pagenavhtml;
 
-
-		// if we have no users, use -999 which will return no users in js
-		if (empty($this->view->uids))
+		// if we have no users & we have attempted a search
+		// we do NOT want to set this for default listing (no search)
+		// use -999 which will return no users in js
+		if (empty($this->view->members))
 		{
 			$this->view->uids[] = -999; 
 		}

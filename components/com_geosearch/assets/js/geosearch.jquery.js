@@ -1,5 +1,6 @@
 // JavaScript Document
 var map;
+var bounds;
 var infoWindow;
 var oms;
 
@@ -32,25 +33,29 @@ HUB.Geosearch = {
 		var $ = this.jQuery;
 
 		var mapOptions = {
+			scrollwheel: false,
 			zoom: 2,
 			center: latlng,
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
 
 		map = new google.maps.Map(document.getElementById("map_canvas"),mapOptions);
+		bounds = new google.maps.LatLngBounds();
 		infoWindow = new google.maps.InfoWindow();
 		oms = new OverlappingMarkerSpiderfier(map, {keepSpiderfied:true});
+
+		// create info windows
 		oms.addListener('click', function(marker, event) {
 			  infoWindow.setContent(marker.html);
 			  infoWindow.open(map, marker);
 		});
 
+		// get markers
 		var checked = [];
 		for (var x = 0; x < $(".resck:checked").length; x++) 
 		{
 			checked.push($(".resck:checked")[x].value);
 		}
-
 		var tags = $("#actags").val();
 		$.post("index.php?option=com_geosearch&task=getmarkers", {
 			checked:checked,
@@ -73,7 +78,16 @@ HUB.Geosearch = {
 				{
 					var mlatlng = new google.maps.LatLng(lat,lng);
 					HUB.Geosearch.createMarker(mlatlng, uid, type);
+
+					// add marker to bounds
+					bounds.extend(mlatlng);
 				}
+			}
+
+			// fit map to bounds only if were doing a location search
+			if ($('#idist').val() != 0 && $('#iloc').val() != '')
+			{
+				map.fitBounds(bounds);
 			}
 		},"xml");
 	},
@@ -184,6 +198,8 @@ HUB.Geosearch = {
 			}
 			html += "</div>";
 			html += "</div>";
+
+			
 
 			var marker = new google.maps.Marker({
 				position: mlatlng, 
