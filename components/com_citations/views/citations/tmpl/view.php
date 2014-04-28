@@ -657,7 +657,7 @@ $area = JRequest::getVar('area', 'about');
 						}
 						?>
 						<a target="_blank" title="Google Scholar Search Results" href="http://scholar.google.com/scholar?q=<?php echo $query; ?>">
-							<img src="http://scholar.google.com/intl/en/scholar/images/scholar_logo_lg_2011.gif" alt="Google Scholar Search Results" width="100" />
+							<img src="/components/com_citations/assets/img/googlescholar.gif" alt="Google Scholar Search Results" width="100" />
 						</a>
 					</td>
 				</tr>
@@ -755,6 +755,12 @@ $area = JRequest::getVar('area', 'about');
 	if($citation->pages)
 	{
 		$coinsData[] = 'rft.pages=' . $citation->pages;
+	}
+
+	//add journal to coins
+	if($citation->journal)
+	{
+		$coinsData[] = 'rft.jtitle=' . $citation->journal;
 	}
 	
 	//add authors to coins

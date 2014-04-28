@@ -119,6 +119,12 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 		<?php if ($popular = $this->model->entries('popular', $this->filters)) { ?>
 			<ol>
 			<?php foreach ($popular as $row) { ?>
+				<?php 
+					if (!$row->isAvailable() && $row->get('created_by') != JFactory::getUser()->get('id'))
+					{
+						continue;
+					}
+				?>
 				<li>
 					<a href="<?php echo JRoute::_($row->link()); ?>">
 						<?php echo $this->escape(stripslashes($row->get('title'))); ?>
@@ -136,6 +142,12 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 		<?php if ($recent = $this->model->entries('recent', $this->filters)) { ?>
 			<ol>
 			<?php foreach ($recent as $row) { ?>
+				<?php 
+					if (!$row->isAvailable() && $row->get('created_by') != JFactory::getUser()->get('id'))
+					{
+						continue;
+					}
+				?>
 				<li>
 					<a href="<?php echo JRoute::_($row->link()); ?>">
 						<?php echo $this->escape(stripslashes($row->get('title'))); ?>
@@ -172,11 +184,20 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 				<?php echo JText::sprintf('PLG_GROUPS_BLOG_SEARCH_FOR', $this->escape($this->search)); ?>
 			<?php } else if (!isset($this->year) || !$this->year) { ?>
 				<?php echo JText::_('PLG_GROUPS_BLOG_LATEST_ENTRIES'); ?>
+			<?php } elseif (isset($this->year) && isset($this->month) && $this->month == 0) { ?>
+				<?php echo JText::sprintf('PLG_GROUPS_BLOG_YEAR_ENTRIES_FOR', $this->year); ?>
 			<?php } else { 
 				$archiveDate  = $this->year;
 				$archiveDate .= ($this->month) ? '-' . $this->month : '-01';
 				$archiveDate .= '-01 00:00:00';
-				echo JFactory::getDate($archiveDate)->format('M Y');
+				if ($this->month)
+				{
+					echo JFactory::getDate($archiveDate)->format('M Y');
+				}
+				else
+				{
+					echo JFactory::getDate($archiveDate)->format('Y');
+				}
 			} ?>
 				<?php
 					if ($this->config->get('feeds_enabled', 1)) :
@@ -208,6 +229,19 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 				{
 					$cls .= ' expired';
 				}
+				if ($row->get('state') == 0)
+				{
+					$cls .= ' unpublished';
+				}
+				if (!$row->isAvailable())
+				{
+					if ($row->get('created_by') != JFactory::getUser()->get('id'))
+					{
+						continue;
+					}
+					$cls .= ' pending';
+				}
+
 				?>
 				<li class="<?php echo $cls; ?>" id="e<?php echo $row->get('id'); ?>">
 					<h4 class="entry-title">
