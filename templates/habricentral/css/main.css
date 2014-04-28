@@ -2350,3 +2350,9 @@
 	.contentpane>.actions {
 		display: none;
 	}
+
+	.ckeditor-body {
+		padding: 10px;
+		min-width: inherit;
+		background: #FFF !important;
+	}

@@ -1,8 +1,8 @@
 <?php // no direct access
 defined('_JEXEC') or die('Restricted access'); 
 
-$app =& JFactory::getApplication();
-$pathway =& $app->getPathway();
+$app = JFactory::getApplication();
+$pathway = $app->getPathway();
 if (count($pathway->getPathWay()) <= 0) {
 	$pathway->addItem($this->escape($this->params->get('page_title')),'index.php?option=com_newsfeeds');
 }
