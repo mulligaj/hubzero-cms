@@ -13,5 +13,6 @@
 .resource th {
 	color: #999;
 	text-align: right;
-	white-space: nowrap;
+	width: 120px;
+	word-wrap: break-word;
 }
