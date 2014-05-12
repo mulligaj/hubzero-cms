@@ -56,7 +56,7 @@ class GroupsModelPageVersion extends \Hubzero\Base\Model
 	 * @var string
 	 */
 	protected $_context = 'com_groups.page_version.content';
-	
+
 	/**
 	 * Constructor
 	 * 

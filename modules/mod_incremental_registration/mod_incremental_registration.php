@@ -105,7 +105,7 @@ class ModIncrementalRegistrationController
 		}
 
 		$uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['REDIRECT_REQUEST_URI'];
-		if (preg_match('%^/(?:members|session|legal/privacy)%', $uri)) 
+		if (preg_match('%(?:members|invoke|session|privacy)%', $uri))
 		{
 			return;
 		}
@@ -335,7 +335,8 @@ class ModIncrementalRegistrationController
 							{
 								if (isset($race)) 
 								{
-									$dbh->execute('DELETE FROM #__xprofiles_race WHERE uidNumber = '.$uid);
+									$dbh->setQuery('DELETE FROM #__xprofiles_race WHERE uidNumber = '.$uid);
+									$dbh->execute();
 									foreach ($race as $r) 
 									{
 										$dbh->setQuery('INSERT INTO #__xprofiles_race(uidNumber, race) VALUES ('.$uid.', '.$dbh->quote($r).')');

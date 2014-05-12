@@ -54,16 +54,17 @@ function submitbutton(pressbutton)
 		<thead>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Venue', 'venue', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'Zone', 'zone', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', 'Type', 'type', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', 'State', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', 'Master', 'master', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', 'SSH Key Path', 'ssh_key_path', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JText::_('Locations'); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
 			<tr>
-				<td colspan="6"><?php echo $this->pageNav->getListFooter(); ?></td>
+				<td colspan="7"><?php echo $this->pageNav->getListFooter(); ?></td>
 			</tr>
 		</tfoot>
 		<tbody>
@@ -76,26 +77,31 @@ if ($this->rows)
 ?>
 			<tr>
 				<td>
-					<input type="checkbox" name="id[]" id="cb<?php echo $i;?>" value="<?php echo $row->id; ?>" onclick="isChecked(this.checked, this);" />
+					<input type="checkbox" name="id[]" id="cb<?php echo $i;?>" value="<?php echo $row->get('id'); ?>" onclick="isChecked(this.checked, this);" />
 				</td>
 				<td>
-					<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id=<?php echo $row->id; ?>">
-						<span><?php echo $this->escape(stripslashes($row->venue)); ?></span>
+					<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id=<?php echo $row->get('id'); ?>">
+						<span><?php echo $this->escape(stripslashes($row->get('zone'))); ?></span>
 					</a>
 				</td>
 				<td>
-					<?php echo $this->escape(stripslashes($row->type)); ?>
+					<?php echo $this->escape(stripslashes($row->get('type'))); ?>
 				</td>
 				<td>
-					<a class="state <?php echo ($row->state == 'up') ? 'publish' : 'unpublish'; ?>" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=state&amp;id=<?php echo $row->id; ?>&amp;state=<?php echo ($row->state == 'up') ? 'down' : 'up'; ?>&amp;<?php echo JUtility::getToken(); ?>=1">
-						<span><?php echo $this->escape(stripslashes($row->state)); ?></span>
+					<a class="state <?php echo ($row->get('state') == 'up') ? 'publish' : 'unpublish'; ?>" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=state&amp;id=<?php echo $row->get('id'); ?>&amp;state=<?php echo ($row->get('state') == 'up') ? 'down' : 'up'; ?>&amp;<?php echo JUtility::getToken(); ?>=1">
+						<span><?php echo $this->escape(stripslashes($row->get('state'))); ?></span>
 					</a>
 				</td>
 				<td>
-					<?php echo $this->escape(stripslashes($row->master)); ?>
+					<?php echo $this->escape(stripslashes($row->get('master'))); ?>
 				</td>
 				<td>
-					<?php echo $this->escape(stripslashes($row->ssh_key_path)); ?>
+					<?php echo $this->escape(stripslashes($row->get('ssh_key_path'))); ?>
+				</td>
+				<td>
+					<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=locations&amp;zone=<?php echo $row->get('id'); ?>">
+						<span><?php echo $row->locations('count'); ?></span>
+					</a>
 				</td>
 			</tr>
 <?php

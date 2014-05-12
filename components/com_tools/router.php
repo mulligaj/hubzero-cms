@@ -45,6 +45,10 @@ function toolsBuildRoute(&$query)
 
 	if (!empty($query['controller'])) 
 	{
+		if ($query['controller'] == 'media')
+		{
+			$segments[] = $query['controller'];
+		}
 		unset($query['controller']);
 	}
 	if (!empty($query['app'])) 
@@ -96,6 +100,10 @@ function toolsParseRoute($segments)
 	{
 		switch ($segments[0])
 		{
+			case 'media':
+				$vars['controller'] = 'media';
+			break;
+
 			case 'pipeline':
 			case 'create':
 				$vars['task'] = $segments[0];
@@ -159,6 +167,13 @@ function toolsParseRoute($segments)
 	{
 		switch ($segments[1])
 		{
+			case 'delete':
+				if (isset($vars['controller']) && $vars['controller'] == 'media')
+				{
+					$vars['task'] = $segments[1];
+				}
+			break;
+
 			case 'publish':
 			case 'install':
 			case 'retire':

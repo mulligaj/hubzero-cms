@@ -46,8 +46,6 @@ foreach($this->shares as $share)
 	}
 }
 
-$venue = false;
-
 JPluginHelper::importPlugin('mw');
 $dispatcher = JDispatcher::getInstance();
 ?>
@@ -145,33 +143,43 @@ if (!$this->app->sess) {
 			} 
 			?>
 		</div><!-- #app-footer -->
-	<?php if ($venue) { ?>
-		<div id="app-venue">
+	<?php if ($this->zone->config('zones') && $this->zone->exists()) { ?>
+		<div id="app-zone">
 			<div class="grid">
 				<div class="col span6">
-					<p class="venue-identity"><img src="<?php echo rtrim(JURI::base(true), '/') . '/site/tools/venues/default.png'; ?>" alt="" /></p>
-					<p><?php echo JText::sprintf('This tool session is powered by the mirror site at %s', $venue); ?></p>
+					<p class="zone-identity">
+					<?php if ($logo = $this->zone->logo()) { ?>
+						<img src="<?php echo $logo; ?>" alt="" />
+					<?php } ?>
+					</p>
+					<p>
+						<?php echo JText::sprintf('This tool session is powered by the mirror site at %s', $this->zone->get('title', $this->zone->get('zone'))); ?>
+					</p>
 				</div><!-- / .col span6 -->
 				<div class="col span6 omega">
-					<form name="share" id="app-venue" method="post" action="<?php echo JRoute::_('index.php?option='.$this->option.'&app='.$this->toolname.'&task=session&sess='.$this->app->sess); ?>">
-						<div class="grid">
-							<div class="col span-half">
-								<label for="field-venue">
-									<?php echo JText::_('Run elsewhere:'); ?><br />
-									<select name="venue" id="field-venue">
-										<option value=""><?php echo JText::_('Select venue ...'); ?></option>
-									</select>
-								</label>
-								<input type="submit" value="Go" />
-							</div><!-- / .col span6 omega -->
-							<div class="col span-half omega">
-								<p><?php echo JText::_('<strong>Warning:</strong> Changing venues will terminate this session.'); ?></p>
-							</div><!-- / .col span6 omega -->
-						</div><!-- / .grid -->
+					<form name="share" id="app-zone" method="post" action="<?php echo JRoute::_('index.php?option='.$this->option.'&app='.$this->toolname.'&task=reinvoke&sess='.$this->app->sess); ?>">
+						<p><?php echo JText::_('<strong>Warning:</strong> Changing zones will terminate this session.'); ?></p>
+						<p><label for="field-zone">
+							<?php echo JText::_('Run elsewhere:'); ?>
+							<select name="zone" id="field-zone">
+								<option value=""><?php echo JText::_('Select ...'); ?></option>
+							<?php 
+							foreach ($this->middleware->zones('list', array('state' => 'up', 'id' => $this->middleware->get('allowed'))) as $zone) 
+							{
+								if ($zone->get('id') == $this->zone->get('id'))
+								{
+									continue;
+								}
+							?>
+								<option value="<?php echo $zone->get('id'); ?>"><?php echo $this->escape($zone->get('title', $zone->get('zone'))); ?></option>
+							<?php } ?>
+							</select>
+						</label>
+						<input type="submit" value="Go" /></p>
 					</form>
 				</div><!-- / .col span6 omega -->
 			</div><!-- .grid -->
-		</div><!-- #app-venue -->
+		</div><!-- #app-zone -->
 	<?php } ?>
 	</div><!-- #app-wrap -->
 

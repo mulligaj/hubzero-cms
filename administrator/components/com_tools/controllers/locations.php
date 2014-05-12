@@ -31,13 +31,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'venue.php');
-include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'venue.location.php');
+include_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'middleware.php');
 
 /**
- * Administrative tools controller for venues
+ * Administrative tools controller for zones
  */
-class ToolsControllerVenues extends \Hubzero\Component\AdminController
+class ToolsControllerLocations extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of hosts
@@ -52,65 +51,69 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 
 		// Get filters
 		$this->view->filters = array();
-		$this->view->filters['venue']       = urldecode($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.venue', 
-			'venue', 
-			''
+		$this->view->filters['zone']       = urldecode($app->getUserStateFromRequest(
+			$this->_option . '.' . $this->_controller . '.zone', 
+			'zone', 
+			0,
+			'int'
 		));
-		$this->view->filters['master']       = urldecode($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.master', 
-			'master', 
+		$this->view->filters['tmpl']    = $app->getUserStateFromRequest(
+			$this->_option . '.' . $this->_controller . '.tmpl',
+			'tmpl',
 			''
-		));
+		);
 		// Sorting
 		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
 			$this->_option . '.' . $this->_controller . '.sort', 
 			'filter_order', 
-			'venue'
+			'zone'
 		));
 		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
 			$this->_option . '.' . $this->_controller . '.sortdir', 
 			'filter_order_Dir', 
 			'ASC'
 		));
-		// Get paging variables
-		$this->view->filters['limit']        = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
-			'int'
-		);
-		$this->view->filters['start']        = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart', 
-			'limitstart', 
-			0, 
-			'int'
-		);
-		// In case limit has been changed, adjust limitstart accordingly
-		$this->view->filters['start'] = ($this->view->filters['limit'] != 0 ? (floor($this->view->filters['start'] / $this->view->filters['limit']) * $this->view->filters['limit']) : 0);
+
+		if ($this->view->filters['tmpl'] == 'component')
+		{
+			$this->view->setLayout('component');
+		}
+		else
+		{
+			// Get paging variables
+			$this->view->filters['limit']        = $app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.limit', 
+				'limit', 
+				$config->getValue('config.list_limit'), 
+				'int'
+			);
+			$this->view->filters['start']        = $app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.limitstart', 
+				'limitstart', 
+				0, 
+				'int'
+			);
+
+			// In case limit has been changed, adjust limitstart accordingly
+			$this->view->filters['start'] = ($this->view->filters['limit'] != 0 ? (floor($this->view->filters['start'] / $this->view->filters['limit']) * $this->view->filters['limit']) : 0);
+		}
 
 		// Get the middleware database
-		$mwdb = MwUtils::getMWDBO();
+		$this->view->zone = new MiddlewareModelZone($this->view->filters['zone']);
 
-		$model = new MwVenue($mwdb);
+		$this->view->total = $this->view->zone->locations('count', $this->view->filters);
 
-		$this->view->total = $model->getCount($this->view->filters);
+		$this->view->rows  = $this->view->zone->locations('list', $this->view->filters);
 
-		$this->view->rows = $model->getRecords($this->view->filters);
-
-		// Initiate paging
-		jimport('joomla.html.pagination');
-		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
-			$this->view->filters['limit']
-		);
-
-		$componentcss = JPATH_COMPONENT . DS . 'tools.css';
-		if (file_exists($componentcss)) 
+		if ($this->view->filters['tmpl'] != 'component')
 		{
-			$jdocument = JFactory::getDocument();
-			$jdocument->addStyleSheet('components' . DS . $this->_option . DS . 'tools.css?v=' . filemtime($componentcss));
+			// Initiate paging
+			jimport('joomla.html.pagination');
+			$this->view->pageNav = new JPagination(
+				$this->view->total, 
+				$this->view->filters['start'], 
+				$this->view->filters['limit']
+			);
 		}
 
 		// Set any errors
@@ -150,6 +153,8 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 		// Get the middleware database
 		$mwdb = MwUtils::getMWDBO();
 
+		$mw = new ToolsModelMiddleware($mwdb);
+
 		if (is_object($row))
 		{
 			$this->view->row = $row;
@@ -159,17 +164,15 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 			// Incoming
 			$id = JRequest::getInt('id', 0);
 
-			$this->view->row = new MwVenue($mwdb);
-			$this->view->row->load($id);
+			$this->view->row = new MiddlewareModelLocation($id);
 		}
-		if (!$this->view->row->id)
+
+		$this->view->zone = JRequest::getInt('zone', 0);
+		if (!$this->view->row->exists())
 		{
-			$this->view->row->state = 'down';
+			$this->view->row->set('zone_id', $this->view->zone);
 		}
-
-		$vl = new MwVenueLocation($mwdb);
-
-		$this->view->locations = $vl->getRecords(array('venue_id' => $this->view->row->id));
+		$this->view->tmpl = JRequest::getVar('tmpl', '');
 
 		// Set any errors
 		if ($this->getError())
@@ -205,13 +208,11 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
 
-		// Get the middleware database
-		$mwdb = MwUtils::getMWDBO();
-
 		// Incoming
 		$fields = JRequest::getVar('fields', array(), 'post');
+		$tmpl   = JRequest::getVar('tmpl', '');
 
-		$row = new MwVenue($mwdb);
+		$row = new MiddlewareModelLocation($fields['id']);
 		if (!$row->bind($fields)) 
 		{
 			$this->addComponentMessage($row->getError(), 'error');
@@ -219,69 +220,32 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 			return;
 		}
 
-		// Check content
-		if (!$row->check()) 
-		{
-			$this->addComponentMessage($row->getError(), 'error');
-			$this->editTask($row);
-			return;
-		}
-
 		// Store new content
-		if (!$row->store()) 
+		if (!$row->store(true)) 
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
 			return;
 		}
 
-		$vl = new MwVenueLocation($mwdb);
-		$vl->deleteByVenue($row->id);
-
-		$locations = JRequest::getVar('locations', array(), 'post');
-		foreach ($locations as $location)
+		if ($tmpl == 'component')
 		{
-			$vl = new MwVenueLocation($mwdb);
-			$vl->venue_id = $row->id;
-			$vl->location = $location;
-			if (!$vl->check())
+			if ($this->getError())
 			{
-				$this->addComponentMessage($vl->getError(), 'error');
-				$this->editTask($row);
-				return;
+				echo '<p class="error">' . $this->getError() . '</p>';
 			}
-			if (!$vl->store())
+			else
 			{
-				$this->addComponentMessage($vl->getError(), 'error');
-				$this->editTask($row);
-				return;
+				echo '<p class="message">' . JText::_('Location successfully saved') . '</p>';
 			}
+			return;
 		}
-		/*$customs = JRequest::getVar('custom', array(), 'post');
-		foreach ($customs as $custom)
-		{
-			$vl = new MwVenueLocation($mwdb);
-			$vl->venue_id = $row->id;
-			$vl->location = $custom;
-			if (!$vl->check())
-			{
-				$this->addComponentMessage($vl->getError(), 'error');
-				$this->editTask($row);
-				return;
-			}
-			if (!$vl->store())
-			{
-				$this->addComponentMessage($vl->getError(), 'error');
-				$this->editTask($row);
-				return;
-			}
-		}*/
 
 		if ($redirect)
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				Jtext::_('Venue successfully saved.'),
+				Jtext::_('Zone location successfully saved.'),
 				'message'
 			);
 			return;
@@ -291,7 +255,7 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 	}
 
 	/**
-	 * Toggle a venue's state
+	 * Toggle a zone's state
 	 * 
 	 * @return     void
 	 */
@@ -311,13 +275,11 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 			);
 		}
 
-		// Get the middleware database
-		$mwdb = MwUtils::getMWDBO();
 
-		$row = new MwVenue($mwdb);
-		if ($row->load($id))
+		$row = new MiddlewareModelLocation($id);
+		if ($row->exists())
 		{
-			$row->state = $state;
+			$row->set('state', $state);
 			if (!$row->store())
 			{
 				$this->setRedirect(
@@ -342,21 +304,19 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 	public function removeTask()
 	{
 		// Check for request forgeries
-		JRequest::checkToken() or jexit('Invalid Token');
+		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
 
-		$mwdb = MwUtils::getMWDBO();
-
 		if (count($ids) > 0) 
 		{
-			$row = new MwVenue($mwdb);
-
 			// Loop through each ID
 			foreach ($ids as $id) 
 			{
-				if (!$row->delete(intval($id))) 
+				$row = new MiddlewareModelLocation(intval($id));
+
+				if (!$row->delete()) 
 				{
 					JError::raiseError(500, $row->getError());
 					return;
@@ -366,7 +326,7 @@ class ToolsControllerVenues extends \Hubzero\Component\AdminController
 
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Venue successfully deleted.'),
+			JText::_('Zone location successfully deleted.'),
 			'message'
 		);
 	}
