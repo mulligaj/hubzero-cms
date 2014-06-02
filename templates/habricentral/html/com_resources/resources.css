@@ -92,6 +92,11 @@
 	padding-left: 27px;
 	background: url("/components/com_resources/images/types/fc-wiki.gif") 4px 2px no-repeat;
 }
+.aside #sponsors p.wiki {
+	padding-left: 0;
+	text-align: left;
+	background: none;
+}
 .results {
 	margin-top: 0;
 }
