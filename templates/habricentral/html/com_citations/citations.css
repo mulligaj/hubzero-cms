@@ -65,3 +65,7 @@ table.citation {
 	height:25px;
 	background:whiteSmoke;
 }
+
+#citation-sponsors .citation-sponsor li a:hover {
+	background: #FFF;
+}
