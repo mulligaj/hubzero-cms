@@ -417,7 +417,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 	{
 		$checked = JRequest::getVar('checked', array(), 'request');
 		$tags = trim(JRequest::getString('tags', '', 'request'));
-
+		
 		// get markers object
 		$GM = new GeosearchMarkers($this->database);
 
@@ -571,10 +571,13 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 			{
 				// get location data
 				$data = $this->getResourceData($row->fulltxt);
-				$location = "<location>{$data['citations']}</location>";
+				$location = "<location><value>{$data['bio']}</value></location>";
 				$locxml = simplexml_load_string($location);
+
+				$value = (string) $locxml->value;
+
 				// skip empty locations 
-				if ($locxml->value != "") 
+				if ($value != "") 
 				{
 					// check for marker table entry
 					if ($check = $GM->checkOrgMarker($row->id)) {
@@ -586,7 +589,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 						// geocode city if no coords
 						if ($locxml->lat == 0 || $locxml->lng == 0) 
 						{
-							if ($latlng = $this->doGeocode($locxml->value)) 
+							if ($latlng = $this->doGeocode($value)) 
 							{
 								$locxml->lat = $latlng[0];
 								$locxml->lng = $latlng[1];
@@ -802,9 +805,6 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 				$data[$match[1]] = $match[2];
 			}
 		}
-		echo '<pre>';
-		print_r($data);
-		echo '</pre>';
 		return $data;
 	}
 	
