@@ -38,7 +38,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 <div id="content-header-extra">
 	<ul id="useroptions">
 		<li class="last">
-			<a class="tag btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
+			<a class="icon-tag tag btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
 				<?php echo JText::_('COM_TAGS_MORE_TAGS'); ?>
 			</a>
 		</li>
@@ -152,6 +152,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 		echo $html;
 		?>
 		</div>
+		<p class="info">
+			<?php echo JText::_('COM_TAGS_RESULTS_NOTE'); ?>
+		</p>
 	</div><!-- / .aside -->
 	<div class="subject">
 		
