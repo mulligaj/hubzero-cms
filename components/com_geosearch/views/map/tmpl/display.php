@@ -160,7 +160,7 @@ $doc->addScriptDeclaration($js);
 	<h2><?php echo JText::_('COM_GEOSEARCH_TITLE'); ?></h2>
 </div>
 <div class="main section">
-<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="post" id="frm_search">
+<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="get" id="frm_search">
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo implode("\n", $this->getErrors()); ?></p>
 <?php } ?>
@@ -222,9 +222,20 @@ $doc->addScriptDeclaration($js);
 		</div><!-- / .container -->
 	</div><!-- / .aside -->
 	<div class="subject">
+
+		<div class="container data-entry">
+			<input class="entry-search-submit" type="submit" value="Search">
+			<fieldset class="entry-search">
+				<legend>Search by Keyword</legend>
+				<label for="entry-search-field">Enter keyword or phrase</label>
+				<input type="text" name="search" id="entry-search-field" value="<?php echo JRequest::getVar('search', ''); ?>" placeholder="Search by keyword or phrase">
+			</fieldset>
+		</div>
+
 		<div id="map_canvas"></div>
 		<br />
-			<div class="container">
+
+			<div class="container hide">
 				<div class="container-block">
 					<h3><?php echo JText::_('COM_GEOSEARCH_LIST'); ?></h3>
 							<div class="list">
@@ -396,7 +407,7 @@ $doc->addScriptDeclaration($js);
 								} else { ?>
 							<?php if (in_array("orgs",$this->resources)) { echo '<p>' . JText::_('COM_GEOSEARCH_NO_ORGS') . '</p>'; } ?>
 							<?php } ?>
-                            <?php echo $this->pagenavhtml; ?>
+                            <?php //echo $this->pagenavhtml; ?>
                             <br class="clear" />
                         </div>
 				</div><!-- / .container-block -->

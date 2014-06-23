@@ -38,8 +38,8 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 	public function displayTask() 
 	{
 		$filters          = array();
-		$filters['limit'] = JRequest::getInt('limit', 10, 'request');
-		$filters['start'] = JRequest::getInt('limitstart', 0, 'request');
+		$filters['limit'] = 1000; //JRequest::getInt('limit', 1000, 'request');
+		$filters['start'] = 0; //JRequest::getInt('limitstart', 0, 'request');
 		$resources        = JRequest::getVar('resource', '', 'request');
 		$tags             = trim(JRequest::getString('tags', '', 'request'));
 		$distance         = JRequest::getInt('distance', '', 'request');
@@ -225,7 +225,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 			}
 
 			$this->view->members = $MP->selectWhere('*',"$search AND email NOT LIKE 'DISABLED%' ORDER BY surname LIMIT {$filters['start']}, {$filters['limit']}");
-
+			
 			if ($all) 
 			{
 				// add all members to total
@@ -235,6 +235,32 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 			{
 				$total = count($this->view->members);
 			}
+
+			/**
+			 * Filter events by search term
+			 */
+			$search = JRequest::getVar('search', '');
+			if ($search != '')
+			{
+				// reset map markers
+				$this->view->uids = array();
+				foreach ($this->view->members as $k => $member)
+				{
+					if (stristr($member->name, $search) === false)
+					{
+						unset($this->view->members[$k]);
+					}
+					else
+					{
+						// add a map marker for each org that matches search
+						$u                  = new stdClass;
+						$u->scope           = 'member';
+						$u->uidNumber       = $member->uidNumber;
+						$this->view->uids[] = $u;
+					}
+				}
+			}
+			$this->view->members = array_values(array_filter($this->view->members));
 
 			// clear ids var if no results
 			if (count($this->view->members) == 0) 
@@ -271,6 +297,33 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 				$this->view->jobs = $J->get_openings($filters, 0, 0);
 			}
 
+			/**
+			 * Filter events by search term
+			 */
+			$search = JRequest::getVar('search', '');
+			if ($search != '')
+			{
+				// reset map markers
+				$this->view->jids = array();
+				foreach ($this->view->jobs as $k => $job)
+				{
+					if (stristr($job->title, $search) === false
+						&& stristr($job->description, $search) === false)
+					{
+						unset($this->view->jobs[$k]);
+					}
+					else
+					{
+						// add a map marker for each org that matches search
+						$j                  = new stdClass;
+						$j->scope           = 'job';
+						$j->scope_id        = $job->id;
+						$this->view->jids[] = $j;
+					}
+				}
+			}
+			$this->view->jobs = array_values(array_filter($this->view->jobs));
+
 			// clear ids var if no results
 			if (count($this->view->jobs) == 0) 
 			{
@@ -304,14 +357,46 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 						$EE->load($eid);
 					}
 
-					$events[] = array($EE->id, $EE->title, $EE->publish_up, $EE->publish_down, $EE->content);
+					$e                    = new StdClass;
+					$e->id                = $EE->id;
+					$e->title             = $EE->title;
+					$e->publish_up        = $EE->publish_up;
+					$e->publish_down      = $EE->publish_down;
+					$e->content           = $EE->content;
+					$this->view->events[] = $e;
 				}
-				$this->view->events = $events;
 			} 
 			else 
 			{
 				$this->view->events = $EE->getEvents($period='year', $filters);
 			}
+
+			/**
+			 * Filter events by search term
+			 */
+			$search = JRequest::getVar('search', '');
+			if ($search != '')
+			{
+				// reset map markers
+				$this->view->eids = array();
+				foreach ($this->view->events as $k => $event)
+				{
+					if (stristr($event->title, $search) === false
+						&& stristr($event->content, $search) === false)
+					{
+						unset($this->view->events[$k]);
+					}
+					else
+					{
+						// add a map marker for each event that matches search
+						$e                  = new stdClass;
+						$e->scope           = 'event';
+						$e->scope_id        = $event->id;
+						$this->view->eids[] = $e;
+					}
+				}
+			}
+			$this->view->events = array_values(array_filter($this->view->events));
 			
 			// clear ids var if no results
 			if (count($this->view->events) == 0) 
@@ -348,14 +433,45 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 					{
 						$RR->load($oid);
 					}
-					$orgs[] = array($RR->id, $RR->title, $RR->fulltxt);
+
+					$o                  = new StdClass;
+					$o->id              = $RR->id;
+					$o->title           = $RR->title;
+					$o->fulltxt         = $RR->fulltxt;
+					$this->view->orgs[] = $o;
 				}
-				$this->view->orgs = $orgs;
 			}
 			else 
 			{
 				$this->view->orgs = $RR->getRecords($filters);
 			}
+
+			/**
+			 * Filter events by search term
+			 */
+			$search = JRequest::getVar('search', '');
+			if ($search != '')
+			{
+				// reset map markers
+				$this->view->oids = array();
+				foreach ($this->view->orgs as $k => $org)
+				{
+					if (stristr($org->title, $search) === false
+						&& stristr($org->introtext, $search) === false)
+					{
+						unset($this->view->orgs[$k]);
+					}
+					else
+					{
+						// add a map marker for each org that matches search
+						$o                  = new stdClass;
+						$o->scope           = 'org';
+						$o->scope_id        = $org->id;
+						$this->view->oids[] = $o;
+					}
+				}
+			}
+			$this->view->orgs = array_values(array_filter($this->view->orgs));
 
 			// clear ids var if no results
 			if (count($this->view->orgs) == 0) 
@@ -401,6 +517,9 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 			$this->view->uids[] = -999; 
 		}
 		
+		$this->_pathway();
+		$this->_title();
+
 		// Output HTML
 		if ($this->getError()) 
 		{
@@ -409,7 +528,36 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 
 		$this->view->display();
 	}
+
+	/**
+	 * Set breadcrumbs
+	 * @return
+	 */
+	private function _pathway()
+	{
+		$pathway = JFactory::getApplication()->getPathway();
+		
+		//add 'groups' item to pathway
+		if (count($pathway->getPathWay()) <= 0)
+		{
+			$pathway->addItem(
+				JText::_(strtoupper($this->_option)),
+				'index.php?option=' . $this->_option
+			);
+		}
+	}
 	
+	/**
+	 * Set Title
+	 * @return
+	 */
+	private function _title()
+	{
+		//set title of browser window
+		$document = JFactory::getDocument();
+		$document->setTitle(JText::_(strtoupper($this->_option)));
+	}
+
 	/**
 	 * get marker coordinates 
 	 */

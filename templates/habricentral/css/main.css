@@ -102,6 +102,9 @@
 			padding-bottom: 6px !important;
 		}
 	}
+	.mozilla .entry-search input[type="text"] {
+		line-height: 1.61803em;
+	}
 	.entry-search input[type="hidden"] {
 		display: none;
 		visibility: hidden;

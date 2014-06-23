@@ -87,7 +87,11 @@ HUB.Geosearch = {
 			// fit map to bounds only if were doing a location search
 			if ($('#idist').val() != 0 && $('#iloc').val() != '')
 			{
-				map.fitBounds(bounds);
+				var center = bounds.getCenter();
+				if (center.k != 0)
+				{
+					map.fitBounds(bounds);
+				}
 			}
 		},"xml");
 	},
@@ -136,15 +140,15 @@ HUB.Geosearch = {
 			{
 				if (type == "event") 
 				{
-					var plink = "/index.php?option=com_events&task=details&id="+uid;
+					var plink = "/events/details/"+uid;
 				}
-				//else if (type == "job") 
-				//{
-				//	var plink = "/index.php?option=com_jobs&task=job&code="+code
-				//} 
+				else if (type == "job") 
+				{
+					var plink = "/jobs/job/"+code
+				} 
 				else 
 				{
-					var plink = "/index.php?option=com_resources&id="+uid;
+					var plink = "/resources/"+uid;
 				}
 			}
 
