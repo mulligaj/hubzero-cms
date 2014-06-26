@@ -166,7 +166,7 @@ $doc->addScriptDeclaration($js);
 <?php } ?>
 	<div class="aside geosearch">
 		<div class="container">
-			<h3><?php echo JText::_('COM_GEOSEARCH_GEOHEAD'); ?></h3>
+			<h3><?php echo JText::_('COM_GEOSEARCH_FILTER'); ?></h3>
             
             <fieldset>
             	<legend><?php echo JText::_('COM_GEOSEARCH_LIM_RES'); ?></legend>
@@ -216,7 +216,7 @@ $doc->addScriptDeclaration($js);
                 <input type="text" name="location" id="iloc" value="<?php if ($this->location != "") echo $this->location; ?>" <?php if ($this->location == "") echo "placeholder=\"place, address, or zip\""; ?>/>
             </fieldset>
             
-            <input type="submit" value="Search" /> <input type="button" value="Clear" id="clears"/> 
+            <input type="submit" value="<?php echo JText::_('COM_GEOSEARCH_FILTER_BUTTON'); ?>" /> <input type="button" value="Clear" id="clears"/> 
             
             <div class="clear"></div>
 		</div><!-- / .container -->
