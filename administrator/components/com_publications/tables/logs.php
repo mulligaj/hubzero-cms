@@ -174,8 +174,12 @@ class PublicationLog extends JTable
 		$log = JFactory::getDate()->toSql() . "\t" . $ip . "\t" . $uid . "\t" . $type . "\n";
 		
 		$handle  = fopen(JPATH_ROOT . $logPath . DS . $filename, 'a');
-		fwrite($handle, $log);
-		fclose($handle);
+		
+		if ($handle)
+		{
+			fwrite($handle, $log);
+			fclose($handle);
+		}
 	}
 	
 	/**
@@ -517,6 +521,102 @@ class PublicationLog extends JTable
 		$this->_db->setQuery( $query );
 		$totals = $this->_db->loadObjectList();
 		return $totals ? $totals[0] : NULL;
+	}
+	
+	/**
+	 * Get stats for publication(s) for a custom report
+	 * 
+	 * @param      string 	$from		Date from
+	 * @param      string 	$to			Date to
+	 * @param      array 	$data		Data to extract
+	 * @param      string 	$filter		Tag name to match
+	 * @return     void
+	 */	
+	public function getCustomStats ( $from = NULL, $to = NULL, $exclude = array(), $filter = NULL ) 
+	{		
+		// Parse dates
+		$parts 	= explode('-', $from);
+		$fromY 	= substr($parts[0], -2, 2);
+		$fromM 	= intval(end($parts));
+		
+		$parts 	= explode('-', $to);
+		$toY 	= substr($parts[0], -2, 2);
+		$toM 	= intval(end($parts));
+		
+		$datequery = $fromY == $toY 
+					? "AND (year=$fromY AND month >= $fromM AND month <= $toM )"
+					: "AND ((year=$fromY AND month >= $fromM ) OR (year=$toY AND month <= $toM))";
+					
+		$citeFrom  = JFactory::getDate($from)->toSql();
+		$citeTo    = JFactory::getDate($to)->toSql();
+		
+		$query  = "SELECT V.publication_id as id, V.title, A.name as author,
+					V.version_label as version, V.doi";
+							
+		$query .= ", (SELECT COALESCE( SUM(L.primary_accesses) , 0 ) 
+					FROM $this->_tbl as L 
+					WHERE L.publication_id=V.publication_id " . $datequery . ") AS downloads ";
+					
+		$query .= ", (SELECT COALESCE( SUM(L.page_views) , 0 ) 
+					FROM $this->_tbl as L 
+					WHERE L.publication_id=V.publication_id " . $datequery . ") AS views ";			
+					
+		$query .= ", (SELECT COUNT(*) 
+					FROM #__citations as C
+					JOIN #__citations_assoc as CA ON CA.cid=C.id 
+					AND tbl='publication' 
+					WHERE CA.oid=V.publication_id  
+					AND C.created <= '" . $citeTo . "' ) AS citations ";		
+		
+		$query .= "FROM ";
+		if ($filter)
+		{
+			$query .= "#__tags_object AS RTA ";
+			$query .= "INNER JOIN #__tags AS TA ON RTA.tagid = TA.id AND RTA.tbl='publications', ";
+		}
+							
+		$query .= " #__publications as C, #__publication_categories AS t, #__publication_versions as V ";
+		$query .= " LEFT JOIN #__publication_authors as A 
+					ON A.publication_version_id=V.id 
+					AND A.ordering=1 AND status=1";
+
+		$query .= " WHERE C.id=V.publication_id AND V.state=1 AND C.category = t.id 
+					AND V.main=1 AND V.published_up < '" . JFactory::getDate()->toSql() . "' ";
+					
+		if (!empty($exclude))
+		{
+			$query .= " AND C.project_id NOT IN (";
+			$tquery = '';
+			foreach ($exclude as $ex)
+			{
+				$tquery .= "'".$ex."',";
+			}
+			$tquery = substr($tquery,0,strlen($tquery) - 1);
+			$query .= $tquery . " ) ";
+		}
+		
+		if ($filter)
+		{
+			include_once( JPATH_ROOT . DS . 'components' . DS . 'com_publications' 
+				. DS . 'helpers' . DS . 'tags.php' );
+			$tagging = new PublicationTags( $this->_db );
+			$tags = $tagging->_parse_tags($filter);
+		
+			$query .= " AND RTA.objectid=C.id AND (TA.tag IN (";
+			$tquery = '';
+			foreach ($tags as $tagg)
+			{
+				$tquery .= "'".$tagg."',";
+			}
+			$tquery = substr($tquery,0,strlen($tquery) - 1);
+			$query .= $tquery."))";
+		}
+		
+		$query .= " GROUP BY V.publication_id ";
+		$query .= " ORDER BY V.publication_id ASC ";
+
+		$this->_db->setQuery( $query );
+		return $this->_db->loadObjectList();
 	}
 	
 	/**

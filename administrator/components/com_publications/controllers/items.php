@@ -343,7 +343,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			return;
 		}
 		
-		$this->view->row = new PublicationVersion( $this->database );
+		$this->view->row  = new PublicationVersion( $this->database );
 		$this->view->pub  = new Publication( $this->database );
 		
 		// Load version						
@@ -367,6 +367,54 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 
 		// Output the HTML
 		$this->view->display();		
+	}
+	
+	/**
+	 * Delete author
+	 * 
+	 * @return     void
+	 */
+	public function deleteauthorTask()
+	{
+		// Incoming
+		$aid = JRequest::getInt( 'aid', 0 );
+		
+		$pAuthor = new PublicationAuthor( $this->database );
+		if (!$pAuthor->load($aid))
+		{
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				JText::_('Cannot load publication author to delete.'),
+				'error'
+			);
+			return;
+		}
+		
+		$url = 'index.php?option=' . $this->_option . '&controller=' . $this->_controller;
+		
+		// Instantiate Version
+		$row = new PublicationVersion($this->database);
+		if ($row->load($pAuthor->publication_version_id))
+		{
+			$url .= '&task=edit' . '&id[]=' . $row->publication_id . '&version=' . $row->version_number;
+		}
+		
+		if (!$pAuthor->delete())
+		{
+			$this->setRedirect(
+				$url,
+				JText::_('Failed to delete author information'),
+				'error'
+			);
+			return;
+		}
+		
+		// Redirect back to publication
+		$this->setRedirect(
+			$url,
+			JText::_('Author deleted')
+		);
+		return;
 	}
 	
 	/**
@@ -636,8 +684,21 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			switch ($action) 
 			{
 				case 'publish': 
-				case 'republish':      	 
-					$row->state = 1;  
+				case 'republish':  
+				    	 
+					// MKAIP --------------> 
+					$mkaip = JPATH_BASE . '/../cli/mkaip/bin/mkaip';
+
+					if (file_exists($mkaip))
+					{
+						$row->state = 10;	// preserving (generating AIP)
+					}
+					else
+					{
+						$row->state = 1;	// published
+					}
+					// MKAIP -------------->
+					  
 				 	$activity = $action == 'publish' 
 						? JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_PUBLISHED')
 						: JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_REPUBLISHED');   
@@ -695,6 +756,41 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 					}
 					$row->modified = JFactory::getDate()->toSql();
 					$row->modified_by = $this->juser->get('id');
+					
+					// MKAIP -------------->
+					// Create OAIS Archival Information Package
+					if (!$this->getError() && file_exists($mkaip))
+					{
+						$mkaipOutput =
+							'mkaip-'
+							. str_replace(
+								'/',
+								'__',
+								$row->doi
+							)
+							. '.out';
+
+						// "fire and forget" mkaip --
+						// must use proc_open / proc_close()
+						// or we cannot run mkaip in the
+						// background on:
+						//     Debian GNU/Linux 6.0.7 (squeeze)
+						// [ Mark Leighton Fisher, 2014-04-28 ]
+						$handles = array();
+						$pipes	 = array();
+						proc_close(
+							proc_open(
+								'( /usr/bin/nohup '
+								. '/usr/bin/php -q '
+								. $mkaip . ' ' . $row->doi . ' '
+								. '2>&1 > '
+								. "/www/tmp/$mkaipOutput & ) &",
+								$handles,
+								$pipes
+							)
+						);
+					}					
+					// MKAIP -------------->
 					
 					if (!$this->getError()) 
 					{

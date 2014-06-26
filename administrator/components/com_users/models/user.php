@@ -86,6 +86,11 @@ class UsersModelUser extends JModelAdmin
 			return false;
 		}
 
+		if (JComponentHelper::getParams('com_users')->get('change_login_name'))
+		{
+			$form->setFieldAttribute('username', 'readonly', 'false');
+		}
+
 		return $form;
 	}
 
@@ -337,6 +342,7 @@ class UsersModelUser extends JModelAdmin
 					// Skip changing of same state
 					if ($table->block == $value)
 					{
+						JError::raiseNotice(405, JText::_('COM_USERS_USERS_ERROR_CANNOT_BLOCK_ALREADY_BLOCKED'));
 						unset($pks[$i]);
 						continue;
 					}

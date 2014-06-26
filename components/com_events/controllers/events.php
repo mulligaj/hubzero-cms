@@ -409,15 +409,17 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		// Set some dates
 		$select_date = $year . '-' . $month . '-01 00:00:00';
 		$select_date_fin = $year . '-' . $month . '-' . date("t",mktime(0, 0, 0, ($month+1), 0, (int) $year)) . ' 23:59:59';
+		$select_date = JFactory::getDate($select_date, JFactory::getConfig()->get('offset'));
+		$select_date_fin = JFactory::getDate($select_date_fin, JFactory::getConfig()->get('offset'));
 		
 		// Set some filters
 		$filters = array();
 		$filters['gid'] = $gid;
-		$filters['select_date'] = $select_date;
-		$filters['select_date_fin'] = $select_date_fin;
+		$filters['select_date'] = $select_date->toSql();
+		$filters['select_date_fin'] = $select_date_fin->toSql();
 		$filters['category'] = $this->category;
 		$filters['scope'] = 'event';
-
+		
 		// Retrieve records
 		$ee = new EventsEvent($this->database);
 		$rows = $ee->getEvents('month', $filters);
@@ -1482,25 +1484,6 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			$registerby_date = JHTML::_('date', $row->registerby, 'Y-m-d', $timezone);
 			$registerby_time = JHTML::_('date', $row->registerby, 'H:i', $timezone);
 
-			$row->reccurday_month = 99;
-			$row->reccurday_week = 99;
-			$row->reccurday_year = 99;
-
-			if ($row->reccurday <> '') 
-			{
-				if ($row->reccurtype == 1) 
-				{
-					$row->reccurday_week = $row->reccurday;
-				} 
-				elseif ($row->reccurtype == 3) 
-				{
-					$row->reccurday_month = $row->reccurday;
-				} 
-				elseif ($row->reccurtype == 5) 
-				{
-					$row->reccurday_year = $row->reccurday;
-				}
-			}
 			$arr = array(
 				JHTML::_('select.option', 0, strtolower(JText::_('EVENTS_NO')), 'value', 'text'),
 				JHTML::_('select.option', 1, strtolower(JText::_('EVENTS_YES')), 'value', 'text'),
@@ -1556,12 +1539,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 			// If user hits refresh, try to maintain event form state
 			$row->bind($_POST);
-			$row->reccurday_month = -1;
-			$row->reccurday_week = -1;
-			$row->reccurday_year = -1;
-			$row->created_by_alias = $this->juser->get('username');
 			$row->created_by = $this->juser->get('id');
-			$row->reccurtype = 0;
 
 			$lists = '';
 		}

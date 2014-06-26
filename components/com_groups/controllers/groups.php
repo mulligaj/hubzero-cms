@@ -297,7 +297,7 @@ class GroupsControllerGroups extends GroupsControllerAbstract
 		
 		// get active tab
 		$this->view->tab     = GroupsHelperView::getTab( $this->view->group );
-		$this->view->trueTab = JRequest::getVar('active', 'overview');
+		$this->view->trueTab = strtolower(JRequest::getVar('active', 'overview'));
 		
 		// get group pages if any
 		$pageArchive = GroupsModelPageArchive::getInstance();
@@ -485,7 +485,13 @@ class GroupsControllerGroups extends GroupsControllerAbstract
 		// get URI path
 		$path = JURI::getInstance()->getPath();
 		$path = trim(str_replace('groups'.DS.$group->get('cn'), '', $path), DS);
-		
+
+		// make sure we have a path. if no path means were attempting to access the home page
+		if ($path == '')
+		{
+			$path = 'overview';
+		}
+
 		// get group upload path
 		$uploadPath = JComponentHelper::getparams( 'com_groups' )->get('uploadpath');
 		
@@ -1696,7 +1702,7 @@ class GroupsControllerGroups extends GroupsControllerAbstract
 	 * @return 		boolean		True if valid, false if not
 	 */
     private function _validCn( $cn, $allowDashes = false )
-	{
+    {
 		$regex = '/^[0-9a-z]+[_0-9a-z]*$/u';
 		if ($allowDashes)
 		{

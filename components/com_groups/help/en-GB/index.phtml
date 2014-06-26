@@ -31,11 +31,16 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-// get super groups
-$super = \Hubzero\User\Group::find(array(
-	'fields' => array('COUNT(*)'),
-	'type' => array('super')
-));
+// lets see if the logged in user is a manager in any super groups
+$superGroups = \Hubzero\User\Helper::getGroups(
+	JFactory::getUser()->get('id'), 
+	'managers',
+	3
+);
+
+// are page modules enabled for standard groups
+$groupParams = JComponentHelper::getParams('com_groups');
+$groupModules = $groupParams->get('page_modules', 0);
 ?>
 
 <h1>Group Help</h1>
@@ -53,12 +58,19 @@ $super = \Hubzero\User\Group::find(array(
 	<li>
 		<a href="<?php echo JRoute::_('index.php?option=com_help&component=groups&page=categories'); ?>">Group Page Categories</a>
 	</li>
-	<?php if ($super) : ?>
+
+	<?php if ((!empty($superGroups) && count($superGroups) > 0) || $groupModules) : ?>
 		<li>
 			<a href="<?php echo JRoute::_('index.php?option=com_help&component=groups&page=modules'); ?>">Group Page Modules</a>
 		</li>
+	<?php endif; ?>
+
+	<?php if (!empty($superGroups) && count($superGroups) > 0) : ?>
 		<li>
 			<a href="<?php echo JRoute::_('index.php?option=com_help&component=groups&page=supergroup'); ?>">Super Groups</a>
+		</li>
+		<li>
+			<a href="<?php echo JRoute::_('index.php?option=com_help&component=groups&page=supergroup_development'); ?>">Super Group Development Process (Gitlab)</a>
 		</li>
 	<?php endif; ?>
 	<li>

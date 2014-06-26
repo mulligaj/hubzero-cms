@@ -328,6 +328,11 @@ $cc = array();
 						<?php
 						foreach ($comment->attachments() as $attachment)
 						{
+							if (!trim($attachment->get('description')))
+							{
+								$attachment->set('description', $attachment->get('filename'));
+							}
+
 							if ($attachment->isImage()) 
 							{
 								if ($attachment->width() > 400) 
@@ -342,7 +347,7 @@ $cc = array();
 							} 
 							else 
 							{
-								echo '<p class="attachment"><a href="' . JRoute::_($attachment->link()) . '" title="' . $attachment->get('description') . '">' . $attachment->get('description', $this->get('filename')) . '</a></p>';
+								echo '<p class="attachment"><a href="' . JRoute::_($attachment->link()) . '" title="' . $attachment->get('description') . '">' . $attachment->get('description') . '</a></p>';
 							}
 						}
 						?>
@@ -580,11 +585,15 @@ $cc = array();
 
 					<label>
 						<?php echo JText::_('COMMENT_SEND_EMAIL_CC'); ?>: <?php 
+						if (isset($comment))
+						{
+							$cc = $comment->changelog()->get('cc');
+						}
 						$mc = $dispatcher->trigger('onGetMultiEntry', array(array('members', 'cc', 'acmembers', '', implode(', ', $cc))));
 						if (count($mc) > 0) {
 							echo '<span class="hint">'.JText::_('COMMENT_SEND_EMAIL_CC_INSTRUCTIONS_AUTOCOMPLETE').'</span>'.$mc[0];
 						} else { ?> <span class="hint"><?php echo JText::_('COMMENT_SEND_EMAIL_CC_INSTRUCTIONS'); ?></span>
-						<input type="text" name="cc" id="acmembers" value="" size="35" />
+						<input type="text" name="cc" id="acmembers" value="<?php echo implode(', ', $cc); ?>" size="35" />
 						<?php } ?>
 					</label>
 				</fieldset>

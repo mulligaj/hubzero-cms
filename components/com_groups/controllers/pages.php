@@ -383,6 +383,7 @@ class GroupsControllerPages extends GroupsControllerAbstract
 			}
 
 			// save version settings
+			// dont run check on version store, skips onContentBeforeSave in Html format hadler
 			if (!$this->version->store(false, $this->group->isSuperGroup()))
 			{
 				$this->setNotification($this->version->getError(), 'error');
@@ -400,14 +401,18 @@ class GroupsControllerPages extends GroupsControllerAbstract
 		
 		// check page back in
 		GroupsHelperPages::checkin($this->page->get('id'));
-		
-		// Push success message and redirect
-		$this->setNotification("You have successfully {$task}d the page.", 'passed');
-		$this->setRedirect( JRoute::_('index.php?option=' . $this->_option . '&cn=' . $this->group->get('cn') . '&controller=pages') );
+
+		// redirect to return url
 		if ($return = JRequest::getVar('return', '','post'))
 		{
+			$this->setNotification("You have successfully {$task}d the page.", 'passed');
 			$this->setRedirect(base64_decode($return));
+			return;
 		}
+
+		// Push success message and redirect
+		$this->setNotification("You have successfully {$task}d the page. You can view the page by <a rel=\"external\" href=\"{$this->page->url()}\">clicking here</a>.", 'passed');
+		$this->setRedirect( JRoute::_('index.php?option=' . $this->_option . '&cn=' . $this->group->get('cn') . '&controller=pages&task=edit&pageid=' . $this->page->get('id')) );
 	}
 	
 	/**
@@ -581,8 +586,8 @@ class GroupsControllerPages extends GroupsControllerAbstract
 		}
 		
 		// make sure we have an approved version
-		$view->version = $page->approvedVersion();
-		if ($view->version === null)
+		$version = $page->approvedVersion();
+		if ($version === null)
 		{
 			$this->setNotification('Unable to set "' . $page->get('title') . '" as the home page. The page must have at least one approved version to set as home.', 'error');
 			$this->setRedirect( JRoute::_('index.php?option=' . $this->_option . '&cn=' . $this->group->get('cn') . '&controller=pages') );

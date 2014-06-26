@@ -932,16 +932,8 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 			die( JText::_('You must enter a valid username and password.') );
 		}
 		
-		//parse stored passhash
-		preg_match('/({[^}]*})(.+)/', $user->passhash, $matches);
-		$encryption     = preg_replace('/{|}/', '', strtolower($matches[1]));
-		$storedPassword = $matches[2];
-		
-		//run hashing on password entered to see if it matches db
-		$httpBasicPassword = base64_encode(pack('H*', $encryption($httpBasicPassword)));
-		
 		//make sure password matches stored password
-		if ($storedPassword != $httpBasicPassword)
+		if (!\Hubzero\User\Password::comparePasswords($user->passhash, $httpBasicPassword))
 		{
 			JFactory::getAuthLogger()->info($httpBasicUsername . ' ' . $_SERVER['REMOTE_ADDR'] . ' invalid group calendar subscription auth for ' . $this->group->get('cn'));
 			apache_note('auth','invalid');
@@ -1212,7 +1204,7 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		$eventsEvent = new EventsEvent( $this->database );
 		$eventsEvent->load( $event_id );
 
-		//send a copy to event admin
+		// send a copy to event admin
 		if ($eventsEvent->email != '')
 		{
 			//build message to send to event admin
@@ -1221,7 +1213,7 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 					'folder'  => 'groups',
 					'element' => 'calendar',
 					'name'    => 'calendar',
-					'layout'  => 'register_email'
+					'layout'  => 'register_email_admin'
 				)
 			);
 			$email->option     = $this->option;
@@ -1250,6 +1242,39 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 			$this->_sendEmail($eventsEvent->email, $from, $subject, $message);
 		}
 
+		
+		//build message to send to event registerer
+		$email = new \Hubzero\Plugin\View(
+			array(
+				'folder'  => 'groups',
+				'element' => 'calendar',
+				'name'    => 'calendar',
+				'layout'  => 'register_email_user'
+			)
+		);
+		$email->option     = $this->option;
+		$email->group      = $this->group;
+		$email->event      = $eventsEvent;
+		$email->sitename   = JFactory::getConfig()->getValue('config.sitename');
+		$email->siteurl    = JFactory::getConfig()->getValue('config.live_site');
+		$email->register   = $register;
+		$email->race       = $race;
+		$email->dietary    = $dietary;
+		$email->disability = $disability;
+		$email->arrival    = $arrival;
+		$email->departure  = $departure;
+		$email->dinner     = $dinner;
+		$message           = str_replace("\n", "\r\n", $email->loadTemplate());
+
+		// build to, from, & subject
+		$to      = JFactory::getUser()->get('email');
+		$from    = array('email' => 'groups@nanohub.org', 'name'  => $email->sitename . ' Group Calendar: ' . $this->group->get('description'));
+		$subject = JText::sprintf('Thank you for Registering for the "%s" event', $eventsEvent->title);
+
+		// send mail to user registering
+		$this->_sendEmail($to, $from, $subject, $message);
+
+		// redirect back to the event
 		$this->redirect(
 			JRoute::_('index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') . '&active=calendar&action=details&event_id=' . $event_id),
 			JText::_('You have successfully registered for the event.'),
@@ -1536,7 +1561,7 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		//add scope and scope id to calendar array
 		$calendarInput['scope']    = 'group';
 		$calendarInput['scope_id'] = $this->group->get('gidNumber');
-		$calendar['url']      = trim($calendar['url']);
+		$calendarInput['url']      = trim($calendarInput['url']);
 
 		//is this a remote calendar url
 		if ($calendarInput['url'] != '' && filter_var($calendarInput['url'], FILTER_VALIDATE_URL))

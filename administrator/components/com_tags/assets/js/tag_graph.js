@@ -3,8 +3,9 @@ var jq = jQuery.noConflict();
 jQuery(function(jq)
 {
 	var $ = jq,
-	    w = 960,
+	    w = $('#graph').innerWidth(),
 	    h = 600;
+	console.log({'w': w});
 
 	var tag_editors = function(json)
 	{
@@ -182,6 +183,7 @@ jQuery(function(jq)
 			.append("svg:svg")
 			.attr("width", w)
 			.attr("height", 400);
+		console.log(tag);
 		d3.json("/administrator/index.php?option=com_tags&controller=relationships&task=hierarchy&tag=" + tag, function(json) 
 		{
 			$('#description').val(json.description);

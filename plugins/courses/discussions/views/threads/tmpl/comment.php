@@ -137,6 +137,7 @@ defined('_JEXEC') or die('Restricted access');
 						<input type="hidden" name="fields[thread]" value="<?php echo $this->comment->get('thread'); ?>" />
 						<input type="hidden" name="fields[created]" value="" />
 						<input type="hidden" name="fields[created_by]" value="<?php echo $juser->get('id'); ?>" />
+						<input type="hidden" name="depth" value="<?php echo ($this->depth + 1); ?>" />
 
 						<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 						<input type="hidden" name="gid" value="<?php echo $this->course->get('alias'); ?>" />
@@ -147,10 +148,10 @@ defined('_JEXEC') or die('Restricted access');
 
 						<?php echo JHTML::_('form.token'); ?>
 
-						<label for="comment-<?php echo $this->comment->get('id'); ?>-content">
+						<label for="comment_<?php echo $this->comment->get('id'); ?>_reply">
 							<span class="label-text"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_FIELD_COMMENTS'); ?></span>
 							<?php
-							echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 5, false, 'field_' . $this->comment->get('id') . '_comment', null, null, array('class' => 'minimal no-footer'));
+							echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 5, false, 'comment_' . $this->comment->get('id') . '_reply', null, null, array('class' => 'minimal no-footer'));
 							?>
 						</label>
 

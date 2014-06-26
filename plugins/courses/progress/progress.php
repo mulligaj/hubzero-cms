@@ -303,7 +303,16 @@ class plgCoursesProgress extends JPlugin
 		$policy->quiz_weight     = $gradePolicy->get('quiz_weight') * 100;
 		$policy->homework_weight = $gradePolicy->get('homework_weight') * 100;
 		$policy->threshold       = $gradePolicy->get('threshold') * 100;
-		$policy->editable        = ($this->course->config()->get('section_grade_policy', true) || $this->course->offering()->access('manage')) ? true : false;
+		$policy->editable        = false;
+
+		if ($this->course->config()->get('section_grade_policy', true))
+		{
+			$policy->editable = true;
+		}
+		else if ($this->course->offering()->access('manage') && $this->course->offering()->section()->get('is_default'))
+		{
+			$policy->editable = true;
+		}
 
 		// Get our units
 		$unitsObj = $this->course->offering()->units();
@@ -374,6 +383,27 @@ class plgCoursesProgress extends JPlugin
 			)
 		);
 
+		// Get gradebook auxiliary assets
+		$auxiliary = $asset->find(
+			array(
+				'w' => array(
+					'course_id'     => $this->course->get('id'),
+					'asset_type'    => 'gradebook',
+					'asset_subtype' => 'auxiliary',
+					'graded'        => true,
+					'state'         => 1
+				),
+				'order_by'  => 'title',
+				'order_dir' => 'ASC'
+			)
+		);
+
+		$assets = array_merge($assets, $auxiliary);
+
+		usort($assets, function($a, $b) {
+			return strcasecmp($a->title, $b->title);
+		});
+
 		echo json_encode(
 			array(
 				'assets'    => $assets,
@@ -407,15 +437,37 @@ class plgCoursesProgress extends JPlugin
 		$assets = $asset->find(
 			array(
 				'w' => array(
-					'course_id'  => $this->course->get('id'),
-					'section_id' => $this->course->offering()->section()->get('id'),
-					'graded'     => true,
-					'state'      => 1
+					'course_id'   => $this->course->get('id'),
+					'section_id'  => $this->course->offering()->section()->get('id'),
+					'offering_id' => $this->course->offering()->get('id'),
+					'graded'      => true,
+					'state'       => 1
 				),
 				'order_by'  => 'title',
 				'order_dir' => 'ASC'
 			)
 		);
+
+		// Get gradebook auxiliary assets
+		$auxiliary = $asset->find(
+			array(
+				'w' => array(
+					'course_id'     => $this->course->get('id'),
+					'asset_type'    => 'gradebook',
+					'asset_subtype' => 'auxiliary',
+					'graded'        => true,
+					'state'         => 1
+				),
+				'order_by'  => 'title',
+				'order_dir' => 'ASC'
+			)
+		);
+
+		$assets = array_merge($assets, $auxiliary);
+
+		usort($assets, function($a, $b) {
+			return strcasecmp($a->title, $b->title);
+		});
 
 		echo json_encode(
 			array(

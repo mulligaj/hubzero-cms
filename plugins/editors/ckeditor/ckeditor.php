@@ -49,6 +49,24 @@ class plgEditorCkeditor extends JPlugin
 	 */
 	public function onInit()
 	{
+		// get joomla application object
+		$app = JFactory::getApplication();
+		
+		// get jquery plugin & parse params
+		$jqueryPlugin = JPluginHelper::getPlugin('system', 'jquery');
+		$jqueryPluginParams = new JParameter( $jqueryPlugin->params );
+		
+		// are we in the admin?
+		if ($app->getName() == 'administrator')
+		{
+			// show user message if jquery is off or not enabled for admin
+			if (!JPluginHelper::isEnabled('system', 'jquery') || !$jqueryPluginParams->get('activateAdmin'))
+			{
+				$app->enqueueMessage('jQuery must be enabled for the administrator section in order for CKEditor to work properly.<br />Edit the jQuery plugin through the Plug-in Manager to enable it. The settings are located under advanced options. This only needs to be set once.', 'error');
+			}
+		}
+		
+
 		// add ckeditor stylesheet
 		Hubzero\Document\Assets::addPluginStylesheet('editors', 'ckeditor');
 
@@ -283,21 +301,22 @@ class plgEditorCkeditor extends JPlugin
 	{
 		// merge incoming params with 
 		$this->params->loadArray($params);
-
+		
 		// object to hold our final config
 		$config                                = new stdClass;
 		$config->startupMode                   = 'wysiwyg';
 		$config->tabSpaces                     = 4;
+		$config->height                        = '200px';
 		$config->hubzeroAutogrow_autoStart     = true;
 		$config->hubzeroAutogrow_minHeight     = 200;
 		$config->hubzeroAutogrow_maxHeight     = 1000;
 		$config->toolbarCanCollapse            = true;
-		$config->extraPlugins                  = 'tableresize,iframedialog,hubzeroautogrow,hubzeroequation,hubzerogrid,hubzeromacro,hubzerohighlight';
-		$config->removePlugins                 = 'resize';
-		$config->resize_enabled                = false;
-		$config->emailProtection               = 'encode';
+		$config->extraPlugins                  = 'tableresize,iframedialog,hubzeroequation,hubzerogrid,hubzeromacro,hubzerohighlight';
+		$config->removePlugins                 = '';
+		$config->resize_enabled                = true;
+		$config->emailProtection               = '';
 		$config->protectedSource               = array('/<group:include([^\\/]*)\\/>/g', '/{xhub:([^}]*)}/gi');
-		$config->extraAllowedContent           = 'mark(*)[*]; *(*)[*]';
+		$config->extraAllowedContent           = 'mark(*)[*]; *(*)[*]{*}';
 		$config->disableNativeSpellChecker     = false;
 		$config->scayt_autoStartup             = true;
 		$config->scayt_contextCommands         = 'all';
@@ -321,7 +340,8 @@ class plgEditorCkeditor extends JPlugin
 			'/',
 			array('Format', 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript'),
 			array('NumberedList', 'BulletedList', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'),
-			array('HubzeroAutoGrow', 'HubzeroMacro')
+			//array('HubzeroAutoGrow', 'HubzeroMacro')
+			array('HubzeroMacro')
 		);
 
 		// if minimal toolbar
@@ -333,7 +353,8 @@ class plgEditorCkeditor extends JPlugin
 				array('NumberedList', 'BulletedList')
 			);
 			$config->toolbarCanCollapse = false;
-			$config->hubzeroAutogrow_autoStart = false;
+			$config->resize_enabled     = false;
+			//$config->hubzeroAutogrow_autoStart = false;
 		}
 
 		// macros popup
@@ -349,8 +370,10 @@ class plgEditorCkeditor extends JPlugin
 		}
 
 		// setup codemirror
-		$config->codemirror = new stdClass;
+		$config->codemirror                         = new stdClass;
 		$config->codemirror->autoFormatOnModeChange = false;
+		$config->codemirror->autoCloseTags          = false;
+		$config->codemirror->autoCloseBrackets      = false;
 
 		// startup mode
 		if (in_array($this->params->get('startupMode'), array('wysiwyg','source')))
@@ -365,23 +388,29 @@ class plgEditorCkeditor extends JPlugin
 			$config->extraPlugins .= ',codemirror';
 		}
 
-		// autogrow auto-start
-		if (is_bool($this->params->get('autoGrowAutoStart')))
+		// height
+		if ($this->params->get('height'))
 		{
-			$config->hubzeroAutogrow_autoStart = $this->params->get('autoGrowAutoStart');
+			$config->height = $this->params->get('height', '200px');
 		}
 
-		// auto grow min height
-		if (is_numeric($this->params->get('autoGrowMinHeight')))
-		{
-			$config->hubzeroAutogrow_minHeight = $this->params->get('autoGrowMinHeight');
-		}
+		// // autogrow auto-start
+		// if (is_bool($this->params->get('autoGrowAutoStart')))
+		// {
+		// 	$config->hubzeroAutogrow_autoStart = $this->params->get('autoGrowAutoStart');
+		// }
 
-		// autogrow max height
-		if (is_numeric($this->params->get('autoGrowMaxHeight')))
-		{
-			$config->hubzeroAutogrow_maxHeight = $this->params->get('autoGrowMaxHeight');
-		}
+		// // auto grow min height
+		// if (is_numeric($this->params->get('autoGrowMinHeight')))
+		// {
+		// 	$config->hubzeroAutogrow_minHeight = $this->params->get('autoGrowMinHeight');
+		// }
+
+		// // autogrow max height
+		// if (is_numeric($this->params->get('autoGrowMaxHeight')))
+		// {
+		// 	$config->hubzeroAutogrow_maxHeight = $this->params->get('autoGrowMaxHeight');
+		// }
 
 		// auto start spell check
 		if (is_bool($this->params->get('spellCheckAutoStart')))
