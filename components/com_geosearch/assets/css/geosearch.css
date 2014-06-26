@@ -10,7 +10,7 @@
 	width:10px;
 }
 #map_canvas {
-	height: 600px;
+	height: 400px;
 }
 img {
 	max-width:none;
@@ -128,4 +128,10 @@ input[type="button"]  {
 	padding: 20px;
 	font-style: italic;
 	color: #aaa;
+}
+
+@media all and (min-height: 800px) {
+	#map_canvas {
+		height: 600px;
+	}
 }
