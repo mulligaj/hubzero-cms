@@ -229,6 +229,17 @@ HUB.Base = {
 				}
 			}
 		});
+
+		// change BBB text to "find this Text"
+		var bbb = $('#primary-document');
+		if (bbb.length)
+		{
+			var url = bbb.find('a').attr('href');
+			if (url.match(/\/findthistext/i))
+			{
+				bbb.find('a').html('Find this Text');
+			}
+		}
 	}
 	
 };
