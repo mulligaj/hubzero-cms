@@ -1,0 +1,9 @@
+@import url('/components/com_groups/assets/css/groups.css');
+
+.com_groups #hubForm.full div > fieldset {
+	float: none;
+	width: 100%;
+	padding: 0 2% 0 18%;
+	box-sizing: border-box;
+	position: relative;
+}
