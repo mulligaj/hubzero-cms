@@ -7,3 +7,6 @@
 	box-sizing: border-box;
 	position: relative;
 }
+.group-page-manager fieldset {
+	width: 100% !important;
+}
