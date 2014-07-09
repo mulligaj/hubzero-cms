@@ -42,17 +42,17 @@ else
 ?>
 	<ul class="new latest_events_tbl">
 	<?php
-	if ($this->eventsByRelDay)
+	if ($this->events)
 	{
 		$database = JFactory::getDBO();
 		$cls = 'even';
-		foreach ($this->eventsByRelDay as $relDay => $daysEvents)
+		foreach ($this->events as $dayEvent)
 		{
-			reset($daysEvents);
+			//reset($daysEvents);
 
 			// Get all of the events for this day
-			foreach ($daysEvents as $dayEvent)
-			{
+			//foreach ($daysEvents as $dayEvent)
+			//{
 				// Get the title and start time
 				$startDate = $dayEvent->publish_up;
 				$eventDate = mktime(substr($startDate, 11, 2), substr($startDate, 14, 2), substr($startDate, 17, 2), date('m'), date('d') + $relDay, date('Y'));
@@ -88,7 +88,7 @@ else
 				</div>
 			</li>
 	<?php 
-			}
+			//}
 		}
 	}
 	else
