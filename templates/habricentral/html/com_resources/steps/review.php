@@ -93,7 +93,7 @@ if ($this->progress['submitted'] == 1) {
 			<fieldset>
 				<h3>Licensing</h3>
 				<label for="license">
-					<?php echo JText::_('License'); ?>
+					<?php echo JText::_('Additional License'); ?>
 					<select name="license" id="license">
 						<option value=""><?php echo JText::_('Select license...'); ?></option>
 <?php 
@@ -181,9 +181,9 @@ if ($this->progress['submitted'] == 1) {
 			
 <?php if ($this->config->get('cc_license')) { ?>
 			<label for="license">
-				<?php echo JText::_('License'); ?> <span class="optional">optional</span>
+				<?php echo JText::_('Additional License:'); ?> <span class="optional">optional</span>
 				<select name="license" id="license">
-					<option value=""><?php echo JText::_('Select license...'); ?></option>
+					<option value=""><?php echo JText::_('No additional license'); ?></option>
 			<?php if ($this->config->get('cc_license_custom')) { ?>
 					<option value="custom"><?php echo JText::_('Custom'); ?></option>
 			<?php } ?>
