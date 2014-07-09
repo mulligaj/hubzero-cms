@@ -166,6 +166,12 @@ if ($this->progress['submitted'] == 1) {
 } else {
 	?>
 	<form action="index.php" method="post" id="hubForm">
+		<p class="info">
+			In order for HABRI Central to display your content, we must be given legal license to do so. At the very least, HABRI Central must be authorized to 
+			hold, copy, distribute, and perform (play back) your material according to <a class="popup" href="/legal/license">this agreement</a>. 
+			You will retain any copyrights to the materials and decide how they should be licensed for end-user access. We encourage you to <a class="popup" href="/legal/licensing">license your contributions</a> 
+			so that others can build upon them.
+		</p>
 		<div class="explaination">
 			<h4>What happens after I submit?</h4>
 			<p>Your submission will be reviewed. If it is accepted, the submission will be given a "live" status and will appear 
