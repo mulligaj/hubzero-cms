@@ -316,7 +316,7 @@ class plgEditorCkeditor extends JPlugin
 		$config->resize_enabled                = true;
 		$config->emailProtection               = '';
 		$config->protectedSource               = array('/<group:include([^\\/]*)\\/>/g', '/{xhub:([^}]*)}/gi');
-		$config->extraAllowedContent           = 'mark(*)[*]; *(*)[*]{*}';
+		$config->extraAllowedContent           = 'style(*)[*]; mark(*)[*]; *(*)[*]{*}';
 		$config->disableNativeSpellChecker     = false;
 		$config->scayt_autoStartup             = true;
 		$config->scayt_contextCommands         = 'all';
@@ -535,6 +535,9 @@ class plgEditorCkeditor extends JPlugin
 			$config->protectedSource[] = '/<\?[\s\S]*?\?>/g';
 			$config->codemirror->mode = 'application/x-httpd-php';
 		}
+
+		// set editor skin
+		$config->skin = $this->params->get('skin', 'moono');
 		
 		return $config;
 	}

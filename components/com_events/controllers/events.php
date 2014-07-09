@@ -1617,6 +1617,12 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$rt = new EventsTags($this->database);
 		$lists['tags'] = $rt->get_tag_string($row->id, 0, 0, NULL, 0, 1);
 
+		// get tags passed from failed save
+		if (isset($this->tags))
+		{
+			$lists['tags'] = $this->tags;
+		}
+
 		// Set the title
 		$document = JFactory::getDocument();
 		$document->setTitle(JText::_(strtoupper($this->_name)) . ': ' . JText::_(strtoupper($this->_name) . '_' . strtoupper($this->_task)));
@@ -1775,6 +1781,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$end_time   = ($end_time) ? $end_time : '17:00';
 		$end_pm     = JRequest::getInt('end_pm', 0, 'post');
 		$time_zone	= JRequest::getVar('time_zone', -5, 'post');
+		$tags       = JRequest::getVar('tags', '', 'post');
 
 		// Bind the posted data to an event object
 		$row = new EventsEvent($this->database);
@@ -1887,9 +1894,26 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			$end_time = $hrs . ':' . $mins;
 		}
 		
-		
-		// get timezone name from offset
-		$tz = timezone_name_from_abbr('',$row->time_zone*3600, NULL);
+		// hack to fix where timezones cant be found by offset int
+		// really need to figure datetimes out
+		switch ($row->time_zone)
+		{
+			case -12:    $tz = 'Pacific/Kwajalein';      break;
+			case -9.5:   $tz = 'Pacific/Marquesa';       break;
+			case -3.5:   $tz = 'Canada/Newfoundland';    break;
+			case -2:     $tz = 'America/Noronha';        break;
+			case 3.5:    $tz = 'Asia/Tehran';            break;
+			case 4.5:    $tz = 'Asia/Kabul';             break;
+			case 6:      $tz = 'Asia/Dhaka';             break;
+			case 6.5:    $tz = 'Asia/Rangoon';           break;
+			case 8.75:   $tz = 'Asia/Shanghai';          break;
+			case 9.5:    $tz = 'Australia/Adelaide';     break;
+			case 11:     $tz = 'Asia/Vladivostok';       break;
+			case 11.5:   $tz = 'Asia/Vladivostok';       break;
+			case 13:     $tz = 'Pacific/Tongatapu';      break;
+			case 14:     $tz = 'Pacific/Kiritimati';     break;
+			default:     $tz = timezone_name_from_abbr('',$row->time_zone*3600, NULL);
+		}
 		
 		// create timezone objects
 		$utcTimezone   = new DateTimezone('UTC');
@@ -1950,6 +1974,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		{
 			// Set the error message
 			$this->setError($row->getError());
+			$this->tags = $tags;
 			// Fall through to the edit view
 			$this->edit($row);
 			return;
@@ -1958,14 +1983,13 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		{
 			// Set the error message
 			$this->setError($row->getError());
+			$this->tags = $tags;
 			// Fall through to the edit view
 			$this->edit($row);
+
 			return;
 		}
 		$row->checkin();
-
-		// Incoming tags
-		$tags = JRequest::getVar('tags', '', 'post');
 
 		// Save the tags
 		$rt = new EventsTags($this->database);

@@ -291,13 +291,14 @@ class Sanitize
 	public static function html($text, $options=array())
 	{
 		$config = \HTMLPurifier_Config::createDefault();
-		$config->set('AutoFormat.Linkify', true);
+		$config->set('AutoFormat.Linkify', false);
 		$config->set('AutoFormat.RemoveEmpty', true);
 		$config->set('AutoFormat.RemoveEmpty.RemoveNbsp', false);
 		$config->set('Output.CommentScriptContents', false);
 		$config->set('Output.TidyFormat', true);
 		$config->set('Attr.AllowedFrameTargets', array('_blank'));
 		$config->set('Attr.EnableID', true);
+		$config->set('HTML.AllowedCommentsRegexp', '/./');
 
 		$path = JPATH_ROOT . DS . 'cache' . DS . 'htmlpurifier';
 		if (!is_dir($path)) 
@@ -322,6 +323,11 @@ class Sanitize
 			}
 		}
 
+		// allow style tags
+		$def = $config->getHTMLDefinition(true);
+		$form = $def->addElement('style', 'Block', 'Flow', 'Common', array());
+
+		// purify text & return
 		$purifier = new \HTMLPurifier($config);
 		return $purifier->purify($text);
 	}
