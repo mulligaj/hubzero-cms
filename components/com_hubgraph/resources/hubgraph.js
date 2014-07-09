@@ -256,7 +256,11 @@ jQuery(function($) {
 		$('.search-bar .terms').focus();
 	}
 
-	$('.related').show();
+	$('.result').mouseenter(function(evt) {
+		$(evt.currentTarget).find('.more').show('slow');
+	}).mouseleave(function(evt) {
+		$(evt.currentTarget).find('.more').hide('fast');
+	});
 	$('.related').click(function(evt) {
 		evt.stopPropagation();
 		var btn = $(evt.target);

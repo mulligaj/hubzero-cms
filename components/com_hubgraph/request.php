@@ -19,7 +19,7 @@ class HubgraphRequest
 			if (isset($this->form['tags']) && is_array($this->form['tags'])) {
 				$order = array_flip($this->form['tags']);
 				foreach (Db::query('SELECT raw_tag, id FROM jos_tags WHERE id IN ('.implode(', ', array_fill(0, count($this->form['tags']), '?')).')', $this->form['tags']) as $row) {
-					$rv[] = array('id' => $row['id'], 'tag' => $row['raw_tag']);
+					$rv[] = array('id' => $row['id'], 'title' => $row['raw_tag']);
 				}
 				usort($rv, function($a, $b) use($order) { 
 					$oa = $order[$a['id']];
@@ -42,10 +42,10 @@ class HubgraphRequest
 		static $rv = NULL;
 		if (is_null($rv)) {
 			$rv = array();
-			if (isset($this->form['contributors']) && is_array($this->form['contributors'])) {
-				$order = array_flip($this->form['contributors']);
-				foreach (Db::query('SELECT name, uidNumber FROM jos_xprofiles WHERE uidNumber IN ('.implode(', ', array_fill(0, count($this->form['contributors']), '?')).')', $this->form['contributors']) as $row) {
-					$rv[] = array('id' => $row['uidNumber'], 'name' => $row['name']);
+			if (isset($this->form['users']) && is_array($this->form['users'])) {
+				$order = array_flip($this->form['users']);
+				foreach (Db::query('SELECT name, uidNumber FROM jos_xprofiles WHERE uidNumber IN ('.implode(', ', array_fill(0, count($this->form['users']), '?')).')', $this->form['users']) as $row) {
+					$rv[] = array('id' => $row['uidNumber'], 'title' => $row['name']);
 				}
 				usort($rv, function($a, $b) use($order) { 
 					$oa = $order[$a['id']];
@@ -67,22 +67,33 @@ class HubgraphRequest
 
 	public function getGroup() {
 		static $group = NULL; 
+		$implicit = FALSE;
 		if (!$group) {
-			if (isset($this->form['gid'])) {
-				$group = $this->form['gid'];
+			if (isset($this->form['groups'])) {
+				$group = $this->form['groups'];
 			}
-			else if (isset($this->form['group'])) {
-				$group = $this->form['group'];
+			else if (isset($this->form['groups'])) {
+				$group = $this->form['groups'];
+			}
+			else {
+				$url = isset($_SERVER['SCRIPT_URL']) ? $_SERVER['SCRIPT_URL'] : $_SERVER['REDIRECT_SCRIPT_URL'];
+				if (preg_match('#^/groups/([-_[:alnum:]]+)#', $url, $ma)) {
+					$group = array($ma[1]);
+					$implicit = TRUE;
+				}
 			}
 			if ($group) {
-				$group = Db::scalarQuery('SELECT gidNumber FROM jos_xgroups WHERE gidNumber = ? OR cn = ?', array($group, $group));
+				$group = Db::query('SELECT gidNumber AS id, description AS title FROM jos_xgroups WHERE gidNumber = ? OR cn = ?', array($group[0], $group[0]));
+				if ($group) {
+					$group[0]['isUrlImplicit'] = $implicit;
+				}
 			}
 		}
 		return $group;
 	}
 
 	private static function idList($coll) {
-		return implode(',', array_map(function($item) { return $item['id']; }, $coll));
+		return implode(',', array_map(function($item) { return $item['id']; }, (array)$coll));
 	}
 
 	public function getTransportCriteria($merge = array()) {
@@ -104,16 +115,26 @@ class HubgraphRequest
 				'terms'        => $this->getTerms(),
 				'tags'         => self::idList($this->getTags()), 
 				'domain'       => lcfirst(htmlentities($this->getDomain())),
-				'contributors' => self::idList($this->getContributors()),
-				'offset'       => isset($_GET['offset']) ? (int)$_GET['offset'] : 0,
+				'users'        => self::idList($this->getContributors()),
+				'page'         => $this->getPage(),
+				'per'          => $this->getPerPage(),
 				'super'        => $super,
 				'uid'          => $uid,
 				'groups'       => $groups,
 				'timeframe'    => $this->getTimeframe(),
-				'inGroup'      => $this->getGroup()
+				'inGroup'      => self::idList($this->getGroup()),
+				'cache'        => isset($_GET['cache']) ? $_GET['cache'] : NULL 
 			);
 		}
 		return array_merge($merge, $crit);
+	}
+	
+	public function getPerPage() {
+		return isset($_GET['per']) && (int)$_GET['per'] == $_GET['per'] && (int)$_GET['per'] ? (int)$_GET['per'] : 40;
+	}
+
+	public function getPage() {
+		return isset($_GET['page']) && (int)$_GET['page'] ? (int)$_GET['page'] : 1;
 	}
 
 	public function getDomain() {
@@ -122,16 +143,16 @@ class HubgraphRequest
 		}
 		if (isset($this->form['option']) && $this->form['option'] == 'com_resources') {
 			if (isset($this->form['type']) && ($type = Db::scalarQuery('SELECT type FROM jos_resource_types WHERE alias = ?', array($this->form['type'])))) {
-				return 'Resources~'.$type;	
+				return 'resources~'.$type;	
 			}
-			return 'Resources';
+			return 'resources';
 		}
 		return '';
 	}
 
 	public function getDomainMap() {
 		$map = array();
-		if (($parts = array_map('ucfirst', explode('~', $this->getDomain())))) {
+		if (($parts = explode('~', $this->getDomain()))) {
 			$lineage = '';
 			foreach ($parts as $part) {
 				$map[($lineage ? $lineage.'~' : '').$part] = TRUE;
@@ -144,7 +165,7 @@ class HubgraphRequest
 	public function anyCriteria() {
 		foreach ($this->getTransportCriteria() as $key=>$crit) {
 			switch ($key) {
-				case 'offset': case 'super': case 'uid': case 'groups':
+				case 'offset': case 'super': case 'uid': case 'groups': case 'page': case 'per':
 					continue;
 				default:
 					if (!is_null($crit) && $crit !== array() && $crit !== '') {
