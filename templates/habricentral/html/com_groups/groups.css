@@ -10,3 +10,12 @@
 .group-page-manager fieldset {
 	width: 100% !important;
 }
+
+#group_options .dropdown-toggle {
+	height: 2.55em !important;
+}
+
+#group_options .dropdown-menu {
+	font-size: 12px;
+	line-height: 18px;
+}
