@@ -206,7 +206,7 @@ class GeosearchMarkers extends JTable
 			$where = "AND ($where)";
 		}
 
-		$sql = "SELECT e.id, e.scope, e.scope_id, e.adresse_info, m.addressLatitude, m.addressLongitude 
+		$sql = "SELECT e.id, e.scope, e.scope_id, e.adresse_info, e.publish_up, e.publish_down, m.addressLatitude, m.addressLongitude 
 				FROM #__events e LEFT JOIN $this->_tbl m ON (e.id = m.scope_id AND m.scope = " . $this->_db->quote('event') . ")
 				WHERE e.publish_up LIKE '" . $this->_db->getEscaped($year) . "%' AND (e.publish_down >= '" . $this->_db->getEscaped($year) . "%' OR e.publish_down = " . $this->_db->quote('0000-00-00 00:00:00') . ")
 				AND e.state = " . $this->_db->quote('1') . " AND e.adresse_info NOT LIKE " . $this->_db->quote('%online%') . " $where";
@@ -233,6 +233,13 @@ class GeosearchMarkers extends JTable
 					unset($events[$k]);
 					continue;
 				}
+			}
+
+			$now = JFactory::getDate('now');
+			$down = JFactory::getDate($event->publish_down);
+			if ($now > $down)
+			{
+				unset($events[$k]);
 			}
 		}
 		

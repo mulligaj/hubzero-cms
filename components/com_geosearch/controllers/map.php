@@ -396,6 +396,17 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 					}
 				}
 			}
+			
+			$now = JFactory::getDate('now');
+			foreach ($this->view->events as $k => $event)
+			{
+				$down = JFactory::getDate($event->publish_down);
+				if ($now > $down)
+				{
+					unset($this->view->events[$k]);
+				}
+			}
+
 			$this->view->events = array_values(array_filter($this->view->events));
 			
 			// clear ids var if no results
