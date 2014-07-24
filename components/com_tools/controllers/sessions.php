@@ -38,6 +38,7 @@ defined('_JEXEC') or die('Restricted access');
 //require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.zones.php');
 //require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'zones.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'middleware.php');
+require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'helpers' . DS . 'vnc.php');
 
 /**
  * Tools controller class for simulation sessions
@@ -281,7 +282,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		}
 		$this->view->active = JRequest::getVar('active', '');
 		$this->view->config = $this->config;
-		
+
 		if ($this->getError()) 
 		{
 			foreach ($this->getErrors() as $error)
@@ -289,31 +290,40 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 				$this->view->setError($error);
 			}
 		}
-		
+
 		$this->view->display();
 	}
 
-	function normalize_path($path, $isFile = false) 
+	/**
+	 * Normalize a path
+	 *
+	 * @param   string  $path
+	 * @param   boolean $isFile
+	 * @return  string
+	 */
+	private function normalize_path($path, $isFile = false) 
 	{
 		if (!isset($path[0]) || $path[0] != '/')
+		{
 			return false;
+		}
 
 		$parts = explode('/', $path);
 
 		$result = array();
 
-		foreach($parts as $part) 
+		foreach($parts as $part)
 		{
 			if ($part === '' || $part == '.')
 			{
 				continue;
-			} 
+			}
 
-			if ($part == '..') 
+			if ($part == '..')
 			{
 				array_pop($result);
-			} 
-			else 
+			}
+			else
 			{
 				$result[] = $part;
 			}
@@ -322,11 +332,12 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		if ($isFile) // Files can't end with directory separator or special directory names
 		{
 			if ($part == '' || $part == '.' || $part == '..')
+			{
 				return false;
+			}
 		}
 
-		return "/" . implode('/', $result) . ($isFile ? '' : '/');
-
+		return '/' . implode('/', $result) . ($isFile ? '' : '/');
 	}
 
 	/**
@@ -640,7 +651,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			{
 				if ($zone->exists())
 				{
-					$toolparams .= ' ' . $zone->get('zone');
+					$toolparams .= ' zone=' . $zone->get('zone');
 					$app->zone_id = $zone->get('id');
 				}
 			}
@@ -746,7 +757,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			$mwz = $middleware->zone($zone);
 			if ($mwz->exists())
 			{
-				$toolparams .= ' ' . $mwz->get('zone');
+				$toolparams .= ' zone=' . $mwz->get('zone');
 			}
 		}
 
@@ -824,27 +835,27 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		{
 			$users[] = $username;
 		}
-		
+
 		//do we want to share with a group
 		if (isset($group) && $group != 0)
 		{
 			$hg = \Hubzero\User\Group::getInstance( $group );
 			$members = $hg->get('members');
-			
+
 			//merge group members with any passed in username field
 			$users = array_values(array_unique(array_merge($users, $members)));
-			
+
 			//remove this user
 			$isUserInArray = array_search($this->juser->get('id'), $users);
-			if(isset($isUserInArray))
+			if (isset($isUserInArray))
 			{
 				unset($users[$isUserInArray]);
 			}
-			
+
 			//fix array keys
 			$users = array_values(array_filter($users));
 		}
-		
+
 		// Double-check that the user can access this session.
 		$ms = new MwSession($mwdb);
 		$row = $ms->checkSession($sess, $this->juser->get('username'));
@@ -855,10 +866,10 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			JError::raiseError(500, JText::_('MW_ERROR_SESSION_NOT_FOUND') . ': ' . $sess);
 			return;
 		}
-		
+
 		//$row = $rows[0];
 		$owner = $row->viewuser;
-		
+
 		if ($readonly != 'Yes') 
 		{
 			$readonly = 'No';
@@ -925,7 +936,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 				return;
 			}
 		}
-		
+
 		// Drop through and re-view the session...
 		$this->viewTask();
 	}
@@ -1122,6 +1133,162 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		// Call the view command
 		$status = $this->middleware($command, $output);
+
+
+		if ($app->params->get('vncEncoding',0)) 
+		{
+		        $output->encoding = trim($app->params->get('vncEncoding',''),'"');
+		}
+
+		if ($app->params->get('vncShowControls',0)) 
+		{
+		        $output->show_controls = trim($app->params->get('vncShowControls',''),'"');
+		}
+
+		if ($app->params->get('vncShowLocalCursor',0)) 
+		{
+		        $output->show_local_cursor = trim($app->params->get('vncShowLocalCursor',''),'"');
+		}
+
+		if ($app->params->get('vncDebug',0)) 	
+		{
+		        $output->debug = trim($app->params->get('vncDebug',''),'"');
+		}
+
+		foreach($output as $key=>$value)
+		{
+			$output->$key = strval($value);
+		}
+
+		$boolean_keys = array('debug','show_local_cursor','show_controls','view_only','trust_all_vnc_certs', 'view_only', 'wsproxy_encrypt');
+
+		foreach($boolean_keys as $key)
+		{
+			if (isset($output->$key))
+			{
+				$value = strtolower($output->$key);
+
+				if (in_array($value,array("1","y","on","yes","t","true")))
+				{
+					$output->$key = "Yes";
+				}
+				else
+				{
+					$output->$key = "No";
+				}
+			}
+		}
+
+		if (empty($output->wsproxy_host))
+		{
+			$output->wsproxy_host = $_SERVER['SERVER_NAME'];
+		}
+
+		if (empty($output->wsproxy_port))
+		{
+			$output->wsproxy_port = '8080';
+		}
+
+		if (!isset($output->wsproxy_encrypt))
+		{
+			$output->wsproxy_encrypt = 'No';
+		}
+
+		if (!isset($output->view_only))
+		{
+			$output->view_only = "No";
+		}
+
+		if (!isset($output->trust_all_vnc_certs))
+		{
+			$output->trust_all_vnc_certs = "Yes";
+		}
+
+		if (!isset($output->disableSSL))
+		{
+			$output->disable_ssl = "No";
+		}
+
+		if (!isset($output->name))
+		{
+			$output->name = "App Viewer";
+		}
+
+		if (!isset($output->offer_relogin))
+		{
+			$output->offer_relogin = "Yes";
+		}
+
+		if (!isset($output->permissions))
+		{
+			$output->permissions = "all-permissions";
+		}
+
+		if (!isset($output->code))
+		{
+			$output->code = "VncViewer.class";
+		}
+
+		if (!isset($output->archive))
+		{
+			$output->archive =  rtrim(JURI::base(true), '/') . "/components/com_tools/scripts/VncViewer-20140116-01.jar";
+		}
+
+		if (!isset($output->id))
+		{
+			$output->id = "theapp";
+		}
+
+		if (!isset($output->host))
+		{
+			$output->host = $_SERVER['SERVER_NAME'];
+		}
+
+		if (!isset ($output->password) && !empty($output->encpassword))
+		{
+			$decpassword = pack("H*",$output->encpassword);
+			$output->password = ToolsHelperVnc::decrypt($decpassword);
+		}
+
+		if (!isset ($output->token) && !empty($output->connect))
+		{
+			if (strncmp($output->connect,'vncsession:',11) ==0)
+			{
+				$output->token = substr($output->connect,11);
+			}
+		}
+
+		if (empty($output->class))
+		{
+			$cls = array();
+			if ($app->params->get('noResize', 0)) 
+			{
+			        $cls[] = 'no-resize';
+			}
+			if ($app->params->get('noPopout', 0)) 
+			{
+			        $cls[] = 'no-popout';
+			}
+			if ($app->params->get('noPopoutClose', 0)) 
+			{
+        			$cls[] = 'no-popout-close';
+			}
+			if ($app->params->get('noPopoutMaximize', 0)) 
+			{
+			        $cls[] = 'no-popout-maximize';
+			}
+			if ($app->params->get('noRefresh', 0)) 
+			{
+			        $cls[] = 'no-refresh';
+			}
+
+			$output->class = "thisapp";
+
+			if (!empty($cls)) 
+			{ 
+				$output->class .= ' ' . implode(' ', $cls); 
+			}
+		}
 
 		// Trigger any events that need to be called after session start
 		$dispatcher->trigger('onAfterSessionStart', array($toolname, $tv->revision));
@@ -1502,13 +1669,24 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			else 
 			{
 				$patterns = array(
+					'id' => 'applet id=(["\'])(?:(?=(\\?))\2.)*?\1',
+					'code' => 'code=(["\'])(?:(?=(\\?))\2.)*?\1',
+					'archive' => 'archive=(["\'])(?:(?=(\\?))\2.)*?\1',
+					'class' => 'class=(["\'])(?:(?=(\\?))\2.)*?\1',
+					'height' => 'height=\"(\d+)\"',
 					'width' => 'width=\"(\d+)\"',
 					'height' => 'height=\"(\d+)\"',
 					'port' => '<param name=\"PORT\" value=\"?(\d+)\"?>',
-					'password' => '<param name=\"ENCPASSWORD\" value=\"?([^>]+)\"?>',
+					'encpassword' => '<param name=\"ENCPASSWORD\" value=\"?([^>]+)\"?>',
+					'name' => '<param name=\"name\" value=\"?([^>]+)\"?>',
 					'connect' => '<param name=\"CONNECT\" value=\"?([^>]+)\"?>',
 					'encoding' => '<param name=\"ENCODING\" value=\"?([^>]+)\"?>',
 					'show_local_cursor' => '<param name=\"ShowLocalCursor\" value=\"?([^>]+)\"?>',
+					'trust_all_vnc_certs' => '<param name=\"trustAllVncCerts\" value=\"?([^>]+)\"?>',
+					'offer_relogin' => '<param name=\"Offer relogin\" value=\"?([^>]+)\"?>',
+					'disable_ssl' => '<param name=\"DisableSSL\" value=\"?([^>]+)\"?>',
+					'permissions' => '<param name=\"permissions\" value=\"?([^>]+)\"?>',
+					'view_only' => '<param name=\"View Only\" value=\"?([^>]+)\"?>',
 					'show_controls' => '<param name=\"Show Controls\" value=\"?([^>]+)\"?>',
 					'debug' => '<param name=\"Debug\" value=\"?([^>]+)\"?>'
 				);
@@ -1738,7 +1916,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$exportAllowed = $this->_getToolExportControl($tv->exportControl);
 		$tisPublished = ($tv->state == 1);
 		$tisDev = ($tv->state == 3);
-	    $tisGroupControlled = ($tv->toolaccess == '@GROUP');
+		$tisGroupControlled = ($tv->toolaccess == '@GROUP');
 
 		if ($tisDev) 
 		{
@@ -1755,13 +1933,14 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			else
 			{
 				$xlog->debug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS DENIED (USER NOT IN DEVELOPMENT OR ADMIN GROUPS)");
-				$this->setError("The development version of this tool may only be accessed by members of it's development group.");
+				$this->setError("The development version of this tool may only be accessed by members of its development group.");
 				return false;
 			}
 		}
 		else if ($tisPublished) 
 		{
-			if ($tisGroupControlled) {
+			if ($tisGroupControlled)
+			{
 				if ($ingroup) 
 				{
 					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ACCESS GROUP)");
@@ -1775,7 +1954,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 				else 
 				{
 					$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (USER NOT IN ACCESS OR ADMIN GROUPS)");
-					$this->setError("This tool may only be accessed by members of it's access control groups.");
+					$this->setError("This tool may only be accessed by members of its access control groups.");
 					return false;
 				}
 			}

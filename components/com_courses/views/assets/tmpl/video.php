@@ -139,14 +139,53 @@ if ($type == 'hubpresenter')
 	// Content folder
 	$content_folder = ltrim(rtrim($media_dir, DS), JPATH_ROOT);
 
-	if (is_dir($content_folder))
-	{
-		$subs = JFolder::files(JPATH_ROOT . DS . $content_folder, '.srt|.SRT', true, true);
-	}
-
 	// Decode the json formatted manifest so we can use the information
 	$presentation = json_decode($contents);
 	$presentation = $presentation->presentation;
+
+	// get subs from json file
+	$subs = (isset($presentation->subtitles)) ? $presentation->subtitles : array();
+
+	// make sure source is full path to assets folder
+	$subFiles = array();
+	foreach ($subs as $k => $subtitle)
+	{
+		if (!strpos($subtitle->source, DS))
+		{
+			$subtitle->source = $content_folder . DS . $subtitle->source;
+		}
+
+		$subFiles[] = $subtitle->source;
+	}
+
+	// get local subs
+	$local_subs = array();
+	if (is_dir($content_folder))
+	{
+		$local_subs = JFolder::files(JPATH_ROOT . DS . $content_folder, '.srt|.SRT', true, false);
+	}
+
+	// add local subtitles too
+	foreach ($local_subs as $k => $subtitle)
+	{
+		$info     = pathinfo($subtitle);
+		$name     = str_replace('-auto','', $info['filename']);
+		$autoplay = (strstr($info['filename'],'-auto')) ? 1 : 0;
+		$source   = $content_folder . DS . $subtitle;
+		
+		// add each subtitle
+		$subtitle                  = new stdClass;
+		$subtitle->type            = 'SRT';
+		$subtitle->name            = ucfirst($name);
+		$subtitle->source          = $source;
+		$subtitle->autoplay        = $autoplay;
+
+		// make sure we dont already have this file.
+		if (!in_array($subtitle->source, $subFiles))
+		{
+			$subs[] = $subtitle;
+		}
+	}
 
 	// Add the HUBpresenter stylesheet and scripts
 	\Hubzero\Document\Assets::addComponentStylesheet('com_resources', "/assets/css/hubpresenter.css");
@@ -187,6 +226,13 @@ if ($type == 'hubpresenter' || $type == 'html5')
 	if (is_object($tracking) && !$hasTime && $tracking->current_position > 0 && $tracking->current_position != $tracking->object_duration)
 	{
 		$redirect = JURI::current();
+
+		// do we have tmpl=componet in url?
+		$delimeter = (strpos($redirect, '?') === false) ? '?' : '&';
+		if (JRequest::getVar('tmpl', '') == 'component')
+		{
+			$redirect .= $delimeter . "tmpl=component";
+		}
 
 		$delimeter = (strpos($redirect, '?') === false) ? '?' : '&';
 
@@ -363,8 +409,11 @@ if ($type == 'hubpresenter' || $type == 'html5')
 
 							<?php if (isset($subs) && count($subs) > 0) : ?>
 								<?php foreach($subs as $sub) : ?>
-									<?php $info2 = pathinfo($sub); ?>
-									<div data-type="subtitle" data-lang="<?php echo $info2['filename']; ?>" data-src="<?php echo $content_folder . DS . $sub; ?>?v=<?php echo filemtime( JPATH_ROOT . $content_folder . DS . $sub ); ?>"></div>
+									<div
+										data-autoplay="<?php echo $sub->autoplay; ?>"
+										data-type="subtitle"
+										data-lang="<?php echo $sub->name; ?>"
+										data-src="<?php echo $sub->source; ?>?v=<?php echo filemtime( JPATH_ROOT . DS . $sub->source ); ?>"></div>
 								<?php endforeach; ?>
 							<?php endif; ?>
 

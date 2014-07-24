@@ -94,9 +94,8 @@ if (!$this->app->sess) {
 				Without Javascript support some operations will not work.
 			</p>
 		</noscript>
-		<p id="troubleshoot" class="help">If your application fails to appear within a minute, <a target="_blank" href="http://www.java.com/en/download/testjava.jsp">troubleshoot this problem.</a></p>
 
-		<div id="app-content" class="<?php if ($readOnly) { echo 'view-only'; } ?>">
+		<div id="app-content" class="<?php if ($readOnly) { echo 'view-only'; } ?>" style="width: <?php echo $this->output->width; ?>px; height: <?php echo $this->output->height; ?>px">
 			<input type="hidden" id="app-orig-width" name="apporigwidth" value="<?php echo $this->escape($this->output->width); ?>" />
 			<input type="hidden" id="app-orig-height" name="apporigheight" value="<?php echo $this->escape($this->output->height); ?>" />
 			<?php
