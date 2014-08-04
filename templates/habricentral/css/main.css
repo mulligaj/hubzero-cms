@@ -20,16 +20,14 @@
 	a:active, 
 	a:visited {
 		color: #554693;
-		/* border-bottom:1px solid #ddd7e2; */
 		text-decoration: none;
 	}
 	a:hover {
 		color: #4242bd;
-		/* border-bottom: 1px solid #4242bd; */
 	}
-		.contentpaneopen span.hasTip a img {
-			  display:none;
-		}
+	.contentpaneopen span.hasTip a img {
+		display: none;
+	}
 /*---------------------------------------------------------------
 	Headers
 ---------------------------------------------------------------*/
@@ -133,7 +131,7 @@
 	code,
 	tt {
 		font-family: Monaco, ProFont, "Bitstream Vera Sans Mono", "American Typewriter", "Andale Mono", monospace;
-		font-size: 0.91em; /* 1.09em for Courier */
+		font-size: 0.91em;
 	}
 	.code li {
 		margin: 2px 0;
@@ -152,13 +150,13 @@
 	.code .tab4 {
 		padding-left: 8em;
 	}
-		
+
 	/* Gives textarea for link to us page */
 	.code_block {
 		width:100%;
 		height:100px;
 	}
-	
+
 /*---------------------------------------------------------------
 	Misc.
 ---------------------------------------------------------------*/
@@ -185,7 +183,6 @@
 		margin: 1em 0 1em 0;
 		padding: 0 0 0 1.7em;
 		font: italic 1em/1.5em Georgia, Times, serif;
-		/*background: url("../images/quoteopen.gif") 0 0 no-repeat;*/
 	}
 	.cite {
 		margin: 0 0 3em 3em;
@@ -559,7 +556,6 @@
 		padding: 0;
 		border: none;
 		background: #FFF;
-		/*background: #fff url("../images/nav-shadow-bottom.png") 0 0 repeat-x;*/
 	}
 /*---------------------------------------------------------------
 	Content
@@ -614,7 +610,6 @@
 		position: absolute;
 		top: 0;
 		right: 0;
-		/*width: 214px;*/
 		padding-right: 15px;
 	}
 	#content-header-extra p {
@@ -710,10 +705,9 @@
 		border-bottom: 1px solid #fff;
 	}	
 	#footer #bottom-nav ul.copyright {
-		float:right;
-		font-size:0.85em;
+		float: right;
+		font-size: 0.85em;
 	}
-
 
 /*---------------------------------------------------------------
 	Primary Content Columns
@@ -737,9 +731,6 @@
 		margin: 0;
 		margin-right: 235px;
 		padding: 1.4em;
-		/*background: #F7F7F7;
-		border-top: 1px solid #E3E3E3;
-		border-bottom: 1px solid #E3E3E3;*/
 	}
 	.main .subject {
 		border: none;
@@ -988,15 +979,11 @@
 	.columns .donate { padding-left: 23px; background: url("../images/home/fc-donate.gif") 0 0em no-repeat; }
 	.columns .webmeetings { padding-left: 23px; background: url("../images/home/fc-webmeetings.gif") 0 0em no-repeat; }
 	.columns .contribute { padding-left: 23px; background: url("../images/home/fc-contribute.gif") 0 0em no-repeat; }
-	/*.columns .search { padding-left: 28px; background: url("../images/home/fc-search.gif") 0 0.2em no-repeat; }
-	.columns .browse { padding-left: 28px; background: url("../images/home/fc-browse.gif") 0 0.2em no-repeat; }*/
 	.columns .quote { padding-left: 28px; background: url("../images/quoteopen.gif") 0.2em 0.2em no-repeat; }
 	.columns .dataset { padding-left: 23px; background: url("../images/home/fc-dataset.gif") 0 0em no-repeat; }
 	.columns .search label {
 		display: none;
 	}
-	
-	
 	.columns .audio { padding-left: 23px; background: url("../images/home/fc-podcast.gif") 0 0em no-repeat; }
 	.columns .booksection { padding-left: 23px; background: url("../images/home/fc-wiki.gif") 0 0em no-repeat; }
 	.columns .booksbooksection { padding-left: 23px; background: url("../images/home/fc-wiki.gif") 0 0em no-repeat; }
@@ -1004,17 +991,14 @@
 	.columns .conferencepapersproceeding { padding-left: 23px; background: url("../images/home/fc-series.gif") 0 0em no-repeat; }
 	.columns .governmentdocument { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; }  
 	.columns .journalarticle { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; }
-	 
 	.columns .magazinenewspaperarticle { padding-left: 23px; background: url("../images/home/fc-note.gif") 0 0em no-repeat; }
 	.columns .miscellaneou { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; } 
-	
 	.columns .pamphlet { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; } 
 	.columns .poster { padding-left: 23px; background: url("../images/home/fc-teachingmaterial.gif") 0 0em no-repeat; }
 	.columns .report { padding-left: 23px; background: url("../images/home/fc-series.gif") 0 0em no-repeat; }
 	.columns .these { padding-left: 23px; background: url("../images/home/fc-workshop.gif") 0 0em no-repeat; } 
 	.columns .video { padding-left: 23px; background: url("../images/home/fc-tv.gif") 0 0em no-repeat; } 
-	
-	
+
 /*---------------------------------------------------------------
 	Sub menu
 ---------------------------------------------------------------*/
@@ -1532,7 +1516,6 @@
 		border-bottom: 1px solid #757575;
 		color: #555;
 		text-shadow: 0px 1px 0px #e5e5ee;
-		/*background: #a2a2a2 url("../images/gray-fade.gif") 0 0 repeat-x;*/
 		background: #a2a2a2;
 		background: -webkit-gradient(linear, left top, left bottom, from(#c4c4c4), to(#a2a2a2));
 		background: -moz-linear-gradient(top, #c4c4c4, #a2a2a2);
@@ -1559,27 +1542,27 @@
 		padding: 0.5em 1em;
 		text-align: center;
 	}
-		
-		#fancybox-overlay {
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				z-index: 997;
-				background:#000;
+
+	#fancybox-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		z-index: 997;
+		background:#000;
 	}
-			.fancybox-wrap {
-				z-index:998;
-	}	
-			.fancybox-close {
-				position: absolute;
-				top: 0px;
-				right: 0px;
-				width: 30px;
-				height: 30px;
-				background: transparent url('../images/fancybox.png') -40px 0px;
-				cursor: pointer;
-				z-index: 999;
+	.fancybox-wrap {
+		z-index:998;
+	}
+	.fancybox-close {
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		width: 30px;
+		height: 30px;
+		background: transparent url('../images/fancybox.png') -40px 0px;
+		cursor: pointer;
+		z-index: 999;
 	}
 /*---------------------------------------------------------------
 	Tagcloud
@@ -1631,7 +1614,7 @@
 	}
 /*---------------------------------------------------------------
 	Comment Types
----------------------------------------------------------------*/	
+---------------------------------------------------------------*/
 	.plaincomment {
 		background: url("../images/comment.gif") right top no-repeat;
 	}
@@ -1647,106 +1630,24 @@
 /*---------------------------------------------------------------
 	5 star Reviews
 ---------------------------------------------------------------*/
-	/*.avgrating span,
-	.avgreview span,
-	.plaincomment span,
-	.privatecomment span,
-	.publiccomment span,
-	.authorcomment span {
-		visibility: hidden;
-	}*/
 	.avgrating span {
 		padding-right: 75px;
 	}
-	.no-stars		{ background: url("../images/stars/stars.gif") right 0 no-repeat; }
-	.half-stars	  { background: url("../images/stars/stars.gif") right -40px no-repeat; }
-	.one-stars		{ background: url("../images/stars/stars.gif") right -80px no-repeat; }
-	.onehalf-stars	{ background: url("../images/stars/stars.gif") right -120px no-repeat; }
-	.two-stars		{ background: url("../images/stars/stars.gif") right -160px no-repeat; }
-	.twohalf-stars	{ background: url("../images/stars/stars.gif") right -200px no-repeat; }
-	.three-stars	 { background: url("../images/stars/stars.gif") right -240px no-repeat; }
+	.no-stars        { background: url("../images/stars/stars.gif") right 0 no-repeat; }
+	.half-stars      { background: url("../images/stars/stars.gif") right -40px no-repeat; }
+	.one-stars       { background: url("../images/stars/stars.gif") right -80px no-repeat; }
+	.onehalf-stars   { background: url("../images/stars/stars.gif") right -120px no-repeat; }
+	.two-stars       { background: url("../images/stars/stars.gif") right -160px no-repeat; }
+	.twohalf-stars   { background: url("../images/stars/stars.gif") right -200px no-repeat; }
+	.three-stars     { background: url("../images/stars/stars.gif") right -240px no-repeat; }
 	.threehalf-stars { background: url("../images/stars/stars.gif") right -280px no-repeat; }
-	.four-stars	  { background: url("../images/stars/stars.gif") right -320px no-repeat; }
+	.four-stars      { background: url("../images/stars/stars.gif") right -320px no-repeat; }
 	.fourhalf-stars  { background: url("../images/stars/stars.gif") right -360px no-repeat; }
-	.five-stars	  { background: url("../images/stars/stars.gif") right -400px no-repeat; }
-/*---------------------------------------------------------------
-	File types
----------------------------------------------------------------*/
-	/*
-	.pdf { background: url("../images/icons/16x16/pdf.png") 0 0 no-repeat; padding-left: 25px; }
-	.swf { background: url("../images/icons/16x16/swf.png") 0 0 no-repeat; padding-left: 25px; }
-	.ppt { background: url("../images/icons/16x16/ppt.png") 0 0 no-repeat; padding-left: 25px; }
-	.pps { background: url("../images/icons/16x16/pps.png") 0 0 no-repeat; padding-left: 25px; }
-	.php,
-	.htm,
-	.html { background: url("../images/icons/16x16/html.png") 0 0 no-repeat; padding-left: 25px; }
-	.tar,
-	.zip { background: url("../images/icons/16x16/zip.png") 0 0 no-repeat; padding-left: 25px; }
-	.wmv { background: url("../images/icons/16x16/wmv.png") 0 0 no-repeat; padding-left: 25px; }
-	.doc { background: url("../images/icons/16x16/doc.png") 0 0 no-repeat; padding-left: 25px; }
-	.asx { background: url("../images/icons/16x16/asx.png") 0 0 no-repeat; padding-left: 25px; }
-	.asf { background: url("../images/icons/16x16/asf.png") 0 0 no-repeat; padding-left: 25px; }
-	.txt,
-	.articles li { list-style: none; background: url("../images/icons/16x16/txt.png") 0 0 no-repeat; padding-left: 25px; }
-	.articles {
-		margin-left: 0;
-	}
-	.mp3 { background: url("../images/icons/16x16/podcast.gif") 0 0 no-repeat; padding-left: 25px; }
-	.mp4 { background: url("../images/icons/16x16/vodcast.gif") 0 0 no-repeat; padding-left: 25px; }
-	.mov { background: url("../images/icons/16x16/mov.png") 0 0 no-repeat; padding-left: 25px; }
-	.profile { background: url("../images/icons/16x16/profile.gif") 0 0 no-repeat; }
-	.categories li,
-	.dir { background: url("../images/icons/16x16/folder.gif") 0 0 no-repeat; padding-left: 25px; }
-	
-	.config { background: url("../images/icons/cog.png") 0 0 no-repeat; padding-left: 20px; }
-	.protected { background: url("../images/icons/shield.png") 0 0 no-repeat; padding-left: 20px; }
-	.private { background: url("../images/icons/lock.png") 0 0 no-repeat; padding-left: 20px; }
-	.email { background: url("../images/icons/email.png") 0 0 no-repeat; padding-left: 20px; }
-	.invite { background: url("../images/icons/email_go.png") 0 0 no-repeat; padding-left: 20px; }
-	.new-email { background: url("../images/icons/email_add.png") 0 0 no-repeat; padding-left: 20px; }
-	.edit { background: url("../images/icons/page_edit.png") 0 0 no-repeat; padding-left: 20px; }
-	.add { background: url("../images/icons/add.png") 0 0 no-repeat; padding-left: 20px; }
-	.delete { background: url("../images/icons/delete.png") 0 0 no-repeat; padding-left: 20px; }
-	.map { background: url("../images/icons/map.png") 0 0 no-repeat; padding-left: 20px; }
-	.stats { background: url("../images/icons/chart_bar.png") 0 0 no-repeat; padding-left: 20px; }
-	.tag { background: url("../images/icons/tag_orange.png") 0 0 no-repeat; padding-left: 20px; }
-	.group { background: url("../images/icons/group.png") 0 0 no-repeat; padding-left: 20px; }
-	.user { background: url("../images/icons/user.png") 0 0 no-repeat; padding-left: 20px; }
-	.edit-member { background: url("../images/icons/user_edit.png") 0 0 no-repeat; padding-left: 20px; }
-	.new-ticket { background: url("../images/icons/note_add.png") 0 0 no-repeat; padding-left: 20px; }
-	.supported { background: url("../images/icons/award_star_gold_1.png") 0 0 no-repeat; padding-left: 20px; }
-	.phone,
-	.smstxt { background: url("../images/icons/phone.png") 0 0 no-repeat; padding-left: 20px; }
-	.bell { background: url("../images/icons/bell.png") 0 0 no-repeat; padding-left: 20px; }
-	.im { background: url("../images/icons/comment.png") 0 0 no-repeat; padding-left: 20px; }
-	.internal,
-	.box { background: url("../images/icons/box.png") 0 0 no-repeat; padding-left: 20px; }
-	.comments {
-		background: url("../images/icons/comments.png") 0 0 no-repeat;
-		padding-left: 20px;
-	}
-	.sitemap {
-		background: url("../images/icons/sitemap.png") 0 0 no-repeat;
-		padding-left: 20px;
-	}
-	.history {
-		background: url("../images/icons/page_white_stack.png") 0 0 no-repeat;
-		padding-left: 20px;
-	}
-	.event {
-		background: url("../images/icons/calendar_view_day.png") 0 0 no-repeat;
-		padding-left: 20px;
-	}
-	.feed,
-	.newsfeed,
-	.rss { 
-		background: url("../images/icons/feed.png") 0 0 no-repeat;
-		padding-left: 20px;
-	}
-	*/
+	.five-stars      { background: url("../images/stars/stars.gif") right -400px no-repeat; }
+
 /*---------------------------------------------------------------
 	Primary Resource file
----------------------------------------------------------------*/	
+---------------------------------------------------------------*/
 	#primary-document {
 		margin: 1em 0 1.5em 0;
 	}
@@ -1797,7 +1698,7 @@
 		text-align: left;
 		background: url("../images/overlay.png") top left;
 	}
-		
+
 	.tooltip {
 		color:#FFF;
 		width: auto;
@@ -1815,7 +1716,7 @@
 		font-weight:500;
 		font-size:13px;
 		color:#9FD4FF;
-	}	
+	}
 /*---------------------------------------------------------------
 	Metadata
 ---------------------------------------------------------------*/
@@ -1829,36 +1730,6 @@
 		padding: 0 0 0 20px;
 		font-size: 90%;
 	}
-	/*.metadata .review {
-		background: url("../images/stars/1.gif") -52px 50% no-repeat;
-	}
-	.metadata .citation {
-		background: url("../images/icons/cite.gif") 0 50% no-repeat;
-	}
-	.metadata .usage { 
-		background: url("../images/icons/stats.gif") 0 50% no-repeat;
-	}
-	.metadata .answer { 
-		background: url("../images/icons/qanda.gif") 0 50% no-repeat;
-	}
-	.metadata .topics { 
-		background: url("../images/icons/topic.gif") 0 50% no-repeat;
-	}
-	.metadata .groups { 
-		background: url("../images/icons/group.gif") 0 50% no-repeat;
-	}
-	.metadata .resources { 
-		background: url("../images/icons/resource.gif") 0 50% no-repeat;
-	}
-	.metadata .favorite {
-		background: url("../images/icons/favorite.gif") 0 50% no-repeat;
-	}
-	.metadata .points {
-		background: url("../images/icons/point.gif") 0 50% no-repeat;
-	}
-	.metadata .messages { 
-		background: url("../images/icons/message.gif") 0 50% no-repeat;
-	}*/
 /*---------------------------------------------------------------
 	Results listing
 	(base styling usually extended by resources, search, etc.)
@@ -2104,7 +1975,6 @@
 	}
 	span.badge,
 	.badges li {
-		/*float: left;*/
 		display: inline-block;
 		margin: 0 0 0 10px;
 		border: 1px solid #634024;
@@ -2332,15 +2202,13 @@
 	body #content.com_user {
 		background: #fff;
 	}
-	#system-debug {
-		/*padding: 30px;*/
-	}
+
 	#content>#system-message {
 		padding-top: 15px;
 	}
-	
+
 	a.ext-link {
-		overflow-wrap: break-word;	
+		overflow-wrap: break-word;
 	}
 
 	.search-bar input {
@@ -2359,4 +2227,8 @@
 		padding: 10px;
 		min-width: inherit;
 		background: #FFF !important;
+	}
+
+	ol.comments .comment-options a.abuse {
+		visibility: visible;
 	}
