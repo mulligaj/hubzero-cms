@@ -68,6 +68,13 @@
 .com_resources #hubForm .field-wrap {
 	margin: 0;
 }
+.com_resources #hubForm .fa {
+	margin-top: 0.4em;
+	margin-bottom: 0.4em;
+}
+.com_resources #hubForm .fa label {
+	padding-top: 0;
+}
 #component-body,
 #small-page {
 	background: #F5F7F2;
