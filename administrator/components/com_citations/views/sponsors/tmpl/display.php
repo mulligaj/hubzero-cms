@@ -32,14 +32,16 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = CitationsHelper::getActions('sponsor');
 
-JToolBarHelper::title(JText::_('Citation Sponsors'), 'citation.png');
-if ($canDo->get('core.create')) 
+JToolBarHelper::title(JText::_('CITATIONS') . ': ' . JText::_('CITATION_SPONSOR'), 'citation.png');
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
+JToolBarHelper::spacer();
+JToolBarHelper::help('sponsors');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = $('adminForm');
 	if (pressbutton == 'cancel') {
@@ -52,14 +54,14 @@ function submitbutton(pressbutton)
 </script>
 
 <form action="index.php" method="post" name="adminForm">
-	<table class="adminlist" summary="<?php echo JText::_('TABLE_SUMMARY'); ?>">
+	<table class="adminlist">
 		<thead>
 			<tr>
-				<th width="5%"><?php echo JText::_('ID'); ?></th>
-				<th><?php echo JText::_('Sponsor'); ?></th>
-				<th><?php echo JText::_('Link'); ?></th>
-				<th><?php echo JText::_('Image'); ?></th>
-				<th><?php echo JText::_('Actions'); ?></th>
+				<th width="5%"><?php echo JText::_('CITATION_ID'); ?></th>
+				<th><?php echo JText::_('CITATION_SPONSORS'); ?></th>
+				<th><?php echo JText::_('CITATION_SPONSORS_LINK'); ?></th>
+				<th><?php echo JText::_('CITATION_SPONSORS_IMAGE'); ?></th>
+				<th><?php echo JText::_('CITATION_SPONSORS_ACTIONS'); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -72,7 +74,7 @@ function submitbutton(pressbutton)
 						<td><?php echo $sponsor['image']; ?></td>
 						<td>
 <?php if ($canDo->get('core.edit')) { ?>
-							<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=edit&id[]=' . $sponsor['id']); ?>">Edit</a> | 
+							<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=edit&id[]=' . $sponsor['id']); ?>">Edit</a> |
 <?php } ?>
 <?php if ($canDo->get('core.delete')) { ?>
 							<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=remove&id[]=' . $sponsor['id']); ?>">Delete</a>

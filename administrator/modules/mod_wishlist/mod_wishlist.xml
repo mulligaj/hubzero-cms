@@ -2,11 +2,11 @@
 
 <!--
 @package        hubzero-cms
-@file           administrator/modules/mod_dashboard/mod_dashboard.xml
-@copyright      Copyright 2005-2011 Purdue University. All rights reserved.
+@file           administrator/modules/mod_wishlist/mod_wishlist.xml
+@copyright      Copyright 2005-2014 Purdue University. All rights reserved.
 @license        http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
 
-Copyright 2005-2011 Purdue University. All rights reserved.
+Copyright 2005-2014 Purdue University. All rights reserved.
 
 This file is part of: The HUBzero(R) Platform for Scientific Collaboration
 
@@ -38,29 +38,22 @@ HUBzero is a registered trademark of Purdue University.
 		<filename>index.html</filename>
 		<filename>tmpl/default.php</filename>
 	</files>
-	<params>
-		<param name="wishlist" type="text" default="" label="Wishlist" description="The name of the wishlist to display stats for. If left blank, it will use the 'main' site list." />
-		<param name="showMine" type="radio" default="0" label="Show Your Entries" description="Show/Hide entries created by you">
-			<option value="0">Hide</option>
-			<option value="1">Show</option>
-		</param>
-		<param name="cache" type="list" default="1" label="Caching" description="Select whether to cache the content of this module">
-			<option value="1">Use global</option>
-			<option value="0">No caching</option>
-		</param>
-	</params>
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
-				<field name="wishlist" type="text" default="" label="Wishlist" description="The name of the wishlist to display stats for. If left blank, it will use the 'main' site list." />
-				<field name="showMine" type="radio" default="0" label="Show Your Entries" description="Show/Hide entries created by you">
-					<option value="0">Hide</option>
-					<option value="1">Show</option>
+				<field name="wishlist" type="text" default="" label="MOD_WISHLIST_LIST_LABEL" description="MOD_WISHLIST_LIST_DESC" />
+				<field name="cache" type="list" default="1" label="MOD_WISHLIST_CACHE_LABEL" description="MOD_WISHLIST_CACHE_DESC">
+					<option value="1">MOD_WISHLIST_CACHE_GLOBAL</option>
+					<option value="0">MOD_WISHLIST_CACHE_NONE</option>
 				</field>
-				<field name="cache" type="list" default="1" label="Caching" description="Select whether to cache the content of this module">
-					<option value="1">Use global</option>
-					<option value="0">No caching</option>
-				</field>
+			</fieldset>
+			<fieldset name="colors">
+				<field name="color_pending" type="text" default="#656565" label="MOD_WISHLIST_COLOR_PENDING_LABEL" description="MOD_WISHLIST_COLOR_PENDING_DESC" />
+				<field name="color_granted" type="text" default="#999999" label="MOD_WISHLIST_COLOR_GRANTED_LABEL" description="MOD_WISHLIST_COLOR_GRANTED_DESC" />
+				<field name="color_accepted" type="text" default="#f9d180" label="MOD_WISHLIST_COLOR_ACCEPTED_LABEL" description="MOD_WISHLIST_COLOR_ACCEPTED_DESC" />
+				<field name="color_removed" type="text" default="#cccccc" label="MOD_WISHLIST_COLOR_REMOVED_LABEL" description="MOD_WISHLIST_COLOR_REMOVED_DESC" />
+				<field name="color_withdrawn" type="text" default="#ffffff" label="MOD_WISHLIST_COLOR_WITHDRAWN_LABEL" description="MOD_WISHLIST_COLOR_WITHDRAWN_DESC" />
+				<field name="color_rejected" type="text" default="#333333" label="MOD_WISHLIST_COLOR_REJECTED_LABEL" description="MOD_WISHLIST_COLOR_REJECTED_DESC" />
 			</fieldset>
 		</fields>
 	</config>

@@ -27,13 +27,14 @@
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  * /administrator/components/com_support/controllers/tickets.php
- * 
+ *
  */
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'query.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'query.php');
+include_once(JPATH_COMPONENT_SITE . DS . 'models' . DS . 'ticket.php');
 
 /**
  * Support controller class for tickets
@@ -50,10 +51,6 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		// Get configuration
 		$config = JFactory::getConfig();
 		$app = JFactory::getApplication();
-
-		// Push some styles to the template
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . $this->_name . '.css');
 
 		$obj = new SupportTicket($this->database);
 
@@ -112,10 +109,10 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			foreach ($queries as $k => $query)
 			{
 				// Build the query from the condition set
-				if (!$query->query)
-				{
+				//if (!$query->query)
+				//{
 					$query->query = $sq->getQuery($query->conditions);
-				}
+				//}
 				$filters = $this->view->filters;
 				if ($query->id != $this->view->filters['show'])
 				{
@@ -129,8 +126,8 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 				{
 					// Search
 					$this->view->filters['search']       = urldecode($app->getUserStateFromRequest(
-						$this->_option . '.' . $this->_controller . '.search', 
-						'search', 
+						$this->_option . '.' . $this->_controller . '.search',
+						'search',
 						''
 					));
 					// Set the total for the pagination
@@ -138,13 +135,13 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 
 					// Incoming sort
 					$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
-						$this->_option . '.' . $this->_controller . '.sort', 
-						'filter_order', 
+						$this->_option . '.' . $this->_controller . '.sort',
+						'filter_order',
 						$query->sort
 					));
 					$this->view->filters['sortdir']     = trim($app->getUserStateFromRequest(
-						$this->_option . '.' . $this->_controller . '.sortdir', 
-						'filter_order_Dir', 
+						$this->_option . '.' . $this->_controller . '.sortdir',
+						'filter_order_Dir',
 						$query->sort_dir
 					));
 					//$this->view->filters['sort']    = $query->sort;
@@ -164,16 +161,16 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			if (!isset($this->view->filters['sort']) || !$this->view->filters['sort'])
 			{
 				$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
-					$this->_option . '.' . $this->_controller . '.sort', 
-					'filter_order', 
+					$this->_option . '.' . $this->_controller . '.sort',
+					'filter_order',
 					'created'
 				));
 			}
 			if (!isset($this->view->filters['sortdir']) || !$this->view->filters['sortdir'])
 			{
 				$this->view->filters['sortdir']         = trim($app->getUserStateFromRequest(
-					$this->_option . '.' . $this->_controller . '.sortdir', 
-					'filter_order_Dir', 
+					$this->_option . '.' . $this->_controller . '.sortdir',
+					'filter_order_Dir',
 					'DESC'
 				));
 			}
@@ -198,13 +195,13 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -237,96 +234,39 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 
 		$this->view->setLayout('edit');
 
-		// Push some styles to the template
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . $this->_name . '.css');
-		//$document->addScript('/components' . DS . 'com_support' . DS . 'autosave.js');
-
 		// Incoming
 		$id = JRequest::getInt('id', 0);
 
-		$this->view->filters = SupportUtilities::getFilters();
-
 		// Initiate database class and load info
-		$row = new SupportTicket($this->database);
-		$row->load($id);
+		$row = SupportModelTicket::getInstance($id);
 
 		// Editing or creating a ticket?
-		if ($id)
+		if (!$row->exists())
 		{
-			// Get comments
-			$sc = new SupportComment($this->database);
-			$comments = $sc->getComments('admin', $row->id);
+			$this->view->setLayout('add');
 
-			// Parse comment text for attachment tags
-			$juri = JURI::getInstance();
-			$webpath = str_replace('/administrator/', '/', $juri->base() . $this->config->get('webpath', '/site/tickets') . DS . $id);
-			$webpath = str_replace('//','/',$webpath);
-			if (isset($_SERVER['HTTPS']))
-			{
-				$webpath = str_replace('http:','https:',$webpath);
-			}
-			if (!strstr($webpath, '://'))
-			{
-				$webpath = str_replace(':/','://',$webpath);
-			}
-
-			$attach = new SupportAttachment($this->database);
-			$attach->webpath = $webpath;
-			$attach->uppath  = JPATH_ROOT . $this->config->get('webpath') . DS . $id;
-			$attach->output  = 'web';
-			for ($i=0; $i < count($comments); $i++)
-			{
-				$comment =& $comments[$i];
-				$comment->comment = $attach->parse($comment->comment);
-			}
-
-			$row->statustext = SupportHtml::getStatus($row->status);
-		}
-		else
-		{
 			// Creating a new ticket
-			$row->severity = 'normal';
-			$row->status   = 0;
-			$row->created  = JFactory::getDate()->toSql();
-			$row->login    = $this->juser->get('username');
-			$row->name     = $this->juser->get('name');
-			$row->email    = $this->juser->get('email');
-			$row->cookies  = 1;
+			$row->set('severity', 'normal');
+			$row->set('status', 0);
+			$row->set('created', JFactory::getDate()->toSql());
+			$row->set('login', $this->juser->get('username'));
+			$row->set('name', $this->juser->get('name'));
+			$row->set('email', $this->juser->get('email'));
+			$row->set('cookies', 1);
 
 			$browser = new \Hubzero\Browser\Detector();
 
-			$row->os = $browser->platform() . ' ' . $browser->platformVersion();
-			$row->browser = $browser->name() . ' ' . $browser->version();
+			$row->set('os', $browser->platform() . ' ' . $browser->platformVersion());
+			$row->set('browser', $browser->name() . ' ' . $browser->version());
 
-			$row->uas = JRequest::getVar('HTTP_USER_AGENT','','server');
+			$row->set('uas', JRequest::getVar('HTTP_USER_AGENT','','server'));
 
-			$row->ip = JRequest::ip();
-			$row->hostname = gethostbyaddr(JRequest::getVar('REMOTE_ADDR','','server'));
-			$row->section = 1;
-
-			$comments = array();
+			$row->set('ip', JRequest::ip());
+			$row->set('hostname', gethostbyaddr(JRequest::getVar('REMOTE_ADDR','','server')));
+			$row->set('section', 1);
 		}
 
-		// Do some text cleanup
-		//$row->summary = html_entity_decode(stripslashes($row->summary), ENT_COMPAT, 'UTF-8');
-		//$row->summary = str_replace('&quote;','&quot;',$row->summary);
-		//$row->summary = htmlentities($row->summary, ENT_COMPAT, 'UTF-8');
-
-		//$row->report  = html_entity_decode(stripslashes($row->report), ENT_COMPAT, 'UTF-8');
-		//$row->report  = str_replace('&quote;','&quot;',$row->report);
-		//$row->report  = str_replace("<br />","",$row->report);
-		//$row->report  = htmlentities($row->report, ENT_COMPAT, 'UTF-8');
-		$row->report  = $this->view->escape($row->report);
-		$row->report  = nl2br($row->report);
-		$row->report  = str_replace("\t",' &nbsp; &nbsp;',$row->report);
-		//$row->report  = str_replace("    ",'&nbsp;&nbsp;&nbsp;&nbsp;',$row->report);
-
-		if ($id)
-		{
-			$row->report = $attach->parse($row->report);
-		}
-
+		$this->view->filters = SupportUtilities::getFilters();
 		$this->view->lists = array();
 
 		// Get resolutions
@@ -339,64 +279,51 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 
 		// Get sections
 		//$ss = new SupportSection($this->database);
-		//$this->view->listslists['sections'] = $ss->getSections();
+		//$this->view->lists['sections'] = $ss->getSections();
 
 		// Get categories
 		$sa = new SupportCategory($this->database);
 		$this->view->lists['categories'] = $sa->find('list');
 
-		// Get Tags
-		$st = new SupportTags($this->database);
-		$this->view->lists['tags'] = $st->get_tag_string($row->id, 0, 0, NULL, 0, 1);
-		$this->view->lists['tagcloud'] = $st->get_tag_cloud(3, 1, $row->id);
-
 		// Get severities
 		$this->view->lists['severities'] = SupportUtilities::getSeverities($this->config->get('severities'));
 
-		if (trim($row->group))
+		if (trim($row->get('group')))
 		{
-			$this->view->lists['owner'] = $this->_userSelectGroup('owner', $row->owner, 1, '', trim($row->group));
+			$this->view->lists['owner'] = $this->_userSelectGroup('owner', $row->get('owner'), 1, '', trim($row->get('group')));
 		}
 		elseif (trim($this->config->get('group')))
 		{
-			$this->view->lists['owner'] = $this->_userSelectGroup('owner', $row->owner, 1, '', trim($this->config->get('group')));
+			$this->view->lists['owner'] = $this->_userSelectGroup('owner', $row->get('owner'), 1, '', trim($this->config->get('group')));
 		}
 		else
 		{
-			$this->view->lists['owner'] = $this->_userSelect('owner', $row->owner, 1);
+			$this->view->lists['owner'] = $this->_userSelect('owner', $row->get('owner'), 1);
 		}
 
 		$this->view->row = $row;
-		$this->view->comments = $comments;
 
 		if ($watch = JRequest::getWord('watch', ''))
 		{
 			$watch = strtolower($watch);
 
-			$watching = new SupportTableWatching($this->database);
-			$watching->load($this->view->row->id, $this->juser->get('id'));
-
-			// Not already watching
-			if (!$watching->id) 
-			{
-				// Start watching?
-				if ($watch == 'start')
-				{
-					$watching->ticket_id = $this->view->row->id;
-					$watching->user_id   = $this->juser->get('id');
-					$watching->store();
-				}
-				// Otherwise, do nothing
-			}
-			else
 			// Already watching
+			if ($this->view->row->isWatching($this->juser))
 			{
 				// Stop watching?
 				if ($watch == 'stop')
 				{
-					$watching->delete();
+					$this->view->row->stopWatching($this->juser);
 				}
-				// Otherwise, do nothing
+			}
+			// Not already watching
+			else
+			{
+				// Start watching?
+				if ($watch == 'start')
+				{
+					$this->view->row->watch($this->juser);
+				}
 			}
 		}
 
@@ -412,7 +339,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save an entry and return t the edit form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function applyTask()
@@ -434,35 +361,20 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		// Incoming
 		$isNew = true;
 		$id = JRequest::getInt('id', 0);
-
-		$allowEmailResponses = $this->config->get('email_processing');
-
-		if ($allowEmailResponses)
-		{
-			$encryptor = new \Hubzero\Mail\Token();
-		}
-
-		// Instantiate the tagging class - we'll need this a few times
-		$st = new SupportTags($this->database);
-
-		// Load the old ticket so we can compare for the changelog
-		$old = new SupportTicket($this->database);
-		$oldtags = '';
 		if ($id)
 		{
 			$isNew = false;
-
-			$old->load($id);
-
-			// Get Tags
-			$oldtags = $st->get_tag_string($id, 0, 0, NULL, 0, 1);
 		}
+
+		// Load the old ticket so we can compare for the changelog
+		$old = new SupportModelTicket($id);
+		$old->set('tags', $old->tags('string'));
 
 		// Trim and addslashes all posted items
 		$_POST = array_map('trim', $_POST);
 
 		// Initiate class and bind posted items to database fields
-		$row = new SupportTicket($this->database);
+		$row = new SupportModelTicket($id);
 		if (!$row->bind($_POST))
 		{
 			JError::raiseError(500, $row->getError());
@@ -483,18 +395,9 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			return;
 		}
 
-		if (!$id)
-		{
-			$id = $this->database->insertid();
-			$row->id = $id;
-		}
-
-		$row->load($id);
-
 		// Save the tags
-		$tags = JRequest::getVar('tags', '', 'post');
-
-		$st->tag_object($this->juser->get('id'), $row->id, $tags, 0, true);
+		$row->set('tags', JRequest::getVar('tags', '', 'post'));
+		$row->tag($row->get('tags'), $this->juser->get('id'), 1);
 
 		$juri = JURI::getInstance();
 		$jconfig = JFactory::getConfig();
@@ -507,6 +410,12 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 
 		$webpath = trim($this->config->get('webpath'), '/');
 
+		$allowEmailResponses = $this->config->get('email_processing');
+		if ($allowEmailResponses)
+		{
+			$encryptor = new \Hubzero\Mail\Token();
+		}
+
 		// If a new ticket...
 		if ($isNew)
 		{
@@ -518,22 +427,11 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			{
 				// Get some email settings
 				$msg = new \Hubzero\Mail\Message();
-				$msg->setSubject($jconfig->getValue('config.sitename') . ' ' . JText::_('COM_SUPPORT') . ', ' . JText::sprintf('COM_SUPPORT_TICKET_NUMBER', $row->id));
+				$msg->setSubject($jconfig->getValue('config.sitename') . ' ' . JText::_('COM_SUPPORT') . ', ' . JText::sprintf('COM_SUPPORT_TICKET_NUMBER', $row->get('id')));
 				$msg->addFrom(
 					$jconfig->getValue('config.mailfrom'),
-					$jconfig->getValue('config.sitename') . ' ' . JText::_(strtoupper($this->_name))
+					$jconfig->getValue('config.sitename') . ' ' . JText::_(strtoupper($this->_option))
 				);
-
-				$live_site = rtrim(JURI::base(), '/');
-
-				// Parse comments for attachments
-				$attach = new SupportAttachment($this->database);
-				$attach->webpath = $base . DS . $webpath . DS . $row->id;
-				$attach->uppath  = JPATH_ROOT . DS . $webpath . DS . $row->id;
-				$attach->output  = 'email';
-
-				// Generate e-mail message
-				$from['multipart'] = md5(date('U'));
 
 				// Plain text email
 				$eview = new \Hubzero\Component\View(array(
@@ -545,7 +443,6 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 				$eview->controller = $this->_controller;
 				$eview->ticket     = $row;
 				$eview->delimiter  = '';
-				$eview->attach     = $attach;
 
 				$plain = $eview->loadTemplate();
 				$plain = str_replace("\n", "\r\n", $plain);
@@ -581,556 +478,194 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			}
 		}
 
-		// We must have a ticket ID before we can do anything else
-		//if ($id)
-		//{
-			// Incoming comment
-			$comment = JRequest::getVar('comment', '', 'post', 'none', 2);
-			if ($comment)
+		// Incoming comment
+		$comment = JRequest::getVar('comment', '', 'post', 'none', 2);
+		if ($comment)
+		{
+			// If a comment was posted by the ticket submitter to a "waiting user response" ticket, change status.
+			if ($row->isWaiting() && $this->juser->get('username') == $row->get('login'))
 			{
-				// If a comment was posted to a closed ticket, re-open it.
-				if ($old->open == 0 && $row->status == 0)
+				$row->open();
+			}
+		}
+
+		// Create a new support comment object and populate it
+		$rowc = new SupportModelComment();
+		$rowc->set('ticket', $id);
+		$rowc->set('comment', nl2br($comment));
+		$rowc->set('created', JFactory::getDate()->toSql());
+		$rowc->set('created_by', $this->juser->get('id'));
+		$rowc->set('access', JRequest::getInt('access', 0));
+
+		// Compare fields to find out what has changed for this ticket and build a changelog
+		$rowc->changelog()->diff($old, $row);
+
+		$rowc->changelog()->cced(JRequest::getVar('cc', ''));
+
+		// Save the data
+		if (!$rowc->store())
+		{
+			JError::raiseError(500, $rowc->getError());
+			return;
+		}
+
+		JPluginHelper::importPlugin('support');
+		$dispatcher = JDispatcher::getInstance();
+		$dispatcher->trigger('onTicketUpdate', array($row, $rowc));
+
+		if (!$isNew)
+		{
+			$attachment = $this->uploadTask($row->get('id'), $rowc->get('id'));
+		}
+
+		// Only do the following if a comment was posted or ticket was reassigned
+		// otherwise, we're only recording a changelog
+		if ($rowc->get('comment') || $row->get('owner') != $old->get('owner'))
+		{
+			// Send e-mail to ticket submitter?
+			if (JRequest::getInt('email_submitter', 0) == 1)
+			{
+				// Is the comment private? If so, we do NOT send e-mail to the
+				// submitter regardless of the above setting
+				if (!$rowc->isPrivate())
 				{
-					$row->open = 1;
-					$row->status = 1;
-					$row->resolved = '';
-					$row->store();
+					$rowc->addTo(array(
+						'role'  => JText::_('COM_SUPPORT_COMMENT_SEND_EMAIL_SUBMITTER'),
+						'name'  => $row->submitter('name'),
+						'email' => $row->submitter('email'),
+						'id'    => $row->submitter('id')
+					));
 				}
-				// If a comment was posted by the ticket submitter to a "waiting user response" ticket, change status.
-				$ccreated_by = JRequest::getVar('username', '');
-				if ($row->status == 1 && $ccreated_by == $row->login)
+			}
+
+			// Send e-mail to ticket owner?
+			if (JRequest::getInt('email_owner', 0) == 1)
+			{
+				if ($row->get('owner'))
 				{
-					$row->open = 1;
-					$row->status = 1;
-					$row->resolved = '';
-					$row->store();
+					$rowc->addTo(array(
+						'role'  => JText::_('COM_SUPPORT_COMMENT_SEND_EMAIL_OWNER'),
+						'name'  => $row->owner('name'),
+						'email' => $row->owner('email'),
+						'id'    => $row->owner('id')
+					));
 				}
 			}
-
-			// Compare fields to find out what has changed for this ticket and build a changelog
-			$log = array(
-				'changes'       => array(),
-				'notifications' => array()
-			);
-
-			// Did the tags change?
-			if ($tags != $oldtags)
-			{
-				$oldtags = (trim($oldtags) == '') ? JText::_('BLANK') : $oldtags;
-				$log['changes'][] = array(
-					'field'  => JText::_('TICKET_FIELD_TAGS'),
-					'before' => $oldtags,
-					'after'  => $tags
-				);
-			}
-			// Did group change?
-			if ($row->group != $old->group)
-			{
-				$log['changes'][] = array(
-					'field'  => JText::_('TICKET_FIELD_GROUP'),
-					'before' => $old->group,
-					'after'  => $row->group
-				);
-			}
-			// Did severity change?
-			if ($row->severity != $old->severity)
-			{
-				$log['changes'][] = array(
-					'field'  => JText::_('TICKET_FIELD_SEVERITY'),
-					'before' => $old->severity,
-					'after'  => $row->severity
-				);
-			}
-			// Did owner change?
-			if ($row->owner != $old->owner)
-			{
-				$log['changes'][] = array(
-					'field'  => JText::_('TICKET_FIELD_OWNER'),
-					'before' => $old->owner,
-					'after'  => $row->owner
-				);
-			}
-			// Did the resolution change?
-			if ($row->resolved != $old->resolved)
-			{
-				$row->resolved = ($row->resolved) ? $row->resolved : '[unresolved]';
-				$log['changes'][] = array(
-					'field'  => JText::_('TICKET_FIELD_RESOLUTION'),
-					'before' => $old->resolved,
-					'after'  => $row->resolved
-				);
-			}
-			// Did the status change?
-			if ($row->status != $old->status)
-			{
-				$log['changes'][] = array(
-					'field'  => JText::_('TICKET_FIELD_STATUS'),
-					'before' => SupportHtml::getStatus($old->open, $old->status),
-					'after'  => SupportHtml::getStatus($row->open, $row->status)
-				);
-			}
-			if ($row->category != $old->category)
-			{
-				$log['changes'][] = array(
-					'field'  => JText::_('COM_SUPPORT_TICKET_FIELD_CATEGORY'),
-					'before' => ($old->category ? $old->category : JText::_('COM_SUPPORT_BLANK')),
-					'after'  => ($row->category ? $row->category : JText::_('COM_SUPPORT_BLANK'))
-				);
-			}
-
-			//$attachment = $this->uploadTask($row->id);
-			//$comment .= ($attachment) ? "\n\n".$attachment : '';
-
-			// Create a new support comment object and populate it
-			$rowc = new SupportComment($this->database);
-			$rowc->ticket     = $id;
-			$rowc->comment    = nl2br($comment);
-			$rowc->comment    = str_replace('<br>', '<br />', $rowc->comment);
-			$rowc->created    = JFactory::getDate()->toSql();
-			$rowc->created_by = JRequest::getVar('username', '');
-			$rowc->access     = JRequest::getInt('access', 0);
 
 			// Add any CCs to the e-mail list
-			$cc = JRequest::getVar('cc', '', 'post');
-			if (trim($cc))
+			foreach ($rowc->changelog()->get('cc') as $cc)
 			{
-				$cc = explode(',', $cc);
-				$cc = array_map('trim', $cc);
-				foreach ($cc as $acc)
+				$rowc->addTo($cc, JText::_('COM_SUPPORT_COMMENT_SEND_EMAIL_CC'));
+			}
+
+			// Message people watching this ticket, 
+			// but ONLY if the comment was NOT marked private
+			if (!$rowc->isPrivate())
+			{
+				foreach ($row->watchers() as $watcher)
 				{
-					// Check the format accepted [ID, username, Name (username), Name (email)]
-					if (!is_numeric($acc) && strstr($acc, '('))
-					{
-						$acc = trim(preg_replace('/(.+?)\s+\((.+?)\)/i', '$2', $acc));
-					}
-
-					// Is this a username/ID or email address?
-					if (!strstr($acc, '@'))
-					{
-						// Username or user ID - load the user
-						$juser = JUser::getInstance($acc);
-
-						// Did we find an account?
-						if (!is_object($juser))
-						{
-							// Move on - nothing else we can do here
-							continue;
-						}
-
-						$log['cc'][] = $juser->get('username');
-					}
-					// Make sure it's a valid e-mail address
-					elseif (SupportUtilities::checkValidEmail($acc))
-					{
-						// Is the comment private? If so, we do NOT send e-mail to submitter
-						if ($rowc->access != 1 && strtolower($row->email) == strtolower($acc)) 
-						{
-							continue;
-						}
-
-						$log['cc'][] = $acc;
-					}
+					$rowc->addTo($watcher->user_id, 'watcher');
 				}
 			}
 
-			$rowc->changelog  = json_encode($log);
-
-			if ($rowc->check())
+			if (count($rowc->to()))
 			{
-				// If we're only recording a changelog, make it private
-				if ($rowc->changelog && !$rowc->comment)
+				// Build e-mail components
+				$subject = JText::sprintf('COM_SUPPORT_EMAIL_SUBJECT_TICKET_COMMENT', $row->get('id'));
+
+				$from = array(
+					'name'      => JText::sprintf('COM_SUPPORT_EMAIL_FROM', $jconfig->getValue('config.sitename')),
+					'email'     => $jconfig->getValue('config.mailfrom'),
+					'multipart' => md5(date('U'))  // Html email
+				);
+
+				// Plain text email
+				$eview = new \Hubzero\Component\View(array(
+					'base_path' => JPATH_ROOT . DS . 'components' . DS . $this->_option,
+					'name'      => 'emails',
+					'layout'    => 'comment_plain'
+				));
+				$eview->option     = $this->_option;
+				$eview->controller = $this->_controller;
+				$eview->comment    = $rowc;
+				$eview->ticket     = $row;
+				$eview->delimiter  = ($allowEmailResponses ? '~!~!~!~!~!~!~!~!~!~!' : '');
+
+				$message['plaintext'] = $eview->loadTemplate();
+				$message['plaintext'] = str_replace("\n", "\r\n", $message['plaintext']);
+
+				// HTML email
+				$eview->setLayout('comment_html');
+
+				$message['multipart'] = $eview->loadTemplate();
+				$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);
+
+				// Send e-mail to admin?
+				JPluginHelper::importPlugin('xmessage');
+
+				foreach ($rowc->to('ids') as $to)
 				{
-					$rowc->access = 1;
-				}
-				// Save the data
-				if (!$rowc->store())
-				{
-					JError::raiseError(500, $rowc->getError());
-					return;
-				}
-
-				if (!$isNew)
-				{
-					$attachment = $this->uploadTask($row->id, $rowc->id);
-				}
-
-				// Only do the following if a comment was posted or ticket was reassigned
-				// otherwise, we're only recording a changelog
-				if ($comment || $row->owner != $old->owner)
-				{
-					$juri = JURI::getInstance();
-					$jconfig = JFactory::getConfig();
-
-					$base = $juri->base();
-					if (substr($base, -14) == 'administrator/')
-					{
-						$base = substr($base, 0, strlen($base)-14);
-					}
-
-					$webpath = $this->config->get('webpath');
-					if (substr($webpath, 0, 1) == '/')
-					{
-						$webpath = substr($webpath, 1, strlen($webpath));
-					}
-
-					// Parse comments for attachments
-					$attach = new SupportAttachment($this->database);
-					$attach->webpath = $base . $webpath . DS . $id;
-					$attach->uppath  = JPATH_ROOT . $this->config->get('webpath') . DS . $id;
-					$attach->output  = 'email';
-
-					// Build e-mail components
-					$admin_email = $jconfig->getValue('config.mailfrom');
-
-					$subject = ucfirst($this->_name) . ', Ticket #' . $row->id;
-
-					$from = array();
-					$from['name']  = $jconfig->getValue('config.sitename') . ' ' . ucfirst($this->_name);
-					$from['email'] = $jconfig->getValue('config.mailfrom');
-
-					/*$message = array();
-					$message['plaintext']  = '----------------------------'."\r\n";
-					$message['plaintext'] .= strtoupper(JText::_('TICKET')).': '.$row->id."\r\n";
-					$message['plaintext'] .= strtoupper(JText::_('TICKET_DETAILS_SUMMARY')).': '.stripslashes($row->summary)."\r\n";
-					$message['plaintext'] .= strtoupper(JText::_('TICKET_DETAILS_CREATED')).': '.$row->created."\r\n";
-					$message['plaintext'] .= strtoupper(JText::_('TICKET_DETAILS_CREATED_BY')).': '.$row->name;
-					$message['plaintext'] .= ($row->login) ? ' ('.$row->login.')'."\r\n" : "\r\n";
-					$message['plaintext'] .= strtoupper(JText::_('TICKET_FIELD_STATUS')).': '.SupportHtml::getStatus($row->status)."\r\n";
-					$message['plaintext'] .= '----------------------------'."\r\n\r\n";
-					$message['plaintext'] .= JText::sprintf('TICKET_EMAIL_COMMENT_POSTED',$row->id).': '.$rowc->created_by."\r\n";
-					$message['plaintext'] .= JText::_('TICKET_EMAIL_COMMENT_CREATED').': '.$rowc->created."\r\n\r\n";
-					if ($row->owner != $old->owner)
-					{
-						if ($old->owner == '')
-						{
-							$message['plaintext'] .= JText::_('TICKET_FIELD_OWNER').' '.JText::_('TICKET_SET_TO').' "'.$row->owner.'"'."\r\n\r\n";
-						}
-						else
-						{
-							$message['plaintext'] .= JText::_('TICKET_FIELD_OWNER').' '.JText::_('TICKET_CHANGED_FROM').' "'.$old->owner.'" to "'.$row->owner.'"'."\r\n\r\n";
-						}
-					}
-					$message['plaintext'] .= $attach->parse($comment) . "\r\n\r\n";
-
-					// Prepare message to allow email responses to be parsed and added to the ticket
 					if ($allowEmailResponses)
 					{
-						$live_site = rtrim(JURI::base(),'/');
-						
-						$ticketURL = $live_site . JRoute::_('index.php?option=' . $this->option);
-						
-						$prependtext = "~!~!~!~!~!~!~!~!~!~!\r\n";
-						$prependtext .= "You can reply to this message, just include your reply text above this area\r\n" ;
-						$prependtext .= "Attachments (up to 2MB each) are permitted\r\n" ;
-						$prependtext .= "Message from " . $live_site . " / Ticket #" . $row->id . "\r\n";
-
-						$message['plaintext'] = $prependtext . "\r\n\r\n" . $message['plaintext'];
+						// The reply-to address contains the token
+						$token = $encryptor->buildEmailToken(1, 1, $to['id'], $id);
+						$from['replytoemail'] = 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@');
 					}
 
-					// Build the link to the ticket
-					//   NOTE: We don't use JRoute as it will have no affect on the back-end
-					//   and it would return only the script name and querystring (index.php?option=...)
-					//   We need nice URLs that can be clicked.
-					$sef = $this->_name . '/ticket/' . $row->id;
-					$message['plaintext'] .= rtrim($base, DS) . DS . ltrim($sef, DS) . "\r\n";*/
+					// Get the user's email address
+					if (!$dispatcher->trigger('onSendMessage', array('support_reply_submitted', $subject, $message, $from, array($to['id']), $this->_option)))
+					{
+						$this->setError(JText::sprintf('COM_SUPPORT_ERROR_FAILED_TO_MESSAGE', $to['name'] . '(' . $to['role'] . ')'));
+					}
+					$rowc->changelog()->notified(
+						$to['role'],
+						$to['name'],
+						$to['email']
+					);
+				}
 
-					// Html email
-					$from['multipart'] = md5(date('U'));
+				foreach ($rowc->to('emails') as $to)
+				{
+					$token = $encryptor->buildEmailToken(1, 1, -9999, $id);
 
-					//$rowc->comment   = $attach->parse($rowc->comment);
-					$rowc->changelog = $log;
+					$emails[] = array(
+						$to['email'],
+						'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@')
+					);
 
-					/*$eview = new JView(array(
-						'base_path' => JPATH_ROOT . DS . 'components' . DS . $this->_option,
-						'name'      => 'emails',
-						'layout'    => 'comment'
-					));
-					$eview->option     = $this->_option;
-					$eview->controller = $this->_controller;
-					$eview->comment    = $rowc;
-					$eview->ticket     = $row;
-					$eview->delimiter  = '~!~!~!~!~!~!~!~!~!~!';
-					$eview->boundary   = $from['multipart'];
-					$eview->attach     = $attach;
-
-					$message['multipart'] = $eview->loadTemplate();
-					$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);*/
-					// Plain text email
-					$eview = new JView(array(
-						'base_path' => JPATH_ROOT . DS . 'components' . DS . $this->_option,
-						'name'      => 'emails', 
-						'layout'    => 'comment_plain'
-					));
-					$eview->option     = $this->_option;
-					$eview->controller = $this->_controller;
-					$eview->comment    = $rowc;
-					$eview->ticket     = $row;
-					$eview->delimiter  = '';
 					if ($allowEmailResponses)
 					{
-						$eview->delimiter  = '~!~!~!~!~!~!~!~!~!~!';
+						// In this case each item in email in an array, 1- To, 2:reply to address
+						SupportUtilities::sendEmail($email[0], $subject, $message, $from, $email[1]);
 					}
-					$eview->attach     = $attach;
-
-					$message['plaintext'] = $eview->loadTemplate();
-					$message['plaintext'] = str_replace("\n", "\r\n", $message['plaintext']);
-
-					// HTML email
-					$eview->setLayout('comment_html');
-
-					$message['multipart'] = $eview->loadTemplate();
-					$message['multipart'] = str_replace("\n", "\r\n", $message['multipart']);
-
-					// An array for all the addresses to be e-mailed
-					$emails = array();
-					$emaillog = array();
-
-					// Send e-mail to admin?
-					JPluginHelper::importPlugin('xmessage');
-					$dispatcher = JDispatcher::getInstance();
-
-					// Send e-mail to ticket submitter?
-					$email_submitter = JRequest::getInt('email_submitter', 0);
-					if ($email_submitter == 1)
+					else
 					{
-						// Is the comment private? If so, we do NOT send e-mail to the 
-						// submitter regardless of the above setting
-						if ($rowc->access != 1)
-						{
-							jimport('joomla.user.helper');
-							if (($zid = JUserHelper::getUserId($row->login)))
-							{
-								$zuser = JUser::getInstance($row->login);
-							}
-							// Make sure there even IS an e-mail and it's valid
-							if (is_object($zuser) && $zuser->get('id'))
-							{
-								$type = 'support_reply_submitted';
-								if ($row->status == 1)
-								{
-									$element = $row->id;
-									$description = 'index.php?option=' . $this->_option . '&task=ticket&id=' . $row->id;
-								}
-								else
-								{
-									$element = null;
-									$description = '';
-									if ($row->status == 2)
-									{
-										$type = 'support_close_submitted';
-									}
-								}
-
-								// Only build tokens in if component is configured to allow email responses to tickets and ticket comments
-								if ($allowEmailResponses)
-								{
-									// The reply-to address contains the token 
-									$token = $encryptor->buildEmailToken(1, 1, $zuser->get('id'), $id);
-									$from['replytoemail'] = 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@');
-								}
-
-								if (!$dispatcher->trigger('onSendMessage', array($type, $subject, $message, $from, array($zuser->get('id')), $this->_option)))
-								{
-									$this->setError(JText::_('Failed to message ticket submitter.'));
-								}
-								else
-								{
-									$log['notifications'][] = array(
-										'role'    => JText::_('COMMENT_SEND_EMAIL_SUBMITTER'),
-										'name'    => $row->name,
-										'address' => $row->email
-									);
-								}
-							}
-							else if ($row->email && SupportUtilities::checkValidEmail($row->email))
-							{
-								if ($allowEmailResponses)
-								{
-									// Build a temporary token for this user, userid will not be valid, but the token will
-									$token = $encryptor->buildEmailToken(1, 1, 1, $id);
-									$emails[] = array($row->email, 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@'));
-								}
-								else
-								{
-									$emails[] = $row->email;
-								}
-							}
-						}
+						// email is just a plain 'ol string
+						SupportUtilities::sendEmail($to['email'], $subject, $message, $from);
 					}
 
-					// Send e-mail to ticket owner?
-					$email_owner = JRequest::getInt('email_owner', 0);
-					if ($email_owner == 1)
+					$rowc->changelog()->notified(
+						$to['role'],
+						$to['name'],
+						$to['email']
+					);
+				}
+
+				// Were there any changes?
+				if (count($rowc->changelog()->get('notifications')) > 0)
+				{
+					// Save the data
+					if (!$rowc->store())
 					{
-						if ($row->owner)
-						{
-							$juser = JUser::getInstance($row->owner);
-
-							// Only put tokens in if component is configured to allow email responses to tickets and ticket comments
-							if ($allowEmailResponses)
-							{
-								// The reply-to address contains the token 
-								$token = $encryptor->buildEmailToken(1, 1, $juser->get('id'), $id);
-								$from['replytoemail'] = 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@');
-							}
-
-							if (!$dispatcher->trigger('onSendMessage', array('support_reply_assigned', $subject, $message, $from, array($juser->get('id')), $this->_option)))
-							{
-								$this->setError(JText::_('Failed to message ticket owner.'));
-							}
-							else
-							{
-								$log['notifications'][] = array(
-									'role'    => JText::_('COMMENT_SEND_EMAIL_OWNER'),
-									'name'    => $juser->get('name'),
-									'address' => $juser->get('email')
-								);
-							}
-						}
-					}
-
-					// Add any CCs to the e-mail list
-					//$cc = JRequest::getVar('cc', '', 'post');
-					if (count($log['cc']))
-					{
-						//$cc = explode(',', $cc);
-						//$cc = array_map('trim', $cc);
-						foreach ($log['cc'] as $acc)
-						{
-							// Check the format accepted [ID, username, Name (username), Name (email)]
-							if (!is_numeric($acc) && strstr($acc, '('))
-							{
-								$acc = trim(preg_replace('/(.+?)\s+\((.+?)\)/i', '$2', $acc));
-							}
-
-							// Is this a username/ID or email address?
-							if (!strstr($acc, '@'))
-							{
-								// Username or user ID - load the user
-								$juser = JUser::getInstance($acc);
-
-								// Did we find an account?
-								if (!is_object($juser))
-								{
-									// Move on - nothing else we can do here
-									continue;
-								}
-
-								if ($allowEmailResponses)
-								{
-									// The reply-to address contains the token 
-									$token = $encryptor->buildEmailToken(1, 1, -9999, $id);
-									$from['replytoemail'] = 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@');
-								}
-
-								// Is this the same account as the submitter? If so, ignore
-								if (strtolower($row->login) == strtolower($juser->get('username')) 
-								  || strtolower($row->email) == strtolower($juser->get('email')))
-								{
-									continue;
-								}
-
-								// Send message
-								if (!$dispatcher->trigger('onSendMessage', array('support_reply_assigned', $subject, $message, $from, array($juser->get('id')), $this->_option)))
-								{
-									$this->setError(JText::_('Failed to message user.'));
-								}
-								else 
-								{
-									// Add to log
-									$log['notifications'][] = array(
-										'role'    => JText::_('COMMENT_SEND_EMAIL_CC'),
-										'name'    => $juser->get('name'),
-										'address' => $juser->get('email')
-									);
-									//$log['cc'][] = $juser->get('username');
-								}
-							}
-							// Make sure it's a valid e-mail address
-							elseif (SupportUtilities::checkValidEmail($acc))
-							{
-								// Is the comment private? If so, we do NOT send e-mail to submitter
-								if ($rowc->access != 1 && strtolower($row->email) == strtolower($acc)) 
-								{
-									continue;
-								}
-
-								if ($allowEmailResponses)
-								{
-									// The reply-to address contains the token
-									$token = $encryptor->buildEmailToken(1, 1, -9999, $id);
-									$emails[] = array($acc, 'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@'));
-								}
-								else
-								{
-									$emails[] = $acc;
-								}
-								//$log['cc'][] = $acc;
-							}
-						}
-					}
-
-					// Send an e-mail to each address
-					foreach ($emails as $email)
-					{
-						if ($allowEmailResponses)
-						{
-							// In this case each item in email in an array, 1- To, 2:reply to address
-							if (SupportUtilities::sendEmail($email[0], $subject, $message, $from, $email[1]))
-							{
-								if (strtolower($row->email) == $email[0])
-								{
-									$emaillog[] = '<li>'.JText::_('TICKET_EMAILED_SUBMITTER').' - '.$row->email.'</li>';
-								}
-								else 
-								{
-									$emaillog[] = '<li>' . JText::_('TICKET_EMAILED_CC') . ' - ' . $email[0] . '</li>';
-								}
-							}
-						}
-						else 
-						{
-							// email is just a plain 'ol string
-							if (SupportUtilities::sendEmail($email, $subject, $message, $from))
-							{
-								if (strtolower($row->email) == $email)
-								{
-									$log['notifications'][] = array(
-										'role'    => JText::_('COMMENT_SEND_EMAIL_SUBMITTER'),
-										'name'    => $row->name,
-										'address' => $row->email
-									);
-								}
-								else 
-								{
-									$log['notifications'][] = array(
-										'role'    => JText::_('COMMENT_SEND_EMAIL_CC'),
-										'name'    => JText::_('[none]'),
-										'address' => $email
-									);
-								}
-							}
-						}
-					}
-
-					// Were there any changes?
-					if (count($log['notifications']) > 0) 
-					{
-						$rowc->changelog = json_encode($log);
-
-						// Save the data
-						if (!$rowc->store())
-						{
-							JError::raiseError(500, $rowc->getError());
-							return;
-						}
+						JError::raiseError(500, $rowc->getError());
+						return;
 					}
 				}
 			}
-		//}
+		}
 
 		// output messsage and redirect
-		if ($redirect) 
+		if ($redirect)
 		{
 			$filters = JRequest::getVar('filters', '');
 			$filters = str_replace('&amp;','&', $filters);
@@ -1138,16 +673,16 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			// Redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . ($filters ? '&' . $filters : ''),
-				JText::sprintf('TICKET_SUCCESSFULLY_SAVED', $row->id)
+				JText::sprintf('COM_SUPPORT_TICKET_SUCCESSFULLY_SAVED', $row->get('id'))
 			);
-		} 
-		else 
+		}
+		else
 		{
 			$this->view->setLayout('edit');
 			$this->editTask();
 		}
 	}
-	
+
 	/**
 	 * Removes a ticket and all associated records (tags, comments, etc.)
 	 *
@@ -1166,7 +701,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('SUPPORT_ERROR_SELECT_TICKET_TO_DELETE'),
+				JText::_('COM_SUPPORT_ERROR_SELECT_TICKET_TO_DELETE'),
 				'error'
 			);
 			return;
@@ -1196,7 +731,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		// Output messsage and redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::sprintf('TICKET_SUCCESSFULLY_DELETED', count($ids))
+			JText::sprintf('COM_SUPPORT_TICKET_SUCCESSFULLY_DELETED', count($ids))
 		);
 	}
 
@@ -1224,24 +759,24 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 	 */
 	private function _userSelect($name, $active, $nouser=0, $javascript=NULL, $order='a.name')
 	{
-		$query = "SELECT a.username AS value, a.name AS text"
+		$query = "SELECT a.id AS value, a.name AS text"
 			. " FROM #__users AS a"
 			. " INNER JOIN #__support_acl_aros AS aro ON aro.model='user' AND aro.foreign_key = a.id"
 			. " WHERE a.block = '0'"
 			. " ORDER BY ". $order;
 
 		$this->database->setQuery($query);
-		if ($nouser) 
+		if ($nouser)
 		{
-			$users[] = JHTML::_('select.option', '', 'No User', 'value', 'text');
+			$users[] = JHTML::_('select.option', '0', JText::_('COM_SUPPORT_NO_USER'), 'value', 'text');
 			$users = array_merge($users, $this->database->loadObjectList());
-		} 
-		else 
+		}
+		else
 		{
 			$users = $this->database->loadObjectList();
 		}
 
-		$query = "SELECT a.username AS value, a.name AS text, aro.alias"
+		$query = "SELECT a.id AS value, a.name AS text, aro.alias"
 			. " FROM #__users AS a"
 			. " INNER JOIN #__xgroups_members AS m ON m.uidNumber = a.id"
 			. " INNER JOIN #__support_acl_aros AS aro ON aro.model='group' AND aro.foreign_key = m.gidNumber"
@@ -1259,9 +794,9 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 				}
 				$groups[$result->alias][] = $result;
 			}
-			foreach ($groups as $name => $gusers)
+			foreach ($groups as $nme => $gusers)
 			{
-				$users[] = JHTML::_('select.optgroup', JText::_('group:') . ' ' . $name);
+				$users[] = JHTML::_('select.optgroup', JText::_('COM_SUPPORT_GROUP') . ' ' . $nme);
 				$users = array_merge($users, $gusers);
 			}
 		}
@@ -1286,7 +821,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		$users = array();
 		if ($nouser)
 		{
-			$users[] = JHTML::_('select.option', '', 'No User', 'value', 'text');
+			$users[] = JHTML::_('select.option', '0', JText::_('COM_SUPPORT_NO_USER'), 'value', 'text');
 		}
 
 		if (strstr($group, ','))
@@ -1313,7 +848,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 							}
 
 							$m = new stdClass();
-							$m->value = $u->get('username');
+							$m->value = $u->get('id');
 							$m->text  = $u->get('name');
 							$m->groupname = $g;
 
@@ -1342,17 +877,17 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 					}
 
 					$m = new stdClass();
-					$m->value = $u->get('username');
+					$m->value = $u->get('id');
 					$m->text  = $u->get('name');
 					$m->groupname = $group;
 
 					$names = explode(' ', $u->get('name'));
 					$last = trim(end($names));
-					
+
 					$users[$last] = $m;
 				}
 			}
-			
+
 			ksort($users);
 		}
 
@@ -1368,13 +903,6 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 	 */
 	public function downloadTask()
 	{
-		// Ensure we have a database object
-		if (!$this->database)
-		{
-			JError::raiseError(500, JText::_('SUPPORT_DATABASE_NOT_FOUND'));
-			return;
-		}
-
 		// Get the ID of the file requested
 		$id = JRequest::getInt('id', 0);
 
@@ -1383,7 +911,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		$attach->load($id);
 		if (!$attach->filename)
 		{
-			JError::raiseError(404, JText::_('SUPPORT_FILE_NOT_FOUND'));
+			JError::raiseError(404, JText::_('COM_SUPPORT_ERROR_FILE_NOT_FOUND'));
 			return;
 		}
 		$file = $attach->filename;
@@ -1391,7 +919,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		// Ensure we have a path
 		if (empty($file))
 		{
-			JError::raiseError(404, JText::_('SUPPORT_FILE_NOT_FOUND'));
+			JError::raiseError(404, JText::_('COM_SUPPORT_ERROR_FILE_NOT_FOUND'));
 			return;
 		}
 
@@ -1416,7 +944,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		// Ensure the file exist
 		if (!file_exists($filename))
 		{
-			JError::raiseError(404, JText::_('SUPPORT_FILE_NOT_FOUND') . ' ' . $filename);
+			JError::raiseError(404, JText::_('COM_SUPPORT_ERROR_FILE_NOT_FOUND') . ' ' . $filename);
 			return;
 		}
 
@@ -1429,7 +957,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		if (!$xserver->serve())
 		{
 			// Should only get here on error
-			JError::raiseError(404, JText::_('SUPPORT_SERVER_ERROR'));
+			JError::raiseError(404, JText::_('COM_SUPPORT_SERVER_ERROR'));
 		}
 		else
 		{
@@ -1451,7 +979,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 
 		if (!$listdir)
 		{
-			$this->setError(JText::_('COM_SUPPORT_NO_ID'));
+			$this->setError(JText::_('COM_SUPPORT_ERROR_NO_ID'));
 			return '';
 		}
 
@@ -1459,7 +987,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		$file = JRequest::getVar('upload', '', 'files', 'array');
 		if (!$file['name'])
 		{
-			$this->setError(JText::_('COM_SUPPORT_NO_FILE'));
+			$this->setError(JText::_('COM_SUPPORT_ERROR_NO_FILE'));
 			return '';
 		}
 
@@ -1471,7 +999,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			jimport('joomla.filesystem.folder');
 			if (!JFolder::create($file_path))
 			{
-				$this->setError(JText::_('COM_SUPPORT_UNABLE_TO_CREATE_UPLOAD_PATH'));
+				$this->setError(JText::_('COM_SUPPORT_ERROR_UNABLE_TO_CREATE_UPLOAD_PATH'));
 				return '';
 			}
 		}
@@ -1483,7 +1011,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		$ext = strtolower(JFile::getExt($file['name']));
 
 		$filename = JFile::stripExt($file['name']);
-		while (file_exists($file_path . DS . $filename . '.' . $ext)) 
+		while (file_exists($file_path . DS . $filename . '.' . $ext))
 		{
 			$filename .= rand(10, 99);
 		}
@@ -1503,9 +1031,9 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			exec("clamscan -i --no-summary --block-encrypted $finalfile", $output, $status);
 			if ($status == 1)
 			{
-				if (JFile::delete($finalfile)) 
+				if (JFile::delete($finalfile))
 				{
-					$this->setError(JText::_('File rejected due to possible security risk.'));
+					$this->setError(JText::_('COM_SUPPORT_ERROR_FAILED_SECURITY_SCAN'));
 					return '';
 				}
 			}

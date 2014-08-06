@@ -29,9 +29,36 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
-JToolBarHelper::title(JText::_('Resource Path Checker'), 'resources.png');
 
-echo '<h4>' . number_format(count($this->missing)) . ' Total Issues' . '</h4>';
-echo '<br /><hr />';
-echo $this->html;
+JToolBarHelper::title(JText::_('COM_RESOURCES') . ': ' . JText::_('COM_RESOURCES_PATH_CHECKER'), 'resources.png');
+
+$total   = number_format(count($this->good+$this->warning+$this->missing));
+$missing = number_format(count($this->missing));
 ?>
+
+<form action="" method="post" name="adminForm" id="adminForm">
+	<table class="adminlist">
+		<tbody>
+			<tr>
+				<td>
+					<h3><?php echo JText::_('COM_RESOURCES_PATH_CHECKER_RESULTS'); ?></h3>
+					<p><?php echo JText::sprintf('COM_RESOURCES_PATH_CHECKER_RESULTS_SUMMARY', $total, $missing); ?> </p>
+					<?php if (count($this->missing) > 0) : ?>
+						<hr / >
+						<?php echo implode($this->missing, '<br />'); ?>
+					<?php endif; ?>
+
+					<?php if (count($this->warning) > 0) : ?>
+						<br /><br /><hr />
+						<?php echo implode($this->warning, '<br />'); ?>
+					<?php endif; ?>
+
+					<?php if (count($this->good) > 0) : ?>
+						<br /><br /><hr />
+						<?php echo implode($this->good, '<br />'); ?>
+					<?php endif; ?>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</form>

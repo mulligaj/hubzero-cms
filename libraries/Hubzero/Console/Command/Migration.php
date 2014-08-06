@@ -39,33 +39,8 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Migration class
  **/
-class Migration implements CommandInterface
+class Migration extends Base implements CommandInterface
 {
-	/**
-	 * Output object, implements the Output interface
-	 *
-	 * @var object
-	 **/
-	private $output;
-
-	/**
-	 * Arguments object, implements the Argument interface
-	 *
-	 * @var object
-	 **/
-	private $arguments;
-
-	/**
-	 * Constructor - sets output mechanism and arguments for use by command
-	 *
-	 * @return void
-	 **/
-	public function __construct(Output $output, Arguments $arguments)
-	{
-		$this->output    = $output;
-		$this->arguments = $arguments;
-	}
-
 	/**
 	 * Default (required) command - just executes run
 	 *
@@ -108,6 +83,30 @@ class Migration implements CommandInterface
 			else
 			{
 				$this->output->error('Error: Provided directory is not valid');
+			}
+		}
+
+		// Migrating a super group
+		$alternativeDatabase = null;
+		if ($this->arguments->getOpt('group'))
+		{
+			$cname = $this->arguments->getOpt('group');
+			$group = \Hubzero\User\Group::getInstance($cname);
+			if ($group && $group->isSuperGroup())
+			{
+				// Get group config
+				$groupsConfig = \JComponentHelper::getParams('com_groups');
+
+				// Path to group folder
+				$directory  = JPATH_ROOT . DS . trim($groupsConfig->get('uploadpath', '/site/groups'), DS);
+				$directory .= DS . $group->get('gidNumber');
+
+				// Get group database
+				$alternativeDatabase = \Hubzero\User\Group\Helper::getDBO(array(), $group->get('cn'));
+			}
+			else
+			{
+				$this->output->error('Error: Provided group is not valid');
 			}
 		}
 
@@ -188,7 +187,7 @@ class Migration implements CommandInterface
 		$email = false;
 		if ($this->arguments->getOpt('email'))
 		{
-			if(!preg_match('/^[a-zA-Z0-9\.\_\-]+@[a-zA-Z0-9\.]+\.[a-zA-Z]{2,4}$/', $this->arguments->getOpt('email')))
+			if (!preg_match('/^[a-zA-Z0-9\.\_\-]+@[a-zA-Z0-9\.]+\.[a-zA-Z]{2,4}$/', $this->arguments->getOpt('email')))
 			{
 				$this->output->error('Error: ' . $this->arguments->getOpt('email') . ' does not appear to be a valid email address');
 			}
@@ -199,7 +198,7 @@ class Migration implements CommandInterface
 		}
 
 		// Create migration object
-		$migration = new \Hubzero\Content\Migration($directory);
+		$migration = new \Hubzero\Content\Migration($directory, $alternativeDatabase);
 
 		// Make sure we got a migration object
 		if ($migration === false)
@@ -252,7 +251,8 @@ class Migration implements CommandInterface
 								{
 									$pending[] = $matches[1];
 								}
-								if (preg_match('/completed up\(\) in (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
+								if (preg_match('/completed up\(\) in (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches)
+									|| preg_match('/would ignore up\(\) (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
 								{
 									$complete[] = $matches[1];
 								}
@@ -305,7 +305,7 @@ class Migration implements CommandInterface
 			}
 
 			// Send the message
-			if(!mail($email, $subject, $message, $headers))
+			if (!mail($email, $subject, $message, $headers))
 			{
 				$this->output->addLine("Error: failed to send message!", 'warning');
 			}

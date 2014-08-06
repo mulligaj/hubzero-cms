@@ -38,7 +38,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Execute a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -50,7 +50,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display all responses for a given question
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -88,13 +88,13 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 		// Sorting
 		$this->view->filters['sortby']   = '';
 		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'created'
 		));
 		$this->view->filters['sort_Dir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'DESC'
 		));
 
@@ -164,17 +164,17 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 		{
 			$id = $ids[0];
 		}
-		if (!$qid)
+		/*if (!$qid)
 		{
 			$qid = $id;
 			$id = 0;
-		}
+		}*/
 
 		if (is_object($row))
 		{
 			$this->view->row = $row;
 		}
-		else 
+		else
 		{
 			// load infor from database
 			$this->view->row = new AnswersModelResponse($id);
@@ -194,7 +194,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save a question and fall back to edit form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function applyTask()
@@ -204,7 +204,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save a response
-	 * 
+	 *
 	 * @param   boolean $redirect
 	 * @return  void
 	 */
@@ -242,7 +242,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 			// Redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Answer Successfully Saved')
+				JText::_('COM_ANSWERS_ANSWER_SAVED')
 			);
 		}
 
@@ -251,7 +251,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 	/**
 	 * Removes one or more entries and associated data
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -285,7 +285,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 	/**
 	 * Mark an entry as "accepted" and unmark any previously accepted entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function rejectTask()
@@ -295,7 +295,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 	/**
 	 * Mark an entry as "accepted" and unmark any previously accepted entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function acceptTask()
@@ -321,7 +321,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Select an answer to ' . $action),
+				JText::sprintf('COM_ANSWERS_ERROR_SELECT_ANSWER_TO', $action),
 				'error'
 			);
 			return;
@@ -330,7 +330,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('A question can only have one accepted answer'),
+				JText::_('COM_ANSWERS_ERROR_ONLY_ONE_ACCEPTED_ANSWER'),
 				'error'
 			);
 			return;
@@ -351,11 +351,11 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 		// Set message
 		if ($publish == '1')
 		{
-			$message = JText::_('Item successfully Accepted');
+			$message = JText::_('COM_ANSWERS_ANSWER_ACCEPTED');
 		}
 		else if ($publish == '0')
 		{
-			$message = JText::_('Item successfully Rejected');
+			$message = JText::_('COM_ANSWERS_ANSWER_REJECTED');
 		}
 
 		$this->setRedirect(
@@ -366,7 +366,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 	/**
 	 * Cancel a task and redirect to default view
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cancelTask()
@@ -378,7 +378,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 
 	/**
 	 * Reset the vote count for an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function resetTask()
@@ -401,7 +401,7 @@ class AnswersControllerAnswers extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Vote log has been reset.')
+			JText::_('COM_ANSWERS_VOTE_LOG_RESET')
 		);
 	}
 }

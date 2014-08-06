@@ -33,27 +33,9 @@ defined('_JEXEC') or die('Restricted access');
 
 $option = 'com_members';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect( 'index.php', JText::_('ALERTNOTAUTH') );
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include scripts
@@ -92,11 +74,11 @@ JSubMenuHelper::addEntry(
 	'index.php?option=com_members&controller=points',
 	$controllerName == 'points'
 );
-JSubMenuHelper::addEntry(
+/*JSubMenuHelper::addEntry(
 	JText::_('Plugins'),
 	'index.php?option=' . $option . '&controller=plugins', //'index.php?option=com_plugins&view=plugins&filter_folder=members&filter_type=members'
 	$controllerName == 'plugins'
-);
+);*/
 JSubMenuHelper::addEntry(
 	JText::_('Password Rules'),
 	'index.php?option=com_members&controller=passwordrules',
@@ -113,10 +95,12 @@ JSubMenuHelper::addEntry(
 	$controllerName == 'quotas'
 );
 
-if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php'))
-{
-	$controllerName = 'members';
-}
+JSubMenuHelper::addEntry(
+	JText::_('Registration'),
+	'index.php?option=' .  $option . '&controller=registration',
+	(in_array($controllerName, array('registration', 'organizations', 'employers', 'incremental', 'premis')))
+);
+
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'MembersController' . ucfirst($controllerName);
 

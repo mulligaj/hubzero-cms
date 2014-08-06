@@ -530,7 +530,7 @@ class JDatabaseMySQL extends JDatabase
 		$endtime = microtime(true);
 
 		// If debugging is enabled then let's log the query.
-		if (JPROFILE || $this->debug) {
+		if ($this->debug) {
 			// Increment the query counter and add the query to the object queue.
 			$this->count++;
 			$timediff = ($endtime - $starttime);
@@ -539,11 +539,9 @@ class JDatabaseMySQL extends JDatabase
 			{
 				$timediff = "!!!!! ".$timediff;
 			}
-			if ($this->debug) {
-				$this->log[] = "(".$timediff."): ".$sql;
+			$this->log[] = "(".$timediff."): ".$sql;
 
-				JLog::add(str_replace("\n","",$sql), JLog::DEBUG, 'databasequery');
-			}
+			JLog::add(str_replace("\n","",$sql), JLog::DEBUG, 'databasequery');
 		}
 
 		/*
@@ -852,13 +850,10 @@ class JDatabaseMySQL extends JDatabase
 			if ($query != '')
 			{
 				$this->cursor = mysql_query($query, $this->connection);
-				if (JPROFILE || $this->debug)
+				if ($this->debug)
 				{
 					$this->count++;
-					if ($this->debug)
-					{
-						$this->log[] = $query;
-					}
+					$this->log[] = $query;
 				}
 				if (!$this->cursor)
 				{

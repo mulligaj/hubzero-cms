@@ -30,51 +30,26 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
+
+$this->css()
+     ->js();
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
-<div id="content-header-extra">
-	<p>
-		<a class="icon-main main-page btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>"><?php echo JText::_('COM_KB_MAIN'); ?></a>
-	</p>
-</div>
-<div class="main section">
-<?php if ($this->getError()) { ?>
-	<p class="error"><?php echo $this->getError(); ?></p>
-<?php } ?>
-	<div class="aside">
-		<div class="container">
-			<h3><?php echo JText::_('COM_KB_CATEGORIES'); ?></h3>
-			<ul class="categories">
-				<li>
-					<a<?php if ($this->catid <= 0) { echo ' class="active"'; } ?> href="<?php echo JRoute::_('index.php?option=' . $this->option . '&section=all'); ?>">
-						<?php echo JText::_('COM_KB_ALL_ARTICLES'); ?>
-					</a>
-				</li>
-			<?php foreach ($this->categories as $row) { ?>
-				<li>
-					<a <?php if ($this->catid == $row->get('id')) { echo 'class="active" '; } ?> href="<?php echo JRoute::_($row->link()); ?>">
-						<?php echo $this->escape(stripslashes($row->get('title'))); ?> <span class="item-count"><?php echo $row->get('articles', 0); ?></span>
-					</a>
-				<?php if ($row->children('count') > 0 && $this->catid == $row->get('id')) { ?>
-					<ul class="categories">
-					<?php foreach ($row->children() as $cat) { ?>
-						<li>
-							<a <?php if ($this->catid  == $cat->get('id')) { echo 'class="active" '; } ?> href="<?php echo JRoute::_($cat->link()); ?>">
-								<?php echo $this->escape(stripslashes($cat->get('title'))); ?> <span class="item-count"><?php echo $cat->get('articles', 0); ?></span>
-							</a>
-						</li>
-					<?php } ?>
-					</ul>
-				<?php } ?>
-				</li>
+
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-main main-page btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>"><?php echo JText::_('COM_KB_MAIN'); ?></a>
+		</p>
+	</div>
+</header>
+
+<section class="main section">
+	<form action="<?php echo JRoute::_($this->category->link()); ?>" method="post" class="section-inner">
+		<div class="subject">
+			<?php if ($this->getError()) { ?>
+				<p class="error"><?php echo $this->getError(); ?></p>
 			<?php } ?>
-			</ul>
-		</div><!-- / .container -->
-	</div><!-- / .aside -->
-	<div class="subject">
-		<form action="<?php echo JRoute::_($this->category->link()); ?>" method="post">
 
 			<div class="container data-entry">
 				<input class="entry-search-submit" type="submit" value="<?php echo JText::_('COM_KB_SEARCH'); ?>" />
@@ -107,12 +82,12 @@ defined('_JEXEC') or die('Restricted access');
 						<?php
 						$s = ($this->total > 0) ? $this->filters['start']+1 : $this->filters['start'];
 						$e = ($this->total > ($this->filters['start'] + $this->filters['limit'])) ? ($this->filters['start'] + $this->filters['limit']) : $this->total;
-						if ($this->filters['search'] != '') 
+						if ($this->filters['search'] != '')
 						{
 							echo JText::sprintf('COM_KB_SEARCH_FOR_IN', $this->filters['search'], $this->escape(stripslashes($this->category->get('title'))));
 						} else {
-							echo $this->escape(stripslashes($this->category->get('title'))); 
-						} ?> 
+							echo $this->escape(stripslashes($this->category->get('title')));
+						} ?>
 						<span>(<?php echo JText::sprintf('COM_KB_NUM_OF_TOTAL', $s . '-' . $e, $this->total); ?>)</span>
 					</caption>
 					<tbody>
@@ -125,30 +100,27 @@ defined('_JEXEC') or die('Restricted access');
 								<a class="entry-title" href="<?php echo JRoute::_($row->link()); ?>"><?php echo $this->escape(stripslashes($row->get('title'))); ?></a><br />
 								<span class="entry-details">
 									<?php if ($this->catid <= 0) { echo JText::sprintf('COM_KB_IN_CATEGORY', $this->escape(stripslashes($row->get('ctitle')))); } ?>
-									<?php echo JText::_('COM_KB_LAST_MODIFIED'); ?> 
+									<?php echo JText::_('COM_KB_LAST_MODIFIED'); ?>
 									<span class="entry-time-at"><?php echo JText::_('COM_KB_DATETIME_AT'); ?></span>
-									<span class="entry-time"><?php echo $row->modified('time'); ?></span> 
+									<span class="entry-time"><?php echo $row->modified('time'); ?></span>
 									<span class="entry-date-on"><?php echo JText::_('COM_KB_DATETIME_ON'); ?></span>
 									<span class="entry-date"><?php echo $row->modified('date'); ?></span>
 								</span>
 							</td>
 							<td class="voting">
 								<?php
-								$view = new JView(array(
-									'name'   => $this->controller,
-									'layout' => '_vote'
-								));
-								$view->option = $this->option;
-								$view->item   = $row;
-								$view->type   = 'entry';
-								$view->vote   = '';
-								$view->id     = '';
-								if (!$this->juser->get('guest')) 
+								$view = $this->view('_vote')
+									     ->set('option', $this->option)
+									     ->set('item', $row)
+									     ->set('type', 'entry')
+									     ->set('vote', '')
+									     ->set('id', '');
+								if (!$this->juser->get('guest'))
 								{
-									if ($row->get('user_id') == $this->juser->get('id')) 
+									if ($row->get('user_id') == $this->juser->get('id'))
 									{
-										$view->vote = $row->get('vote');
-										$view->id   = $row->get('id');
+										$view->set('vote', $row->get('vote'));
+										$view->set('id', $row->get('id'));
 									}
 								}
 								$view->display();
@@ -158,7 +130,7 @@ defined('_JEXEC') or die('Restricted access');
 					<?php } ?>
 					</tbody>
 				</table>
-				<?php 
+				<?php
 				$this->pageNav->setAdditionalUrlParam('search', $this->filters['search']);
 				$this->pageNav->setAdditionalUrlParam('sort', $this->filters['sort']);
 
@@ -166,7 +138,36 @@ defined('_JEXEC') or die('Restricted access');
 				?>
 				<div class="clearfix"></div>
 			</div><!-- / .container -->
-		</form>
-	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / .main section -->
+		</div><!-- / .subject -->
+		<aside class="aside">
+			<div class="container">
+				<h3><?php echo JText::_('COM_KB_CATEGORIES'); ?></h3>
+				<ul class="categories">
+					<li>
+						<a<?php if ($this->catid <= 0) { echo ' class="active"'; } ?> href="<?php echo JRoute::_('index.php?option=' . $this->option . '&section=all'); ?>">
+							<?php echo JText::_('COM_KB_ALL_ARTICLES'); ?>
+						</a>
+					</li>
+					<?php foreach ($this->categories as $row) { ?>
+						<li>
+							<a <?php if ($this->catid == $row->get('id')) { echo 'class="active" '; } ?> href="<?php echo JRoute::_($row->link()); ?>">
+								<?php echo $this->escape(stripslashes($row->get('title'))); ?> <span class="item-count"><?php echo $row->get('articles', 0); ?></span>
+							</a>
+							<?php if ($row->children('count') > 0 && $this->catid == $row->get('id')) { ?>
+								<ul class="categories">
+								<?php foreach ($row->children() as $cat) { ?>
+									<li>
+										<a <?php if ($this->catid  == $cat->get('id')) { echo 'class="active" '; } ?> href="<?php echo JRoute::_($cat->link()); ?>">
+											<?php echo $this->escape(stripslashes($cat->get('title'))); ?> <span class="item-count"><?php echo $cat->get('articles', 0); ?></span>
+										</a>
+									</li>
+								<?php } ?>
+								</ul>
+							<?php } ?>
+						</li>
+					<?php } ?>
+				</ul>
+			</div><!-- / .container -->
+		</aside><!-- / .aside -->
+	</form>
+</section><!-- / .main section -->

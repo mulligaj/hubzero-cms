@@ -32,8 +32,8 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = TagsHelper::getActions();
 
-JToolBarHelper::title(JText::_('TAGS') . ': ' . JText::_('PIERCE'), 'tags.png');
-if ($canDo->get('core.edit')) 
+JToolBarHelper::title(JText::_('COM_TAGS') . ': ' . JText::_('COM_TAGS_PIERCE'), 'tags.png');
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::save('pierce');
 }
@@ -41,7 +41,7 @@ JToolBarHelper::cancel();
 
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 
@@ -55,12 +55,12 @@ function submitbutton(pressbutton)
 </script>
 
 <form action="index.php" method="post" name="adminForm" class="editform" id="item-form">
-	<p><?php echo JText::_('PIERCED_EXPLANATION'); ?></p>
-	
+	<p class="warning"><?php echo JText::_('COM_TAGS_PIERCED_EXPLANATION'); ?></p>
+
 	<div class="col width-50 fltlft">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('PIERCING'); ?></span></legend>
-			
+			<legend><span><?php echo JText::_('COM_TAGS_PIERCING'); ?></span></legend>
+
 			<ul>
 			<?php
 			foreach ($this->tags as $tag)
@@ -73,16 +73,21 @@ function submitbutton(pressbutton)
 	</div>
 	<div class="col width-50 fltrt">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('PIERCE_TO'); ?></span></legend>
-			
-			<table class="admintable">
-				<tbody>
-					<tr>
-						<td class="key"><label for="newtag"><?php echo JText::_('NEW_TAG'); ?>:</label></td>
-						<td><input type="text" name="newtag" id="newtag" size="25" value="" /></td>
-					</tr>
-				</tbody>
-			</table>
+			<legend><span><?php echo JText::_('COM_TAGS_PIERCE_TO'); ?></span></legend>
+
+			<div class="input-wrap">
+				<label for="newtag"><?php echo JText::_('COM_TAGS_NEW_TAG'); ?>:</label><br />
+				<?php
+				JPluginHelper::importPlugin('hubzero');
+				$tf = JDispatcher::getInstance()->trigger(
+					'onGetMultiEntry',
+					array(
+						array('tags', 'newtag', 'newtag')
+					)
+				);
+				echo (count($tf) ? implode("\n", $tf) : '<input type="text" name="newtag" id="newtag" size="25" value="" />');
+				?>
+			</div>
 		</fieldset>
 	</div>
 	<div class="clr"></div>
@@ -92,6 +97,6 @@ function submitbutton(pressbutton)
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="step" value="<?php echo $this->step; ?>" />
 	<input type="hidden" name="task" value="pierce" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

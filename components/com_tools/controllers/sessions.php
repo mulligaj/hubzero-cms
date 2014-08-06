@@ -38,7 +38,6 @@ defined('_JEXEC') or die('Restricted access');
 //require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'mw.zones.php');
 //require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'zones.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'middleware.php');
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'helpers' . DS . 'vnc.php');
 
 /**
  * Tools controller class for simulation sessions
@@ -47,7 +46,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determines task being called and attempts to execute it
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -61,7 +60,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Method to set the document path
-	 * 
+	 *
 	 * @param      integer $session Session ID
 	 * @return     void
 	 */
@@ -69,22 +68,22 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 	{
 		$pathway = JFactory::getApplication()->getPathway();
 
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
 				JText::_(strtoupper($this->_option)),
 				'index.php?option=' . $this->_option
 			);
 		}
-		if (isset($this->app) && $this->app->name) 
+		if (isset($this->app) && $this->app->name)
 		{
-			if (strstr($this->app->name, '_dev') || strstr($this->app->name, '_r')) 
+			if (strstr($this->app->name, '_dev') || strstr($this->app->name, '_r'))
 			{
 				$bits = explode('_', $this->app->name);
 				$bit = array_pop($bits);
 				$appname = implode('_', $bits);
-			} 
-			else 
+			}
+			else
 			{
 				$appname = $this->app->name;
 			}
@@ -96,10 +95,10 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 				JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task)),
 				'index.php?option=' . $this->_option . '&task=' . $this->_task . '&app=' . $appname . '&version=' . $this->app->version
 			);
-		} 
-		else 
+		}
+		else
 		{
-			if ($this->_task && $this->_task != 'tools') 
+			if ($this->_task && $this->_task != 'tools')
 			{
 				$pathway->addItem(
 					JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task)),
@@ -107,7 +106,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 				);
 			}
 		}
-		if (is_object($session)) 
+		if (is_object($session))
 		{
 			$pathway->addItem(
 				$title,
@@ -118,22 +117,22 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Method to build and set the document title
-	 * 
+	 *
 	 * @param      integer $session Session ID
 	 * @return     void
 	 */
 	protected function _buildTitle($session=null)
 	{
 		$this->_title = JText::_(strtoupper($this->_option));
-		if ($this->app && $this->app->name) 
+		if ($this->app && $this->app->name)
 		{
 			$this->_title .= ': ' . $this->app->caption;
 		}
-		if ($this->_task && $this->_task != 'tools') 
+		if ($this->_task && $this->_task != 'tools')
 		{
 			$this->_title .= ': ' . JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task));
 		}
-		if (is_object($session)) 
+		if (is_object($session))
 		{
 			$title .= ': ';
 		}
@@ -143,24 +142,24 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Show a login form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function loginTask($rtrn='')
 	{
-		if (!$rtrn) 
+		if (!$rtrn)
 		{
 			$rtrn = JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=' . $this->_task), 'server');
 		}
 		$this->setRedirect(
-			JRoute::_('index.php?option=com_login&return=' . base64_encode($rtrn))
+			JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($rtrn))
 		);
 		return;
 	}
 
 	/**
 	 * Show an Access Denied error
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function accessdeniedTask()
@@ -173,12 +172,10 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		// Set the pathway
 		$this->_buildPathway();
 
-		$this->_getStyles($this->_option, 'assets/css/tools.css');
-
 		// Instantiate the view
 		$this->view->title = $this->_title;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -191,7 +188,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Show an Bad Parameters error
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function badparamsTask($badparams = '')
@@ -204,14 +201,12 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		// Set the pathway
 		$this->_buildPathway();
 
-		$this->_getStyles($this->_option, 'assets/css/tools.css');
-
 		// Instantiate the view
 		$this->view->title = $this->_title;
 
 		$this->view->badparams = $badparams;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -224,7 +219,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Show a quota exceeded warning and list of sessions
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function quotaexceededTask()
@@ -232,15 +227,15 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$this->view->setLayout('quotaexceeded');
 
 		// Check that the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->loginTask();
 			return;
 		}
 
 		// Build the page title
-		$title  = JText::_('Members');
-		$title .= ': ' . JText::_('View');
+		$title  = JText::_('COM_MEMBERS');
+		$title .= ': ' . JText::_('COM_MEMBERS_VIEW');
 		$title .= ': ' . stripslashes($this->juser->get('name'));
 		$title .= ': ' . JText::_(strtoupper($this->_option . '_' . $this->_task));
 
@@ -248,23 +243,21 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$document = JFactory::getDocument();
 		$document->setTitle($title);
 
-		$this->_getStyles($this->_option, 'assets/css/tools.css');
-
 		// Set the pathway
 		$pathway = JFactory::getApplication()->getPathway();
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
-				JText::_('Members'), 
+				JText::_('COM_MEMBERS'),
 				'index.php?option=com_members'
 			);
 		}
 		$pathway->addItem(
-			stripslashes($this->juser->get('name')), 
+			stripslashes($this->juser->get('name')),
 			'index.php?option=com_members&id=' . $this->juser->get('id')
 		);
 		$pathway->addItem(
-			JText::_(strtoupper($this->_option . '_' . $this->_task)), 
+			JText::_(strtoupper($this->_option . '_' . $this->_task)),
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=' . $this->_task
 		);
 
@@ -276,14 +269,14 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$sessions = $ms->getRecords($this->juser->get('username'), '', false);
 
 		$this->view->sessions = $sessions;
-		if ($this->config->get('access-manage-session')) 
+		if ($this->config->get('access-manage-session'))
 		{
 			$this->view->allsessions = $ms->getRecords($this->juser->get('username'), '', $this->config->get('access-manage-session'));
 		}
 		$this->view->active = JRequest::getVar('active', '');
 		$this->view->config = $this->config;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -301,7 +294,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 	 * @param   boolean $isFile
 	 * @return  string
 	 */
-	private function normalize_path($path, $isFile = false) 
+	private function normalize_path($path, $isFile = false)
 	{
 		if (!isset($path[0]) || $path[0] != '/')
 		{
@@ -312,7 +305,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		$result = array();
 
-		foreach($parts as $part)
+		foreach ($parts as $part)
 		{
 			if ($part === '' || $part == '.')
 			{
@@ -342,13 +335,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Invoke a tool session
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function invokeTask()
 	{
 		// Check that the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->loginTask();
 			return;
@@ -366,7 +359,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 			$verified_params = array();
 
-			while ($line !== false) 
+			while ($line !== false)
 			{
 				$re = "/\s*(directory|file|int)\s*(?:\:|\(\s*(.*?)\s*\)\s*:)\s*(.*?)\s*$/";
 
@@ -463,7 +456,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 							$verified_params[] = $type . ':' . $value;
 						}
 					}
-				} 
+				}
 				else if (!empty($line)) // Fail if unrecognized non-empty parameter line
 				{
 					break;
@@ -489,7 +482,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$app->ip      = JRequest::ip();
 
 		// Make sure we have an app to invoke
-		if (!$app->name) 
+		if (!$app->name)
 		{
 			$this->setRedirect(
 				JRoute::_($this->config->get('stopRedirect', 'index.php?option=com_members&task=myaccount'))
@@ -518,19 +511,19 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		}
 
 		$app->toolname = $app->name;
-		if ($parent = $tv->getToolname($app->name)) 
+		if ($parent = $tv->getToolname($app->name))
 		{
 			$app->toolname = $parent;
 		}
 
 		// Check of the toolname has a revision indicator
 		$r = substr(strrchr($app->name, '_'), 1);
-		if (substr($r, 0, 1) != 'r' && substr($r, 0, 3) != 'dev') 
+		if (substr($r, 0, 1) != 'r' && substr($r, 0, 3) != 'dev')
 		{
 			$r = '';
 		}
 		// No version passed and no revision
-		if ((!$app->version || $app->version == 'default' || $app->version == 'current') && !$r) 
+		if ((!$app->version || $app->version == 'default' || $app->version == 'current') && !$r)
 		{
 			// Get the latest version
 			$app->version = $tv->getCurrentVersionProperty($app->toolname, 'revision');
@@ -548,11 +541,11 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		//$xlog->debug("mw::invoke " . $app->name . " by " . $this->juser->get('username') . " from " . $app->ip . " _getToolAccess " . $status2);
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			echo '<!-- ' . $this->getError() . ' -->';
 		}
-		if (!$hasaccess) 
+		if (!$hasaccess)
 		{
 			//$this->_redirect = JRoute::_('index.php?option=' . $this->_option . '&task=accessdenied');
 			$this->app = $app;
@@ -579,7 +572,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$remain = $xprofile->get('jobsAllowed') - $jobs;
 
 		// Have they reached their session quota?
-		if ($remain <= 0) 
+		if ($remain <= 0)
 		{
 			$this->quotaexceededTask();
 			return;
@@ -595,7 +588,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 				$this->view->config   = $this->config;
 				$this->view->sessions = $sessions;
 
-				if ($this->getError()) 
+				if ($this->getError())
 				{
 					foreach ($this->getErrors() as $error)
 					{
@@ -612,11 +605,11 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$this->_redirect = '';
 
 		$app->percent = 0;
-		if ($this->config->get('show_storage', 1)) 
+		if ($this->config->get('show_storage', 1))
 		{
 			$app->percent = $this->percent;
 		}
-		if ($this->percent >= 100) 
+		if ($this->percent >= 100)
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option . '&controller=storage')
@@ -651,7 +644,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			{
 				if ($zone->exists())
 				{
-					$toolparams .= ' zone=' . $zone->get('zone');
+					$toolparams .= ' ' . $zone->get('zone');
 					$app->zone_id = $zone->get('id');
 				}
 			}
@@ -665,7 +658,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			//return;
 			$this->setRedirect(
 				JRoute::_($this->config->get('stopRedirect', 'index.php?option=com_members&task=myaccount')),
-				JText::_('Failed to invoke session'),
+				JText::_('COM_TOOLS_ERROR_SESSION_INVOKE_FAILED'),
 				'error'
 			);
 			return;
@@ -678,7 +671,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		// Get a count of the number of sessions of this specific tool
 		$appcount = $ms->getCount($this->juser->get('username'), $app->name);
 		// Do we have more than one session of this tool?
-		if ($appcount > 1) 
+		if ($appcount > 1)
 		{
 			// We do, so let's append a timestamp
 			$app->caption .= ' (' . JHTML::_('date', JFactory::getDate()->toSql(), 'g:i a') . ')';
@@ -689,7 +682,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$ms->sessname = $app->caption;
 		$ms->params   = $params;
 		$ms->zone_id  = $app->zone_id;
-		if (!$ms->store()) 
+		if (!$ms->store())
 		{
 			echo $ms->getError();
 			die();
@@ -704,13 +697,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Invoke a tool session
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function reinvokeTask()
 	{
 		// Check that the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->loginTask();
 			return;
@@ -726,7 +719,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$session = $middleware->session($id, $this->config->get('access-manage-session'));
 
 		// Double-check that the user can view this session.
-		if (!$session->exists()) 
+		if (!$session->exists())
 		{
 			JError::raiseError(500, JText::_('COM_TOOLS_ERROR_SESSION_NOT_FOUND') . ': ' . $id);
 			return;
@@ -734,7 +727,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		// Stop the old session
 		$status = $this->middleware("stop $id", $output);
-		if ($status == 0) 
+		if ($status == 0)
 		{
 			$msg = '<p>Stopping ' . $id . '<br />';
 			foreach ($output as $line)
@@ -757,18 +750,17 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			$mwz = $middleware->zone($zone);
 			if ($mwz->exists())
 			{
-				$toolparams .= ' zone=' . $mwz->get('zone');
+				$toolparams .= ' ' . $mwz->get('zone');
 			}
 		}
 
 		// We've passed all checks so let's actually start the new session
-
 		$status = $this->middleware("start user=" . $this->juser->get('username') . " ip=" . JRequest::ip() . " app=" . $session->app() . " version=" . $session->app('version') . $toolparams, $output);
 		if ($this->getError())
 		{
 			$this->setRedirect(
 				JRoute::_($this->config->get('stopRedirect', 'index.php?option=com_members&task=myaccount')),
-				JText::_('Failed to invoke session'),
+				JText::_('COM_TOOLS_ERROR_SESSION_INVOKE_FAILED'),
 				'error'
 			);
 			return;
@@ -783,7 +775,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$reinvoked->set('sessname', $session->get('sessname'));
 		$reinvoked->set('params', $params);
 		$reinvoked->set('zone_id', $zone);
-		if (!$reinvoked->store()) 
+		if (!$reinvoked->store())
 		{
 			JError::raiseError(500, $reinvoked->getError());
 			return;
@@ -799,13 +791,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Share a session
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function shareTask()
 	{
 		// Check that the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->loginTask();
 			return;
@@ -819,19 +811,19 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$group    = JRequest::getInt('group', 0);
 		$readonly = JRequest::getVar('readonly', '');
 		$no_html  = JRequest::getInt('no_html', 0);
-		
+
 		$users = array();
-		if (strstr($username, ',')) 
+		if (strstr($username, ','))
 		{
 			$users = explode(',', $username);
 			$users = array_map('trim', $users);
-		} 
-		elseif (strstr($username, ' ')) 
+		}
+		elseif (strstr($username, ' '))
 		{
 			$users = explode(' ', $username);
 			$users = array_map('trim', $users);
-		} 
-		else 
+		}
+		else
 		{
 			$users[] = $username;
 		}
@@ -861,51 +853,51 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$row = $ms->checkSession($sess, $this->juser->get('username'));
 
 		// Ensure we found an active session
-		if (!$row->sesstoken) 
+		if (!$row->sesstoken)
 		{
-			JError::raiseError(500, JText::_('MW_ERROR_SESSION_NOT_FOUND') . ': ' . $sess);
+			JError::raiseError(500, JText::_('COM_TOOLS_ERROR_SESSION_NOT_FOUND') . ': ' . $sess);
 			return;
 		}
 
 		//$row = $rows[0];
 		$owner = $row->viewuser;
 
-		if ($readonly != 'Yes') 
+		if ($readonly != 'Yes')
 		{
 			$readonly = 'No';
 		}
 
 		$mv = new MwViewperm($mwdb);
 		$rows = $mv->loadViewperm($sess, $owner);
-		if (count($rows) != 1) 
+		if (count($rows) != 1)
 		{
-			JError::raiseError(500, JText::sprintf('Unable to get entry for %s, %s', $sess, $owner));
+			JError::raiseError(500, JText::sprintf('COM_TOOLS_ERROR_UNABLE_TO_GET_ENTRY_FOR', $sess, $owner));
 			break;
 		}
 		foreach ($users as $user)
 		{
 			// Check for invalid characters
-			if (!preg_match("#^[0-9a-zA-Z]+[_0-9a-zA-Z]*$#i", $user)) 
+			if (!preg_match("#^[0-9a-zA-Z]+[_0-9a-zA-Z]*$#i", $user))
 			{
-				$this->setError(JText::_('MW_ERROR_INVALID_USERNAME') . ': ' . $user);
+				$this->setError(JText::_('COM_TOOLS_ERROR_INVALID_USERNAME') . ': ' . $user);
 				continue;
 			}
 
 			// Check that the user exist
 			$zuser = JUser::getInstance($user);
-			if (!$zuser || !is_object($zuser) || !$zuser->get('id')) 
+			if (!$zuser || !is_object($zuser) || !$zuser->get('id'))
 			{
-				$this->setError(JText::_('MW_ERROR_INVALID_USERNAME') . ': ' . $user);
+				$this->setError(JText::_('COM_TOOLS_ERROR_INVALID_USERNAME') . ': ' . $user);
 				continue;
 			}
-			
+
 			//load current view perm
 			$mwViewperm = new MwViewperm($mwdb);
 			$currentViewPerm = $mwViewperm->loadViewperm($sess, $zuser->get('username'));
-			
+
 			// If there are no matching entries in viewperm, add a new entry,
 			// Otherwise, update the existing entry (e.g. readonly).
-			if (count($currentViewPerm) == 0) 
+			if (count($currentViewPerm) == 0)
 			{
 				$mwViewperm->sessnum   = $sess;
 				$mwViewperm->viewuser  = $zuser->get('username');
@@ -929,7 +921,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 				$mwViewperm->readonly  = $readonly;
 				$mwViewperm->updateViewPerm();
 			}
-			
+
 			if ($mwViewperm->getError())
 			{
 				JError::raiseError(500, $mwViewperm->getError());
@@ -943,13 +935,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Stop sharing a session
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function unshareTask()
 	{
 		// Check that the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->loginTask();
 			return;
@@ -964,18 +956,18 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$app = JRequest::getVar('app', '');
 
 		// If a username is given, check that the user owns this session.
-		if ($user != '') 
+		if ($user != '')
 		{
 			$ms = new MwSession($mwdb);
 			$ms->load($sess, $this->juser->get('username'));
 
-			if (!$ms->sesstoken) 
+			if (!$ms->sesstoken)
 			{
 				JError::raiseError(500, JText::_('COM_TOOLS_ERROR_SESSION_NOT_FOUND') . ': ' . $sess);
 				return;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			// Otherwise, assume that the user wants to disconnect a session that's been shared with them.
 			$user = $this->juser->get('username');
@@ -985,7 +977,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$mv = new MwViewperm($mwdb);
 		$mv->deleteViewperm($sess, $user);
 
-		if ($user == $this->juser->get('username')) 
+		if ($user == $this->juser->get('username'))
 		{
 			// Take us back to the main page...
 			$this->setRedirect(
@@ -1003,13 +995,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * View a session
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function viewTask()
 	{
 		// Check that the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->loginTask();
 			return;
@@ -1020,7 +1012,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$app->sess = JRequest::getInt('sess', 0);
 
 		// Make sure we have an app to invoke
-		if (!$app->sess) 
+		if (!$app->sess)
 		{
 			$this->setRedirect(
 				JRoute::_($this->config->get('stopRedirect', 'index.php?option=com_members&task=myaccount')),
@@ -1041,7 +1033,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$ms = new MwSession($mwdb);
 		$row = $ms->loadSession($app->sess, $this->config->get('access-manage-session'));
 
-		if (!is_object($row) || !$row->appname) 
+		if (!is_object($row) || !$row->appname)
 		{
 			JError::raiseError(500, JText::_('COM_TOOLS_ERROR_SESSION_NOT_FOUND') . ': ' . $app->sess);
 			return;
@@ -1058,7 +1050,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		$this->view->zone = $this->view->middleware->zone($row->zone_id);
 
-		if (strstr($row->appname, '_')) 
+		if (strstr($row->appname, '_'))
 		{
 			$v = substr(strrchr($row->appname, '_'), 1);
 			$v = str_replace('r', '', $v);
@@ -1073,16 +1065,10 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		// Get the tool's name
 		//$tv->loadFromInstance($row->appname);
 		$app->title = stripslashes($tv->title);
-
-		$paramClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramClass = 'JRegistry';
-		}
-		$app->params = new $paramClass($tv->params);
+		$app->params = new JRegistry($tv->params);
 
 		// Ensure we found an active session
-		if (!$row->sesstoken) 
+		if (!$row->sesstoken)
 		{
 			JError::raiseError(500, JText::_('MW_ERROR_SESSION_NOT_FOUND') . ': ' . $app->sess . '. ' . JText::_('MW_SESSION_NOT_FOUND_EXPLANATION'));
 			return;
@@ -1090,18 +1076,18 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		// Get their disk space usage
 		$app->percent = 0;
-		if ($this->config->get('show_storage')) 
+		if ($this->config->get('show_storage'))
 		{
 			$this->_getDiskUsage();
 			$app->percent = $this->percent;
 		}
 
 		// Build the view command
-		if ($this->config->get('access-manage-session')) 
+		if ($this->config->get('access-manage-session'))
 		{
 			$command = "view user=" . $row->username . " ip=" . $app->ip . " sess=" . $app->sess;
-		} 
-		else 
+		}
+		else
 		{
 			$command = "view user=" . $this->juser->get('username') . " ip=" . $app->ip . " sess=" . $app->sess;
 		}
@@ -1110,11 +1096,11 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		// If not, force view to be read-only.
 		// This will happen in the event of sharing.
 		$noaccess = ($this->_getToolAccess($row->appname) == false);
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			echo '<!-- ' . $this->getError() . ' -->';
 		}
-		if ($noaccess) 
+		if ($noaccess)
 		{
 			$command .= " readonly=1";
 		}
@@ -1134,162 +1120,6 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		// Call the view command
 		$status = $this->middleware($command, $output);
 
-
-		if ($app->params->get('vncEncoding',0)) 
-		{
-		        $output->encoding = trim($app->params->get('vncEncoding',''),'"');
-		}
-
-		if ($app->params->get('vncShowControls',0)) 
-		{
-		        $output->show_controls = trim($app->params->get('vncShowControls',''),'"');
-		}
-
-		if ($app->params->get('vncShowLocalCursor',0)) 
-		{
-		        $output->show_local_cursor = trim($app->params->get('vncShowLocalCursor',''),'"');
-		}
-
-		if ($app->params->get('vncDebug',0)) 	
-		{
-		        $output->debug = trim($app->params->get('vncDebug',''),'"');
-		}
-
-		foreach($output as $key=>$value)
-		{
-			$output->$key = strval($value);
-		}
-
-		$boolean_keys = array('debug','show_local_cursor','show_controls','view_only','trust_all_vnc_certs', 'view_only', 'wsproxy_encrypt');
-
-		foreach($boolean_keys as $key)
-		{
-			if (isset($output->$key))
-			{
-				$value = strtolower($output->$key);
-
-				if (in_array($value,array("1","y","on","yes","t","true")))
-				{
-					$output->$key = "Yes";
-				}
-				else
-				{
-					$output->$key = "No";
-				}
-			}
-		}
-
-		if (empty($output->wsproxy_host))
-		{
-			$output->wsproxy_host = $_SERVER['SERVER_NAME'];
-		}
-
-		if (empty($output->wsproxy_port))
-		{
-			$output->wsproxy_port = '8080';
-		}
-
-		if (!isset($output->wsproxy_encrypt))
-		{
-			$output->wsproxy_encrypt = 'No';
-		}
-
-		if (!isset($output->view_only))
-		{
-			$output->view_only = "No";
-		}
-
-		if (!isset($output->trust_all_vnc_certs))
-		{
-			$output->trust_all_vnc_certs = "Yes";
-		}
-
-		if (!isset($output->disableSSL))
-		{
-			$output->disable_ssl = "No";
-		}
-
-		if (!isset($output->name))
-		{
-			$output->name = "App Viewer";
-		}
-
-		if (!isset($output->offer_relogin))
-		{
-			$output->offer_relogin = "Yes";
-		}
-
-		if (!isset($output->permissions))
-		{
-			$output->permissions = "all-permissions";
-		}
-
-		if (!isset($output->code))
-		{
-			$output->code = "VncViewer.class";
-		}
-
-		if (!isset($output->archive))
-		{
-			$output->archive =  rtrim(JURI::base(true), '/') . "/components/com_tools/scripts/VncViewer-20140116-01.jar";
-		}
-
-		if (!isset($output->id))
-		{
-			$output->id = "theapp";
-		}
-
-		if (!isset($output->host))
-		{
-			$output->host = $_SERVER['SERVER_NAME'];
-		}
-
-		if (!isset ($output->password) && !empty($output->encpassword))
-		{
-			$decpassword = pack("H*",$output->encpassword);
-			$output->password = ToolsHelperVnc::decrypt($decpassword);
-		}
-
-		if (!isset ($output->token) && !empty($output->connect))
-		{
-			if (strncmp($output->connect,'vncsession:',11) ==0)
-			{
-				$output->token = substr($output->connect,11);
-			}
-		}
-
-		if (empty($output->class))
-		{
-			$cls = array();
-			if ($app->params->get('noResize', 0)) 
-			{
-			        $cls[] = 'no-resize';
-			}
-			if ($app->params->get('noPopout', 0)) 
-			{
-			        $cls[] = 'no-popout';
-			}
-			if ($app->params->get('noPopoutClose', 0)) 
-			{
-        			$cls[] = 'no-popout-close';
-			}
-			if ($app->params->get('noPopoutMaximize', 0)) 
-			{
-			        $cls[] = 'no-popout-maximize';
-			}
-			if ($app->params->get('noRefresh', 0)) 
-			{
-			        $cls[] = 'no-refresh';
-			}
-
-			$output->class = "thisapp";
-
-			if (!empty($cls)) 
-			{ 
-				$output->class .= ' ' . implode(' ', $cls); 
-			}
-		}
-
 		// Trigger any events that need to be called after session start
 		$dispatcher->trigger('onAfterSessionStart', array($toolname, $tv->revision));
 
@@ -1298,7 +1128,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$this->view->setLayout('session' . ($sublayout ? '_' . $sublayout : ''));
 
 		// Set the page title
-		$title  = JText::_('Resources').': '.JText::_('Tools');
+		$title  = JText::_('COM_RESOURCES').': '.JText::_('COM_TOOLS');
 		$title .= ($app->title) ? ': ' . $app->title : ': ' . $app->name;
 		$title .= ': ' . JText::_('Session');
 		$title .= ($app->caption) ? ': ' . $app->sess . ' "' . $app->caption . '"' : ': ' . $app->sess;
@@ -1308,42 +1138,33 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		// Set the breadcrumbs
 		$pathway = JFactory::getApplication()->getPathway();
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
-				JText::_('Resources'), 
+				JText::_('COM_RESOURCES'),
 				'index.php?option=com_resources'
 			);
 		}
 		$pathway->addItem(
-			JText::_('Tools'), 
+			JText::_('COM_TOOLS'),
 			'index.php?option=com_resources&type=tools'
 		);
 		$pathway->addItem(
-			$app->title, 
+			$app->title,
 			'index.php?option=' . $this->_option . '&controller=' . $this->controller . '&app=' . $toolname
 		);
 
-		if ($this->_task) 
+		if ($this->_task)
 		{
 			$t = ($app->caption) ? $app->sess . ' "' . $app->caption . '"' : $app->sess;
 			$pathway->addItem(
-				JText::sprintf('Session: %s', $t), 
+				JText::sprintf('COM_TOOLS_SESSION_NUMBER', $t),
 				'index.php?option=' . $this->_option . '&controller=' . $this->controller . '&app=' . $toolname . '&task=session&sess=' . $app->sess
 			);
 		}
-		
+
 		//get users groups
 		$this->view->mygroups = \Hubzero\User\Helper::getGroups( $this->juser->get('id'), 'members', 1 );
-
-		// Push styles to the document
-		$this->_getStyles($this->_option, 'assets/css/tools.css');
-
-		// Push scripts to the document
-		//$this->_getScripts('assets/js/' . $this->_controller);
-		
-		//add editable plugin
-		//\Hubzero\Document\Assets::addSystemScript('jquery.editable.min');
 
 		$this->view->app      = $app;
 		$this->view->config   = $this->config;
@@ -1352,7 +1173,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$this->view->total    = $this->total;
 
 		// Get everyone sharing this session
-		if ($app->sess) 
+		if ($app->sess)
 		{
 			// Get the middleware database
 			$mwdb = ToolsHelperUtils::getMWDBO();
@@ -1363,7 +1184,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		}
 
 		// Set any error messages
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -1377,13 +1198,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Stops a session and redirects upon success
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function stopTask()
 	{
 		// Check that the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->loginTask();
 			return;
@@ -1396,7 +1217,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$rediect = $this->config->get('stopRedirect', 'index.php?option=com_members&task=myaccount');
 
 		// Ensure we have a session
-		if (!$sess) 
+		if (!$sess)
 		{
 			$this->setRedirect(
 				JRoute::_($redirect)
@@ -1408,17 +1229,17 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$mwdb = ToolsHelperUtils::getMWDBO();
 
 		$ms = new MwSession($mwdb);
-		if ($this->config->get('access-admin-session')) 
+		if ($this->config->get('access-admin-session'))
 		{
 			$ms->load($sess);
-		} 
-		else 
+		}
+		else
 		{
 			$ms->load($sess, $this->juser->get('username'));
 		}
 
 		// Did we get a result form the database?
-		if (!$ms->username) 
+		if (!$ms->username)
 		{
 			$this->setRedirect(
 				JRoute::_($rediect)
@@ -1435,12 +1256,19 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		// Stop the session
 		$status = $this->middleware("stop $sess", $output);
-		if ($status == 0) 
+		if ($status == 0)
 		{
 			echo '<p>Stopping ' . $sess . '<br />';
-			foreach ($output as $line)
+			if (is_array($output))
 			{
-				echo $line . "\n";
+				foreach ($output as $line)
+				{
+					echo $line . "\n";
+				}
+			}
+			else if (is_string($output))
+			{
+				echo $output . "\n";
 			}
 			echo '</p>'."\n";
 		}
@@ -1449,13 +1277,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$dispatcher->trigger('onAfterSessionStop', array($ms->appname));
 
 		// Take us back to the main page...
-		if ($rtrn) 
+		if ($rtrn)
 		{
 			$this->setRedirect(
 				$rtrn
 			);
-		} 
-		else 
+		}
+		else
 		{
 			$this->setRedirect(
 				JRoute::_($rediect)
@@ -1466,14 +1294,14 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 	/**
 	 * Calculates the amount of disk space used
 	 * Redirects to storage exceeded view if amount is past limit
-	 * 
+	 *
 	 * @param      string $type Soft/Hard
 	 * @return     void
 	 */
 	private function _getDiskUsage($type='soft')
 	{
 		// Check that the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->loginTask();
 			return;
@@ -1482,18 +1310,18 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		bcscale(6);
 
 		$du = ToolsHelperUtils::getDiskUsage($this->juser->get('username'));
-		if (isset($du['space'])) 
+		if (isset($du['space']))
 		{
-			if (strtolower($type) == 'hard') 
+			if (strtolower($type) == 'hard')
 			{
 				$val = ($du['hardspace'] != 0) ? bcdiv($du['space'], $du['hardspace']) : 0;
-			} 
-			else 
+			}
+			else
 			{
 				$val = ($du['softspace'] != 0) ? bcdiv($du['space'], $du['softspace']) : 0;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			$val = 0;
 		}
@@ -1514,7 +1342,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$this->total = $total;
 
 		//if ($this->percent >= 100 && $this->remaining == 0) {
-		if ($this->percent >= 100) 
+		if ($this->percent >= 100)
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option . '&task=storageexceeded')
@@ -1524,7 +1352,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Saves the name of a session (AJAX)
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function renameTask()
@@ -1534,7 +1362,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$id = JRequest::getInt('id', 0);
 		$name = trim(JRequest::getVar('name', ''));
 
-		if ($id && $name) 
+		if ($id && $name)
 		{
 			$ms = new MwSession($mwdb);
 			$ms->load($id);
@@ -1548,7 +1376,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 	/**
 	 * Records the event of the current tool having been used
 	 * This is used for the favorites list of the My Tools module
-	 * 
+	 *
 	 * @param      string  $app Name of app called
 	 * @param      integer $uid User ID
 	 * @return     void
@@ -1571,7 +1399,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$thisapp = 0;
 		for ($i=0, $n=count($rows); $i < $n; $i++)
 		{
-			if ($app == trim($rows[$i]->tool)) 
+			if ($app == trim($rows[$i]->tool))
 			{
 				$thisapp = $rows[$i]->id;
 			}
@@ -1581,25 +1409,25 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$oldest = end($rows);
 
 		// Check if any recent tools are the same as the one just launched
-		if ($thisapp) 
+		if ($thisapp)
 		{
 			// There was one, so just update its creation time
 			$rt->id = $thisapp;
 			$rt->uid = $uid;
 			$rt->tool = $app;
 			$rt->created = $created;
-		} 
-		else 
+		}
+		else
 		{
 			// Check if we've reached 5 recent tools or not
-			if (count($rows) < 5) 
+			if (count($rows) < 5)
 			{
 				// Still under 5, so insert a new record
 				$rt->uid = $uid;
 				$rt->tool = $app;
 				$rt->created = $created;
-			} 
-			else 
+			}
+			else
 			{
 				// We reached the limit, so update the oldest entry effectively replacing it
 				$rt->id = $oldest->id;
@@ -1609,7 +1437,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			}
 		}
 
-		if (!$rt->store()) 
+		if (!$rt->store())
 		{
 			JError::raiseError(500, $rt->getError());
 			return;
@@ -1618,7 +1446,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Invoke the Python script to do real work.
-	 * 
+	 *
 	 * @param      string  $comm Parameter description (if any) ...
 	 * @param      array   &$output Parameter description (if any) ...
 	 * @return     integer Session ID
@@ -1634,7 +1462,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		exec($cmd, $results, $status);
 
 		// Check exec status
-		if ($status != 0) 
+		if ($status != 0)
 		{
 			// Uh-oh. Something went wrong...
 			$retval = false;
@@ -1653,7 +1481,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 			if ($output === null && json_last_error() !== JSON_ERROR_NONE)
 			{
-				throw new \Exception(JText::_('Incorrect or missing data.'));
+				throw new \Exception(JText::_('COM_TOOLS_ERROR_BAD_DATA'));
 			}
 		}
 		catch (Exception $e)
@@ -1661,32 +1489,21 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			$output = new stdClass();
 
 			// If it's a new session, catch the session number...
-			if ($retval && preg_match("/^Session is ([0-9]+)/", $results, $sess)) 
+			if ($retval && preg_match("/^Session is ([0-9]+)/", $results, $sess))
 			{
 				$retval = $sess[1];
 				$output->session = $sess[1];
-			} 
-			else 
+			}
+			else
 			{
 				$patterns = array(
-					'id' => 'applet id=(["\'])(?:(?=(\\?))\2.)*?\1',
-					'code' => 'code=(["\'])(?:(?=(\\?))\2.)*?\1',
-					'archive' => 'archive=(["\'])(?:(?=(\\?))\2.)*?\1',
-					'class' => 'class=(["\'])(?:(?=(\\?))\2.)*?\1',
-					'height' => 'height=\"(\d+)\"',
 					'width' => 'width=\"(\d+)\"',
 					'height' => 'height=\"(\d+)\"',
 					'port' => '<param name=\"PORT\" value=\"?(\d+)\"?>',
-					'encpassword' => '<param name=\"ENCPASSWORD\" value=\"?([^>]+)\"?>',
-					'name' => '<param name=\"name\" value=\"?([^>]+)\"?>',
+					'password' => '<param name=\"ENCPASSWORD\" value=\"?([^>]+)\"?>',
 					'connect' => '<param name=\"CONNECT\" value=\"?([^>]+)\"?>',
 					'encoding' => '<param name=\"ENCODING\" value=\"?([^>]+)\"?>',
 					'show_local_cursor' => '<param name=\"ShowLocalCursor\" value=\"?([^>]+)\"?>',
-					'trust_all_vnc_certs' => '<param name=\"trustAllVncCerts\" value=\"?([^>]+)\"?>',
-					'offer_relogin' => '<param name=\"Offer relogin\" value=\"?([^>]+)\"?>',
-					'disable_ssl' => '<param name=\"DisableSSL\" value=\"?([^>]+)\"?>',
-					'permissions' => '<param name=\"permissions\" value=\"?([^>]+)\"?>',
-					'view_only' => '<param name=\"View Only\" value=\"?([^>]+)\"?>',
 					'show_controls' => '<param name=\"Show Controls\" value=\"?([^>]+)\"?>',
 					'debug' => '<param name=\"Debug\" value=\"?([^>]+)\"?>'
 				);
@@ -1710,7 +1527,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Authorization checks
-	 * 
+	 *
 	 * @param      string $assetType Asset type
 	 * @param      string $assetId   Asset id to check against
 	 * @return     void
@@ -1718,51 +1535,37 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 	protected function _authorize($assetType='component', $assetId=null)
 	{
 		$this->config->set('access-view-' . $assetType, true);
-		if (!$this->juser->get('guest')) 
+		if (!$this->juser->get('guest'))
 		{
-			if (version_compare(JVERSION, '1.6', 'ge'))
+			$asset  = $this->_option;
+			if ($assetId)
 			{
-				$asset  = $this->_option;
-				if ($assetId)
-				{
-					$asset .= ($assetType != 'component') ? '.' . $assetType : '';
-					$asset .= ($assetId) ? '.' . $assetId : '';
-				}
-
-				$at = '';
-				if ($assetType != 'component')
-				{
-					$at .= '.' . $assetType;
-				}
-
-				// Admin
-				$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
-				$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
-				// Permissions
-				$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
-				$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
-				$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
-				$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
-				$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
+				$asset .= ($assetType != 'component') ? '.' . $assetType : '';
+				$asset .= ($assetId) ? '.' . $assetId : '';
 			}
-			else 
+
+			$at = '';
+			if ($assetType != 'component')
 			{
-				if ($this->juser->authorize($this->_option, 'manage'))
-				{
-					$this->config->set('access-manage-' . $assetType, true);
-					$this->config->set('access-admin-' . $assetType, true);
-					$this->config->set('access-create-' . $assetType, true);
-					$this->config->set('access-delete-' . $assetType, true);
-					$this->config->set('access-edit-' . $assetType, true);
-				}
+				$at .= '.' . $assetType;
 			}
+
+			// Admin
+			$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
+			$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
+			// Permissions
+			$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
+			$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
+			$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
+			$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
+			$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
 		}
 	}
 
 	/**
-	 * Check export controls 
+	 * Check export controls
 	 * Is the user in a country that has access to this tool?
-	 * 
+	 *
 	 * @param      string $exportcontrol Control [us, d1, pu]
 	 * @return     boolean False if user does NOT have access
 	 */
@@ -1777,14 +1580,14 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		if (empty($country) && in_array($exportcontrol, array('us', 'd1', 'pu')))
 		{
-			$this->setError('This tool may not be accessed from your unknown current location due to export/license restrictions.');
+			$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_UNKNOWN');
 			$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED location export control check");
 			return false;
 		}
 
-		if (\Hubzero\Geocode\Geocode::is_e1nation(\Hubzero\Geocode\Geocode::ipcountry($ip))) 
+		if (\Hubzero\Geocode\Geocode::is_e1nation(\Hubzero\Geocode\Geocode::ipcountry($ip)))
 		{
-			$this->setError('This tool may not be accessed from your current location due to E1 export/license restrictions.');
+			$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_E1');
 			$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED E1 export control check");
 			return false;
 		}
@@ -1792,27 +1595,27 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		switch ($exportcontrol)
 		{
 			case 'us':
-				if (\Hubzero\Geocode\Geocode::ipcountry($ip) != 'us') 
+				if (\Hubzero\Geocode\Geocode::ipcountry($ip) != 'us')
 				{
-					$this->setError('This tool may only be accessed from within the U.S. due to export/licensing restrictions.');
+					$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_USA_ONLY');
 					$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED US export control check");
 					return false;
 				}
 			break;
 
 			case 'd1':
-				if (\Hubzero\Geocode\Geocode::is_d1nation(\Hubzero\Geocode\Geocode::ipcountry($ip))) 
+				if (\Hubzero\Geocode\Geocode::is_d1nation(\Hubzero\Geocode\Geocode::ipcountry($ip)))
 				{
-					$this->setError('This tool may not be accessed from your current location due to export/license restrictions.');
+					$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_LICENSE');
 					$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED D1 export control check");
 					return false;
 				}
 			break;
 
 			case 'pu':
-				if (!\Hubzero\Geocode\Geocode::is_iplocation($ip, $exportcontrol)) 
+				if (!\Hubzero\Geocode\Geocode::is_iplocation($ip, $exportcontrol))
 				{
-					$this->setError('This tool may only be accessed by authorized users while on the West Lafayette campus of Purdue University due to license restrictions.');
+					$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_PURDUE_ONLY');
 					$xlog->debug("mw::_getToolExportControl($exportControl) FAILED PURDUE export control check");
 					return false;
 				}
@@ -1824,7 +1627,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Get the access level for this user and tool
-	 * 
+	 *
 	 * @param      string $tool  Tool name
 	 * @param      string $login Username
 	 * @return     boolean True if the user has access
@@ -1838,18 +1641,18 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$xlog = JFactory::getLogger();
 
 		// Ensure we have a tool
-		if (!$tool) 
+		if (!$tool)
 		{
-			$this->setError('No tool provided.');
+			$this->setError('COM_TOOLS_ERROR_TOOL_NOT_FOUND');
 			$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null tool check");
 			return false;
 		}
 
 		// Ensure we have a login
-		if ($login == '') 
+		if ($login == '')
 		{
 			$login = $this->juser->get('username');
-			if ($login == '') 
+			if ($login == '')
 			{
 				$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null user check");
 				return false;
@@ -1860,7 +1663,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		$tv->loadFromInstance($tool);
 
-		if (empty($tv->id)) 
+		if (empty($tv->id))
 		{
 			$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null tool version check");
 			return false;
@@ -1869,13 +1672,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$tg = new ToolGroup($this->database);
 		$this->database->setQuery("SELECT * FROM " . $tg->getTableName() . " WHERE toolid=" . $tv->toolid);
 		$toolgroups = $this->database->loadObjectList();
-		if (empty($toolgroups)) 
+		if (empty($toolgroups))
 		{
 			//$xlog->debug("mw::_getToolAccess($tool,$login) WARNING: no tool member groups");
 		}
 
 		$xgroups = \Hubzero\User\Helper::getGroups($this->juser->get('id'), 'members');
-		if (empty($xgroups)) 
+		if (empty($xgroups))
 		{
 			//$xlog->debug("mw::_getToolAccess($tool,$login) WARNING: user not in any groups");
 		}
@@ -1884,17 +1687,17 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$ingroup = false;
 		$groups = array();
 		$indevgroup = false;
-		if ($xgroups) 
+		if ($xgroups)
 		{
 			foreach ($xgroups as $xgroup)
 			{
 				$groups[] = $xgroup->cn;
 			}
-			if ($toolgroups) 
+			if ($toolgroups)
 			{
 				foreach ($toolgroups as $toolgroup)
 				{
-					if (in_array($toolgroup->cn, $groups)) 
+					if (in_array($toolgroup->cn, $groups))
 					{
 						$ingroup = true;
 						if ($toolgroup->role == 1)
@@ -1908,7 +1711,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		$admin = false;
 		$ctconfig = JComponentHelper::getParams('com_tools');
-		if ($ctconfig->get('admingroup') != '' && in_array($ctconfig->get('admingroup'), $groups)) 
+		if ($ctconfig->get('admingroup') != '' && in_array($ctconfig->get('admingroup'), $groups))
 		{
 			$admin = true;
 		}
@@ -1916,16 +1719,16 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$exportAllowed = $this->_getToolExportControl($tv->exportControl);
 		$tisPublished = ($tv->state == 1);
 		$tisDev = ($tv->state == 3);
-		$tisGroupControlled = ($tv->toolaccess == '@GROUP');
+	    $tisGroupControlled = ($tv->toolaccess == '@GROUP');
 
-		if ($tisDev) 
+		if ($tisDev)
 		{
-			if ($indevgroup) 
+			if ($indevgroup)
 			{
 				//$xlog->debug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS GRANTED (USER IN DEVELOPMENT GROUP)");
 				return true;
 			}
-			else if ($admin) 
+			else if ($admin)
 			{
 				//$xlog->debug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
 				return true;
@@ -1933,59 +1736,58 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			else
 			{
 				$xlog->debug("mw::_getToolAccess($tool,$login): DEV TOOL ACCESS DENIED (USER NOT IN DEVELOPMENT OR ADMIN GROUPS)");
-				$this->setError("The development version of this tool may only be accessed by members of its development group.");
+				$this->setError(JText::_('COM_TOOLS_ERROR_ACCESS_DENIED_DEV_GROUP'));
 				return false;
 			}
 		}
-		else if ($tisPublished) 
+		else if ($tisPublished)
 		{
-			if ($tisGroupControlled)
-			{
-				if ($ingroup) 
+			if ($tisGroupControlled) {
+				if ($ingroup)
 				{
 					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ACCESS GROUP)");
 					return true;
 				}
-				else if ($admin) 
+				else if ($admin)
 				{
 					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
 					return true;
 				}
-				else 
+				else
 				{
 					$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (USER NOT IN ACCESS OR ADMIN GROUPS)");
-					$this->setError("This tool may only be accessed by members of its access control groups.");
+					$this->setError(JText::_('COM_TOOLS_ERROR_ACCESS_DENIED_ACCESS_GROUP'));
 					return false;
 				}
 			}
-			else 
+			else
 			{
-				if (!$exportAllowed) 
+				if (!$exportAllowed)
 				{
 					$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS DENIED (EXPORT DENIED)");
 					return false;
 				}
-				else if ($admin) 
+				else if ($admin)
 				{
 					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN ADMIN GROUP)");
 					return true;
 				}
-				else if ($indevgroup) 
+				else if ($indevgroup)
 				{
 					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED (USER IN DEVELOPMENT GROUP)");
 					return true;
 				}
-				else 
+				else
 				{
 					//$xlog->debug("mw::_getToolAccess($tool,$login): PUBLISHED TOOL ACCESS GRANTED");
 					return true;
 				}
 			}
 		}
-		else 
+		else
 		{
 			$xlog->debug("mw::_getToolAccess($tool,$login): UNPUBLISHED TOOL ACCESS DENIED (TOOL NOT PUBLISHED)");
-			$this->setError('This tool version is not published.');
+			$this->setError(JText::_('COM_TOOLS_ERROR_ACCESS_DENIED_VERSION_UNPUBLISHED'));
 			return false;
 		}
 

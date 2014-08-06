@@ -38,7 +38,7 @@ class plgSearchProjects extends SearchPlugin
 {
 	/**
 	 * Build search query and add it to the $results
-	 * 
+	 *
 	 * @param      object $request  SearchModelRequest
 	 * @param      object &$results SearchModelResultSet
 	 * @return     void
@@ -49,15 +49,13 @@ class plgSearchProjects extends SearchPlugin
 		$weight = 'match(p.alias, p.title, p.about) AGAINST (\'' . join(' ', $terms['stemmed']) . '\')';
 
 		$from = '';
-		if (version_compare(JVERSION, '1.6', 'ge'))
+
+		$juser = JFactory::getUser();
+		if (!$juser->authorise('core.view', 'com_groups'))
 		{
-			$juser = JFactory::getUser();
-			if (!$juser->authorise('core.view', 'com_groups'))
-			{
-				$from = " JOIN #__xgroups_members AS m ON m.gidNumber=p.owned_by_group AND m.uidNumber=" . $juser->get('id');
-			}
+			$from = " JOIN #__xgroups_members AS m ON m.gidNumber=p.owned_by_group AND m.uidNumber=" . $juser->get('id');
 		}
-		
+
 		$addtl_where = array();
 		foreach ($terms['mandatory'] as $mand)
 		{
@@ -76,7 +74,7 @@ class plgSearchProjects extends SearchPlugin
 				$weight AS `weight`,
 				NULL AS `date`,
 				'Projects' AS `section`
-			FROM #__projects AS p $from
+			FROM `#__projects` AS p $from
 			WHERE
 				p.state!=2 AND p.private=0 AND $weight > 0" .
 				($addtl_where ? ' AND ' . join(' AND ', $addtl_where) : '') .

@@ -40,7 +40,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 {
 	/**
 	 * Execute!
-	 * 
+	 *
 	 * @return void
 	 */
 	function execute()
@@ -56,17 +56,16 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->db = JFactory::getDBO();
 
 		// Import time JTable libraries
-		require_once(JPATH_ROOT.DS.'plugins'.DS.'time'.DS.'tables'.DS.'tasks.php');
-		require_once(JPATH_ROOT.DS.'plugins'.DS.'time'.DS.'tables'.DS.'hubs.php');
-		require_once(JPATH_ROOT.DS.'plugins'.DS.'time'.DS.'tables'.DS.'records.php');
-		require_once(JPATH_ROOT.DS.'plugins'.DS.'time'.DS.'tables'.DS.'contacts.php');
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'tables' . DS . 'tasks.php';
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'tables' . DS . 'hubs.php';
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'tables' . DS . 'records.php';
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'tables' . DS . 'contacts.php';
 
 		// Switch based on task (i.e. "/api/time/xxxxx")
-		switch($this->segments[0])
+		switch ($this->segments[0])
 		{
 			// Records
 			case 'indexRecords':             $this->indexRecords();             break;
-			case 'indexRecordsForBill':      $this->indexRecordsForBill();      break;
 			case 'saveRecord':               $this->saveRecord();               break;
 			// Tasks
 			case 'indexTasks':               $this->indexTasks();               break;
@@ -88,7 +87,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Get time records
-	 * 
+	 *
 	 * @return array of records objects
 	 */
 	private function indexRecords()
@@ -97,7 +96,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Require authorization
-		if(!$this->authorize())
+		if (!$this->authorize())
 		{
 			$this->setMessage('', 401, 'Unauthorized');
 			return;
@@ -107,7 +106,6 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$tid       = JRequest::getInt('tid', NULL);
 		$startdate = JRequest::getVar('startdate', '2000-01-01');
 		$enddate   = JRequest::getVar('enddate', '2100-01-01');
-		$billed    = JRequest::getInt('billed', NULL);
 		$limit     = JRequest::getInt('limit', 1000);
 		$start     = JRequest::getInt('start', 0);
 		$orderby   = JRequest::getCmd('orderby', 'uname');
@@ -121,8 +119,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$filters['q']         = array(
 			array('column'=>'task_id', 'o'=>'=',  'value'=>$tid),
 			array('column'=>'date',    'o'=>'>=', 'value'=>$startdate),
-			array('column'=>'date',    'o'=>'<=', 'value'=>$enddate),
-			array('column'=>'billed',  'o'=>'=',  'value'=>$billed)
+			array('column'=>'date',    'o'=>'<=', 'value'=>$enddate)
 		);
 
 		// Create object and get records
@@ -138,90 +135,8 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 	}
 
 	/**
-	 * Get the time records (formatted for building reporting bills)
-	 * 
-	 * @return 200 ok with success - include records retrieved
-	 */
-	private function indexRecordsForBill()
-	{
-		// Set message format
-		$this->setMessageType($this->format);
-
-		// Require authorization
-		if(!$this->authorize())
-		{
-			$this->setMessage('', 401, 'Unauthorized');
-			return;
-		}
-
-		// Incoming posted data
-		$tid       = JRequest::getInt('tid', NULL);
-		$startdate = JRequest::getVar('startdate', '2000-01-01');
-		$enddate   = JRequest::getVar('enddate', '2100-01-01');
-		$billed    = JRequest::getInt('billed', NULL);
-
-		// Filters for query
-		$filters['limit']     = '1000';
-		$filters['start']     = '0';
-		$filters['orderby']   = 'uname';
-		$filters['orderdir']  = 'ASC';
-		$filters['q']         = array(
-			array('column'=>'task_id', 'o'=>'=',  'value'=>$tid),
-			array('column'=>'date',    'o'=>'>=', 'value'=>$startdate),
-			array('column'=>'date',    'o'=>'<=', 'value'=>$enddate),
-			array('column'=>'billed',  'o'=>'=',  'value'=>$billed)
-		);
-
-		// Create object and get records
-		$record  = new TimeRecords($this->db);
-		$records = $record->getRecords($filters);
-
-		// We want an array of users involved in these records
-		$users = array();
-
-		// Put those users into an array
-		foreach($records as $record)
-		{
-			$users[] = $record->uid;
-		}
-
-		// Get only the unique users from the array
-		$users = array_unique($users);
-
-		// Placeholder for our master list
-		$masterList = array();
-
-		// First make sure we have at least one record
-		if (count($records) > 0)
-		{
-			// Start by looping through the users
-			foreach ($users as $user)
-			{
-				// Placeholder for our records array
-				$rlist = array();
-
-				// Then loop through the records
-				foreach ($records as $record)
-				{
-					// If the record belongs to the current user
-					if ($record->uid == $user)
-					{
-						$rlist[] = $record;
-					}
-				}
-				// Create master list of records array per user
-				$masterList[] = array($user, $rlist);
-			}
-		}
-
-		// Return results
-		$this->setMessage($masterList, 200, 'OK');
-	}
-
-
-	/**
 	 * Save a time record
-	 * 
+	 *
 	 * @return 201 created on success
 	 */
 	private function saveRecord()
@@ -230,7 +145,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Require authorization
-		if(!$this->authorize())
+		if (!$this->authorize())
 		{
 			$this->setMessage('', 401, 'Unauthorized');
 			return;
@@ -250,7 +165,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 		// Create object and store new content
 		$records = new TimeRecords($this->db);
-		if(!$records->save($record))
+		if (!$records->save($record))
 		{
 			$this->setMessage('Record creation failed', 500, 'Internal server error');
 			return;
@@ -266,7 +181,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Get time tasks
-	 * 
+	 *
 	 * @return array of tasks objects
 	 */
 	private function indexTasks()
@@ -275,7 +190,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Require authorization
-		if(!$this->authorize())
+		if (!$this->authorize())
 		{
 			$this->setMessage('', 401, 'Unauthorized');
 			return;
@@ -315,7 +230,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Get time hubs
-	 * 
+	 *
 	 * @return array of hubs objects
 	 */
 	private function indexHubs()
@@ -324,7 +239,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Require authorization
-		if(!$this->authorize())
+		if (!$this->authorize())
 		{
 			$this->setMessage('', 401, 'Unauthorized');
 			return;
@@ -352,7 +267,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Get single hub
-	 * 
+	 *
 	 * @return object - single hub instance
 	 */
 	private function showHub()
@@ -361,7 +276,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Require authorization
-		if(!$this->authorize())
+		if (!$this->authorize())
 		{
 			$this->setMessage('', 401, 'Unauthorized');
 			return;
@@ -371,7 +286,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$id = JRequest::getInt('id');
 
 		// Error checking
-		if(empty($id))
+		if (empty($id))
 		{
 			$this->setMessage('Missing id parameter', 422, 'Unprocessable entity');
 			return;
@@ -381,7 +296,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$hub = new TimeHubs($this->db);
 
 		// Load the specific hub
-		if(!$hub->load($id))
+		if (!$hub->load($id))
 		{
 			$this->setMessage('Load hub failed', 500, 'Internal server error');
 			return;
@@ -409,7 +324,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Save hub contact function
-	 * 
+	 *
 	 * @return 201 created on success (include newly created object in body)
 	 */
 	private function saveContact()
@@ -418,7 +333,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Require authorization
-		if(!$this->authorize())
+		if (!$this->authorize())
 		{
 			$this->setMessage('', 401, 'Unauthorized');
 			return;
@@ -436,7 +351,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 		// Create object and store new content
 		$contacts = new TimeContacts($this->db);
-		if(!$contacts->save($contact))
+		if (!$contacts->save($contact))
 		{
 			$this->setMessage('Contact creation failed', 500, 'Internal server error');
 			return;
@@ -448,7 +363,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Get the list of users in the 'time' group
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function indexTimeUsers()
@@ -457,7 +372,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Require authorization
-		if(!$this->authorize())
+		if (!$this->authorize())
 		{
 			$this->setMessage('', 401, 'Unauthorized');
 			return;
@@ -485,7 +400,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Method for getting possible unique values based on table and column
-	 * 
+	 *
 	 * @return 200 on success
 	 */
 	private function getValues()
@@ -494,7 +409,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Require authorization
-		if(!$this->authorize())
+		if (!$this->authorize())
 		{
 			$this->setMessage('', 401, 'Unauthorized');
 			return;
@@ -506,7 +421,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 		// Make sure those values haven't been tampered with
 		$acceptable = array('time_tasks', 'time_records');
-		if(!in_array($table, $acceptable))
+		if (!in_array($table, $acceptable))
 		{
 			$this->setMessage('Table provided is not allowed', 422, 'Unprocessable entity');
 			return;
@@ -518,14 +433,14 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		$query .= " ORDER BY val ASC";
 
 		$this->db->setQuery($query);
-		if(!$values = $this->db->loadObjectList())
+		if (!$values = $this->db->loadObjectList())
 		{
 			$this->setMessage('Query failed', 500, 'Internal server error');
 			return;
 		}
 
 		// Process any overrides
-		require_once(JPATH_ROOT.DS.'plugins'.DS.'time'.DS.'helpers'.DS.'filters.php');
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'helpers' . DS . 'filters.php';
 		$values = TimeFilters::filtersOverrides($values, $column);
 
 		// Create object with values
@@ -538,7 +453,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Default method - not found
-	 * 
+	 *
 	 * @return 404 error
 	 */
 	private function method_not_found()
@@ -550,7 +465,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Helper function to check whether or not someone is using oauth and in the 'time' group
-	 * 
+	 *
 	 * @return bool - true if in group, false otherwise
 	 */
 	private function authorize()
@@ -558,7 +473,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		// Get the user id
 		$user_id = JFactory::getApplication()->getAuthn('user_id');
 
-		if(!is_numeric($user_id))
+		if (!is_numeric($user_id))
 		{
 			return false;
 		}

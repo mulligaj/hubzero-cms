@@ -33,9 +33,9 @@ class ResourcesElementHidden extends ResourcesElement
 	/**
 	* Element name
 	*
-	* @var		string
+	* @var  string
 	*/
-	protected	$_name = 'Hidden';
+	protected $_name = 'Hidden';
 
 	/**
 	 * Return any options this element may have
@@ -63,18 +63,18 @@ class ResourcesElementHidden extends ResourcesElement
 						break;
 					}
 
-					$val  = $option->value;
+					$val = $option->value;
 
 					$k++;
 				}
 			}
 			else if (is_object($element->options))
 			{
-				$val  = $element->options->value;
+				$val = $element->options->value;
 			}
 		}
 
-		return '<input type="hidden" name="'.$control_name.'['.$name.']" id="'.$control_name.'-'.$name.'" value="'.$val.'" class="'.$class.'" />';
+		return '<input type="hidden" name="' . $control_name . '[' . $name . ']" id="' . $control_name . '-' . $name . '" value="' . $val . '" class="' . $class . '" />';
 	}
 
 	/**
@@ -87,7 +87,7 @@ class ResourcesElementHidden extends ResourcesElement
 	 * @param   string  $name          Name of the field
 	 * @return  string  HTML
 	 */
-	public function fetchTooltip($label, $description, &$element, $control_name='', $name='') 
+	public function fetchTooltip($label, $description, &$element, $control_name='', $name='')
 	{
 		return '';
 	}
@@ -105,7 +105,7 @@ class ResourcesElementHidden extends ResourcesElement
 	{
 		$k = 0;
 
-		$html[] = '<table class="admintable" id="'.$name.'">';
+		$html[] = '<table class="admintable" id="' . $name . '">';
 		$html[] = '<tbody>';
 		if (isset($element->options) && is_array($element->options))
 		{
@@ -117,7 +117,7 @@ class ResourcesElementHidden extends ResourcesElement
 				}
 
 				$html[] = '<tr>';
-				$html[] = '<td><label for="'. $control_name . '-' . $name . '-label-' . $k . '">' . JText::_('Value') . '</label></td>';
+				$html[] = '<td><label for="'. $control_name . '-' . $name . '-label-' . $k . '">' . JText::_('COM_RESOURCES_VALUE') . '</label></td>';
 				$html[] = '<td><input type="text" size="35" name="' . $control_name . '[' . $name . '][options][' . $k . '][label]" id="'. $control_name . '-' . $name . '-label-' . $k . '" value="' . $option->label . '" /></td>';
 				$html[] = '</tr>';
 

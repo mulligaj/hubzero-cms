@@ -70,8 +70,9 @@ HUB.Projects = {
 		
 		if ($("#status-msg").length > 0)
 		{
-			var keyupTimer = setTimeout((function() {  
-				if (!$("#status-msg").hasClass('ajax-loading'))
+			var keyupTimer = setTimeout((function() 
+			{  
+				if (!$("#status-msg").hasClass('ajax-loading') && $('#status-msg').html().trim() != '')
 				{
 					$("#status-msg").animate({opacity:0.0}, 2000, function() {
 					    $('#status-msg').html('');
@@ -151,8 +152,11 @@ HUB.Projects = {
 	launchBox: function() 
 	{
 		var $ = this.jQuery;
-		var bWidth = 600;
+		var bWidth 	= 600;
 		var bHeight = 500;
+		var css 	= 'sbp-window';
+		var cBtn	= 1;
+		
 		$('.showinbox').each(function(i, item) {
 			// Clean up
 			$(item).off('click');
@@ -166,14 +170,25 @@ HUB.Projects = {
 			}
 			$(item).attr('href', href);	
 			
+			// TEX compiler view
 			if ($(item).hasClass('tex-menu'))
 			{
 				bWidth = 800;
-			}		
-			
+			}
+						
 			// Open box on click
 			$(item).on('click', function(e) {
 				e.preventDefault();
+				
+				// New publication process: fileselector
+				if ($(this).hasClass('item-add'))
+				{
+					bWidth = 700;				
+				}
+				if ($(this).hasClass('nox'))
+				{
+					cBtn = 0;
+				}		
 
 				if (!$(this).hasClass('inactive')) {
 					// Modal box for actions
@@ -183,13 +198,16 @@ HUB.Projects = {
 						height: 'auto',
 						autoSize: false,
 						fitToView: false,
-						wrapCSS: 'sbp-window',
+						wrapCSS: css,
+						closeBtn: cBtn,
 						afterShow: function() {
 							if ($('#cancel-action')) {
 								$('#cancel-action').on('click', function(e) {
 									$.fancybox.close();
 								});
 							}
+							
+							// Publication process
 							if ($('#ajax-selections') && $('#section')) {
 								if (HUB.ProjectPublications) {
 									var replacement = '';
@@ -313,9 +331,10 @@ HUB.Projects = {
 		// Move close to item
 		var coord = $($(link).parent()).position();
 		
+		/*
 		$('html, body').animate({
 			scrollTop: $(link).offset().top
-		}, 2000);
+		}, 2000); */
 		
 		$('#confirm-box').css('left', coord.left).css('top', coord.top + 200);
 	},

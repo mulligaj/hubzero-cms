@@ -40,56 +40,56 @@ class KbModelArchive extends \Hubzero\Base\Object
 {
 	/**
 	 * KbModelCategory
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_category = null;
 
 	/**
 	 * \Hubzero\Base\Model
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_categories = null;
 
 	/**
 	 * Category count
-	 * 
+	 *
 	 * @var integer
 	 */
 	private $_categories_count = null;
 
 	/**
 	 * \Hubzero\Base\Model
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_articles = null;
 
 	/**
 	 * Article count
-	 * 
+	 *
 	 * @var integer
 	 */
 	private $_articles_count = null;
 
 	/**
 	 * JDatabase
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_db = NULL;
 
 	/**
 	 * JRegistry
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_config;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $id Course ID or alias
 	 * @return     void
 	 */
@@ -113,12 +113,12 @@ class KbModelArchive extends \Hubzero\Base\Object
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new KbModelArchive();
 		}
@@ -128,12 +128,12 @@ class KbModelArchive extends \Hubzero\Base\Object
 
 	/**
 	 * Set and get a specific offering
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function category($id=null)
 	{
-		if (!isset($this->_category) 
+		if (!isset($this->_category)
 		 || ($id !== null && (int) $this->_category->get('id') != $id && (string) $this->_category->get('alias') != $id))
 		{
 			$this->_category = null;
@@ -160,7 +160,7 @@ class KbModelArchive extends \Hubzero\Base\Object
 
 	/**
 	 * Get a list of categories
-	 * 
+	 *
 	 * @param      string  $rtrn    What data to return
 	 * @param      array   $filters Filters to apply to data retrieval
 	 * @param      boolean $boolean Clear cached data?
@@ -186,13 +186,7 @@ class KbModelArchive extends \Hubzero\Base\Object
 		}
 		if (!isset($filters['sort']))
 		{
-			if (version_compare(JVERSION, '1.6', 'lt'))
-			{
-				$filters['sort'] = 'name';
-			}
-			else {
-				$filters['sort'] = 'title';
-			}
+			$filters['sort'] = 'title';
 		}
 		if (!isset($filters['sort_Dir']))
 		{
@@ -236,7 +230,7 @@ class KbModelArchive extends \Hubzero\Base\Object
 
 	/**
 	 * Get a list of articles
-	 * 
+	 *
 	 * @param      string  $rtrn    What data to return
 	 * @param      array   $filters Filters to apply to data retrieval
 	 * @param      boolean $boolean Clear cached data?

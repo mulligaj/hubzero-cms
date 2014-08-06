@@ -30,72 +30,74 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access');
+
+$this->css('introduction.css', 'system')
+     ->css('usage.css', 'com_usage')
+     ->css();
 ?>
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
-<div id="content-header-extra">
-	<ul>
-		<?php if ($this->allow_import == 1 || ($this->allow_import == 2 && $this->isAdmin)) : ?>
-			<li><a class="btn icon-add" href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=add'); ?>">Submit a citation</a></li>
-		<?php endif; ?>
-		<?php if ($this->allow_bulk_import == 1 || ($this->allow_bulk_import == 2 && $this->isAdmin)) : ?>
-			<li><a class="btn icon-upload" href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=import'); ?>">Import citations</a></li>
-		<?php endif; ?>	
-	</ul>
-</div>
+
+	<div id="content-header-extra">
+		<ul>
+			<?php if ($this->allow_import == 1 || ($this->allow_import == 2 && $this->isAdmin)) : ?>
+				<li><a class="btn icon-add" href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=add'); ?>">
+					<?php echo JText::_('COM_CITATIONS_SUBMIT_CITATION'); ?>
+				</a></li>
+			<?php endif; ?>
+			<?php if ($this->allow_bulk_import == 1 || ($this->allow_bulk_import == 2 && $this->isAdmin)) : ?>
+				<li><a class="btn icon-upload" href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=import'); ?>">
+					<?php echo JText::_('COM_CITATIONS_IMPORT_CITATION'); ?>
+				</a></li>
+			<?php endif; ?>
+		</ul>
+	</div>
+</header>
 <?php
-	foreach($this->messages as $message) {
+	foreach ($this->messages as $message) {
 		echo "<p class=\"{$message['type']}\">" . $message['message'] . "</p>";
 	}
 ?>
 
-<div id="introduction" class="section">
-	<div class="aside">
-		<!--<h3>Help</h3>-->
-		
-	</div><!-- / .aside -->
-	<div class="subject">
-		<div class="grid">
-			<div class="col span-half">
-				<h3>What are citations?</h3>
-				<p>The following are works that have cited or referenced this site or some piece of site content. Each citation links to the piece of content it references and is downloadable in either BibTex or EndNote format.</p>
-			</div>
-			<div class="col span-half omega">
-				<h3>Can I submit a citation?</h3>
-				<?php if ($this->allow_import == 1 || $this->allow_bulk_import == 1 ||
-				         ($this->allow_import == 2 && $this->isAdmin) || ($this->allow_bulk_import == 2 && $this->isAdmin)) : ?>
-					<p>Yes! You can submit a citation for a piece of work that has referenced site content by <a href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=add'); ?>">clicking here</a>. However, please search or browse the existing citations to ensure no duplicate entries.</p>
-				<?php else : ?>
-					<p>Citation submission is not allowed at this time. If you have any questions please contact the hub <a href="/support">support team</a>.</p>
-				<?php endif; ?>
-			</div>
-		</div><!-- / .grid -->
-	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / #introduction.section -->
+<section id="introduction" class="section">
+	<div class="grid">
+		<div class="col span-half">
+			<h3><?php echo JText::_('COM_CITATIONS_WHAT_ARE_CITATIONS'); ?></h3>
+			<p><?php echo JText::_('COM_CITATIONS_WHAT_ARE_CITATIONS_DESC'); ?></p>
+		</div>
+		<div class="col span-half omega">
+			<h3><?php echo JText::_('COM_CITATIONS_SUBMIT_CITATIONS'); ?></h3>
+			<?php if ($this->allow_import == 1 || $this->allow_bulk_import == 1 ||
+			         ($this->allow_import == 2 && $this->isAdmin) || ($this->allow_bulk_import == 2 && $this->isAdmin)) : ?>
+			<p><?php echo JText::sprintf('COM_CITATIONS_SUBMIT_CITATIONS_DESC', JRoute::_('index.php?option='.$this->option.'&task=add')); ?></p>
+			<?php else : ?>
+				<p><?php echo JText::sprintf('COM_CITATIONS_SUBMIT_CITATIONS_DESC_NOTALLOWED', '/support'); ?></p>
+			<?php endif; ?>
+		</div>
+	</div><!-- / .grid -->
+</section><!-- / #introduction.section -->
 
-<div class="section">
+<section class="section">
 
 	<div class="grid">
 		<div class="col span3">
-			<h2>Find a citation</h2>
+			<h2><?php echo JText::_('COM_CITATIONS_FIND_CITATION'); ?></h2>
 		</div><!-- / .col span3 -->
 		<div class="col span9 omega">
 			<div class="col span-half">
 				<form action="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse'); ?>" method="get" class="search">
 					<fieldset>
 						<p>
-							<label for="csearch">Keyword or phrase:</label>
+							<label for="csearch"><?php echo JText::_('COM_CITATIONS_FIND_CITATION_KEYWORD'); ?></label>
 							<input type="text" name="search" id="csearch" value="" />
-							<input type="submit" value="Search" />
+							<input type="submit" value="<?php echo JText::_('COM_CITATIONS_SEARCH'); ?>" />
 						</p>
 					</fieldset>
 				</form>
 			</div><!-- / .col span-half -->
 			<div class="col span-half omega">
 				<div class="browse">
-					<p><a href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse'); ?>">Browse the list of available citations</a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse'); ?>"><?php echo JText::_('COM_CITATIONS_BROWSE'); ?></a></p>
 				</div><!-- / .browse -->
 			</div><!-- / .col span-half -->
 		</div><!-- / .col span9 -->
@@ -103,7 +105,7 @@ defined('_JEXEC') or die( 'Restricted access');
 
 	<div class="grid">
 		<div class="col span3">
-			<h2>Metrics</h2>
+			<h2><?php echo JText::_('COM_CITATIONS_METRICS'); ?></h2>
 		</div><!-- / .col span3 -->
 		<div class="col span9 omega">
 			<div id="statistics">
@@ -242,7 +244,7 @@ $html .= implode('',$rows);
 $html .= "\t".'</tbody>'."\n";
 $html .= '</table>'."\n";
 $html .= '<div class="footnotes"><hr />
-	<ol><li><a name="fn-1"></a>Affiliation refers to if the author of the work that cited a piece of this site\'s content was in any way affiliated with the parent organization of the site.</li></ol>
+	<ol><li><a name="fn-1"></a>'.JText::_('COM_CITATIONS_METRICS_FOOTNOTE').'</li></ol>
 	</div>'."\n";
 
 echo $html;
@@ -252,5 +254,4 @@ echo $html;
 		</div><!-- / .col span9 omega -->
 	</div><!-- / .grid -->
 
-</div><!-- / .section -->
-
+</section><!-- / .section -->

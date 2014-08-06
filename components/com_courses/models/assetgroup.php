@@ -45,63 +45,63 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 {
 	/**
 	 * JTable class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CoursesTableAssetGroup';
 
 	/**
 	 * Object scope
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'asset_group';
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_asset = null;
 
 	/**
 	 * CoursesModelAsset
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_assets = null;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var array
 	 */
 	public $children = null;
 
 	/**
 	 * CoursesModelAssetGroup
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_parent = NULL;
 
 	/**
 	 * Container for properties
-	 * 
+	 *
 	 * @var array
 	 */
 	public $_siblings = null;
 
 	/**
 	 * Params
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_params = null;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $id  Resource ID or alias
 	 * @param      object  &$db JDatabase
 	 * @return     void
@@ -138,11 +138,11 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
  	 */
 	public function get($property, $default=null)
 	{
-		if (isset($this->_tbl->$property)) 
+		if (isset($this->_tbl->$property))
 		{
 			return $this->_tbl->$property;
 		}
-		else if (isset($this->_tbl->{'__' . $property})) 
+		else if (isset($this->_tbl->{'__' . $property}))
 		{
 			return $this->_tbl->{'__' . $property};
 		}
@@ -164,15 +164,22 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 	 *
 	 * @param	int	Article ID number
 	 */
-	public function children($idx=null, $populate=false)
+	public function children($idx=null, $populate=false, $filters=array())
 	{
 		if ($populate)
 		{
-			$filters = array(
-				'parent'     => $this->get('id'),
-				'unit_id'    => $this->get('unit_id'),
-				'section_id' => $this->get('section_id')
-			);
+			if (!isset($filters['parent']))
+			{
+				$filters['parent'] = $this->get('id');
+			}
+			if (!isset($filters['unit_id']))
+			{
+				$filters['unit_id'] = $this->get('unit_id');
+			}
+			if (!isset($filters['section_id']))
+			{
+				$filters['section_id'] = $this->get('section_id');
+			}
 
 			if (($results = $this->_tbl->find(array('w' => $filters))))
 			{
@@ -246,7 +253,7 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 	 */
 	public function asset($id=null)
 	{
-		if (!isset($this->_asset) 
+		if (!isset($this->_asset)
 		 || ($id !== null && (int) $this->_asset->get('id') != (int) $id))
 		{
 			$this->_asset = null;
@@ -266,7 +273,7 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 	/**
 	 * Get a list of assets for a unit
 	 *   Accepts an array of filters to apply to the list of assets
-	 * 
+	 *
 	 * @param      array $filters Filters to apply
 	 * @return     object CoursesModelIterator
 	 */
@@ -317,7 +324,7 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 	 *
 	 * @return     void
 	 */
-	public function siblings(&$siblings) 
+	public function siblings(&$siblings)
 	{
 		if (!($siblings instanceof CoursesModelIterator))
 		{
@@ -331,21 +338,21 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 	 *
 	 * @return     boolean
 	 */
-	public function isFirst() 
+	public function isFirst()
 	{
 		if (!$this->_siblings)
 		{
 			return true;
 		}
 		return $this->_siblings->isFirst();
-	} 
+	}
 
 	/**
 	 * Is the current position the last one?
 	 *
 	 * @return     boolean
 	 */
-	public function isLast() 
+	public function isLast()
 	{
 		if (!$this->_siblings)
 		{
@@ -359,7 +366,7 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 	 *
 	 * @return     mixed
 	 */
-	public function key($idx=null) 
+	public function key($idx=null)
 	{
 		return $this->_siblings->key($idx);
 	}
@@ -369,7 +376,7 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 	 *
 	 * @return     mixed
 	 */
-	public function sibling($dir='next') 
+	public function sibling($dir='next')
 	{
 		if (!$this->_siblings)
 		{
@@ -384,7 +391,7 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 			break;
 
 			default:
-				
+
 			break;
 		}
 		return null;
@@ -423,7 +430,7 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 
 	/**
 	 * Delete an entry and associated data
-	 * 
+	 *
 	 * @return     boolean True on success, false on error
 	 */
 	public function delete()
@@ -463,6 +470,91 @@ class CoursesModelAssetgroup extends CoursesModelAbstract
 
 		// Remove this record from the database and log the event
 		return parent::delete();
+	}
+
+	/**
+	 * Copy an entry and associated data
+	 *
+	 * @param   integer $unit_id New unit to copy to
+	 * @param   boolean $deep    Copy associated data?
+	 * @return  boolean True on success, false on error
+	 */
+	public function copy($unit_id=null, $deep=true)
+	{
+		// Get some old info we may need
+		//  - Asset group ID
+		//  - Unit ID
+		$a_id = $this->get('id');
+		$u_id = $this->get('unit_id');
+
+		// Reset the ID. This will force store() to create a new record.
+		$this->set('id', 0);
+		// Are we copying to a new unit?
+		if ($unit_id)
+		{
+			$this->set('unit_id', $unit_id);
+		}
+		else
+		{
+			// Copying to the same offering so we want to distinguish
+			// this unit from the one we copied from
+			$this->set('title', $this->get('title') . ' (copy)');
+			$this->set('alias', $this->get('alias') . '_copy');
+		}
+		if (!$this->store())
+		{
+			return false;
+		}
+
+		if ($deep)
+		{
+			// Copy assets
+			$tbl = new CoursesTableAssetAssociation($this->_db);
+			//foreach ($this->assets(array('asset_scope_id' => $u_id)) as $asset)
+			foreach ($tbl->find(array('scope_id' => $a_id, 'scope' => 'asset_group')) as $asset)
+			{
+				$tbl->bind($asset);
+				$tbl->id = 0;
+				$tbl->scope_id = $this->get('id');
+				//if (!$asset->copy($this->get('id')))
+				if (!$tbl->store())
+				{
+					$this->setError($tbl->getError());
+				}
+			}
+
+			// Copy asset groups
+			if ($children = $this->_tbl->find(array('w' => array('parent' => $a_id))))
+			{
+				$found = array();
+
+				foreach ($children as $c)
+				{
+					if (in_array($c->id, $found))
+					{
+						continue;
+					}
+					$assetgroup = new CoursesModelAssetgroup($c);
+					$assetgroup->set('parent', $this->get('id'));
+
+					$found[] = $c->id;
+
+					if (!$assetgroup->copy($unit_id, $deep))
+					{
+						$this->setError($assetgroup->getError());
+					}
+				}
+			}
+			/*foreach ($this->children(null, true, array('parent' => $a_id)) as $assetgroup)
+			{
+				if (!$assetgroup->copy($unit_id, $deep))
+				{
+					$this->setError($assetgroup->getError());
+				}
+			}*/
+		}
+
+		return true;
 	}
 }
 

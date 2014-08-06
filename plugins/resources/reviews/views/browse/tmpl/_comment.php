@@ -1,4 +1,4 @@
-<?php 
+<?php
 defined('_JEXEC') or die('Restricted access');
 
 	$juser = JFactory::getUser();
@@ -7,10 +7,10 @@ defined('_JEXEC') or die('Restricted access');
 
 	$name = JText::_('PLG_RESOURCES_REVIEWS_ANONYMOUS');
 	$huser = new \Hubzero\User\Profile;
-	if (!$this->comment->get('anonymous')) 
+	if (!$this->comment->get('anonymous'))
 	{
 		$huser = $this->comment->creator();
-		if (is_object($huser) && $huser->get('name')) 
+		if (is_object($huser) && $huser->get('name'))
 		{
 			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $huser->get('uidNumber')) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
 		}
@@ -30,6 +30,7 @@ defined('_JEXEC') or die('Restricted access');
 
 	if ($this->comment->get('resource_id'))
 	{
+		$this->comment->set('created_by', $this->comment->get('user_id'));
 		$this->comment->set('item_id', $this->comment->get('id'));
 		$this->comment->set('parent', 0);
 
@@ -59,25 +60,18 @@ defined('_JEXEC') or die('Restricted access');
 		<?php if (!$this->comment->isReported() && $this->comment->get('resource_id')) { ?>
 			<p class="comment-voting voting" id="answers_<?php echo $this->comment->get('id'); ?>">
 				<?php
-				$view = new \Hubzero\Plugin\View(
-					array(
-						'folder'  => 'resources',
-						'element' => 'reviews',
-						'name'    => 'browse',
-						'layout'  => '_rateitem'
-					)
-				);
-				$view->option = $this->option;
-				$view->item   = $this->comment;
-				$view->type   = 'review';
-				$view->vote   = '';
-				$view->id     = '';
-				if (!$juser->get('guest')) 
+				$view = $this->view('_rateitem')
+							->set('option', $this->option)
+							->set('item', $this->comment)
+							->set('type', 'review')
+							->set('vote', '')
+							->set('id', '');
+				if (!$juser->get('guest'))
 				{
-					if ($this->comment->get('created_by') == $juser->get('username')) 
+					if ($this->comment->get('created_by') == $juser->get('username'))
 					{
-						$view->vote = $this->comment->get('vote');
-						$view->id   = $this->comment->get('id');
+						$view->set('vote', $this->comment->get('vote'));
+						$view->set('id', $this->comment->get('id'));
 					}
 				}
 				$view->display();
@@ -86,11 +80,11 @@ defined('_JEXEC') or die('Restricted access');
 		<?php } ?>
 
 			<p class="comment-title">
-				<strong><?php echo $name; ?></strong> 
+				<strong><?php echo $name; ?></strong>
 				<a class="permalink" href="<?php echo JRoute::_($this->base . '#c' . $this->comment->get('id')); ?>" title="<?php echo JText::_('PLG_RESOURCES_REVIEWS_PERMALINK'); ?>">
-					<span class="comment-date-at">@</span> 
-					<span class="time"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('time'); ?></time></span> 
-					<span class="comment-date-on"><?php echo JText::_('PLG_RESOURCES_REVIEWS_ON'); ?></span> 
+					<span class="comment-date-at">@</span>
+					<span class="time"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('time'); ?></time></span>
+					<span class="comment-date-on"><?php echo JText::_('PLG_RESOURCES_REVIEWS_ON'); ?></span>
 					<span class="date"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('date'); ?></time></span>
 				</a>
 			</p>
@@ -132,39 +126,39 @@ defined('_JEXEC') or die('Restricted access');
 					</label>
 
 					<p class="submit">
-						<input type="submit" value="<?php echo JText::_('PLG_RESOURCES_REVIEWS_SUBMIT'); ?>" /> 
+						<input type="submit" value="<?php echo JText::_('PLG_RESOURCES_REVIEWS_SUBMIT'); ?>" />
 					</p>
 				</fieldset>
 			</form>
 	<?php } else { ?>
-			<?php echo $comment; ?>
+			<div class="comment-body">
+				<?php echo $comment; ?>
+			</div>
 
 			<p class="comment-options">
 		<?php if (!$this->comment->isReported() && !stristr($comment, 'class="warning"')) { ?>
 			<?php if ($juser->get('id') == $this->comment->get('created_by')) { ?>
-				<?php /*if ($this->config->get('access-delete-thread')) { ?>
-					<a class="icon-delete delete" href="<?php echo JRoute::_($this->base . '&action=delete&comment=' . $this->comment->get('id')); ?>"><!-- 
-						--><?php echo JText::_('PLG_RESOURCES_REVIEWS_DELETE'); ?><!-- 
+					<a class="icon-delete delete" data-txt-confirm="<?php echo JText::_('PLG_RESOURCES_REVIEWS_CONFIRM_DELETE'); ?>" href="<?php echo JRoute::_($this->base . '&action=delete' . ($this->comment->get('resource_id') ? 'review' : 'reply') . '&comment=' . $this->comment->get('id')); ?>"><!--
+						--><?php echo JText::_('PLG_RESOURCES_REVIEWS_DELETE'); ?><!--
 					--></a>
-				<?php }*/ ?>
-					<a class="icon-edit edit" href="<?php echo JRoute::_($this->base . '&action=edit&comment=' . $this->comment->get('id')); ?>"><!-- 
-						--><?php echo JText::_('PLG_RESOURCES_REVIEWS_EDIT'); ?><!-- 
+					<a class="icon-edit edit" href="<?php echo JRoute::_($this->base . '&action=edit' . ($this->comment->get('resource_id') ? 'review' : '') . '&comment=' . $this->comment->get('id') . ($this->comment->get('resource_id') ? '#commentform' : '')); ?>"><!--
+						--><?php echo JText::_('PLG_RESOURCES_REVIEWS_EDIT'); ?><!--
 					--></a>
 			<?php } ?>
 			<?php if (!$this->comment->get('reports')) { ?>
 				<?php if ($this->depth < $this->config->get('comments_depth', 3)) { ?>
 					<?php if (JRequest::getInt('reply', 0) == $this->comment->get('id')) { ?>
-					<a class="icon-reply reply active" data-txt-active="<?php echo JText::_('PLG_RESOURCES_REVIEWS_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('PLG_RESOURCES_REVIEWS_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link()); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('PLG_RESOURCES_REVIEWS_CANCEL'); ?><!-- 
+					<a class="icon-reply reply active" data-txt-active="<?php echo JText::_('PLG_RESOURCES_REVIEWS_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('PLG_RESOURCES_REVIEWS_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link()); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!--
+					--><?php echo JText::_('PLG_RESOURCES_REVIEWS_CANCEL'); ?><!--
 				--></a>
 					<?php } else { ?>
-					<a class="icon-reply reply" data-txt-active="<?php echo JText::_('PLG_RESOURCES_REVIEWS_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('PLG_RESOURCES_REVIEWS_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link('reply')); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('PLG_RESOURCES_REVIEWS_REPLY'); ?><!-- 
+					<a class="icon-reply reply" data-txt-active="<?php echo JText::_('PLG_RESOURCES_REVIEWS_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('PLG_RESOURCES_REVIEWS_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link('reply')); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!--
+					--><?php echo JText::_('PLG_RESOURCES_REVIEWS_REPLY'); ?><!--
 				--></a>
 					<?php } ?>
 				<?php } ?>
-					<a class="icon-abuse abuse" href="<?php echo JRoute::_($this->comment->link('report')); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('PLG_RESOURCES_REVIEWS_REPORT_ABUSE'); ?><!-- 
+					<a class="icon-abuse abuse" data-txt-flagged="<?php echo JText::_('PLG_RESOURCES_REVIEWS_NOTICE_POSTING_REPORTED'); ?>" href="<?php echo JRoute::_($this->comment->link('report')); ?>"><!--
+					--><?php echo JText::_('PLG_RESOURCES_REVIEWS_REPORT_ABUSE'); ?><!--
 				--></a>
 			<?php } ?>
 		<?php } ?>
@@ -174,7 +168,7 @@ defined('_JEXEC') or die('Restricted access');
 			<div class="addcomment comment-add<?php if (JRequest::getInt('reply', 0) != $this->comment->get('id')) { echo ' hide'; } ?>" id="comment-form<?php echo $this->comment->get('id'); ?>">
 				<?php if ($juser->get('guest')) { ?>
 				<p class="warning">
-					<?php echo JText::sprintf('PLG_RESOURCES_REVIEWS_PLEASE_LOGIN_TO_ANSWER', '<a href="' . JRoute::_('index.php?option=com_login&return=' . base64_encode(JRoute::_($this->base, false, true))) . '">' . JText::_('PLG_RESOURCES_REVIEWS_LOGIN') . '</a>'); ?>
+					<?php echo JText::sprintf('PLG_RESOURCES_REVIEWS_PLEASE_LOGIN_TO_ANSWER', '<a href="' . JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode(JRoute::_($this->base, false, true))) . '">' . JText::_('PLG_RESOURCES_REVIEWS_LOGIN') . '</a>'); ?>
 				</p>
 				<?php } else { ?>
 				<form id="cform<?php echo $this->comment->get('id'); ?>" action="<?php echo JRoute::_($this->base); ?>" method="post" enctype="multipart/form-data">
@@ -208,7 +202,7 @@ defined('_JEXEC') or die('Restricted access');
 						</label>
 
 						<p class="submit">
-							<input type="submit" value="<?php echo JText::_('PLG_RESOURCES_REVIEWS_SUBMIT'); ?>" /> 
+							<input type="submit" value="<?php echo JText::_('PLG_RESOURCES_REVIEWS_SUBMIT'); ?>" />
 						</p>
 					</fieldset>
 				</form>
@@ -218,25 +212,18 @@ defined('_JEXEC') or die('Restricted access');
 	<?php } ?>
 		</div><!-- / .comment-content -->
 		<?php
-		if ($this->depth < $this->config->get('comments_depth', 3)) 
+		if ($this->depth < $this->config->get('comments_depth', 3))
 		{
-			$view = new \Hubzero\Plugin\View(
-				array(
-					'folder'  => 'resources',
-					'element' => 'reviews',
-					'name'    => 'browse',
-					'layout'  => '_list'
-				)
-			);
-			$view->parent     = $this->comment->get('id');
-			$view->resource   = $this->resource;
-			$view->option     = $this->option;
-			$view->comments   = $this->comment->replies('list');
-			$view->config     = $this->config;
-			$view->depth      = $this->depth;
-			$view->cls        = $cls;
-			$view->base       = $this->base;
-			$view->display();
+			$this->view('_list')
+			     ->set('parent', $this->comment->get('id'))
+			     ->set('resource', $this->resource)
+			     ->set('option', $this->option)
+			     ->set('comments', $this->comment->replies('list'))
+			     ->set('config', $this->config)
+			     ->set('depth', $this->depth)
+			     ->set('cls', $cls)
+			     ->set('base', $this->base)
+			     ->display();
 		}
 		?>
 	</li>

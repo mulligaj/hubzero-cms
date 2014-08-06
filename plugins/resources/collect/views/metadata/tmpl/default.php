@@ -31,11 +31,14 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css()
+     ->js();
+
 $foo = \JFactory::getEditor()->display('description', '', '', '', 35, 5, false, 'field_description', null, null, array('class' => 'minimal no-footer'));
 ?>
 
 <p id="fav" class="fav">
-	<a id="fav-this" class="collect" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->resource->id . '&action=collect'); ?>">
+	<a id="fav-this" class="collect" data-form="<?php echo JURI::base(true); ?>/index.php?option=com_resources&amp;task=plugin&amp;trigger=onResourcesFavorite&amp;active=collect&amp;no_html=1&amp;rid=<?php echo $this->resource->id; ?>" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->resource->id . '&action=collect'); ?>">
 		<?php echo JText::_('PLG_RESOURCES_COLLECT_ACTION'); ?>
 	</a>
 </p>

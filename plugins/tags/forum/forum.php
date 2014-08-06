@@ -34,45 +34,18 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Tags plugin class for forum entries
  */
-class plgTagsForum extends JPlugin
+class plgTagsForum extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Record count
-	 * 
-	 * @var integer
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	private $_total = null;
-
-	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
-
-	/**
-	 * Return the name of the area this plugin retrieves records for
-	 * 
-	 * @return     array
-	 */
-	public function onTagAreas()
-	{
-		$areas = array(
-			'forum' => JText::_('PLG_TAGS_FORUM')
-		);
-		return $areas;
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Get the group IDs for all the groups of a specific user
-	 * 
+	 *
 	 * @param      integer $uid User ID
 	 * @return     array
 	 */
@@ -80,14 +53,14 @@ class plgTagsForum extends JPlugin
 	{
 		$dbh = JFactory::getDBO();
 		$dbh->setQuery(
-			'select distinct gidNumber from #__xgroups_members where uidNumber = ' . $uid . ' union select distinct gidNumber from #__xgroups_managers where uidNumber = ' . $uid
+			'SELECT DISTINCT gidNumber FROM `#__xgroups_members` WHERE uidNumber=' . $uid
 		);
 		return $dbh->loadResultArray();
 	}
 
 	/**
 	 * Retrieve records for items tagged with specific tags
-	 * 
+	 *
 	 * @param      array   $tags       Tags to match records against
 	 * @param      mixed   $limit      SQL record limit
 	 * @param      integer $limitstart SQL record limit start
@@ -97,19 +70,13 @@ class plgTagsForum extends JPlugin
 	 */
 	public function onTagView($tags, $limit=0, $limitstart=0, $sort='', $areas=null)
 	{
-		if (is_array($areas) && $limit) 
-		{
-			if (!isset($areas['forum']) && !in_array('forum', $areas)) 
-			{
-				return array();
-			}
-		}
-
-		// Do we have a member ID?
-		if (empty($tags)) 
-		{
-			return array();
-		}
+		$response = array(
+			'name'    => $this->_name,
+			'title'   => JText::_('PLG_TAGS_FORUM'),
+			'total'   => 0,
+			'results' => null,
+			'sql'     => ''
+		);
 
 		$database = JFactory::getDBO();
 
@@ -122,56 +89,35 @@ class plgTagsForum extends JPlugin
 
 		$addtl_where = array();
 		$juser = JFactory::getUser();
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$gids = $this->_getGroupIds($juser->get('id'));
-			if (!$juser->authorise('core.view', 'com_forum'))
-			{
-				$addtl_where[] = 'e.scope_id IN (0' . ($gids ? ',' . join(',', $gids) : '') . ')';
-			}
-			else 
-			{
-				$viewlevels	= implode(',', $juser->getAuthorisedViewLevels());
+		$gids = $this->_getGroupIds($juser->get('id'));
 
-				if ($gids)
-				{
-					$addtl_where[] = '(e.access IN (' . $viewlevels . ') OR ((e.access = 4 OR e.access = 5) AND e.scope_id IN (0,' . join(',', $gids) . ')))';
-				}
-				else 
-				{
-					$addtl_where[] = '(e.access IN (' . $viewlevels . '))';
-				}
-			}
-		}
-		else 
+		if (!$juser->authorise('core.view', 'com_forum'))
 		{
-			if ($juser->get('guest'))
+			$addtl_where[] = 'e.scope_id IN (0' . ($gids ? ',' . join(',', $gids) : '') . ')';
+		}
+		else
+		{
+			$viewlevels	= '0,' . implode(',', $juser->getAuthorisedViewLevels());
+
+			if ($gids)
 			{
-				$addtl_where[] = '(e.access = 0)';
+				$addtl_where[] = '(e.access IN (' . $viewlevels . ') OR ((e.access = 4 OR e.access = 5) AND e.scope_id IN (0,' . join(',', $gids) . ')))';
 			}
-			elseif ($juser->usertype != 'Super Administrator')
+			else
 			{
-				$groups = $this->_getGroupIds($juser->get('id'));
-				if ($groups)
-				{
-					$addtl_where[] = '(e.access = 0 OR e.access = 1 OR ((e.access = 3 OR e.access = 4) AND e.scope_id IN (0,' . join(',', $groups) . ')))';
-				}
-				else
-				{
-					$addtl_where[] = '(e.access = 0 OR e.access = 1)';
-				}
+				$addtl_where[] = '(e.access IN (' . $viewlevels . '))';
 			}
 		}
-		
+
 		// Build the query
 		$e_count = "SELECT COUNT(f.id) FROM (SELECT e.id, COUNT(DISTINCT t.tagid) AS uniques";
-		$e_fields = "SELECT e.id, e.title, e.id AS alias, e.comment AS itext, e.comment AS ftext, e.state, e.created, e.created_by, e.modified, e.created AS publish_up, NULL AS publish_down, 
+		$e_fields = "SELECT e.id, e.title, e.id AS alias, e.comment AS itext, e.comment AS ftext, e.state, e.created, e.created_by, e.modified, e.created AS publish_up, NULL AS publish_down,
 					(CASE WHEN e.scope_id > 0 AND e.scope='group' THEN
 						concat('/groups/', g.cn, concat('/forum/', coalesce(concat(s.alias, '/', coalesce(concat(c.alias, '/'), ''))), CASE WHEN e.parent > 0 THEN e.parent ELSE e.id END))
 					ELSE
 						concat('/forum/', coalesce(concat(s.alias, '/', coalesce(concat(c.alias, '/'), ''))), CASE WHEN e.parent > 0 THEN e.parent ELSE e.id END)
-					END) AS href, 
-					'forum' AS section, COUNT(DISTINCT t.tagid) AS uniques, NULL AS params, e.last_activity AS rcount, c.alias AS data1, s.alias AS data2, g.cn AS data3 ";
+					END) AS href,
+					'forum' AS section, COUNT(DISTINCT t.tagid) AS uniques, CONCAT(e.thread, ':', e.parent) AS params, e.scope AS rcount, c.alias AS data1, s.alias AS data2, e.scope_id AS data3 "; //e.last_activity AS rcount, c.alias AS data1, s.alias AS data2, g.cn AS data3 
 		$e_from  = " FROM #__forum_posts AS e
 		 			LEFT JOIN #__forum_categories c ON c.id = e.category_id
 					LEFT JOIN #__forum_sections s ON s.id = c.section_id
@@ -189,63 +135,51 @@ class plgTagsForum extends JPlugin
 		}
 		$order_by .= ($limit != 'all') ? " LIMIT $limitstart,$limit" : "";
 
-		if (!$limit) 
-		{
-			// Get a count
-			$database->setQuery($e_count . $e_from . $e_where . ") AS f");
-			$this->_total = $database->loadResult();
-			return $this->_total;
-		} 
-		else 
-		{
-			if (count($areas) > 1) 
-			{
-				return $e_fields . $e_from . $e_where;
-			}
+		$database->setQuery($e_count . $e_from . $e_where . ") AS f");
+		$response['total'] = $database->loadResult();
 
-			if ($this->_total != null) 
-			{
-				if ($this->_total == 0) 
-				{
-					return array();
-				}
-			}
-
-			// Get results
+		if ($areas && $areas == $response['name'])
+		{
 			$database->setQuery($e_fields . $e_from . $e_where . $order_by);
-			$rows = $database->loadObjectList();
-
-			return $rows;
+			$response['results'] = $database->loadObjectList();
 		}
+		else
+		{
+			$response['sql'] = $e_fields . $e_from . $e_where;
+		}
+
+		return $response;
 	}
 
 	/**
 	 * Static method for formatting results
-	 * 
+	 *
 	 * @param      object $row Database row
 	 * @return     string HTML
 	 */
 	public static function out($row)
 	{
-		if (strstr($row->href, 'index.php')) 
-		{
-			$row->href = JRoute::_('index.php?option=com_kb&section=' . $row->data2 . '&category=' . $row->data1 . '&thread=' . $row->alias);
-		}
-		$juri = JURI::getInstance();
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'models' . DS . 'post.php');
 
-		// Start building the HTML
-		$html  = "\t" . '<li class="kb-entry">' . "\n";
-		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '">' . stripslashes($row->title) . '</a></p>' . "\n";
-		$html .= "\t\t" . '<p class="details">' . JText::_('PLG_TAGS_FORUM') . ' &rsaquo; ' . stripslashes($row->data2) . ' &rsaquo; ' . stripslashes($row->data1) . '</p>' . "\n";
-		if ($row->ftext) 
-		{
-			$html .= "\t\t" . '<p>' . \Hubzero\Utility\String::truncate(strip_tags(stripslashes($row->ftext)), 200) . "</p>\n";
-		}
-		$html .= "\t\t" . '<p class="href">' . $juri->base() . ltrim($row->href, DS) . '</p>' . "\n";
-		$html .= "\t" . '</li>' . "\n";
+		$row->scope    = $row->rcount;
+		$row->scope_id = $row->data3;
+		$row->section  = $row->data2;
+		$row->category = $row->data1;
 
-		// Return output
-		return $html;
+		$p = explode(':', $row->params);
+
+		$row->thread   = $p[0];
+		$row->parent   = $p[1];
+		$row->comment  = $row->ftext;
+
+		$view = new \Hubzero\Plugin\View(array(
+			'folder'  => 'tags',
+			'element' => 'forum',
+			'name'    => 'result'
+		));
+		$view->post = new ForumModelPost($row);
+
+		return $view->loadTemplate();
 	}
 }
 

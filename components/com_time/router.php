@@ -33,7 +33,7 @@ defined('_JEXEC') or die('Restricted access');
 
 /**
  * Time build route
- * 
+ *
  * @param  array &$query
  * @return array Return
  */
@@ -41,13 +41,13 @@ function TimeBuildRoute(&$query)
 {
 	$segments = array();
 
-	if (!empty($query['active'])) {
-		$segments[] = $query['active'];
-		unset($query['active']);
+	if (!empty($query['controller'])) {
+		$segments[] = $query['controller'];
+		unset($query['controller']);
 	}
-	if (!empty($query['action'])) {
-		$segments[] = $query['action'];
-		unset($query['action']);
+	if (!empty($query['task'])) {
+		$segments[] = $query['task'];
+		unset($query['task']);
 	}
 	if (!empty($query['id'])) {
 		$segments[] = $query['id'];
@@ -59,7 +59,7 @@ function TimeBuildRoute(&$query)
 
 /**
  * Time parse route
- * 
+ *
  * @param  array $segments
  * @return array Return
  */
@@ -72,17 +72,17 @@ function TimeParseRoute($segments)
 		return $vars;
 	}
 
-	if(isset($segments[0]))
+	if (isset($segments[0]))
 	{
-		$vars['active'] = $segments[0];
+		$vars['controller'] = $segments[0];
 	}
-	if(isset($segments[1]))
+	if (isset($segments[1]))
 	{
-		$vars['action'] = $segments[1];
+		$vars['task'] = $segments[1];
 	}
-	if(isset($segments[2]))
+	if (isset($segments[2]))
 	{
-		$vars['id']     = $segments[2];
+		$vars['id'] = $segments[2];
 	}
 
 	return $vars;

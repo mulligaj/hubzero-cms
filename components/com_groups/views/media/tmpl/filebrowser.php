@@ -31,6 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+JHTML::_('behavior.modal');
+
+// push scripts and styles
+$this->css()
+     ->css('media.css')
+     ->js()
+     ->js('groups.mediabrowser')
+     ->js('jquery.fileuploader', 'system')
+     ->js('jquery.contextMenu', 'system')
+     ->css('jquery.contextMenu.css', 'system');
+
 //get request vars
 $type          = JRequest::getWord('type', '', 'get');
 $ckeditor      = JRequest::getVar('CKEditor', '', 'get');
@@ -40,15 +51,15 @@ $ckeditorQuery = '&type='.$type.'&CKEditor=' . $ckeditor . '&CKEditorFuncNum=' .
 
 <div class="upload-browser cf">
 	<?php
-		foreach($this->notifications as $notification)
+		foreach ($this->notifications as $notification)
 		{
 			echo "<p class=\"{$notification['type']}\">{$notification['message']}</p>";
 		}
 	?>
-	
+
 	<div class="upload-browser-col left">
 		<div class="toolbar cf">
-			<div class="title"><?php echo JText::_('Group Files'); ?></div>
+			<div class="title"><?php echo JText::_('COM_GROUPS_MEDIA_GROUP_FILES'); ?></div>
 			<div class="buttons">
 				<a href="<?php echo JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&controller=media&task=addfolder&tmpl=component'); ?>" class="icon-add action-addfolder"></a>
 			</div>

@@ -39,33 +39,8 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Help class for rendering utility-wide help documentation
  **/
-class Configure implements CommandInterface
+class Configure extends Base implements CommandInterface
 {
-	/**
-	 * Output object, implements the Output interface
-	 *
-	 * @var object
-	 **/
-	private $output;
-
-	/**
-	 * Arguments object, implements the Argument interface
-	 *
-	 * @var object
-	 **/
-	private $arguments;
-
-	/**
-	 * Constructor - sets output mechanism and arguments for use by command
-	 *
-	 * @return void
-	 **/
-	public function __construct(Output $output, Arguments $arguments)
-	{
-		$this->output    = $output;
-		$this->arguments = $arguments;
-	}
-
 	/**
 	 * Default (required) command
 	 *
@@ -75,25 +50,18 @@ class Configure implements CommandInterface
 	 **/
 	public function execute()
 	{
-		if ($this->arguments->getOpt('name'))
-		{
-			$name = $this->arguments->getOpt('name');
-		}
+		$options = $this->arguments->getOpts();
 
-		if ($this->arguments->getOpt('email'))
-		{
-			$email = $this->arguments->getOpt('email');
-		}
-
-		if (!isset($name) && !isset($email))
+		if (empty($options))
 		{
 			if ($this->output->isInteractive())
 			{
-				$option = $this->output->getResponse('What do you want to configure [name|email] ?');
+				$options = array();
+				$option  = $this->output->getResponse('What do you want to configure [name|email|etc...] ?');
 
-				if (in_array($option, array('email', 'name')))
+				if (is_string($option) && !empty($option))
 				{
-					$$option = $this->output->getResponse("What do you want your {$option} to be?");
+					$options[$option] = $this->output->getResponse("What do you want your {$option} to be?");
 				}
 				else if (empty($option))
 				{
@@ -113,17 +81,7 @@ class Configure implements CommandInterface
 			}
 		}
 
-		$config = array();
-		if (isset($name))
-		{
-			$config['user_name'] = $name;
-		}
-		if (isset($email))
-		{
-			$config['user_email'] = $email;
-		}
-
-		if ($this->save($config))
+		if ($this->save($options))
 		{
 			$this->output->addLine('Saved new configuration!', 'success');
 		}

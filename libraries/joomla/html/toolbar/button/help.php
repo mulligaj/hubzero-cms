@@ -36,16 +36,20 @@ class JButtonHelp extends JButton
 	 *
 	 * @since   11.1
 	 */
-	public function fetchButton($type = 'Help', $ref = '', $com = false, $override = null, $component = null)
+	public function fetchButton($type = 'Help', $url = null, $width = 700, $height = 500)
 	{
 		$text = JText::_('JTOOLBAR_HELP');
 		$class = $this->fetchIconClass('help');
-		$doTask = $this->_getCommand($ref, $com, $override, $component);
+		if (!strstr('?', $url) && !strstr('&', $url) && substr($url, 0, 4) != 'http')
+		{
+			$url = 'index.php?option=com_help&component=' . JRequest::getCmd('option') . '&page=' . $url;
+		}
+		$doTask = "Joomla.popupWindow('$url', '" . JText::_('JHELP', true) . "', {$width}, {$height}, 1)";
 
-		$html = "<a href=\"#\" onclick=\"$doTask\" rel=\"help\" class=\"toolbar\">\n";
+		$html  = "<a href=\"#\" onclick=\"$doTask\" rel=\"help\" class=\"toolbar\" data-title=\"$text\">\n";
 		$html .= "<span class=\"$class\">\n";
-		$html .= "</span>\n";
 		$html .= "$text\n";
+		$html .= "</span>\n";
 		$html .= "</a>\n";
 
 		return $html;

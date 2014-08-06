@@ -25,10 +25,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 ?>
-<ol class="comments" id="t<?php echo (isset($this->parent) ? $this->parent : '0'); ?>">
+<ol class="comments" id="<?php echo (isset($this->thread) ? $this->thread : 't') . (isset($this->parent) ? $this->parent : '0'); ?>">
 <?php
-if (isset($this->comments) && $this->comments instanceof \Hubzero\Base\ItemList) 
-{ 
+if (isset($this->comments) && $this->comments instanceof \Hubzero\Base\ItemList)
+{
 	$cls = 'odd';
 	if (isset($this->cls))
 	{
@@ -37,26 +37,21 @@ if (isset($this->comments) && $this->comments instanceof \Hubzero\Base\ItemList)
 
 	$this->depth++;
 
-	foreach ($this->comments as $comment) 
+	foreach ($this->comments as $comment)
 	{
 		$comment->set('qid', $this->question->get('id'));
 
-		$view = new JView(
-			array(
-				'name'    => 'questions',
-				'layout'  => '_comment'
-			)
-		);
-		$view->item_id    = $this->item_id;
-		$view->option     = $this->option;
-		$view->comment    = $comment;
-		$view->config     = $this->config;
-		$view->depth      = $this->depth;
-		$view->question   = $this->question;
-		$view->cls        = $cls;
-		$view->base       = $this->base;
-		$view->display();
+		$this->view('_comment')
+		     ->set('item_id', $this->item_id)
+		     ->set('option', $this->option)
+		     ->set('comment', $comment)
+		     ->set('config', $this->config)
+		     ->set('depth', $this->depth)
+		     ->set('question', $this->question)
+		     ->set('cls', $cls)
+		     ->set('base', $this->base)
+		     ->display();
 	}
-} 
+}
 ?>
 </ol>

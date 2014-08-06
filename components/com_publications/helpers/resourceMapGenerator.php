@@ -25,42 +25,34 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  */
-defined('_JEXEC') or die( 'Restricted access' );
-
+defined('_JEXEC') or die('Restricted access');
 
 /**
  * Resource map generator in XML+RDFa format
  *
  * Generates resource map in XML+RDFa format. Inserts link into header
  * and provides download for the end user.
- *
- * @package     hubzero-cms
- * @subpackage  com_resources
- * @copyright   Copyright 2005-2011 Purdue University. All rights reserved.
- * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
- * @version     Release: @package_version@
- * @since       Class available since Release 1.5.0
  */
 class ResourceMapGenerator
 {
 	// Add namespaces as needed
 	private $xmlNamespace = array(
-			'xmlns:dc' => 'http://purl.org/dc/elements/1.1/',
-			'xmlns:dcterms' => 'http://purl.org/dc/terms/',
-			'xmlns:ore' => 'http://www.openarchives.org/ore/terms/',
-			'xmlns:rdf'=> 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-			'xmlns:exif' => 'http://www.w3.org/2003/12/exif/ns#',
-			'xmlns:foaf' => 'http://xmlns.com/foaf/0.1/'
+		'xmlns:dc'      => 'http://purl.org/dc/elements/1.1/',
+		'xmlns:dcterms' => 'http://purl.org/dc/terms/',
+		'xmlns:ore'     => 'http://www.openarchives.org/ore/terms/',
+		'xmlns:rdf'     => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+		'xmlns:exif'    => 'http://www.w3.org/2003/12/exif/ns#',
+		'xmlns:foaf'    => 'http://xmlns.com/foaf/0.1/'
 	);
 
 	// URL of the component
-	private $componentURL = "";
+	private $componentURL = '';
 
 	// URL of the publication (e.g. /publication/1234)
-	private $resourceURL = "";
+	private $resourceURL = '';
 
 	// Path to file system that stores resource
-	private $resourceSite = "";
+	private $resourceSite = '';
 
 	// Variables of this resource for composing the RDF file
 	private $id = -1;
@@ -92,10 +84,10 @@ class ResourceMapGenerator
 	public function setPaths()
 	{
 		$this->componentURL = JURI::base() . 'publications/';
-		$this->resourceURL = $this->componentURL . $this->id;
+		$this->resourceURL  = $this->componentURL . $this->id;
 
 		$database = JFactory::getDBO();
-		$pub = new Publication( $database );
+		$pub = new Publication($database);
 		$publication = $pub->getPublication($this->id);
 		$this->resourceSite = JPATH_BASE . '/site/publications/' .
 				\Hubzero\Utility\String::pad($this->id) . DS .
@@ -150,13 +142,13 @@ class ResourceMapGenerator
 	{
 		// Grabs database object
 		$database = JFactory::getDBO();
-		$resource = new PublicationVersion( $database );
+		$resource = new PublicationVersion($database);
 		$resource = $resource->getLastPubRelease($this->id);
 
 		if (!$resource)
 		{
 			// Return if ID does not exist
-			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_FILE_NOT_FOUND') );
+			JError::raiseError(404, JText::_('COM_PUBLICATIONS_FILE_NOT_FOUND'));
 			return false;
 		}
 
@@ -241,7 +233,8 @@ class ResourceMapGenerator
 		{
 			case 'image':
 				// SVG types do not have height/width
-				if (stripos($datatype, 'svg') !== FALSE) {
+				if (stripos($datatype, 'svg') !== FALSE)
+				{
 					break;
 				}
 
@@ -376,13 +369,14 @@ class ResourceMapGenerator
 	 */
 	public function pushDownload()
 	{
-		$alias = JRequest::getVar( 'alias', '' );
+		$alias = JRequest::getVar('alias', '');
 
-		$this->id = "";
-		if (substr($alias, -4) == ".rdf")
+		$this->id = '';
+		if (substr($alias, -4) == '.rdf')
 		{
-			$lastSlash = strrpos($alias, "/");
-			$lastDot = strrpos($alias, ".rdf");
+			$lastSlash = strrpos($alias, '/');
+			$lastDot   = strrpos($alias, '.rdf');
+
 			$this->id = substr($alias, $lastSlash, $lastDot);
 		}
 
@@ -421,13 +415,13 @@ class ResourceMapGenerator
 		{
 			return;
 		}
-		else if (!ResourceMapGenerator::idExists($id))
+		else if (!self::idExists($id))
 		{
 			return;
 		}
 
-		$rdfURL = "/publications/" . $id . ".rdf";
-		$doc = JFactory::getDocument();
-		$doc->addCustomTag('<link rel="resourcemap" type="application/rdf+xml" href="' . $rdfURL . '" />');
+		$rdfURL = '/publications/' . $id . '.rdf';
+
+		JFactory::getDocument()->addCustomTag('<link rel="resourcemap" type="application/rdf+xml" href="' . $rdfURL . '" />');
 	}
 }

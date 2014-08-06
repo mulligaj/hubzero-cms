@@ -31,13 +31,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 ?>
-	<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
+	<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 		<h2><?php echo $this->escape($this->title); ?></h2>
 		<?php
-		if (!$this->page->isStatic()) 
+		if (!$this->page->isStatic())
 		{
 			$view = new JView(array(
-				'base_path' => $this->base_path, 
+				'base_path' => $this->base_path,
 				'name'      => 'page',
 				'layout'    => 'authors'
 			));
@@ -45,7 +45,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			$view->display();
 		}
 		?>
-	</div><!-- /#content-header -->
+	</header><!-- /#content-header -->
 
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
@@ -57,7 +57,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 <?php
 	$view = new JView(array(
-		'base_path' => $this->base_path, 
+		'base_path' => $this->base_path,
 		'name'      => 'page',
 		'layout'    => 'submenu'
 	));
@@ -71,26 +71,62 @@ defined('_JEXEC') or die( 'Restricted access' );
 ?>
 
 <?php if (!$this->sub) { ?>
-<div class="section">
-	<div class="aside">
-		<p><a href="<?php echo JRoute::_($this->page->link('addcomment') . '#commentform'); ?>" class="icon-add add btn"><?php echo JText::_('COM_WIKI_ADD_COMMENT'); ?></a></p>
-	</div><!-- / .aside -->
+<section class="section">
 	<div class="subject">
 <?php } ?>
 		<p><?php echo JText::_('COM_WIKI_COMMENTS_EXPLANATION'); ?></p>
 <?php if (!$this->sub) { ?>
 	</div><!-- / .subject -->
-</div><!-- / .section -->
-<div class="clear"></div>
+	<div class="aside">
+		<p><a href="<?php echo JRoute::_($this->page->link('addcomment') . '#commentform'); ?>" class="icon-add add btn"><?php echo JText::_('COM_WIKI_ADD_COMMENT'); ?></a></p>
+	</div><!-- / .aside -->
+</section><!-- / .section -->
 <?php } ?>
 
-<div class="main section">
-	<?php if ($this->sub) { ?>
-		<a href="<?php echo JRoute::_($this->page->link('addcomment') . '#commentform'); ?>" class="btn"><?php echo JText::_('COM_WIKI_ADD_COMMENT'); ?></a>
-	<?php } ?>
-	<h3 id="commentlist-title"><?php echo JText::_('COMMENTS'); ?></h3>
-	<div class="clear"></div>
+<section class="main section">
+	<div class="subject">
+		<?php if ($this->sub) { ?>
+			<a href="<?php echo JRoute::_($this->page->link('addcomment') . '#commentform'); ?>" class="btn"><?php echo JText::_('COM_WIKI_ADD_COMMENT'); ?></a>
+		<?php } ?>
+		<h3 id="commentlist-title"><?php echo JText::_('COMMENTS'); ?></h3>
 
+		<?php
+		$filters = array('version' => '');
+		if ($this->v)
+		{
+			$filters['version'] = 'AND version=' . $this->v;
+		}
+
+		if ($this->page->comments('list', $filters)->total())
+		{
+			$view = new JView(array(
+				'base_path' => JPATH_ROOT . '/components/com_wiki',
+				'name'      => 'comments',
+				'layout'    => '_list'
+			));
+			$view->parent     = 0;
+			$view->page       = $this->page;
+			$view->option     = $this->option;
+			$view->comments   = $this->page->comments();
+			$view->config     = $this->config;
+			$view->depth      = 0;
+			$view->version    = $this->v;
+			$view->cls        = 'odd';
+			$view->display();
+		}
+		else
+		{
+			if ($this->v)
+			{
+				echo '<p>No comments found for this version.</p>';
+			}
+			else
+			{
+				echo '<p>No comments found. Be the first to add a comment!</p>';
+			}
+		}
+		?>
+	</div><!-- / .subject -->
 	<div class="aside">
 		<form action="<?php echo JRoute::_($this->page->link('comments')); ?>" method="get">
 			<fieldset class="controls">
@@ -116,92 +152,18 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</fieldset>
 		</form>
 	</div><!-- / .aside -->
-	<div class="subject">
-		<?php
-		$filters = array('version' => '');
-		if ($this->v)
-		{
-			$filters['version'] = 'AND version=' . $this->v;
-		}
-
-		if ($this->page->comments('list', $filters)->total()) 
-		{
-			$view = new JView(array(
-				'base_path' => JPATH_ROOT . '/components/com_wiki',
-				'name'      => 'comments',
-				'layout'    => '_list'
-			));
-			$view->parent     = 0;
-			$view->page       = $this->page;
-			$view->option     = $this->option;
-			$view->comments   = $this->page->comments();
-			$view->config     = $this->config;
-			$view->depth      = 0;
-			$view->version    = $this->v;
-			$view->cls        = 'odd';
-			$view->display();
-		} 
-		else 
-		{
-			if ($this->v) 
-			{
-				echo '<p>No comments found for this version.</p>';
-			} 
-			else 
-			{
-				echo '<p>No comments found. Be the first to add a comment!</p>';
-			}
-		}
-		?>
-	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / .main section -->
+</section><!-- / .main section -->
 
 <?php if (isset($this->mycomment) && is_a($this->mycomment, 'WikiModelComment')) { ?>
-<div class="below section">
-	<form action="<?php echo JRoute::_($this->page->link('comments')); ?>" method="post" id="commentform">
-		<h3 id="commentform-title">
-			<a name="commentform"></a>
-			<?php echo JText::_('COM_WIKI_ADD_COMMENT'); ?>
-		</h3>
-		<div class="aside">
-			<table class="wiki-reference" summary="Wiki Syntax Reference">
-				<caption>Wiki Syntax Reference</caption>
-				<tbody>
-					<tr>
-						<td>'''bold'''</td>
-						<td><b>bold</b></td>
-					</tr>
-					<tr>
-						<td>''italic''</td>
-						<td><i>italic</i></td>
-					</tr>
-					<tr>
-						<td>__underline__</td>
-						<td><span style="text-decoration:underline;">underline</span></td>
-					</tr>
-					<tr>
-						<td>{{{monospace}}}</td>
-						<td><code>monospace</code></td>
-					</tr>
-					<tr>
-						<td>~~strike-through~~</td>
-						<td><del>strike-through</del></td>
-					</tr>
-					<tr>
-						<td>^superscript^</td>
-						<td><sup>superscript</sup></td>
-					</tr>
-					<tr>
-						<td>,,subscript,,</td>
-						<td><sub>subscript</sub></td>
-					</tr>
-				</tbody>
-			</table>
-		</div><!-- / .aside -->
+<form action="<?php echo JRoute::_($this->page->link('comments')); ?>" method="post" id="commentform">
+	<section class="below section">
 		<div class="subject">
+			<h3 id="commentform-title">
+				<?php echo JText::_('COM_WIKI_ADD_COMMENT'); ?>
+			</h3>
+
 			<p class="comment-member-photo">
-				<?php 
+				<?php
 				$juser = JFactory::getUser();
 				$anon = (!$juser->get('guest')) ? 0 : 1;
 				?>
@@ -264,7 +226,41 @@ defined('_JEXEC') or die( 'Restricted access' );
 				</div>
 			</fieldset>
 		</div><!-- / .subject -->
-		<div class="clear"></div>
-	</form>
-</div><!-- / .below section -->
+		<div class="aside">
+			<table class="wiki-reference">
+				<caption>Wiki Syntax Reference</caption>
+				<tbody>
+					<tr>
+						<td>'''bold'''</td>
+						<td><b>bold</b></td>
+					</tr>
+					<tr>
+						<td>''italic''</td>
+						<td><i>italic</i></td>
+					</tr>
+					<tr>
+						<td>__underline__</td>
+						<td><span style="text-decoration:underline;">underline</span></td>
+					</tr>
+					<tr>
+						<td>{{{monospace}}}</td>
+						<td><code>monospace</code></td>
+					</tr>
+					<tr>
+						<td>~~strike-through~~</td>
+						<td><del>strike-through</del></td>
+					</tr>
+					<tr>
+						<td>^superscript^</td>
+						<td><sup>superscript</sup></td>
+					</tr>
+					<tr>
+						<td>,,subscript,,</td>
+						<td><sub>subscript</sub></td>
+					</tr>
+				</tbody>
+			</table>
+		</div><!-- / .aside -->
+	</section><!-- / .below section -->
+</form>
 <?php } ?>

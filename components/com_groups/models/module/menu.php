@@ -35,54 +35,59 @@ class GroupsModelModuleMenu extends \Hubzero\Base\Model
 {
 	/**
 	 * Table name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'GroupsTableModuleMenu';
-	
-	
+
+
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      mixed     $
 	 * @return     void
 	 */
 	public function __construct( $oid )
 	{
 		$this->_db = JFactory::getDBO();
-		
+
 		$this->_tbl = new GroupsTableModuleMenu($this->_db);
-		
+
 		if (is_numeric($oid))
 		{
 			$this->_tbl->load($oid);
 		}
-		else if(is_object($oid) || is_array($oid))
+		else if (is_object($oid) || is_array($oid))
 		{
 			$this->bind( $oid );
 		}
 	}
-	
+
+	/**
+	 * Get Pages Module appear on
+	 * 
+	 * @return [type] [description]
+	 */
 	public function getPageTitle()
 	{
 		if ($this->get('pageid') == 0)
 		{
-			return  JText::_('All Pages');
+			return  JText::_('COM_GROUPS_PAGES_MODULE_INCLUDED_ON_ALL_PAGES');
 		}
-		
+
 		if ($this->get('pageid') == -1)
 		{
-			return  JText::_('No Pages');
+			return  JText::_('COM_GROUPS_PAGES_MODULE_INCLUDED_ON_NO_PAGES');
 		}
-		
+
 		// new group page
 		$tbl = new GroupsTablePage($this->_db);
-		
+
 		//load page
 		$tbl->load( $this->get('pageid') );
-		
+
 		//return page title
 		return $tbl->get('title');
 	}
-	
+
 }

@@ -30,22 +30,19 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+JHtml::_('behavior.framework');
+
 // Push some styles to the template
-$document = JFactory::getDocument();
-$document->addStyleSheet('components' . DS . $this->option . DS . 'assets' . DS . 'css' . DS . 'conditions.css');
+$this->css('conditions.css')
+     ->js('json2.js')
+     ->js('condition.builder.js');
 
 $tmpl = JRequest::getVar('tmpl', '');
 
-//if ($tmpl) 
-//{
-	/*$document->addScript('/media/system/js/jquery.js');
-	$document->addScript('/media/system/js/jquery.noconflict.js');
-	$document->addScript('components' . DS . $this->option . DS . 'assets' . DS . 'js' . DS . 'json2.js');
-	$document->addScript('components' . DS . $this->option . DS . 'assets' . DS . 'js' . DS . 'condition.builder.js');*/
-if (!$tmpl) 
+if (!$tmpl)
 {
-	$text = ($this->task == 'edit' ? JText::_('Edit') : JText::_('New'));
-	JToolBarHelper::title(JText::_('Ticket Query').': '. $text, 'support.png');
+	$text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
+	JToolBarHelper::title(JText::_('COM_SUPPORT_TICKET') . ': ' . JText::_('COM_SUPPORT_QUERIES') . ': ' . $text, 'support.png');
 	JToolBarHelper::save();
 	JToolBarHelper::cancel();
 }
@@ -56,25 +53,25 @@ $juser = JFactory::getUser();
 	<form action="index.php" method="post" name="adminForm" id="item-form">
 		<div class="col width-100">
 			<fieldset class="adminform">
-				<legend><?php echo JText::_('Details'); ?></legend>
+				<legend><?php echo JText::_('JDETAILS'); ?></legend>
 
 				<table class="admintable">
 					<tbody>
 						<tr>
-							<td class="key"><label for="field-iscore"><?php echo JText::_('Type:'); ?></label></td>
+							<td class="key"><label for="field-iscore"><?php echo JText::_('COM_SUPPORT_FIELD_TYPE'); ?></label></td>
 							<td colspan="2">
 								<select name="fields[iscore]" id="field-iscore">
-									<optgroup label="<?php echo JText::_('Common'); ?>">
-										<option value="2"<?php if ($this->row->iscore == 2) { echo ' selected="selected"'; }; ?>><?php echo JText::_('In ACL'); ?></option>
-										<option value="4"<?php if ($this->row->iscore == 4) { echo ' selected="selected"'; }; ?>><?php echo JText::_('Not in ACL'); ?></option>
+									<optgroup label="<?php echo JText::_('COM_SUPPORT_QUERY_TYPE_COMMON'); ?>">
+										<option value="2"<?php if ($this->row->iscore == 2) { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_TYPE_COMMON_ACL'); ?></option>
+										<option value="4"<?php if ($this->row->iscore == 4) { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_TYPE_COMMON_NO_ACL'); ?></option>
 									</optgroup>
-									<option value="1"<?php if ($this->row->iscore == 1) { echo ' selected="selected"'; }; ?>><?php echo JText::_('Mine'); ?></option>
-									<option value="0"<?php if ($this->row->iscore == 0) { echo ' selected="selected"'; }; ?>><?php echo JText::_('Custom'); ?></option>
+									<option value="1"<?php if ($this->row->iscore == 1) { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_TYPE_MINE'); ?></option>
+									<option value="0"<?php if ($this->row->iscore == 0) { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_TYPE_CUSTOM'); ?></option>
 								</select>
 							</td>
 						</tr>
 						<tr>
-							<td class="key"><label for="field-title"><?php echo JText::_('Title'); ?></label></td>
+							<td class="key"><label for="field-title"><?php echo JText::_('COM_SUPPORT_FIELD_TITLE'); ?></label></td>
 							<td colspan="2"><input type="text" name="fields[title]" id="field-title" value="<?php echo $this->escape(stripslashes($this->row->title)); ?>" /></td>
 						</tr>
 						<tr>
@@ -86,16 +83,13 @@ $juser = JFactory::getUser();
 											$condition = json_decode($this->row->conditions);
 											//foreach ($conditions as $condition)
 											//{
-												$view = new JView(array(
-													'name'   => $this->controller,
-													'layout' => 'condition'
-												));
-												$view->option     = $this->option;
-												$view->controller = $this->controller;
-												$view->condition  = $condition;
-												$view->conditions = $this->conditions;
-												$view->row        = $this->row;
-												$view->display();
+												$this->view('condition')
+												     ->set('option', $this->option)
+												     ->set('controller', $this->controller)
+												     ->set('condition', $condition)
+												     ->set('conditions', $this->conditions)
+												     ->set('row', $this->row)
+												     ->display();
 											//}
 										}
 									?>
@@ -103,22 +97,22 @@ $juser = JFactory::getUser();
 							</td>
 						</tr>
 						<tr>
-							<td class="key"><label for="field-sort"><?php echo JText::_('Sort results by:'); ?></label></td>
+							<td class="key"><label for="field-sort"><?php echo JText::_('COM_SUPPORT_QUERY_SORT_BY'); ?></label></td>
 							<td>
 								<select name="fields[sort]" id="field-sort">
-									<option value="open"<?php if ($this->row->sort == 'open') { echo ' selected="selected"'; }; ?>>Open/Closed</option>
-									<option value="status"<?php if ($this->row->sort == 'status') { echo ' selected="selected"'; }; ?>>Status</option>
-									<option value="login"<?php if ($this->row->sort == 'login') { echo ' selected="selected"'; }; ?>>Submitter</option>
-									<option value="owner"<?php if ($this->row->sort == 'owner') { echo ' selected="selected"'; }; ?>>Owner</option>
-									<option value="group"<?php if ($this->row->sort == 'group') { echo ' selected="selected"'; }; ?>>Group</option>
-									<option value="id"<?php if ($this->row->sort == 'id') { echo ' selected="selected"'; }; ?>>ID</option>
-									<option value="report"<?php if ($this->row->sort == 'report') { echo ' selected="selected"'; }; ?>>Report</option>
-									<option value="resolved"<?php if ($this->row->sort == 'resolved') { echo ' selected="selected"'; }; ?>>Resolution</option>
-									<option value="severity"<?php if ($this->row->sort == 'severity') { echo ' selected="selected"'; }; ?>>Severity</option>
-									<option value="tag"<?php if ($this->row->sort == 'tag') { echo ' selected="selected"'; }; ?>>Tag</option>
-									<option value="type"<?php if ($this->row->sort == 'type') { echo ' selected="selected"'; }; ?>>Type</option>
-									<option value="created"<?php if ($this->row->sort == 'created') { echo ' selected="selected"'; }; ?>>Created</option>
-									<option value="category"<?php if ($expression->fldval == 'category') { echo ' selected="selected"'; } ?>>Category</option>
+									<option value="open"<?php if ($this->row->sort == 'open') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_OPEN'); ?></option>
+									<option value="status"<?php if ($this->row->sort == 'status') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_STATUS'); ?></option>
+									<option value="login"<?php if ($this->row->sort == 'login') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SUBMITTER'); ?></option>
+									<option value="owner"<?php if ($this->row->sort == 'owner') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_OWNER'); ?></option>
+									<option value="group"<?php if ($this->row->sort == 'group') { echo ' selected="selected"'; }; ?>><?php echo JText::_('Group'); ?></option>
+									<option value="id"<?php if ($this->row->sort == 'id') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_ID'); ?></option>
+									<option value="report"<?php if ($this->row->sort == 'report') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_REPORT'); ?></option>
+									<option value="resolved"<?php if ($this->row->sort == 'resolved') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>
+									<option value="severity"<?php if ($this->row->sort == 'severity') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SEVERITY'); ?></option>
+									<option value="tag"<?php if ($this->row->sort == 'tag') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TAG'); ?></option>
+									<option value="type"<?php if ($this->row->sort == 'type') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TYPE'); ?></option>
+									<option value="created"<?php if ($this->row->sort == 'created') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_CREATED'); ?></option>
+									<option value="category"<?php if ($this->row->sort == 'category') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_CATEGORY'); ?></option>
 								</select>
 							</td>
 							<td>
@@ -145,14 +139,10 @@ $juser = JFactory::getUser();
 
 		<?php echo JHTML::_('form.token'); ?>
 	</form>
-	<script type="text/javascript" src="/media/system/js/jquery.js"></script>
-	<script type="text/javascript" src="/media/system/js/jquery.noconflict.js"></script>
-	<script type="text/javascript" src="<?php echo 'components' . DS . $this->option . DS . 'assets' . DS . 'js' . DS . 'json2.js'; ?>"></script>
-	<script type="text/javascript" src="<?php echo 'components' . DS . $this->option . DS . 'assets' . DS . 'js' . DS . 'condition.builder.js'; ?>"></script>
 	<script type="text/javascript">
-		function submitbutton(pressbutton) 
+		function submitbutton(pressbutton)
 		{
-			var $ = jq, query = {};
+			var query = {};
 
 			if (pressbutton == 'cancel') {
 				submitform( pressbutton );
@@ -172,68 +162,65 @@ $juser = JFactory::getUser();
 			Conditions.addqueryroot('.query', true);
 		});
 	</script>
-<?php 
-} else { 
+<?php
+} else {
 	if ($this->row->iscore != 0)
 	{
-		$this->row->title .= ' ' . JText::_('(copy)');
+		$this->row->title .= ' ' . JText::_('COM_SUPPORT_COPY');
 	}
 ?>
 	<form action="index.php" method="post" name="adminForm" id="queryForm">
 		<fieldset>
 			<div style="float: right">
-				<button type="button" onclick="saveAndUpdate();"><?php echo JText::_( 'Save' );?></button>
-				<button type="button" onclick="window.parent.document.getElementById('sbox-window').close();"><?php echo JText::_( 'Cancel' );?></button>
+				<button type="button" onclick="saveAndUpdate();"><?php echo JText::_('JAPPLY');?></button>
+				<button type="button" onclick="window.parent.$.fancybox.close();"><?php echo JText::_('JCANCEL');?></button>
 			</div>
 			<div class="configuration" >
-				<?php echo JText::_('Query builder') ?>
+				<?php echo JText::_('COM_SUPPORT_QUERY_BUILDER'); ?>
 			</div>
 		</fieldset>
 
 		<fieldset class="fields title">
-			<label for="field-title"><?php echo JText::_('Title'); ?></label>
+			<label for="field-title"><?php echo JText::_('COM_SUPPORT_FIELD_TITLE'); ?></label>
 			<input type="text" name="fields[title]" id="field-title" value="<?php echo $this->escape(stripslashes($this->row->title)); ?>" />
 		</fieldset>
 
 		<fieldset class="query">
-<?php
-	if ($this->row->conditions)
-	{
-		$condition = json_decode($this->row->conditions);
-		//foreach ($conditions as $condition)
-		//{
-			$view = new JView(array(
-				'name'   => $this->controller,
-				'layout' => 'condition'
-			));
-			$view->option     = $this->option;
-			$view->controller = $this->controller;
-			$view->condition  = $condition;
-			$view->conditions = $this->conditions;
-			$view->row        = $this->row;
-			$view->display();
-		//}
-	}
-?>
+			<?php
+				if ($this->row->conditions)
+				{
+					$condition = json_decode($this->row->conditions);
+					//foreach ($conditions as $condition)
+					//{
+						$this->view('condition')
+						     ->set('option', $this->option)
+						     ->set('controller', $this->controller)
+						     ->set('condition', $condition)
+						     ->set('conditions', $this->conditions)
+						     ->set('row', $this->row)
+						     ->display();
+					//}
+				}
+			?>
 		</fieldset>
 
 		<fieldset class="fields sort">
 			<p>
-				<label for="field-sort"><?php echo JText::_('Sort results by:'); ?></label>
+				<label for="field-sort"><?php echo JText::_('COM_SUPPORT_QUERY_SORT_BY'); ?></label>
 				<select name="fields[sort]" id="field-sort">
-					<option value="open"<?php if ($this->row->sort == 'open') { echo ' selected="selected"'; }; ?>>Open/Closed</option>
-					<option value="status"<?php if ($this->row->sort == 'status') { echo ' selected="selected"'; }; ?>>Status</option>
-					<option value="login"<?php if ($this->row->sort == 'login') { echo ' selected="selected"'; }; ?>>Submitter</option>
-					<option value="owner"<?php if ($this->row->sort == 'owner') { echo ' selected="selected"'; }; ?>>Owner</option>
-					<option value="group"<?php if ($this->row->sort == 'group') { echo ' selected="selected"'; }; ?>>Group</option>
-					<option value="id"<?php if ($this->row->sort == 'id') { echo ' selected="selected"'; }; ?>>ID</option>
-					<option value="report"<?php if ($this->row->sort == 'report') { echo ' selected="selected"'; }; ?>>Report</option>
-					<option value="resolved"<?php if ($this->row->sort == 'resolved') { echo ' selected="selected"'; }; ?>>Resolution</option>
-					<option value="severity"<?php if ($this->row->sort == 'severity') { echo ' selected="selected"'; }; ?>>Severity</option>
-					<option value="tag"<?php if ($this->row->sort == 'tag') { echo ' selected="selected"'; }; ?>>Tag</option>
-					<option value="type"<?php if ($this->row->sort == 'type') { echo ' selected="selected"'; }; ?>>Type</option>
-					<option value="created"<?php if ($this->row->sort == 'created') { echo ' selected="selected"'; }; ?>>Created</option>
-					<option value="category"<?php if ($expression->fldval == 'category') { echo ' selected="selected"'; } ?>>Category</option>
+					<option value="open"<?php if ($this->row->sort == 'open') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_OPEN'); ?></option>
+					<option value="status"<?php if ($this->row->sort == 'status') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_STATUS'); ?></option>
+					<option value="login"<?php if ($this->row->sort == 'login') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SUBMITTER'); ?></option>
+					<option value="owner"<?php if ($this->row->sort == 'owner') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_OWNER'); ?></option>
+					<option value="group"<?php if ($this->row->sort == 'group') { echo ' selected="selected"'; }; ?>><?php echo JText::_('Group'); ?></option>
+					<option value="id"<?php if ($this->row->sort == 'id') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_ID'); ?></option>
+					<option value="report"<?php if ($this->row->sort == 'report') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_REPORT'); ?></option>
+					<option value="resolved"<?php if ($this->row->sort == 'resolved') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>
+					<option value="severity"<?php if ($this->row->sort == 'severity') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SEVERITY'); ?></option>
+					<option value="tag"<?php if ($this->row->sort == 'tag') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TAG'); ?></option>
+					<option value="type"<?php if ($this->row->sort == 'type') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TYPE'); ?></option>
+					<option value="created"<?php if ($this->row->sort == 'created') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_CREATED'); ?></option>
+					<option value="category"<?php if ($this->row->sort == 'category') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_CATEGORY'); ?></option>
 				</select>
 				<select name="fields[sort_dir]" id="field-sort_dir">
 					<option value="DESC"<?php if (strtolower($this->row->sort_dir) == 'desc') { echo ' selected="selected"'; }; ?>>desc</option>
@@ -254,15 +241,9 @@ $juser = JFactory::getUser();
 
 		<?php echo JHTML::_('form.token'); ?>
 	</form>
-	<script type="text/javascript" src="/media/system/js/jquery.js"></script>
-	<script type="text/javascript" src="/media/system/js/jquery.noconflict.js"></script>
-	<script type="text/javascript" src="<?php echo 'components' . DS . $this->option . DS . 'assets' . DS . 'js' . DS . 'json2.js'; ?>"></script>
-	<script type="text/javascript" src="<?php echo 'components' . DS . $this->option . DS . 'assets' . DS . 'js' . DS . 'condition.builder.js'; ?>"></script>
 	<script type="text/javascript">
-		function submitbutton(pressbutton) 
+		function submitbutton(pressbutton)
 		{
-			var $ = jq;
-
 			var form = document.adminForm;
 
 			if (pressbutton == 'cancel') {
@@ -279,10 +260,10 @@ $juser = JFactory::getUser();
 
 		function saveAndUpdate()
 		{
-			var $ = jq, query = {};
+			var query = {};
 
 			if (!$('#field-title').val()) {
-				alert('Please provide a title.');
+				alert('<?php echo JText::_('COM_SUPPORT_QUERY_ERROR_MISSING_TITLE'); ?>');
 				return false;
 			}
 
@@ -291,13 +272,13 @@ $juser = JFactory::getUser();
 
 			$.post('index.php', $("#queryForm").serialize(), function(data){
 				window.parent.document.getElementById('custom-views').innerHTML = data;
-				window.top.setTimeout('window.parent.document.getElementById(\'sbox-window\').close()', 700);
+				window.top.setTimeout('window.parent.$.fancybox.close()', 700);
 			});
 		}
 
 		Conditions.option = <?php echo json_encode($this->conditions); ?>
 
-		jQuery(document).ready(function(jq){
+		jQuery(document).ready(function($){
 			Conditions.addqueryroot('.query', true);
 		});
 	</script>

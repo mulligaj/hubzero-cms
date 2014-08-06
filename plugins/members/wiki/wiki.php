@@ -31,30 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Members Plugin class for wiki pages
  */
-class plgMembersWiki extends JPlugin
+class plgMembersWiki extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return a list of categories
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onMembersContributionsAreas()
@@ -67,7 +58,7 @@ class plgMembersWiki extends JPlugin
 
 	/**
 	 * Build SQL for returning the count of the number of contributions
-	 * 
+	 *
 	 * @param      string $user_id  Field to join on user ID
 	 * @param      string $username Field to join on username
 	 * @return     string
@@ -77,27 +68,27 @@ class plgMembersWiki extends JPlugin
 		//$query  = "SELECT COUNT(*) FROM #__wiki_page AS w WHERE (w.created_by='".$user_id."' OR w.authors LIKE '%".$username."%')";
 		$username = ($username == 'm.username') ? $username : "'" . $username . "'";
 		$query = "SELECT COUNT(*) FROM #__wiki_page AS w
-					WHERE ((" . $user_id . " > 0 AND (w.created_by = " . $user_id . " OR " . $user_id . " IN (SELECT wpa.user_id FROM #__wiki_page_author AS wpa 
+					WHERE ((" . $user_id . " > 0 AND (w.created_by = " . $user_id . " OR " . $user_id . " IN (SELECT wpa.user_id FROM #__wiki_page_author AS wpa
 						WHERE wpa.page_id=w.id))) OR (" . $user_id . " <= 0 AND w.created_by = " . $user_id . "))";
 		//if (!$authorized) {
 		//	$query .= " AND w.access!=1";
 		//}
 		/*$query = "SELECT COUNT(*) FROM (
-			SELECT COUNT(DISTINCT v.pageid) FROM #__wiki_page AS w, #__wiki_version AS v 
-			WHERE w.id=v.pageid 
-			AND v.approved=1 
+			SELECT COUNT(DISTINCT v.pageid) FROM #__wiki_page AS w, #__wiki_version AS v
+			WHERE w.id=v.pageid
+			AND v.approved=1
 			AND (w.created_by=m.uidNumber OR w.authors LIKE '%m.username%') ";
 		if (!$authorized) {
 			$query .= " AND w.access!=1";
 		}
-		$query .= " GROUP BY pageid 
+		$query .= " GROUP BY pageid
 		) AS f";*/
 		return $query;
 	}
 
 	/**
 	 * Return either a count or an array of the member's contributions
-	 * 
+	 *
 	 * @param      object  $member     Current member
 	 * @param      string  $option     Component name
 	 * @param      string  $authorized Authorization level
@@ -111,10 +102,10 @@ class plgMembersWiki extends JPlugin
 	{
 		$database = JFactory::getDBO();
 
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
-			if (!isset($areas[$this->_name]) 
-			  && !in_array($this->_name, $areas) 
+			if (!isset($areas[$this->_name])
+			  && !in_array($this->_name, $areas)
 			  && !array_intersect($areas, array_keys($this->onMembersContributionsAreas())))
 			{
 				return array();
@@ -122,25 +113,25 @@ class plgMembersWiki extends JPlugin
 		}
 
 		// Do we have a member ID?
-		if ($member instanceof \Hubzero\User\Profile) 
+		if ($member instanceof \Hubzero\User\Profile)
 		{
-			if (!$member->get('uidNumber')) 
+			if (!$member->get('uidNumber'))
 			{
 				return array();
-			} 
-			else 
+			}
+			else
 			{
 				$uidNumber = $member->get('uidNumber');
 				$username = $member->get('username');
 			}
-		} 
-		else 
+		}
+		else
 		{
-			if (!$member->uidNumber) 
+			if (!$member->uidNumber)
 			{
 				return array();
-			} 
-			else 
+			}
+			else
 			{
 				$uidNumber = $member->uidNumber;
 				$username = $member->username;
@@ -161,14 +152,14 @@ class plgMembersWiki extends JPlugin
 		//	$filters['authorized'] = 'admin';
 		//}
 
-		if (!$limit) 
+		if (!$limit)
 		{
 			$filters['select'] = 'count';
 
 			$database->setQuery($wp->buildPluginQuery($filters));
 			return $database->loadResult();
-		} 
-		else 
+		}
+		else
 		{
 			$filters['select'] = 'records';
 			$filters['limit'] = $limit;
@@ -177,15 +168,15 @@ class plgMembersWiki extends JPlugin
 			$database->setQuery($wp->buildPluginQuery($filters));
 			$rows = $database->loadObjectList();
 
-			if ($rows) 
+			if ($rows)
 			{
 				foreach ($rows as $key => $row)
 				{
-					if ($row->area != '' && $row->category != '') 
+					if ($row->area != '' && $row->category != '')
 					{
 						$rows[$key]->href = JRoute::_('index.php?option=com_groups&scope=' . $row->category . '&pagename=' . $row->alias);
-					} 
-					else 
+					}
+					else
 					{
 						$rows[$key]->href = JRoute::_('index.php?option=com_wiki&scope=' . $row->category . '&pagename=' . $row->alias);
 					}
@@ -199,7 +190,7 @@ class plgMembersWiki extends JPlugin
 
 	/**
 	 * Static method for formatting results
-	 * 
+	 *
 	 * @param      object $row Database row
 	 * @return     string HTML
 	 */
@@ -210,16 +201,16 @@ class plgMembersWiki extends JPlugin
 		$html  = "\t" . '<li class="resource">' . "\n";
 		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '">' . stripslashes($row->title) . '</a></p>' . "\n";
 		$html .= "\t\t" . '<p class="details">';
-		if (isset($row->area) && isset($row->category)) 
+		if (isset($row->area) && isset($row->category))
 		{
 			$html .= JText::_('PLG_MEMBERS_WIKI_GROUP_WIKI') . ': ' . $row->area;
-		} 
-		else 
+		}
+		else
 		{
 			$html .= JText::_('PLG_MEMBERS_WIKI');
 		}
 		$html .= '</p>' . "\n";
-		if ($row->text) 
+		if ($row->text)
 		{
 			//if ($row->access == 1) {
 			//	$html .= "\t\t".'<p class="warning">' . JText::_('PLG_MEMBERS_TOPICS_NOT_AUTHORIZED') . '</p>' ."\n";
@@ -229,114 +220,5 @@ class plgMembersWiki extends JPlugin
 		}
 		$html .= "\t" . '</li>' . "\n";
 		return $html;
-	}
-
-	/**
-	 * Return resource categories
-	 * 
-	 * @param      unknown $authorized Parameter description (if any) ...
-	 * @return     array
-	 */
-	public function &onMembersFavoritesAreas()
-	{
-		return $this->onMembersContributionsAreas();
-	}
-
-	/**
-	 * Return either a count or an array of the member's favorites
-	 * 
-	 * @param      object  $member     Current member
-	 * @param      string  $option     Component name
-	 * @param      integer $limit      Number of record to return
-	 * @param      integer $limitstart Record return start
-	 * @param      array   $areas      Areas to return data for
-	 * @return     array
-	 */
-	public function onMembersFavorites($member, $option, $limit=0, $limitstart=0, $areas=null)
-	{
-		$database = JFactory::getDBO();
-
-		if (is_array($areas) && $limit) 
-		{
-			if (!isset($areas[$this->_name]) 
-			  && !in_array($this->_name, $areas) 
-			  && !array_intersect($areas, array_keys($this->onMembersContributionsAreas())))
-			{
-				return array();
-			}
-		}
-
-		// Do we have a member ID?
-		if (get_class($member) == '\Hubzero\User\Profile') 
-		{
-			if (!$member->get('uidNumber')) 
-			{
-				return array();
-			} 
-			else 
-			{
-				$uidNumber = $member->get('uidNumber');
-				$username = $member->get('username');
-			}
-		} 
-		else 
-		{
-			if (!$member->get('id')) 
-			{
-				return array();
-			} 
-			else 
-			{
-				$uidNumber = $member->uidNumber;
-				$username = $member->username;
-			}
-		}
-
-		$access = " AND w.access!=1";
-		//if ($authorized) {
-		//	$access = "";
-		//}
-
-		$f_count = "SELECT COUNT(*) ";
-		$f_fields = "SELECT f.id, f.pagetext AS text, 'wiki' AS section, 'index.php?option=' AS href, d.scope, d.group_cn, d.access, d.title, d.pagename, d.created ";
-		$f_from = "FROM #__wiki_version AS f, 
-						(
-							SELECT v.pageid, v.created, w.title, w.pagename, w.scope, w.group_cn, w.access, MAX(v.version) AS version
-							FROM #__wiki_page AS w, #__wiki_version AS v, #__xfavorites AS x
-							WHERE w.id=v.pageid AND v.approved=1 AND x.uid='" . $uidNumber . "' AND w.id=x.oid AND x.tbl='wiki' $access
-							GROUP BY pageid
-						) AS d
-					WHERE f.version=d.version 
-					AND f.pageid=d.pageid ";
-		$order_by = "ORDER BY id DESC, title LIMIT $limitstart,$limit";
-
-		if (!$limit) 
-		{
-			//echo $f_count . $f_from;
-			$database->setQuery($f_count . $f_from);
-			return $database->loadResult();
-		} 
-		else 
-		{
-			$database->setQuery($f_fields . $f_from . $order_by);
-			$rows = $database->loadObjectList();
-
-			if ($rows) 
-			{
-				foreach ($rows as $key => $row)
-				{
-					if ($row->group_cn != '' && $row->scope != '') 
-					{
-						$rows[$key]->href = JRoute::_('index.php?option=com_groups&scope=' . $row->scope . '&pagename=' . $row->pagename);
-					} 
-					else 
-					{
-						$rows[$key]->href = JRoute::_('index.php?option=com_wiki&scope=' . $row->scope . '&pagename=' . $row->pagename);
-					}
-				}
-			}
-
-			return $rows;
-		}
 	}
 }

@@ -31,23 +31,28 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$config = JFactory::getConfig();
-$option = JRequest::getCmd('option', 'com_time');
+require_once JPATH_COMPONENT_SITE . DS . 'controllers' . DS . 'base.php';
 
-jimport('joomla.application.component.view');
-jimport('joomla.filesystem.folder');
+require_once JPATH_COMPONENT_SITE . DS . 'tables'      . DS . 'contacts.php';
+require_once JPATH_COMPONENT_SITE . DS . 'tables'      . DS . 'hubs.php';
+require_once JPATH_COMPONENT_SITE . DS . 'tables'      . DS . 'records.php';
+require_once JPATH_COMPONENT_SITE . DS . 'tables'      . DS . 'tasks.php';
 
-require_once(JPATH_ROOT.DS.'components'.DS.$option.DS.'controllers'.DS.'time.php');
+require_once JPATH_COMPONENT_SITE . DS . 'models'      . DS . 'hub.php';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+require_once JPATH_COMPONENT_SITE . DS . 'helpers'     . DS . 'charts.php';
+require_once JPATH_COMPONENT_SITE . DS . 'helpers'     . DS . 'html.php';
+require_once JPATH_COMPONENT_SITE . DS . 'helpers'     . DS . 'filters.php';
+
+$controllerName = JRequest::getCmd('controller', JRequest::getCmd('view', 'overview'));
+if (!file_exists(JPATH_COMPONENT_SITE . DS . 'controllers' . DS . $controllerName . '.php'))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL( $option, 'manage', 'users', 'super administrator' );
-	$jacl->addACL( $option, 'manage', 'users', 'administrator' );
-	$jacl->addACL( $option, 'manage', 'users', 'manager' );
+	$controllerName = 'overview';
 }
+require_once JPATH_COMPONENT_SITE . DS . 'controllers' . DS . $controllerName . '.php';
+$controllerName = 'TimeController' . ucfirst($controllerName);
 
 // Instantiate controller
-$controller = new TimeController();
+$controller = new $controllerName();
 $controller->execute();
 $controller->redirect();

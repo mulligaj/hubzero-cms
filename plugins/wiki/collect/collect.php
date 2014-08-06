@@ -31,31 +31,22 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
- * Resources Plugin class for favoriting a wiki page
+ * Wiki Plugin class for favoriting a wiki page
  */
-class plgWikiCollect extends JPlugin
+class plgWikiCollect extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * After display content method
 	 * Method is called by the view and the results are imploded and displayed in a placeholder
-	 * 
+	 *
 	 * @param      object $page     Wiki page
 	 * @param      object $revision Wiki revision
 	 * @param      object $config   Wiki config
@@ -68,35 +59,32 @@ class plgWikiCollect extends JPlugin
 
 		// Incoming action
 		$action = JRequest::getVar('action', '');
-		if ($action && $action == 'collect') 
+		if ($action && $action == 'collect')
 		{
 			// Check the user's logged-in status
 			return $this->fav();
 		}
 
 		$arr = array(
-			'area' => $this->_name,
-			'html' => '',
+			'area'     => $this->_name,
+			'html'     => '',
 			'metadata' => ''
 		);
 
 		// Build the HTML meant for the "about" tab's metadata overview
 		$juser = JFactory::getUser();
-		if (!$juser->get('guest')) 
+		if (!$juser->get('guest'))
 		{
-			// Push some scripts to the template
-			\Hubzero\Document\Assets::addPluginScript('wiki', $this->_name);
-			\Hubzero\Document\Assets::addPluginStylesheet('wiki', $this->_name);
-
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'wiki',
+					'folder'  => $this->_type,
 					'element' => $this->_name,
 					'name'    => 'metadata'
 				)
 			);
 			$view->option = JRequest::getCmd('option', 'com_wiki');
 			$view->page = $page;
+
 			return $view->loadTemplate();
 		}
 
@@ -105,7 +93,7 @@ class plgWikiCollect extends JPlugin
 
 	/**
 	 * Un/favorite an item
-	 * 
+	 *
 	 * @param      integer $oid Resource to un/favorite
 	 * @return     void
 	 */
@@ -137,12 +125,12 @@ class plgWikiCollect extends JPlugin
 			$b->object_id   = $this->page->get('id');
 			$b->title       = $this->page->get('title');
 			$b->description = \Hubzero\Utility\String::truncate($this->revision->content('clean'), 300);
-			if (!$b->check()) 
+			if (!$b->check())
 			{
 				$this->setError($b->getError());
 			}
 			// Store new content
-			if (!$b->store()) 
+			if (!$b->store())
 			{
 				$this->setError($b->getError());
 			}
@@ -155,15 +143,80 @@ class plgWikiCollect extends JPlugin
 		{
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'wiki',
+					'folder'  => $this->_type,
 					'element' => $this->_name,
 					'name'    => 'metadata',
 					'layout'  => 'collect'
 				)
 			);
 
-			$view->myboards      = $model->mine();
-			$view->groupboards   = $model->mine('groups');
+			if (!$model->collections(array('count' => true)))
+			{
+				$collection = $model->collection();
+				$collection->setup($this->juser->get('id'), 'member');
+			}
+
+			$view->myboards    = $model->mine();
+			if ($view->myboards)
+			{
+				foreach ($view->myboards as $board)
+				{
+					$ids[] = $board->id;
+				}
+			}
+
+			$view->groupboards = $model->mine('groups');
+			if ($view->groupboards)
+			{
+				foreach ($view->groupboards as $optgroup => $boards)
+				{
+					if (count($boards) <= 0) continue;
+
+					foreach ($boards as $board)
+					{
+						$ids[] = $board->id;
+					}
+				}
+			}
+
+			$posts = $model->posts(array(
+				'collection_id' => $ids,
+				'item_id'       => $item_id,
+				'limit'         => 25,
+				'start'         => 0
+			));
+			$view->collections = array();
+			if ($posts)
+			{
+				foreach ($posts as $post)
+				{
+					$found = false;
+					foreach ($view->myboards as $board)
+					{
+						if ($board->id == $post->collection_id)
+						{
+							$view->collections[] = new CollectionsModelCollection($board);
+							$found = true;
+						}
+					}
+					if (!$found)
+					{
+						foreach ($view->groupboards as $optgroup => $boards)
+						{
+							if (count($boards) <= 0) continue;
+
+							foreach ($boards as $board)
+							{
+								if ($board->id == $post->collection_id)
+								{
+									$view->collections[] = new CollectionsModelCollection($board);
+									$found = true;
+								}
+							}
+						}
+					}
+				}
+			}
 
 			$view->name     = $this->_name;
 			$view->option   = $this->option;
@@ -177,7 +230,7 @@ class plgWikiCollect extends JPlugin
 				$view->display();
 				exit;
 			}
-			else 
+			else
 			{
 				return $view->loadTemplate();
 			}
@@ -211,10 +264,10 @@ class plgWikiCollect extends JPlugin
 				$stick->item_id       = $item_id;
 				$stick->collection_id = $collection_id;
 				$stick->description = JRequest::getVar('description', '', 'none', 2);
-				if ($stick->check()) 
+				if ($stick->check())
 				{
 					// Store new content
-					if (!$stick->store()) 
+					if (!$stick->store())
 					{
 						$this->setError($stick->getError());
 					}
@@ -226,16 +279,18 @@ class plgWikiCollect extends JPlugin
 		if ($no_html)
 		{
 			$response = new stdClass();
-			$response->code = 0;
+			$response->success = true;
 			if ($this->getError())
 			{
-				$response->code = 1;
+				$response->success = false;
 				$response->message = $this->getError();
 			}
 			else
 			{
 				$response->message = JText::sprintf('PLG_WIKI_COLLECT_PAGE_COLLECTED', $item_id);
 			}
+			ob_clean();
+			header('Content-type: text/plain');
 			echo json_encode($response);
 			exit;
 		}

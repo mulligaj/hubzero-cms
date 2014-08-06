@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'courses.php');
-
 /**
  * Courses controller class
  */
@@ -40,7 +38,7 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -68,7 +66,7 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 
 	/**
 	 * Method to set the document path
-	 * 
+	 *
 	 * @param      array $course_pages List of roup pages
 	 * @return     void
 	 */
@@ -76,14 +74,14 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 	{
 		$pathway = JFactory::getApplication()->getPathway();
 
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
 				JText::_(strtoupper($this->_option)),
 				'index.php?option=' . $this->_option
 			);
 		}
-		if ($this->_task && $this->_task != 'intro') 
+		if ($this->_task && $this->_task != 'intro')
 		{
 			$pathway->addItem(
 				JText::_(strtoupper($this->_option . '_' . $this->_task)),
@@ -94,7 +92,7 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 
 	/**
 	 * Method to build and set the document title
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function _buildTitle()
@@ -102,7 +100,7 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 		//set title used in view
 		$this->_title = JText::_(strtoupper($this->_option));
 
-		if ($this->_task && $this->_task != 'intro') 
+		if ($this->_task && $this->_task != 'intro')
 		{
 			$this->_title .= ': ' . JText::_(strtoupper($this->_option . '_' . $this->_task));
 		}
@@ -114,7 +112,7 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display component main page
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function introTask()
@@ -125,53 +123,14 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 		//build pathway
 		$this->_buildPathway();
 
-		// Push some needed styles to the template
-		$this->_getStyles($this->_option, 'intro.css');
-
 		// Push some needed scripts to the template
 		$model = CoursesModelCourses::getInstance();
 
-		//vars
-		$this->view->mycourses          = array();
-		$this->view->interestingcourses = array();
-		$this->view->popularcourses     = array();
-
-		if (!$this->juser->get('guest'))
-		{
-			//get users courses
-			if ($this->config->get('intro_mycourses', 1))
-			{
-				$this->view->mycourses = $model->userCourses($this->juser->get('id'), 'all');
-			}
-
-			if ($this->config->get('intro_interestingcourses', 1))
-			{
-				//get users tags
-				include_once(JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'helpers' . DS . 'tags.php');
-				$mt = new MembersTags($this->database);
-
-				//get courses user may be interested in
-				if ($mytags = $mt->get_tag_string($this->juser->get('id')))
-				{
-					$this->view->interestingcourses = $model->courses(array(
-						'tag'   => $mytags, 
-						'tag_any' => true,
-						'limit' => 10, 
-						'state' => 1
-					), true);
-				}
-			}
-		}
-
-		//get the popular courses
-		if ($this->config->get('intro_popularcourses', 1))
-		{
-			$this->view->popularcourses = $model->courses(array(
-				'limit' => 3, 
-				'sort'  => 'students', 
-				'state' => 1
-			), true);
-		}
+		$this->view->popularcourses = $model->courses(array(
+			'limit' => 12,
+			'sort'  => 'students',
+			'state' => 1
+		), true);
 
 		// Output HTML
 		$this->view->config   = $this->config;
@@ -185,17 +144,18 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display a list of courses on the site and options for filtering/browsing them
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function browseTask()
 	{
-		// Filters 
-		$this->view->filters = array();
-		$this->view->filters['state']  = 1;
-		$this->view->filters['search'] = JRequest::getVar('search', '');
-		$this->view->filters['sortby'] = strtolower(JRequest::getWord('sortby', 'title'));
-		$this->view->filters['group']  = JRequest::getVar('group', '');
+		// Filters
+		$this->view->filters = array(
+			'state'  => 1,
+			'search' => JRequest::getVar('search', ''),
+			'sortby' => strtolower(JRequest::getWord('sortby', 'title')),
+			'group'  => JRequest::getVar('group', '')
+		);
 		if ($this->view->filters['group'])
 		{
 			$group = \Hubzero\User\Group::getInstance($this->view->filters['group']);
@@ -245,13 +205,10 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
-
-		// Push some styles to the template
-		$this->_getStyles($this->_option, $this->_task . '.css');
 
 		//build the title
 		$this->_buildTitle();
@@ -269,7 +226,7 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 
 	/**
 	 * Public url for badge info
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function badgeTask()
@@ -280,7 +237,7 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 
 			if (!$badge->get('id'))
 			{
-				JError::raiseError(500, 'Badge not found');
+				JError::raiseError(500, JText::_('COM_COURSES_BADGE_NOT_FOUND'));
 				return;
 			}
 			else
@@ -293,62 +250,45 @@ class CoursesControllerCourses extends \Hubzero\Component\SiteController
 		}
 		else
 		{
-			JError::raiseError(500, 'Badge not found');
+			JError::raiseError(500, JText::_('COM_COURSES_BADGE_NOT_FOUND'));
 			return;
 		}
-
-		// Push some styles to the template
-		$this->_getStyles($this->_option, $this->_task . '.css');
 
 		$this->view->display();
 	}
 
 	/**
 	 * Set access permissions for a user
-	 * 
+	 *
 	 * @return     void
 	 */
 	protected function _authorize($assetType='component', $assetId=null)
 	{
 		$this->config->set('access-view-' . $assetType, false);
-		if (!$this->juser->get('guest')) 
+		if (!$this->juser->get('guest'))
 		{
-			if (version_compare(JVERSION, '1.6', 'ge'))
+			$asset  = $this->_option;
+			if ($assetId)
 			{
-				$asset  = $this->_option;
-				if ($assetId)
-				{
-					$asset .= ($assetType != 'component') ? '.' . $assetType : '';
-					$asset .= ($assetId) ? '.' . $assetId : '';
-				}
-
-				$at = '';
-				if ($assetType != 'component')
-				{
-					$at .= '.' . $assetType;
-				}
-
-				// Admin
-				$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
-				$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
-				// Permissions
-				//$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
-				$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
-				$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
-				$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
-				$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
+				$asset .= ($assetType != 'component') ? '.' . $assetType : '';
+				$asset .= ($assetId) ? '.' . $assetId : '';
 			}
-			else 
+
+			$at = '';
+			if ($assetType != 'component')
 			{
-				if ($this->juser->authorize($this->_option, 'manage'))
-				{
-					$this->config->set('access-manage-' . $assetType, true);
-					$this->config->set('access-admin-' . $assetType, true);
-					//$this->config->set('access-create-' . $assetType, true);
-					$this->config->set('access-delete-' . $assetType, true);
-					$this->config->set('access-edit-' . $assetType, true);
-				}
+				$at .= '.' . $assetType;
 			}
+
+			// Admin
+			$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
+			$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
+			// Permissions
+			//$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
+			$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
+			$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
+			$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
+			$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
 		}
 	}
 }

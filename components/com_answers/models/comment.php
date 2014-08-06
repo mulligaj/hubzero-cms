@@ -40,71 +40,42 @@ class AnswersModelComment extends AnswersModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = '\\Hubzero\\Item\\Comment';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_answers.comment.content';
 
 	/**
-	 * Class scope
-	 * 
-	 * @var string
-	 */
-	protected $_scope = 'answer';
-
-	/**
 	 * \Hubzero\Base\ItemList
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_comments = null;
 
 	/**
 	 * Comment count
-	 * 
+	 *
 	 * @var integer
 	 */
 	private $_comments_count = null;
 
 	/**
 	 * URL for this entry
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_base = null;
 
 	/**
-	 * Was the entry reported?
-	 * 
-	 * @return     boolean True if reported, False if not
-	 */
-	public function isReported()
-	{
-		if ($this->get('reports', -1) > 0)
-		{
-			return true;
-		}
-		// Reports hasn't been set
-		if ($this->get('reports', -1) == -1) 
-		{
-			if ($this->get('state') == 3)
-			{
-				$this->set('reports', 1);
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Get a list or count of comments
-	 * 
+	 *
 	 * @param      string  $rtrn    Data format to return
 	 * @param      array   $filters Filters to apply to data fetch
 	 * @param      boolean $clear   Clear cached data?
@@ -124,6 +95,10 @@ class AnswersModelComment extends AnswersModelAbstract
 		{
 			$filters['item_id'] = $this->get('item_id');
 		}
+		if (!isset($filters['state']))
+		{
+			$filters['state'] = array(self::APP_STATE_PUBLISHED, self::APP_STATE_FLAGGED);
+		}
 
 		switch (strtolower($rtrn))
 		{
@@ -132,19 +107,19 @@ class AnswersModelComment extends AnswersModelAbstract
 				{
 					$this->_comments_count = 0;
 
-					if (!$this->_comments) 
+					if (!$this->_comments)
 					{
 						$c = $this->comments('list', $filters);
 					}
 					foreach ($this->_comments as $com)
 					{
 						$this->_comments_count++;
-						if ($com->replies()) 
+						if ($com->replies())
 						{
 							foreach ($com->replies() as $rep)
 							{
 								$this->_comments_count++;
-								if ($rep->replies()) 
+								if ($rep->replies())
 								{
 									$this->_comments_count += $rep->replies()->total();
 								}
@@ -190,7 +165,7 @@ class AnswersModelComment extends AnswersModelAbstract
 
 	/**
 	 * Get the contents of this entry in various formats
-	 * 
+	 *
 	 * @param      string  $as      Format to return state in [raw, parsed]
 	 * @param      integer $shorten Number of characters to shorten text to
 	 * @return     string
@@ -254,7 +229,7 @@ class AnswersModelComment extends AnswersModelAbstract
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type The type of link to return
 	 * @return     string
 	 */
@@ -308,7 +283,7 @@ class AnswersModelComment extends AnswersModelAbstract
 	public function delete()
 	{
 		// Can't delete what doesn't exist
-		if (!$this->exists()) 
+		if (!$this->exists())
 		{
 			return true;
 		}

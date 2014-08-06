@@ -33,27 +33,9 @@ defined('_JEXEC') or die('Restricted access');
 
 $option = 'com_tags';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect('index.php', JText::_('ALERTNOTAUTH'));
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 require_once(JPATH_COMPONENT_SITE . DS . 'models' . DS . 'cloud.php');
@@ -67,24 +49,29 @@ if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $cont
 $task = JRequest::getCmd('task', '');
 
 JSubMenuHelper::addEntry(
-	JText::_('Tags'),
+	JText::_('COM_TAGS'),
 	'index.php?option=com_tags',
 	($controllerName == 'entries')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Relationships'),
+	JText::_('COM_TAGS_RELATIONSHIPS'),
 	'index.php?option=com_tags&controller=relationships',
 	($controllerName == 'relationships' && $task != 'meta' && $task != 'updatefocusareas')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Focus Areas'),
+	JText::_('COM_TAGS_FOCUS_AREAS'),
 	'index.php?option=com_tags&controller=relationships&task=meta',
 	($controllerName == 'relationships' && ($task == 'meta' || $task == 'updatefocusareas'))
 );
-JSubMenuHelper::addEntry(
-	JText::_('Plugins'),
-	'index.php?option=com_plugins&view=plugins&filter_folder=tags&filter_type=tags'
-);
+require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_plugins' . DS . 'helpers' . DS . 'plugins.php');
+$canDo = PluginsHelper::getActions();
+if ($canDo->get('core.manage'))
+{
+	JSubMenuHelper::addEntry(
+		JText::_('COM_TAGS_PLUGINS'),
+		'index.php?option=com_plugins&view=plugins&filter_folder=tags&filter_type=tags'
+	);
+}
 
 // Include scripts
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');

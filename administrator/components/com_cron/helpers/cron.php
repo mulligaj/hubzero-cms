@@ -33,7 +33,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 class CronHelper
 {
 	public static $extension = 'com_cron';
-	
+
 	/**
 	 * Configure the Linkbar.
 	 *
@@ -55,7 +55,7 @@ class CronHelper
 			$vName == 'plugins'
 		);
 	}
-	
+
 	/**
 	 * Gets a list of the actions that can be performed.
 	 *
@@ -68,35 +68,21 @@ class CronHelper
 	public static function getActions($assetType='component', $assetId = 0)
 	{
 		$assetName = 'com_cron';
-		$user	= JFactory::getUser();
-		$result	= new JObject;
+		$user = JFactory::getUser();
+		$result = new JObject;
 
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			$actions = array(
-				'admin', 'manage', 'create', 'edit', 'edit.state', 'delete'
-			);
-
-			foreach ($actions as $action) 
-			{
-				$result->set('core.' . $action, $user->authorize($assetName, 'manage'));
-			}
+		$assetName .= '.' . $assetType;
+		if ($assetId) {
+			$assetName .= '.' . (int) $assetId;
 		}
-		else 
+
+		$actions = array(
+			'core.admin', 'core.manage', 'core.create', 'core.edit', 'core.edit.state', 'core.delete'
+		);
+
+		foreach ($actions as $action)
 		{
-			$assetName .= '.' . $assetType;
-			if ($assetId) {
-				$assetName .= '.' . (int) $assetId;
-			}
-
-			$actions = array(
-				'core.admin', 'core.manage', 'core.create', 'core.edit', 'core.edit.state', 'core.delete'
-			);
-
-			foreach ($actions as $action) 
-			{
-				$result->set($action, $user->authorise($action, $assetName));
-			}
+			$result->set($action, $user->authorise($action, $assetName));
 		}
 
 		return $result;

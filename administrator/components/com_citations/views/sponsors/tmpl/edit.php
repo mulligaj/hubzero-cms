@@ -34,12 +34,14 @@ $canDo = CitationsHelper::getActions('sponsor');
 
 $text = ($this->task == 'edit' ? JText::_('EDIT') : JText::_('NEW'));
 
-JToolBarHelper::title(JText::_('Citation Sponsor') . ': <small><small>[ ' . $text . ' ]</small></small>', 'citation.png');
-if ($canDo->get('core.edit')) 
+JToolBarHelper::title(JText::_('CITATIONS') . ' ' . JText::_('CITATION_SPONSORS') . ': ' . $text, 'citation.png');
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::save();
 }
 JToolBarHelper::cancel();
+JToolBarHelper::spacer();
+JToolBarHelper::help('sponsor');
 
 $id      = null;
 $sponsor = null;
@@ -54,32 +56,29 @@ if ($this->sponsor)
 }
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	return submitform(pressbutton);
 }
 </script>
 
-<form action="index.php" method="post" name="adminForm">
+<form action="index.php" method="post" name="adminForm" id="item-form">
 	<div class="col width-70 fltlft">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('Citation Sponsor'); ?></span></legend>
-			<table class="admintable">
-				<tbody>
-					<tr>
-						<th class="key"><?php echo JText::_('Sponsor Name'); ?></th>
-						<td><input type="text" name="sponsor[sponsor]" value="<?php echo $sponsor; ?>" size="50" /></td>
-					</tr>
-					<tr>
-						<th class="key"><?php echo JText::_('Sponsor Link'); ?></th>
-						<td><input type="text" name="sponsor[link]" value="<?php echo $link; ?>" size="50" /></td>
-					</tr>
-					<tr>
-						<th class="key"><?php echo JText::_('Sponsor Image'); ?></th>
-						<td><input type="text" name="sponsor[image]" value="<?php echo $image; ?>" size="50" /></td>
-					</tr>
-				</tbody>
-			</table>
+			<legend><span><?php echo JText::_('CITATION_SPONSORS'); ?></span></legend>
+
+			<div class="input-wrap">
+				<label for="field-sponsor"><?php echo JText::_('CITATION_SPONSORS_NAME'); ?></label>
+				<input type="text" name="sponsor[sponsor]" id="field-sponsor" value="<?php echo $sponsor; ?>" size="50" />
+			</div>
+			<div class="input-wrap">
+				<label for="field-link"><?php echo JText::_('CITATION_SPONSORS_LINK'); ?></label>
+				<input type="text" name="sponsor[link]" id="field-link" value="<?php echo $link; ?>" size="50" />
+			</div>
+			<div class="input-wrap">
+				<label for="field-image"><?php echo JText::_('CITATION_SPONSORS_IMAGE'); ?></label>
+				<input type="text" name="sponsor[image]" id="field-image" value="<?php echo $image; ?>" size="50" />
+			</div>
 		</fieldset>
 	</div>
 	<div class="clr"></div>
@@ -88,6 +87,6 @@ function submitbutton(pressbutton)
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="save" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

@@ -43,7 +43,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Event call to determine if this plugin should return data
-	 * 
+	 *
 	 * @param      object  $user   JUser
 	 * @param      object  $member MembersProfile
 	 * @return     array   Plugin name
@@ -52,14 +52,14 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 	{
 		$areas = array(
 			'profile' => JText::_('PLG_MEMBERS_PROFILE'),
-			'icon' => 'f007'
+			'icon'    => 'f007'
 		);
 		return $areas;
 	}
 
 	/**
 	 * Event call to return data for a specific member
-	 * 
+	 *
 	 * @param      object  $user   JUser
 	 * @param      object  $member MembersProfile
 	 * @param      string  $option Component name
@@ -72,59 +72,59 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		$returnmeta = true;
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
-			if (!array_intersect($areas, $this->onMembersAreas($user, $member)) 
-			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member)))) 
+			if (!array_intersect($areas, $this->onMembersAreas($user, $member))
+			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member))))
 			{
 				$returnhtml = false;
 			}
 		}
-		
+
 		//include address library
-		require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'address.php' );
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'models' . DS . 'registration.php');
+		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'address.php');
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'models' . DS . 'registration.php');
 
 		$arr = array(
 			'html' => '',
 			'metadata' => ''
 		);
-		
+
 		// Build the final HTML
-		if ($returnhtml) 
-		{   
+		if ($returnhtml)
+		{
 			$content = '';
 			$this->user   = $user;
 			$this->member = $member;
 			$this->option = $option;
 			$this->areas  = $areas;
-			
+
 			//get task
 			$this->task = JRequest::getVar('action', 'view');
 			switch( $this->task )
 			{
-				case 'addaddress':       $arr['html'] = $this->addAddress();         break;
-				case 'editaddress':      $arr['html'] = $this->editAddress();        break;
-				case 'saveaddress':      $arr['html'] = $this->saveAddress();        break;
-				case 'deleteaddress':    $arr['html'] = $this->deleteAddress();      break;
+				case 'addaddress':    $arr['html'] = $this->addAddress();    break;
+				case 'editaddress':   $arr['html'] = $this->editAddress();   break;
+				case 'saveaddress':   $arr['html'] = $this->saveAddress();   break;
+				case 'deleteaddress': $arr['html'] = $this->deleteAddress(); break;
 				case 'view':
-				default:                 $arr['html'] = $this->view();
+				default:              $arr['html'] = $this->display();
 			}
 		}
 		return $arr;
-	} 
+	}
 
 	/**
 	 * View the profile page
-	 * 
+	 *
 	 * @return     string
 	 */
-	private function view()
+	private function display()
 	{
 		$app = JFactory::getApplication();
 
 		// Find out which fields are hidden, optional, or required
-		$registration               = new JObject();
+		$registration = new JObject();
 		$registration->Fullname     = $this->_registrationField('registrationFullname','RRRR','edit');
 		$registration->Email        = $this->_registrationField('registrationEmail','RRRR','edit');
 		$registration->URL          = $this->_registrationField('registrationURL','HHHH','edit');
@@ -141,34 +141,20 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		$registration->Reason       = $this->_registrationField('registrationReason','HHHH','edit');
 		$registration->OptIn        = $this->_registrationField('registrationOptIn','HHHH','edit');
 		$registration->address      = $this->_registrationField('registrationAddress','OOOO','edit');
+		$registration->ORCID        = $this->_registrationField('registrationORCID','OOOO','edit');
 
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-		
 		//get member params
-		$rparams = new $paramsClass($this->member->get('params'));
-		
-		//get profile plugin's params
-		$plugin = JPluginHelper::getPlugin("members", "profile");
-		$params = new $paramsClass( $plugin->params );
-		$params->merge($rparams);
+		$rparams = new JRegistry($this->member->get('params'));
 
-		\Hubzero\Document\Assets::addPluginStylesheet('members', 'profile');
-		\Hubzero\Document\Assets::addPluginScript('members', 'profile');
-		
-		if (JPluginHelper::isEnabled('system', 'jquery'))
-		{
-			$document = JFactory::getDocument();
-			$document->addScript("/media/system/js/jquery.fileuploader.js");
-		}
+		//get profile plugin's params
+		//$plugin = JPluginHelper::getPlugin("members", "profile");
+		$params = $this->params; //new JRegistry($plugin->params);
+		$params->merge($rparams);
 
 		$this->view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'members',
-				'element' => 'profile',
+				'folder'  => $this->_type,
+				'element' => $this->_name,
 				'name'    => 'index'
 			)
 		);
@@ -178,15 +164,15 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		$session = JFactory::getSession();
 		if ($session->get('registration.incomplete'))
 		{
-			$xreg = new RegisterModelRegistration();
-			$juser =  JFactory::getUser(); 
+			$xreg = new MembersModelRegistration();
+			$juser =  JFactory::getUser();
 			$xprofile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 
-			if (is_object($xprofile)) 
+			if (is_object($xprofile))
 			{
 				$xreg->loadProfile($xprofile);
 			}
-			else 
+			else
 			{
 				$xreg->loadAccount($juser);
 			}
@@ -196,7 +182,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 			{
 				$session->set('registration.incomplete', 0);
 				$app->redirect($_SERVER['REQUEST_URI']);
-			}  
+			}
 			else
 			{
 				$registration_update = $xreg;
@@ -206,13 +192,13 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		//get profile completeness
 		$this->view->completeness = $this->getProfileCompleteness($registration, $this->member);
 
-		$this->view->option = "com_members";
+		$this->view->option = 'com_members';
 		$this->view->profile = $this->member;
-		$this->view->registration = $registration; 
+		$this->view->registration = $registration;
 		$this->view->registration_update = $registration_update;
 		$this->view->params = $params;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			$this->view->setError($this->getError());
 		}
@@ -222,7 +208,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return if a field is required, option, read only, or hidden
-	 * 
+	 *
 	 * @param      string  $name    Property name
 	 * @param      string  $default Default property value
 	 * @param      string  $task    Task to look up value for
@@ -230,7 +216,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 	 */
 	private function _registrationField($name, $default, $task = 'create')
 	{
-		switch ($task) 
+		switch ($task)
 		{
 			case 'register':
 			case 'create': $index = 0; break;
@@ -240,24 +226,24 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 			default:       $index = 0; break;
 		}
 
-		$hconfig = JComponentHelper::getParams('com_register');
+		$hconfig = JComponentHelper::getParams('com_members');
 		$default = str_pad($default, 4, '-');
 		$configured = $hconfig->get($name);
-		
-		if (empty($configured)) 
+
+		if (empty($configured))
 		{
 			$configured = $default;
 		}
 		$length = strlen($configured);
-		if ($length > $index) 
+		if ($length > $index)
 		{
 			$value = substr($configured, $index, 1);
-		} 
-		else 
+		}
+		else
 		{
 			$value = substr($default, $index, 1);
 		}
-		
+
 		switch ($value)
 		{
 			case 'R': return(REG_REQUIRED);
@@ -271,7 +257,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Event call to determine if this plugin should return data
-	 * 
+	 *
 	 * @param      array  $fields  Fields filled in
 	 * @param      object $profile MembersProfile
 	 * @return     integer
@@ -296,14 +282,15 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 			'Race'			=> 'race',
 			'Bio'			=> 'bio',
 			'Interests' 	=> 'tags',
-			'OptIn' 		=> 'mailPreferenceOption'
+			'OptIn' 		=> 'mailPreferenceOption',
+			'ORCID'			=> 'orcid'
 		);
 
 		//unset errors from the fields object
 		unset($fields->_errors);
 
 		//load the user profile
-		$registration = new RegisterModelRegistration();
+		$registration = new MembersModelRegistration();
 		$registration->loadProfile($profile);
 
 		//add tags to the registration object
@@ -342,22 +329,20 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		//return percentage
 		return number_format(($num_filled_fields/$num_fields) * 100, 0);
 	}
-	
-	
+
 	/**
 	 * Method to add a user address
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addAddress()
 	{
 		return $this->editAddress();
 	}
-	
-	
+
 	/**
 	 * Method to edit a user address
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editAddress()
@@ -370,52 +355,48 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 				'layout'  => 'edit'
 			)
 		);
-		
+
 		//get request vars
 		$this->view->addressId = JRequest::getInt('addressid', 0);
 
-		\Hubzero\Document\Assets::addPluginStylesheet('members', 'profile');
-		\Hubzero\Document\Assets::addPluginScript('members', 'profile');
-		
 		//get member addresses
-		$this->view->address = new MembersAddress( JFactory::getDBO() );
-		$this->view->address->load( $this->view->addressId );
-		
+		$this->view->address = new MembersAddress(JFactory::getDBO());
+		$this->view->address->load($this->view->addressId);
+
 		//are we passing back the vars from save
 		if (isset($this->address))
 		{
 			$this->view->address = $this->address;
 		}
-		
+
 		//set vars for view
 		$this->view->member = $this->member;
-		
+
 		//set errors and display
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			$this->view->setError($this->getError());
 		}
 		return $this->view->loadTemplate();
 	}
-	
-	
+
 	/**
 	 * Method to save a user address
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveAddress()
 	{
 		//get request vars
 		$address = JRequest::getVar('address', array());
-		
+
 		//set up objects
 		$database       = JFactory::getDBO();
 		$juser          = JFactory::getUser();
-		$membersAddress = new MembersAddress( $database );
-		
+		$membersAddress = new MembersAddress($database);
+
 		//create object from vars
-		$addressObj                   = new stdClass;
+		$addressObj = new stdClass;
 		$addressObj->id               = $address['id'];
 		$addressObj->uidNumber        = $juser->get('id');
 		$addressObj->addressTo        = $address['addressTo'];
@@ -427,74 +408,73 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		$addressObj->addressCountry   = $address['addressCountry'];
 		$addressObj->addressLatitude  = $address['addressLatitude'];
 		$addressObj->addressLongitude = $address['addressLongitude'];
-		
+
 		//attempt to save
 		if (!$membersAddress->save($addressObj))
 		{
 			$this->address = $addressObj;
-			$this->setError( $membersAddress->getError() );
+			$this->setError($membersAddress->getError());
 			return $this->editAddress();
 		}
-		
+
 		//inform and redirect
-		$this->redirect( 
-			JRoute::_('index.php?option=com_members&id='.$juser->get('id').'&active=profile'), 
-			JText::_('Member address successfully saved.'), 
+		$this->redirect(
+			JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=profile'),
+			JText::_('Member address successfully saved.'),
 			'passed'
 		);
 		return;
 	}
-	
-	
+
 	/**
 	 * Method to delete a user address
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deleteAddress()
 	{
 		//get request vars
 		$addressId = JRequest::getInt('addressid', 0);
-		
+
 		//set up objects
 		$database       = JFactory::getDBO();
 		$juser          = JFactory::getUser();
-		$membersAddress = new MembersAddress( $database );
-		
+		$membersAddress = new MembersAddress($database);
+
 		//load address object
-		$membersAddress->load( $addressId );
-		
+		$membersAddress->load($addressId);
+
 		//make sure we have a valid member address object
 		if (!is_object($membersAddress) || !$membersAddress->id)
 		{
 			return $this->view();
 		}
-		
+
 		//make sure user can delete this address
 		if ($membersAddress->uidNumber != $juser->get('id'))
 		{
-			$this->setError( JText::_('You don\'t have permission to delete this member address.') );
+			$this->setError(JText::_('You don\'t have permission to delete this member address.'));
 			return $this->view();
 		}
-		
-		//make sure we dont have another stimulation 
+
+		//make sure we dont have another stimulation
 		if (!$membersAddress->canDelete())
 		{
-			$this->setError( $membersAddress->getError() );
+			$this->setError($membersAddress->getError());
 			return $this->view();
 		}
-		
+
 		//attempt to delete address
 		if (!$membersAddress->delete($addressId))
 		{
-			$this->setErrror( $membersAddress->getError() );
+			$this->setErrror($membersAddress->getError());
 			return $this->view();
 		}
-		
+
 		//inform and redirect
-		$this->redirect( 
-			JRoute::_('index.php?option=com_members&id='.$juser->get('id').'&active=profile'), 
-			JText::_('Member address successfully deleted.'), 
+		$this->redirect(
+			JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=profile'),
+			JText::_('Member address successfully deleted.'),
 			'passed'
 		);
 		return;

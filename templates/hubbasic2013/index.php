@@ -33,20 +33,14 @@ defined('_JEXEC') or die('Restricted access');
 $config = JFactory::getConfig();
 $juser  = JFactory::getUser();
 
-// Set the generator statement
-$this->setGenerator('HUBzero - The open source platform for scientific and educational collaboration');
+JHTML::_('behavior.framework', true);
+JHTML::_('behavior.modal');
 
 //do we want to include jQuery
-if (JPluginHelper::isEnabled('system', 'jquery')) 
-{
-	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.jquery.js');
-} 
-else 
-{
-	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js');
-}
+$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js');
 
 $browser = new \Hubzero\Browser\Detector();
+$p = strtolower(str_replace(' ', '', $browser->platform()));
 $b = $browser->name();
 $v = $browser->major();
 
@@ -57,15 +51,19 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 <!--[if IE 7 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie7"> <![endif]-->
 <!--[if IE 8 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie8"> <![endif]-->
 <!--[if IE 9 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie9"> <![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo $p . ' ' . $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
 	<head>
 		<!-- <meta http-equiv="X-UA-Compatible" content="IE=edge" /> Doesn't validate... -->
 
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'pagination', 'tabs', 'tags', 'tooltip', 'comments', 'voting', 'icons', 'buttons', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(); ?>" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/main.css" />
 		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/print.css" />
 
 		<jdoc:include type="head" />
+
+		<!--[if lt IE 9]>
+			<script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/html5.js"></script>
+		<![endif]-->
 
 		<!--[if IE 10]>
 			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie10.css" />
@@ -85,7 +83,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 		<jdoc:include type="modules" name="helppane" />
 
 		<div id="top">
-			<div id="masthead" role="banner">
+			<header id="masthead" role="banner">
 				<div class="inner">
 					<h1>
 						<a href="<?php echo $this->baseurl; ?>" title="<?php echo $config->getValue('config.sitename'); ?>">
@@ -94,7 +92,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					</h1>
 
 					<div id="account" role="navigation">
-					<?php if (!$juser->get('guest')) { 
+					<?php if (!$juser->get('guest')) {
 							$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 					?>
 						<ul class="menu <?php echo (!$juser->get('guest')) ? 'loggedin' : 'loggedout'; ?>">
@@ -125,14 +123,13 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					<?php } else { ?>
 						<ul class="menu <?php echo (!$juser->get('guest')) ? 'loggedin' : 'loggedout'; ?>">
 							<li id="account-login">
-								<?php $login_route = (version_compare(JVERSION, '2.5', 'ge')) ? 'index.php?option=com_users&view=login' : 'index.php?option=com_user&view=login'; ?>
-								<a href="<?php echo JRoute::_($login_route); ?>" title="<?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?>"><?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?></a>
+								<a href="<?php echo JRoute::_( 'index.php?option=com_users&view=login'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?>"><?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?></a>
 							</li>
 							<?php
 							$usersConfig =  JComponentHelper::getParams('com_users');
 							if ($usersConfig->get('allowUserRegistration') != '0') : ?>
 								<li id="account-register">
-									<a href="<?php echo JRoute::_('index.php?option=com_register'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_SIGN_UP'); ?>"><?php echo JText::_('TPL_HUBBASIC_REGISTER'); ?></a>
+									<a href="<?php echo JRoute::_('index.php?option=com_members&controller=register'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_SIGN_UP'); ?>"><?php echo JText::_('TPL_HUBBASIC_REGISTER'); ?></a>
 								</li>
 							<?php endif; ?>
 						</ul>
@@ -144,7 +141,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 						<jdoc:include type="modules" name="user3" />
 					</div><!-- / #nav -->
 				</div><!-- / .inner -->
-			</div><!-- / #masthead -->
+			</header><!-- / #masthead -->
 
 			<div id="sub-masthead">
 				<div class="inner">
@@ -181,36 +178,43 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 		</div><!-- / #top -->
 
 		<div id="wrap">
-			<div id="content" class="<?php echo JRequest::getVar('option', ''); ?>" role="main">
-				<div class="inner">
-				<?php if ($this->countModules('left')) : ?>
-					<div class="main section withleft">
-						<div class="aside">
-							<jdoc:include type="modules" name="left" />
-						</div><!-- / #column-left -->
-						<div class="subject">
-				<?php endif; ?>
-				<?php if ($this->countModules('right')) : ?>
-					<div class="main section">
-						<div class="aside">
-							<jdoc:include type="modules" name="right" />
-						</div><!-- / .aside -->
-						<div class="subject">
-				<?php endif; ?>
-							<!-- start component output -->
-							<jdoc:include type="component" />
-							<!-- end component output -->
-				<?php if ($this->countModules('left or right')) : ?>
-						</div><!-- / .subject -->
-						<div class="clear"></div>
-					</div><!-- / .main section -->
-				<?php endif; ?>
-				</div><!-- / .inner -->
-			</div><!-- / #content -->
+			<main id="content" class="<?php echo JRequest::getVar('option', ''); ?>" role="main">
+				<div class="inner<?php if ($this->countModules('left or right')) { echo ' withmenu'; } ?>">
+					<?php if ($this->countModules('left or right')) : ?>
+						<section class="main section">
+					<?php endif; ?>
 
-			<div id="footer">
+					<?php if ($this->countModules('left')) : ?>
+							<aside class="aside">
+								<jdoc:include type="modules" name="left" />
+							</aside><!-- / .aside -->
+					<?php endif; ?>
+					<?php if ($this->countModules('left or right')) : ?>
+							<div class="subject">
+					<?php endif; ?>
+
+								<!-- start component output -->
+								<jdoc:include type="component" />
+								<!-- end component output -->
+
+					<?php if ($this->countModules('left or right')) : ?>
+							</div><!-- / .subject -->
+					<?php endif; ?>
+					<?php if ($this->countModules('right')) : ?>
+							<aside class="aside">
+								<jdoc:include type="modules" name="right" />
+							</aside><!-- / .aside -->
+					<?php endif; ?>
+
+					<?php if ($this->countModules('left or right')) : ?>
+						</section><!-- / .main section -->
+					<?php endif; ?>
+				</div><!-- / .inner -->
+			</main><!-- / #content -->
+
+			<footer id="footer">
 				<jdoc:include type="modules" name="footer" />
-			</div><!-- / #footer -->
+			</footer><!-- / #footer -->
 		</div><!-- / #wrap -->
 
 		<jdoc:include type="modules" name="endpage" />

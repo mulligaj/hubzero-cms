@@ -47,70 +47,70 @@ class KbModelArticle extends \Hubzero\Base\Model
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'KbTableArticle';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_kb.article.fulltxt';
 
 	/**
 	 * KbModelCategory
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_category = null;
 
 	/**
 	 * KbModelCategory
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_section = null;
 
 	/**
 	 * \Hubzero\Base\ItemList
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_comments = null;
 
 	/**
 	 * Comment count
-	 * 
+	 *
 	 * @var integer
 	 */
 	private $_comments_count = null;
 
 	/**
 	 * URL for this entry
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_base = 'index.php?option=com_kb';
 
 	/**
 	 * JRegistry
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_params = null;
 
 	/**
 	 * User object
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_creator = null;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      mixed $oid Integer (ID), string (alias), object or array
 	 * @return     void
 	 */
@@ -157,13 +157,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 			}
 		}
 
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-
-		$params = new $paramsClass($this->get('params'));
+		$params = new JRegistry($this->get('params'));
 
 		$this->_params = JComponentHelper::getParams('com_kb');
 		$this->_params->merge($params);
@@ -179,12 +173,12 @@ class KbModelArticle extends \Hubzero\Base\Model
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$oid])) 
+		if (!isset($instances[$oid]))
 		{
 			$instances[$oid] = new KbModelArticle($oid);
 		}
@@ -194,12 +188,12 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Are comments open?
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function commentsOpen()
 	{
-		if (!$this->param('allow_comments')) 
+		if (!$this->param('allow_comments'))
 		{
 			return false;
 		}
@@ -249,7 +243,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What data to return
 	 * @return     string
 	 */
@@ -260,7 +254,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What data to return
 	 * @return     string
 	 */
@@ -275,7 +269,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What data to return
 	 * @return     string
 	 */
@@ -299,29 +293,36 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
+	 * it returns the entire object
 	 *
+	 * @param      string $property Property to retrieve
+	 * @param      mixed  $default  Default value if property not set
 	 * @return     mixed
 	 */
-	public function creator($property=null)
+	public function creator($property=null, $default=null)
 	{
-		if (!($this->_creator instanceof JUser))
+		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
-			$this->_creator = JUser::getInstance($this->get('created_by'));
+			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+			if (!$this->_creator)
+			{
+				$this->_creator = new \Hubzero\User\Profile();
+			}
 		}
 		if ($property)
 		{
-			return $this->_creator->get($property);
+			$property = ($property == 'id' ? 'uidNumber' : $property);
+			return $this->_creator->get($property, $default);
 		}
 		return $this->_creator;
 	}
 
 	/**
 	 * Get a list of responses
-	 * 
+	 *
 	 * @param      string $rtrn    Data type to return [count, list]
 	 * @param      array  $filters Filters to apply to query
 	 * @return     mixed Returns an integer or array depending upon format chosen
@@ -336,7 +337,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 		}
 		if (!isset($filters['state']))
 		{
-			$filters['state']    = self::APP_STATE_PUBLISHED;
+			$filters['state']    = array(self::APP_STATE_PUBLISHED, self::APP_STATE_FLAGGED);
 		}
 
 		$filters['sort']     = 'created';
@@ -349,19 +350,19 @@ class KbModelArticle extends \Hubzero\Base\Model
 				{
 					$total = 0;
 
-					if (!($c = $this->get('comments'))) 
+					if (!($c = $this->get('comments')))
 					{
 						$c = $this->comments('list', $filters);
 					}
 					foreach ($c as $com)
 					{
 						$total++;
-						if ($com->replies()) 
+						if ($com->replies())
 						{
 							foreach ($com->replies() as $rep)
 							{
 								$total++;
-								if ($rep->replies()) 
+								if ($rep->replies())
 								{
 									$total += $rep->replies()->total();
 								}
@@ -403,7 +404,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 	/**
 	 * Get tags on the entry
 	 * Optinal first agument to determine format of tags
-	 * 
+	 *
 	 * @param      string  $as    Format to return state in [comma-deliminated string, HTML tag cloud, array]
 	 * @param      integer $admin Include amdin tags? (defaults to no)
 	 * @return     boolean
@@ -434,7 +435,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Tag the entry
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function tag($tags=null, $user_id=0, $admin=0)
@@ -447,7 +448,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type The type of link to return
 	 * @return     boolean
 	 */
@@ -498,7 +499,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 				$link .= '/comments.rss';
 
 				$feed = JRoute::_($link);
-				if (substr($feed, 0, 4) != 'http') 
+				if (substr($feed, 0, 4) != 'http')
 				{
 					$jconfig = JFactory::getConfig();
 					$live_site = rtrim(JURI::base(), '/');
@@ -510,7 +511,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 			case 'permalink':
 			default:
-				
+
 			break;
 		}
 
@@ -518,13 +519,13 @@ class KbModelArticle extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Get the content of the record. 
+	 * Get the content of the record.
 	 * Optional argument to determine how content should be handled
 	 *
 	 * parsed - performs parsing on content (i.e., converting wiki markup to HTML)
 	 * clean  - parses content and then strips tags
 	 * raw    - as is, no parsing
-	 * 
+	 *
 	 * @param      string  $as      Format to return content in [parsed, clean, raw]
 	 * @param      integer $shorten Number of characters to shorten text to
 	 * @return     mixed String or Integer
@@ -592,7 +593,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 			// See if a person from this IP has already voted in the last week
 			$tbl = new KbTableVote($this->_db);
 			$this->set(
-				'voted', 
+				'voted',
 				$tbl->getVote($this->get('id'), $juser->get('id'), JRequest::ip(), 'entry')
 			);
 		}
@@ -660,7 +661,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 			}
 		}
 
-		if ($this->get('created_by') == $juser->get('id')) 
+		if ($this->get('created_by') == $juser->get('id'))
 		{
 			$this->setError(JText::_('COM_KB_NOTICE_CANT_VOTE_FOR_OWN'));
 			return false;
@@ -678,18 +679,18 @@ class KbModelArticle extends \Hubzero\Base\Model
 		}
 
 		// Store the changes to vote count
-		if (!$this->store()) 
+		if (!$this->store())
 		{
 			return false;
 		}
 
 		// Store the vote log
-		if (!$al->check()) 
+		if (!$al->check())
 		{
 			$this->setError($al->getError());
 			return false;
 		}
-		if (!$al->store()) 
+		if (!$al->store())
 		{
 			$this->setError($al->getError());
 			return false;
@@ -738,7 +739,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 	public function delete()
 	{
 		// Can't delete what doesn't exist
-		if (!$this->exists()) 
+		if (!$this->exists())
 		{
 			return true;
 		}
@@ -770,7 +771,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Get a param value
-	 * 
+	 *
 	 * @param	   string $key Property to return
 	 * @return     mixed
 	 */
@@ -785,7 +786,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Get parent category
-	 * 
+	 *
 	 * @return     object KbModelCategory
 	 */
 	public function category()
@@ -799,7 +800,7 @@ class KbModelArticle extends \Hubzero\Base\Model
 
 	/**
 	 * Get parent section
-	 * 
+	 *
 	 * @return     object KbModelCategory
 	 */
 	public function section()

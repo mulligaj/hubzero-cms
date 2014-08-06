@@ -31,63 +31,60 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Support plugin class for com_resources entries
  */
-class plgSupportResources extends JPlugin
+class plgSupportResources extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Is the category one this plugin handles?
+	 *
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     boolean
 	 */
-	public function __construct(&$subject, $config)
+	private function _canHandle($category)
 	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
+		if (in_array($category, array('review', 'reviewcomment')))
+		{
+			return true;
+		}
+		return false;
 	}
 
 	/**
-	 * Short description for 'getReportedItem'
-	 * 
-	 * Long description (if any) ...
-	 * 
-	 * @param      string $refid Parameter description (if any) ...
-	 * @param      string $category Parameter description (if any) ...
-	 * @param      string $parent Parameter description (if any) ...
-	 * @return     array Return description (if any) ...
+	 * Get items reported as abusive
+	 *
+	 * @param      integer $refid    Comment ID
+	 * @param      string  $category Item type (kb)
+	 * @param      integer $parent   Parent ID
+	 * @return     array
 	 */
 	public function getReportedItem($refid, $category, $parent)
 	{
-		if ($category != 'review' && $category != 'reviewcomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
 
-		if ($category == 'review') 
+		if ($category == 'review')
 		{
-			$query  = "SELECT rr.id, rr.comment as text, rr.created, rr.user_id as author, 
-						NULL as subject, 'review' as parent_category, rr.anonymous as anon 
-						FROM #__resource_ratings AS rr 
+			$query  = "SELECT rr.id, rr.comment as text, rr.created, rr.user_id as author,
+						NULL as subject, 'review' as parent_category, rr.anonymous as anon
+						FROM #__resource_ratings AS rr
 						WHERE rr.id=" . $refid;
-		} 
-		else if ($category == 'reviewcomment') 
+		}
+		else if ($category == 'reviewcomment')
 		{
-			$query  = "SELECT rr.id, rr.content as text, rr.created, rr.created_by as author, 
-						NULL as subject, 'reviewcomment' as parent_category, rr.anonymous as anon 
-						FROM #__item_comments AS rr 
+			$query  = "SELECT rr.id, rr.content as text, rr.created, rr.created_by as author,
+						NULL as subject, 'reviewcomment' as parent_category, rr.anonymous as anon
+						FROM #__item_comments AS rr
 						WHERE rr.id=" . $refid;
 		}
 
 		$database = JFactory::getDBO();
 		$database->setQuery($query);
 		$rows = $database->loadObjectList();
-		if ($rows) 
+		if ($rows)
 		{
 			foreach ($rows as $key => $row)
 			{
@@ -103,7 +100,7 @@ class plgSupportResources extends JPlugin
 
 	/**
 	 * Looks up ancestors to find root element
-	 * 
+	 *
 	 * @param      integer $parentid ID to check for parents of
 	 * @param      string  $category Element type (determines table to look in)
 	 * @return     integer
@@ -113,20 +110,20 @@ class plgSupportResources extends JPlugin
 		$database = JFactory::getDBO();
 		$refid = $parentid;
 
-		if ($category == 'reviewcomment') 
+		if ($category == 'reviewcomment')
 		{
 			$pdata = $this->parent($parentid);
 			$category = $pdata->category;
 			$refid = $pdata->referenceid;
 
-			if ($pdata->category == 'reviewcomment') 
+			if ($pdata->category == 'reviewcomment')
 			{
 				// Yet another level?
 				$pdata = $this->parent($pdata->referenceid);
 				$category = $pdata->category;
 				$refid = $pdata->referenceid;
 
-				if ($pdata->category == 'reviewcomment') 
+				if ($pdata->category == 'reviewcomment')
 				{
 					// Yet another level?
 					$pdata = $this->parent($pdata->referenceid);
@@ -136,16 +133,16 @@ class plgSupportResources extends JPlugin
 			}
 		}
 
-		if ($category == 'review') 
+		if ($category == 'review')
 		{
-			$database->setQuery("SELECT resource_id FROM #__resource_ratings WHERE id=" . $refid);
-		 	return $database->loadResult();
+			$database->setQuery("SELECT resource_id FROM `#__resource_ratings` WHERE id=" . $refid);
+			return $database->loadResult();
 		}
 	}
 
 	/**
 	 * Retrieve parent element
-	 * 
+	 *
 	 * @param      integer $parentid ID of element to retrieve
 	 * @return     object
 	 */
@@ -161,33 +158,88 @@ class plgSupportResources extends JPlugin
 
 	/**
 	 * Returns the appropriate text for category
-	 * 
+	 *
 	 * @param      string  $category Element type (determines text)
 	 * @param      integer $parentid ID of element to retrieve
 	 * @return     string
 	 */
 	public function getTitle($category, $parentid)
 	{
-		if ($category != 'review' && $category != 'reviewcomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
 
+		$this->loadLanguage();
+
 		switch ($category)
 		{
 			case 'review':
-				return JText::sprintf('Review of resource #%s', $parentid);
-         	break;
+				return JText::sprintf('PLG_SUPPORT_RESOURCES_REVIEW_OF', $parentid);
+			break;
 
 			case 'reviewcomment':
-				return JText::sprintf('Comment to review of resource #%s', $parentid);
-         	break;
+				return JText::sprintf('PLG_SUPPORT_RESOURCES_COMMENT_OF', $parentid);
+			break;
 		}
 	}
 
 	/**
+	 * Mark an item as flagged
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     string
+	 */
+	public function onReportItem($refid, $category)
+	{
+		if (!$this->_canHandle($category))
+		{
+			return null;
+		}
+
+		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'review.php');
+
+		$database = JFactory::getDBO();
+
+		$comment = new ResourcesReview($database);
+		$comment->load($refid);
+		$comment->state = 3;
+		$comment->store();
+
+		return '';
+	}
+
+	/**
+	 * Release a reported item
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $parent   If the element has a parent element
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     array
+	 */
+	public function releaseReportedItem($refid, $parent, $category)
+	{
+		if (!$this->_canHandle($category))
+		{
+			return null;
+		}
+
+		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'review.php');
+
+		$database = JFactory::getDBO();
+
+		$comment = new ResourcesReview($database);
+		$comment->load($refid);
+		$comment->state = 1;
+		$comment->store();
+
+		return '';
+	}
+
+	/**
 	 * Removes an item reported as abusive
-	 * 
+	 *
 	 * @param      integer $referenceid ID of the database table row
 	 * @param      integer $parentid    If the element has a parent element
 	 * @param      string  $category    Element type (determines table to look in)
@@ -196,12 +248,12 @@ class plgSupportResources extends JPlugin
 	 */
 	public function deleteReportedItem($referenceid, $parentid, $category, $message)
 	{
-		if ($category != 'review' && $category != 'reviewcomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
 
-		$msg = 'This comment was found to contain objectionable material and was removed by the administrator.';
+		$this->loadLanguage();
 
 		$database = JFactory::getDBO();
 
@@ -214,74 +266,33 @@ class plgSupportResources extends JPlugin
 				// Delete the review
 				$review = new ResourcesReview($database);
 				$review->load($referenceid);
-				//$comment->anonymous = 1;
-				if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $review->comment, $matches))
-				{
-					$format = strtolower(trim($matches[1]));
-					switch ($format)
-					{
-						case 'html':
-							$review->comment = '<!-- {FORMAT:HTML} --><span class="warning">' . $msg . '</span>';
-						break;
-
-						case 'wiki':
-						default:
-							$review->comment = '<!-- {FORMAT:WIKI} -->[[Span(' . $msg . ', class="warning")]]';
-						break;
-					}
-				}
-				else
-				{
-					$review->comment = '[[Span(' . $msg . ', class="warning")]]';
-				}
+				$review->state = 2;
 				$review->store();
-
-				//$review->delete($referenceid);
 
 				// Recalculate the average rating for the parent resource
 				$resource = new ResourcesResource($database);
 				$resource->load($parentid);
 				$resource->calculateRating();
-				if (!$resource->store()) 
+				if (!$resource->store())
 				{
 					$this->setError($resource->getError());
 					return false;
 				}
 
-				$message .= JText::sprintf('This is to notify you that your review to resource #%s was removed from the site due to granted complaint received from a user.', $parentid);
+				$message .= JText::sprintf('PLG_SUPPORT_RESOURCES_NOTIFICATION_OF_REMOVAL', $parentid);
 			break;
 
 			case 'reviewcomment':
 				$comment = new \Hubzero\Item\Comment($database);
 				$comment->load($referenceid);
-				//$comment->state = 2;
-				if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $comment->content, $matches))
-				{
-					$format = strtolower(trim($matches[1]));
-					switch ($format)
-					{
-						case 'html':
-							$comment->content = '<!-- {FORMAT:HTML} --><span class="warning">' . $msg . '</span>';
-						break;
-
-						case 'wiki':
-						default:
-							$comment->content = '<!-- {FORMAT:WIKI} -->[[Span(' . $msg . ', class="warning")]]';
-						break;
-					}
-				}
-				else
-				{
-					$comment->content = '[[Span(' . $msg . ', class="warning")]]';
-				}
-
-				if (!$comment->store()) 
+				$comment->state = 2;
+				if (!$comment->store())
 				{
 					$this->setError($comment->getError());
 					return false;
 				}
 
-				$message .= JText::sprintf('This is to notify you that your comment on review for resource #%s was removed from the site due to granted complaint received from a user.', $parentid);
+				$message .= JText::sprintf('PLG_SUPPORT_RESOURCES_NOTIFICATION_OF_REMOVAL', $parentid);
 			break;
 		}
 

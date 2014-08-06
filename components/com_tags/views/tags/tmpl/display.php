@@ -30,38 +30,42 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
+
+$this->css('introduction.css', 'system')
+     ->css();
 ?>
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
+</header>
 
-<div id="introduction" class="section">
-	<div class="aside">
-		<h3><?php echo JText::_('COM_TAGS_QUESTIONS'); ?></h3>
-		<ul>
-			<li>
-				<a class="popup" href="<?php echo JRoute::_('index.php?option=com_help&component=tags&page=index'); ?>">
-					<?php echo JText::_('COM_TAGS_HELP_PAGES'); ?>
-				</a>
-			</li>
-		</ul>
-	</div><!-- / .aside -->
-	<div class="subject">
-		<div class="grid">
-			<div class="col span6">
-				<h3><?php echo JText::_('COM_TAGS_WHAT_ARE_TAGS'); ?></h3>
-				<p><?php echo JText::_('COM_TAGS_WHAT_ARE_TAGS_EXPLANATION'); ?></p>
+<section id="introduction" class="section">
+	<div class="grid">
+		<div class="col span9">
+			<div class="grid">
+				<div class="col span6">
+					<h3><?php echo JText::_('COM_TAGS_WHAT_ARE_TAGS'); ?></h3>
+					<p><?php echo JText::_('COM_TAGS_WHAT_ARE_TAGS_EXPLANATION'); ?></p>
+				</div>
+				<div class="col span6 omega">
+					<h3><?php echo JText::_('COM_TAGS_HOW_DO_TAGS_WORK'); ?></h3>
+					<p><?php echo JText::_('COM_TAGS_HOW_DO_TAGS_WORK_EXPLANATION'); ?></p>
+				</div>
 			</div>
-			<div class="col span6 omega">
-				<h3><?php echo JText::_('COM_TAGS_HOW_DO_TAGS_WORK'); ?></h3>
-				<p><?php echo JText::_('COM_TAGS_HOW_DO_TAGS_WORK_EXPLANATION'); ?></p>
-			</div>
-		</div>
-	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / #introduction.section -->
+		</div><!-- / .subject -->
+		<div class="col span3 omega">
+			<h3><?php echo JText::_('COM_TAGS_QUESTIONS'); ?></h3>
+			<ul>
+				<li>
+					<a class="popup" href="<?php echo JRoute::_('index.php?option=com_help&component=tags&page=index'); ?>">
+						<?php echo JText::_('COM_TAGS_HELP_PAGES'); ?>
+					</a>
+				</li>
+			</ul>
+		</div><!-- / .aside -->
+	</div>
+</section><!-- / #introduction.section -->
 
-<div class="section">
+<section class="section">
 
 	<div class="grid find-tagged">
 		<div class="col span3">
@@ -74,7 +78,7 @@ defined('_JEXEC') or die('Restricted access');
 						<fieldset>
 							<p>
 								<label for="actags"><?php echo JText::_('COM_TAGS_SEARCH_ENTER_TAGS'); ?></label>
-								<?php 
+								<?php
 								JPluginHelper::importPlugin('hubzero');
 								$tf = JDispatcher::getInstance()->trigger('onGetMultiEntry', array(array('tags', 'tag', 'actags','','')));
 
@@ -129,7 +133,7 @@ defined('_JEXEC') or die('Restricted access');
 			{
 				echo $cloud;
 			}
-			else 
+			else
 			{
 				echo '<p class="warning">' . JText::_('COM_TAGS_NO_TAGS') . '</p>' . "\n";
 			}
@@ -169,7 +173,7 @@ defined('_JEXEC') or die('Restricted access');
 			{
 				echo $cloud;
 			}
-			else 
+			else
 			{
 				echo '<p class="warning">' . JText::_('COM_TAGS_NO_TAGS') . '</p>' . "\n";
 			}
@@ -204,4 +208,4 @@ defined('_JEXEC') or die('Restricted access');
 		</div><!-- / .col span9 omega -->
 	</div><!-- / .grid -->
 
-</div><!-- / .section -->
+</section><!-- / .section -->

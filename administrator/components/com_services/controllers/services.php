@@ -38,7 +38,7 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Services List
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -51,27 +51,27 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 
 		// Get paging variables
 		$this->view->filters['limit']    = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.' . $this->_controller . '.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']    = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.' . $this->_controller . '.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
 
 		// Get sorting variables
 		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'category'
 		));
 		$this->view->filters['sort_Dir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 
@@ -84,13 +84,13 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -104,7 +104,7 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 
 	/**
 	 * Initial setup of default jobs services
-	 * 
+	 *
 	 * @return     boolean Return description (if any) ...
 	 */
 	protected function setupServices()
@@ -116,11 +116,11 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 
 		$default1 = array(
 			'id' => 0,
-			'title' => JText::_('Employer Service, Basic'),
-			'category' => strtolower(JText::_('jobs')),
-			'alias' => JText::_('employer_basic'),
+			'title' => JText::_('COM_SERVICES_BASIC_SERVICE_TITLE'),
+			'category' => strtolower(JText::_('COM_SERVICES_JOBS')),
+			'alias' => 'employer_basic',
 			'status' => 1,
-			'description' => JText::_('Allows to search member resumes and post one job ad'),
+			'description' => JText::_('COM_SERVICES_BASIC_SERVICE_DESC'),
 			'unitprice' => '0.00',
 			'pointprice' => 0,
 			'currency' => '$',
@@ -129,15 +129,15 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 			'unitsize' => 1,
 			'unitmeasure' => strtolower(JText::_('month')),
 			'changed' => $now,
-			'params' => "promo=First 3 months FREE\npromomaxunits=3\nmaxads=1"
+			'params' => "promo=" . JText::_('COM_SERVICES_BASIC_SERVICE_PROMO') . "\npromomaxunits=3\nmaxads=1"
 		);
 		$default2 = array(
 			'id' => 0,
-			'title' => JText::_('Employer Service, Premium'),
-			'category' => strtolower(JText::_('jobs')),
-			'alias' => JText::_('employer_premium'),
+			'title' => JText::_('COM_SERVICES_PREMIUM_SERVICE_TITLE'),
+			'category' => strtolower(JText::_('COM_SERVICES_JOBS')),
+			'alias' => 'employer_premium',
 			'status' => 0,
-			'description' => JText::_('Allows to search member resumes and post up to 3 job ads'),
+			'description' => JText::_('COM_SERVICES_PREMIUM_SERVICE_DESC'),
 			'unitprice' => '500.00',
 			'pointprice' => 0,
 			'currency' => '$',
@@ -149,22 +149,22 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 			'params' => "promo=\npromomaxunits=\nmaxads=3"
 		);
 
-		if (!$objS->bind($default1)) 
+		if (!$objS->bind($default1))
 		{
 			$this->setError($objS->getError());
 			return false;
 		}
-		if (!$objS->store()) 
+		if (!$objS->store())
 		{
 			$this->setError($objS->getError());
 			return false;
 		}
-		if (!$objS->bind($default2)) 
+		if (!$objS->bind($default2))
 		{
 			$this->setError($objS->getError());
 			return false;
 		}
-		if (!$objS->store()) 
+		if (!$objS->store())
 		{
 			$this->setError($objS->getError());
 			return false;
@@ -174,7 +174,7 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 	/**
 	 * Create a new subscription
 	 * Displays the edit form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -184,7 +184,7 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 
 	/**
 	 * Service
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask()
@@ -194,7 +194,7 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 		$this->view->setLayout('edit');
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -208,7 +208,7 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save service
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -220,7 +220,7 @@ class ServicesControllerServices extends \Hubzero\Component\AdminController
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller
 		);
 	}
-	
+
 	/**
 	 * Cancel a task (redirects to default task)
 	 *

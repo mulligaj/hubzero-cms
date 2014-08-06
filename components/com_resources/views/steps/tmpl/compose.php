@@ -38,7 +38,7 @@ $type->load( $this->row->type );
 
 $data = array();
 preg_match_all("#<nb:(.*?)>(.*?)</nb:(.*?)>#s", $this->row->fulltxt, $matches, PREG_SET_ORDER);
-if (count($matches) > 0) 
+if (count($matches) > 0)
 {
 	foreach ($matches as $match)
 	{
@@ -53,33 +53,33 @@ include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'model
 
 $elements = new ResourcesElements($data, $type->customFields);
 $fields = $elements->render();
+
+$this->css('create.css')
+     ->js('create.js');
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<p>
-		<a class="icon-add add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft'); ?>">
-			<?php echo JText::_('COM_CONTRIBUTE_NEW_SUBMISSION'); ?>
-		</a>
-	</p>
-</div><!-- / #content-header -->
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-add add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft'); ?>">
+				<?php echo JText::_('COM_CONTRIBUTE_NEW_SUBMISSION'); ?>
+			</a>
+		</p>
+	</div><!-- / #content-header -->
+</header><!-- / #content-header -->
 
-<div class="main section">
-<?php
-$view = new JView(array(
-	'name'   => 'steps',
-	'layout' => 'steps'
-));
-$view->option = $this->option;
-$view->step = $this->step;
-$view->steps = $this->steps;
-$view->id = $this->id;
-$view->resource = $this->row;
-$view->progress = $this->progress;
-$view->display();
-?>
+<section class="main section">
+	<?php
+		$this->view('steps')
+		     ->set('option', $this->option)
+		     ->set('step', $this->step)
+		     ->set('steps', $this->steps)
+		     ->set('id', $this->id)
+		     ->set('resource', $this->row)
+		     ->set('progress', $this->progress)
+		     ->display();
+	?>
 <?php if ($this->getError()) { ?>
 	<p class="warning"><?php echo implode('<br />', $this->getErrors()); ?></p>
 <?php } ?>
@@ -109,17 +109,17 @@ $view->display();
 				</div>
 			</fieldset>
 		</fieldset><div class="clear"></div>
-<?php if ($fields) { ?>
+	<?php if ($fields) { ?>
 		<div class="explaination">
 			<p><?php echo JText::_('COM_CONTRIBUTE_COMPOSE_CUSTOM_FIELDS_EXPLANATION'); ?></p>
 		</div>
 		<fieldset>
 			<legend><?php echo JText::_('COM_CONTRIBUTE_COMPOSE_DETAILS'); ?></legend>
-			<?php 
+			<?php
 			echo $fields;
 			?>
 		</fieldset><div class="clear"></div>
-<?php } ?>
+	<?php } ?>
 		<input type="hidden" name="published" value="<?php echo $this->row->published; ?>" />
 		<input type="hidden" name="standalone" value="1" />
 		<input type="hidden" name="id" value="<?php echo $this->row->id; ?>" />
@@ -135,7 +135,7 @@ $view->display();
 		<input type="hidden" name="task" value="<?php echo $this->task; ?>" />
 		<input type="hidden" name="step" value="<?php echo $this->next_step; ?>" />
 		<p class="submit">
-			<input type="submit" value="<?php echo JText::_('COM_CONTRIBUTE_NEXT'); ?>" />
+			<input class="btn btn-success" type="submit" value="<?php echo JText::_('COM_CONTRIBUTE_NEXT'); ?>" />
 		</p>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

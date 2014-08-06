@@ -30,12 +30,14 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
-?>
 
-<div id="content-header" class="full">
+$this->css();
+?>
+<header id="content-header">
 	<h2><?php echo $this->title .': '. ucfirst($this->resource); ?></h2>
-</div>
-<div class="main section">
+</header>
+
+<section class="main section">
 
 	<form action="<?php echo JRoute::_('index.php?option='.$this->option.'&id='.$this->profile->get('uidNumber').'&task=raiselimit'); ?>" method="post" name="hubForm" id="hubForm">
 		<div class="explaination">
@@ -44,11 +46,11 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</p>
 		</div>
 		<fieldset>
-<?php if ($this->resource != 'select') { ?>
+	<?php if ($this->resource != 'select') { ?>
 			<p>
-				Please provide a short reason why you would like this increase in resources. Your 
-				request for additional resources will then be e-mailed to the site administrators 
-				who will grant your request or provide a reason why we are unable to meet your 
+				Please provide a short reason why you would like this increase in resources. Your
+				request for additional resources will then be e-mailed to the site administrators
+				who will grant your request or provide a reason why we are unable to meet your
 				request at this time.
 			</p>
 			<label>
@@ -61,10 +63,10 @@ defined('_JEXEC') or die( 'Restricted access' );
 		<p class="submit">
 			<input type="submit" name="raiselimit[<?php echo $this->resource; ?>]" value="Submit Request" />
 		</p>
-<?php } else { ?>
+	<?php } else { ?>
 			<h3>HUB Resources</h3>
 
-			<table summary="Form for requesting more resources">
+			<table>
 				<tbody>
 					<?php if ($this->authorized == 'admin') { ?>
 					<tr>
@@ -96,14 +98,13 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<div class="help">
 				<h4>How do I get more resources?</h4>
 				<p>
-					Click "Increase" for the resource you wish to request more. Depending on the resource and your 
-					current limits, you will either be automatically granted more resources, asked to fill out some 
+					Click "Increase" for the resource you wish to request more. Depending on the resource and your
+					current limits, you will either be automatically granted more resources, asked to fill out some
 					feedback, asked to review a resource for others, or asked to email support.
 				</p>
 			</div>
 		</fieldset>
 		<div class="clear"></div>
-<?php } ?>
+	<?php } ?>
 	</form>
-	
-</div><!-- / .main section -->
+</section><!-- / .main section -->

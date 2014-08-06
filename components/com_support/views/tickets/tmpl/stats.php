@@ -32,28 +32,14 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-/*$st = new SupportTicket($database);
+$this->css();
 
-if (intval($this->config->get('cache', 1)))
-{
-	$cache = JFactory::getCache('callback');
-	$cache->setCaching(1);
-	$cache->setLifeTime(intval($this->params->get('cache_time', 900)));
-
-	$resolutions = $cache->call(array($st, 'findResolutions'), $this->type);
-	$severities  = $cache->call(array($st, 'findSeverities'), $this->type);
-}
-else
-{
-	$resolutions = $st->find('resolved', array('type' => $this->type, 'open' => 0));
-	$severities  = $st->find('severity', array('type' => $this->type));
-}*/
 $base = rtrim(JURI::getInstance()->base(true), '/');
 
 $database = JFactory::getDBO();
 $sql = "SELECT resolved
 		FROM #__support_tickets
-		WHERE open=0 
+		WHERE open=0
 		AND type='{$this->type}' ";
 		if ($this->group == '_none_')
 		{
@@ -132,57 +118,55 @@ function getMonthName($month)
 }
 ?>
 
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li>
-			<a class="icon-browse browse btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=display'); ?>">
-				<?php echo JText::_('Tickets'); ?>
-			</a>
-		</li>
-		<li class="last">
-			<a class="icon-add add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=new'); ?>">
-				<?php echo JText::_('SUPPORT_NEW_TICKET'); ?>
-			</a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+
+	<div id="content-header-extra">
+		<ul id="useroptions">
+			<li>
+				<a class="icon-browse browse btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=display'); ?>">
+					<?php echo JText::_('COM_SUPPORT_TICKETS'); ?>
+				</a>
+			</li>
+			<li class="last">
+				<a class="icon-add add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=new'); ?>">
+					<?php echo JText::_('COM_SUPPORT_NEW_TICKET'); ?>
+				</a>
+			</li>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header>
 
 <ul class="sub-menu">
 	<li id="sm-1"<?php if ($this->type == 0) { echo ' class="active"'; } ?>>
 		<a class="tab" rel="submitted" href="<?php echo JRoute::_('index.php?option=com_support&task=stats'); ?>">
-			<span><?php echo JText::_('Submitted Tickets'); ?></span>
+			<span><?php echo JText::_('COM_SUPPORT_TICKETS_SUBMITTED'); ?></span>
 		</a>
 	</li>
 	<li id="sm-2"<?php if ($this->type == 1) { echo ' class="active"'; } ?>>
 		<a class="tab" rel="automatic" href="<?php echo JRoute::_('index.php?option=com_support&task=stats&type=automatic'); ?>">
-			<span><?php echo JText::_('Automatic Tickets'); ?></span>
+			<span><?php echo JText::_('COM_SUPPORT_TICKETS_AUTOMATIC'); ?></span>
 		</a>
 	</li>
 </ul>
 
 <form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=stats'); ?>" method="get" enctype="multipart/form-data">
-	<div class="main section" id="ticket-stats">
+	<section class="main section" id="ticket-stats">
 		<div class="grid">
 			<div class="col span-half">
-				<!-- <h3 class="time-range">
-					<?php echo getMonthName(1) . ' ' . $this->first ?> - <?php echo getMonthName($this->month) . ' ' . $this->year; ?>
-				</h3> -->
 				<p class="time-range">
-					<label for="start-date">From</label> <input type="text" name="start" id="start-date" value="<?php echo $this->escape($this->start); ?>" size="7" />
-					<label for="end-date">to</label> <input type="text" name="end" id="end-date" value="<?php echo $this->escape($this->end); ?>" size="7" />
+					<label for="start-date"><?php echo JText::_('COM_SUPPORT_DATE_FROM'); ?></label> <input type="text" name="start" id="start-date" value="<?php echo $this->escape($this->start); ?>" size="7" />
+					<label for="end-date"><?php echo JText::_('COM_SUPPORT_DATE_TO'); ?></label> <input type="text" name="end" id="end-date" value="<?php echo $this->escape($this->end); ?>" size="7" />
 				</p>
 			</div><!-- / .col span-half omega -->
 			<div class="col span-half omega">
 				<fieldset class="support-stats-filter">
 					<label for="ticket-group">
-						<?php echo JText::_('Show for group:'); ?>
+						<?php echo JText::_('COM_SUPPORT_FILTER_GROUP'); ?>
 					</label>
 					<select name="group" id="ticket-group">
-						<option value=""<?php if (!$this->group) { echo ' selected="selected"'; } ?>><?php echo JText::_('[ all ]'); ?></option>
-						<option value="_none_"<?php if ($this->group == '_none_') { echo ' selected="selected"'; } ?>><?php echo JText::_('[ none ]'); ?></option>
+						<option value=""<?php if (!$this->group) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_ALL'); ?></option>
+						<option value="_none_"<?php if ($this->group == '_none_') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_NONE'); ?></option>
 						<?php
 						if ($this->groups)
 						{
@@ -206,7 +190,7 @@ function getMonthName($month)
 				$top = 0;
 
 				$closeddata = '';
-				if ($this->closedmonths) 
+				if ($this->closedmonths)
 				{
 					$c = array();
 					foreach ($this->closedmonths as $year => $data)
@@ -221,7 +205,7 @@ function getMonthName($month)
 				}
 
 				$openeddata = '';
-				if ($this->openedmonths) 
+				if ($this->openedmonths)
 				{
 					$o = array();
 					foreach ($this->openedmonths as $year => $data)
@@ -229,34 +213,48 @@ function getMonthName($month)
 						foreach ($data as $k => $v)
 						{
 							$top = ($v > $top) ? $v : $top;
-							$o[] = '[new Date(' . $year . ',  ' . ($k - 1) . ', 1),' . $v . ']'; // - $this->closedmonths[$k];
+							$o[] = '[new Date(' . $year . ',  ' . ($k - 1) . ', 1),' . $v . ']';
 						}
 					}
 					$openeddata = implode(',', $o);
 				}
+
+				$this->js('flot/jquery.flot.min.js', 'system')
+				     ->js('flot/jquery.flot.tooltip.min.js', 'system')
+				     ->js('flot/jquery.flot.pie.min.js', 'system')
+				     ->js('flot/jquery.flot.resize.js', 'system');
 			?>
-			<script src="<?php echo $base; ?>/media/system/js/flot/jquery.flot.min.js"></script>
-			<script src="<?php echo $base; ?>/media/system/js/flot/jquery.flot.tooltip.min.js"></script>
-			<script src="<?php echo $base; ?>/media/system/js/flot/jquery.flot.pie.min.js"></script>
-			<script src="<?php echo $base; ?>/media/system/js/flot/jquery.flot.resize.js"></script>
-			<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/media/system/js/excanvas/excanvas.min.js"></script><![endif]-->
+			<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="<?php echo $base; ?>/media/system/js/excanvas/excanvas.min.js"></script><![endif]-->
 			<script type="text/javascript">
 				if (!jq) {
 					var jq = $;
 				}
 				if (jQuery()) {
-					var $ = jq, 
-						chart, 
-						month_short = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+					var $ = jq,
+						chart,
+						month_short = [
+							'<?php echo JText::_('JANUARY_SHORT'); ?>',
+							'<?php echo JText::_('FEBRUARY_SHORT'); ?>',
+							'<?php echo JText::_('MARCH_SHORT'); ?>',
+							'<?php echo JText::_('APRIL_SHORT'); ?>',
+							'<?php echo JText::_('MAY_SHORT'); ?>',
+							'<?php echo JText::_('JUNE_SHORT'); ?>',
+							'<?php echo JText::_('JULY_SHORT'); ?>',
+							'<?php echo JText::_('AUGUST_SHORT'); ?>',
+							'<?php echo JText::_('SEPTEMBER_SHORT'); ?>',
+							'<?php echo JText::_('OCTOBER_SHORT'); ?>',
+							'<?php echo JText::_('NOVEMBER_SHORT'); ?>',
+							'<?php echo JText::_('DECEMBER_SHORT'); ?>'
+						],
 						datasets = [
 							{
 								color: "#AA4643", //#93ACCA
-								label: "Opened",
+								label: "<?php echo JText::_('COM_SUPPORT_OPENED'); ?>",
 								data: [<?php echo $openeddata; ?>]
 							},
 							{
 								color: "#656565", //#CFCFAB
-								label: "Closed",
+								label: "<?php echo JText::_('COM_SUPPORT_CLOSED'); ?>",
 								data: [<?php echo $closeddata; ?>]
 							}
 						];
@@ -264,7 +262,7 @@ function getMonthName($month)
 					$(document).ready(function() {
 						var chart = $.plot($('#container'), datasets, {
 							series: {
-								lines: { 
+								lines: {
 									show: true,
 									fill: true
 								},
@@ -276,7 +274,7 @@ function getMonthName($month)
 								color: 'rgba(0, 0, 0, 0.6)',
 								borderWidth: 1,
 								borderColor: 'transparent',
-								hoverable: true, 
+								hoverable: true,
 								clickable: true
 							},
 							tooltip: true,
@@ -288,7 +286,7 @@ function getMonthName($month)
 								},
 								defaultTheme: false
 							},
-							legend: { 
+							legend: {
 								show: true,
 								noColumns: 2,
 								position: "nw",
@@ -297,35 +295,24 @@ function getMonthName($month)
 							xaxis: { mode: "time", tickLength: 0, tickDecimals: 0, <?php if (count($o) <= 12) { echo 'ticks: ' . count($o) . ','; } ?>
 								tickFormatter: function (val, axis) {
 									var d = new Date(val);
-									return month_short[d.getUTCMonth()] + ' ' + d.getFullYear();//d.getUTCDate() + "/" + (d.getUTCMonth() + 1);
+									return month_short[d.getUTCMonth()] + ' ' + d.getFullYear();
 								}
 							},
 							yaxis: { min: 0 }
 						});
-						
-						/*$('#start-date').datepicker({
-							dateFormat: "yy-mm-dd",
-							constrainInput: true//,
-							//setDate: new Date($("input#id_due_date").attr("value"))
-						});
-						$('#end-date').datepicker({
-							dateFormat: "yy-mm-dd",
-							constrainInput: true//,
-							//setDate: new Date($("input#id_due_date").attr("value"))
-						});*/
 					});
 				}
 			</script>
 		</div><!-- / #container -->
 
 		<div class="container breakdown">
-			<table class="support-stats-overview" summary="<?php echo JText::_('Overview of open support tickets'); ?>">
+			<table class="support-stats-overview">
 				<thead>
 					<tr>
-						<th scope="col"><?php echo JText::_('Opened (all time)'); ?></th>
-						<th scope="col"><?php echo JText::_('Closed (all time)'); ?></th>
-						<th scope="col" class="block"><?php echo JText::_('Average lifetime'); ?></th>
-						<th scope="col" class="major"><?php echo JText::_('Unassigned'); ?></th>
+						<th scope="col"><?php echo JText::_('COM_SUPPORT_STATS_OPENED'); ?></th>
+						<th scope="col"><?php echo JText::_('COM_SUPPORT_STATS_CLOSED'); ?></th>
+						<th scope="col" class="block"><?php echo JText::_('COM_SUPPORT_STATS_AVERAGE_LIFETIME'); ?></th>
+						<th scope="col" class="major"><?php echo JText::_('COM_SUPPORT_STATS_UNASSIGNED'); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -336,9 +323,9 @@ function getMonthName($month)
 							<?php
 							$lifetime = SupportUtilities::calculateAverageLife($this->closedTickets);
 							?>
-							<?php echo (isset($lifetime[0])) ? $lifetime[0] : 0; ?> <span><?php echo JText::_('days'); ?></span> 
-							<?php echo (isset($lifetime[1])) ? $lifetime[1] : 0; ?> <span><?php echo JText::_('hours'); ?></span> 
-							<?php echo (isset($lifetime[2])) ? $lifetime[2] : 0; ?> <span><?php echo JText::_('minutes'); ?></span>
+							<?php echo (isset($lifetime[0])) ? $lifetime[0] : 0; ?> <span><?php echo JText::_('COM_SUPPORT_STATS_DAYS'); ?></span>
+							<?php echo (isset($lifetime[1])) ? $lifetime[1] : 0; ?> <span><?php echo JText::_('COM_SUPPORT_STATS_HOURS'); ?></span>
+							<?php echo (isset($lifetime[2])) ? $lifetime[2] : 0; ?> <span><?php echo JText::_('COM_SUPPORT_STATS_MINUTES'); ?></span>
 						</td>
 						<td class="major"><?php echo $this->opened['unassigned']; ?></td>
 					</tr>
@@ -349,14 +336,14 @@ function getMonthName($month)
 	<div class="container breakdown pies">
 		<div class="grid">
 			<div class="col span-half">
-				<h3><?php echo JText::_('Tickets by severity'); ?></h3>
+				<h3><?php echo JText::_('COM_SUPPORT_TICKETS_BY_SEVERITY'); ?></h3>
 				<div id="severities-container" style="min-width: 270px; height: 270px;">
-					<table class="support-stats-resolutions" summary="<?php echo JText::_('Breakdown of number of tickets for each severity'); ?>">
+					<table class="support-stats-resolutions">
 						<thead>
 							<tr>
-								<th scope="col"><?php echo JText::_('Severity'); ?></th>
-								<th scope="col"><?php echo JText::_('Number'); ?></th>
-								<th scope="col"><?php echo JText::_('Percent'); ?></th>
+								<th scope="col"><?php echo JText::_('COM_SUPPORT_STATS_SEVERITY'); ?></th>
+								<th scope="col"><?php echo JText::_('COM_SUPPORT_STATS_NUMBER'); ?></th>
+								<th scope="col"><?php echo JText::_('COM_SUPPORT_STATS_PERCENT'); ?></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -390,7 +377,7 @@ function getMonthName($month)
 								$cls = 'odd';
 								$data = array();
 								$i = 0;
-								
+
 								$severtes = array();
 								foreach ($severities as $k => $severity)
 								{
@@ -428,19 +415,15 @@ function getMonthName($month)
 				<script type="text/javascript">
 				if (jQuery()) {
 					var $ = jq, severityPie;
-					
+
 					function labelFormatter(label, series) {
 						return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
 					}
-					
+
 					$(document).ready(function() {
 						severityPie = $.plot($("#severities-container"), [<?php echo implode(',' . "\n", $data); ?>], {
-							/*legend: { 
-								show: false
-							},*/
 							series: {
-								pie: { 
-									/*innerRadius: 0.5,*/
+								pie: {
 									radius: 1,
 									label: {
 										show: true,
@@ -458,24 +441,24 @@ function getMonthName($month)
 								hoverable: false
 							}
 						});
-				    });
+					});
 				}
 				</script>
 			</div><!-- / .col span-half -->
 			<div class="col span-half omega">
-				<h3><?php echo JText::_('Tickets by resolution'); ?></h3>
+				<h3><?php echo JText::_('COM_SUPPORT_TICKETS_BY_RESOLUTION'); ?></h3>
 				<div id="resolutions-container" style="min-width: 270px; height: 270px;">
-					<table class="support-stats-resolutions" summary="<?php echo JText::_('Breakdown of people and the number of tickets closed'); ?>">
+					<table class="support-stats-resolutions">
 						<thead>
 							<tr>
-								<th scope="col"><?php echo JText::_('Resolution'); ?></th>
-								<th scope="col"><?php echo JText::_('Number'); ?></th>
-								<th scope="col"><?php echo JText::_('Percent'); ?></th>
+								<th scope="col"><?php echo JText::_('COM_SUPPORT_STATS_RESOLUTION'); ?></th>
+								<th scope="col"><?php echo JText::_('COM_SUPPORT_STATS_NUMBER'); ?></th>
+								<th scope="col"><?php echo JText::_('COM_SUPPORT_STATS_PERCENT'); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr class="odd">
-								<th scope="row"><?php echo JText::_('No resolution'); ?></th>
+								<th scope="row"><?php echo JText::_('COM_SUPPORT_STATS_RESOLUTION_NONE'); ?></th>
 								<td><?php echo (isset($res['noresolution'])) ? $res['noresolution'] : '0'; ?></td>
 								<td><?php echo (isset($res['noresolution'])) ? $res['noresolution']/$total : '0'; ?></td>
 							</tr>
@@ -484,7 +467,7 @@ function getMonthName($month)
 							$resolutions = $sr->getResolutions();
 
 							$cls = 'odd';
-							
+
 							$i = 0;
 							$data = array();
 
@@ -517,7 +500,7 @@ function getMonthName($month)
 						<?php
 								$i++;
 							}
-							$nores = "{label: '" . JText::_('No resolution') . "', data: " . (isset($res['noresolution']) ? $res['noresolution']/$total : '0') . ", color: '" . $colors[$i] . "'}";
+							$nores = "{label: '" . JText::_('COM_SUPPORT_STATS_RESOLUTION_NONE') . "', data: " . (isset($res['noresolution']) ? $res['noresolution']/$total : '0') . ", color: '" . $colors[$i] . "'}";
 							array_push($data, $nores);
 						?>
 						</tbody>
@@ -528,12 +511,8 @@ function getMonthName($month)
 					var $ = jq, resolutionPie;
 					$(document).ready(function() {
 						resolutionPie = $.plot($("#resolutions-container"), [<?php echo implode(',' . "\n", $data); ?>], {
-							/*legend: { 
-								show: false
-							},*/
 							series: {
-								pie: { 
-									/*innerRadius: 0.5,*/
+								pie: {
 									radius: 1,
 									label: {
 										show: true,
@@ -562,9 +541,8 @@ function getMonthName($month)
 	<?php
 	if ($this->users)
 	{
-		//$chunked = array_chunk($this->users, ceil(count($this->users) / 2));
 		$chunked = array_chunk($this->users, 2);
-	
+
 		$z = 0;
 		$j = 1;
 		foreach ($chunked as $chunked)
@@ -597,7 +575,7 @@ function getMonthName($month)
 
 				$closeddata = '';
 				//$utot = 0;
-				if ($user->closed) 
+				if ($user->closed)
 				{
 					$c = array();
 					foreach ($user->closed as $year => $data)
@@ -612,7 +590,7 @@ function getMonthName($month)
 				}
 				$anon = 0;
 				$profile = \Hubzero\User\Profile::getInstance($user->id);
-				if (!$profile) 
+				if (!$profile)
 				{
 					$anon = 1;
 				}
@@ -623,11 +601,11 @@ function getMonthName($month)
 				<strong>#<?php echo $j; ?></strong>
 			</p>
 			<p class="entry-member-photo">
-				<img src="<?php echo $profile->getPicture($anon); ?>" alt="<?php echo JText::sprintf('Photo for %s', $this->escape(stripslashes($user->name))); ?>" />
+				<img src="<?php echo $profile->getPicture($anon); ?>" alt="<?php echo $this->escape(stripslashes($user->name)); ?>" />
 			</p>
 			<p class="entry-title">
 				<?php echo $this->escape(stripslashes($user->name)); ?><br />
-				<span><?php echo JText::sprintf('%s assigned', number_format($user->assigned)); ?></span>
+				<span><?php echo JText::sprintf('COM_SUPPORT_STATS_NUM_ASSIGNED', number_format($user->assigned)); ?></span>
 			</p>
 		</div>
 		<div class="entry-content">
@@ -637,26 +615,25 @@ function getMonthName($month)
 						var $ = jq, chart<?php echo $user->username; ?>;
 
 						$(document).ready(function() {
-							var chart<?php echo $user->username; ?> = $.plot($('#user-<?php echo $user->username; ?>'), 
+							var chart<?php echo $user->username; ?> = $.plot($('#user-<?php echo $user->username; ?>'),
 								[{
-									color: "#656565", //#93ACCA
-									label: "Closed",
+									color: "#656565",
+									label: "<?php echo JText::_('COM_SUPPORT_CLOSED'); ?>",
 									data: [<?php echo $closeddata; ?>]
 								}], {
 								series: {
-									lines: { 
+									lines: {
 										show: true,
 										fill: true
 									},
 									points: { show: false },
 									shadowSize: 0
 								},
-								//crosshair: { mode: "x" },
 								grid: {
 									color: 'rgba(0, 0, 0, 0.6)',
 									borderWidth: 1,
 									borderColor: 'transparent',
-									hoverable: true, 
+									hoverable: true,
 									clickable: true
 								},
 								tooltip: true,
@@ -668,13 +645,13 @@ function getMonthName($month)
 									},
 									defaultTheme: false
 								},
-								legend: { 
+								legend: {
 									show: false,
 								},
 								xaxis: { mode: "time", tickLength: 0, tickDecimals: 0,
 									tickFormatter: function (val, axis) {
 										var d = new Date(val);
-										return month_short[d.getUTCMonth()] + ' \'' + d.getFullYear().toString().substring(2);//d.getUTCDate() + "/" + (d.getUTCMonth() + 1);
+										return month_short[d.getUTCMonth()] + ' \'' + d.getFullYear().toString().substring(2);
 									}
 								},
 								yaxis: { min: 0, max: <?php echo $top; ?> }
@@ -683,11 +660,11 @@ function getMonthName($month)
 					}
 				</script>
 			</div><!-- / #user -->
-			<table class="support-stats-overview" summary="<?php echo JText::_('Overview of open support tickets'); ?>">
+			<table class="support-stats-overview">
 				<thead>
 					<tr>
-						<th scope="col"><?php echo JText::_('Closed'); ?></th>
-						<th scope="col" class="block"><?php echo JText::_('Average lifetime'); ?></th>
+						<th scope="col"><?php echo JText::_('COM_SUPPORT_CLOSED'); ?></th>
+						<th scope="col" class="block"><?php echo JText::_('COM_SUPPORT_STATS_AVERAGE_LIFETIME'); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -697,9 +674,9 @@ function getMonthName($month)
 							<?php
 							$lifetime = SupportUtilities::calculateAverageLife($user->tickets);
 							?>
-							<?php echo (isset($lifetime[0])) ? $lifetime[0] : 0; ?> <span><?php echo JText::_('days'); ?></span> 
-							<?php echo (isset($lifetime[1])) ? $lifetime[1] : 0; ?> <span><?php echo JText::_('hours'); ?></span> 
-							<?php echo (isset($lifetime[2])) ? $lifetime[2] : 0; ?> <span><?php echo JText::_('minutes'); ?></span>
+							<?php echo (isset($lifetime[0])) ? $lifetime[0] : 0; ?> <span><?php echo JText::_('COM_SUPPORT_STATS_DAYS'); ?></span>
+							<?php echo (isset($lifetime[1])) ? $lifetime[1] : 0; ?> <span><?php echo JText::_('COM_SUPPORT_STATS_HOURS'); ?></span>
+							<?php echo (isset($lifetime[2])) ? $lifetime[2] : 0; ?> <span><?php echo JText::_('COM_SUPPORT_STATS_MINUTES'); ?></span>
 						</td>
 					</tr>
 				</tbody>
@@ -718,5 +695,5 @@ function getMonthName($month)
 	}
 	?>
 
-	</div><!-- / .main section -->
+	</section><!-- / .main section -->
 </form>

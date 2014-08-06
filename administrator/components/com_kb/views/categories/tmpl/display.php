@@ -33,33 +33,34 @@ defined('_JEXEC') or die('Restricted access');
 $canDo = KbHelper::getActions('category');
 
 JToolBarHelper::title(JText::_('COM_KB'), 'kb.png');
-if ($canDo->get('core.admin')) 
+if ($canDo->get('core.admin'))
 {
 	JToolBarHelper::preferences($this->option, '550');
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.edit.state')) 
+if ($canDo->get('core.edit.state'))
 {
 	JToolBarHelper::publishList();
 	JToolBarHelper::unpublishList();
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.create')) 
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editList();
 }
-if ($canDo->get('core.delete')) 
+if ($canDo->get('core.delete'))
 {
 	JToolBarHelper::deleteList();
 }
-
+JToolBarHelper::spacer();
+JToolBarHelper::help('categories');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 	if (pressbutton == 'cancel') {
@@ -76,11 +77,11 @@ function submitbutton(pressbutton)
 		<thead>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_KB_TITLE'), 'a.title', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_KB_PUBLISHED'), 'a.state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_KB_ACCESS'), 'a.access', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_KB_SUB_CATEGORIES'), 'cats', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_KB_QUESTIONS'), 'total', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_KB_TITLE', 'a.title', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_KB_PUBLISHED', 'a.state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_KB_ACCESS', 'a.access', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_KB_SUB_CATEGORIES', 'cats', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_KB_QUESTIONS', 'total', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -115,20 +116,20 @@ foreach ($this->rows as $row)
 			break;
 	}
 
-	if (!$row->get('access', 0)) 
+	if (!$row->get('access', 0))
 	{
-		$color_access = 'style="color: green;"';
-		$task_access = 'accessregistered';
-	} 
-	elseif ($row->get('access', 0) == 1) 
+		$color_access = 'public';
+		$task_access  = 'accessregistered';
+	}
+	elseif ($row->get('access', 0) == 1)
 	{
-		$color_access = 'style="color: red;"';
-		$task_access = 'accessspecial';
-	} 
-	else 
+		$color_access = 'registered';
+		$task_access  = 'accessspecial';
+	}
+	else
 	{
-		$color_access = 'style="color: black;"';
-		$task_access = 'accesspublic';
+		$color_access = 'special';
+		$task_access  = 'accesspublic';
 	}
 ?>
 			<tr class="<?php echo "row$k"; ?>">
@@ -159,11 +160,11 @@ foreach ($this->rows as $row)
 				</td>
 				<td>
 				<?php if ($canDo->get('core.edit.state')) { ?>
-					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task_access; ?>&amp;id=<?php echo $row->get('id'); ?>" <?php echo $color_access; ?> title="<?php echo JText::_('COM_KB_CHANGE_ACCESS'); ?>">
+					<a class="access <?php echo $color_access; ?>" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task_access; ?>&amp;id=<?php echo $row->get('id'); ?>" title="<?php echo JText::_('COM_KB_CHANGE_ACCESS'); ?>">
 						<?php echo $row->get('groupname'); ?>
 					</a>
 				<?php } else { ?>
-					<span <?php echo $color_access; ?>>
+					<span class="access <?php echo $color_access; ?>">
 						<?php echo $row->get('groupname'); ?>
 					</span>
 				<?php } ?>

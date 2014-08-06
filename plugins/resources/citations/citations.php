@@ -31,45 +31,32 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for citations
  */
-class plgResourcesCitations extends JPlugin
+class plgResourcesCitations extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
 	public function &onResourcesAreas($model)
 	{
+		$areas = array();
+
 		if ($model->type->params->get('plg_citations')
-			&& $model->access('view-all')) 
+			&& $model->access('view-all'))
 		{
-			$areas = array(
-				'citations' => JText::_('PLG_RESOURCES_CITATIONS')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['citations'] = JText::_('PLG_RESOURCES_CITATIONS');
 		}
 
 		return $areas;
@@ -77,7 +64,7 @@ class plgResourcesCitations extends JPlugin
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -87,21 +74,21 @@ class plgResourcesCitations extends JPlugin
 	public function onResources($model, $option, $areas, $rtrn='all')
 	{
 		$arr = array(
-			'area' => 'citations',
-			'html' => '',
+			'area'     => $this->_name,
+			'html'     => '',
 			'metadata' => ''
 		);
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				$rtrn = 'metadata';
 			}
 		}
-		if (!$model->type->params->get('plg_citations')) 
+		if (!$model->type->params->get('plg_citations'))
 		{
 			return $arr;
 		}
@@ -119,23 +106,23 @@ class plgResourcesCitations extends JPlugin
 		$citations = $c->getCitations('resource', $model->resource->id);
 
 		// Are we returning HTML?
-		if ($rtrn == 'all' || $rtrn == 'html') 
+		if ($rtrn == 'all' || $rtrn == 'html')
 		{
 			// Instantiate a view
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
-					'element' => 'citations',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'browse'
 				)
 			);
 
 			// Pass the view some info
-			$view->option = $option;
-			$view->resource = $model->resource;
+			$view->option    = $option;
+			$view->resource  = $model->resource;
 			$view->citations = $citations;
-			$view->format = $this->params->get('format', 'APA');
-			if ($this->getError()) 
+			$view->format    = $this->params->get('format', 'APA');
+			if ($this->getError())
 			{
 				$view->setError($this->getError());
 			}
@@ -145,34 +132,18 @@ class plgResourcesCitations extends JPlugin
 		}
 
 		// Are we returning metadata?
-		if ($rtrn == 'all' || $rtrn == 'metadata') 
+		if ($rtrn == 'all' || $rtrn == 'metadata')
 		{
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
-					'element' => 'citations',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'metadata'
 				)
 			);
-
-			if ($model->resource->alias) 
-			{
-				$url = JRoute::_('index.php?option=' . $option . '&alias=' . $model->resource->alias . '&active=citations');
-			} 
-			else 
-			{
-				$url = JRoute::_('index.php?option=' . $option . '&id=' . $model->resource->id . '&active=citations');
-			}
-
-			$view = new \Hubzero\Plugin\View(
-				array(
-					'folder'  => 'resources',
-					'element' => 'citations',
-					'name'    => 'metadata'
-				)
-			);
-			$view->url = $url;
+			$view->url = JRoute::_('index.php?option=' . $option . '&' . ($model->resource->alias ? 'alias=' . $model->resource->alias : 'id=' . $model->resource->id) . '&active=citations');
 			$view->citations = $citations;
+
 			$arr['metadata'] = $view->loadTemplate();
 		}
 

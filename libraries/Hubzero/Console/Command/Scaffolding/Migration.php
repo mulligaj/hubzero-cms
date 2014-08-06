@@ -77,13 +77,23 @@ class Migration extends Scaffolding
 				break;
 		}
 
+		// Determine our base path
+		$base = JPATH_ROOT;
+		if ($this->arguments->getOpt('install-dir') && strlen(($this->arguments->getOpt('install-dir'))) > 0)
+		{
+			$base = JPATH_ROOT . DS . trim($this->arguments->getOpt('install-dir'), DS);
+		}
+
+		// Install directory is migrations folder within base
+		$install_dir = $base . DS . 'migrations';
+
 		// Extension
 		$extension = null;
 		if ($this->arguments->getOpt('e') || $this->arguments->getOpt('extension'))
 		{
 			$extension = ($this->arguments->getOpt('e')) ? $this->arguments->getOpt('e') : $this->arguments->getOpt('extension');
 
-			if ($extension != 'core' && !$this->isValidExtension($extension))
+			if ($extension != 'core' && !$this->isValidExtension($extension, $base) && !$this->arguments->getOpt('i'))
 			{
 				$this->output->error("Error: the extension provided ({$extension}) does not appear to be valid.");
 			}
@@ -121,7 +131,7 @@ class Migration extends Scaffolding
 
 		// Craft file/classname
 		$classname   = 'Migration' . \JFactory::getDate()->format("YmdHis") . $ext;
-		$destination = JPATH_ROOT . DS . 'migrations' . DS . $classname . '.php';
+		$destination = $install_dir . DS . $classname . '.php';
 
 		$this->addTemplateFile("{$this->getType()}.tmpl", $destination)
 			 ->addReplacement('class_name', $classname)
@@ -134,9 +144,11 @@ class Migration extends Scaffolding
 	/**
 	 * Simple helper function to check validity of provided extension name
 	 *
-	 * @return bool - whether or not extension is valid
+	 * @param  string - extension name to evaluate
+	 * @param  string - base directory to examine
+	 * @return bool   - whether or not extension is valid
 	 **/
-	private function isValidExtension($extension)
+	private function isValidExtension($extension, $base)
 	{
 		$ext = explode("_", $extension);
 		$dir = '';
@@ -144,22 +156,26 @@ class Migration extends Scaffolding
 		switch ($ext[0])
 		{
 			case 'com':
-				$dir = JPATH_ROOT . DS . 'components' . DS . $extension;
+				$dir = $base . DS . 'components' . DS . $extension;
+				$alt = $base . DS . 'administrator' . DS . 'components' . DS . $extension;
 			break;
 			case 'mod':
-				$dir = JPATH_ROOT . DS . 'modules' . DS . $extension;
+				$dir = $base . DS . 'modules' . DS . $extension;
+				$alt = $base . DS . 'administrator' . DS . 'modules' . DS . $extension;
 			break;
 			case 'plg':
-				$dir = JPATH_ROOT . DS . 'plugins' . DS . $ext[1] . DS . $ext[2];
+				$dir = $base . DS . 'plugins' . DS . $ext[1] . DS . $ext[2];
+				$alt = 'invalidfilepath';
 			break;
 		}
 
-		return (is_dir($dir)) ? true : false;
+		return (is_dir($dir) || is_dir($alt)) ? true : false;
 	}
 
 	/**
 	 * Get table creation string
 	 *
+	 * @param  (string) table name for which to retrieve create syntax
 	 * @return (string) table creation syntax
 	 **/
 	private function showCreateTable($tableName)
@@ -195,6 +211,22 @@ class Migration extends Scaffolding
 				should be given the extension "core"',
 				'Example: -e=com_courses, --extension=plg_members_dashboard',
 				true
+			)
+			->addArgument(
+				'-i: ignore validity check',
+				'Normally, migrations scaffolding tries to check the validity of the provided
+				extension name by checking for the existance of a corresponding
+				directory within the framework. Occasionally, migrations need to be
+				written for non-existent extensions. This option will override the
+				validity check and allow you to create the migration anyways.',
+				'Example: -i'
+			)
+			->addArgument(
+				'--install-dir: installation directory',
+				'Installation/base directory within which the migration will be installed.
+				By default, this will be JPATH_ROOT. The command will then look for a 
+				directory named "migrations" within the provided installation directory.',
+				'Example: --install-dir=/www/myhub'
 			)
 			->addArgument(
 				'--editor: editor',

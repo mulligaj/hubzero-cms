@@ -40,21 +40,21 @@ class CitationsDownloadBibtex extends CitationsDownloadAbstract
 {
 	/**
 	 * Mime type
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_mime = 'application/x-bibtex';
 
 	/**
 	 * File extension
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_extension = 'bib';
 
 	/**
 	 * Format the file
-	 * 
+	 *
 	 * @param      object $row Record to format
 	 * @return     string
 	 */
@@ -69,14 +69,8 @@ class CitationsDownloadBibtex extends CitationsDownloadAbstract
 		}
 		$exclude = array_values(array_filter(array_map('trim', explode("\n", $exclude))));
 
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-
 		//get fields to not include for specific citation
-		$cparams = new $paramsClass($row->params);
+		$cparams = new JRegistry($row->params);
 		$citation_exclude = $cparams->get('exclude', '');
 		if (strpos($citation_exclude, ',') !== false)
 		{
@@ -99,9 +93,9 @@ class CitationsDownloadBibtex extends CitationsDownloadAbstract
 
 		//find the right title
 		$type = '';
-		foreach ($types as $t) 
+		foreach ($types as $t)
 		{
-			if ($t['id'] == $row->type) 
+			if ($t['id'] == $row->type)
 			{
 				$type = $t['type'];
 			}
@@ -147,11 +141,11 @@ class CitationsDownloadBibtex extends CitationsDownloadAbstract
 		$addarray['url']          = $row->url;
 		$addarray['volume']       = $row->volume;
 		$addarray['year']         = $row->year;
-		if ($row->journal != '') 
+		if ($row->journal != '')
 		{
 			$addarray['issn']     = $row->isbn;
-		} 
-		else 
+		}
+		else
 		{
 			$addarray['isbn']     = $row->isbn;
 		}

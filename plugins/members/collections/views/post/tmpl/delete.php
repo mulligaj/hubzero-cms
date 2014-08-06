@@ -42,6 +42,8 @@ if (!$identifier)
 		$identifier = '#' . $this->post->item()->get('id');
 	}
 }
+
+$this->css();
 ?>
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
@@ -53,7 +55,7 @@ if (!$identifier)
 	 		<p class="warning"><?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_DELETE_WARNING', $this->escape(stripslashes($identifier))); ?></p>
 
 			<label>
-				<input type="checkbox" class="option" name="confirmdel" value="1" /> 
+				<input type="checkbox" class="option" name="confirmdel" value="1" />
 				<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_DELETE_CONFIRM'); ?>
 			</label>
 		</fieldset>
@@ -68,11 +70,12 @@ if (!$identifier)
 		<input type="hidden" name="no_html" value="<?php echo $this->no_html; ?>" />
 
 		<?php echo JHTML::_('form.token'); ?>
-		
+
 		<p class="submit">
-			<input type="submit" value="<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_DELETE'); ?>" />
-<?php if (!$this->no_html) { ?>
-			<a href="<?php echo JRoute::_($base . '&task=' . $this->collection->get('alias')); ?>"><?php echo JText::_('Cancel'); ?></a>
-<?php } ?>
+			<input type="submit" class="btn btn-danger" value="<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_DELETE'); ?>" />
+
+			<?php if (!$this->no_html) { ?>
+				<a class="btn btn-secondary" href="<?php echo JRoute::_($base . '&task=' . $this->collection->get('alias')); ?>"><?php echo JText::_('Cancel'); ?></a>
+			<?php } ?>
 		</p>
 	</form>

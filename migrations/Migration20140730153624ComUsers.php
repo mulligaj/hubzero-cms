@@ -25,9 +25,10 @@ class Migration20140730153624ComUsers extends Base
 			if ($id = $this->db->loadResult())
 			{
 				$params->set('new_usertype', $id);
-				$query = "UPDATE `#__extensions` SET `params` = " . $this->db->quote((string)$params) . " WHERE `element` = 'com_users'";
-				$this->db->setQuery($query);
-				$this->db->query();
+				$component = new \JTableExtension($this->db);
+				$component->load(array('element'=>'com_users'));
+				$component->set('params', (string) $params);
+				$component->store();
 			}
 			else
 			{

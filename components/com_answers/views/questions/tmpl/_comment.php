@@ -1,11 +1,11 @@
-<?php 
+<?php
 defined('_JEXEC') or die('Restricted access');
 
 	$juser = JFactory::getUser();
 
 	$cls = isset($this->cls) ? $this->cls : 'odd';
 
-	if ($this->question->get('created_by') == $this->comment->get('created_by')) 
+	if ($this->question->get('created_by') == $this->comment->get('created_by'))
 	{
 		$cls .= ' author';
 	}
@@ -16,13 +16,11 @@ defined('_JEXEC') or die('Restricted access');
 	}
 
 	$name = JText::_('COM_ANSWERS_ANONYMOUS');
-	$huser = new \Hubzero\User\Profile;
-	if (!$this->comment->get('anonymous')) 
+	if (!$this->comment->get('anonymous'))
 	{
-		$huser = $this->comment->creator(); //\Hubzero\User\Profile::getInstance($this->comment->get('created_by'));
-		if (is_object($huser) && $huser->get('name')) 
+		if ($this->comment->creator('name'))
 		{
-			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $huser->get('uidNumber')) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
+			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $this->comment->creator('uidNumber')) . '">' . $this->escape(stripslashes($this->comment->creator('name'))) . '</a>';
 		}
 	}
 
@@ -39,75 +37,74 @@ defined('_JEXEC') or die('Restricted access');
 	$this->comment->set('item_id', ($this->depth == 1 ? $this->comment->get('id') : $this->item_id));
 
 ?>
-	<li class="comment <?php echo $cls; ?>" id="c<?php echo $this->comment->get('id'); ?>">
+	<li class="comment <?php echo $cls; ?>" id="<?php echo ($this->depth == 1 ? 'a' : 'c') . $this->comment->get('id'); ?>">
 		<p class="comment-member-photo">
-			<img src="<?php echo $huser->getPicture($this->comment->get('anonymous')); ?>" alt="" />
+			<img src="<?php echo $this->comment->creator()->getPicture($this->comment->get('anonymous')); ?>" alt="" />
 		</p>
 		<div class="comment-content">
-		<?php if (!$this->comment->isReported() && $this->comment->get('qid')) { ?>
-			<p class="comment-voting voting" id="answers_<?php echo $this->comment->get('id'); ?>">
-				<?php
-				$view = new JView(array(
-					'name'   => 'questions', 
-					'layout' => 'rateitem'
-				));
-				$view->option = $this->option;
-				$view->item   = $this->comment;
-				$view->type   = 'question';
-				$view->vote   = '';
-				$view->id     = '';
-				if (!$juser->get('guest')) 
-				{
-					if ($this->comment->get('created_by') == $juser->get('username')) 
+			<?php if (!$this->comment->isReported() && $this->comment->get('qid')) { ?>
+				<p class="comment-voting voting" id="answers_<?php echo $this->comment->get('id'); ?>">
+					<?php
+					$view = $this->view('rateitem');
+					$view->set('option', $this->option)
+					     ->set('item', $this->comment)
+					     ->set('type', 'question')
+					     ->set('vote', '')
+					     ->set('id', '');
+					if (!$juser->get('guest'))
 					{
-						$view->vote = $this->comment->get('vote');
-						$view->id   = $this->comment->get('id');
+						if ($this->comment->get('created_by') == $juser->get('username'))
+						{
+							$view->set('vote', $this->comment->get('vote'))
+							     ->set('id', $this->comment->get('id'));
+						}
 					}
-				}
-				$view->display();
-				?>
-			</p><!-- / .comment-voting -->
-		<?php } ?>
+					$view->display();
+					?>
+				</p><!-- / .comment-voting -->
+			<?php } ?>
 
 			<p class="comment-title">
-				<strong><?php echo $name; ?></strong> 
-				<a class="permalink" href="<?php echo JRoute::_($this->base . '#c' . $this->comment->get('id')); ?>" title="<?php echo JText::_('COM_ANSWERS_PERMALINK'); ?>">
-					<span class="comment-date-at">@</span> 
-					<span class="time"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('time'); ?></time></span> 
-					<span class="comment-date-on"><?php echo JText::_('COM_ANSWERS_ON'); ?></span> 
+				<strong><?php echo $name; ?></strong>
+				<a class="permalink" href="<?php echo JRoute::_($this->base . '#' . ($this->depth == 1 ? 'a' : 'c') . $this->comment->get('id')); ?>" title="<?php echo JText::_('COM_ANSWERS_PERMALINK'); ?>">
+					<span class="comment-date-at"><?php echo JText::_('COM_ANSWERS_DATETIME_AT'); ?></span>
+					<span class="time"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('time'); ?></time></span>
+					<span class="comment-date-on"><?php echo JText::_('COM_ANSWERS_ON'); ?></span>
 					<span class="date"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('date'); ?></time></span>
 				</a>
 			</p>
 
-			<?php echo $comment; ?>
+			<div class="comment-body">
+				<?php echo $comment; ?>
+			</div>
 
 			<p class="comment-options">
 			<?php /*if ($this->config->get('access-edit-thread')) { // || $juser->get('id') == $this->comment->created_by ?>
 				<?php if ($this->config->get('access-delete-thread')) { ?>
-					<a class="icon-delete delete" href="<?php echo JRoute::_($this->base . '&action=delete&comment=' . $this->comment->get('id')); ?>"><!-- 
-						--><?php echo JText::_('COM_ANSWERS_DELETE'); ?><!-- 
+					<a class="icon-delete delete" href="<?php echo JRoute::_($this->base . '&action=delete&comment=' . $this->comment->get('id')); ?>"><!--
+						--><?php echo JText::_('COM_ANSWERS_DELETE'); ?><!--
 					--></a>
 				<?php } ?>
 				<?php if ($this->config->get('access-edit-thread')) { ?>
-					<a class="icon-edit edit" href="<?php echo JRoute::_($this->base . '&action=edit&comment=' . $this->comment->get('id')); ?>"><!-- 
-						--><?php echo JText::_('COM_ANSWERS_EDIT'); ?><!-- 
+					<a class="icon-edit edit" href="<?php echo JRoute::_($this->base . '&action=edit&comment=' . $this->comment->get('id')); ?>"><!--
+						--><?php echo JText::_('COM_ANSWERS_EDIT'); ?><!--
 					--></a>
 				<?php } ?>
 			<?php }*/ ?>
-			<?php if (!$this->comment->get('reports')) { ?>
+			<?php if (!$this->comment->isReported()) { ?>
 				<?php if ($this->depth < $this->config->get('comments_depth', 3)) { ?>
 					<?php if (JRequest::getInt('reply', 0) == $this->comment->get('id')) { ?>
-					<a class="icon-reply reply active" data-txt-active="<?php echo JText::_('COM_ANSWERS_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('COM_ANSWERS_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link()); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('COM_ANSWERS_CANCEL'); ?><!-- 
+					<a class="icon-reply reply active" data-txt-active="<?php echo JText::_('COM_ANSWERS_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('COM_ANSWERS_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link()); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!--
+					--><?php echo JText::_('COM_ANSWERS_CANCEL'); ?><!--
 				--></a>
 					<?php } else { ?>
-					<a class="icon-reply reply" data-txt-active="<?php echo JText::_('COM_ANSWERS_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('COM_ANSWERS_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link('reply')); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('COM_ANSWERS_REPLY'); ?><!-- 
+					<a class="icon-reply reply" data-txt-active="<?php echo JText::_('COM_ANSWERS_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('COM_ANSWERS_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link('reply')); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!--
+					--><?php echo JText::_('COM_ANSWERS_REPLY'); ?><!--
 				--></a>
 					<?php } ?>
 				<?php } ?>
-					<a class="icon-abuse abuse" href="<?php echo JRoute::_($this->comment->link('report')); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('COM_ANSWERS_REPORT_ABUSE'); ?><!-- 
+					<a class="icon-abuse abuse" data-txt-flagged="<?php echo JText::_('COM_ANSWERS_COMMENT_REPORTED_AS_ABUSIVE'); ?>" href="<?php echo JRoute::_($this->comment->link('report')); ?>"><!--
+					--><?php echo JText::_('COM_ANSWERS_REPORT_ABUSE'); ?><!--
 				--></a>
 				<?php if ($juser->get('id') == $this->question->get('created_by') && $this->question->isOpen() && $this->comment->get('qid') && $this->depth <= 1) { ?>
 					<a class="accept" href="<?php echo JRoute::_($this->comment->link('accept')); ?>"><?php echo JText::_('COM_ANSWERS_ACCEPT_ANSWER'); ?></a>
@@ -119,7 +116,7 @@ defined('_JEXEC') or die('Restricted access');
 			<div class="addcomment comment-add<?php if (JRequest::getInt('reply', 0) != $this->comment->get('id')) { echo ' hide'; } ?>" id="comment-form<?php echo $this->comment->get('id'); ?>">
 				<?php if ($juser->get('guest')) { ?>
 				<p class="warning">
-					<?php echo JText::sprintf('COM_ANSWERS_PLEASE_LOGIN_TO_ANSWER', '<a href="' . JRoute::_('index.php?option=com_login&return=' . base64_encode(JRoute::_($this->base, false, true))) . '">' . JText::_('COM_ANSWERS_LOGIN') . '</a>'); ?>
+					<?php echo JText::sprintf('COM_ANSWERS_PLEASE_LOGIN_TO_ANSWER', '<a href="' . JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode(JRoute::_($this->base, false, true))) . '">' . JText::_('COM_ANSWERS_LOGIN') . '</a>'); ?>
 				</p>
 				<?php } else { ?>
 				<form id="cform<?php echo $this->comment->get('id'); ?>" action="<?php echo JRoute::_($this->base); ?>" method="post" enctype="multipart/form-data">
@@ -132,6 +129,7 @@ defined('_JEXEC') or die('Restricted access');
 						<input type="hidden" name="comment[parent]" value="<?php echo ($this->depth == 1 ? 0 : $this->comment->get('id')); ?>" />
 						<input type="hidden" name="comment[created]" value="" />
 						<input type="hidden" name="comment[created_by]" value="<?php echo $juser->get('id'); ?>" />
+						<input type="hidden" name="comment[state]" value="1" />
 						<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 						<input type="hidden" name="controller" value="questions" />
 						<input type="hidden" name="rid" value="<?php echo $this->question->get('id'); ?>" />
@@ -146,13 +144,13 @@ defined('_JEXEC') or die('Restricted access');
 							?>
 						</label>
 
-						<label id="comment-anonymous-label" for="comment-anonymous">
-							<input class="option" type="checkbox" name="comment[anonymous]" id="comment-anonymous" value="1" />
+						<label class="comment-anonymous-label" for="comment_<?php echo $this->comment->get('id'); ?>_anonymous">
+							<input class="option" type="checkbox" name="comment[anonymous]" id="comment_<?php echo $this->comment->get('id'); ?>_anonymous" value="1" />
 							<?php echo JText::_('COM_ANSWERS_POST_COMMENT_ANONYMOUSLY'); ?>
 						</label>
 
 						<p class="submit">
-							<input type="submit" value="<?php echo JText::_('COM_ANSWERS_SUBMIT'); ?>" /> 
+							<input type="submit" value="<?php echo JText::_('COM_ANSWERS_SUBMIT'); ?>" />
 						</p>
 					</fieldset>
 				</form>
@@ -161,24 +159,19 @@ defined('_JEXEC') or die('Restricted access');
 		<?php } ?>
 		</div><!-- / .comment-content -->
 		<?php
-		if ($this->depth < $this->config->get('comments_depth', 3)) 
+		if ($this->depth < $this->config->get('comments_depth', 3))
 		{
-			$view = new JView(
-				array(
-					'name'    => 'questions',
-					'layout'  => '_list'
-				)
-			);
-			$view->item_id    = $this->comment->get('item_id');
-			$view->parent     = $this->comment->get('id');
-			$view->question   = $this->question;
-			$view->option     = $this->option;
-			$view->comments   = $this->comment->replies('list');
-			$view->config     = $this->config;
-			$view->depth      = $this->depth;
-			$view->cls        = $cls;
-			$view->base       = $this->base;
-			$view->display();
+			$this->view('_list')
+			     ->set('item_id', $this->comment->get('item_id'))
+			     ->set('parent', $this->comment->get('id'))
+			     ->set('question', $this->question)
+			     ->set('option', $this->option)
+			     ->set('comments', $this->comment->replies('list'))
+			     ->set('config', $this->config)
+			     ->set('depth', $this->depth)
+			     ->set('cls', $cls)
+			     ->set('base', $this->base)
+			     ->display();
 		}
 		?>
 	</li>

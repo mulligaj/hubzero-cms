@@ -10,8 +10,7 @@
 // --------------------------------------------------
 
 	.grid {
-		max-width: 100%;
-		.clearfix(left);
+		#grid > .grid
 	}
 	.columns,
 	.grid .col {
@@ -20,6 +19,7 @@
 		min-height: 1em;
 		.box-sizing(border-box);
 	}
+	
 	.grid .col.omega,
 	.two.second,
 	.three.third,
@@ -33,9 +33,7 @@
 
 	.columns,
 	.grid [class*="span"] {
-		float: left;
-		margin-right: @fluidGridGutterWidth;
-		*margin-right: @fluidGridGutterWidth - (.5 / @gridRowWidth * 100 * 1%);
+		#grid > .col
 	}
 
 // Old columns support
@@ -171,6 +169,146 @@
 		#grid > .offset(1);
 	}
 
+
+// Breaking the grid media queries
+
+@media only screen and (max-width: @break6) and (min-width: (@break3 + 1)) {
+	// Collapse 6 columns into a set of two 3 columns
+	
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col {
+		float: left;
+		#grid > .span(4);
+	}
+	
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col:nth-child(3n) {
+		margin-right: 0;
+	}
+	
+	// Add bottom margin to the first 3 columns
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col:nth-child(-n + 3) {
+		margin-bottom: @gridColCollapseMargin;
+	}
+	
+	// Clear the 4th column
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col:nth-child(4) {
+		clear: left;
+	}
+	
+	.grid.break6 > .col {
+		.basicColumn;
+	}
+
+}
+
+@media only screen and (max-width: @break4) and (min-width: (@break2 + 1)) {
+	// Collapse 4 columns into a set of two 2 columns
+	
+	.grid:not(.nobreak) .col:first-child:nth-last-child(4),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(4) ~ .col {
+		float: left;
+		#grid > .span(6);
+	}
+	
+	.grid:not(.nobreak) .col:first-child:nth-last-child(4) ~ .col:nth-child(2) {
+		margin-right: 0;
+	}
+	
+	// Add bottom margin to the first 2 columns
+	.grid:not(.nobreak) .col:first-child:nth-last-child(4),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(4) ~ .col:nth-child(-n + 2) {
+		margin-bottom: @gridColCollapseMargin;
+	}
+	
+	// Clear the 3rd column
+	.grid:not(.nobreak) .col:first-child:nth-last-child(4) ~ .col:nth-child(3) {
+		clear: left;
+	}
+	
+	.grid.break6 > .col, .grid.break4 > .col {
+		.basicColumn;
+	}
+}
+
+@media only screen and (max-width: @break3) and (min-width: (@break2 + 1)) {
+	// Collapse 3 columns
+	
+	.grid:not(.nobreak) .col:first-child:nth-last-child(3),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(3) ~ .col {
+		.basicColumn;
+	}
+	
+	// Add bottom margin to the first 2 columns
+	.grid:not(.nobreak) .col:first-child:nth-last-child(3),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(3) ~ .col:nth-child(-n + 2) {
+		margin-bottom: @gridColCollapseMargin;
+	}
+	
+	.break3 > .col {
+		float: none;
+		width: 100%;
+		margin-right: 0;	
+	}
+	
+	// Re-collapse 6 columns (2-2-2)	
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col {
+		float: left;
+		#grid > .span(6);
+	}
+	
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col:nth-child(2n) {
+		margin-right: 0;
+	}
+	
+	// Add bottom margin to the first 4 columns
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col:nth-child(-n + 4) {
+		margin-bottom: @gridColCollapseMargin;
+	}
+	
+	// Clear the 3rd and 5th column
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col:nth-child(3),
+	.grid:not(.nobreak) .col:first-child:nth-last-child(6) ~ .col:nth-child(5) {
+		clear: left;
+	}
+	
+	.grid.break6 > .col, .grid.break4 > .col, .grid.break3 > .col {
+		.basicColumn;
+	}
+}
+
+@media only screen and (max-width: @break2) {
+	.grid:not(.nobreak) .col {
+		.basicColumn;
+	}
+	
+	
+}
+
+/*
+@media (max-width: 800px) {
+	.grid .span-quarter,
+	.grid .span3 {
+		#grid > .span(6);
+		&:nth-child(2) {
+			margin-right: 0;
+		}
+	}
+	.grid .span2 {
+		#grid > .span(4);
+		&:nth-child(3) {
+			margin-right: 0;
+		}
+	}
+	.grid .span1 {
+		#grid > .span(2);
+		&:nth-child(6) {
+			margin-right: 0;
+		}
+	}
+}
 @media (max-width: 460px) {
 	.columns,
 	.grid [class*="span"] {
@@ -180,3 +318,4 @@
 		margin-right: 0;
 	}
 }
+*/

@@ -33,95 +33,72 @@ defined('_JEXEC') or die('Restricted access');
 
 $option = 'com_support';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-	
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect('index.php', JText::_('ALERTNOTAUTH'));
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include scripts
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'ticket.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'watching.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'comment.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'message.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'resolution.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'attachment.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'category.php');
-include_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'utilities.php');
-include_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'acl.php');
-include_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'html.php');
-include_once(JPATH_ROOT . DS . 'components' . DS . $option . DS . 'helpers' . DS . 'tags.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'ticket.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'watching.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'comment.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'message.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'resolution.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'attachment.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'category.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'utilities.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'acl.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'html.php');
+include_once(JPATH_COMPONENT_SITE . DS . 'helpers' . DS . 'tags.php');
 
 $controllerName = JRequest::getCmd('controller', 'tickets');
-if (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))
+if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php'))
 {
 	$controllerName = 'tickets';
 }
 
 JSubMenuHelper::addEntry(
-	JText::_('Tickets'),
+	JText::_('COM_SUPPORT_TICKETS'),
 	'index.php?option=com_support&controller=tickets',
 	$controllerName == 'tickets'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Categories'),
+	JText::_('COM_SUPPORT_CATEGORIES'),
 	'index.php?option=com_support&controller=categories',
 	$controllerName == 'categories'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Queries'),
+	JText::_('COM_SUPPORT_QUERIES'),
 	'index.php?option=com_support&controller=queries',
 	$controllerName == 'queries'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Messages'),
+	JText::_('COM_SUPPORT_MESSAGES'),
 	'index.php?option=com_support&controller=messages',
 	$controllerName == 'messages'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Resolutions'),
+	JText::_('COM_SUPPORT_RESOLUTIONS'),
 	'index.php?option=com_support&controller=resolutions',
 	$controllerName == 'resolutions'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Abuse Reports'),
+	JText::_('COM_SUPPORT_ABUSE_REPORTS'),
 	'index.php?option=com_support&controller=abusereports',
 	$controllerName == 'abusereports'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Tag/Groups'),
-	'index.php?option=com_support&controller=taggroups',
-	$controllerName == 'taggroups'
-);
-JSubMenuHelper::addEntry(
-	JText::_('Stats'),
+	JText::_('COM_SUPPORT_STATS'),
 	'index.php?option=com_support&controller=stats',
 	$controllerName == 'stats'
 );
 JSubMenuHelper::addEntry(
-	JText::_('ACL'),
+	JText::_('COM_SUPPORT_ACL'),
 	'index.php?option=com_support&controller=acl',
 	$controllerName == 'acl'
 );
 
-require_once(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'SupportController' . ucfirst($controllerName);
 
 // Instantiate controller

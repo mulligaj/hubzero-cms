@@ -56,23 +56,90 @@ class Assets
 	}
 
 	/**
+	 * Check if a filename is a supported image type
+	 *
+	 * @param   string $image Filename
+	 * @return  boolean
+	 */
+	public static function isImage($image)
+	{
+		if (!trim($image))
+		{
+			return false;
+		}
+
+		jimport('joomla.filesystem.file');
+		$ext = strtolower(\JFile::getExt($image));
+		if (!in_array($ext, array('gif', 'jpg', 'jpe', 'jpeg', 'png', 'bmp')))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Adds a linked stylesheet to the page
+	 *
+	 * @param	string  $stylesheet Stylesheet name (optional, uses component name if left blank)
+	 * @return  void
+	 */
+	public static function addStylesheet($stylesheet)
+	{
+		if (!$stylesheet)
+		{
+			return;
+		}
+
+		if (substr($stylesheet, -4) != '.css')
+		{
+			$stylesheet .= '.css';
+		}
+
+		$root = self::base();
+
+		JFactory::getDocument()->addStyleSheet(rtrim(JURI::base(true), DS) . $stylesheet . '?v=' . filemtime($root . $stylesheet));
+	}
+
+	/**
+	 * Adds a linked script to the page
+	 *
+	 * @param	string  $script Script name (optional, uses module name if left blank)
+	 * @return  void
+	 */
+	public static function addScript($script)
+	{
+		if (!$script)
+		{
+			return;
+		}
+
+		if (substr($script, -3) != '.js')
+		{
+			$script .= '.js';
+		}
+
+		$root = self::base();
+
+		JFactory::getDocument()->addScript(rtrim(JURI::base(true), DS) . $script . '?v=' . filemtime($root . $script));
+	}
+
+	/**
 	 * Adds a linked stylesheet from a component to the page
 	 *
 	 * @param	string  $component  Component name
 	 * @param	string  $stylesheet Stylesheet name (optional, uses component name if left blank)
-	 * @param	string  $type       Mime encoding type
-	 * @param	string  $media      Media type that this stylesheet applies to
-	 * @param	string  $attribs    Attributes to add to the link
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  void
 	 */
-	public static function addComponentStylesheet($component, $stylesheet = '', $type = 'text/css', $media = null, $attribs = array())
+	public static function addComponentStylesheet($component, $stylesheet = '', $dir = 'css')
 	{
 		$app = JFactory::getApplication();
 		$template = $app->getTemplate();
 
 		$root = self::base();
 
-		if (empty($stylesheet)) 
+		if (empty($stylesheet))
 		{
 			$stylesheet = substr($component, 4) . '.css';
 		}
@@ -85,17 +152,17 @@ class Assets
 		$paths = array();
 
 		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . $component . DS . $stylesheet;
-		$paths[] = DS . 'components' . DS . $component . DS . 'assets' . DS . 'css' . DS . $stylesheet;
+		$paths[] = DS . 'components' . DS . $component . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $stylesheet;
 		$paths[] = DS . 'components' . DS . $component . DS . $stylesheet;
 
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists($root . $path)) 
+			if (file_exists($root . $path))
 			{
 				// Push script to the document
 				$jdocument = JFactory::getDocument();
-				$jdocument->addStyleSheet(rtrim(JURI::getInstance()->base(true), DS) . $path . '?v=' . filemtime($root . $path), $type, $media, $attribs);
+				$jdocument->addStyleSheet(rtrim(JURI::base(true), DS) . $path . '?v=' . filemtime($root . $path));
 				break;
 			}
 		}
@@ -106,14 +173,12 @@ class Assets
 	 *
 	 * @param   string  $component  URL to the linked script
 	 * @param	string  $script     Script name (optional, uses module name if left blank)
-	 * @param   string  $type       Type of script. Defaults to 'text/javascript'
-	 * @param   bool    $defer      Adds the defer attribute.
-	 * @param   bool    $async      Adds the async attribute.
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  void
 	 */
-	public static function addComponentScript($component, $script = '', $type = "text/javascript", $defer = false, $async = false)
+	public static function addComponentScript($component, $script = '', $dir = 'js')
 	{
-		if (empty($script)) 
+		if (empty($script))
 		{
 			$script = substr($component, 4);
 		}
@@ -131,11 +196,11 @@ class Assets
 
 		if (\JPluginHelper::isEnabled('system', 'jquery'))
 		{
-			$paths[] = $base . DS . 'assets' . DS . 'js' . DS . $script . '.jquery.js';
+			$paths[] = $base . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $script . '.jquery.js';
 			$paths[] = $base . DS . $script . '.jquery.js';
 		}
 
-		$paths[] = $base . DS . 'assets' . DS . 'js' . DS . $script . '.js';
+		$paths[] = $base . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $script . '.js';
 		$paths[] = $base . DS . $script . '.js';
 
 		$root = self::base();
@@ -143,11 +208,11 @@ class Assets
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists($root . $path)) 
+			if (file_exists($root . $path))
 			{
 				// Push script to the document
 				$jdocument = JFactory::getDocument();
-				$jdocument->addScript(rtrim(JURI::getInstance()->base(true), DS) . $path . '?v=' . filemtime($root . $path), $type, $defer, $async);
+				$jdocument->addScript(rtrim(JURI::base(true), DS) . $path . '?v=' . filemtime($root . $path));
 				break;
 			}
 		}
@@ -157,12 +222,10 @@ class Assets
 	 * Adds a linked stylesheet from the system to the page
 	 *
 	 * @param	string  $stylesheet Stylesheet name
-	 * @param	string  $type       Mime encoding type
-	 * @param	string  $media      Media type that this stylesheet applies to
-	 * @param	string  $attribs    Attributes to add to the link
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  void
 	 */
-	public static function addSystemStylesheet($stylesheet, $type = 'text/css', $media = null, $attribs = array())
+	public static function addSystemStylesheet($stylesheet, $dir = 'css')
 	{
 		if (!$stylesheet)
 		{
@@ -179,22 +242,24 @@ class Assets
 		// Build a list of possible paths
 		$paths = array();
 
-		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . 'system' . DS . 'css' . DS . $stylesheet;
-		$paths[] = DS . 'media' . DS . 'system' . DS . 'css' . DS . $stylesheet;
+		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . 'system' . ($dir ? DS . $dir : '') . DS . $stylesheet;
+		$paths[] = DS . 'media' . DS . 'system' . ($dir ? DS . $dir : '') . DS . $stylesheet;
 
 		// Run through each path until we find one that works
 		foreach ($paths as $i => $path)
 		{
 			$base = JPATH_ROOT;
+			$b = str_replace('/administrator', '', rtrim(JURI::base(true), DS));
 			if ($i == 0)
 			{
-				$base = JPATH_SITE;
+				$base = (JFactory::getApplication()->isAdmin() ? JPATH_ADMINISTRATOR : JPATH_SITE);
+				$b = rtrim(JURI::base(true), DS);
 			}
-			if (file_exists($base . $path)) 
+			if (file_exists($base . $path))
 			{
 				// Push script to the document
 				$jdocument = JFactory::getDocument();
-				$jdocument->addStyleSheet(rtrim(JURI::getInstance()->base(true), DS) . $path . '?v=' . filemtime($base . $path), $type, $media, $attribs);
+				$jdocument->addStyleSheet($b . $path . '?v=' . filemtime($base . $path));
 				break;
 			}
 		}
@@ -204,12 +269,10 @@ class Assets
 	 * Adds a linked script from the system to the page
 	 *
 	 * @param	string  $script     Script name (optional, uses module name if left blank)
-	 * @param   string  $type       Type of script. Defaults to 'text/javascript'
-	 * @param   bool    $defer      Adds the defer attribute.
-	 * @param   bool    $async      Adds the async attribute.
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  void
 	 */
-	public static function addSystemScript($script, $type = 'text/javascript', $defer = false, $async = false)
+	public static function addSystemScript($script, $dir = 'js')
 	{
 		if (!$script)
 		{
@@ -222,7 +285,7 @@ class Assets
 			$script = substr($script, 0, -3);
 		}
 
-		$base = DS . 'media' . DS . 'system' . DS . 'js';
+		$base = DS . 'media' . DS . 'system' . ($dir ? DS . $dir : '');
 
 		// Build a list of possible paths
 		$paths = array();
@@ -235,11 +298,11 @@ class Assets
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists(JPATH_ROOT . $path)) 
+			if (file_exists(JPATH_ROOT . $path))
 			{
 				// Push script to the document
 				$jdocument = JFactory::getDocument();
-				$jdocument->addScript(rtrim(JURI::getInstance()->base(true), DS) . $path . '?v=' . filemtime(JPATH_ROOT . $path), $type, $defer, $async);
+				$jdocument->addScript(str_replace('/administrator', '', rtrim(JURI::base(true), DS)) . $path . '?v=' . filemtime(JPATH_ROOT . $path));
 				break;
 			}
 		}
@@ -251,15 +314,23 @@ class Assets
 	 *
 	 * @param	string  $component	Component name
 	 * @param	string  $image		Image to look for
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  string	Path to an image file
 	 */
-	public static function getComponentImage($component, $image)
+	public static function getComponentImage($component, $image, $dir = 'img')
 	{
+		$image = ltrim($image, DS);
+
+		if (!self::isImage($image))
+		{
+			return $image;
+		}
+
 		$template  = JFactory::getApplication()->getTemplate();
 
 		$paths = array();
 		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . $component . DS . 'images' . DS . $image;
-		$paths[] = DS . 'components' . DS . $component . DS . 'assets' . DS . 'img' . DS . $image;
+		$paths[] = DS . 'components' . DS . $component . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $image;
 		$paths[] = DS . 'components' . DS . $component . DS . 'images' . DS . $image;
 
 		$root = self::base();
@@ -267,10 +338,10 @@ class Assets
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists($root . $path)) 
+			if (file_exists($root . $path))
 			{
 				// Push script to the document
-				return rtrim(JURI::getInstance()->base(true), DS) . $path;
+				return rtrim(JURI::base(true), DS) . $path;
 			}
 		}
 	}
@@ -281,26 +352,27 @@ class Assets
 	 *
 	 * @param	string  $component	Component name
 	 * @param	string  $stylesheet	Stylesheet to look for
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  string	Path to a stylesheet
 	 */
-	public static function getComponentStylesheet($component, $stylesheet)
+	public static function getComponentStylesheet($component, $stylesheet, $dir = 'css')
 	{
 		$template  = JFactory::getApplication()->getTemplate();
 
 		$paths = array();
 		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . $component . DS . $stylesheet;
-		$paths[] = DS . 'components' . DS . $component . DS . 'assets' . DS . 'css' . DS . $stylesheet;
-		$paths[] = DS . 'components' . DS . $component . DS . 'css' . DS . $stylesheet;
+		$paths[] = DS . 'components' . DS . $component . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $stylesheet;
+		$paths[] = DS . 'components' . DS . $component . DS . $folder . DS . $stylesheet;
 
 		$root = self::base();
 
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists($root . $path)) 
+			if (file_exists($root . $path))
 			{
 				// Push script to the document
-				return rtrim(JURI::getInstance()->base(true), DS) . $path;
+				return rtrim(JURI::base(true), DS) . $path;
 			}
 		}
 	}
@@ -311,14 +383,23 @@ class Assets
 	 *
 	 * @param	string  $module	Module name
 	 * @param	string  $image	Image to look for
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  string	Path to an image file
 	 */
-	public static function getModuleImage($module, $image)
+	public static function getModuleImage($module, $image, $dir = 'img')
 	{
+		$image = ltrim($image, DS);
+
+		if (!self::isImage($image))
+		{
+			return $image;
+		}
+
 		$template  = JFactory::getApplication()->getTemplate();
 
 		$paths = array();
 		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . $module . DS . 'images' . DS . $image;
+		$paths[] = DS . 'modules' . DS . $module . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $image;
 		$paths[] = DS . 'modules' . DS . $module . DS . 'images' . DS . $image;
 
 		$root = self::base();
@@ -326,10 +407,10 @@ class Assets
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists($root . $path)) 
+			if (file_exists($root . $path))
 			{
 				// Push script to the document
-				return rtrim(JURI::getInstance()->base(true), DS) . $path;
+				return rtrim(JURI::base(true), DS) . $path;
 			}
 		}
 	}
@@ -339,16 +420,14 @@ class Assets
 	 *
 	 * @param	string  $module		Module name
 	 * @param	string  $stylesheet	Stylesheet name (optional, uses module name if left blank)
-	 * @param	string  $type   	Mime encoding type
-	 * @param	string  $media  	Media type that this stylesheet applies to
-	 * @param	string  $attribs  	Attributes to add to the link
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  void
 	 */
-	public static function addModuleStyleSheet($module, $stylesheet = '', $type = 'text/css', $media = null, $attribs = array())
+	public static function addModuleStyleSheet($module, $stylesheet = '', $dir = 'css')
 	{
 		$template = JFactory::getApplication()->getTemplate();
 
-		if (empty($stylesheet)) 
+		if (empty($stylesheet))
 		{
 			$stylesheet = $module . '.css';
 		}
@@ -368,16 +447,17 @@ class Assets
 		$paths = array();
 
 		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . $module . DS . $stylesheet;
+		$paths[] = DS . 'modules' . DS . $module . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $stylesheet;
 		$paths[] = DS . 'modules' . DS . $module . DS . $stylesheet;
 
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists($root . $path)) 
+			if (file_exists($root . $path))
 			{
 				// Push script to the document
 				$jdocument = JFactory::getDocument();
-				$jdocument->addStyleSheet(rtrim(JURI::getInstance()->base(true), DS) . $path . '?v=' . filemtime($root . $path), $type, $media, $attribs);
+				$jdocument->addStyleSheet(rtrim(JURI::base(true), DS) . $path . '?v=' . filemtime($root . $path));
 				break;
 			}
 		}
@@ -388,16 +468,14 @@ class Assets
 	 *
 	 * @param   string  $module  	URL to the linked script
 	 * @param	string  $script  	Script name (optional, uses module name if left blank)
-	 * @param   string  $type		Type of script. Defaults to 'text/javascript'
-	 * @param   bool    $defer		Adds the defer attribute.
-	 * @param   bool    $async		Adds the async attribute.
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  void
 	 */
-	public static function addModuleScript($module, $script = '', $type = "text/javascript", $defer = false, $async = false)
+	public static function addModuleScript($module, $script = '', $dir = 'js')
 	{
 		$template = JFactory::getApplication()->getTemplate();
 
-		if (empty($script)) 
+		if (empty($script))
 		{
 			$script = $module;
 		}
@@ -421,21 +499,74 @@ class Assets
 		if (\JPluginHelper::isEnabled('system', 'jquery'))
 		{
 			$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . $module . DS . $script . '.jquery.js';
+			$paths[] = DS . 'modules' . DS . $module . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $script . '.jquery.js';
 			$paths[] = DS . 'modules' . DS . $module . DS . $script . '.jquery.js';
 		}
 
 		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . $module . DS . $script . '.js';
+		$paths[] = DS . 'modules' . DS . $module . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $script . '.js';
 		$paths[] = DS . 'modules' . DS . $module . DS . $script . '.js';
 
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists($root . $path)) 
+			if (file_exists($root . $path))
 			{
 				// Push script to the document
 				$jdocument = JFactory::getDocument();
-				$jdocument->addScript(rtrim(JURI::getInstance()->base(true), DS) . $path . '?v=' . filemtime($root . $path), $type, $defer, $async);
+				$jdocument->addScript(rtrim(JURI::base(true), DS) . $path . '?v=' . filemtime($root . $path));
 				break;
+			}
+		}
+	}
+
+	/**
+	 * Gets the path to a plugin image
+	 * checks template overrides first, then plugin folder
+	 *
+	 * @param	string  $folder		Plugin folder name
+	 * @param	string  $plugin		Plugin name
+	 * @param	string  $image		Image to look for
+	 * @param	string  $dir        Asset directory to look in
+	 * @return  string	Path to an image file
+	 */
+	public static function getPluginImage($folder, $plugin, $image, $dir = 'img')
+	{
+		$image = ltrim($image, DS);
+
+		if (!self::isImage($image))
+		{
+			return $image;
+		}
+
+		$template  = JFactory::getApplication()->getTemplate();
+
+		$paths = array();
+		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . 'plg_' . $folder . '_' . $plugin . DS . 'images' . DS . $image;
+		$paths[] = DS . 'plugins' . DS . $folder . DS . $plugin . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $image;
+		$paths[] = DS . 'plugins' . DS . $folder . DS . $plugin . DS . 'images' . DS . $image;
+
+		// Run through each path until we find one that works
+		foreach ($paths as $i => $path)
+		{
+			$root = JPATH_SITE;
+			if ($i == 0)
+			{
+				$root = JPATH_ADMINISTRATOR;
+			}
+
+			if (file_exists($root . $path))
+			{
+				if ($i == 0)
+				{
+					$b = rtrim(JURI::base(true), DS);
+				}
+				else
+				{
+					$b = str_replace('/administrator', '', rtrim(JURI::base(true), DS));
+				}
+				// Push script to the document
+				return $b . $path;
 			}
 		}
 	}
@@ -446,16 +577,14 @@ class Assets
 	 * @param	string  $folder		Plugin folder name
 	 * @param	string  $plugin		Plugin name
 	 * @param	string  $stylesheet	Stylesheet name (optional, uses module name if left blank)
-	 * @param	string  $type   	Mime encoding type
-	 * @param	string  $media  	Media type that this stylesheet applies to
-	 * @param	string  $attribs  	Attributes to add to the link
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  void
 	 */
-	public static function addPluginStyleSheet($folder, $plugin, $stylesheet = '', $type = 'text/css', $media = null, $attribs = array())
+	public static function addPluginStyleSheet($folder, $plugin, $stylesheet = '', $dir = 'css')
 	{
 		$template = JFactory::getApplication()->getTemplate();
 
-		if (empty($stylesheet)) 
+		if (empty($stylesheet))
 		{
 			if (!$plugin)
 			{
@@ -473,16 +602,31 @@ class Assets
 		$paths = array();
 
 		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . 'plg_' . $folder . '_' . $plugin . DS . $stylesheet;
+		$paths[] = DS . 'plugins' . DS . $folder . DS . $plugin . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $stylesheet;
 		$paths[] = DS . 'plugins' . DS . $folder . DS . $plugin . DS . $stylesheet;
 
 		// Run through each path until we find one that works
-		foreach ($paths as $path)
+		foreach ($paths as $i => $path)
 		{
-			if (file_exists(JPATH_SITE . $path)) 
+			$root = JPATH_SITE;
+			if ($i == 0)
 			{
+				$root = self::base();
+			}
+
+			if (file_exists($root . $path))
+			{
+				if ($i == 0)
+				{
+					$b = rtrim(JURI::base(true), DS);
+				}
+				else
+				{
+					$b = str_replace('/administrator', '', rtrim(JURI::base(true), DS));
+				}
 				// Push script to the document
 				$jdocument = JFactory::getDocument();
-				$jdocument->addStyleSheet(str_replace('/administrator', '', rtrim(JURI::getInstance()->base(true), DS)) . $path . '?v=' . filemtime(JPATH_SITE . $path), $type, $media, $attribs);
+				$jdocument->addStyleSheet($b . $path . '?v=' . filemtime($root . $path));
 				break;
 			}
 		}
@@ -494,16 +638,14 @@ class Assets
 	 * @param	string  $folder		Plugin folder name
 	 * @param	string  $plugin		Plugin name
 	 * @param	string  $script  	Script name (optional, uses module name if left blank)
-	 * @param   string  $type		Type of script. Defaults to 'text/javascript'
-	 * @param   bool    $defer		Adds the defer attribute.
-	 * @param   bool    $async		Adds the async attribute.
+	 * @param	string  $dir        Asset directory to look in
 	 * @return  void
 	 */
-	public static function addPluginScript($folder, $plugin, $script = '', $type = "text/javascript", $defer = false, $async = false)
+	public static function addPluginScript($folder, $plugin, $script = '', $dir = 'js')
 	{
 		$template = JFactory::getApplication()->getTemplate();
 
-		if (empty($script)) 
+		if (empty($script))
 		{
 			$script = $plugin;
 		}
@@ -525,21 +667,70 @@ class Assets
 		if (\JPluginHelper::isEnabled('system', 'jquery'))
 		{
 			$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . 'plg_' . $folder . '_' . $plugin . DS . $script . '.jquery.js';
+			$paths[] = DS . 'plugins' . DS . $folder . DS . $plugin . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $script . '.jquery.js';
 			$paths[] = DS . 'plugins' . DS . $folder . DS . $plugin . DS . $script . '.jquery.js';
 		}
 
 		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . 'plg_' . $folder . '_' . $plugin . DS . $script . '.js';
+		$paths[] = DS . 'plugins' . DS . $folder . DS . $plugin . DS . 'assets' . ($dir ? DS . $dir : '') . DS . $script . '.js';
 		$paths[] = DS . 'plugins' . DS . $folder . DS . $plugin . DS . $script . '.js';
+
+		// Run through each path until we find one that works
+		foreach ($paths as $i => $path)
+		{
+			$root = JPATH_SITE;
+			if ($i == 0 || $i == 3)
+			{
+				$root = self::base();
+			}
+
+			if (file_exists($root . $path))
+			{
+				if ($i == 0 || $i == 3)
+				{
+					$b = rtrim(JURI::base(true), DS);
+				}
+				else
+				{
+					$b = str_replace('/administrator', '', rtrim(JURI::base(true), DS));
+				}
+				// Push script to the document
+				$jdocument = JFactory::getDocument();
+				$jdocument->addScript($b . $path . '?v=' . filemtime($root . $path));
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Gets the path to a system image
+	 *
+	 * @param	string  $image		Image to look for
+	 * @param	string  $dir        Asset directory to look in
+	 * @return  string	Path to an image file
+	 */
+	public static function getSystemImage($image, $dir = 'images')
+	{
+		$image = ltrim($image, DS);
+
+		if (!self::isImage($image))
+		{
+			return $image;
+		}
+
+		$template  = JFactory::getApplication()->getTemplate();
+
+		$paths = array();
+		$paths[] = DS . 'templates' . DS . $template . DS . 'html' . DS . 'system' . ($dir ? DS . $dir : '') . DS . $image;
+		$paths[] = DS . 'media' . DS . 'system' . DS . $dir . DS . $image;
 
 		// Run through each path until we find one that works
 		foreach ($paths as $path)
 		{
-			if (file_exists(JPATH_SITE . $path)) 
+			if (file_exists(JPATH_ROOT . $path))
 			{
 				// Push script to the document
-				$jdocument = JFactory::getDocument();
-				$jdocument->addScript(str_replace('/administrator', '', rtrim(JURI::getInstance()->base(true), DS)) . $path . '?v=' . filemtime(JPATH_SITE . $path), $type, $defer, $async);
-				break;
+				return str_replace('/administrator', '', rtrim(JURI::base(true), DS)) . $path;
 			}
 		}
 	}
@@ -594,7 +785,7 @@ class Assets
 				$template  = JPATH_ROOT . DS . 'templates' . DS . JFactory::getApplication()->getTemplate() . DS . 'less'; // . 'bootstrap.less';
 				$input     = $lesspath . DS . $primary . '.less';
 
-				if (file_exists($template . DS . $primary . '.less')) 
+				if (file_exists($template . DS . $primary . '.less'))
 				{
 					// Reset the path to the primary build file
 					$input = $template . DS . $primary . '.less';
@@ -602,21 +793,21 @@ class Assets
 
 				// Add the template path to the import list
 				$less->setImportDir(array(
-					$template . DS, 
+					$template . DS,
 					$lesspath . DS
 				));
 
 				$cacheFile = $cachedir . DS . $primary . '.less.cache';
 				$cache     = null;
 
-				if (file_exists($cacheFile)) 
+				if (file_exists($cacheFile))
 				{
 					$cache = unserialize(file_get_contents($cacheFile));
 				}
 
 				if ($cache && is_array($cache['files']))
 				{
-					foreach ($cache['files'] as $fname => $ftime) 
+					foreach ($cache['files'] as $fname => $ftime)
 					{
 						$path = explode('/', $fname);
 						$file = array_pop($path);
@@ -630,7 +821,7 @@ class Assets
 							$nname = $lesspath . '/' . $file;
 						}
 
-						if ($fname != $nname or !file_exists($nname) or filemtime($nname) > $ftime) 
+						if ($fname != $nname or !file_exists($nname) or filemtime($nname) > $ftime)
 						{
 							// One of the files we knew about previously has changed
 							// so we should look at our incoming root again.
@@ -656,7 +847,7 @@ class Assets
 				)
 				*/
 
-				if (is_string($cache)) 
+				if (is_string($cache))
 				{
 					$newCache = $less->cachedCompile($cache);
 				}
@@ -666,16 +857,16 @@ class Assets
 				}
 
 				// Did the cache change?
-				if (!is_array($cache) || $newCache['updated'] > $cache['updated']) 
+				if (!is_array($cache) || $newCache['updated'] > $cache['updated'])
 				{
 					file_put_contents($cacheFile, serialize($newCache));  // Update the compiled LESS timestamp
-					$newCache['compiled'] = str_replace("'/media/system/", "'" . rtrim(JURI::getInstance()->base(true), DS) . '/media/system/', $newCache['compiled']);
+					$newCache['compiled'] = str_replace("'/media/system/", "'" . rtrim(JURI::base(true), DS) . '/media/system/', $newCache['compiled']);
 					file_put_contents($output, $newCache['compiled']);    // Update the compiled LESS
 				}
 				$output =  rtrim(JURI::root(true), '/') . DS . 'cache' . DS . $primary . '.css?v=' . $newCache['updated'];
 			}
-		} 
-		catch (Exception $e) 
+		}
+		catch (Exception $e)
 		{
 			//echo "fatal error: " . $e->getMessage(); die();
 
@@ -699,9 +890,9 @@ class Assets
 			// Determine last modification date of the files
 			$lastmodified = 0;
 
-			foreach ($elements as $k => $element) 
+			foreach ($elements as $k => $element)
 			{
-				if (!$element) 
+				if (!$element)
 				{
 					$elements[$k] = false;
 					continue;
@@ -715,7 +906,7 @@ class Assets
 				// Check if the file exists
 				$path = $thispath . DS . $element . '.css';
 
-				if (!file_exists($path)) 
+				if (!file_exists($path))
 				{
 					$elements[$k] = false;
 					continue;
@@ -741,12 +932,12 @@ class Assets
 			// Try the cache first to see if the combined files were already generated
 			$cachefile = 'system-' . $hash . '.css';
 
-			if (!file_exists($cachedir . DS . $cachefile)) 
+			if (!file_exists($cachedir . DS . $cachefile))
 			{
 				$contents = '';
 				reset($elements);
 
-				foreach ($elements as $k => $element) 
+				foreach ($elements as $k => $element)
 				{
 					$contents .= "\n\n" . file_get_contents($thispath . DS . $element . '.css');
 				}
@@ -763,16 +954,16 @@ class Assets
 					'$1'*/
 				);
 				$contents = preg_replace($patterns, $replacements, $contents);
-				$contents = str_replace("url('/media/system/", "url('" . rtrim(JURI::getInstance()->base(true), DS) . "/media/system/", $contents);
+				$contents = str_replace("url('/media/system/", "url('" . rtrim(JURI::base(true), DS) . "/media/system/", $contents);
 
-				if ($fp = fopen($cachedir . DS . $cachefile, 'wb')) 
+				if ($fp = fopen($cachedir . DS . $cachefile, 'wb'))
 				{
 					fwrite($fp, $contents);
 					fclose($fp);
 				}
 			}
 
-			$output = rtrim(JURI::getInstance()->base(true), DS) . DS . 'cache' . DS . $cachefile;
+			$output = rtrim(JURI::base(true), DS) . DS . 'cache' . DS . $cachefile;
 		}
 
 		return $output;

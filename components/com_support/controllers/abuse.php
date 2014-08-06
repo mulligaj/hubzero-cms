@@ -38,35 +38,35 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Method to set the document path
-	 * 
+	 *
 	 * @return     void
 	 */
 	protected function _buildPathway()
 	{
 		$pathway = JFactory::getApplication()->getPathway();
 
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
-				JText::_(strtoupper($this->_name)),
+				JText::_(strtoupper($this->_option)),
 				'index.php?option=' . $this->_option . '&controller=index'
 			);
 		}
 		$pathway->addItem(
-			JText::_(strtoupper('REPORT_ABUSE')),
+			JText::_(strtoupper('COM_SUPPORT_REPORT_ABUSE')),
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=reportabuse'
 		);
 	}
 
 	/**
 	 * Method to build and set the document title
-	 * 
+	 *
 	 * @return     void
 	 */
 	protected function _buildTitle()
 	{
 		$this->_title = JText::_(strtoupper($this->_option));
-		$this->_title .= ': ' . JText::_(strtoupper('REPORT_ABUSE'));
+		$this->_title .= ': ' . JText::_(strtoupper('COM_SUPPORT_REPORT_ABUSE'));
 
 		$document = JFactory::getDocument();
 		$document->setTitle($this->_title);
@@ -74,13 +74,13 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 
 	/**
 	 * Reports an item as abusive
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$return = base64_encode(JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller, false, true), 'server'));
 			$this->setRedirect(
@@ -98,16 +98,16 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 		$this->view->cat = JRequest::getVar('category', '');
 
 		// Check for a reference ID
-		if (!$this->view->refid) 
+		if (!$this->view->refid)
 		{
-			JError::raiseError(404, JText::_('REFERENCE_ID_NOT_FOUND'));
+			JError::raiseError(404, JText::_('COM_SUPPORT_ERROR_REFERENCE_ID_NOT_FOUND'));
 			return;
 		}
 
 		// Check for a category
-		if (!$this->view->cat) 
+		if (!$this->view->cat)
 		{
-			JError::raiseError(404, JText::_('CATEGORY_NOT_FOUND'));
+			JError::raiseError(404, JText::_('COM_SUPPORT_ERROR_CATEGORY_NOT_FOUND'));
 			return;
 		}
 
@@ -124,11 +124,11 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 
 		// Check the results returned for a reported item
 		$this->view->report = null;
-		if ($results) 
+		if ($results)
 		{
 			foreach ($results as $result)
 			{
-				if ($result) 
+				if ($result)
 				{
 					$this->view->report = $result[0];
 				}
@@ -136,9 +136,9 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 		}
 
 		// Ensure we found a reported item
-		if (!$this->view->report) 
+		if (!$this->view->report)
 		{
-			$this->setError(JText::_('ERROR_REPORTED_ITEM_NOT_FOUND'));
+			$this->setError(JText::_('COM_SUPPORT_ERROR_REPORTED_ITEM_NOT_FOUND'));
 		}
 
 		// Set the page title
@@ -149,11 +149,8 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 		// Set the pathway
 		$this->_buildPathway();
 
-		// Add the CSS to the template and set the page title
-		$this->_getStyles();
-
 		// Output HTML
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -165,7 +162,7 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 
 	/**
 	 * Save an abuse report and displays a "Thank you" message
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -179,15 +176,26 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 		$this->view->cat = JRequest::getVar('category', '');
 		$this->view->refid = JRequest::getInt('referenceid', 0);
 		$this->view->returnlink = JRequest::getVar('link', '');
+		$no_html = JRequest::getInt('no_html', 0);
 
 		// Trim and addslashes all posted items
 		$incoming = array_map('trim', $_POST);
 
 		// Initiate class and bind posted items to database fields
 		$row = new ReportAbuse($this->database);
-		if (!$row->bind($incoming)) 
+		if (!$row->bind($incoming))
 		{
-			JRequest::setVar('referenceid', $this->view->refid);
+			if ($no_html)
+			{
+				echo json_encode(array(
+					'success'  => false,
+					'message'  => $row->getError(),
+					'id'       => $this->view->refid,
+					'category' => $this->view->cat
+				));
+				return;
+			}
+			JRequest::setVar('id', $this->view->refid);
 			$this->setError($row->getError());
 			$this->displayTask();
 			return;
@@ -200,8 +208,18 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 		$row->state      = 0;
 
 		// Check content
-		if (!$row->check()) 
+		if (!$row->check())
 		{
+			if ($no_html)
+			{
+				echo json_encode(array(
+					'success'  => false,
+					'message'  => $row->getError(),
+					'id'       => $this->view->refid,
+					'category' => $this->view->cat
+				));
+				return;
+			}
 			JRequest::setVar('id', $this->view->refid);
 			$this->setError($row->getError());
 			$this->displayTask();
@@ -209,8 +227,18 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 		}
 
 		// Store new content
-		if (!$row->store()) 
+		if (!$row->store())
 		{
+			if ($no_html)
+			{
+				echo json_encode(array(
+					'success'  => false,
+					'message'  => $row->getError(),
+					'id'       => $this->view->refid,
+					'category' => $this->view->cat
+				));
+				return;
+			}
 			JRequest::setVar('id', $this->view->refid);
 			$this->setError($row->getError());
 			$this->displayTask();
@@ -225,16 +253,16 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 			$this->view->cat
 		));
 
-		// Send notification email 
-		if ($email) 
+		// Send notification email
+		if ($email)
 		{
 			$jconfig = JFactory::getConfig();
 
 			$from = array();
-			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('REPORTABUSE');
+			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_SUPPORT_REPORT_ABUSE');
 			$from['email'] = $jconfig->getValue('config.mailfrom');
 
-			$subject = $jconfig->getValue('config.sitename') . ' ' . JText::_('REPORTABUSE');
+			$subject = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_SUPPORT_REPORT_ABUSE');
 
 			$message = '';
 
@@ -248,30 +276,39 @@ class SupportControllerAbuse extends \Hubzero\Component\SiteController
 
 			foreach ($tos as $to)
 			{
-				if (SupportUtilities::checkValidEmail($to)) 
+				if (SupportUtilities::checkValidEmail($to))
 				{
-					if (!SupportUtilities::sendEmail($from, $to, $subject, $message)) 
+					if (!SupportUtilities::sendEmail($from, $to, $subject, $message))
 					{
-						$this->setError(JText::sprintf('ERROR_FAILED_TO_SEND_EMAIL', $to));
+						$this->setError(JText::sprintf('COM_SUPPORT_ERROR_FAILED_TO_SEND_EMAIL', $to));
 					}
 				}
 			}
 		}
 
+		if ($no_html)
+		{
+			echo json_encode(array(
+				'success'   => true,
+				'report_id' => $row->id,
+				'message'   => JText::sprintf('COM_SUPPORT_REPORT_NUMBER_REFERENCE', $row->id),
+				'id'        => $this->view->refid,
+				'category'  => $this->view->cat
+			));
+			return;
+		}
+
 		// Set the page title
 		$this->_buildTitle();
-		
+
 		$this->view->title = $this->_title;
 		$this->view->report = $row;
 
 		// Set the pathway
 		$this->_buildPathway();
 
-		// Push some needed styles to the template
-		$this->_getStyles();
-
 		// Output HTML
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{

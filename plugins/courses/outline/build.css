@@ -6,12 +6,15 @@
  */
 
 /* Main outline styles */
-#page_content {
+#page_content.course_outline {
 	margin: 0;
 }
 .outline-main {
 	overflow: hidden;
 	position: relative;
+}
+.outline-main.expired {
+	opacity: 0.5;
 }
 .placeholder {
 	margin-top: 10px;
@@ -133,7 +136,9 @@
 }
 .delete-tray .asset-delete,
 .delete-tray .asset-preview,
-.delete-tray .asset-edit {
+.delete-tray .asset-edit,
+.delete-tray .asset-edit-deployment,
+.delete-tray .asset-edit-layout {
 	display: none;
 }
 .delete-tray .restore {
@@ -275,7 +280,8 @@
 a.asset-preview,
 a.asset-delete,
 a.asset-edit,
-a.asset-edit-deployment {
+a.asset-edit-deployment,
+a.asset-edit-layout {
 	display: inline-block;
 	position: relative;
 	width: 15px;
@@ -288,9 +294,10 @@ a.asset-edit-deployment {
 .asset-group-item .asset-preview,
 .asset-group-item .asset-delete,
 .asset-group-item .asset-edit,
-.asset-group-item .asset-edit-deployment {
+.asset-group-item .asset-edit-deployment,
+.asset-group-item .asset-edit-layout {
 	opacity: 0;
-	filter: alpha(opacity=);
+	filter: alpha(opacity=0);
 	filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
 	-ms-filter:'progid:DXImageTransform.Microsoft.Alpha(Opacity=000)';
 
@@ -303,9 +310,10 @@ a.asset-edit-deployment {
 .asset-group-item-hover .asset-preview,
 .asset-group-item-hover .asset-delete,
 .asset-group-item-hover .asset-edit,
-.asset-group-item-hover .asset-edit-deployment {
+.asset-group-item-hover .asset-edit-deployment,
+.asset-group-item-hover .asset-edit-layout {
 	opacity: .8;
-	filter: alpha(opacity=);
+	filter: alpha(opacity=80);
 	filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=80);
 	-ms-filter:'progid:DXImageTransform.Microsoft.Alpha(Opacity=80)';
 
@@ -318,7 +326,8 @@ a.asset-edit-deployment {
 .asset-preview:before,
 .asset-delete:before,
 .asset-edit:before,
-.asset-edit-deployment:before {
+.asset-edit-deployment:before,
+.asset-edit-layout:before {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -337,6 +346,9 @@ a.asset-edit-deployment {
 }
 .asset-edit-deployment:before {
 	content: "\f017";
+}
+.asset-edit-layout:before {
+	content: "\270D";
 }
 ul {
 	list-style: none;
@@ -476,6 +488,11 @@ ul {
 .unit-edit {
 	display: none;
 }
+.unit-edit-wrap,
+.unit-prerequisites {
+	width: 50%;
+	float: left;
+}
 .unit-title-arrow {
 	cursor: pointer;
 }
@@ -554,7 +571,7 @@ ul {
 }
 .unit-edit form,
 .asset-group-title-container form {
-	padding: 10px;
+	padding: 10px 20px;
 }
 .asset-group-title-container form {
 	display: none;
@@ -570,6 +587,9 @@ ul {
 }
 .unit-edit form input[type="text"] {
 	display: block;
+	width: 100%;
+	margin: 0.5em 0;
+	padding: 8px;
 }
 .unit-edit form .unit-edit-save,
 .unit-edit form .unit-edit-reset,
@@ -947,6 +967,22 @@ ul {
 	margin-left: 30px;
 }
 
+/* Expired session popup */
+.session-expired {
+	display: none;
+	position: fixed;
+	height: 150px;
+	width: 400px;
+	top: 50%;
+	left: 50%;
+	margin-left: -200px;
+	margin-top: -75px;
+	text-align: center;
+	border: 1px solid #AAAAAA;
+	box-shadow: 1px 1px 10px rgba(0,0,0, .7);
+	background: #FFFFFF;
+}
+
 /* Progress bar style overrides (from ui defaults) */
 .ui-progressbar {
 	height: 1em;
@@ -1125,4 +1161,12 @@ ul {
 }
 .edit-form legend:after {
 	clear: both;
+}
+.ui-tooltip {
+	background: #252525;
+	background: rgba(0, 0, 0, 0.75);
+	color: #fff;
+	font-size: 0.85em;
+	padding: 0.4em 1em;
+	border: none;
 }

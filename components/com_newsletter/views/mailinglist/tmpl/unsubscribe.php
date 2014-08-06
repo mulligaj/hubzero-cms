@@ -30,72 +30,79 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+$this->css()
+     ->js();
 ?>
 
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
 
-<div id="content-header-extra">
-	<ul>
-		<li>
-			<a class="btn icon-browse" href="<?php echo JRoute::_('index.php?option=com_newsletter'); ?>">
-				<?php echo JText::_('COM_NEWSLETTER_BROWSE'); ?>
-			</a>
-		</li>
-	</ul>
-</div>
+	<div id="content-header-extra">
+		<ul>
+			<li>
+				<a class="btn icon-browse" href="<?php echo JRoute::_('index.php?option=com_newsletter'); ?>">
+					<?php echo JText::_('COM_NEWSLETTER_BROWSE'); ?>
+				</a>
+			</li>
+		</ul>
+	</div>
+</header>
 
-<div class="main section">
+<section class="main section">
 	<?php
 		if ($this->getError())
 		{
 			echo '<p class="error">' . $this->getError() . '</p>';
 		}
 	?>
-	<div class="subject subscribe">
+	<div class="subscribe">
 		<form action="index.php" method="post" id="hubForm">
 			<fieldset>
-				<legend>Unsubscribe From Mailing List</legend>
-				<p>Are you sure you want to unsubscribe from the following mailing list:</p>
-				
+				<legend><?php echo JText::_('COM_NEWSLETTER_MAILINGLISTS_UNSUBSCRIBE'); ?></legend>
+				<p><?php echo JText::_('COM_NEWSLETTER_MAILINGLISTS_UNSUBSCRIBE_DESC'); ?></p>
+
 				<p>
 					<strong><?php echo $this->mailinglist->name; ?></strong><br />
 					<span><?php echo $this->mailinglist->description; ?></span>
 					<input type="hidden" name="t" value="<?php echo JRequest::getVar('t', '') ?>" />
 					<input type="hidden" name="e" value="<?php echo JRequest::getVar('e', ''); ?>" />
 				</p>
-				
+
 				<?php if ($this->mailinglist->id == '-1' && $this->juser->get('guest') == 1) : ?>
 					<ol>
 						<li>
-							<?php if($this->juser->get('guest')) : ?>
-								<a href="login?return=<?php echo base64_encode( $_SERVER['REQUEST_URI'] ); ?>">Login To Your Account to Update Email Preferences</a>
+							<?php if ($this->juser->get('guest')) : ?>
+								<a href="login?return=<?php echo base64_encode( $_SERVER['REQUEST_URI'] ); ?>">
+									<?php echo JText::_('COM_NEWSLETTER_MAILINGLISTS_LOGIN_TO_UNSUBSCRIBE'); ?>
+								</a>
 							<?php else : ?>
-								<span class="complete">Login (logged in as '<?php echo $this->juser->get('username'); ?>')</span>
+								<span class="complete">
+									<?php echo JText::sprintf('COM_NEWSLETTER_MAILINGLISTS_LOGGEDIN_AS', $this->juser->get('username')); ?>
+								</span>
 							<?php endif; ?>
 						</li>
 					</ol>
 				<?php else : ?>
-					<label>Reason for Unsubscribing:
+					<label><?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE_REASON'); ?>
 						<select name="reason" id="reason">
-							<option value="">- Select Reason &mdash;</option>
-							<option value="Too many emails">Too many emails</option>
-							<option value="Content isn't relevant to me">Content isn't relevant to me</option>
-							<option value="I don't remember signing up">I don't remember signing up</option>
-							<option value="Privacy concerns">Privacy concerns</option>
-							<option value="Other">Other</option>
+							<option value=""><?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE_REASON_DEFAULT'); ?></option>
+							<option value="Too many emails"><?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE_REASON_TOOMANY'); ?></option>
+							<option value="Content isn't relevant to me"><?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE_REASON_NOTRELEVANT'); ?></option>
+							<option value="I don't remember signing up"><?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE_REASON_NOTSIGNEDUP'); ?></option>
+							<option value="Privacy concerns"><?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE_REASON_PRIVACY'); ?></option>
+							<option value="Other"><?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE_REASON_OTHER'); ?></option>
 						</select>
 					</label>
-				
+
 					<label>
-						<textarea rows="4" name="reason-alt" id="reason-alt" placeholder="Enter other reason here..."></textarea>
+						<textarea rows="4" name="reason-alt" id="reason-alt" placeholder="<?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE_REASON_OTHER_OTHER'); ?>"></textarea>
 					</label>
 				<?php endif; ?>
 			</fieldset>
 			<?php if (!$this->juser->get('guest') || $this->mailinglist->id != '-1') : ?>
 				<p class="submit">
-					<input type="submit" value="Unsubscribe">
+					<input type="submit" value="<?php echo JText::_('COM_NEWSLETTER_UNSUBSCRIBE'); ?>">
 				</p>
 			<?php endif; ?>
 			<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
@@ -103,4 +110,4 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<input type="hidden" name="task" value="dounsubscribe" />
 		</form>
 	</div>
-</div>
+</section>

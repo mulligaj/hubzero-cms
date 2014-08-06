@@ -32,49 +32,49 @@
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Table class for forum posts
+ * Table class for following something
  */
 class CollectionsTableFollowing extends JTable
 {
 	/**
 	 * int(11) Primary key
-	 * 
-	 * @var integer 
+	 *
+	 * @var integer
 	 */
 	var $id         = NULL;
 
 	/**
 	 * text
-	 * 
+	 *
 	 * @var string
 	 */
 	var $follower_type = NULL;
 
 	/**
 	 * int(11)
-	 * 
-	 * @var integer 
+	 *
+	 * @var integer
 	 */
 	var $follower_id = NULL;
 
 	/**
 	 * datetime(0000-00-00 00:00:00)
-	 * 
-	 * @var string  
+	 *
+	 * @var string
 	 */
 	var $created    = NULL;
 
 	/**
 	 * text
-	 * 
+	 *
 	 * @var string
 	 */
 	var $following_type = NULL;
 
 	/**
 	 * int(11)
-	 * 
-	 * @var integer 
+	 *
+	 * @var integer
 	 */
 	var $following_id = NULL;
 
@@ -91,13 +91,13 @@ class CollectionsTableFollowing extends JTable
 
 	/**
 	 * Load a record and bind to $this
-	 * 
+	 *
 	 * @param      string $oid Record alias
 	 * @return     boolean True on success
 	 */
 	public function load($oid=NULL, $following_type=null, $follower_id=null, $follower_type=null)
 	{
-		if ($oid === NULL) 
+		if ($oid === NULL)
 		{
 			return false;
 		}
@@ -107,63 +107,51 @@ class CollectionsTableFollowing extends JTable
 			return parent::load($oid);
 		}
 
-		$oid = trim($oid);
-
-		$query = "SELECT * FROM $this->_tbl WHERE following_id=" . $this->_db->Quote($oid) . " AND following_type=" . $this->_db->Quote($following_type);
+		$fields = array(
+			'following_id'   => (int) $oid,
+			'following_type' => (string) $following_type
+		);
 		if ($follower_id !== null)
 		{
-			$query .= " AND follower_id=" . $this->_db->Quote(intval($follower_id));
+			$fields['follower_id'] = (int) $follower_id;
 		}
 		if ($follower_type !== null)
 		{
-			$query .= " AND follower_type=" . $this->_db->Quote(strtolower(trim($follower_type)));
+			$fields['follower_type'] = strtolower(trim((string) $follower_type));
 		}
 
-		$this->_db->setQuery($query);
-		if ($result = $this->_db->loadAssoc()) 
-		{
-			return $this->bind($result);
-		} 
-		else 
-		{
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
+		return parent::load($fields);
 	}
 
 	/**
 	 * Validate data
-	 * 
+	 *
 	 * @return     boolean True if data is valid
 	 */
 	public function check()
 	{
-		$juser = JFactory::getUser();
-
 		$this->follower_id = intval($this->follower_id);
-		if (!$this->follower_id) 
+		if (!$this->follower_id)
 		{
-			//$this->setError(JText::_('Please provide a user ID'));
-			//return false;
 			$this->follower_type = 'member';
-			$this->follower_id = $juser->get('id');
+			$this->follower_id   = JFactory::getUser()->get('id');
 		}
 
 		$this->following_id = intval($this->following_id);
-		if (!$this->following_id) 
+		if (!$this->following_id)
 		{
-			$this->setError(JText::_('Please provide a following ID'));
+			$this->setError(JText::_('COM_COLLECTIONS_ERROR_MISSING_FOLLOWING_ID'));
 			return false;
 		}
 
 		$this->following_type = trim($this->following_type);
-		if (!$this->following_type) 
+		if (!$this->following_type)
 		{
-			$this->setError(JText::_('Please provide a following type'));
+			$this->setError(JText::_('COM_COLLECTIONS_ERROR_MISSING_FOLLOWING_TYPE'));
 			return false;
 		}
 
-		if (!$this->id) 
+		if (!$this->id)
 		{
 			$this->created = JFactory::getDate()->toSql();
 		}
@@ -173,7 +161,7 @@ class CollectionsTableFollowing extends JTable
 
 	/**
 	 * Build a query based off of filters passed
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     string SQL
 	 */
@@ -183,19 +171,19 @@ class CollectionsTableFollowing extends JTable
 
 		$where = array();
 
-		if (isset($filters['following_id']) && $filters['following_id']) 
+		if (isset($filters['following_id']) && $filters['following_id'])
 		{
 			$where[] = "f.following_id=" . $this->_db->Quote($filters['following_id']);
 		}
-		if (isset($filters['following_type']) && $filters['following_type']) 
+		if (isset($filters['following_type']) && $filters['following_type'])
 		{
 			$where[] = "f.following_type=" . $this->_db->Quote($filters['following_type']);
 		}
-		if (isset($filters['follower_id']) && $filters['follower_id']) 
+		if (isset($filters['follower_id']) && $filters['follower_id'])
 		{
 			$where[] = "f.follower_id=" . $this->_db->Quote($filters['follower_id']);
 		}
-		if (isset($filters['follower_type']) && $filters['follower_type']) 
+		if (isset($filters['follower_type']) && $filters['follower_type'])
 		{
 			$where[] = "f.follower_type=" . $this->_db->Quote($filters['follower_type']);
 		}
@@ -211,7 +199,7 @@ class CollectionsTableFollowing extends JTable
 
 	/**
 	 * Get a record count
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     integer
 	 */
@@ -227,28 +215,28 @@ class CollectionsTableFollowing extends JTable
 
 	/**
 	 * Get records
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     array
 	 */
 	public function find($filters=array())
 	{
 		$query = "SELECT f.*,
-			(SELECT COUNT(*) FROM #__collections_following AS fg WHERE fg.following_id=f.following_id AND fg.following_type=f.following_type) AS followers, 
-			(SELECT COUNT(*) FROM #__collections_following AS fr WHERE fr.follower_id=f.following_id AND fr.follower_type=f.following_type) AS following";
+			(SELECT COUNT(*) FROM `#__collections_following` AS fg WHERE fg.following_id=f.following_id AND fg.following_type=f.following_type) AS followers,
+			(SELECT COUNT(*) FROM `#__collections_following` AS fr WHERE fr.follower_id=f.following_id AND fr.follower_type=f.following_type) AS following";
 		$query .= $this->_buildQuery($filters);
 
-		if (!isset($filters['sort']) || !$filters['sort']) 
+		if (!isset($filters['sort']) || !$filters['sort'])
 		{
 			$filters['sort'] = 'f.created';
 		}
-		if (!isset($filters['sort_Dir']) || !$filters['sort_Dir']) 
+		if (!isset($filters['sort_Dir']) || !$filters['sort_Dir'])
 		{
 			$filters['sort_Dir'] = 'DESC';
 		}
 		$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'];
 
-		if (isset($filters['limit']) && $filters['limit'] != 0) 
+		if (isset($filters['limit']) && $filters['limit'] != 0)
 		{
 			$query .= ' LIMIT ' . intval($filters['start']) . ',' . intval($filters['limit']);
 		}

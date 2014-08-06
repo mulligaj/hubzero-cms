@@ -28,10 +28,12 @@ $menu->addChild(
 
 $menu->addSeparator();
 
+/*
 $menu->addChild(
 	new JMenuNode(JText::_('MOD_HUBMENU_USER_PROFILE'), 'index.php?option=com_admin&task=profile.edit&id='.$user->id, 'class:profile')
 );
 $menu->addSeparator();
+*/
 
 if ($user->authorise('core.admin'))
 {
@@ -60,11 +62,16 @@ if ($chm || $cam)
 		$menu->addSeparator();
 	}
 
-	$menu->addChild(new JMenuNode(JText::_('LDAP'), 'index.php?option=com_system&controller=ldap', 'class:ldap'));
-	$menu->addChild(new JMenuNode(JText::_('Geo DB'), 'index.php?option=com_system&controller=geodb', 'class:geo'));
-	$menu->addChild(new JMenuNode(JText::_('APC'), 'index.php?option=com_system&controller=apc', 'class:apc'));
-	$menu->addChild(new JMenuNode(JText::_('Scripts'), 'index.php?option=com_system&controller=scripts', 'class:scripts'));
-	$menu->addChild(new JMenuNode(JText::_('Routes'), 'index.php?option=com_system&controller=routes', 'class:routes'));
+	if ($user->authorise('core.admin'))
+	{
+		$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_UPDATE'), 'index.php?option=com_update', 'class:update'));
+	}
+
+	$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_LDAP'), 'index.php?option=com_system&controller=ldap', 'class:ldap'));
+	$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_GEO'), 'index.php?option=com_system&controller=geodb', 'class:geo'));
+	$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_APC'), 'index.php?option=com_system&controller=apc', 'class:apc'));
+	//$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_SCRIPTS'), 'index.php?option=com_system&controller=scripts', 'class:scripts'));
+	$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_ROUTES'), 'index.php?option=com_system&controller=routes', 'class:routes'));
 
 	$menu->getParent();
 }

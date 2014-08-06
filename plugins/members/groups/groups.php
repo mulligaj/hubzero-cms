@@ -31,30 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Members Plugin class for groups
  */
-class plgMembersGroups extends JPlugin
+class plgMembersGroups extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Event call to determine if this plugin should return data
-	 * 
+	 *
 	 * @param      object  $user   JUser
 	 * @param      object  $member MembersProfile
 	 * @return     array   Plugin name
@@ -76,7 +67,7 @@ class plgMembersGroups extends JPlugin
 
 	/**
 	 * Event call to return data for a specific member
-	 * 
+	 *
 	 * @param      object  $user   JUser
 	 * @param      object  $member MembersProfile
 	 * @param      string  $option Component name
@@ -89,31 +80,24 @@ class plgMembersGroups extends JPlugin
 		$returnmeta = true;
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onMembersAreas($user, $member))
-			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member)))) 
+			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member))))
 			{
 				$returnhtml = false;
 			}
 		}
-
-		/*
-		if (!$authorized) {
-			$returnhtml = false;
-			$returnmeta = false;
-		}
-		*/
 
 		$arr = array(
 			'html'=>'',
 			'metadata'=>''
 		);
 
-		$applicants = $member->getGroups('applicants'); //\Hubzero\User\Helper::getGroups($member->get('uidNumber'), 'applicants', 1);
-		$invitees   = $member->getGroups('invitees'); //\Hubzero\User\Helper::getGroups($member->get('uidNumber'), 'invitees', 1);
-		$members    = $member->getGroups('members'); //\Hubzero\User\Helper::getGroups($member->get('uidNumber'), 'members', 1);
-		$managers   = $member->getGroups('managers'); //\Hubzero\User\Helper::getGroups($member->get('uidNumber'), 'managers', 1);
+		$applicants = $member->getGroups('applicants');
+		$invitees   = $member->getGroups('invitees');
+		$members    = $member->getGroups('members');
+		$managers   = $member->getGroups('managers');
 
 		$applicants = (is_array($applicants)) ? $applicants : array();
 		$invitees   = (is_array($invitees))   ? $invitees   : array();
@@ -129,7 +113,7 @@ class plgMembersGroups extends JPlugin
 		}
 		foreach ($members as $mem)
 		{
-			if (!in_array($mem->cn, $managerids)) 
+			if (!in_array($mem->cn, $managerids))
 			{
 				$groups[$mem->description] = $mem;
 			}
@@ -137,14 +121,12 @@ class plgMembersGroups extends JPlugin
 		ksort($groups);
 
 		// Build the final HTML
-		if ($returnhtml) 
+		if ($returnhtml)
 		{
-			\Hubzero\Document\Assets::addPluginStylesheet('members', 'groups');
-
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'members',
-					'element' => 'groups',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'summary'
 				)
 			);
@@ -203,7 +185,7 @@ class plgMembersGroups extends JPlugin
 			$view->groups = $groups;
 			$view->member = $member;
 			$view->option = 'com_groups';
-			if ($this->getError()) 
+			if ($this->getError())
 			{
 				foreach ($this->getErrors() as $error)
 				{
@@ -215,11 +197,11 @@ class plgMembersGroups extends JPlugin
 		}
 
 		// Build the HTML meant for the "profile" tab's metadata overview
-		if ($returnmeta) 
+		if ($returnmeta)
 		{
 			//display a different message if its me
-			if ($member->get('uidNumber') == $user->get("id")) 
-			{ 
+			if ($member->get('uidNumber') == $user->get("id"))
+			{
 				$arr['metadata']['count'] = count($groups);
 
 				if (count($invitees))

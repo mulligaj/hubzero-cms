@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
@@ -24,7 +24,7 @@
  *
  * @package   hubzero-cms
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   GNU General Public License, version 2 (GPLv2) 
+ * @license   GNU General Public License, version 2 (GPLv2)
  */
 
 // Check to ensure this file is included in Joomla!
@@ -34,11 +34,16 @@ $database = JFactory::getDBO();
 ?>
 <div class="metadata">
 <?php
-if ($this->model->params->get('show_ranking', 0)) 
+if ($this->model->params->get('show_ranking', 0))
 {
 	$citations = $this->model->citations();
 
 	$lastCitation = end($citations);
+	if (!is_object($lastCitation))
+	{
+		$lastCitation = new stdClass;
+		$lastCitation->created = null;
+	}
 
 	if ($this->model->isTool())
 	{
@@ -52,13 +57,11 @@ if ($this->model->params->get('show_ranking', 0))
 	$rank = round($this->model->resource->ranking, 1);
 
 	$r = (10*$rank);
-	if (intval($r) < 10) 
-	{
-		$r = '0' . $r;
-	}
 ?>
 	<dl class="rankinfo">
-		<dt class="ranking"><span class="rank-<?php echo $r; ?>">This resource has a</span> <?php echo number_format($rank, 1); ?> Ranking</dt>
+		<dt class="ranking">
+			<span class="rank"><span class="rank-<?php echo $r; ?>" style="width: <?php echo $r; ?>%;">This resource has a</span></span> <?php echo number_format($rank, 1); ?> Ranking
+		</dt>
 		<dd>
 			<p>
 				Ranking is calculated from a formula comprised of <a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->model->resource->id . '&active=reviews'); ?>">user reviews</a> and usage statistics. <a href="about/ranking/">Learn more &rsaquo;</a>
@@ -71,19 +74,25 @@ if ($this->model->params->get('show_ranking', 0))
 <?php
 }
 
-if ($this->model->params->get('show_audience')) 
+if ($this->model->params->get('show_audience'))
 {
 	include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $this->option . DS . 'tables' . DS . 'audience.php');
 	include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $this->option . DS . 'tables' . DS . 'audience.level.php');
 	$ra = new ResourceAudience($database);
 	$audience = $ra->getAudience($this->model->resource->id, $versionid = 0 , $getlabels = 1, $numlevels = 4);
-	echo ResourcesHtml:: showSkillLevel($audience, $showtips = 1, $numlevels = 4, $this->model->params->get('audiencelink'));
+
+	$this->view('_audience', 'view')
+	     ->set('audience', $audience)
+	     ->set('showtips', 1)
+	     ->set('numlevels', 4)
+	     ->set('audiencelink', $this->model->params->get('audiencelink'))
+	     ->display();
 }
 
 if ($this->model->params->get('supportedtag'))
 {
 	$rt = new ResourcesTags($database);
-	if ($rt->checkTagUsage($this->model->params->get('supportedtag'), $this->model->resource->id)) 
+	if ($rt->checkTagUsage($this->model->params->get('supportedtag'), $this->model->resource->id))
 	{
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_tags' . DS . 'helpers' . DS . 'handler.php');
 

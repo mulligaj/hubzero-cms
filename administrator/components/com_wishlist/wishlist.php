@@ -34,65 +34,44 @@ defined('_JEXEC') or die('Restricted access');
 $option = JRequest::getCmd('option', 'com_wishlist');
 
 // Authorization check
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect('index.php', JText::_('ALERTNOTAUTH'));
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include scripts
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'wishlist.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'wishlist.plan.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'wishlist.owner.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'wishlist.owner.group.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'wish.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'wish.rank.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'wish.attachment.php');
-include_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'wishlist.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'wishlist.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'wishlist.plan.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'wishlist.owner.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'wishlist.owner.group.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'wish.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'wish.rank.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'wish.attachment.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'wishlist.php');
 
 $controllerName = JRequest::getCmd('controller', 'lists');
-if (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))
+if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php'))
 {
 	$controllerName = 'lists';
 }
-switch ($controllerName)
-{
-	case 'wishes':
-		JSubMenuHelper::addEntry(JText::_('Lists'), 'index.php?option=' .  $option . '&controller=lists');
-		JSubMenuHelper::addEntry(JText::_('Wishes'), 'index.php?option=' .  $option . '&controller=wishes&wishlist=-1', true);
-		JSubMenuHelper::addEntry(JText::_('Comments'), 'index.php?option=' .  $option . '&controller=comments&wish=-1');
-	break;
-	
-	case 'comments':
-		JSubMenuHelper::addEntry(JText::_('Lists'), 'index.php?option=' .  $option . '&controller=lists');
-		JSubMenuHelper::addEntry(JText::_('Wishes'), 'index.php?option=' .  $option . '&controller=wishes&wishlist=-1');
-		JSubMenuHelper::addEntry(JText::_('Comments'), 'index.php?option=' .  $option . '&controller=comments&wish=-1', true);
-	break;
 
-	default:
-	case 'lists':
-		JSubMenuHelper::addEntry(JText::_('Lists'), 'index.php?option=' .  $option . '&controller=lists', true);
-		JSubMenuHelper::addEntry(JText::_('Wishes'), 'index.php?option=' .  $option . '&controller=wishes&wishlist=-1');
-		JSubMenuHelper::addEntry(JText::_('Comments'), 'index.php?option=' .  $option . '&controller=comments&wish=-1');
-	break;
-}
-require_once(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php');
+JSubMenuHelper::addEntry(
+	JText::_('COM_WISHLIST_LISTS'),
+	'index.php?option=' .  $option . '&controller=lists',
+	($controllerName == 'lists')
+);
+JSubMenuHelper::addEntry(
+	JText::_('COM_WISHLIST_WISHES'),
+	'index.php?option=' .  $option . '&controller=wishes&wishlist=-1',
+	($controllerName == 'wishes')
+);
+JSubMenuHelper::addEntry(
+	JText::_('COM_WISHLIST_COMMENTS'),
+	'index.php?option=' .  $option . '&controller=comments&wish=-1',
+	($controllerName == 'comments')
+);
+
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'WishlistController' . ucfirst($controllerName);
 
 // Initiate controller

@@ -33,17 +33,16 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 /**
  * Short description for 'ContributionSorter'
- * 
+ *
  * Long description (if any) ...
  */
 class ContributionSorter
 {
-
 	/**
 	 * Short description for 'sort'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object $a Parameter description (if any) ...
 	 * @param      object $b Parameter description (if any) ...
 	 * @return     integer Return description (if any) ...
@@ -66,9 +65,9 @@ class ContributionSorter
 
 	/**
 	 * Short description for 'sort_weight'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object $a Parameter description (if any) ...
 	 * @param      object $b Parameter description (if any) ...
 	 * @return     integer Return description (if any) ...
@@ -86,9 +85,9 @@ class ContributionSorter
 
 	/**
 	 * Short description for 'sort_title'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object $a Parameter description (if any) ...
 	 * @param      object $b Parameter description (if any) ...
 	 * @return     object Return description (if any) ...
@@ -106,7 +105,7 @@ class plgSearchMembers extends SearchPlugin
 {
 	/**
 	 * Build search query and add it to the $results
-	 * 
+	 *
 	 * @param      object $request  SearchModelRequest
 	 * @param      object &$results SearchModelResultSet
 	 * @return     void
@@ -127,7 +126,7 @@ class plgSearchMembers extends SearchPlugin
 		}
 
 		$results->add(new SearchResultSQL(
-			"SELECT 
+			"SELECT
 				p.uidNumber AS id,
 				p.name AS title,
 				coalesce(b.bio, '') AS description,
@@ -137,9 +136,9 @@ class plgSearchMembers extends SearchPlugin
 				'Members' AS section,
 				CASE WHEN p.picture IS NOT NULL THEN concat('/site/members/', lpad(p.uidNumber, 5, '0'), '/', p.picture) ELSE NULL END AS img_href
 			FROM #__xprofiles p
-			LEFT JOIN #__xprofiles_bio b 
+			LEFT JOIN #__xprofiles_bio b
 				ON b.uidNumber = p.uidNumber
-			WHERE 
+			WHERE
 				public AND $weight > 0" .
 				($addtl_where ? ' AND ' . join(' AND ', $addtl_where) : '') .
 			" ORDER BY $weight DESC"
@@ -148,7 +147,7 @@ class plgSearchMembers extends SearchPlugin
 
 	/**
 	 * Build search query and add it to the $results
-	 * 
+	 *
 	 * @param      object $request  YSearchModelRequest
 	 * @param      object &$results YSearchModelResultSet
 	 * @return     void
@@ -175,7 +174,7 @@ class plgSearchMembers extends SearchPlugin
 		}
 
 		$sql = new SearchResultSQL(
-			"SELECT 
+			"SELECT
 				p.uidNumber AS id,
 				p.name AS title,
 				coalesce(b.bio, '') AS description,
@@ -184,9 +183,9 @@ class plgSearchMembers extends SearchPlugin
 				'Members' AS section,
 				CASE WHEN p.picture IS NOT NULL THEN concat('/site/members/', lpad(p.uidNumber, 5, '0'), '/', p.picture) ELSE NULL END AS img_href
 			FROM #__xprofiles p
-			LEFT JOIN #__xprofiles_bio b 
+			LEFT JOIN #__xprofiles_bio b
 				ON b.uidNumber = p.uidNumber
-			WHERE 
+			WHERE
 				public AND " . join(' AND ', $addtl_where)
 		);
 		$assoc = $sql->to_associative();
@@ -195,35 +194,23 @@ class plgSearchMembers extends SearchPlugin
 			return false;
 		}
 
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$when = "c.alias THEN 
-				concat(
-					CASE WHEN c.alias THEN concat('/', c.alias) ELSE '' END
-				)";
-		}
-		else 
-		{
-			$when = "s.name OR ca.name OR c.alias THEN 
-				concat(
-					CASE WHEN s.name THEN concat('/', s.name) ELSE '' END, 
-					CASE WHEN ca.name AND ca.name != s.name THEN concat('/', ca.name) ELSE '' END, 
-					CASE WHEN c.alias THEN concat('/', c.alias) ELSE '' END
-				)";
-		}
+		$when = "c.alias THEN
+			concat(
+				CASE WHEN c.alias THEN concat('/', c.alias) ELSE '' END
+			)";
 
 		$resp = array();
 		foreach ($assoc as $row)
 		{
-			$query = "SELECT 
+			$query = "SELECT
 					CASE WHEN aa.subtable = 'resources' THEN
 						r.title
-					ELSE 
+					ELSE
 						c.title
 					END AS title,
-					CASE 
+					CASE
 						WHEN aa.subtable = 'resources' THEN
-							concat(coalesce(r.introtext, ''), coalesce(r.`fulltxt`, '')) 
+							concat(coalesce(r.introtext, ''), coalesce(r.`fulltxt`, ''))
 						ELSE
 							concat(coalesce(c.introtext, ''), coalesce(c.`fulltext`, ''))
 					END AS description,
@@ -233,22 +220,16 @@ class plgSearchMembers extends SearchPlugin
 						ELSE
 							CASE
 								WHEN $when
-								ELSE concat('/content/article/', c.id) 
+								ELSE concat('/content/article/', c.id)
 							END
 					END AS link,
 					1 AS weight,
-					CASE 
+					CASE
 						WHEN aa.subtable = 'resources' THEN
 							rt.type
 						ELSE";
-			if (version_compare(JVERSION, '1.6', 'lt'))
-			{
-						$query .= " s.name";
-			}
-			else
-			{
-						$query .= " s.alias";
-			}
+			$query .= " s.alias";
+
 			$query .= " END AS section,
 					CASE
 						WHEN aa.subtable = 'resources' THEN
@@ -261,26 +242,16 @@ class plgSearchMembers extends SearchPlugin
 						ON aa.subtable = 'resources' AND r.id = aa.subid AND r.published = 1
 					LEFT JOIN #__resource_assoc ra
 						ON ra.child_id = r.id
-					LEFT JOIN #__resource_types rt 
+					LEFT JOIN #__resource_types rt
 						ON rt.id = r.type";
-				if (version_compare(JVERSION, '1.6', 'lt'))
-				{
-					$query .= " LEFT JOIN #__content c
+
+			$query .= " LEFT JOIN #__content c
 						ON aa.subtable = 'content' AND c.id = aa.subid AND c.state = 1
-					LEFT JOIN #__sections s 
+					LEFT JOIN #__categories s
 						ON s.id = c.sectionid
 					LEFT JOIN #__categories ca
 						ON ca.id = c.catid";
-				} 
-				else 
-				{
-					$query .= " LEFT JOIN #__content c
-						ON aa.subtable = 'content' AND c.id = aa.subid AND c.state = 1
-					LEFT JOIN #__categories s 
-						ON s.id = c.sectionid
-					LEFT JOIN #__categories ca
-						ON ca.id = c.catid";
-				}
+
 			$query .= " WHERE aa.authorid = " . $row->get('id');
 			$work = new SearchResultSQL($query);
 			$work_assoc = $work->to_associative();
@@ -300,7 +271,7 @@ class plgSearchMembers extends SearchPlugin
 			$row->sort_children(array('ContributionSorter', 'sort'));
 
 			$workp = new SearchResultSQL(
-				"SELECT 
+				"SELECT
 					r.publication_id AS id,
 					r.title AS title,
 					concat(coalesce(r.description, ''), coalesce(r.abstract, '')) AS description,
@@ -311,9 +282,9 @@ class plgSearchMembers extends SearchPlugin
 					FROM #__publication_authors aa
 					LEFT JOIN #__publication_versions r
 						ON aa.publication_version_id = r.id AND r.state = 1
-					LEFT JOIN #__publications p 
+					LEFT JOIN #__publications p
 						ON p.id = r.publication_id
-					LEFT JOIN #__publication_categories rt 
+					LEFT JOIN #__publication_categories rt
 						ON rt.id = p.category
 					WHERE aa.user_id = " . $row->get('id')
 			);
@@ -345,7 +316,7 @@ class plgSearchMembers extends SearchPlugin
 	/**
 	 * Generate an <img> tag with the user's picture, if set
 	 * Otherwise, use default image
-	 * 
+	 *
 	 * @param      object $res YSearchResult
 	 * @return     string
 	 */

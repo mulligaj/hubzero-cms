@@ -94,11 +94,11 @@ class SubtitleAssetHandler extends AssetHandler
 		}
 
 		// Check to make sure we have a file and its not too big
-		if ($size == 0) 
+		if ($size == 0)
 		{
 			return array('error' => 'File is empty');
 		}
-		if ($size > $sizeLimit) 
+		if ($size > $sizeLimit)
 		{
 			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			return array('error' => "File is too large. Max file upload size is $max");
@@ -152,7 +152,7 @@ class SubtitleAssetHandler extends AssetHandler
 		}
 
 		// move file
-		if(!$move = move_uploaded_file($_FILES['files']['tmp_name'][0], $target_path))
+		if (!$move = move_uploaded_file($_FILES['files']['tmp_name'][0], $target_path))
 		{
 			// Move failed, delete asset and association and return an error
 			return array('error' => 'Move file failed');
@@ -164,7 +164,7 @@ class SubtitleAssetHandler extends AssetHandler
 		// get manifest
 		$manifest = file_get_contents(JPATH_ROOT . DS . $jsonFile);
 		$manifest = json_decode($manifest);
-		
+
 		// make sure we have a subtitles section
 		$currentSubtitles = array();
 		if (!isset($manifest->presentation->subtitles))
@@ -184,7 +184,7 @@ class SubtitleAssetHandler extends AssetHandler
 		$name     = str_replace('-auto','', $info['filename']);
 		$autoplay = (strstr($info['filename'],'-auto')) ? 1 : 0;
 		$source   = $file;
-		
+
 		// add subtitle
 		$subtitle                            = new stdClass;
 		$subtitle->type                      = 'SRT';
@@ -197,7 +197,7 @@ class SubtitleAssetHandler extends AssetHandler
 		{
 			$manifest->presentation->subtitles[] = $subtitle;
 		}
-		
+
 		// update json file
 		file_put_contents(JPATH_ROOT . DS . $jsonFile, json_encode($manifest, JSON_PRETTY_PRINT));
 
@@ -208,7 +208,7 @@ class SubtitleAssetHandler extends AssetHandler
 		$transcript = '';
 		foreach ($lines as $line)
 		{
-			$transcript .= trim($line->text); 
+			$transcript .= trim($line->text);
 		}
 
 		//trim transcript and replace add slide markers
@@ -297,11 +297,6 @@ class SubtitleAssetHandler extends AssetHandler
 		return array('assets' => $return_info);
 	}
 
-	public function test($file)
-	{
-		echo 'test';
-	}
-
 	/**
 	 * [_parseSubtitleFile description]
 	 * @param  [type] $file [description]
@@ -321,9 +316,9 @@ class SubtitleAssetHandler extends AssetHandler
 		$subText = '';
 		$subTime = '';
 
-		foreach($lines as $line)
+		foreach ($lines as $line)
 		{
-		    switch($state)
+		    switch ($state)
 		    {
 		        case SRT_STATE_SUBNUMBER:
 		            $subNum = trim($line);

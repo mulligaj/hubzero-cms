@@ -40,28 +40,28 @@ class WishlistModelComment extends WishlistModelAbstract
 {
 	/**
 	 * ForumTablePost
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_tbl_name = '\\Hubzero\\Item\\Comment';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_wishlist.comment.content';
 
 	/**
 	 * JUser
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_creator = NULL;
 
 	/**
 	 * WishlistModelPlan
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_cache = array(
@@ -82,12 +82,12 @@ class WishlistModelComment extends WishlistModelAbstract
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$oid])) 
+		if (!isset($instances[$oid]))
 		{
 			$instances[$oid] = new self($oid);
 		}
@@ -97,44 +97,21 @@ class WishlistModelComment extends WishlistModelAbstract
 
 	/**
 	 * HAs this comment been reported
-	 * 
+	 *
 	 * @return     boolean True if reported, False if not
 	 */
 	public function isReported()
 	{
-		if ($this->get('reports', -1) > 0)
+		if ($this->get('state') == self::APP_STATE_FLAGGED)
 		{
 			return true;
-		}
-		// Reports hasn't been set
-		if ($this->get('reports', -1) == -1) 
-		{
-			$path = JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'reportabuse.php';
-
-			if (is_file($path)) 
-			{
-				include_once($path);
-
-				$ra = new ReportAbuse($this->_db);
-
-				$this->set('reports', $ra->getCount(array(
-					'id'       => $this->get('id'), 
-					'category' => 'wishcomment',
-					'state'    => 0
-				)));
-
-				if ($this->get('reports') > 0)
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 	}
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What format to return
 	 * @return     boolean
 	 */
@@ -158,7 +135,7 @@ class WishlistModelComment extends WishlistModelAbstract
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
 	 * it returns the entire JUser object
@@ -170,6 +147,10 @@ class WishlistModelComment extends WishlistModelAbstract
 		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
 			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+			if (!$this->_creator)
+			{
+				$this->_creator = new \Hubzero\User\Profile();
+			}
 		}
 		if ($property)
 		{
@@ -185,7 +166,7 @@ class WishlistModelComment extends WishlistModelAbstract
 
 	/**
 	 * Get a list or count of comments
-	 * 
+	 *
 	 * @param      string  $rtrn    Data format to return
 	 * @param      array   $filters Filters to apply to data fetch
 	 * @param      boolean $clear   Clear cached data?
@@ -205,6 +186,10 @@ class WishlistModelComment extends WishlistModelAbstract
 		{
 			$filters['item_id'] = $this->get('item_id');
 		}
+		if (!isset($filters['state']))
+		{
+			$filters['state'] = array(static::APP_STATE_PUBLISHED, static::APP_STATE_FLAGGED);
+		}
 
 		switch (strtolower($rtrn))
 		{
@@ -213,19 +198,19 @@ class WishlistModelComment extends WishlistModelAbstract
 				{
 					$this->_cache['comments.count'] = 0;
 
-					if (!$this->_cache['comments.list']) 
+					if (!$this->_cache['comments.list'])
 					{
 						$c = $this->comments('list', $filters);
 					}
 					foreach ($this->_cache['comments.list'] as $com)
 					{
 						$this->_cache['comments.count']++;
-						if ($com->replies()) 
+						if ($com->replies())
 						{
 							foreach ($com->replies() as $rep)
 							{
 								$this->_cache['comments.count']++;
-								if ($rep->replies()) 
+								if ($rep->replies())
 								{
 									$this->_cache['comments.count'] += $rep->replies()->total();
 								}
@@ -270,7 +255,7 @@ class WishlistModelComment extends WishlistModelAbstract
 
 	/**
 	 * Get the content of the entry
-	 * 
+	 *
 	 * @param      string  $as      Format to return state in [text, number]
 	 * @param      integer $shorten Number of characters to shorten text to
 	 * @return     string
@@ -341,7 +326,7 @@ class WishlistModelComment extends WishlistModelAbstract
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type The type of link to return
 	 * @return     string
 	 */
@@ -383,13 +368,13 @@ class WishlistModelComment extends WishlistModelAbstract
 
 	/**
 	 * Delete an entry and its associated content
-	 * 
+	 *
 	 * @return     boolean True on success, false if not
 	 */
 	public function delete()
 	{
 		// Can't delete what doesn't exist
-		if (!$this->exists()) 
+		if (!$this->exists())
 		{
 			return true;
 		}

@@ -37,6 +37,15 @@ $total = count($this->courses);
 
 ?>
 <div<?php echo ($this->moduleclass) ? ' class="' . $this->moduleclass . '"' : '';?>>
+
+<ul class="module-nav">
+	<li>
+		<a class="icon-browse" href="<?php echo JRoute::_('index.php?option=com_courses&task=browse'); ?>">
+			<?php echo JText::_('MOD_MYCOURSES_ALL_COURSES'); ?>
+		</a>
+	</li>
+</ul>
+
 <?php if ($this->courses && $total > 0) { ?>
 	<ul class="compactlist">
 <?php
@@ -61,14 +70,14 @@ $total = count($this->courses);
 			<?php if ($course->section_title) { ?>
 			<small><strong><?php echo JText::_('MOD_MYCOURSES_SECTION'); ?></strong> <?php echo $this->escape($course->section_title); ?></small>
 			<?php } ?>
-			<?php 
-			switch ($course->state) 
+			<?php
+			switch ($course->state)
 			{
 				case 3: ?><small><?php echo JText::_('MOD_MYCOURSES_COURSE_STATE_DRAFT'); ?></small><?php break;
 				case 2: ?><small><?php echo JText::_('MOD_MYCOURSES_COURSE_STATE_DELETED'); ?></small><?php break;
 				case 1: ?><small><?php echo JText::_('MOD_MYCOURSES_COURSE_STATE_PUBLISHED'); ?></small><?php break;
 				case 0: ?><small><?php echo JText::_('MOD_MYCOURSES_COURSE_STATE_UNPUBLISHED'); ?></small><?php break;
-			} 
+			}
 			?>
 			<span><span class="<?php echo $this->escape($course->role); ?> status"><?php echo $this->escape($course->role); ?></span></span>
 		</li>
@@ -79,15 +88,10 @@ $total = count($this->courses);
 ?>
 	</ul>
 <?php } else { ?>
-	<p><?php echo JText::_('MOD_MYCOURSES_NO_RESULTS'); ?></p>
+	<p><em><?php echo JText::_('MOD_MYCOURSES_NO_RESULTS'); ?></em></p>
 <?php } ?>
 
 <?php if ($total > $this->limit) { ?>
-	<p><?php echo JText::sprintf('MOD_MYCOURSES_YOU_HAVE_MORE', $this->limit, ($total - $this->limit)); ?></p>
+	<p class="note"><?php echo JText::sprintf('MOD_MYCOURSES_YOU_HAVE_MORE', $this->limit, $total, JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=courses')); ?></p>
 <?php } ?>
-
-	<ul class="module-nav">
-		<li><a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=courses'); ?>"><?php echo JText::_('MOD_MYCOURSES_ALL_MY_COURSES'); ?> (<?php echo $total; ?>)</a></li>
-		<li><a href="<?php echo JRoute::_('index.php?option=com_courses'); ?>"><?php echo JText::_('MOD_MYCOURSES_ALL_COURSES'); ?></a></li>
-	</ul>
 </div>

@@ -31,17 +31,17 @@ class plgEditorNone extends JPlugin
 		4/5/2013
 		*/
 		$showFullPaths = ($this->params->get('full_paths')) ? 'true' : 'false';
-		
+
 		$txt =	"<script type=\"text/javascript\">
 					var showFullPaths = ".$showFullPaths.";
 					function insertAtCursor(myField, myValue) {
-						
+
 						if(showFullPaths)
 						{
 							var hub = 'https://' + document.location.host + '/';
 							myValue = myValue.replace(/(<img[\w+]* src=)\"([^\"]*)\"/gi, \"$1\\\"\" + hub + \"$2\\\"\");
 						}
-	
+
 						if (document.selection) {
 							// IE support
 							myField.focus();
@@ -153,7 +153,7 @@ class plgEditorNone extends JPlugin
 			$height .= 'px';
 		}
 
-		$buttons = (JFactory::getApplication()->isAdmin() ? $this->_displayButtons($id, $buttons, $asset, $author) : '');
+		$buttons = $this->_displayButtons($id, $buttons, $asset, $author);
 		$editor  = "<textarea name=\"$name\" id=\"$id\" cols=\"$col\" rows=\"$row\" style=\"width: $width; height: $height;\">$content</textarea>" . $buttons;
 
 		return $editor;

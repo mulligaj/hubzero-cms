@@ -38,35 +38,35 @@ class GroupsMembersRole extends JTable
 {
 	/**
 	 * int(11) Primary key
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $id        = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $gidNumber = NULL;
 
 	/**
 	 * varchar(150)
-	 * 
+	 *
 	 * @var string
 	 */
 	var $name = NULL;
-	
+
 	/**
 	 * text
-	 * 
+	 *
 	 * @var string
 	 */
 	var $permissions  = NULL;
-	
+
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$db JDatabase
 	 * @return     void
 	 */
@@ -77,33 +77,43 @@ class GroupsMembersRole extends JTable
 
 	/**
 	 * Validate data
-	 * 
+	 *
 	 * @return     boolean True if data is valid
 	 */
 	public function check()
 	{
 		// make sure we have group id
-		if (trim($this->gidNumber) == '') 
+		if (trim($this->gidNumber) == '')
 		{
 			$this->setError(JText::_('PLG_GROUPS_MEMBERS_ROLE_MUST_HAVE_GROUP_ID'));
 			return false;
 		}
-		
+
 		// make sure we ahve role name
-		if (trim($this->name) == '') 
+		if (trim($this->name) == '')
 		{
 			$this->setError(JText::_('PLG_GROUPS_MEMBERS_ROLE_MUST_HAVE_ROLE_NAME'));
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
+	/**
+	 * Get Role Permisisons
+	 * @return [type] [description]
+	 */
 	public function getPermissions()
 	{
 		return $this->permissions;
 	}
-	
+
+	/**
+	 * Check to see if role has permission
+	 * 
+	 * @param  string  $permission [description]
+	 * @return boolean             [description]
+	 */
 	public function hasPermission($permission = '')
 	{
 		// get role permissions & json decode
@@ -113,6 +123,24 @@ class GroupsMembersRole extends JTable
 		{
 			return $permissions->$permission;
 		}
-		return null;	
+		return null;
+	}
+
+	/**
+	 * Delete Roles for user
+	 * 
+	 * @param  [type] $userId [description]
+	 * @return [type]         [description]
+	 */
+	public static function deleteRolesForUserWithId($userId)
+	{
+		$database = JFactory::getDBO();
+		$sql = "DELETE FROM #__xgroups_member_roles WHERE uidNumber=" . $database->Quote($userId);
+		$database->setQuery($sql);
+		if (!$database->query())
+		{
+			return false;
+		}
+		return true;
 	}
 }

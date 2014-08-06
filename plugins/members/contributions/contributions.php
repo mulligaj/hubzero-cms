@@ -31,30 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Members Plugin class for contributions
  */
-class plgMembersContributions extends JPlugin
+class plgMembersContributions extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Perform actions when viewing a member profile
-	 * 
+	 *
 	 * @param      object $user   Current user
 	 * @param      object $member Current member page
 	 * @param      string $option Start of records to pull
@@ -63,31 +54,31 @@ class plgMembersContributions extends JPlugin
 	 */
 	public function &onMembersAreas($user, $member)
 	{
-		$areas['contributions'] = JText::_('PLG_MEMBERS_CONTRIBUTIONS');
-		$areas['icon'] = 'f02d';
+		$areas = array(
+			'contributions' => JText::_('PLG_MEMBERS_CONTRIBUTIONS'),
+			'icon' => 'f02d'
+		);
 		return $areas;
 	}
 
 	/**
-	 * Short description for 'onMembers'
-	 * 
-	 * Long description (if any) ...
-	 * 
-	 * @param      mixed $member Parameter description (if any) ...
-	 * @param      string $option Parameter description (if any) ...
-	 * @param      unknown $authorized Parameter description (if any) ...
-	 * @param      array $areas Parameter description (if any) ...
-	 * @return     array Return description (if any) ...
+	 * Event call to return data for a specific member
+	 *
+	 * @param      object  $user   JUser
+	 * @param      object  $member MembersProfile
+	 * @param      string  $option Component name
+	 * @param      string  $areas  Plugins to return data
+	 * @return     array   Return array of html
 	 */
 	public function onMembers($user, $member, $option, $areas)
 	{
 		$returnhtml = true;
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onMembersAreas($user, $member))
-			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member)))) 
+			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member))))
 			{
 				$returnhtml = false;
 			}
@@ -120,11 +111,11 @@ class plgMembersContributions extends JPlugin
 
 		// Get the active category
 		$area = JRequest::getVar('area', '');
-		if ($area) 
+		if ($area)
 		{
 			$activeareas = array($area);
-		} 
-		else 
+		}
+		else
 		{
 			$limit = 5;
 			$activeareas = $areas;
@@ -132,7 +123,7 @@ class plgMembersContributions extends JPlugin
 
 		// If we're just returning metadata, we set the limitstart to -1 to use as a flag
 		// This allows us to reduce the overall number of queries
-		if (!$returnhtml) 
+		if (!$returnhtml)
 		{
 			$limitstart = -1;
 		}
@@ -157,7 +148,7 @@ class plgMembersContributions extends JPlugin
 			$cats[$i]['category'] = $c;
 
 			// Do sub-categories exist?
-			if (is_array($t) && !empty($t)) 
+			if (is_array($t) && !empty($t))
 			{
 				// They do - do some processing
 				$cats[$i]['title'] = ucfirst($c);
@@ -168,7 +159,7 @@ class plgMembersContributions extends JPlugin
 				foreach ($t as $s=>$st)
 				{
 					// Ensure a matching array of totals exist
-					if (is_array($totals[$i]) && !empty($totals[$i]) && isset($totals[$i][$z])) 
+					if (is_array($totals[$i]) && !empty($totals[$i]) && isset($totals[$i][$z]))
 					{
 						// Add to the parent category's total
 						$cats[$i]['total'] = $cats[$i]['total'] + $totals[$i][$z];
@@ -179,8 +170,8 @@ class plgMembersContributions extends JPlugin
 					}
 					$z++;
 				}
-			} 
-			else 
+			}
+			else
 			{
 				// No sub-categories - this should be easy
 				$cats[$i]['title'] = $t;
@@ -193,11 +184,8 @@ class plgMembersContributions extends JPlugin
 		}
 
 		// Build the HTML
-		if ($returnhtml) 
+		if ($returnhtml)
 		{
-			\Hubzero\Document\Assets::addPluginStylesheet('members', 'contributions');
-			\Hubzero\Document\Assets::addComponentScript('com_resources', 'resources');
-
 			$limit = ($limit == 0) ? 'all' : $limit;
 
 			// Get the search results
@@ -211,19 +199,19 @@ class plgMembersContributions extends JPlugin
 			);
 
 			// Do we have an active area?
-			if (count($activeareas) == 1 && !is_array(current($activeareas))) 
+			if (count($activeareas) == 1 && !is_array(current($activeareas)))
 			{
 				$active = current($activeareas);
-			} 
-			else 
+			}
+			else
 			{
 				$active = '';
 			}
 
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'members',
-					'element' => 'contributions',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'display'
 				)
 			);
@@ -238,7 +226,7 @@ class plgMembersContributions extends JPlugin
 			$view->total   = $total;
 			$view->member  = $member;
 			$view->sort    = $sort;
-			if ($this->getError()) 
+			if ($this->getError())
 			{
 				$view->setError($this->getError());
 			}
@@ -255,17 +243,17 @@ class plgMembersContributions extends JPlugin
 		$juser = JFactory::getUser();
 
 		//count all members contributions
-		foreach ($cats as $cat) 
+		foreach ($cats as $cat)
 		{
 			$total += $cat['total'];
 		}
 
 		//do we have a total?
-		if ($total > 0) 
-		{   
+		if ($total > 0)
+		{
 			$prefix = ($juser->get('id') == $member->get("uidNumber")) ? "I have" : $member->get("name") . " has";
 			$title = $prefix . " {$total} resources.";
-			$arr['metadata']['count'] = $total;  
+			$arr['metadata']['count'] = $total;
 		}
 
 		return $arr;

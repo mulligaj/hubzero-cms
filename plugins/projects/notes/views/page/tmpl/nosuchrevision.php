@@ -31,13 +31,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 ?>
-<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>" class="full">
+<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>" class="full">
 	<h2><?php echo $this->escape($this->title); ?></h2>
 	<?php
-	if (!$this->page->isStatic()) 
+	if (!$this->page->isStatic())
 	{
 		$view = new JView(array(
-			'base_path' => $this->base_path, 
+			'base_path' => $this->base_path,
 			'name'      => 'page',
 			'layout'    => 'authors'
 		));
@@ -45,13 +45,13 @@ defined('_JEXEC') or die( 'Restricted access' );
 		$view->display();
 	}
 	?>
-</div><!-- /#content-header -->
+</header><!-- /#content-header -->
 
 <?php
-if ($this->page->exists()) 
+if ($this->page->exists())
 {
 	$view = new JView(array(
-		'base_path' => $this->base_path, 
+		'base_path' => $this->base_path,
 		'name'      => 'page',
 		'layout'    => 'submenu'
 	));
@@ -64,7 +64,6 @@ if ($this->page->exists())
 }
 ?>
 
-<div class="main section">
+<section class="main section">
 	<p class="warning"><?php echo JText::sprintf('A page could not be found matching the version number "%s".', $this->version); ?></p>
-	<div class="clear"></div>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

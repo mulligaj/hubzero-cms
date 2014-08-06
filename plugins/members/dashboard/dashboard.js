@@ -1,152 +1,474 @@
 /**
- * @package     hubzero-cms
- * @file        plugins/members/dashboard/dashboard.js
+ * @package	 hubzero-cms
+ * @file		plugins/members/dashboard/dashboard.jquery.js
  * @copyright   Copyright 2005-2011 Purdue University. All rights reserved.
- * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @license	 http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-//-----------------------------------------------------------
-//  Ensure we have our namespace
-//-----------------------------------------------------------
-if (!HUB) {
-	var HUB = {};
+if (!jq) {
+	var jq = $;
 }
 
 //-------------------------------------------------------------
-// My Hub (singleton)
+
+if (!HUB) {
+	var HUB = {};
+}
+if (!HUB.Plugins)
+{
+	HUB.Plugins = {};
+}
+
 //-------------------------------------------------------------
 
-HUB.Myhub = {
-	baseURL: '/index.php?option=com_members&active=dashboard&no_html=1&init=1',
-	
-	initialize: function() {
-		// Add the close module button
-		$$('div.cwrap').each(function(el) {
-			chref = new Element('a',{
-				href: '#',
-				title: 'Remove this module'
-			}).addEvent('click', function(e){ 
-				HUB.Myhub.removeModule(this); 
-				e.preventDefault();
+HUB.Plugins.MemberDashboard = {
+	jQuery: jq,
+
+	modules: null,
+
+	settings: {
+		max_cols: 3,
+		col_margin_vert: 10,
+		col_margin_horz: 10,
+		col_width: 300,
+		col_height: 150,
+		remove_timeout: 4000
+	},
+
+	initialize: function()
+	{
+		var $ = this.jQuery;
+
+		// tell the modules we have js
+		$('.member_dashboard').addClass('js-enabled');
+
+		// calculate working area
+		this._calculateWorkingArea();
+
+		// init grid
+		this.grid();
+
+		// init add modal
+		this.add();
+
+		// handle module events events
+		this.moduleClickEvents();
+
+		// do we have any modules?
+		this.emptyStateCheck();
+	},
+
+	grid: function()
+	{
+		// store vars for later
+		var $         = this.jQuery,
+			dashboard = this;
+
+		// instantiate gridster
+		dashboard.modules = $('.modules').gridster({
+			static_class: 'module-static',
+			widget_selector: '.module',
+			widget_margins: [dashboard.settings.col_margin_horz, dashboard.settings.col_margin_vert],
+			widget_base_dimensions: [dashboard.settings.col_width, dashboard.settings.col_height],
+			max_cols: dashboard.settings.max_cols,
+			serialize_params: function(element, specs)
+			{
+				var params = {};
+				$.each($(element).find('.module-settings form').serializeArray(), function() {
+				    var name = this.name.replace(/params\[([^\]]*)\]/g, "$1");
+				    params[name] = this.value;
+				});
+
+				// return module id, col, row, and sizes
+				return { 
+					module: $(element).data('moduleid'),
+					col: specs.col,
+					row: specs.row,
+					size_x: specs.size_x,
+					size_y: specs.size_y,
+					parameters: params
+				}
+			},
+			draggable: {
+				handle: 'h3', 
+				stop: function(event, ui) {
+					dashboard.save();	
+				}
+			},
+			resize: {
+				enabled: true, 
+				stop: function (event, ui, widget) {
+					dashboard.save();	
+				}
+			}
+		}).data('gridster');
+		
+		// is the dashboard customizable?
+		// if not disable dragging and resize
+		if (!$('.modules').hasClass('customizable'))
+		{
+			dashboard.modules.disable();
+			dashboard.modules.disable_resize();
+		}
+
+		// store for later
+		this.modules = dashboard.modules;
+
+		// handle window resize events
+		this.windowResize();
+	},
+
+	add: function()
+	{
+		var $        = this.jQuery,
+			dasboard = this;
+
+		$('.add-module').fancybox({
+			type: 'ajax',
+			width: 800,
+			height: 'auto',
+			autoSize: false,
+			fitToView: false,  
+			titleShow: false,
+			tpl: {
+				wrap:'<div class="fancybox-wrap"><div class="fancybox-skin"><div class="fancybox-outer"><div id="sbox-content" class="fancybox-inner"></div></div></div></div>'
+			},
+			beforeLoad: function() {
+				href = $(this).attr('href');
+				if (href.indexOf('?') == -1) {
+					href += '?no_html=1';
+				} else {
+					href += '&no_html=1';
+				}
+				$(this).attr('href', href);
+			},
+			afterShow: function() {
+				$('.module-list-triggers a').first().trigger('click');
+			}
+		});
+
+		$('body').on('click', '.module-list-triggers a', function(event) {
+			event.preventDefault();
+			var module = $(this).attr('data-module');
+
+			$('.module-list-triggers a').removeClass('active');
+			$(this).addClass('active');
+
+			$('.module-list-content li').hide();
+			$('.module-list-content li.' + module).show();
+		});
+
+		$('body').on('click', '.install-module', function(event) {
+			event.preventDefault();
+
+			// load module by id
+			var moduleid = $(this).attr('data-module');
+			dasboard.loadModule(moduleid);
+		});
+	},
+
+	loadModule: function( moduleid )
+	{
+		var $         = this.jQuery,
+			userid    = $('.modules').attr('data-userid'),
+			dashboard = this;
+
+		$.ajax({
+			type: 'post',
+			url: 'index.php?option=com_members&id=' + userid + '&active=dashboard&action=module', 
+			dataType: 'json',
+			data: {
+				moduleid: moduleid
+			},
+			success: function(data, status, jqXHR)
+			{
+				dashboard.addModuleAssets(data.assets);
+				dashboard.addModule(data.html);
+			},
+			error: function(jqXHR, status, error)
+			{
+				//console.log(status);
+				//console.log(error);
+			}
+		});
+	},
+
+	refreshModule: function( moduleid )
+	{
+		var $         = this.jQuery,
+			userid    = $('.modules').attr('data-userid'),
+			dashboard = this;
+
+		$.ajax({
+			type: 'post',
+			url: 'index.php?option=com_members&id=' + userid + '&active=dashboard&action=module', 
+			dataType: 'json',
+			data: {
+				moduleid: moduleid
+			},
+			success: function(data, status, jqXHR)
+			{
+				dashboard.addModuleAssets(data.assets);
+				dashboard.modules.replace_widget($('.module[data-moduleid='+moduleid+']'), data.html);
+			},
+			error: function(jqXHR, status, error)
+			{
+				//console.log(status);
+				//console.log(error);
+			}
+		});
+	},
+
+	addModule: function( moduleHtml )
+	{
+		var $         = this.jQuery
+			dashboard = this;
+
+		// calculate column to add module to
+		var colRow = dashboard._calculateColumnRow();
+		
+		// close fancybox
+		$.fancybox.close();
+
+		// add module and save prefs
+		dashboard.modules.add_widget(moduleHtml, 1, 2, colRow[0], colRow[1]);
+		dashboard.emptyStateCheck();
+		dashboard.save();
+	},
+
+	addModuleAssets: function(assets)
+	{
+		var $ = this.jQuery;
+
+		var head = document.getElementsByTagName('head')[0];
+		$.each(assets.scripts, function(index, s) {
+			var script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.src = s;
+			head.appendChild(script);
+		});
+		$.each(assets.stylesheets, function(index, s) {
+			var link = document.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = s;
+			link.media = 'screen'
+			head.appendChild(link);
+		});
+	},
+
+	removeModule: function( module ) 
+	{
+		var $         = this.jQuery
+			dashboard = this;
+
+		dashboard.modules.remove_widget(module, function() {
+			dashboard.save();
+			dashboard.emptyStateCheck();
+		});
+	},
+
+	windowResize: function()
+	{
+		var $         = this.jQuery
+			dashboard = this;
+
+		// on window resize end
+		// resizeEnd event provided with 3rd party extension
+		$(window).resizeEnd(function() {
+			dashboard._calculateWorkingArea();
+			dashboard.modules.resize_widget_dimensions({
+				widget_base_dimensions: [dashboard.settings.col_width,  dashboard.settings.col_height]
 			});
-			chref.addClass('close');
-			chref.injectTop(el);
 		});
-		
-		// Set the drag handle cursor style
-		$$('h3.handle').each(function(el) {
-			el.addClass('movable');
-		});
-		
-		// Make the modules sortable
-		document.ondragstart = function() { return false; };
 
-		HUB.Sorts = new xSortables(['sortcol_0', 'sortcol_1', 'sortcol_2'], {handle:'h3.handle',onComplete:function() {
-			var ids = this.serialize('', function(element, index){
-				return element.getProperty('id').replace('mod_','');
-			}).join(';');
-			$('serials').value = ids;
-			var uid = $('uid').value;
-			var myAjax = new Ajax(HUB.Myhub.baseURL+'&id='+uid+'&action=save&mids='+ids).request();
-		}});
-	},
-	
-	removeModule: function(el) {
-		// remove the list item from its parent list
-		el.parentNode.parentNode.parentNode.removeChild(el.parentNode.parentNode);
-		
-		// get the new serials
-		var ids = HUB.Sorts.serialize('', function(element, index){
-			return element.getProperty('id').replace('mod_','');
-		}).join(';');
-	
-		var uid = $('uid').value;
-		$('serials').value = ids;
-
-		// AJAX: send the serials to the server-side script so it can update the list of available modules
-		var myAjax = new Ajax(HUB.Myhub.baseURL+'&action=rebuild&id='+uid+'&mids='+ids,{update:'available'}).request();
-
-		return false;
+		// trigger resize right away
+		$(window).trigger('resize');
 	},
 
-	addModule: function(id) {
-		if(id) {
-			// create and attach a new LIst item to a list
-			modList = $('sortcol_1');
-			modItem = new Element('div',{
-				id: 'mod_'+id
+	save: function(callback)
+	{
+		var $      = this.jQuery,
+			userid = $('.modules').attr('data-userid'),
+			params = dashboard.modules.serialize(),
+			module_data = JSON.stringify(params);
+		
+		$.ajax({
+			type: 'post',
+			url: 'index.php?option=com_members&id=' + userid + '&active=dashboard&action=save&no_html=1', 
+			dataType: 'json',
+			data: {
+				modules: module_data
+			},
+			complete: function(){
+				if (callback)
+				{
+					callback.call();
+				}
+			},
+			success: function(data, status, jqXHR)
+			{
+				//console.log(data);
+			},
+			error: function(jqXHR, status, error)
+			{
+				console.log(status);
+				console.log(error);
+			}
+		});
+	},
+
+	emptyStateCheck: function()
+	{
+		var $     = this.jQuery,
+			count = $('.modules .module').length;
+
+		// hide/show empty state
+		if (count == 0)
+		{
+			$('.modules').height(0);
+			$('.modules-empty').show();
+		}
+		else
+		{
+			$('.modules-empty').hide();
+		}
+	},
+
+	moduleClickEvents: function()
+	{
+		var $         = this.jQuery,
+			dashboard = this;
+
+		$('.modules')
+			.on('click', '.module-links .remove', function(event) {
+				event.preventDefault();
+				var $this = $(this);
+				if (!$this.hasClass('confirm'))
+				{
+					$this.toggleClass('confirm');
+					setTimeout(function(){
+						$this.removeClass('confirm');
+					}, dashboard.settings.remove_timeout);
+				}
 			})
-			modItem.addClass('draggable').injectInside(modList);
-			
-			// AJAX: send request to server-side script to generate and return contents of new LIst item
-			var uid = $('uid').value;
-			var myAjax1 = new Ajax(HUB.Myhub.baseURL+'&action=addmodule&id='+uid+'&mid='+id,{
-				update: modItem.id,
-				evalScripts: true
-			}).request();
-			myAjax1.addEvent('onComplete', function(){
-				$$('#mod_'+id+' .cwrap').each(function(el) {
-					chref = new Element('a',{
-						href: '#',
-						title: 'Remove this module'
-					}).addEvent('click', function(e){ 
-						HUB.Myhub.removeModule(this); 
-						e.preventDefault();
-					});
-					chref.addClass('close');
-					chref.injectTop(el);
-				});
-				$$('#mod_'+id+' h3.handle').each(function(el) {
-					el.addClass('movable');
-				});
-				// re-apply the sorting script so the new LIst item becoems sortable
-				HUB.Sorts.reinitialize(); 
-				
-				// get the new serials
-				var ids = HUB.Sorts.serialize('', function(element, index){
-					return element.getProperty('id').replace('mod_','');
-				}).join(';');
-				$('serials').value = ids;
+			.on('click', '.module-links .confirm', function(event) {
+				event.preventDefault();
 
-				// AJAX: send the serials to the server-side script so it can update the list of available modules
-				var myAjax2 = new Ajax(HUB.Myhub.baseURL+'&action=rebuild&id='+uid+'&mids='+ids,{update:'available'}).request();
+				// get the module we are wanting to remvoe
+				var module = $(this).parents('.module');
+
+				// remove module
+				dashboard.removeModule(module);
+			})
+			.on('click', '.module-links .settings', function(event) {
+				event.preventDefault();
+
+				$(this).parents('.module')
+					.toggleClass('modifying-settings')
+					.find('.module-settings')
+					.slideToggle("fast");
+			})
+			.on('click', '.module-settings .save', function(event) {
+				event.preventDefault();
+				var button = $(this);
+				button
+					.attr('disabled', 'disabled')
+					.html('Saving...');
+
+				dashboard.save(function(){
+					button
+						.parents('.module')
+						.toggleClass('modifying-settings')
+						.find('.module-settings')
+						.slideToggle("fast");
+
+					button.removeAttr('disabled')
+						.html('Save')
+
+					var moduleid = button.parents('.module').attr('data-moduleid');
+					dashboard.refreshModule(moduleid);
+				});
+			})
+			.on('click', '.module-settings .cancel', function(event) {
+				event.preventDefault();
+
+				$(this).parents('.module')
+					.removeClass('modifying-settings')
+					.find('.module-settings')
+					.slideToggle("fast");
 			});
-		}
 	},
-	
-	editModule: function(el, id) {
-		f = $(id);
-		// toggle display of editable items
-		if (f.style.display == 'none' || f.style.display == '') {
-			f.style.display = 'block';
-			el.innerHTML = 'close edit';
-		} else {
-			f.style.display = 'none';
-			el.innerHTML = 'edit';
+
+	_calculateColumnRow: function()
+	{
+		var $         = this.jQuery,
+			dashboard = this,
+			map       = dashboard.modules.gridmap;
+
+		var max = [];
+
+		for (var i=1; i < map.length; i++)
+		{
+			var col = map[i];
+			for (var n=0; n < col.length; n++)
+			{
+				if (col[n] == false)
+				{
+					max.push(n);
+					break;
+				}
+			}
 		}
-		return false;
+
+		// determine row and col
+		var row = Math.min.apply(Math, max);
+		if (max[0] == row)
+		{
+			col = 1;
+		}
+		else if (max[1] == row)
+		{
+			col = 2;
+		}
+		else
+		{
+			col = 3;
+		}
+
+		// return co/row
+		return [col, row];
 	},
-	
-	saveModule: function(theForm, id) {
-		var uid = $('uid').value;
 
-		allNodes = Form.serialize(theForm);
-	
-		// AJAX: send request to server-side script to save all the user's settings
-		var myAjax1 = new Ajax(HUB.Myhub.baseURL+'&action=saveparams&mid='+id+'&id='+uid+'&'+allNodes,{update:'mod_'+id}).request();
+	_calculateWorkingArea: function()
+	{
+		var $                  = this.jQuery,
+			modulesAreasWidth  = 0,
+			moduleBaseWidth    = 0,
+			moduleBaseHeight   = 0,
+			innerWrapWidth     = $('.innerwrap').width(),
+			sidebarWidth       = $('#page_sidebar').width(),
+			pageContentMargins = 20;
 
-		// turn off/hide the editing features
-		HUB.Myhub.editModule($('e_'+id), 'f_'+id);
-		
-		// AJAX: send request to server-side script to generate and return contents of updated module
-		var myAjax2 = new Ajax(HUB.Myhub.baseURL+'&action=refresh&mid='+id,{update:'mod_'+id}).request();
-		return false;
+		// calculate total working area width
+		modulesAreasWidth = innerWrapWidth - sidebarWidth - pageContentMargins;
+
+		// get module width
+		moduleBaseWidth = parseInt(modulesAreasWidth / this.settings.max_cols);
+
+		// subtract margins
+		moduleBaseWidth -= (this.settings.col_margin_horz * 2);
+
+		// module height
+		moduleBaseHeight = parseInt(moduleBaseWidth / 2);
+
+		// set our col width & height
+		this.settings.col_width  = moduleBaseWidth;
+		this.settings.col_height = moduleBaseHeight;
 	}
 };
 
-// a global variable to hold our sortable object
-// done so the Myhub singleton can access the sortable object easily
-HUB.Sorts = null;
+//-------------------------------------------------------------
 
-window.addEvent('domready', HUB.Myhub.initialize);
-
+jQuery(document).ready(function($){
+	HUB.Plugins.MemberDashboard.initialize();
+});

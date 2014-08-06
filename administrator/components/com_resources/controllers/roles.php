@@ -38,7 +38,7 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 {
 	/**
 	 * List resource roles
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -116,7 +116,7 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 
 	/**
 	 * Add a new role
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -126,7 +126,7 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a role
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($row=null)
@@ -149,13 +149,13 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 			$this->view->row = new ResourcesContributorRole($this->database);
 			$this->view->row->load($id);
 		}
-		
+
 		if (!$this->view->row->id)
 		{
 			$this->view->row->created_by = $this->juser->get('id');
 			$this->view->row->created = JFactory::getDate()->toSql();
 		}
-		
+
 		$types = $this->view->row->getTypesForRole();
 		if ($types)
 		{
@@ -166,7 +166,7 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 			}
 			$this->view->row->types = $t;
 		}
-		else 
+		else
 		{
 			$this->view->row->types = array();
 		}
@@ -189,7 +189,7 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save a role
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -238,13 +238,13 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Role successfully saved')
+			JText::_('COM_RESOURCES_ITEM_SAVED')
 		);
 	}
 
 	/**
 	 * Remove one or more types
-	 * 
+	 *
 	 * @return     void Redirects back to main listing
 	 */
 	public function removeTask()
@@ -261,7 +261,7 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 			// Redirect with error message
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No role selected'),
+				JText::_('COM_RESOURCES_NO_ITEM_SELECTED'),
 				'error'
 			);
 			return;
@@ -278,7 +278,7 @@ class ResourcesControllerRoles extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Role(s) successfully removed')
+			JText::sprintf('COM_RESOURCES_ITEMS_REMOVED', count($ids))
 		);
 	}
 

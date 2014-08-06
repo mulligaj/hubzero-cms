@@ -41,35 +41,35 @@ class WishlistModelPlan extends WishlistModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_tbl_name = 'WishlistPlan';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_wishlist.plan.pagetext';
 
 	/**
 	 * ForumModelAttachment
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_attachment = null;
 
 	/**
 	 * ForumModelAttachment
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_creator = null;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      mixed $oid Integer (ID), string (alias), object or array
 	 * @return     void
 	 */
@@ -90,22 +90,25 @@ class WishlistModelPlan extends WishlistModelAbstract
 				throw new \LogicException(\JText::_('Table class must be an instance of JTable.'));
 			}
 
-			if (is_numeric($oid) || is_string($oid))
+			if ($oid)
 			{
-				// Make sure $oid isn't empty
-				// This saves a database call
-				if ($oid)
+				if (is_numeric($oid) || is_string($oid))
 				{
+					// Make sure $oid isn't empty
+					// This saves a database call
 					$this->_tbl->load($oid);
 				}
-			}
-			else if (is_object($oid) || is_array($oid))
-			{
-				$this->bind($oid);
+				else if (is_object($oid) || is_array($oid))
+				{
+					$this->bind($oid);
+				}
 			}
 			else if ($wish)
 			{
-				$this->_tbl->getPlan($wish);
+				if ($plans = $this->_tbl->getPlan($wish))
+				{
+					$this->bind($plans[0]);
+				}
 			}
 		}
 	}
@@ -120,7 +123,7 @@ class WishlistModelPlan extends WishlistModelAbstract
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -138,7 +141,7 @@ class WishlistModelPlan extends WishlistModelAbstract
 			$key = $oid['id'];
 		}
 
-		if (!isset($instances[$oid])) 
+		if (!isset($instances[$oid]))
 		{
 			$instances[$oid] = new self($oid, $wish);
 		}
@@ -148,33 +151,40 @@ class WishlistModelPlan extends WishlistModelAbstract
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
 	 * it returns the entire object
 	 *
+	 * @param      string $property Property to retrieve
+	 * @param      mixed  $default  Default value if property not set
 	 * @return     mixed
 	 */
-	public function proposer($property=null)
+	public function creator($property=null, $default=null)
 	{
 		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
 			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+			if (!$this->_creator)
+			{
+				$this->_creator = new \Hubzero\User\Profile();
+			}
 		}
 		if ($property)
 		{
+			$property = ($property == 'id') ? 'uidNumber' : $property;
 			if ($property == 'picture')
 			{
 				return $this->_creator->getPicture($this->get('anonymous'));
 			}
-			return $this->_creator->get($property);
+			return $this->_creator->get($property, $default);
 		}
 		return $this->_creator;
 	}
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $rtrn What data to return
 	 * @return     boolean
 	 */
@@ -198,7 +208,7 @@ class WishlistModelPlan extends WishlistModelAbstract
 
 	/**
 	 * Get the state of the entry as either text or numerical value
-	 * 
+	 *
 	 * @param      string  $as      Format to return state in [text, number]
 	 * @param      integer $shorten Number of characters to shorten text to
 	 * @return     mixed String or Integer

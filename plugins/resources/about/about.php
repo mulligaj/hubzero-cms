@@ -31,52 +31,40 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for about tab
  */
-class plgResourcesAbout extends JPlugin
+class plgResourcesAbout extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
 	public function &onResourcesAreas($model)
 	{
+		$areas = array();
+
 		if ($model->type->params->get('plg_about', 0)
-			&& $model->access('view')) 
+			&& $model->access('view'))
 		{
-			$areas = array(
-				'about' => JText::_('PLG_RESOURCES_ABOUT')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['about'] = JText::_('PLG_RESOURCES_ABOUT');
 		}
+
 		return $areas;
 	}
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -92,29 +80,27 @@ class plgResourcesAbout extends JPlugin
 		);
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				$rtrn = 'metadata';
 			}
 		}
 
 		$ar = $this->onResourcesAreas($model);
-		if (empty($ar)) 
+		if (empty($ar))
 		{
 			$rtrn = '';
 		}
 
-		if ($rtrn == 'all' || $rtrn == 'html') 
+		if ($rtrn == 'all' || $rtrn == 'html')
 		{
-			\Hubzero\Document\Assets::addPluginStyleSheet('resources', $this->_name);
-
 			// Instantiate a view
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
+					'folder'  => $this->_type,
 					'element' => $this->_name,
 					'name'    => 'index'
 				)

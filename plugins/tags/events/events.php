@@ -31,50 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Tags plugin class for events
  */
-class plgTagsEvents extends JPlugin
+class plgTagsEvents extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Record count
-	 * 
-	 * @var integer
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	private $_total = null;
-
-	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
-
-	/**
-	 * Return the name of the area this plugin retrieves records for
-	 * 
-	 * @return     array
-	 */
-	public function onTagAreas()
-	{
-		$areas = array(
-			'events' => JText::_('PLG_TAGS_EVENTS')
-		);
-		return $areas;
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Retrieve records for items tagged with specific tags
-	 * 
+	 *
 	 * @param      array   $tags       Tags to match records against
 	 * @param      mixed   $limit      SQL record limit
 	 * @param      integer $limitstart SQL record limit start
@@ -84,18 +55,17 @@ class plgTagsEvents extends JPlugin
 	 */
 	public function onTagView($tags, $limit=0, $limitstart=0, $sort='', $areas=null)
 	{
-		if (is_array($areas) && $limit) 
-		{
-			if (!isset($areas['events']) && !in_array('events', $areas)) 
-			{
-				return array();
-			}
-		}
+		$response = array(
+			'name'    => $this->_name,
+			'title'   => JText::_('PLG_TAGS_EVENTS'),
+			'total'   => 0,
+			'results' => null,
+			'sql'     => ''
+		);
 
-		// Do we have a member ID?
-		if (empty($tags)) 
+		if (empty($tags))
 		{
-			return array();
+			return $response;
 		}
 
 		$database = JFactory::getDBO();
@@ -111,9 +81,9 @@ class plgTagsEvents extends JPlugin
 
 		// Build the query
 		$e_count = "SELECT COUNT(f.id) FROM (SELECT e.id, COUNT(DISTINCT t.tagid) AS uniques";
-		$e_fields = "SELECT e.id, e.title, NULL AS alias, NULL AS itext, e.content AS ftext, e.state, e.created, e.created_by, 
-						NULL AS modified, e.publish_up, e.publish_down, CONCAT('index.php?option=com_events&task=details&id=', e.id) AS href, 
-						'events' AS section, COUNT(DISTINCT t.tagid) AS uniques, e.params, NULL AS rcount, NULL AS data1, 
+		$e_fields = "SELECT e.id, e.title, NULL AS alias, NULL AS itext, e.content AS ftext, e.state, e.created, e.created_by,
+						NULL AS modified, e.publish_up, e.publish_down, CONCAT('index.php?option=com_events&task=details&id=', e.id) AS href,
+						'events' AS section, COUNT(DISTINCT t.tagid) AS uniques, e.params, NULL AS rcount, NULL AS data1,
 						NULL AS data2, NULL AS data3 ";
 		$e_from  = " FROM #__events AS e, #__tags_object AS t";
 		$e_where = " WHERE e.state=1 AND t.objectid=e.id AND t.tbl='events' AND t.tagid IN ($ids)";
@@ -129,49 +99,27 @@ class plgTagsEvents extends JPlugin
 		}
 		$order_by .= ($limit != 'all') ? " LIMIT $limitstart,$limit" : "";
 
-		if (!$limit) 
+		$database->setQuery($e_count . $e_from . $e_where . ") AS f");
+		$response['total'] = $database->loadResult();
+
+		if ($areas && $areas == $response['name'])
 		{
-			// Get a count
-			$database->setQuery($e_count . $e_from . $e_where . ") AS f");
-			$this->_total = $database->loadResult();
-			return $this->_total;
-		} 
-		else 
-		{
-			if (count($areas) > 1) 
-			{
-				\Hubzero\Document\Assets::addComponentStylesheet('com_events');
-
-				return $e_fields . $e_from . $e_where;
-			}
-
-			if ($this->_total != null) 
-			{
-				if ($this->_total == 0) 
-				{
-					return array();
-				}
-			}
-
-			// Get results
 			$database->setQuery($e_fields . $e_from . $e_where . $order_by);
-			$rows = $database->loadObjectList();
-
-			if ($rows) 
-			{
-				foreach ($rows as $key => $row)
-				{
-					$rows[$key]->href = JRoute::_($row->href);
-				}
-			}
-
-			return $rows;
+			$response['results'] = $database->loadObjectList();
 		}
+		else
+		{
+			\Hubzero\Document\Assets::addComponentStylesheet('com_events');
+
+			$response['sql'] = $e_fields . $e_from . $e_where;
+		}
+
+		return $response;
 	}
 
 	/**
 	 * Include needed libraries and push scripts and CSS to the document
-	 * 
+	 *
 	 * @return     void
 	 */
 	public static function documents()
@@ -181,12 +129,14 @@ class plgTagsEvents extends JPlugin
 
 	/**
 	 * Static method for formatting results
-	 * 
+	 *
 	 * @param      object $row Database row
 	 * @return     string HTML
 	 */
 	public static function out($row)
 	{
+		$row->href = JRoute::_($row->href);
+
 		$juri = JURI::getInstance();
 
 		$month = JHTML::_('date', $row->publish_up, 'M');
@@ -197,7 +147,7 @@ class plgTagsEvents extends JPlugin
 		$html  = "\t" . '<li class="event">'."\n";
 		$html .= "\t\t" . '<p class="event-date"><span class="month">' . $month . '</span> <span class="day">' . $day . '</span> <span class="year">' . $year . '</span></p>' . "\n";
 		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '">' . stripslashes($row->title).'</a></p>' . "\n";
-		if ($row->ftext) 
+		if ($row->ftext)
 		{
 			$row->ftext = str_replace('[[BR]]', '', $row->ftext);
 			$html .= "\t\t" . \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->ftext)), 200) . "\n";

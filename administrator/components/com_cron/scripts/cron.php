@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /*?>
 #!/usr/bin/php
@@ -55,7 +55,7 @@ require_once (JPATH_BASE . DS . 'includes' . DS . 'framework.php');
 
 $time_start = microtime(true);
 
-JPROFILE ? $_PROFILER->mark('afterLoad') : null;
+JDEBUG ? $_PROFILER->mark('afterLoad') : null;
 
 /**
  * CREATE THE APPLICATION
@@ -75,7 +75,7 @@ $mainframe->initialise();
 JPluginHelper::importPlugin('system');
 
 // trigger the onAfterInitialise events
-JPROFILE ? $_PROFILER->mark('afterInitialise') : null;
+JDEBUG ? $_PROFILER->mark('afterInitialise') : null;
 $mainframe->triggerEvent('onAfterInitialise');
 
 if (0) {
@@ -91,7 +91,7 @@ $Itemid = JRequest::getInt('Itemid');
 $mainframe->authorize($Itemid);
 
 // trigger the onAfterRoute events
-JPROFILE ? $_PROFILER->mark('afterRoute') : null;
+JDEBUG ? $_PROFILER->mark('afterRoute') : null;
 $mainframe->triggerEvent('onAfterRoute');
 
 /**
@@ -103,7 +103,7 @@ $option = JRequest::getCmd('option');
 $mainframe->dispatch($option);
 
 // trigger the onAfterDispatch events
-JPROFILE ? $_PROFILER->mark('afterDispatch') : null;
+JDEBUG ? $_PROFILER->mark('afterDispatch') : null;
 $mainframe->triggerEvent('onAfterDispatch');
 
 /**
@@ -114,7 +114,7 @@ $mainframe->triggerEvent('onAfterDispatch');
 $mainframe->render();
 
 // trigger the onAfterRender events
-JPROFILE ? $_PROFILER->mark('afterRender') : null;
+JDEBUG ? $_PROFILER->mark('afterRender') : null;
 $mainframe->triggerEvent('onAfterRender');
 } // (0)
 

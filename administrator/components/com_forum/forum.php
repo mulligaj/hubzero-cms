@@ -31,33 +31,14 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $option = 'com_forum';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect( 'index.php', JText::_('ALERTNOTAUTH') );
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
-
-	require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'models' . DS . 'section.php');
-	require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'models' . DS . 'category.php');
-	require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'models' . DS . 'thread.php');
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'models' . DS . 'section.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'models' . DS . 'category.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'models' . DS . 'thread.php');
 require_once(JPATH_COMPONENT_SITE . DS . 'models' . DS . 'forum.php');
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'forum.php');
 
@@ -66,27 +47,23 @@ if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $cont
 {
 	$controllerName = 'sections';
 }
-switch ($controllerName)
-{
-	case 'sections':
-		JSubMenuHelper::addEntry(JText::_('Sections'), 'index.php?option=' .  $option . '&controller=sections', true);
-		JSubMenuHelper::addEntry(JText::_('Categories'), 'index.php?option=' .  $option . '&controller=categories&section_id=-1');
-		JSubMenuHelper::addEntry(JText::_('Threads'), 'index.php?option=' .  $option . '&controller=threads&category_id=-1');
-	break;
-	
-	case 'categories':
-		JSubMenuHelper::addEntry(JText::_('Sections'), 'index.php?option=' .  $option . '&controller=sections');
-		JSubMenuHelper::addEntry(JText::_('Categories'), 'index.php?option=' .  $option . '&controller=categories&section_id=-1', true);
-		JSubMenuHelper::addEntry(JText::_('Threads'), 'index.php?option=' .  $option . '&controller=threads&category_id=-1');
-	break;
-	
-	case 'threads':
-	default:
-		JSubMenuHelper::addEntry(JText::_('Sections'), 'index.php?option=' .  $option . '&controller=sections');
-		JSubMenuHelper::addEntry(JText::_('Categories'), 'index.php?option=' .  $option . '&controller=categories&section_id=-1');
-		JSubMenuHelper::addEntry(JText::_('Threads'), 'index.php?option=' .  $option . '&controller=threads&category_id=-1', true);
-	break;
-}
+
+JSubMenuHelper::addEntry(
+	JText::_('COM_FORUM_SECTIONS'),
+	'index.php?option=' .  $option . '&controller=sections',
+	($controllerName == 'sections')
+);
+JSubMenuHelper::addEntry(
+	JText::_('COM_FORUM_CATEGORIES'),
+	'index.php?option=' .  $option . '&controller=categories&section_id=-1',
+	($controllerName == 'categories')
+);
+JSubMenuHelper::addEntry(
+	JText::_('COM_FORUM_THREADS'),
+	'index.php?option=' .  $option . '&controller=threads&category_id=-1',
+	($controllerName == 'threads')
+);
+
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'ForumController' . ucfirst($controllerName);
 

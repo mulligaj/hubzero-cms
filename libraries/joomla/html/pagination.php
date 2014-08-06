@@ -108,7 +108,7 @@ class JPagination extends JObject
 			$this->set('pages.total', ceil($this->total / $this->limit));
 			$this->set('pages.current', ceil(($this->limitstart + 1) / $this->limit));
 		}
-		else 
+		else
 		{
 			$this->set('pages.total', 1);
 			$this->set('pages.current', $this->limitstart + 1);
@@ -122,12 +122,12 @@ class JPagination extends JObject
 		$stop_loop  = $this->get('pages.current') + $displayedPages - $this->get('pages.middle');
 
 		$i = $start_loop;
-		if ($stop_loop > $this->get('pages.total')) 
+		if ($stop_loop > $this->get('pages.total'))
 		{
 			$i = $i + ($this->get('pages.total') - $stop_loop);
 			$stop_loop = $this->get('pages.total');
 		}
-		if ($i <= 0) 
+		if ($i <= 0)
 		{
 			$stop_loop = $stop_loop + (1 - $i);
 			$i = 1;
@@ -441,7 +441,7 @@ class JPagination extends JObject
 		}
 		$limits[] = JHtml::_('select.option', '50', JText::_('J50'));
 		$limits[] = JHtml::_('select.option', '100', JText::_('J100'));
-		$limits[] = JHtml::_('select.option', '0', JText::_('JALL'));
+		$limits[] = JHtml::_('select.option', '1000', JText::_('J1000'));
 
 		$selected = $this->_viewall ? 0 : $this->limit;
 
@@ -564,18 +564,18 @@ class JPagination extends JObject
 		// Reverse output rendering for right-to-left display.
 		$html  = '<li class="pagination-start start">' . $list['start']['data'] . '</li>' . "\n";
 		$html .= '<li class="pagination-prev prev">' . $list['previous']['data'] . '</li>' . "\n";
-		if ($list['i'] > 1) 
+		if ($list['i'] > 1)
 		{
 			$html .= '<li class="page"><span>...</span></li>' . "\n";
 		}
-		for (; $list['i'] <= $list['stoploop'] && $list['i'] <= $list['total']; $list['i']++) 
+		for (; $list['i'] <= $list['stoploop'] && $list['i'] <= $list['total']; $list['i']++)
 		{
 			if (isset($list['pages'][$list['i']]))
 			{
 				$html .= '<li class="page">' . $list['pages'][$list['i']]['data'] . '</li>' . "\n";
 			}
 		}
-		if (($list['i'] - 1) < $list['total']) 
+		if (($list['i'] - 1) < $list['total'])
 		{
 			$html .= '<li class="page"><span>...</span></li>' . "\n";
 		}
@@ -638,7 +638,7 @@ class JPagination extends JObject
 			{
 				return '<strong>' . $item->text . '</strong>';
 			}
-			else 
+			else
 			{
 				return '<span class="pagenav">' . $item->text . '</span>';
 			}

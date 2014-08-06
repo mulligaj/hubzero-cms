@@ -29,16 +29,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Members Plugin class for projects
  */
-class plgMembersProjects extends JPlugin
+class plgMembersProjects extends \Hubzero\Plugin\Plugin
 {
 	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
+	 */
+	protected $_autoloadLanguage = true;
+
+	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$subject Event observer
 	 * @param      array  $config   Optional config values
 	 * @return     void
@@ -47,17 +52,7 @@ class plgMembersProjects extends JPlugin
 	{
 		parent::__construct($subject, $config);
 
-		$this->loadLanguage();
-
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-
 		// load plugin parameters
-		$this->_plugin = JPluginHelper::getPlugin('members', 'projects');
-		$this->_params = new $paramsClass($this->_plugin->params);
 		$this->_config = JComponentHelper::getParams('com_projects');
 		$this->_database = JFactory::getDBO();
 		$this->_setup_complete = $this->_config->get('confirm_step', 0) ? 3 : 2;
@@ -68,7 +63,7 @@ class plgMembersProjects extends JPlugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onMembersAreas($user, $member)
@@ -87,7 +82,7 @@ class plgMembersProjects extends JPlugin
 
 	/**
 	 * Perform actions when viewing a member profile
-	 * 
+	 *
 	 * @param      object $user   Current user
 	 * @param      object $member Current member page
 	 * @param      string $option Start of records to pull
@@ -100,10 +95,10 @@ class plgMembersProjects extends JPlugin
 		$returnmeta = true;
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onMembersAreas($user, $member))
-			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member)))) 
+			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member))))
 			{
 				$returnhtml = false;
 			}
@@ -137,12 +132,12 @@ class plgMembersProjects extends JPlugin
 		// Add stylesheet
 		\Hubzero\Document\Assets::addPluginStylesheet('members', 'projects');
 
-		if ($returnhtml) 
+		if ($returnhtml)
 		{
-			// Which view 
+			// Which view
 			$task = JRequest::getVar('action', '');
 
-			switch ($task) 
+			switch ($task)
 			{
 				case 'all':     $arr['html'] = $this->_view('all');   break;
 				case 'group':   $arr['html'] = $this->_view('group'); break;
@@ -166,13 +161,13 @@ class plgMembersProjects extends JPlugin
 
 	/**
 	 * View entries
-	 * 
+	 *
 	 * @param      string $which The type of entries to display
 	 * @return     string
 	 */
-	protected function _view($which = 'all') 
+	protected function _view($which = 'all')
 	{
-		// Build the final HTML		
+		// Build the final HTML
 		$view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'members',
@@ -185,7 +180,7 @@ class plgMembersProjects extends JPlugin
 		$projects = $obj->getUserProjectIds($this->_juser->get('id'));
 		$view->newcount = $obj->getUpdateCount($projects, $this->_juser->get('id'));
 
-		if ($which == 'all') 
+		if ($which == 'all')
 		{
 			$this->_filters['which'] = 'owned';
 			$view->owned = $obj->getRecords($this->_filters, false, $this->_juser->get('id'), 0, $this->_setup_complete);
@@ -193,11 +188,11 @@ class plgMembersProjects extends JPlugin
 			$this->_filters['which'] = 'other';
 			$view->rows = $obj->getRecords($this->_filters, false, $this->_juser->get('id'), 0, $this->_setup_complete);
 		}
-		else 
+		else
 		{
 			// Get records
 			$options = array('owned', 'other', 'group');
-			if (!in_array($which, $options)) 
+			if (!in_array($which, $options))
 			{
 				$which = 'owned';
 			}
@@ -211,7 +206,7 @@ class plgMembersProjects extends JPlugin
 		$view->filters = $this->_filters;
 		$view->config  = $this->_config;
 		$view->option  = 'com_projects';
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			$view->setError($this->getError());
 		}
@@ -221,10 +216,10 @@ class plgMembersProjects extends JPlugin
 
 	/**
 	 * Display updates
-	 * 
+	 *
 	 * @return     string
 	 */
-	protected function _updates() 
+	protected function _updates()
 	{
 		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_projects' . DS . 'tables' . DS . 'project.comment.php');
 		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_projects' . DS . 'tables' . DS . 'project.todo.php');
@@ -252,7 +247,7 @@ class plgMembersProjects extends JPlugin
 		$view->total = $objAC->getActivities (0, $afilters, 1, $this->_juser->get('id'), $projects);
 		$view->limit = 25;
 		$afilters['limit'] = JRequest::getVar('limit', 25, 'request');
-		$view->filters = $afilters;	
+		$view->filters = $afilters;
 		$activities = $objAC->getActivities (0, $afilters, 0, $this->_juser->get('id'), $projects);
 		$view->activities = $this->prepActivities ($activities, 'com_projects', $this->_juser->get('id'), $view->filters, $view->limit);
 
@@ -261,7 +256,7 @@ class plgMembersProjects extends JPlugin
 		$view->config       = $this->_config;
 		$view->option       = 'com_projects';
 		$view->database     = $this->_database;
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			$view->setError($this->getError());
 		}
@@ -271,7 +266,7 @@ class plgMembersProjects extends JPlugin
 
 	/**
 	 * View entries
-	 * 
+	 *
 	 * @param      string  $activities The type of entries to display
 	 * @param      string  $option     Component name
 	 * @param      integer $uid        User ID
@@ -294,12 +289,12 @@ class plgMembersProjects extends JPlugin
 		$prep    = array();
 
 		// Loop through activities
-		if ($activities && count($activities) > 0) 
+		if ($activities && count($activities) > 0)
 		{
-			foreach ($activities as $a) 
-			{ 
+			foreach ($activities as $a)
+			{
 				// Is this a comment?
-				if ($a->class == 'quote') 
+				if ($a->class == 'quote')
 				{
 					// Get comment
 					$c = $objC->getComments(NULL, NULL, $a->id);
@@ -308,31 +303,31 @@ class plgMembersProjects extends JPlugin
 					$needle  = array('id' => $c->parent_activity);
 					$key     = ProjectsHTML::myArraySearch($needle, $activities);
 					$shown[] = $a->id;
-					if (!$key) 
+					if (!$key)
 					{
 						// get and add parent activity
 						$filters['id'] = $c->parent_activity;
 						$pa = $objAC->getActivities ($a->projectid, $filters, 0, $uid);
-						if ($pa && count($pa) > 0) 
+						if ($pa && count($pa) > 0)
 						{
 							$a = $pa[0];
 						}
 					}
-					else 
+					else
 					{
-						$a = $activities[$key]; 
+						$a = $activities[$key];
 					}
 					$a->new = isset($c->newcount) ? $c->newcount : 0;
 				}
 
-				if (!in_array($a->id, $shown)) 
+				if (!in_array($a->id, $shown))
 				{
 					$shown[]   = $a->id;
 					$class     = $a->class ? $a->class : 'activity';
 					$timeclass = '';
 
 					// Display hyperlink
-					if ($a->highlighted && $a->url) 
+					if ($a->highlighted && $a->url)
 					{
 						$a->activity = str_replace($a->highlighted, '<a href="' . $a->url . '">' . $a->highlighted . '</a>', $a->activity);
 					}
@@ -344,10 +339,10 @@ class plgMembersProjects extends JPlugin
 					$deletable = 0;
 
 					// Get blog entry
-					if ($class == 'blog') 
+					if ($class == 'blog')
 					{
 						$blog = $objM->getEntries($a->projectid, $bfilters = array('activityid' => $a->id), $a->referenceid);
-						if (!$blog) 
+						if (!$blog)
 						{
 							continue;
 						}
@@ -358,10 +353,10 @@ class plgMembersProjects extends JPlugin
 					}
 
 					// Get todo item
-					if ($class == 'todo') 
+					if ($class == 'todo')
 					{
 						$todo = $objTD->getTodos($a->projectid, $tfilters = array('activityid' => $a->id), $a->referenceid);
-						if (!$todo) 
+						if (!$todo)
 						{
 							continue;
 						}
@@ -372,7 +367,7 @@ class plgMembersProjects extends JPlugin
 					}
 
 					// Embed links
-					if ($body) 
+					if ($body)
 					{
 						$body = ProjectsHTML::replaceUrls($body, 'external');
 					}
@@ -383,11 +378,11 @@ class plgMembersProjects extends JPlugin
 					$ebody .= $body ? '">' . $body . '</span>' : '';
 
 					// Get comments
-					if ($a->commentable) 
+					if ($a->commentable)
 					{
 						$comments = $objC->getComments($eid, $etbl);
 					}
-					else 
+					else
 					{
 						$comments = null;
 					}
@@ -396,7 +391,7 @@ class plgMembersProjects extends JPlugin
 					$deletable = 0;
 
 					$prep[] = array(
-						'activity' => $a, 'eid' => $eid, 'etbl' => $etbl, 'body' => $ebody, 'deletable' => $deletable, 'comments' => $comments, 
+						'activity' => $a, 'eid' => $eid, 'etbl' => $etbl, 'body' => $ebody, 'deletable' => $deletable, 'comments' => $comments,
 						'class' => $class, 'timeclass' => $timeclass, 'projectid' => $a->projectid, 'recorded' => $a->recorded
 					);
 				}
@@ -404,5 +399,5 @@ class plgMembersProjects extends JPlugin
 		}
 
 		return $prep;
-	} 
+	}
 }

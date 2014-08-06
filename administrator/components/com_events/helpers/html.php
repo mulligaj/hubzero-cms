@@ -61,7 +61,7 @@ if (!defined("n")) {
 
 /**
  * Short description for 'EventsHtml'
- * 
+ *
  * Long description (if any) ...
  */
 class EventsHtml
@@ -69,9 +69,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'error'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $msg Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
 	 */
@@ -82,9 +82,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'alert'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $msg Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
 	 */
@@ -95,9 +95,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'buildRadioOption'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      array $arr Parameter description (if any) ...
 	 * @param      string $tag_name Parameter description (if any) ...
 	 * @param      string $tag_attribs Parameter description (if any) ...
@@ -134,9 +134,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'buildCategorySelect'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $catid Parameter description (if any) ...
 	 * @param      unknown $args Parameter description (if any) ...
 	 * @param      unknown $gid Parameter description (if any) ...
@@ -147,17 +147,9 @@ class EventsHtml
 	{
 		$database = JFactory::getDBO();
 
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			$catsql = "SELECT id AS value, name AS text FROM #__categories "
-				. "WHERE section='$option' AND access<='$gid' AND published='1' ORDER BY ordering";
-		}
-		else
-		{
-			$catsql = "SELECT id AS value, title AS text FROM #__categories "
-				. "WHERE extension='$option' AND published='1'";
+		$catsql = "SELECT id AS value, title AS text FROM #__categories "
+			. "WHERE extension='$option' AND published='1'";
 
-		}
 		$categories[] = JHTML::_('select.option', '0', JText::_('COM_EVENTS_CAL_LANG_EVENT_CHOOSE_CATEG'), 'value', 'text');
 
 		$database->setQuery($catsql);
@@ -169,9 +161,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'buildReccurDaySelect'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $reccurday Parameter description (if any) ...
 	 * @param      unknown $tag_name Parameter description (if any) ...
 	 * @param      unknown $args Parameter description (if any) ...
@@ -191,16 +183,16 @@ class EventsHtml
 		{
 			$name_of_day = '&nbsp;'.$day_name[$a];
 			$daynamelist[] = JHTML::_('select.option', $a, $name_of_day, 'value', 'text');
-        }
+		}
 		$tosend = EventsHtml::buildRadioOption( $daynamelist, $tag_name, $args, 'value', 'text', $reccurday );
 		echo $tosend;
-    }
+	}
 
 	/**
 	 * Short description for 'buildWeekDaysCheck'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $reccurweekdays Parameter description (if any) ...
 	 * @param      string $args Parameter description (if any) ...
 	 * @return     void
@@ -239,9 +231,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'buildWeeksCheck'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $reccurweeks Parameter description (if any) ...
 	 * @param      string $args Parameter description (if any) ...
 	 * @return     void
@@ -284,9 +276,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'getLongDayName'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $daynb Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
 	 */
@@ -308,9 +300,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'getColorBar'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $event_id Parameter description (if any) ...
 	 * @param      unknown $newcolor Parameter description (if any) ...
 	 * @return     mixed Return description (if any) ...
@@ -369,7 +361,7 @@ class EventsHtml
 
 	/**
 	 * Description for 'field_ordering'
-	 * 
+	 *
 	 * @var array
 	 */
 	private static $field_ordering = array(
@@ -382,9 +374,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'fieldSorter'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $a Parameter description (if any) ...
 	 * @param      unknown $b Parameter description (if any) ...
 	 * @return     mixed Return description (if any) ...
@@ -396,9 +388,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'quoteCsv'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $val Parameter description (if any) ...
 	 * @return     mixed Return description (if any) ...
 	 */
@@ -413,9 +405,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'quoteCsvRow'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $vals Parameter description (if any) ...
 	 * @return     mixed Return description (if any) ...
 	 */
@@ -426,9 +418,9 @@ class EventsHtml
 
 	/**
 	 * Short description for 'downloadlist'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object $resp Parameter description (if any) ...
 	 * @param      unknown $option Parameter description (if any) ...
 	 * @return     void

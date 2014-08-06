@@ -31,30 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for favoriting a resource
  */
-class plgResourcesCollect extends JPlugin
+class plgResourcesCollect extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
@@ -65,7 +56,7 @@ class plgResourcesCollect extends JPlugin
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -75,10 +66,10 @@ class plgResourcesCollect extends JPlugin
 	public function onResources($model, $option, $areas, $rtrn='all')
 	{
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				$rtrn = 'metadata';
 			}
@@ -92,23 +83,19 @@ class plgResourcesCollect extends JPlugin
 
 		// Build the HTML meant for the "about" tab's metadata overview
 		$juser = JFactory::getUser();
-		if (!$juser->get('guest')) 
+		if (!$juser->get('guest'))
 		{
-			if ($rtrn == 'all' || $rtrn == 'metadata') 
+			if ($rtrn == 'all' || $rtrn == 'metadata')
 			{
-				// Push some scripts to the template
-				\Hubzero\Document\Assets::addPluginScript('resources', $this->_name);
-				\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
-
 				$view = new \Hubzero\Plugin\View(
 					array(
-						'folder'  => 'resources',
+						'folder'  => $this->_type,
 						'element' => $this->_name,
 						'name'    => 'metadata'
 					)
 				);
 				$view->option = $option;
-				if (is_a($model, 'ResourcesResource'))
+				if ($model instanceof ResourcesResource)
 				{
 					$view->resource = $model;
 				}
@@ -125,7 +112,7 @@ class plgResourcesCollect extends JPlugin
 
 	/**
 	 * Set an item's favorite status
-	 * 
+	 *
 	 * @param      string $option Component name
 	 * @return     void
 	 */
@@ -149,7 +136,7 @@ class plgResourcesCollect extends JPlugin
 		$this->resource->load($rid);
 
 		$arr = array('html' => '');
-		if ($rid) 
+		if ($rid)
 		{
 			$arr['html'] = $this->fav();
 		}
@@ -158,7 +145,7 @@ class plgResourcesCollect extends JPlugin
 
 	/**
 	 * Un/favorite an item
-	 * 
+	 *
 	 * @param      integer $oid Resource to un/favorite
 	 * @return     void
 	 */
@@ -171,40 +158,38 @@ class plgResourcesCollect extends JPlugin
 		$no_html       = JRequest::getInt('no_html', 0);
 
 		$model = new CollectionsModel('member', $this->juser->get('id'));
-		//if (!$item_id && $collection_id)
-		//{
-			$b = new CollectionsTableItem($this->database);
-			$b->loadType($this->resource->id, 'resource');
-			if (!$b->id)
-			{
-				$row = new CollectionsTableCollection($this->database);
-				$row->load($collection_id);
 
-				$b->type        = 'resource';
-				$b->object_id   = $this->resource->id;
-				$b->title       = $this->resource->title;
-				$b->description = $this->resource->introtext;
-				$b->url         = JRoute::_('index.php?option=com_resources&id=' . $this->resource->id);
-				if (!$b->check()) 
-				{
-					$this->setError($b->getError());
-				}
-				// Store new content
-				if (!$b->store()) 
-				{
-					$this->setError($b->getError());
-				}
-				$collection_id = 0;
+		$b = new CollectionsTableItem($this->database);
+		$b->loadType($this->resource->id, 'resource');
+		if (!$b->id)
+		{
+			$row = new CollectionsTableCollection($this->database);
+			$row->load($collection_id);
+
+			$b->type        = 'resource';
+			$b->object_id   = $this->resource->id;
+			$b->title       = $this->resource->title;
+			$b->description = $this->resource->introtext;
+			$b->url         = JRoute::_('index.php?option=com_resources&id=' . $this->resource->id);
+			if (!$b->check())
+			{
+				$this->setError($b->getError());
 			}
-			$item_id = $b->id;
-		//}
+			// Store new content
+			if (!$b->store())
+			{
+				$this->setError($b->getError());
+			}
+			$collection_id = 0;
+		}
+		$item_id = $b->id;
 
 		// No board ID selected so present repost form
 		if (!$collection_id && !$collection_title)
 		{
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
+					'folder'  => $this->_type,
 					'element' => $this->_name,
 					'name'    => 'metadata',
 					'layout'  => 'collect'
@@ -217,8 +202,67 @@ class plgResourcesCollect extends JPlugin
 				$collection->setup($this->juser->get('id'), 'member');
 			}
 
-			$view->myboards      = $model->mine();
-			$view->groupboards   = $model->mine('groups');
+			$view->myboards    = $model->mine();
+			if ($view->myboards)
+			{
+				foreach ($view->myboards as $board)
+				{
+					$ids[] = $board->id;
+				}
+			}
+
+			$view->groupboards = $model->mine('groups');
+			if ($view->groupboards)
+			{
+				foreach ($view->groupboards as $optgroup => $boards)
+				{
+					if (count($boards) <= 0) continue;
+
+					foreach ($boards as $board)
+					{
+						$ids[] = $board->id;
+					}
+				}
+			}
+
+			$posts = $model->posts(array(
+				'collection_id' => $ids,
+				'item_id'       => $item_id,
+				'limit'         => 25,
+				'start'         => 0
+			));
+			$view->collections = array();
+			if ($posts)
+			{
+				foreach ($posts as $post)
+				{
+					$found = false;
+					foreach ($view->myboards as $board)
+					{
+						if ($board->id == $post->collection_id)
+						{
+							$view->collections[] = new CollectionsModelCollection($board);
+							$found = true;
+						}
+					}
+					if (!$found)
+					{
+						foreach ($view->groupboards as $optgroup => $boards)
+						{
+							if (count($boards) <= 0) continue;
+
+							foreach ($boards as $board)
+							{
+								if ($board->id == $post->collection_id)
+								{
+									$view->collections[] = new CollectionsModelCollection($board);
+									$found = true;
+								}
+							}
+						}
+					}
+				}
+			}
 
 			$view->name        = $this->_name;
 			$view->option      = $this->option;
@@ -231,7 +275,7 @@ class plgResourcesCollect extends JPlugin
 				$view->display();
 				exit;
 			}
-			else 
+			else
 			{
 				return $view->loadTemplate();
 			}
@@ -265,10 +309,10 @@ class plgResourcesCollect extends JPlugin
 				$stick->item_id       = $item_id;
 				$stick->collection_id = $collection_id;
 				$stick->description   = JRequest::getVar('description', '', 'none', 2);
-				if ($stick->check()) 
+				if ($stick->check())
 				{
 					// Store new content
-					if (!$stick->store()) 
+					if (!$stick->store())
 					{
 						$this->setError($stick->getError());
 					}
@@ -277,10 +321,10 @@ class plgResourcesCollect extends JPlugin
 		}
 
 		$response = new stdClass();
-		$response->code = 0;
+		$response->success = true;
 		if ($this->getError())
 		{
-			$response->code = 1;
+			$response->success = false;
 			$response->message = $this->getError();
 		}
 		else

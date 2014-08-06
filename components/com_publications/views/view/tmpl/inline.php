@@ -112,7 +112,7 @@ if ($this->type == 'image')
 {
 	echo '<img ' . $attributes . ' src="' . $this->url . '" alt="Image" />'."\n";
 }
-else if (in_array(strtolower($this->ext), $docs) && $this->googleView) 
+elseif (in_array(strtolower($this->ext), $docs) && $this->googleView) 
 {	
 	// View via Google
 	echo  '<iframe src="https://docs.google.com/viewer?url=' . urlencode($juri->base() 

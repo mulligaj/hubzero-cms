@@ -31,6 +31,9 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$this->css()
+     ->js('resources', 'com_resources');
+
 // Add the "all" category
 $all = array(
 	'category' => '',
@@ -47,7 +50,7 @@ $i = 0;
 foreach ($this->cats as $cat)
 {
 	// Only show categories that have returned search results
-	if ($cat['total'] > 0) 
+	if ($cat['total'] > 0)
 	{
 		// Is this the active category?
 		$a = ($cat['category'] == $this->active) ? ' class="active"' : '';
@@ -59,7 +62,7 @@ foreach ($this->cats as $cat)
 		$l = "\t" . '<li' . $a . '><a href="'.JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area=' . urlencode(stripslashes($blob)) . '&sort=' . $this->sort) . '">' . $this->escape(stripslashes($cat['title'])) . ' <span class="item-count">' . $this->escape($cat['total']) . '</span></a>';
 
 		// Are there sub-categories?
-		if (isset($cat['_sub']) && is_array($cat['_sub'])) 
+		if (isset($cat['_sub']) && is_array($cat['_sub']))
 		{
 			// An array for storing the HTML we make
 			$k = array();
@@ -67,7 +70,7 @@ foreach ($this->cats as $cat)
 			foreach ($cat['_sub'] as $subcat)
 			{
 				// Only show sub-categories that returned search results
-				if ($subcat['total'] > 0) 
+				if ($subcat['total'] > 0)
 				{
 					// Is this the active category?
 					$a = ($subcat['category'] == $this->active) ? ' class="active"' : '';
@@ -81,7 +84,7 @@ foreach ($this->cats as $cat)
 			}
 			// Do we actually have any links?
 			// NOTE: this method prevents returning empty list tags "<ul></ul>"
-			if (count($k) > 0) 
+			if (count($k) > 0)
 			{
 				$l .= "\t\t" . '<ul>' . "\n";
 				$l .= implode("\n", $k);
@@ -101,9 +104,9 @@ foreach ($this->cats as $cat)
 <form method="get" action="<?php JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions'); ?>">
 	<input type="hidden" name="area" value="<?php echo $this->escape($this->active) ?>" />
 
-		<div class="container">
+	<div class="container">
 
-<?php if (count($links) > 0) { ?>
+		<?php if (count($links) > 0) { ?>
 			<ul class="entries-menu filter-options">
 				<li>
 					<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&sort=date'); ?>"><?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_CATEGORIES'); ?></a>
@@ -112,17 +115,17 @@ foreach ($this->cats as $cat)
 					</ul>
 				</li>
 			</ul>
-<?php } ?>
+		<?php } ?>
 
-			<ul class="entries-menu">
-				<li><a<?php echo ($this->sort == 'date') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area=' . urlencode(stripslashes($this->active)) . '&sort=date'); ?>" title="<?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_BY_DATE'); ?>"><?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_DATE'); ?></a></li>
-				<li><a<?php echo ($this->sort == 'title') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area=' . urlencode(stripslashes($this->active)) . '&sort=title'); ?>" title="<?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_BY_TITLE'); ?>"><?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_TITLE'); ?></a></li>
-				<li><a<?php echo ($this->sort == 'usage') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area=' . urlencode(stripslashes($this->active)) . '&sort=usage'); ?>" title="<?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_BY_POPULARITY'); ?>"><?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_POPULARITY'); ?></a></li>
-			</ul>
+		<ul class="entries-menu">
+			<li><a<?php echo ($this->sort == 'date') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area=' . urlencode(stripslashes($this->active)) . '&sort=date'); ?>" title="<?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_BY_DATE'); ?>"><?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_DATE'); ?></a></li>
+			<li><a<?php echo ($this->sort == 'title') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area=' . urlencode(stripslashes($this->active)) . '&sort=title'); ?>" title="<?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_BY_TITLE'); ?>"><?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_TITLE'); ?></a></li>
+			<li><a<?php echo ($this->sort == 'usage') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area=' . urlencode(stripslashes($this->active)) . '&sort=usage'); ?>" title="<?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_BY_POPULARITY'); ?>"><?php echo JText::_('PLG_MEMBERS_CONTRIBUTIONS_SORT_POPULARITY'); ?></a></li>
+		</ul>
 
-			<div class="clearfix"></div>
+		<div class="clearfix"></div>
 
-			<div class="container-block">
+		<div class="container-block">
 <?php
 $foundresults = false;
 $dopaging = false;
@@ -133,7 +136,7 @@ foreach ($this->results as $category)
 {
 	$amt = count($category);
 
-	if ($amt > 0) 
+	if ($amt > 0)
 	{
 		$foundresults = true;
 
@@ -142,27 +145,27 @@ foreach ($this->results as $category)
 		$divid = 'search' . $this->cats[$k]['category'];
 
 		// Is this category the active category?
-		if (!$this->active || $this->active == $this->cats[$k]['category']) 
+		if (!$this->active || $this->active == $this->cats[$k]['category'])
 		{
 			// It is - get some needed info
 			$name  = $this->cats[$k]['title'];
 			$total = $this->cats[$k]['total'];
 			$divid = 'search' . $this->cats[$k]['category'];
 
-			if ($this->active == $this->cats[$k]['category']) 
+			if ($this->active == $this->cats[$k]['category'])
 			{
 				$dopaging = true;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			// It is not - does this category have sub-categories?
-			if (isset($this->cats[$k]['_sub']) && is_array($this->cats[$k]['_sub'])) 
+			if (isset($this->cats[$k]['_sub']) && is_array($this->cats[$k]['_sub']))
 			{
 				// It does - loop through them and see if one is the active category
 				foreach ($this->cats[$k]['_sub'] as $sub)
 				{
-					if ($this->active == $sub['category']) 
+					if ($this->active == $sub['category'])
 					{
 						// Found an active category
 						$name  = $sub['title'];
@@ -180,23 +183,23 @@ foreach ($this->results as $category)
 		// A function for category specific items that may be needed
 		// Check if a function exist (using old style plugins)
 		$f = 'plgMembers' . ucfirst($this->cats[$k]['category']) . 'Doc';
-		if (function_exists($f)) 
+		if (function_exists($f))
 		{
 			$f();
 		}
 		// Check if a method exist (using JPlugin style)
 		$obj = 'plgMembers' . ucfirst($this->cats[$k]['category']);
-		if (method_exists($obj, 'documents')) 
+		if (method_exists($obj, 'documents'))
 		{
 			$html .= call_user_func(array($obj, 'documents'));
 		}
 
 		$ttl = ($total > 5) ? 5 : $total;
-		if (!$dopaging) 
+		if (!$dopaging)
 		{
 			$num = '1-' . $ttl . ' of ';
-		} 
-		else 
+		}
+		else
 		{
 			$stl = $this->start + 1;
 			$ttl = ($total > $this->limit) ? $this->start + $this->limit : $this->start + $total;
@@ -206,12 +209,12 @@ foreach ($this->results as $category)
 
 		// Build the category HTML
 		$html .= '<h4 class="category-header opened" id="rel-'.$divid.'">';
-		if (!$dopaging) 
+		if (!$dopaging)
 		{
 			$html .= '<a href="'.JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area='. urlencode(stripslashes($this->cats[$k]['category']))).'">';
 		}
 		$html .= $name.' <span>('.$num.$total.')</span>';
-		if (!$dopaging && $total > 5) 
+		if (!$dopaging && $total > 5)
 		{
 			$html .= '<span class="more">see more &raquo;</span></a> ';
 		}
@@ -221,13 +224,13 @@ foreach ($this->results as $category)
 		// Does this category have custom output?
 		// Check if a function exist (using old style plugins)
 		$func = 'plgMembers' . ucfirst($this->cats[$k]['category']) . 'Before';
-		if (function_exists($func)) 
+		if (function_exists($func))
 		{
 			$html .= $func();
 		}
 		// Check if a method exist (using JPlugin style)
 		$obj = 'plgMembers' . ucfirst($this->cats[$k]['category']);
-		if (method_exists($obj, 'before')) 
+		if (method_exists($obj, 'before'))
 		{
 			$html .= call_user_func(array($obj,'before'));
 		}
@@ -243,15 +246,15 @@ foreach ($this->results as $category)
 			// Check if a method exist (using JPlugin style)
 			$obj = 'plgMembers' . ucfirst($this->cats[$k]['category']);
 
-			if (function_exists($func)) 
+			if (function_exists($func))
 			{
 				$html .= $func($row);
-			} 
-			elseif (method_exists($obj, 'out')) 
+			}
+			elseif (method_exists($obj, 'out'))
 			{
 				$html .= call_user_func(array($obj,'out'), $row);
-			} 
-			else 
+			}
+			else
 			{
 				$html .= "\t".'<li>'."\n";
 				$html .= "\t\t".'<p class="title"><a href="'.$row->href.'">'.$this->escape(stripslashes($row->title)).'</a></p>'."\n";
@@ -263,12 +266,12 @@ foreach ($this->results as $category)
 		}
 		$html .= '</ol>'."\n";
 		// Initiate paging if we we're displaying an active category
-		if (!$dopaging) 
+		if (!$dopaging)
 		{
 			$html .= '<p class="moreresults">'.JText::sprintf('PLG_MEMBERS_CONTRIBUTIONS_NUMBER_SHOWN', $amt);
 			// Ad a "more" link if necessary
 			//if ($totals[$k] > 5) {
-			if ($this->cats[$k]['total'] > 5) 
+			if ($this->cats[$k]['total'] > 5)
 			{
 				$html .= ' | <a href="' . JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=contributions&area='.urlencode(strToLower($this->cats[$k]['category']))) . '">'.JText::_('PLG_MEMBERS_CONTRIBUTIONS_MORE').'</a>';
 			}
@@ -283,20 +286,20 @@ if (!$foundresults) {
 	echo '<p class="warning">' . JText::_('PLG_MEMBERS_CONTRIBUTIONS_NONE') . '</p>';
 }
 ?>
-				</div><!-- / .container-block -->
-<?php
-if ($dopaging) 
-{
-	jimport('joomla.html.pagination');
-	$pageNav = new JPagination($total, $this->start, $this->limit);
+		</div><!-- / .container-block -->
+		<?php
+		if ($dopaging)
+		{
+			jimport('joomla.html.pagination');
+			$pageNav = new JPagination($total, $this->start, $this->limit);
 
-	$pageNav->setAdditionalUrlParam('id', $this->member->get('uidNumber'));
-	$pageNav->setAdditionalUrlParam('active', 'contributions');
-	$pageNav->setAdditionalUrlParam('area', urlencode(stripslashes($this->active)));
-	$pageNav->setAdditionalUrlParam('sort', $this->sort);
-	echo $pageNav->getListFooter();
-}
-?>
+			$pageNav->setAdditionalUrlParam('id', $this->member->get('uidNumber'));
+			$pageNav->setAdditionalUrlParam('active', 'contributions');
+			$pageNav->setAdditionalUrlParam('area', urlencode(stripslashes($this->active)));
+			$pageNav->setAdditionalUrlParam('sort', $this->sort);
+			echo $pageNav->getListFooter();
+		}
+		?>
 		<div class="clearfix"></div>
 	</div><!-- / .container -->
 </form>

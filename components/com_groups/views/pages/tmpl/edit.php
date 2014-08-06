@@ -31,6 +31,14 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+// add styles & scripts
+$this->css()
+	 ->js()
+     ->css('jquery.fancyselect.css', 'system')
+     ->js('jquery.fancyselect', 'system')
+     ->css('jquery.colpick.css', 'system')
+     ->js('jquery.colpick', 'system');
+
 // define base link
 $base_link = 'index.php?option=com_groups&cn='.$this->group->get('cn').'&task=pages';
 
@@ -38,7 +46,7 @@ $base_link = 'index.php?option=com_groups&cn='.$this->group->get('cn').'&task=pa
 $return      = JRequest::getVar('return', '');
 $return_link = $base_link;
 if ($return != '')
-{	
+{
 	if (filter_var(base64_decode($return), FILTER_VALIDATE_URL))
 	{
 		$return_link = base64_decode($return);
@@ -59,52 +67,53 @@ $privacy   = $this->page->get('privacy', 'default');
 $home      = $this->page->get('home', 0);
 
 // default some form vars
-$pageHeading = JText::_("Add Page");
+$pageHeading = JText::_("COM_GROUPS_PAGES_ADD_PAGE");
 
 // if we are in edit mode
-if ($this->page->get('id')) 
-{	
-	$pageHeading = JText::sprintf("Edit Page: %s", $title);
+if ($this->page->get('id'))
+{
+	$pageHeading = JText::sprintf("COM_GROUPS_PAGES_EDIT_PAGE", $title);
 }
 ?>
-
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $pageHeading; ?></h2>
-</div>
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li><a class="icon-prev prev btn" href="<?php echo JRoute::_($base_link); ?>">Back to Manage Pages</a></li>
-	</ul>
-</div>
 
-<div class="main section edit-group-page">
+	<div id="content-header-extra">
+		<ul id="useroptions">
+			<li><a class="icon-prev prev btn" href="<?php echo JRoute::_($base_link); ?>">
+				<?php echo JText::_('COM_GROUPS_ACTION_BACK_TO_MANAGE_PAGES'); ?></a></li>
+		</ul>
+	</div>
+</header>
+
+<section class="main section edit-group-page">
 	<?php foreach ($this->notifications as $notification) { ?>
 		<p class="<?php echo $notification['type']; ?>"><?php echo $notification['message']; ?></p>
 	<?php } ?>
-	
+
 	<form action="<?php echo JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&controller=pages&task=save'); ?>" method="POST" id="hubForm" class="full">
-		
+
 		<div class="grid">
 			<div class="col span9">
 				<fieldset>
-					<legend><?php echo JText::_('Details')?></legend>
+					<legend><?php echo JText::_('COM_GROUPS_PAGES_PAGE_DETAILS'); ?></legend>
 					<label for="field-title">
-						<strong>Title:</strong> <span class="required">Required</span>
+						<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_TITLE'); ?>:</strong> <span class="required"><?php echo JText::_('COM_GROUPS_FIELD_REQUIRED'); ?></span>
 						<input type="text" name="page[title]" id="field-title" value="<?php echo $this->escape(stripslashes($title)); ?>" />
 					</label>
 					<label for="field-url">
-						<strong>URL:</strong> <span class="optional">Optional</span>
+						<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_URL'); ?>:</strong> <span class="optional"><?php echo JText::_('COM_GROUPS_FIELD_OPTIONAL'); ?></span>
 						<input type="text" name="page[alias]" id="field-url" value="<?php echo $this->escape($alias); ?>" />
-						<span class="hint">Page URL's can only contain alphanumeric characters and underscores. Spaces will be removed.</span>
+						<span class="hint">Page URL's can only contain lowercase alphanumeric characters and underscores. Spaces will be removed.</span>
 					</label>
 					<label for="pagecontent">
-						<strong>Content:</strong> <span class="required">Required</span>
+						<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_CONTENT'); ?>:</strong> <span class="required"><?php echo JText::_('COM_GROUPS_FIELD_REQUIRED'); ?></span>
 						<?php
 							$allowPhp      = true;
 							$allowScripts  = true;
 							$startupMode   = 'wysiwyg';
 							$showSourceBtn = true;
-					
+
 							// only allow super groups to use php & scrips
 							// strip out php and scripts if somehow it made it through
 							if (!$this->group->isSuperGroup())
@@ -114,7 +123,7 @@ if ($this->page->get('id'))
 								$content      = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $content);
 								$content      = preg_replace('/<\?[\s\S]*?\?>/', '', $content);
 							}
-					
+
 							// open in source mode if contains php or scripts
 							if (strstr(stripslashes($content), '<script>') ||
 								strstr(stripslashes($content), '<?php'))
@@ -122,7 +131,7 @@ if ($this->page->get('id'))
 								$startupMode  = 'source';
 								//$showSourceBtn = false;
 							}
-				
+
 							//build config
 							$config = array(
 								'startupMode'                 => $startupMode,
@@ -137,71 +146,71 @@ if ($this->page->get('id'))
 								'allowPhpTags'                => $allowPhp,
 								'allowScriptTags'             => $allowScripts
 							);
-					
+
 							// if super group add to templates
 							if ($this->group->isSuperGroup())
 							{
 								$config['templates_replace'] = false;
 								$config['templates_files']   = array('pagelayouts' => '/site/groups/' . $this->group->get('gidNumber') . '/template/assets/js/pagelayouts.js');
 							}
-					
+
 							// display with ckeditor
 							jimport( 'joomla.html.editor' );
 							$editor = new JEditor( 'ckeditor' );
 							echo $editor->display('pageversion[content]', stripslashes($content), '100%', '400', 0, 0, false, 'pagecontent', null, null, $config);
 						?>
-						
+
 					</label>
 				</fieldset>
 			</div>
 			<div class="col span3 omega">
 				<fieldset>
-					<legend><?php echo JText::_('Publish'); ?></legend>
+					<legend><?php echo JText::_('COM_GROUPS_PAGES_PAGE_PUBLISH'); ?></legend>
 					<label>
-						<strong>Status:</strong> <span class="required">Required</span>
+						<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_STATUS'); ?>:</strong> <span class="required"><?php echo JText::_('COM_GROUPS_FIELD_REQUIRED'); ?></span>
 						<select name="page[state]" class="fancy-select">
-							<option value="1" <?php if($state == 1) { echo "selected"; } ?>>Published</option>
-							<option value="0" <?php if($state == 0) { echo "selected"; } ?>>Unpublished</option>
+							<option value="1" <?php if ($state == 1) { echo "selected"; } ?>><?php echo JText::_('COM_GROUPS_PAGES_PAGE_STATUS_PUBLISHED'); ?></option>
+							<option value="0" <?php if ($state == 0) { echo "selected"; } ?>><?php echo JText::_('COM_GROUPS_PAGES_PAGE_STATUS_UNPUBLISHED'); ?></option>
 						</select>
 					</label>
-					
+
 					<?php if ($this->page->get('id')) : ?>
 						<label>
-							<strong>Versions:</strong> <br />
+							<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_VERSIONS'); ?>:</strong> <br />
 							<a class="btn icon-history" href="<?php echo JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&controller=pages&task=versions&pageid=' . $this->page->get('id')); ?>">
-								Browse Versions (<?php echo $this->page->versions()->count(); ?>)
+								<?php echo JText::sprintf('COM_GROUPS_PAGES_PAGE_VERSIONS_BROWSE', $this->page->versions()->count()); ?>
 							</a>
 						</label>
 					<?php endif; ?>
-					
+
 					<label>
-						<strong>Privacy:</strong> <span class="required">Required</span>
+						<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_PRIVACY'); ?>:</strong> <span class="required"><?php echo JText::_('COM_GROUPS_FIELD_REQUIRED'); ?></span>
 						<?php
 							$access = \Hubzero\User\Group\Helper::getPluginAccess($this->group, 'overview');
-							switch($access)
+							switch ($access)
 							{
-								case 'anyone':		$name = "Any HUB Visitor";		break;
-								case 'registered':	$name = "Registered HUB Users";	break;
-								case 'members':		$name = "Group Members Only";	break;
+								case 'anyone':		$name = JText::_('COM_GROUPS_PLUGIN_ANYONE');		break;
+								case 'registered':	$name = JText::_('COM_GROUPS_PLUGIN_REGISTERED');	break;
+								case 'members':		$name = JText::_('COM_GROUPS_PLUGIN_MEMBERS');	    break;
 							}
 						?>
 						<select name="page[privacy]" class="fancy-select">
-							<option value="default" <?php if($privacy == "default") { echo 'selected="selected"'; } ?>>Inherits overview tab's privacy setting (Currently set to: <?php echo $name; ?>)</option>
-							<option value="members" <?php if($privacy == "members") { echo 'selected="selected"'; } ?>>Private Page (Accessible to members only)</option>
+							<option value="default" <?php if ($privacy == "default") { echo 'selected="selected"'; } ?>><?php echo JText::sprintf('COM_GROUPS_PAGES_PAGE_PRIVACY_INHERIT', $name); ?></option>
+							<option value="members" <?php if ($privacy == "members") { echo 'selected="selected"'; } ?>><?php echo JText::_('COM_GROUPS_PAGES_PAGE_PRIVACY_PRIVATE'); ?></option>
 						</select>
 					</label>
 				</fieldset>
-				
+
 				<div class="form-controls cf">
-					<a href="<?php echo JRoute::_($return_link); ?>" class="cancel"><?php echo JText::_('Cancel'); ?></a>
-					<button type="submit" class="btn btn-info opposite save icon-save"><?php echo JText::_('Save Page'); ?></button>
+					<a href="<?php echo JRoute::_($return_link); ?>" class="cancel"><?php echo JText::_('COM_GROUPS_PAGES_CANCEL'); ?></a>
+					<button type="submit" class="btn btn-info opposite save icon-save"><?php echo JText::_('COM_GROUPS_PAGES_SAVE_PAGE'); ?></button>
 				</div>
-				
+
 				<fieldset>
-					<legend><?php echo JText::_('Settings'); ?></legend>
+					<legend><?php echo JText::_('COM_GROUPS_PAGES_PAGE_SETTINGS'); ?></legend>
 					<?php if ($this->page->get('id')) : ?>
 						<label for="page-ordering">
-							<strong>Order:</strong> <span class="optional">Optional</span>
+							<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_ORDER'); ?>:</strong> <span class="optional"><?php echo JText::_('COM_GROUPS_FIELD_OPTIONAL'); ?></span>
 							<select name="page[ordering]" class="fancy-select">
 								<?php foreach ($this->order as $order) : ?>
 									<?php $sel = ($order->get('title') == $title) ? 'selected="selected"' : ''; ?>
@@ -212,25 +221,25 @@ if ($this->page->get('id'))
 							</select>
 						</label>
 					<?php endif; ?>
-			
+
 					<label for="page-category" class="page-category-label">
-						<strong>Category:</strong> <span class="optional">Optional</span>
+						<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_CATEGORY'); ?>:</strong> <span class="optional"><?php echo JText::_('COM_GROUPS_FIELD_OPTIONAL'); ?></span>
 						<select name="page[category]" class="page-category" data-url="<?php echo JRoute::_('index.php?option=com_groups&cn='. $this->group->get('gidNumber').'&controller=categories&task=add&no_html=1'); ?>">
-							<option value="">- Select Page Category &mdash;</option>
+							<option value=""><?php echo JText::_('COM_GROUPS_PAGES_PAGE_CATEGORY_OPTION_NULL'); ?></option>
 							<?php foreach ($this->categories as $pageCategory) : ?>
 								<?php $sel = ($category == $pageCategory->get('id')) ? 'selected="selected"' : ''; ?>
 								<option <?php echo $sel; ?> data-color="#<?php echo $pageCategory->get('color'); ?>" value="<?php echo $pageCategory->get('id'); ?>"><?php echo $pageCategory->get('title'); ?></option>
 							<?php endforeach; ?>
-							<option value="other">Other</a>
+							<option value="other"><?php echo JText::_('COM_GROUPS_PAGES_PAGE_CATEGORY_OPTION_OTHER'); ?></a>
 						</select>
-						<span class="hint">Organize your content pages.</span>
+						<span class="hint"><?php echo JText::_('COM_GROUPS_PAGES_PAGE_CATEGORY_HINT'); ?></span>
 					</label>
-			
+
 					<?php if ($this->group->isSuperGroup() && count($this->pageTemplates) > 0) : ?>
 						<label for="page-template">
-							<strong>Template:</strong> <span class="optional">Optional</span>
+							<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_TEMPLATE'); ?>:</strong> <span class="optional"><?php echo JText::_('COM_GROUPS_FIELD_OPTIONAL'); ?></span>
 							<select name="page[template]" class="fancy-select">
-								<option value="">- Default</option>
+								<option value=""><?php echo JText::_('COM_GROUPS_PAGES_PAGE_TEMPLATE_OPTION_NULL'); ?></option>
 								<?php foreach ($this->pageTemplates as $name => $file) : ?>
 									<?php
 										$tmpl = str_replace('.php', '', $file);
@@ -240,24 +249,24 @@ if ($this->page->get('id'))
 							</select>
 						</label>
 					<?php endif; ?>
-			
+
 					<label>
-						<strong>Home Page:</strong> <span class="optional">Optional</span>
+						<strong><?php echo JText::_('COM_GROUPS_PAGES_PAGE_HOME'); ?>:</strong> <span class="optional"><?php echo JText::_('COM_GROUPS_FIELD_OPTIONAL'); ?></span>
 						<select name="page[home]" class="fancy-select">
-							<option value="0" <?php if($home == 0) { echo "selected"; } ?>>Use current home page</option>
-							<option value="1" <?php if($home == 1) { echo "selected"; } ?>>Set as home page</option>
+							<option value="0" <?php if ($home == 0) { echo "selected"; } ?>><?php echo JText::_('COM_GROUPS_PAGES_PAGE_HOME_USE_CURRENT'); ?></option>
+							<option value="1" <?php if ($home == 1) { echo "selected"; } ?>><?php echo JText::_('COM_GROUPS_PAGES_PAGE_HOME_SET'); ?></option>
 						</select>
-						<span class="hint">Override the group home page.</span>
+						<span class="hint"><?php echo JText::_('COM_GROUPS_PAGES_PAGE_HOME_HINT'); ?></span>
 					</label>
 				</fieldset>
-		
+
 			</div>
 		</div>
-		
+
 		<input type="hidden" name="page[id]" value="<?php echo $id; ?>" />
 		<input type="hidden" name="option" value="com_groups" />
 		<input type="hidden" name="controller" value="pages" />
 		<input type="hidden" name="return" value="<?php echo JRequest::getVar('return', '','get'); ?>" />
 		<input type="hidden" name="task" value="save" />
 	</form>
-</div>
+</section>

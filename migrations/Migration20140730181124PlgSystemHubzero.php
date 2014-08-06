@@ -22,9 +22,10 @@ class Migration20140730181124PlgSystemHubzero extends Base
 		if ($search && $search == 'ysearch')
 		{
 			$params->set('search', 'search');
-			$query = "UPDATE `#__extensions` SET `params` = " . $this->db->quote((string)$params) . " WHERE `folder` = 'system' AND `element` = 'hubzero'";
-			$this->db->setQuery($query);
-			$this->db->query();
+			$component = new \JTableExtension($this->db);
+			$component->load(array('folder'=>'system', 'element'=>'hubzero'));
+			$component->set('params', (string) $params);
+			$component->store();
 		}
 	}
 }

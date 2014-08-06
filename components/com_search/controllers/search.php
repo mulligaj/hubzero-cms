@@ -35,11 +35,11 @@ if (!function_exists('stem'))
 {
 	/**
 	 * Stem a string
-	 * 
+	 *
 	 * @param  string $str
 	 * @return string
 	 */
-	function stem($str) 
+	function stem($str)
 	{
 		return $str;
 	}
@@ -57,7 +57,7 @@ class SearchControllerSearch extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Display search form and results (if any)
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask($cachable = false, $urlparams = false)
@@ -69,14 +69,14 @@ class SearchControllerSearch extends \Hubzero\Component\SiteController
 		// Set breadcrumbs
 		$pathway = $app->getPathway();
 		$pathway->addItem(
-			'Search', 
+			'Search',
 			'index.php?option=com_search'
 		);
 
 		$terms = new SearchModelTerms(JRequest::getString('terms'));
 
 		// Set the document title
-		JFactory::getDocument()->setTitle($terms->is_set() ? JText::sprintf('Search results for "%s"', $this->view->escape($terms->get_raw())) : 'Search');
+		JFactory::getDocument()->setTitle($terms->is_set() ? JText::sprintf('COM_SEARCH_RESULTS_FOR', $this->view->escape($terms->get_raw())) : 'Search');
 
 		// Get search results
 		$results = new SearchModelResultSet($terms);
@@ -104,8 +104,8 @@ class SearchControllerSearch extends \Hubzero\Component\SiteController
 		}
 
 		$this->view->pagination = new JPagination(
-			$total, 
-			$results->get_offset(), 
+			$total,
+			$results->get_offset(),
 			$results->get_limit()
 		);
 

@@ -38,7 +38,7 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 {
 	/**
 	 * List resource types
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -127,7 +127,7 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 
 	/**
 	 * Add a new type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -137,7 +137,7 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a record
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($row=null)
@@ -183,7 +183,7 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save a record
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -202,8 +202,8 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 			$this->editTask($row);
 			return;
 		}
-		
-		if (!$row->id) 
+
+		if (!$row->id)
 		{
 			$row->ordering = $row->getNextOrder();
 		}
@@ -227,13 +227,13 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('License successfully saved')
+			JText::_('COM_RESOURCES_ITEM_SAVED')
 		);
 	}
 
 	/**
 	 * Remove one or more types
-	 * 
+	 *
 	 * @return     void Redirects back to main listing
 	 */
 	public function removeTask()
@@ -250,7 +250,7 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 			// Redirect with error message
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No license selected'),
+				JText::_('COM_RESOURCES_NO_ITEM_SELECTED'),
 				'error'
 			);
 			return;
@@ -260,20 +260,6 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 
 		foreach ($ids as $id)
 		{
-			// Check if the type is being used
-			/*$total = $rt->checkUsage($id);
-
-			if ($total > 0)
-			{
-				// Redirect with error message
-				$this->setRedirect(
-					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::sprintf('There are resources with license %s. Please reassign them before deleting this license.', $id),
-					'error'
-				);
-				return;
-			}*/
-
 			// Delete the type
 			$rt->delete($id);
 		}
@@ -281,13 +267,13 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Type successfully saved')
+			JText::sprintf('COM_RESOURCES_ITEMS_REMOVED', count($ids))
 		);
 	}
 
 	/**
 	 * Move an item down up the ordering
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function orderupTask()
@@ -297,7 +283,7 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 
 	/**
 	 * Move an item down in the ordering
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function orderdownTask()
@@ -308,7 +294,7 @@ class ResourcesControllerLicenses extends \Hubzero\Component\AdminController
 	/**
 	 * Reorders a resource child
 	 * Redirects to parent resource's children listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function reorderTask($dir = 0)

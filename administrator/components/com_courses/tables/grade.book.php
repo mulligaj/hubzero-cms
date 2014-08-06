@@ -38,49 +38,49 @@ class CoursesTableGradeBook extends JTable
 {
 	/**
 	 * int(11) Primary key
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $id = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $member_id = NULL;
 
 	/**
 	 * decimal(5,2)
-	 * 
+	 *
 	 * @var decimal
 	 */
 	var $score = NULL;
 
 	/**
 	 * varchar(255)
-	 * 
+	 *
 	 * @var string
 	 */
 	var $scope = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $scope_id = NULL;
 
 	/**
 	 * decimal(5,2)
-	 * 
+	 *
 	 * @var decimal
 	 */
 	var $override = NULL;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$db JDatabase
 	 * @return     void
 	 */
@@ -91,7 +91,7 @@ class CoursesTableGradeBook extends JTable
 
 	/**
 	 * Load gradebook entry by user and asset id
-	 * 
+	 *
 	 * @param      string $member_id
 	 * @param      string $asset_id
 	 * @return     array
@@ -117,7 +117,7 @@ class CoursesTableGradeBook extends JTable
 
 	/**
 	 * Build a query based off of filters passed
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     string SQL
 	 */
@@ -137,7 +137,7 @@ class CoursesTableGradeBook extends JTable
 
 		if (isset($filters['member_id']) && $filters['member_id'])
 		{
-			if(!is_array($filters['member_id']))
+			if (!is_array($filters['member_id']))
 			{
 				$filters['member_id'] = array($filters['member_id']);
 			}
@@ -145,15 +145,23 @@ class CoursesTableGradeBook extends JTable
 		}
 		if (isset($filters['scope']) && $filters['scope'])
 		{
-			if(!is_array($filters['scope']))
+			if (!is_array($filters['scope']))
 			{
 				$filters['scope'] = array($filters['scope']);
 			}
 			$where[] = "gb.scope IN ('" . implode('\',\'', $filters['scope']) . "')";
 		}
+		if (isset($filters['asset_scope']) && $filters['asset_scope'])
+		{
+			$where[] = "caa.scope = " . $this->_db->quote($filters['asset_scope']);
+		}
+		if (isset($filters['graded']) && $filters['graded'])
+		{
+			$where[] = "ca.graded = '1'";
+		}
 		if (isset($filters['scope_id']) && $filters['scope_id'])
 		{
-			if(!is_array($filters['scope_id']))
+			if (!is_array($filters['scope_id']))
 			{
 				$filters['scope_id'] = array($filters['scope_id']);
 			}
@@ -179,7 +187,7 @@ class CoursesTableGradeBook extends JTable
 
 	/**
 	 * Get grade records
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     array
 	 */
@@ -193,7 +201,7 @@ class CoursesTableGradeBook extends JTable
 
 	/**
 	 * Get passing info
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     array
 	 */
@@ -207,7 +215,7 @@ class CoursesTableGradeBook extends JTable
 
 		if (isset($filters['member_id']) && $filters['member_id'])
 		{
-			if(!is_array($filters['member_id']))
+			if (!is_array($filters['member_id']))
 			{
 				$filters['member_id'] = array($filters['member_id']);
 			}
@@ -215,7 +223,7 @@ class CoursesTableGradeBook extends JTable
 		}
 		if (isset($filters['scope']) && $filters['scope'])
 		{
-			if(!is_array($filters['scope']))
+			if (!is_array($filters['scope']))
 			{
 				$filters['scope'] = array($filters['scope']);
 			}
@@ -223,7 +231,7 @@ class CoursesTableGradeBook extends JTable
 		}
 		if (isset($filters['scope_id']) && $filters['scope_id'])
 		{
-			if(!is_array($filters['scope_id']))
+			if (!is_array($filters['scope_id']))
 			{
 				$filters['scope_id'] = array($filters['scope_id']);
 			}
@@ -231,7 +239,7 @@ class CoursesTableGradeBook extends JTable
 		}
 		if (isset($filters['section_id']) && $filters['section_id'])
 		{
-			if(!is_array($filters['section_id']))
+			if (!is_array($filters['section_id']))
 			{
 				$filters['section_id'] = array($filters['section_id']);
 			}
@@ -251,7 +259,7 @@ class CoursesTableGradeBook extends JTable
 
 	/**
 	 * Query to sync form scores with gradebook
-	 * 
+	 *
 	 * @param      obj   $course
 	 * @param      array $member_id
 	 * @return     void
@@ -288,9 +296,10 @@ class CoursesTableGradeBook extends JTable
 		$assets = $asset->find(
 			array(
 				'w' => array(
-					'course_id'  => $course->get('id'),
-					'section_id' => $course->offering()->section()->get('id'),
-					'asset_type' => 'form'
+					'course_id'   => $course->get('id'),
+					'section_id'  => $course->offering()->section()->get('id'),
+					'offering_id' => $course->offering()->get('id'),
+					'asset_type'  => 'form'
 				)
 			)
 		);
@@ -312,7 +321,7 @@ class CoursesTableGradeBook extends JTable
 
 		if (count($assets) > 0)
 		{
-			foreach($assets as $asset)
+			foreach ($assets as $asset)
 			{
 				// Add null values for unpublished forms that may have already been taken
 				if ($asset->state != 1)
@@ -327,7 +336,7 @@ class CoursesTableGradeBook extends JTable
 				// Check for result for given student on form
 				$crumb = $asset->url;
 
-				if(!$crumb || strlen($crumb) != 20 || $asset->state != 1)
+				if (!$crumb || strlen($crumb) != 20 || $asset->state != 1)
 				{
 					// Break foreach, this is not a valid form!
 					continue;
@@ -381,7 +390,7 @@ class CoursesTableGradeBook extends JTable
 							$resp = $dep->getRespondent($u);
 
 							// Form is active and they have completed it!
-							if($resp->getEndTime() && $resp->getEndTime() != '')
+							if ($resp->getEndTime() && $resp->getEndTime() != '')
 							{
 								$score = (isset($results[$u]['score'])) ? '\''.$results[$u]['score'].'\'' : 'NULL';
 
@@ -445,7 +454,7 @@ class CoursesTableGradeBook extends JTable
 
 	/**
 	 * Query to save unit and course totals to gradebook
-	 * 
+	 *
 	 * @param      array $data - values to compose update query
 	 * @param      int $course_id = course id
 	 * @return     void
@@ -579,7 +588,7 @@ class CoursesTableGradeBook extends JTable
 
 	/**
 	 * Clear grades for a given course/user combination
-	 * 
+	 *
 	 * @param      array $member_id
 	 * @param      object $course
 	 * @return     void
@@ -615,88 +624,26 @@ class CoursesTableGradeBook extends JTable
 	}
 
 	/**
-	 * Get graded asset completion count
-	 * 
-	 * @param      obj $course
-	 * @param      int $member_id
-	 * @return     void
-	 */
-	public function getGradedItemsCompletionCount($course, $member_id=null)
-	{
-		$user = (!is_null($member_id)) ? "AND gb.member_id = {$member_id}" : '';
-		$query   = "SELECT gb.member_id, ca.grade_weight, count(*) as count
-					FROM $this->_tbl AS gb
-					LEFT JOIN `#__courses_assets` ca ON gb.scope_id = ca.id
-					LEFT JOIN `#__courses_asset_associations` caa ON ca.id = caa.asset_id
-					LEFT JOIN `#__courses_asset_groups` cag ON caa.scope_id = cag.id
-					LEFT JOIN `#__courses_units` cu ON cag.unit_id = cu.id
-					WHERE gb.scope='asset'
-					AND (cu.offering_id = '".$course->offering()->get('id')."'
-					 OR (cu.offering_id IS NULL AND ca.course_id = '".$course->get('id')."'))
-					AND (score IS NOT NULL OR override IS NOT NULL)
-					{$user}
-					GROUP BY member_id, grade_weight";
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
-
-	/**
-	 * Get asset completion count
-	 * 
-	 * @FIXME: combine with function above
+	 * Clear units if they once had a grade but should no longer
 	 *
-	 * @param      int $course_id
-	 * @param      int $member_id
+	 * @param      array $data - info to process
 	 * @return     void
 	 */
-	public function getGradedItemCompletions($course_id, $member_id=null)
+	public function clearUnits($data)
 	{
-		$user = '';
-		if (!is_null($member_id))
+		if (is_array($data) && count($data) > 0)
 		{
-			if (!is_array($member_id))
+			foreach ($data as $unit_id => $members)
 			{
-				$member_id = (array) $member_id;
+				if (is_array($members) && count($members) > 0)
+				{
+					$query  = "UPDATE `#__courses_grade_book` SET score = NULL";
+					$query .= " WHERE scope = 'unit' AND scope_id = " . $this->_db->quote($unit_id);
+					$query .= " AND member_id IN (" . implode(',', $members) . ")";
+					$this->_db->setQuery($query);
+					$this->_db->query();
+				}
 			}
-
-			$user = "AND gb.member_id IN (" . implode(",", $member_id) . ")";
 		}
-
-		$query   = "SELECT gb.member_id, ca.grade_weight, cag.unit_id, ca.id as asset_id
-					FROM $this->_tbl AS gb
-					LEFT JOIN `#__courses_assets` ca ON gb.scope_id = ca.id
-					LEFT JOIN `#__courses_asset_associations` caa ON ca.id = caa.asset_id
-					LEFT JOIN `#__courses_asset_groups` cag ON caa.scope_id = cag.id
-					WHERE gb.scope='asset'
-					AND ca.course_id = '{$course_id}'
-					AND (score IS NOT NULL OR override IS NOT NULL)
-					{$user}";
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
-
-	/**
-	 * Get graded asset count
-	 * 
-	 * @param      obj $course
-	 * @return     void
-	 */
-	public function getGradedItemsCount($course)
-	{
-		$query   = "SELECT grade_weight, count(*) as count
-					FROM `#__courses_assets` ca
-					LEFT JOIN `#__courses_asset_associations` caa ON ca.id = caa.asset_id
-					LEFT JOIN `#__courses_asset_groups` cag ON caa.scope_id = cag.id
-					LEFT JOIN `#__courses_units` cu ON cag.unit_id = cu.id
-					WHERE graded = 1
-					AND ca.state = 1
-					AND (cu.offering_id = '".$course->offering()->get('id')."'
-					 OR (cu.offering_id IS NULL AND ca.course_id = '".$course->get('id')."'))
-					GROUP BY grade_weight;";
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList('grade_weight');
 	}
 }

@@ -37,29 +37,29 @@ defined('_JEXEC') or die('Restricted access');
 class ForumModelAbstract extends \Hubzero\Base\Model
 {
 	/**
-	 * JUser
-	 * 
+	 * \Hubzero\User\Profile
+	 *
 	 * @var object
 	 */
 	protected $_creator = NULL;
 
 	/**
-	 * JParameter
-	 * 
+	 * JRegistry
+	 *
 	 * @var object
 	 */
 	protected $_config = NULL;
 
 	/**
 	 * Scope adapter
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_adapter = null;
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What data to return
 	 * @return     string
 	 */
@@ -83,7 +83,7 @@ class ForumModelAbstract extends \Hubzero\Base\Model
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
 	 * it returns the entire JUser object
@@ -112,11 +112,12 @@ class ForumModelAbstract extends \Hubzero\Base\Model
 	/**
 	 * Get a configuration value
 	 * If no key is passed, it returns the configuration object
-	 * 
-	 * @param      string $key Config property to retrieve
+	 *
+	 * @param      string $key     Config property to retrieve
+	 * @param      mixed  $default Default value to return
 	 * @return     mixed
 	 */
-	public function config($key=null)
+	public function config($key=null, $default=null)
 	{
 		if (!isset($this->_config))
 		{
@@ -124,14 +125,14 @@ class ForumModelAbstract extends \Hubzero\Base\Model
 		}
 		if ($key)
 		{
-			return $this->_config->get($key);
+			return $this->_config->get($key, $default);
 		}
 		return $this->_config;
 	}
 
 	/**
 	 * Create an adapter object based on scope
-	 * 
+	 *
 	 * @return  object
 	 */
 	public function _adapter()

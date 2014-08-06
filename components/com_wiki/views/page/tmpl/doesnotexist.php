@@ -30,33 +30,35 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+if (!$this->sub)
+{
+	$this->css();
+}
+$this->js();
 ?>
-<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>" class="full">
+<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 	<h2><?php echo $this->escape($this->title); ?></h2>
-</div><!-- /#content-header -->
+</header><!-- /#content-header -->
 
 <?php
-	$view = new JView(array(
-		'base_path' => $this->base_path, 
-		'name'      => 'page',
-		'layout'    => 'submenu'
-	));
-	$view->option     = $this->option;
-	$view->controller = $this->controller;
-	$view->page       = $this->page;
-	$view->task       = $this->task;
-	//$view->config     = $this->config;
-	$view->sub        = $this->sub;
-	$view->display();
+	$this->view('submenu', 'page')
+	     ->setBasePath($this->base_path)
+	     ->set('option', $this->option)
+	     ->set('controller', $this->controller)
+	     ->set('page', $this->page)
+	     ->set('task', $this->task)
+	     ->set('sub', $this->sub)
+	     ->display();
 ?>
 
-<div class="main section">
+<section class="main section">
 	<p class="warning">
-		This page does not exist. Would you like to <a href="<?php echo JRoute::_($this->page->link('new')); ?>">create it?</a>
+		<?php echo JText::sprintf('COM_WIKI_WARNING_PAGE_DOES_NOT_EXIST', JRoute::_($this->page->link('new'))); ?>
 	</p>
 <?php if (count($this->book->templates('list', array(), 'true'))) { ?>
 	<p>
-		<?php echo JText::_('Or choose a page template to create an already-formatted page:'); ?>
+		<?php echo JText::_('COM_WIKI_CHOOSE_TEMPLATE'); ?>
 	</p>
 	<ul>
 	<?php foreach ($this->book->templates() as $template) { ?>
@@ -68,5 +70,4 @@ defined('_JEXEC') or die( 'Restricted access' );
 	<?php } ?>
 	</ul>
 <?php } ?>
-	<div class="clear"></div>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

@@ -37,29 +37,15 @@ defined('_JEXEC') or die('Restricted access');
 class plgGroupsWishlist extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-
-		// Get the component parameters
-		$wconfig =  JComponentHelper::getParams('com_wishlist');
-		$this->config = $wconfig;
-
-		$lang = JFactory::getLanguage();
-		$lang->load('com_wishlist');
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onGroupAreas()
@@ -77,7 +63,7 @@ class plgGroupsWishlist extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a group view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $group      Current group
 	 * @param      string  $option     Name of the component
 	 * @param      string  $authorized User's authorization level
@@ -88,24 +74,23 @@ class plgGroupsWishlist extends \Hubzero\Plugin\Plugin
 	 * @param      array   $areas      Active area(s)
 	 * @return     array
 	 */
-	public function onGroup($group, $option, $authorized, $limit=0, 
-		$limitstart=0, $action='', $access, $areas=null)
+	public function onGroup($group, $option, $authorized, $limit=0, $limitstart=0, $action='', $access, $areas=null)
 	{
 		$return = 'html';
 		$active = 'wishlist';
 
 		// The output array we're returning
 		$arr = array(
-			'html'=>''
+			'html' => ''
 		);
 
 		//get this area details
 		$this_area = $this->onGroupAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
-			if (!in_array($this_area['name'], $areas)) 
+			if (!in_array($this_area['name'], $areas))
 			{
 				$return = 'metadata';
 			}
@@ -118,147 +103,139 @@ class plgGroupsWishlist extends \Hubzero\Plugin\Plugin
 		$members = $group->get('members');
 
 		//if we want to return content
-		if ($return == 'html') 
+		if ($return == 'html')
 		{
 			//set group members plugin access level
-			$group_plugin_acl = $access[$active];			
+			$group_plugin_acl = $access[$active];
 
 			//if set to nobody make sure cant access
-			if ($group_plugin_acl == 'nobody') 
+			if ($group_plugin_acl == 'nobody')
 			{
-				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_OFF', 
-					ucfirst($active)) . '</p>';
+				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_OFF', ucfirst($active)) . '</p>';
 				return $arr;
 			}
 
 			//check if guest and force login if plugin access is registered or members
-			if ($juser->get('guest') 
-			 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members')) 
+			if ($juser->get('guest')
+			 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members'))
 			{
-				$url = JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn')
-					. '&active=' . $active, false, true);
-				$message = JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active));
-				$this->redirect(JRoute::_('index.php?option=com_user' 
-					. (version_compare(JVERSION, '1.6', 'lt') ? '' : 's') 
-					. '&view=login&return=' . $url, false), $message, 'warning' );
+				$url = JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn') . '&active=' . $active, false, true);
+
+				$this->redirect(
+					JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($url)),
+					JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active)),
+					'warning'
+				);
 				return;
 			}
 
 			//check to see if user is member and plugin access requires members
-			if (!in_array($juser->get('id'), $members) 
-			 && $group_plugin_acl == 'members' 
-			 && $authorized != 'admin') 
+			if (!in_array($juser->get('id'), $members)
+			 && $group_plugin_acl == 'members'
+			 && $authorized != 'admin')
 			{
-				$arr['html'] = '<p class="info">' 
+				$arr['html'] = '<p class="info">'
 					. JText::sprintf('GROUPS_PLUGIN_REQUIRES_MEMBER', ucfirst($active)) . '</p>';
 				return $arr;
 			}
 		}
-			//instantiate database
-			$database = JFactory::getDBO();
 
-			// Set some variables so other functions have access
-			$this->juser = $juser;
-			$this->database = $database;
-			$this->authorized = $authorized;
-			$this->members = $members;
-			$this->group = $group;
-			$this->option = $option;
-			$this->action = $action;
+		//instantiate database
+		$database = JFactory::getDBO();
 
-			//include com_wishlist files
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.plan.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.owner.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wishlist.owner.group.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.rank.php');
-			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.attachment.php');
-			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' 
-				. DS . 'controllers' . DS . 'wishlist.php');
+		// Set some variables so other functions have access
+		$this->juser = $juser;
+		$this->database = $database;
+		$this->authorized = $authorized;
+		$this->members = $members;
+		$this->group = $group;
+		$this->option = $option;
+		$this->action = $action;
 
-			//set some more vars
-			$gid = $this->group->get('gidNumber');
-			$cn = $this->group->get('cn');
-			$category = 'group';
-			$admin = 0;
+		//include com_wishlist files
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'wishlist.php');
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'controllers' . DS . 'wishlist.php');
 
-			// Configure controller
-			$controller = new WishlistController();
-			$controller->setVar('_option', 'com_wishlist');
-			$controller->setVar('banking', $this->config->get('banking'));
+		// Get the component parameters
+		$this->config = JComponentHelper::getParams('com_wishlist');
 
-			// Get filters
-			$filters = $controller->getFilters(0);
-			$filters['limit'] = $this->params->get('limit');
+		$lang = JFactory::getLanguage();
+		$lang->load('com_wishlist');
 
-			// Load some objects
-			$obj = new Wishlist($this->database);
-			$objWish = new Wish($this->database);
-			$objOwner = new WishlistOwner($this->database);
+		//set some more vars
+		$gid = $this->group->get('gidNumber');
+		$cn = $this->group->get('cn');
+		$category = 'group';
+		$admin = 0;
 
-			// Get wishlist id
-			$id = $obj->get_wishlistID($gid, $category);
+		// Configure controller
+		$controller = new WishlistControllerWishlist();
 
-			// Create a new list if necessary
-			if (!$id) 
+		// Get filters
+		$filters = $controller->getFilters(0);
+		$filters['limit'] = $this->params->get('limit');
+
+		// Load some objects
+		$obj = new Wishlist($this->database);
+		$objWish = new Wish($this->database);
+		$objOwner = new WishlistOwner($this->database);
+
+		// Get wishlist id
+		$id = $obj->get_wishlistID($gid, $category);
+
+		// Create a new list if necessary
+		if (!$id)
+		{
+			// create private list for group
+			if (\Hubzero\User\Group::exists($gid))
 			{
-				// create private list for group
-				if (\Hubzero\User\Group::exists($gid)) 
-				{
-					$group = \Hubzero\User\Group::getInstance($gid);
-					$id = $obj->createlist($category, $gid, 0, $cn . ' ' . JText::_('WISHLIST_NAME_GROUP'));
-				}
+				$group = \Hubzero\User\Group::getInstance($gid);
+				$id = $obj->createlist($category, $gid, 0, $cn . ' ' . JText::_('WISHLIST_NAME_GROUP'));
 			}
+		}
 
-			// get wishlist data
-			$wishlist = $obj->get_wishlist($id, $gid, $category);
+		// get wishlist data
+		$wishlist = $obj->get_wishlist($id, $gid, $category);
 
-			//if we dont have a wishlist display error
-			if (!$wishlist) 
-			{
-				$arr['html'] = '<p class="error">' . JText::_('ERROR_WISHLIST_NOT_FOUND') . '</p>';
-				return $arr;
-			}
+		//if we dont have a wishlist display error
+		if (!$wishlist)
+		{
+			$arr['html'] = '<p class="error">' . JText::_('ERROR_WISHLIST_NOT_FOUND') . '</p>';
+			return $arr;
+		}
 
-			// Get list owners
-			$owners = $objOwner->get_owners($id, $this->config->get('group'), $wishlist);
+		// Get list owners
+		$owners = $objOwner->get_owners($id, $this->config->get('group'), $wishlist);
 
-			//if user is guest and wishlist isnt public
-			//if(!$wishlist->public && $juser->get('guest')) {
-			//	$arr['html'] = '<p class="warning">' . JText::_('The Group Wishlist is not a publicly viewable list.') . '</p>';
-			//	return $arr;
-			//}
+		//if user is guest and wishlist isnt public
+		//if(!$wishlist->public && $juser->get('guest'))
+		//{
+		//	$arr['html'] = '<p class="warning">' . JText::_('The Group Wishlist is not a publicly viewable list.') . '</p>';
+		//	return $arr;
+		//}
 
-			// Authorize admins & list owners
-			if ($juser->authorize($option, 'manage')) 
-			{
-				$admin = 1;
-			}
+		// Authorize admins & list owners
+		if ($juser->authorize($option, 'manage'))
+		{
+			$admin = 1;
+		}
 
-			//authorized based on wishlist
-			if (in_array($juser->get('id'), $owners['individuals'])) 
-			{
-				$admin = 2;
-			} 
-			else if (in_array($juser->get('id'), $owners['advisory'])) 
-			{
-				$admin = 3;
-			}
+		//authorized based on wishlist
+		if (in_array($juser->get('id'), $owners['individuals']))
+		{
+			$admin = 2;
+		}
+		else if (in_array($juser->get('id'), $owners['advisory']))
+		{
+			$admin = 3;
+		}
 
-			//get item count
-			$items = $objWish->get_count($id, $filters, $admin);
+		//get item count
+		$items = $objWish->get_count($id, $filters, $admin);
 
 		$arr['metadata']['count'] = $items;
 
-		if ($return == 'html') 
+		if ($return == 'html')
 		{
 			// Get wishes
 			$wishlist->items = $objWish->get_wishes($wishlist->id, $filters, $admin, $juser);
@@ -267,14 +244,11 @@ class plgGroupsWishlist extends \Hubzero\Plugin\Plugin
 			// Instantiate a view
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'groups',
-					'element' => 'wishlist',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'browse'
 				)
 			);
-
-			//push the stylesheet to the view
-			\Hubzero\Document\Assets::addPluginStylesheet('groups', 'wishlist');
 
 			// Pass the view some info
 			$view->option = $option;
@@ -286,7 +260,7 @@ class plgGroupsWishlist extends \Hubzero\Plugin\Plugin
 			$view->filters = $filters;
 			$view->admin = $admin;
 			$view->config = $this->config;
-			if ($this->getError()) 
+			if ($this->getError())
 			{
 				foreach ($this->getErrors() as $error)
 				{

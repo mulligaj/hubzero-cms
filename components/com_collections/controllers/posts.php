@@ -54,23 +54,17 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 	/**
 	 * View a post
-	 * 
+	 *
 	 * @return     void
 	 */
 	/**
 	 * Display a post
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function displayTask()
 	{
 		$this->view->setLayout('display');
-
-		$this->_getStyles();
-
-		//$this->_getScripts('assets/js/jquery.masonry');
-		//$this->_getScripts('assets/js/jquery.infinitescroll');
-		$this->_getScripts('assets/js/' . $this->_name);
 
 		$this->view->config     = $this->config;
 		$this->view->juser      = $this->juser;
@@ -82,7 +76,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 		$this->view->post = CollectionsModelPost::getInstance($post_id);
 
-		if (!$this->view->post->exists()) 
+		if (!$this->view->post->exists())
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->option . '&controller=collections&task=posts')
@@ -97,7 +91,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 			$this->params->set('access-view-item', false);
 		}*/
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -109,13 +103,13 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display a form for editing an entry
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function editTask()
 	{
 		// Login is required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			return $this->loginTask();
 		}
@@ -161,9 +155,6 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		// push scripts and styles to document
 		if (!$this->view->no_html)
 		{
-			$this->_getStyles();
-			$this->_getScripts('assets/js/' . $this->_name);
-
 			$filters = array(
 				'count' => true,
 				'access' => 0,
@@ -175,7 +166,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		}
 
 		// Push error messages ot the view
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -189,7 +180,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 	/**
 	 * Save an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -198,7 +189,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Login is required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			return $this->loginTask();
 		}
@@ -210,7 +201,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		$row = new CollectionsModelItem();
 
 		// Bind content
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->setError($row->getError());
 			return $this->editTask($row);
@@ -223,7 +214,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		$row->set('state', 1);
 
 		// Store new content
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			$this->setError($row->getError());
 			return $this->editTask($row);
@@ -262,7 +253,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		}
 
 		// Store record
-		if (!$post->store()) 
+		if (!$post->store())
 		{
 			$this->setError($post->getError());
 		}
@@ -281,7 +272,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 	/**
 	 * View a post
-	 * 
+	 *
 	 * @return     void
 	 */
 	/*public function commentTask()
@@ -291,7 +282,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 	/**
 	 * Save a comment
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function savecommentTask()
@@ -300,7 +291,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Ensure the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			return $this->loginTask();
 		}
@@ -310,21 +301,21 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 		// Instantiate a new comment object and pass it the data
 		$row = new \Hubzero\Item\Comment($this->database);
-		if (!$row->bind($comment)) 
+		if (!$row->bind($comment))
 		{
 			$this->setError($row->getError());
 			return $this->displayTask();
 		}
 
 		// Check content
-		if (!$row->check()) 
+		if (!$row->check())
 		{
 			$this->setError($row->getError());
 			return $this->displayTask();
 		}
 
 		// Store new content
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			$this->setError($row->getError());
 			return $this->displayTask();
@@ -335,20 +326,20 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 	/**
 	 * Delete a comment
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function deletecommentTask()
 	{
 		// Ensure the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			return $this->loginTask();
 		}
 
 		// Incoming
 		$id = JRequest::getInt('comment', 0);
-		if (!$id) 
+		if (!$id)
 		{
 			return $this->displayTask();
 		}
@@ -370,12 +361,12 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 	/**
 	 * Vote for an item
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function voteTask()
 	{
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			return $this->loginTask();
 		}
@@ -396,7 +387,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		$no_html = JRequest::getInt('no_html', 0);
 		if ($no_html)
 		{
-			echo JText::sprintf('%s likes', $post->item()->get('positive'));
+			echo JText::sprintf('COM_COLLECTIONS_NUM_LIKES', $post->item()->get('positive'));
 			exit;
 		}
 
@@ -408,12 +399,12 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 
 	/**
 	 * Repost an entry
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function collectTask()
 	{
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			return $this->loginTask();
 		}
@@ -472,12 +463,12 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 			$post->item_id       = $item_id;
 			$post->collection_id = $collection_id;
 			$post->description   = JRequest::getVar('description', '');
-			if ($post->check()) 
+			if ($post->check())
 			{
 				$this->setError($post->getError());
 			}
 			// Store new content
-			if (!$post->store()) 
+			if (!$post->store())
 			{
 				$this->setError($post->getError());
 			}
@@ -490,7 +481,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		// Display updated item stats if called via AJAX
 		if ($no_html)
 		{
-			echo JText::sprintf('%s reposts', $post->getCount(array('item_id' => $post->get('item_id'), 'original' => 0)));
+			echo JText::sprintf('COM_COLLECTIONS_NUM_REPOSTS', $post->getCount(array('item_id' => $post->get('item_id'), 'original' => 0)));
 			exit;
 		}
 

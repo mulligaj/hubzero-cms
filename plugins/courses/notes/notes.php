@@ -47,7 +47,7 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onCourseAreas()
@@ -64,7 +64,7 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a course view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $course      Current course
 	 * @param      string  $option     Name of the component
 	 * @param      string  $authorized User's authorization level
@@ -90,9 +90,9 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 		$this_area = $this->onCourseAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
-			if (!in_array($this_area['name'], $areas)) 
+			if (!in_array($this_area['name'], $areas))
 			{
 				$return = 'metadata';
 			}
@@ -102,11 +102,8 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 			$return = 'metadata';
 		}
 
-		if ($return == 'html') 
+		if ($return == 'html')
 		{
-			\Hubzero\Document\Assets::addPluginStylesheet('courses', $this->_name);
-			\Hubzero\Document\Assets::addPluginScript('courses', $this->_name);
-
 			$this->config   = $config;
 			$this->course   = $course;
 			$this->offering = $offering;
@@ -173,13 +170,18 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @param      object $url  URL to redirect to
 	 * @param      object $msg  Message to send
 	 * @return     void
 	 */
 	public function onCourseAfterLecture($course, $unit, $lecture)
 	{
+		if (!$course->offering()->section()->access('view'))
+		{
+			return;
+		}
+
 		$this->view = new \Hubzero\Plugin\View(
 			array(
 				'folder'  => 'courses',
@@ -202,7 +204,7 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @param      object $url  URL to redirect to
 	 * @return     string
 	 */
@@ -216,7 +218,7 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function _download()
@@ -244,7 +246,7 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @param      object $url  URL to redirect to
 	 * @return     string
 	 */
@@ -269,7 +271,7 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @param      object $url  URL to redirect to
 	 * @param      object $msg  Message to send
 	 * @return     void
@@ -338,7 +340,7 @@ class plgCoursesNotes extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @param      object $url  URL to redirect to
 	 * @return     string
 	 */

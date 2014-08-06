@@ -30,26 +30,29 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+$this->css()
+     ->js();
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li class="last">
-			<a class="icon-tag tag btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
-				<?php echo JText::_('COM_TAGS_MORE_TAGS'); ?>
-			</a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
-<div class="clear"></div>
+
+	<div id="content-header-extra">
+		<ul id="useroptions">
+			<li class="last">
+				<a class="icon-tag tag btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
+					<?php echo JText::_('COM_TAGS_MORE_TAGS'); ?>
+				</a>
+			</li>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header>
 
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo implode("\n", $this->getErrors()); ?></p>
 <?php } ?>
 
-<div class="main section">
+<section class="main section">
 	<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="post" id="hubForm">
 		<div class="explaination">
 			<p><?php echo JText::_('COM_TAGS_NORMALIZED_TAG_EXPLANATION'); ?></p>
@@ -59,11 +62,11 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 			<label for="field-raw_tag">
 				<?php echo JText::_('COM_TAGS_FIELD_TAG'); ?>
-				<input type="text" name="fields[raw_tag]" id="field-raw_tag" value="<?php echo $this->escape(stripslashes($this->tag->get('raw_tag'))); ?>" size="38" />
+				<input type="text" name="fields[raw_tag]" id="field-raw_tag" data-error="<?php echo JText::_('COM_TAGS_FIELD_TAG_BLANK'); ?>" value="<?php echo $this->escape(stripslashes($this->tag->get('raw_tag'))); ?>" size="38" />
 			</label>
 
 			<label for="field-admin">
-				<input class="option" type="checkbox" name="fields[admin]" id="field-admin" value="1" /> 
+				<input class="option" type="checkbox" name="fields[admin]" id="field-admin" value="1" />
 				<strong><?php echo JText::_('COM_TAGS_FIELD_ADMINISTRATION'); ?></strong>
 				<span class="hint">(<?php echo JText::_('COM_TAGS_FIELD_ADMINISTRATION_EXPLANATION'); ?>)</span>
 			</label>
@@ -99,4 +102,4 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</a>
 		</p>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

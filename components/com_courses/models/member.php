@@ -35,6 +35,7 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_c
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'role.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'abstract.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'memberBadge.php');
+require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'prerequisite.php');
 
 /**
  * Courses model class for a course
@@ -43,28 +44,35 @@ class CoursesModelMember extends CoursesModelAbstract
 {
 	/**
 	 * JTable class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CoursesTableMember';
 
 	/**
 	 * Object scope
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'manager';
 
 	/**
 	 * CoursesModelMemberBadge
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_badge = NULL;
 
 	/**
+	 * CoursesModelPrerequisites
+	 *
+	 * @var array
+	 **/
+	private $_prerequisites = null;
+
+	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $id  Resource ID or alias
 	 * @param      object  &$db JDatabase
 	 * @return     void
@@ -111,12 +119,12 @@ class CoursesModelMember extends CoursesModelAbstract
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$oid . '_' . $uid . '_' . $sid])) 
+		if (!isset($instances[$oid . '_' . $uid . '_' . $sid]))
 		{
 			$instances[$oid . '_' . $uid . '_' . $sid] = new self($uid, $cid, $oid, $sid);
 		}
@@ -126,7 +134,7 @@ class CoursesModelMember extends CoursesModelAbstract
 
 	/**
 	 * Get member badge
-	 * 
+	 *
 	 * @return     obj
 	 */
 	public function badge()
@@ -136,12 +144,28 @@ class CoursesModelMember extends CoursesModelAbstract
 			$this->_badge = CoursesModelMemberBadge::loadByMemberId($this->get('id'));
 		}
 
-		return $this->_badge; 
+		return $this->_badge;
+	}
+
+	/**
+	 * Get courses prerequisites per member
+	 *
+	 * @param  (object) $gradebook
+	 * @return     obj
+	 */
+	public function prerequisites($gradebook)
+	{
+		if (!isset($this->_prerequisites))
+		{
+			$this->_prerequisites = new CoursesModelPrerequisite($this->get('section_id'), $gradebook, $this->get('id'));
+		}
+
+		return $this->_prerequisites;
 	}
 
 	/**
 	 * Delete an entry and associated data
-	 * 
+	 *
 	 * @return     boolean True on success, false on error
 	 */
 	public function delete()
@@ -153,7 +177,7 @@ class CoursesModelMember extends CoursesModelAbstract
 
 	/**
 	 * Check a user's authorization
-	 * 
+	 *
 	 * @param      string $action Action to check
 	 * @return     boolean True if authorized, false if not
 	 */
@@ -168,7 +192,7 @@ class CoursesModelMember extends CoursesModelAbstract
 
 	/**
 	 * Get a unique token, generating one if it doesn't exist
-	 * 
+	 *
 	 * @return     obj
 	 */
 	public function token()
@@ -179,12 +203,12 @@ class CoursesModelMember extends CoursesModelAbstract
 			$this->store(false);
 		}
 
-		return $this->get('token'); 
+		return $this->get('token');
 	}
 
 	/**
 	 * Generate a unique token
-	 * 
+	 *
 	 * @return     obj
 	 */
 	public function generateToken()
@@ -202,7 +226,7 @@ class CoursesModelMember extends CoursesModelAbstract
 			return $this->generateToken();
 		}
 
-		return $sn; 
+		return $sn;
 	}
 }
 

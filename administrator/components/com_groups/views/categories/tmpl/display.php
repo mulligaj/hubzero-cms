@@ -32,26 +32,26 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = GroupsHelper::getActions('group');
 
-JToolBarHelper::title($this->group->get('description') . ': <small><small>[ ' . JText::_('Group Page Categories') . ' ]</small></small>', 'groups.png');
+JToolBarHelper::title($this->group->get('description') . ': ' . JText::_('COM_GROUPS_PAGES_CATEGORIES'), 'groups.png');
 
-if ($canDo->get('core.create')) 
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editList();
 }
-if ($canDo->get('core.delete')) 
+if ($canDo->get('core.delete'))
 {
-	JToolBarHelper::deleteList('Delete page Categories?', 'delete');
+	JToolBarHelper::deleteList('COM_GROUPS_PAGES_CATEGORIES_CONFIRM_DELETE', 'delete');
 }
 JToolBarHelper::spacer();
-JToolBarHelper::custom('manage', 'config','config','Manage',false);
+JToolBarHelper::custom('manage', 'config','config','COM_GROUPS_MANAGE',false);
 ?>
 
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	submitform(pressbutton);
 }
@@ -63,9 +63,9 @@ function submitbutton(pressbutton)
 	<table class="adminlist">
 		<thead>
 		 	<tr>
-				<th width="30px"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->categories->count();?>);" /></th>
-				<th>Title</th>
-				<th>Color</th>
+				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->categories->count();?>);" /></th>
+				<th><?php echo JText::_('COM_GROUPS_PAGES_CATEGORY_TITLE'); ?></th>
+				<th><?php echo JText::_('COM_GROUPS_PAGES_CATEGORY_COLOR'); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -79,15 +79,16 @@ function submitbutton(pressbutton)
 	<?php endforeach; ?>
 <?php else : ?>
 			<tr>
-				<td colspan="3"><?php echo JText::_('Currently there are no pages for this group.'); ?></td>
+				<td colspan="3"><?php echo JText::_('COM_GROUPS_PAGES_NO_CATEGORIES'); ?></td>
 			</tr>
 <?php endif; ?>
 		</tbody>
 	</table>
-	
+
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>">
 	<input type="hidden" name="task" value="" />
 	<input type="hidden" name="boxchecked" value="0" />
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

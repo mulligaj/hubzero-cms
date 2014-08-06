@@ -33,33 +33,34 @@ defined('_JEXEC') or die('Restricted access');
 $canDo = CollectionsHelperPermissions::getActions('collection');
 
 JToolBarHelper::title(JText::_('COM_COLLECTIONS'), 'collection.png');
-if ($canDo->get('core.admin')) 
+if ($canDo->get('core.admin'))
 {
 	JToolBarHelper::preferences($this->option, '550');
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.edit.state')) 
+if ($canDo->get('core.edit.state'))
 {
 	JToolBarHelper::publishList();
 	JToolBarHelper::unpublishList();
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.create')) 
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editList();
 }
-if ($canDo->get('core.delete')) 
+if ($canDo->get('core.delete'))
 {
 	JToolBarHelper::deleteList();
 }
-
+JToolBarHelper::spacer();
+JToolBarHelper::help('collections');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 	if (pressbutton == 'cancel') {
@@ -73,10 +74,11 @@ function submitbutton(pressbutton)
 
 <form action="index.php" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
-		<label for="filter_search"><?php echo JText::_('Search'); ?>:</label> 
-		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" />
+		<label for="filter_search"><?php echo JText::_('JSEARCH_FILTER'); ?>:</label>
+		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('COM_COLLECTIONS_FILTER_SEARCH_PLACEHOLDER'); ?>" />
 
-		<input type="submit" value="<?php echo JText::_('GO'); ?>" />
+		<input type="submit" value="<?php echo JText::_('COM_COLLECTIONS_GO'); ?>" />
+		<button type="button" onclick="$('#filter_search').val('');this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
 	</fieldset>
 	<div class="clr"></div>
 
@@ -84,21 +86,21 @@ function submitbutton(pressbutton)
 		<thead>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->rows->total(); ?>);" /></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_COLLECTIONS_TITLE'), 'title', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_COLLECTIONS_PUBLISHED'), 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_COLLECTIONS_ACCESS'), 'access', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_COLLECTIONS_OWNER'), 'object_type', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('COM_COLLECTIONS_POSTS'), 'posts', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_TITLE', 'title', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_PUBLISHED', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_ACCESS', 'access', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_OWNER', 'object_type', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_POSTS', 'posts', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
 			<tr>
 				<td colspan="6">
-					<?php 
+					<?php
 					jimport('joomla.html.pagination');
 					$pageNav = new JPagination(
-						$this->total, 
-						$this->filters['start'], 
+						$this->total,
+						$this->filters['start'],
 						$this->filters['limit']
 					);
 					echo $pageNav->getListFooter();
@@ -118,44 +120,44 @@ foreach ($this->rows as $row)
 		case 1:
 			$class = 'publish';
 			$task = 'unpublish';
-			$alt = JText::_('COM_COLLECTIONS_PUBLISHED');
+			$alt = JText::_('JPUBLISHED');
 			break;
 		case 2:
 			$class = 'expire';
 			$task = 'publish';
-			$alt = JText::_('COM_COLLECTIONS_TRASHED');
+			$alt = JText::_('JTRASHED');
 			break;
 		case 0:
 			$class = 'unpublish';
 			$task = 'publish';
-			$alt = JText::_('COM_COLLECTIONS_UNPUBLISHED');
+			$alt = JText::_('JUNPUBLISHED');
 			break;
 	}
 
-	switch ($row->get('access', 0)) 
+	switch ($row->get('access', 0))
 	{
 		case 0:
-			$color_access = 'style="color: green;"';
+			$color_access = 'public';
 			$task_access = 'accessregistered';
-			$row->set('groupname', JText::_('Public'));
+			$row->set('groupname', JText::_('COM_COLLECTIONS_ACCESS_PUBLIC'));
 		break;
 		case 1:
-			$color_access = 'style="color: red;"';
+			$color_access = 'registered';
 			//$task_access = 'accessspecial';
 			$task_access = 'accessprivate';
-			$row->set('groupname', JText::_('Registered'));
+			$row->set('groupname', JText::_('COM_COLLECTIONS_ACCESS_REGISTERED'));
 		break;
 		/*case 2:
-			$color_access = 'style="color: black;"';
+			$color_access = 'special';
 			$task_access = 'accessprivate';
-			$row->set('groupname', JText::_('Special'));
+			$row->set('groupname', JText::_('COM_COLLECTIONS_ACCESS_SPECIAL'));
 		break;*/
 		case 4:
-			$color_access = 'style="color: red;"';
+			$color_access = 'private';
 			$task_access = 'accesspublic';
-			$row->set('groupname', JText::_('Private'));
+			$row->set('groupname', JText::_('COM_COLLECTIONS_ACCESS_PRIVATE'));
 		break;
-	} 
+	}
 ?>
 			<tr class="<?php echo "row$k"; ?>">
 				<td>
@@ -163,7 +165,7 @@ foreach ($this->rows as $row)
 				</td>
 				<td>
 				<?php if ($canDo->get('core.edit')) { ?>
-					<a class="glyph category" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->get('id'); ?>" title="<?php echo JText::_('COM_COLLECTIONS_EDIT_CATEGORY'); ?>">
+					<a class="glyph category" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->get('id'); ?>">
 						<span><?php echo $this->escape(stripslashes($row->get('title'))); ?></span>
 					</a>
 				<?php } else { ?>
@@ -185,12 +187,12 @@ foreach ($this->rows as $row)
 				</td>
 				<td>
 				<?php if ($canDo->get('core.edit.state')) { ?>
-					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task_access; ?>&amp;id=<?php echo $row->get('id'); ?>" <?php echo $color_access; ?> title="<?php echo JText::_('COM_COLLECTIONS_CHANGE_ACCESS'); ?>">
-						<?php echo $row->get('groupname'); ?>
+					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task_access; ?>&amp;id=<?php echo $row->get('id'); ?>" class="access <?php echo $color_access; ?>" title="<?php echo JText::_('COM_COLLECTIONS_CHANGE_ACCESS'); ?>">
+						<span><?php echo $row->get('groupname'); ?></span>
 					</a>
 				<?php } else { ?>
-					<span <?php echo $color_access; ?>>
-						<?php echo $row->get('groupname'); ?>
+					<span class="access <?php echo $color_access; ?>">
+						<span><?php echo $row->get('groupname'); ?></span>
 					</span>
 				<?php } ?>
 				</td>
@@ -201,8 +203,8 @@ foreach ($this->rows as $row)
 				</td>
 				<td>
 				<?php if ($row->get('posts', 0) > 0) { ?>
-					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=posts&amp;collection_id=<?php echo $row->get('id'); ?>" title="<?php echo JText::_('COM_COLLECTIONS_VIEW_ARTICLES_FOR_CATEGORY'); ?>">
-						<span><?php echo $row->get('posts', 0) . ' ' . JText::_('COM_COLLECTIONS_POSTS'); ?></span>
+					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=posts&amp;collection_id=<?php echo $row->get('id'); ?>">
+						<span><?php echo JText::sprintf('COM_COLLECTIONS_NUM_POSTS', $row->get('posts', 0)); ?></span>
 					</a>
 				<?php } else { ?>
 					<span>

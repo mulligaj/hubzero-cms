@@ -31,30 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * HUBzero plugin class for displaying math CAPTCHAs
  */
-class plgHubzeroMathcaptcha extends JPlugin
+class plgHubzeroMathcaptcha extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return a CAPTCHA question
-	 * 
+	 *
 	 * @return     string HTML
 	 */
 	public function onGetCaptcha()
@@ -73,13 +64,14 @@ class plgHubzeroMathcaptcha extends JPlugin
 		$html .= "\t" . '<input type="text" name="captcha_answer" id="captcha_answer" value="" size="3" id="answer" class="option" /> <span class="required">' . JText::_('PLG_HUBZERO_MATHCAPTCHA_REQUIRED') . '</span>' . "\n";
 		$html .= "\t" . '<input type="hidden" name="captcha_krhash" id="captcha_krhash" value="' . $problem['key'] . '" />' . "\n";
 		$html .= '</label>' . "\n";
+
 		// Return the HTML
 		return $html;
 	}
 
 	/**
 	 * Compare answer to key
-	 * 
+	 *
 	 * @return     boolean True if answer is valid
 	 */
 	public function onValidateCaptcha()
@@ -88,7 +80,7 @@ class plgHubzeroMathcaptcha extends JPlugin
 		$answer = JRequest::getInt('captcha_answer', 0);
 		$answer = $this->_generateHash($answer, date('j'));
 
-		if ($answer == $key) 
+		if ($answer == $key)
 		{
 			return true;
 		}
@@ -97,7 +89,7 @@ class plgHubzeroMathcaptcha extends JPlugin
 
 	/**
 	 * Generate an answer key
-	 * 
+	 *
 	 * @param      string $input CAPTCHA answer
 	 * @param      string $day   Current day
 	 * @return     string

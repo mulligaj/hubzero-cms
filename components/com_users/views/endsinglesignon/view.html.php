@@ -50,13 +50,8 @@ class UsersViewEndsinglesignon extends JViewLegacy
 		$sitename = $jconfig->getValue('config.sitename');
 
 		// Get the display name for the current plugin being used
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
 		$plugin       = JPluginHelper::getPlugin('authentication', $authenticator);
-		$pparams      = new $paramsClass($plugin->params);
+		$pparams      = new JRegistry($plugin->params);
 		$display_name = $pparams->get('display_name', ucfirst($plugin->name));
 
 		$this->assign('authenticator', $authenticator);
@@ -66,5 +61,7 @@ class UsersViewEndsinglesignon extends JViewLegacy
 		parent::display($tpl);
 	}
 
-	function attach() {}
+	function attach()
+	{
+	}
 }

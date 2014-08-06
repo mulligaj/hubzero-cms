@@ -31,6 +31,9 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css('course.css')
+     ->js();
+
 //tag editor
 JPluginHelper::importPlugin( 'hubzero' );
 $dispatcher = JDispatcher::getInstance();
@@ -52,7 +55,7 @@ else
 }
 
 //if we are in edit mode we want to redirect back to course
-if ($this->task == 'edit') 
+if ($this->task == 'edit')
 {
 	$link = JRoute::_('index.php?option=' . $this->option . '&gid=' . $this->course->get('alias'));
 	$title = 'Back to Course';
@@ -81,19 +84,19 @@ This course is intended to be broadly accessible to those with a background in '
 	$this->course->set('description', $default);
 }
 ?>
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
 
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li class="last">
-			<a class="prev btn" href="<?php echo $link; ?>" title="<?php echo $title; ?>"><?php echo $title; ?></a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+	<div id="content-header-extra">
+		<ul id="useroptions">
+			<li class="last">
+				<a class="prev btn" href="<?php echo $link; ?>" title="<?php echo $title; ?>"><?php echo $title; ?></a>
+			</li>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header>
 
-<div id="steps" class="section">
+<nav id="steps">
 	<ol class="steps-5">
 		<li id="step-1" class="active">Creating a catalog entry</li>
 		<li id="step-2">Describe your course</li>
@@ -101,9 +104,9 @@ This course is intended to be broadly accessible to those with a background in '
 		<li id="step-4">Fill out a syllabus</li>
 		<li id="step-5">Make public</li>
 	</ol>
-</div>
+</nav>
 
-<div class="main section">
+<section class="main section">
 	<?php
 		foreach ($this->notifications as $notification) {
 			echo "<p class=\"{$notification['type']}\">{$notification['message']}</p>";
@@ -131,7 +134,7 @@ This course is intended to be broadly accessible to those with a background in '
 <?php } else { ?>
 			<label class="course_alias_label" for="course_alias_field">
 				<?php echo JText::_('Course identifier'); ?> <span class="required"><?php echo JText::_('COM_COURSES_REQUIRED'); ?></span>
-				<input name="course[alias]" id="course_alias_field" type="text" size="35" value="<?php echo $this->escape($this->course->get('alias')); ?>" autocomplete="off" /> 
+				<input name="course[alias]" id="course_alias_field" type="text" size="35" value="<?php echo $this->escape($this->course->get('alias')); ?>" autocomplete="off" />
 				<span class="hint"><?php echo JText::_('This is a short identifier used for URLs, catalogs, etc. Allowed characters are letters, numbers, dashes, underscores, and periods. Example: biology101, chem.501'); ?></span>
 			</label>
 <?php } ?>
@@ -151,7 +154,7 @@ This course is intended to be broadly accessible to those with a background in '
 
 			<label for="field_description">
 				<?php echo JText::_('Overview'); ?> <span class="optional"><?php echo JText::_('COM_COURSES_OPTIONAL'); ?></span>
-				
+
 				<?php
 					echo \JFactory::getEditor()->display('course[description]', $this->escape(stripslashes($this->course->get('description'))), '', '', 35, 30, false, 'field_description');
 				?>
@@ -168,7 +171,7 @@ This course is intended to be broadly accessible to those with a background in '
 
 			<label for="actags">
 				<?php echo JText::_('Tags'); ?> <span class="optional"><?php echo JText::_('COM_COURSES_OPTIONAL'); ?></span>
-				
+
 				<?php if (count($tf) > 0) {
 					echo $tf[0];
 				} else { ?>
@@ -190,7 +193,7 @@ This course is intended to be broadly accessible to those with a background in '
 		<?php echo JHTML::_('form.token'); ?>
 
 		<p class="submit">
-			<input type="submit" value="<?php echo JText::_('Save'); ?>" />
+			<input class="btn btn-success" type="submit" value="<?php echo JText::_('Save'); ?>" />
 		</p>
 	</form>
-</div><!-- / .section -->
+</section><!-- / .section -->

@@ -35,7 +35,7 @@ jimport( 'joomla.plugin.plugin' );
 
 /**
  * Short description for 'plgPublicationsShare'
- * 
+ *
  * Long description (if any) ...
  */
 class plgPublicationsShare extends JPlugin
@@ -43,9 +43,9 @@ class plgPublicationsShare extends JPlugin
 
 	/**
 	 * Short description for 'plgPublicationsShare'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown &$subject Parameter description (if any) ...
 	 * @param      unknown $config Parameter description (if any) ...
 	 * @return     void
@@ -63,9 +63,9 @@ class plgPublicationsShare extends JPlugin
 
 	/**
 	 * Short description for 'onPublicationsAreas'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $publication Parameter description (if any) ...
 	 * @return     array Return description (if any) ...
 	 */
@@ -77,9 +77,9 @@ class plgPublicationsShare extends JPlugin
 
 	/**
 	 * Short description for 'onPublications'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      mixed $publication Parameter description (if any) ...
 	 * @param      string $option Parameter description (if any) ...
 	 * @param      unknown $areas Parameter description (if any) ...
@@ -90,18 +90,19 @@ class plgPublicationsShare extends JPlugin
 	{
 		$arr = array(
 			'html'=>'',
-			'metadata'=>''
+			'metadata'=>'',
+			'name'=>'share'
 		);
-		
+
 		// Hide if version not published
-		if ($publication->state == 4 || $publication->state == 5 || $publication->state == 6) 
+		if ($publication->state == 4 || $publication->state == 5 || $publication->state == 6)
 		{
 			return $arr;
 		}
 
 		$juri = JURI::getInstance();
 		$sef = JRoute::_('index.php?option='.$option.'&id='.$publication->id);
-		if (substr($sef,0,1) == '/') 
+		if (substr($sef,0,1) == '/')
 		{
 			$sef = substr($sef,1,strlen($sef));
 		}
@@ -115,11 +116,15 @@ class plgPublicationsShare extends JPlugin
 			return;
 		}
 
-		\Hubzero\Document\Assets::addPluginStylesheet('publications', 'share');
-		\Hubzero\Document\Assets::addPluginScript('publications', 'share');
+		// Add stylesheet and js
+		$document = JFactory::getDocument();
+		$document->addStyleSheet('plugins' . DS . 'publications' . DS
+			. 'share' . DS . 'assets' . DS . 'css' . DS . 'share.css');
+		$document->addScript('plugins' . DS . 'publications' . DS
+			. 'share' . DS . 'assets' . DS . 'js' . DS . 'share.js');
 
 		// Build the HTML meant for the "about" tab's metadata overview
-		if ($rtrn == 'all' || $rtrn == 'metadata') 
+		if ($rtrn == 'all' || $rtrn == 'metadata')
 		{
 			// Instantiate a view
 			$view = new \Hubzero\Plugin\View(
@@ -131,12 +136,12 @@ class plgPublicationsShare extends JPlugin
 			);
 
 			// Pass the view some info
-			$view->option = $option;
-			$view->publication = $publication;
-			$view->version = $version;
-			$view->_params = $this->_params;
-			$view->url = $url;
-			if ($this->getError()) 
+			$view->option 		= $option;
+			$view->publication 	= $publication;
+			$view->version 		= $version;
+			$view->_params 		= $this->_params;
+			$view->url 			= $url;
+			if ($this->getError())
 			{
 				$view->setError( $this->getError() );
 			}
@@ -150,9 +155,9 @@ class plgPublicationsShare extends JPlugin
 
 	/**
 	 * Short description for 'share'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $with Parameter description (if any) ...
 	 * @param      string $url Parameter description (if any) ...
 	 * @param      mixed $publication Parameter description (if any) ...
@@ -170,8 +175,8 @@ class plgPublicationsShare extends JPlugin
 				break;
 
 			case 'twitter':
-				$link = 'http://twitter.com/home?status=' . urlencode(JText::sprintf('PLG_PUBLICATION_SHARE_VIEWING', 
-						$jconfig->getValue('config.sitename'), 
+				$link = 'http://twitter.com/home?status=' . urlencode(JText::sprintf('PLG_PUBLICATION_SHARE_VIEWING',
+						$jconfig->getValue('config.sitename'),
 						stripslashes($publication->title)).' '.$url);
 				break;
 
@@ -205,8 +210,8 @@ class plgPublicationsShare extends JPlugin
 				.' '.$publication->id.' - '.stripslashes($publication->title);
 				break;
 		}
-		
-		if ($link) 
+
+		if ($link)
 		{
 			$app = JFactory::getApplication();
 			$app->redirect($link, '', '');

@@ -31,43 +31,33 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * What's New Plugin class for com_kb articles
  */
-class plgWhatsnewKb extends JPlugin
+class plgWhatsnewKb extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function onWhatsnewAreas()
 	{
-		$areas = array(
+		return array(
 			'kb' => JText::_('PLG_WHATSNEW_KB')
 		);
-		return $areas;
 	}
 
 	/**
 	 * Pull a list of records that were created within the time frame ($period)
-	 * 
+	 *
 	 * @param      object  $period     Time period to pull results for
 	 * @param      mixed   $limit      Number of records to pull
 	 * @param      integer $limitstart Start of records to pull
@@ -77,17 +67,17 @@ class plgWhatsnewKb extends JPlugin
 	 */
 	public function onWhatsnew($period, $limit=0, $limitstart=0, $areas=null, $tagids=array())
 	{
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
 			if (!isset($areas[$this->_name])
-			 && !in_array($this->_name, $areas)) 
+			 && !in_array($this->_name, $areas))
 			{
 				return array();
 			}
 		}
 
 		// Do we have a search term?
-		if (!is_object($period)) 
+		if (!is_object($period))
 		{
 			return array();
 		}
@@ -110,13 +100,13 @@ class plgWhatsnewKb extends JPlugin
 		$order_by  = " ORDER BY created DESC, title";
 		$order_by .= ($limit != 'all') ? " LIMIT $limitstart,$limit" : "";
 
-		if (!$limit) 
+		if (!$limit)
 		{
 			// Get a count
 			$database->setQuery($f_count . $f_from . " WHERE " . $f_where);
 			return $database->loadResult();
-		} 
-		else 
+		}
+		else
 		{
 			// Get results
 			$database->setQuery($f_fields . $f_from . " WHERE " . $f_where . $order_by);

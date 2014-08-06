@@ -33,7 +33,6 @@
 		line-height: 1.6em;
 		color: #666;
 		background: #ececec url("../images/layout/noise-lite.png");
-		min-width: 960px;
 		text-rendering: optimizeLegibility;
 	}
 	.ckeditor-body {
@@ -291,6 +290,7 @@
 		font-size: 1em;
 		border-collapse: collapse;
 		border-bottom: 1px dashed #dadada;
+
 	}
 	table caption {
 		line-height: 1.6em;
@@ -561,6 +561,11 @@
 		display: block;
 		padding: 1em 0 1em 0;
 		margin: 0;
+	}
+	@-moz-document url-prefix() {
+		#trail span.pathway {
+			padding: 1em 0 0.85em 0;
+		}
 	}
 	#trail a {
 		color: #ccc;
@@ -911,6 +916,7 @@
 
 /* Content */
 	#content {
+		display: block;
 		margin: 0 30px;
 		background: #f9f9f9 url("../images/layout/noise-lite.png");
 		position: relative;
@@ -937,6 +943,16 @@
 		padding: 0;
 		background: #fff;
 		border-bottom: 1px dotted #e1e1e1;
+	}
+	#content.com_content .withmenu {
+		padding-top: 5.2em;
+	}
+	#content.com_content .withmenu .content-header {
+		height: 5.2em;
+		position: absolute;
+		top: -5.2em;
+		left: 0;
+		right: 0;
 	}
 	.com_content .content-header:before,
 	.com_content .content-header:after,
@@ -1099,75 +1115,6 @@
 		clear: left;
 	}
 
-/* Introduction */
-	body #introduction {
-		background: #e1e1e1 url("../images/layout/noise-lite.png");
-		border: none;
-		color: #666;
-		margin: -1px 0px 3em 0px;
-	}
-	/* White background for icon */
-	body #introduction small.intro-before,
-	body #introduction:before {
-		top: 32px;
-		left: 32px;
-		border: none;
-		-webkit-border-radius: 69px;
-		   -moz-border-radius: 69px;
-		    -ms-border-radius: 69px;
-		     -o-border-radius: 69px;
-		        border-radius: 69px;
-		background-color: #FEFEFE;
-	}
-	/* Icon */
-	body #introduction small.intro-after,
-	body #introduction:after {
-		color: #666;
-		font-size: 40px;
-		top: 48px;
-		left: 49px;
-	}
-	/* Text styles */
-	body #introduction h3 {
-		color: #747474;
-	}
-	body #introduction li:before {
-		content: "";
-		display: none;
-	}
-	body #introduction p {
-		text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
-	}
-	/* Side shadows */
-	body #introduction .clear:before,
-	body #introduction .clear:after {
-		content: "";
-		display: block;
-		margin: 0;
-		padding: 0;
-		position: absolute;
-		z-index: 100;
-		top: 0;
-		bottom: 0;
-		width: 30px;
-		left: -30px;
-		background: #e1e1e1 url("../images/layout/noise-lite.png");
-		-webkit-box-shadow: inset -3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-		   -moz-box-shadow: inset -3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-		    -ms-box-shadow: inset -3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-		     -o-box-shadow: inset -3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-		        box-shadow: inset -3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-	}
-	body #introduction .clear:after {
-		left: auto;
-		right: -30px;
-		-webkit-box-shadow: inset 3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-		   -moz-box-shadow: inset 3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-		    -ms-box-shadow: inset 3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-		     -o-box-shadow: inset 3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-		        box-shadow: inset 3px 0px 4px -3px rgba(0, 0, 0, 0.25);
-	}
-
 /* Content columns */
 	.section {
 		padding: 30px;
@@ -1175,9 +1122,6 @@
 	}
 	.section .section {
 		padding: 30px 0;
-	}
-	#introduction + .section {
-		padding: 0 30px 30px 30px;
 	}
 	body #page_content .main {
 		background: none;
@@ -1259,14 +1203,6 @@
 	.section .section .aside small.aside-after,
 	.section .section .aside:before,
 	.section .section .aside:after {
-		display: none;
-	}
-	#introduction .subject small.subject-before,
-	#introduction .aside small.aside-before,
-	#introduction .aside small.aside-after,
-	#introduction .subject:before,
-	#introduction .aside:before, 
-	#introduction .aside:after {
 		display: none;
 	}
 	.aside p {
@@ -1482,65 +1418,6 @@
 		padding: 0;
 	}
 
-/* NOTE: added to some containing div to dictate what side (left or right) an "aside" column will appear. */
-	.withleft {
-		border: none;
-	}
-	.withleft #content-header {
-		margin: 0;
-	}
-	.withleft h2:first-child {
-		margin-top: 0;
-	}
-/* Subjects (with left aside) */
-	.withleft .subject {
-		margin-right: 0;
-		margin-left: 270px;
-	}
-/* Asides (left side) */
-	.withleft .aside {
-		float: left;
-		padding: 0 30px 0 0;
-	}
-	/* 
-	Reposition the side fade to the left-hand side 
-	Also, alter the gradient so it fades in the right direction (darker/right to lighter/left)
-	*/
-	.withleft .aside:before {
-		top: 120px;
-		right: auto;
-		left: 270px;
-	}
-	.com_content .withleft .aside:before {
-		top: 100px;
-	}
-	.withleft .aside ul {
-		border-top: 1px solid #ddd;
-		padding-right: 30px;
-		margin-right: -30px;
-		border-right: 8px solid #e9e9e9;
-		border-bottom: none;
-	}
-	.withleft .aside ul>li:first-child {
-		border-top: none;
-	}
-	.withleft .aside ul ul {
-		border: none;
-		padding-right: 0;
-		margin-right: 0;
-	}
-	.withleft .aside ul ul>li:first-child {
-	 	border-top: 1px solid #ddd;
-	}
-	.withleft .aside li .separator {
-		display: block;
-		height: 2.2em;
-	}
-	.withleft .aside li a span, 
-	.withleft .aside li span span {
-		border: none;
-	}
-
 
 	.subject #hubForm fieldset fieldset {
 		padding: 0 1em 1em 1em;
@@ -1555,7 +1432,53 @@
 	.com_content .heading {
 		padding: 0;
 	}
-	.com_content .withleft .contentpaneopen {
+
+	section.section {
+		display: table;
+		table-layout: fixed;
+		width: 100%;
+		-webkit-box-sizing: border-box;
+		   -moz-box-sizing: border-box;
+		    -ms-box-sizing: border-box;
+		     -o-box-sizing: border-box;
+		        box-sizing: border-box;
+	}
+	section.section>.section-inner {
+		display: table-row;
+	}
+	section.section .subject {
+		display: table-cell;
+		vertical-align: top;
+		margin-right: 0;
+		padding-right: 30px;
+	}
+	section.section .subject .contentpaneopen {
+		padding: 0;
+	}
+	section.section .aside {
+		float: none;
+		display: table-cell;
+		vertical-align: top;
+		width: 210px;
+		padding: 0 30px 0 0;
+	}
+	section.section .aside:before {
+		left: 269px;
+		right: auto;
+		top: 30px;
+	}
+	section.section .aside + .subject {
+		padding-left: 30px;
+		padding-right: 0;
+	}
+	section.section .subject + .aside {
+		padding: 0 0 0 30px;
+	}
+	section.section .subject + .aside:before {
+		left: auto;
+		right: 269px;
+	}
+	#page_content section.section {
 		padding: 0;
 	}
 
@@ -1571,6 +1494,18 @@
 	.btn {
 		color: #555;
 		border-color: #CCC #CCC #AAA #AAA;
+	}
+	a.btn-primary,
+	.btn-primary {
+		color: #fff;
+	}
+	a.btn-primary:hover,
+	.btn-primary:hover {
+		background: orange;
+	}
+	.btn-success {
+		/*border-color: #51a351 #51a351 #387038;*/
+		border-color: #287728 #1b511b #1b511b #287728;
 	}
 	#page_options .btn,
 	#content-header-extra .btn {
@@ -1743,9 +1678,6 @@
 	#hubForm .indent { 
 		margin-left: 1.75em; 
 	}
-	#hubForm .group {
-		margin: 0 2em;
-	}
 	#hubForm .field-wrap,
 	#hubForm p {
 		display: block;
@@ -1755,45 +1687,22 @@
 	#hubForm label + .field-wrap {
 		margin: 0 2em 0 2em;
 	}
-	#hubForm legend + .group label{
-		padding-top: 0.5em;
-	}
-	#hubForm legend + .group p {
-		margin-top: 0.5em;
-	}
 	#hubForm label + input {
 		margin-left: 2em;
 		margin-right: 2em;
 		width: 92.5%;
 	}
-	#hubForm .group>label,
-	#hubForm .group>p {
-		padding-left: 0;
-		padding-right: 0;
-		float: left;
-		width: 47.5%;
-		margin-left: 5%;
-	}
-	#hubForm .group p {
-		margin-right: 0;
-	}
-	#hubForm .group label:first-child {
-		margin-left: 0;
-	}
-	#hubForm .threeup label {
-		width: 30%;
-	}
-	#hubForm .group:after {
-		content: ".";
-		display: block;
-		height: 0;
-		clear: both;
-		visibility: hidden;
-	}
-	#hubForm .group .options label {
+	#hubForm .grid .options label {
 		display: inline;
 		float: none;
 		width: auto;
+	}
+	#hubForm .grid {
+		margin: 0 2em;
+	}
+	#hubForm .grid label {
+		padding-left: 0;
+		padding-right: 0;
 	}
 	#hubForm label em {
 		display: block;
@@ -2065,7 +1974,7 @@
 	.body-overlayed select {
 		visibility: hidden;
 	}
-	#sbox-window embed,
+	/*#sbox-window embed,
 	#sbox-window object,
 	#sbox-window select {
 		visibility: visible;
@@ -2118,7 +2027,7 @@
 		background: url("../images/overlay/newwindowbox.png") no-repeat top left;
 		border: none;
 		cursor: pointer;
-	}
+	}*/
 	.sbox-loading #sbox-content {
 		background-image: url("../images/anim/spinner.gif");
 		background-repeat: no-repeat;
@@ -2207,6 +2116,12 @@
 		margin: 0;
 		padding: 0.5em 1em;
 		text-align: center;
+	}
+	#sbox-content fieldset p.multiple-option {
+		margin: 0;
+	}
+	#sbox-content fieldset input[type=radio] {
+		width: auto;
 	}
 
 /* 
@@ -2310,3 +2225,107 @@ System styles
 	#commentform select.option {
 		margin-top: 0;
 	}
+
+@media (max-width: 1064px) {
+	#page_content section.section {
+		display: block;
+		width: auto;
+	}
+	#page_content section.section .subject,
+	#page_content section.section .aside {
+		display: block;
+		width: auto;
+		margin-right: 0;
+		margin-left: 0;
+		padding-right: 0;
+		padding-left: 0;
+	}
+	#page_content section.section .aside:before {
+		display: none;
+	}
+	#page_content section.section .aside .container {
+		border: none;
+		margin-left: 0;
+		margin-right: 0;
+		padding-left: 0;
+		padding-right: 0;
+	}
+	#page_content section.section .aside .container:before,
+	#page_content section.section .aside .container:after {
+		display: none;
+	}
+	#page_content section.section .aside .container h3 {
+		margin: 0;
+		padding-left: 0;
+		padding-right: 0;
+	}
+}
+@media (max-width: 800px) {
+	#hubForm .explaination {
+		float: none;
+		width: auto;
+		padding: 0;
+		margin: 1em 0;
+		border: none;
+	}
+	#hubForm fieldset {
+		margin-right: 0;
+	}
+	#hubForm .submit {
+		margin-right: 0;
+	}
+	#hubForm .explaination:before,
+	#hubForm .explaination:after,
+	#hubForm:before,
+	#hubForm:after {
+		display: none;
+	}
+	#masthead {
+		font-size: 90%;
+	}
+	section.section {
+		display: block;
+		width: auto;
+	}
+	section.section .subject,
+	section.section .aside {
+		display: block;
+		width: auto;
+		margin-right: 0;
+		margin-left: 0;
+		padding-right: 0;
+		padding-left: 0;
+	}
+	section.section .aside:before {
+		display: none;
+	}
+}
+@media (max-width: 700px) {
+	#masthead h1 {
+		font-size: 2em;
+		float: none;
+		border-right: none;
+		border-bottom: 1px dashed #ddd;
+		text-align: center;
+	}
+}
+@media (max-width: 600px) {
+	#splash .inner-wrap .inner .wrap {
+		min-height: 0.9em;
+	}
+	#splash,
+	#content,
+	#ancillary {
+		margin: 0;
+	}
+	#masthead,
+	#sub-masthead,
+	#footer .inner {
+		padding: 0;
+	}
+	#hubForm .grid .span4 {
+		float: none;
+		width: auto;
+		margin-right: 0;
+	}
+}

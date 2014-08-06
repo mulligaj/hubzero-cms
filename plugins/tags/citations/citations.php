@@ -31,50 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Tags plugin class for citations
  */
-class plgTagsCitations extends JPlugin
+class plgTagsCitations extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Record count
-	 * 
-	 * @var integer
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	private $_total = null;
-
-	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
-
-	/**
-	 * Return the name of the area this plugin retrieves records for
-	 * 
-	 * @return     array
-	 */
-	public function onTagAreas()
-	{
-		$areas = array(
-			'citations' => JText::_('PLG_TAGS_CITATIONS')
-		);
-		return $areas;
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Retrieve records for items tagged with specific tags
-	 * 
+	 *
 	 * @param      array   $tags       Tags to match records against
 	 * @param      mixed   $limit      SQL record limit
 	 * @param      integer $limitstart SQL record limit start
@@ -84,18 +55,17 @@ class plgTagsCitations extends JPlugin
 	 */
 	public function onTagView($tags, $limit=0, $limitstart=0, $sort='', $areas=null)
 	{
-		if (is_array($areas) && $limit) 
-		{
-			if (!isset($areas['citations']) && !in_array('citations', $areas)) 
-			{
-				return array();
-			}
-		}
+		$response = array(
+			'name'    => $this->_name,
+			'title'   => JText::_('PLG_TAGS_CITATIONS'),
+			'total'   => 0,
+			'results' => null,
+			'sql'     => ''
+		);
 
-		// Do we have a member ID?
-		if (empty($tags)) 
+		if (empty($tags))
 		{
-			return array();
+			return $response;
 		}
 
 		$database = JFactory::getDBO();
@@ -112,10 +82,10 @@ class plgTagsCitations extends JPlugin
 		// Build the query
 		$e_count = "SELECT COUNT(f.id) FROM (SELECT e.id, COUNT(DISTINCT t.tagid) AS uniques";
 
-		$e_fields = "SELECT e.id, e.title, e.author, e.booktitle, e.doi, e.published, e.created, e.year, e.month, e.isbn, e.journal, e.url as href, 
+		$e_fields = "SELECT e.id, e.title, e.author, e.booktitle, e.doi, e.published, e.created, e.year, e.month, e.isbn, e.journal, e.url as href,
 					'citations' AS section, COUNT(DISTINCT t.tagid) AS uniques, e.volume, e.number, e.type, e.pages, e.publisher ";
 		$e_from  = " FROM #__citations AS e, #__tags_object AS t"; //", #__users AS u";
-		$e_where = " WHERE t.objectid=e.id AND t.tbl='citations' AND t.tagid IN ($ids)"; //e.uid=u.id AND 
+		$e_where = " WHERE t.objectid=e.id AND t.tbl='citations' AND t.tagid IN ($ids)"; //e.uid=u.id AND
 		/*$juser = JFactory::getUser();
 		if ($juser->get('guest')) {
 			$e_where .= " AND e.state=1";
@@ -134,63 +104,49 @@ class plgTagsCitations extends JPlugin
 		}
 		$order_by .= ($limit != 'all') ? " LIMIT $limitstart,$limit" : "";
 
-		if (!$limit) 
-		{
-			// Get a count
-			$database->setQuery($e_count . $e_from . $e_where . ") AS f");
-			$this->_total = $database->loadResult();
-			return $this->_total;
-		} 
-		else 
-		{
-			if (count($areas) > 1) 
-			{
-				return $e_fields . $e_from . $e_where;
-			}
+		$database->setQuery($e_count . $e_from . $e_where . ") AS f");
+		$response['total'] = $database->loadResult();
 
-			if ($this->_total != null) 
-			{
-				if ($this->_total == 0) 
-				{
-					return array();
-				}
-			}
-
-			// Get results
+		if ($areas && $areas == $response['name'])
+		{
 			$database->setQuery($e_fields . $e_from . $e_where . $order_by);
-			$rows = $database->loadObjectList();
-
-			return $rows;
+			$response['results'] = $database->loadObjectList();
 		}
+		else
+		{
+			$response['sql'] = $e_fields . $e_from . $e_where;
+		}
+
+		return $response;
 	}
 
 	/**
 	 * Return citation types
-	 * 
+	 *
 	 * @return     array
 	 */
 	public static function getTypes()
 	{
 		static $types;
-		
-		if (isset($types)) 
+
+		if (isset($types))
 		{
 			return $types;
 		}
-		
+
 		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_citations' . DS . 'tables' . DS . 'type.php');
-		
+
 		$database = JFactory::getDBO();
-		
+
 		$ct = new CitationsType($database);
 		$types = $ct->getType();
-		
+
 		return $types;
 	}
 
 	/**
 	 * Static method for formatting results
-	 * 
+	 *
 	 * @param      object $row Database row
 	 * @return     string HTML
 	 */
@@ -217,14 +173,14 @@ class plgTagsCitations extends JPlugin
 		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_citations' . DS . 'helpers' . DS . 'format.php');
 		$config = JComponentHelper::getParams('com_citations');
 
-		switch ($config->get("citation_label", "number")) 
+		switch ($config->get("citation_label", "number"))
 		{
 			case 'none':   $citations_label_class = 'no-label';     break;
 			case 'number': $citations_label_class = 'number-label'; break;
 			case 'type':   $citations_label_class = 'type-label';   break;
 			case 'both':   $citations_label_class = 'both-label';   break;
 		}
-		
+
 		$database = JFactory::getDBO();
 		$citationsFormat = new CitationsFormat($database);
 		$template = $citationsFormat->getDefaultFormat()->format;
@@ -235,7 +191,7 @@ class plgTagsCitations extends JPlugin
 		// Start building the HTML
 		$html  = "\t" . '<li class="citation-entry">' . "\n";
 		$html .= "\t\t" . '<p class="title">';
-		
+
 		//are we trying wanting to direct to single citaiton view
 		$citationSingleView = $config->get('citation_single_view', 1);
 		if ($citationSingleView)
@@ -249,14 +205,14 @@ class plgTagsCitations extends JPlugin
 		$html .= \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->title)), 200);
 		$html .= '</a></p>'."\n";
 		$html .= '<p class="details '. $citations_label_class . '">' . JText::_('PLG_TAGS_CITATION');
-		if ($config->get('citation_label', 'number') != 'none') 
+		if ($config->get('citation_label', 'number') != 'none')
 		{
 			$types = plgTagsCitations::getTypes();
 
 			$type = '';
-			foreach ($types as $t) 
+			foreach ($types as $t)
 			{
-				if ($t['id'] == $row->type) 
+				if ($t['id'] == $row->type)
 				{
 					$type = $t['type_title'];
 				}
@@ -266,12 +222,12 @@ class plgTagsCitations extends JPlugin
 			$html .= ' <span>|</span> ' . $type;
 		}
 		$html .= '</p>';
-		
+
 		require_once( JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
 		$db = JFactory::getDBO();
 		$cc = new CitationsCitation($db);
 		$cc->load($row->id);
-		
+
 		$html .= '<p>' . $formatter->formatCitation($cc, null, $config->get("citation_coins", 1), $config) . '</p>';
 		$html .= "\t" . '</li>'."\n";
 

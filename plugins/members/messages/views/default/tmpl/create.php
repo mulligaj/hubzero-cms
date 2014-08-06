@@ -27,35 +27,36 @@
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_JEXEC') or die('Restricted access');
 
 //instantiate autocompleter
-JPluginHelper::importPlugin( 'hubzero' );
+JPluginHelper::importPlugin('hubzero');
 $dispatcher = JDispatcher::getInstance();
 
 //is the autocompleter disabled
-$disabled = ($this->tos) ? true : false; 
+$disabled = ($this->tos) ? true : false;
 
 //get autocompleter
-$tos = $dispatcher->trigger( 'onGetMultiEntry', array(array('members', 'mbrs', 'members', '', $this->tos, '', $disabled)) );
+$tos = $dispatcher->trigger('onGetMultiEntry', array(array('members', 'mbrs', 'members', '', $this->tos, '', $disabled)));
 
+$this->css();
 ?>
-<form action="<?php echo JRoute::_('index.php?option='.$this->option.'&id='.$this->member->get('uidNumber').'&active=messages'); ?>" method="post" id="hubForm<?php if ($this->no_html) { echo '-ajax'; }; ?>">
+<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=messages'); ?>" method="post" id="hubForm<?php if ($this->no_html) { echo '-ajax'; }; ?>">
 	<fieldset class="hub-mail">
 		<div class="cont">
 			<h3><?php echo JText::_('PLG_MEMBERS_MESSAGES_COMPOSE_MESSAGE'); ?></h3>
 			<label<?php if ($this->no_html) { echo ' class="width-65"'; } ?>>
-				<?php echo JText::_('PLG_MEMBERS_MESSAGES_TO'); ?> 
+				<?php echo JText::_('PLG_MEMBERS_MESSAGES_TO'); ?>
 				<span class="required"><?php echo JText::_('PLG_MEMBERS_MESSAGES_REQUIRED'); ?></span>
-				<?php 
-					if (count($tos) > 0) 
+				<?php
+					if (count($tos) > 0)
 					{
 						echo $tos[0];
-					} 
-					else 
-					{ 
+					}
+					else
+					{
 						echo '<input type="text" name="mbrs" id="members" value="" />';
-					} 
+					}
 				?>
 			</label>
 			<label>
@@ -71,7 +72,7 @@ $tos = $dispatcher->trigger( 'onGetMultiEntry', array(array('members', 'mbrs', '
 			</p>
 		</div>
 	</fieldset>
-	
+
 	<input type="hidden" name="id" value="<?php echo $this->member->get('uidNumber'); ?>" />
 	<input type="hidden" name="task" value="view" />
 	<input type="hidden" name="active" value="messages" />
@@ -79,21 +80,3 @@ $tos = $dispatcher->trigger( 'onGetMultiEntry', array(array('members', 'mbrs', '
 	<input type="hidden" name="action" value="send" />
 	<input type="hidden" name="no_html" value="<?php echo $this->no_html; ?>" />
 </form>
-
-<?php if($this->no_html && !JPluginHelper::isEnabled('system', 'jquery')) : ?>
-	<script>
-		var dochead = document.head,
-			scripts = [
-				"/plugins/hubzero/autocompleter/textboxlist.js",
-				"/plugins/hubzero/autocompleter/observer.js",
-				"/plugins/hubzero/autocompleter/autocompleter.js",
-			];
-
-		for(i=0;i<scripts.length; i++)
-		{
-			var include = document.createElement('script');
-			include.src = scripts[i];
-			dochead.appendChild(include);
-		}
-	</script>
-<?php endif; ?>

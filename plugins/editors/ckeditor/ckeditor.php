@@ -49,24 +49,6 @@ class plgEditorCkeditor extends JPlugin
 	 */
 	public function onInit()
 	{
-		// get joomla application object
-		$app = JFactory::getApplication();
-		
-		// get jquery plugin & parse params
-		$jqueryPlugin = JPluginHelper::getPlugin('system', 'jquery');
-		$jqueryPluginParams = new JParameter( $jqueryPlugin->params );
-		
-		// are we in the admin?
-		if ($app->getName() == 'administrator')
-		{
-			// show user message if jquery is off or not enabled for admin
-			if (!JPluginHelper::isEnabled('system', 'jquery') || !$jqueryPluginParams->get('activateAdmin'))
-			{
-				$app->enqueueMessage('jQuery must be enabled for the administrator section in order for CKEditor to work properly.<br />Edit the jQuery plugin through the Plug-in Manager to enable it. The settings are located under advanced options. This only needs to be set once.', 'error');
-			}
-		}
-		
-
 		// add ckeditor stylesheet
 		Hubzero\Document\Assets::addPluginStylesheet('editors', 'ckeditor');
 
@@ -143,7 +125,7 @@ class plgEditorCkeditor extends JPlugin
 	public function onDisplay($name, $content, $width, $height, $col, $row, $buttons = true, $id = null, $asset = null, $author = null, $params = array())
 	{
 		// make sure we have an id too
-		if (empty($id)) 
+		if (empty($id))
 		{
 			$id = $name;
 		}
@@ -170,7 +152,7 @@ class plgEditorCkeditor extends JPlugin
 			}
 		}*/
 		$params['class'][] = 'ckeditor-content';
-		
+
 		// build config & json encode
 		$config = json_encode($this->_buildConfig($params));
 
@@ -178,7 +160,7 @@ class plgEditorCkeditor extends JPlugin
 		//$config = str_replace('"\\/<group:include([^\\/]*)\\/>\\/g"', '/<group:include([^/]*)/>/g', $config);
 		$config = str_replace('"\\/<script[^>]*>(.|\\\\n)*<\\\\\\/script>\\/ig"', '/<script[^>]*>(.|\n)*<\/script>/ig', $config);
 		$config = str_replace('"\\/<\\\\?[\\\\s\\\\S]*?\\\\?>\\/g"', '/<\?[\s\S]*?\?>/g', $config);
-		$config = str_replace('"\/<group:include([^\\\\\/]*)\\\\\/>\/g"', '/<group:include([^\\/]*)\\/>/g', $config);
+		$config = str_replace('"\/<group:include([^>]*)\\\\\/>\/g"', '/<group:include([^>]*)\\/>/g', $config);
 		$config = str_replace('"\/{xhub:([^}]*)}\/gi"', '/{xhub:([^}]*)}/gi', $config);
 
 		// script to actually make ckeditor
@@ -200,7 +182,7 @@ class plgEditorCkeditor extends JPlugin
 			}
 			$atts[] = $key .'="' . $value . '"';
 		}
-		
+
 		// output html and script
 		$editor  = '<textarea name="' . $name . '" id="' . $id . '" ' . ($row ? 'rows="' . $row . '"' : '') . ' ' . ($col ? 'cols="' . $col . '"' : '') . ' ' . implode(' ', $atts) . '>' . $content . '</textarea>' . $script;
 		if (JFactory::getApplication()->isAdmin())
@@ -271,13 +253,13 @@ class plgEditorCkeditor extends JPlugin
 	 * @param   string $input
 	 * @return  array
 	 */
-	private function _split($delimiter, $input) 
+	private function _split($delimiter, $input)
 	{
 		$even = array();
 
 		if (is_array($input))
 		{
-			foreach ($input as $el) 
+			foreach ($input as $el)
 			{
 				$even = array_merge($even, $this->_split($delimiter, $el));
 			}
@@ -299,9 +281,11 @@ class plgEditorCkeditor extends JPlugin
 	 */
 	private function _buildConfig($params = array())
 	{
-		// merge incoming params with 
+		static $template;
+
+		// merge incoming params with
 		$this->params->loadArray($params);
-		
+
 		// object to hold our final config
 		$config                                = new stdClass;
 		$config->startupMode                   = 'wysiwyg';
@@ -315,7 +299,7 @@ class plgEditorCkeditor extends JPlugin
 		$config->removePlugins                 = '';
 		$config->resize_enabled                = true;
 		$config->emailProtection               = '';
-		$config->protectedSource               = array('/<group:include([^\\/]*)\\/>/g', '/{xhub:([^}]*)}/gi');
+		$config->protectedSource               = array('/<group:include([^>]*)\\/>/g', '/{xhub:([^}]*)}/gi');
 		$config->extraAllowedContent           = 'style(*)[*]; mark(*)[*]; *(*)[*]{*}';
 		$config->disableNativeSpellChecker     = false;
 		$config->scayt_autoStartup             = true;
@@ -425,7 +409,7 @@ class plgEditorCkeditor extends JPlugin
 			$config->scayt_autoStartup = $this->params->get('spellCheckAutoStart');
 		}
 
-		// spell check max suggesstions 
+		// spell check max suggesstions
 		if (is_numeric($this->params->get('spellCheckMaxSuggesstions')))
 		{
 			$config->scayt_maxSuggestions = $this->params->get('spellCheckMaxSuggesstions');
@@ -449,14 +433,17 @@ class plgEditorCkeditor extends JPlugin
 			$doc = JFactory::getDocument();
 
 			// always get front end template
-			$db->setQuery("SELECT `template` FROM `#__template_styles` WHERE `client_id`='0' AND `home`='1'");
-			$template = $db->loadResult();
+			if (!$template)
+			{
+				$db->setQuery("SELECT `template` FROM `#__template_styles` WHERE `client_id`='0' AND `home`='1'");
+				$template = $db->loadResult();
+			}
 
-			// vars to hold css	
+			// vars to hold css
 			$css         = array();
 			$siteCss     = '/cache/site.css';
 			$templateCss = '/templates/' . $template . '/css/main.css';
-			
+
 			// do we have a site.css
 			if (file_exists(JPATH_ROOT . $siteCss))
 			{
@@ -468,7 +455,7 @@ class plgEditorCkeditor extends JPlugin
 			{
 				array_push($css, $templateCss);
 			}
-			
+
 			// add already added stylesheets
 			foreach ($doc->_styleSheets as $sheet => $attribs)
 			{
@@ -545,7 +532,7 @@ class plgEditorCkeditor extends JPlugin
 
 		// set editor skin
 		$config->skin = $this->params->get('skin', 'moono');
-		
+
 		return $config;
 	}
 }

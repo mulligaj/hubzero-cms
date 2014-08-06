@@ -70,13 +70,6 @@ class PdfForm
 	private $title = NULL;
 
 	/**
-	 * Form type
-	 *
-	 * @var string
-	 **/
-	private $type = NULL;
-
-	/**
 	 * Base path for form images
 	 *
 	 * @var string
@@ -99,7 +92,7 @@ class PdfForm
 		$this->base = JPATH_ROOT . DS . trim($config->get('uploadpath', '/site/courses'), DS) . DS . 'forms' . DS;
 
 		// If the direcotry doesn't exist, create it
-		if(!is_dir($this->base))
+		if (!is_dir($this->base))
 		{
 			mkdir($this->base);
 		}
@@ -154,9 +147,9 @@ class PdfForm
 		$dbh = self::getDbh();
 
 		$dbh->setQuery(
-			'SELECT pf.id, title, pf.created, (SELECT MAX(created) FROM #__courses_form_questions WHERE form_id = pf.id) AS updated 
-			FROM #__courses_forms pf  
-			WHERE title IS NOT NULL AND title != \'\' AND active = 1 
+			'SELECT pf.id, title, pf.created, (SELECT MAX(created) FROM #__courses_form_questions WHERE form_id = pf.id) AS updated
+			FROM #__courses_forms pf
+			WHERE title IS NOT NULL AND title != \'\' AND active = 1
 			ORDER BY title'
 		);
 
@@ -213,7 +206,7 @@ class PdfForm
 	 **/
 	public function getErrors()
 	{
-		return $this->errors; 
+		return $this->errors;
 	}
 
 	/**
@@ -221,7 +214,7 @@ class PdfForm
 	 *
 	 * @return void
 	 **/
-	public function eachPage($fun)
+	public function eachPage($fun, $version=NULL)
 	{
 		if (!$this->id)
 		{
@@ -229,7 +222,48 @@ class PdfForm
 			return;
 		}
 
-		$base   = $this->base . $this->id;
+		// Assume default base
+		$base = $this->base . $this->id;
+
+		// Get latest version if none provided
+		if (!isset($version))
+		{
+			$dbh = self::getDbh();
+			$fid = $this->getId();
+			$dbh->setQuery('SELECT MAX(version) FROM `#__courses_form_questions` WHERE form_id = '.$fid);
+			$version = $dbh->loadResult();
+		}
+
+		$versions = array();
+		$dirs     = scandir($base);
+		foreach ($dirs as $dir)
+		{
+			if (is_numeric($dir) && is_dir($base . DS . $dir) && $dir != '.' && $dir != '..')
+			{
+				$versions[] = $dir;
+			}
+		}
+
+		// Sort
+		natsort($versions);
+
+		// If there's a dir for the given version, just use that
+		if (in_array($version, $versions))
+		{
+			$base = $this->base . $this->id . DS . $version;
+			$version_dir = $version;
+		}
+		else // Otherwise, see if there's a version dir for a previous version
+		{
+			for ($i=0; $i < count($versions); $i++)
+			{
+				if ($versions[$i] < $version)
+				{
+					$version_dir = $versions[$i];
+				}
+			}
+		}
+
 		$dir    = opendir($base);
 		$images = array();
 
@@ -251,6 +285,7 @@ class PdfForm
 			$secret     = JFactory::getConfig()->getValue('secret');
 			$token      = hash('sha256', $session_id . ':' . $secret);
 			$path       = '/api/courses/form/image?id='.$this->getId().'&file='.$img.'&token='.$token;
+			$path      .= (isset($version_dir)) ? '&version=' . $version_dir : '';
 			$fun($path, ++$idx);
 		}
 	}
@@ -275,6 +310,16 @@ class PdfForm
 	}
 
 	/**
+	 * Set tmp filename/path
+	 *
+	 * @return void
+	 **/
+	public function setFname($name)
+	{
+		$this->fname = $name;
+	}
+
+	/**
 	 * Create images
 	 *
 	 * @return void
@@ -285,7 +330,31 @@ class PdfForm
 		{
 			$fid = $this->getId();
 
-			mkdir($this->base . $fid);
+			// Get version number
+			$dbh = self::getDbh();
+			$fid = $this->getId();
+			$dbh->setQuery('SELECT MAX(version) FROM `#__courses_form_questions` WHERE form_id = '.$fid);
+			$version = $dbh->loadResult();
+
+			$path = $this->base . $fid . (($version) ? DS . ($version+1) : '');
+			if (!is_dir($path))
+			{
+				mkdir($path);
+			}
+			elseif (!$version)
+			{
+				$files = scandir($path);
+				if (is_array($files) && count($files) > 0)
+				{
+					foreach ($files as $file)
+					{
+						if ($file != '.' && $file != '..' && is_file($path . DS . $file))
+						{
+							unlink($path . DS . $file);
+						}
+					}
+				}
+			}
 
 			// Get the number of images for our for-loop
 			$im = new imagick($this->fname);
@@ -299,6 +368,7 @@ class PdfForm
 				$im->readImage($this->fname.'['.($this->pages).']');
 				$im->setImageFormat('png');
 				$im->setImageUnits(imagick::RESOLUTION_PIXELSPERINCH);
+				$im->borderImage('white', 10, 10);
 				$im->trimImage(0);
 
 				// Get the image dimensions and x,y trim points
@@ -306,10 +376,10 @@ class PdfForm
 
 				// Reset page proportions to get new width and height
 				$im->setImagePage(0, 0, 0, 0);
-				$widths[]                     = $im->width;
-				$crop[$this->pages]['height'] = $im->height;
-				$crop[$this->pages]['x']      = $imagePage['x'];
-				$crop[$this->pages]['y']      = $imagePage['y'];
+				$widths[]                     = $im->width+20;
+				$crop[$this->pages]['height'] = $im->height+20;
+				$crop[$this->pages]['x']      = $imagePage['x']-10;
+				$crop[$this->pages]['y']      = $imagePage['y']-10;
 			}
 
 			// Now actually do the image creation and cropping based on min margin
@@ -321,11 +391,9 @@ class PdfForm
 				$im->setImageFormat('png');
 				$im->setImageUnits(imagick::RESOLUTION_PIXELSPERINCH);
 				$im->cropImage(max($widths), $crop[$this->pages]['height'], $crop[$this->pages]['x'], $crop[$this->pages]['y']);
-				$im->resizeImage(582,0, Imagick::FILTER_MITCHELL, 1);
-				$im->sharpenImage(5, 0.5);
 				$im->borderImage('white', 15, 15);
 				$im->paintTransparentImage($im->getImagePixelColor(0,0), 0.0, 0);
-				$im->writeImage($this->base . $fid . DS . ($this->pages + 1) . '.png');
+				$im->writeImage($path . DS . ($this->pages + 1) . '.png');
 			}
 		}
 		catch (ImagickException $ex)
@@ -352,7 +420,7 @@ class PdfForm
 			switch ($_FILES[$name]['error'])
 			{
 				case UPLOAD_ERR_INI_SIZE: case UPLOAD_ERR_FORM_SIZE:
-					$pdf->errors[] = 'Upload failed, the file exceeds the maximum allowable size'; 
+					$pdf->errors[] = 'Upload failed, the file exceeds the maximum allowable size';
 				break;
 				case UPLOAD_ERR_PARTIAL:
 					$pdf->errors[] = 'The upload did not complete. Please try again';
@@ -482,51 +550,7 @@ class PdfForm
 			}
 		}
 
-		// Save form type as well
-		$this->setAssetType();
-
 		return $this;
-	}
-
-	/**
-	 * Save asset type
-	 *
-	 * @return object
-	 **/
-	public function setAssetType()
-	{
-		$dbh = self::getDbh();
-		$query  = 'UPDATE `#__courses_assets`';
-		$query .= ' SET `subtype` = ' . $dbh->Quote(JRequest::getWord('type', 'quiz'));
-		$query .= ', `grade_weight` = ' . $dbh->Quote(JRequest::getWord('type', 'quiz'));
-		$query .= ' WHERE id = ' . $this->getAssetId();
-		$dbh->setQuery($query);
-
-		$dbh->query();
-	}
-
-	/**
-	 * Get asset type
-	 *
-	 * @return object
-	 **/
-	public function getAssetType()
-	{
-		if (isset($this->type))
-		{
-			return $this->type;
-		}
-		if (!$asset_id = $this->getAssetId())
-		{
-			return false;
-		}
-
-		$dbh = self::getDbh();
-		$dbh->setQuery('SELECT subtype FROM `#__courses_assets` WHERE id = ' . $asset_id);
-
-		$this->type = $dbh->loadResult();
-
-		return $this->type;
 	}
 
 	/**
@@ -589,8 +613,8 @@ class PdfForm
 		$fid = $this->getId();
 
 		$dbh->setQuery(
-			'SELECT pfq.id, pfa.id AS answer_id 
-			FROM #__courses_form_questions pfq 
+			'SELECT pfq.id, pfa.id AS answer_id
+			FROM #__courses_form_questions pfq
 			INNER JOIN #__courses_form_answers pfa ON pfa.question_id = pfq.id AND pfa.correct
 			WHERE form_id = '.$fid.' AND version = (SELECT max(version) FROM #__courses_form_questions WHERE form_id = '.$fid.')');
 

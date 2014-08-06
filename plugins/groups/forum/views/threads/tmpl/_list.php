@@ -34,8 +34,8 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 <ol class="comments" id="t<?php echo $this->parent; ?>">
 <?php
-if ($this->comments && $this->comments->total() > 0) 
-{ 
+if ($this->comments && $this->comments->total() > 0)
+{
 	$cls = 'odd';
 	if (isset($this->cls))
 	{
@@ -49,29 +49,19 @@ if ($this->comments && $this->comments->total() > 0)
 
 	$this->depth++;
 
-	foreach ($this->comments as $comment) 
+	foreach ($this->comments as $comment)
 	{
-		$view = new \Hubzero\Plugin\View(
-			array(
-				'folder'  => 'groups',
-				'element' => 'forum',
-				'name'    => 'threads',
-				'layout'  => '_comment'
-			)
-		);
-		$view->option     = $this->option;
-		$view->group      = $this->group;
-
-		$view->comment    = $comment;
-
-		$view->thread     = $this->thread;
-		$view->config     = $this->config;
-		$view->depth      = $this->depth;
-		$view->cls        = $cls;
-		$view->filters    = $this->filters;
-		$view->category   = $this->category;
-
-		$view->display();
+		$this->view('_comment')
+		     ->set('option', $this->option)
+		     ->set('group', $this->group)
+		     ->set('comment', $comment)
+		     ->set('thread', $this->thread)
+		     ->set('config', $this->config)
+		     ->set('depth', $this->depth)
+		     ->set('cls', $cls)
+		     ->set('filters', $this->filters)
+		     ->set('category', $this->category)
+		     ->display();
 	}
 }
 ?>

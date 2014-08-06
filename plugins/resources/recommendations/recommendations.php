@@ -31,30 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for recommendations
  */
-class plgResourcesRecommendations extends JPlugin
+class plgResourcesRecommendations extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
@@ -68,7 +59,7 @@ class plgResourcesRecommendations extends JPlugin
 
 	/**
 	 * Return data on a resource sub view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      integer $miniview  View style
@@ -77,8 +68,8 @@ class plgResourcesRecommendations extends JPlugin
 	public function onResourcesSub($resource, $option, $miniview=0)
 	{
 		$arr = array(
-			'area' => 'recommendations',
-			'html' => '',
+			'area'     => $this->_name,
+			'html'     => '',
 			'metadata' => ''
 		);
 
@@ -86,48 +77,34 @@ class plgResourcesRecommendations extends JPlugin
 		include_once(JPATH_ROOT . DS . 'plugins' . DS . 'resources' . DS . 'recommendations' . DS . 'resources.recommendation.php');
 
 		// Set some filters for returning results
-		$filters = array();
-		$filters['id'] = $resource->id;
-		$filters['threshold'] = $this->params->get('threshold');
-		$filters['threshold'] = ($filters['threshold']) ? $filters['threshold'] : '0.21';
-		$filters['limit'] = $this->params->get('display_limit');
-		$filters['limit'] = ($filters['limit']) ? $filters['limit'] : 10;
+		$filters = array(
+			'id'        => $resource->id,
+			'threshold' => $this->params->get('threshold', '0.21'),
+			'limit'     => $this->params->get('display_limit', 10)
+		);
+
+		$view = new \Hubzero\Plugin\View(array(
+			'folder'  => $this->_type,
+			'element' => $this->_name,
+			'name'    => 'browse'
+		));
+
+		// Instantiate a view
+		if ($miniview)
+		{
+			$view->setLayout('mini');
+		}
+
+		// Pass the view some info
+		$view->option   = $option;
+		$view->resource = $resource;
 
 		// Get recommendations
 		$database = JFactory::getDBO();
 		$r = new ResourcesRecommendation($database);
-		$results = $r->getResults($filters);
+		$view->results  = $r->getResults($filters);
 
-		// Instantiate a view
-		if ($miniview) 
-		{
-			$view = new \Hubzero\Plugin\View(
-				array(
-					'folder'  => 'resources',
-					'element' => 'recommendations',
-					'name'    => 'browse',
-					'layout'  => 'mini'
-				)
-			);
-		} 
-		else 
-		{
-			\Hubzero\Document\Assets::addPluginScript('resources', 'recommendations');
-
-			$view = new \Hubzero\Plugin\View(
-				array(
-					'folder'  => 'resources',
-					'element' => 'recommendations',
-					'name'    => 'browse'
-				)
-			);
-		}
-
-		// Pass the view some info
-		$view->option = $option;
-		$view->resource = $resource;
-		$view->results = $results;
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			$view->setError($this->getError());
 		}

@@ -31,30 +31,36 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Support plugin class for com_answers entries
  */
-class plgSupportAnswers extends JPlugin
+class plgSupportAnswers extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
+	protected $_autoloadLanguage = true;
 
-		$this->loadLanguage();
+	/**
+	 * Is the category one this plugin handles?
+	 *
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     boolean
+	 */
+	private function _canHandle($category)
+	{
+		if (in_array($category, array('answer', 'question', 'answercomment')))
+		{
+			return true;
+		}
+		return false;
 	}
 
 	/**
 	 * Retrieves a row from the database
-	 * 
+	 *
 	 * @param      string $refid    ID of the database table row
 	 * @param      string $category Element type (determines table to look in)
 	 * @param      string $parent   If the element has a parent element
@@ -62,7 +68,7 @@ class plgSupportAnswers extends JPlugin
 	 */
 	public function getReportedItem($refid, $category, $parent)
 	{
-		if ($category != 'answer' && $category != 'question') // && $category != 'answercomment' 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
@@ -94,7 +100,7 @@ class plgSupportAnswers extends JPlugin
 		$database = JFactory::getDBO();
 		$database->setQuery($query);
 		$rows = $database->loadObjectList();
-		if ($rows) 
+		if ($rows)
 		{
 			foreach ($rows as $key => $row)
 			{
@@ -122,39 +128,22 @@ class plgSupportAnswers extends JPlugin
 
 	/**
 	 * Looks up ancestors to find root element
-	 * 
+	 *
 	 * @param      integer $parentid ID to check for parents of
 	 * @param      string  $category Element type (determines table to look in)
 	 * @return     integer
 	 */
 	public function getParentId($parentid, $category)
 	{
+		if (!$this->_canHandle($category))
+		{
+			return null;
+		}
+
 		$database = JFactory::getDBO();
 		$refid = $parentid;
 
-		/*if ($category == 'answer') 
-		{
-			$pdata    = $this->parent($parentid);
-			$category = $pdata->get('item_type');
-			$refid    = $pdata->get('item_id');
-
-			if ($pdata->get('item_type') == 'answer') 
-			{
-				// Yet another level?
-				$pdata    = $this->parent($pdata->get('parent'));
-				$category = $pdata->get('item_type');
-				$refid    = $pdata->get('item_id');
-
-				if ($pdata->get('item_type') == 'answer') 
-				{
-					// Yet another level?
-					$pdata    = $this->parent($pdata->get('parent'));
-					$category = $pdata->get('item_type');
-					$refid    = $pdata->get('item_id');
-				}
-			}
-		}*/
-		if ($category == 'answercomment') 
+		if ($category == 'answercomment')
 		{
 			$database->setQuery("SELECT item_id FROM `#__item_comments` WHERE id=" . $refid);
 			$response = $database->loadResult();
@@ -163,21 +152,21 @@ class plgSupportAnswers extends JPlugin
 			return $database->loadResult();
 		}
 
-		if ($category == 'answer') 
+		if ($category == 'answer')
 		{
 			$database->setQuery("SELECT question_id FROM `#__answers_responses` WHERE id=" . $refid);
-		 	return $database->loadResult();
+			return $database->loadResult();
 		}
 
-		if ($category == 'question') 
+		if ($category == 'question')
 		{
-		 	return $refid;
+			return $refid;
 		}
 	}
 
 	/**
 	 * Retrieve parent element
-	 * 
+	 *
 	 * @param      integer $parentid ID of element to retrieve
 	 * @return     object
 	 */
@@ -193,14 +182,14 @@ class plgSupportAnswers extends JPlugin
 
 	/**
 	 * Returns the appropriate text for category
-	 * 
+	 *
 	 * @param      string  $category Element type (determines text)
 	 * @param      integer $parentid ID of element to retrieve
 	 * @return     string
 	 */
 	public function getTitle($category, $parentid)
 	{
-		if ($category != 'answer' && $category != 'question' && $category != 'answercomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
@@ -208,22 +197,103 @@ class plgSupportAnswers extends JPlugin
 		switch ($category)
 		{
 			case 'answer':
-				return JText::sprintf('Answer to question #%s', $parentid);
+				return JText::sprintf('PLG_SUPPORT_ANSWERS_ANSWER_TO', $parentid);
 			break;
 
 			case 'question':
-				return JText::sprintf('Question #%s', $parentid);
+				return JText::sprintf('PLG_SUPPORT_ANSWERS_QUESTION', $parentid);
 			break;
 
 			case 'answercomment':
-				return JText::sprintf('Comment to an answer for question #%s', $parentid);
+				return JText::sprintf('PLG_SUPPORT_ANSWERS_COMMENT_TO', $parentid);
 			break;
 		}
 	}
 
 	/**
+	 * Mark an item as flagged
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     string
+	 */
+	public function onReportItem($refid, $category)
+	{
+		if (!$this->_canHandle($category))
+		{
+			return null;
+		}
+
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'question.php');
+
+		$database = JFactory::getDBO();
+
+		switch ($category)
+		{
+			case 'answer':
+				$comment = new AnswersTableResponse($database);
+			break;
+
+			case 'question':
+				$comment = new AnswersTableQuestion($database);
+			break;
+
+			case 'answercomment':
+				$comment = new \Hubzero\Item\Comment($database);
+			break;
+		}
+		$comment->load($refid);
+		$comment->state = 3;
+		$comment->store();
+
+		return '';
+	}
+
+	/**
+	 * Release a reported item
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $parent   If the element has a parent element
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     array
+	 */
+	public function releaseReportedItem($refid, $parent, $category)
+	{
+		if (!$this->_canHandle($category))
+		{
+			return null;
+		}
+
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_answers' . DS . 'models' . DS . 'question.php');
+
+		$database = JFactory::getDBO();
+
+		$state = 1;
+		switch ($category)
+		{
+			case 'answer':
+				$comment = new AnswersTableResponse($database);
+				$state = 0;
+			break;
+
+			case 'question':
+				$comment = new AnswersTableQuestion($database);
+			break;
+
+			case 'answercomment':
+				$comment = new \Hubzero\Item\Comment($database);
+			break;
+		}
+		$comment->load($refid);
+		$comment->state = $state;
+		$comment->store();
+
+		return '';
+	}
+
+	/**
 	 * Removes an item reported as abusive
-	 * 
+	 *
 	 * @param      integer $referenceid ID of the database table row
 	 * @param      integer $parentid    If the element has a parent element
 	 * @param      string  $category    Element type (determines table to look in)
@@ -232,7 +302,7 @@ class plgSupportAnswers extends JPlugin
 	 */
 	public function deleteReportedItem($referenceid, $parentid, $category, $message)
 	{
-		if ($category != 'answer' && $category != 'question' && $category != 'answercomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
@@ -244,13 +314,13 @@ class plgSupportAnswers extends JPlugin
 		{
 			case 'answer':
 				$database->setQuery("UPDATE `#__answers_responses` SET state='2' WHERE id=" . $referenceid);
-				if (!$database->query()) 
+				if (!$database->query())
 				{
 					$this->setError($database->getErrorMsg());
 					return false;
 				}
 
-				$message .= JText::sprintf('This is to notify you that your answer to question #%s was removed from the site due to granted complaint received from a user.', $parentid);
+				$message .= JText::sprintf('PLG_SUPPORT_ANSWERS_NOTIFY_ANSWER_REMOVED', $parentid);
 			break;
 
 			case 'question':
@@ -258,7 +328,7 @@ class plgSupportAnswers extends JPlugin
 				$banking = $upconfig->get('bankAccounts');
 
 				$reward = 0;
-				if ($banking) 
+				if ($banking)
 				{
 					$reward = $this->getReward($parentid);
 				}
@@ -268,13 +338,13 @@ class plgSupportAnswers extends JPlugin
 				$database->setQuery("SELECT r.id, r.created_by FROM `#__answers_responses` AS r WHERE r.question_id=" . $referenceid);
 				$answers = $database->loadObjectList();
 
-				if ($answers) 
+				if ($answers)
 				{
 					foreach ($answers as $answer)
 					{
 						// Delete response
 						$database->setQuery("UPDATE `#__answers_responses` SET state='2' WHERE id=" . $answer->id);
-						if (!$database->query()) 
+						if (!$database->query())
 						{
 							$this->setError($database->getErrorMsg());
 							return false;
@@ -286,41 +356,40 @@ class plgSupportAnswers extends JPlugin
 				}
 
 				$database->setQuery("UPDATE `#__answers_questions` SET state='2', reward='0' WHERE id=" . $referenceid);
-				if (!$database->query()) 
+				if (!$database->query())
 				{
 					$this->setError($database->getErrorMsg());
 					return false;
 				}
 
-				if ($banking && $reward) 
+				if ($banking && $reward)
 				{
 					// Send email to people who answered question with reward
-					if ($responders) 
+					if ($responders)
 					{
 						foreach ($responders as $r)
 						{
 							$zuser = JUser::getInstance($r);
-							if (is_object($zuser)) 
+							if (is_object($zuser))
 							{
-								if (SupportUtilities::checkValidEmail($zuser->get('email')) && $email) 
+								if (SupportUtilities::checkValidEmail($zuser->get('email')) && $email)
 								{
 									$jconfig = JFactory::getConfig();
 
 									$admin_email = $jconfig->getValue('config.mailfrom');
-									$sub  = $jconfig->getValue('config.sitename') . ' Answers, Question #' . $referenceid . ' was removed';
-									$from = $jconfig->getValue('config.sitename') . ' Answers';
+									$sub  = JText::sprintf('PLG_SUPPORT_ANSWERS_SUBJECT', $jconfig->getValue('config.sitename'), $referenceid);
+									$from = JText::sprintf('PLG_SUPPORT_ANSWERS_TITLE', $jconfig->getValue('config.sitename'));
 									$hub  = array(
-										'email' => $admin_email, 
+										'email' => $admin_email,
 										'name'  => $from
 									);
 
-									$mes  = 'You are receiving this email because you responded to a question, which has been removed by the site administrator. ';
-									$mes .= 'As a result, no points for this question will be awarded. We appologize for inconvenience.' . "\r\n";
+									$mes  = JText::_('PLG_SUPPORT_ANSWERS_BODY') . "\r\n";
 									$mes .= '----------------------------' . "\r\n\r\n";
-									$mes .= 'QUESTION: ' . $referenceid . "\r\n";
+									$mes .= JText::sprintf('PLG_SUPPORT_ANSWERS_QUESTION', $referenceid) . "\r\n";
 
 									SupportUtilities::sendEmail($hub, $zuser->get('email'), $sub, $mes);
-							 	}
+								}
 							}
 						}
 					}
@@ -329,20 +398,20 @@ class plgSupportAnswers extends JPlugin
 					$database->setQuery("SELECT created_by FROM `#__answers_questions` WHERE id=" . $parentid);
 					$asker = $database->loadResult();
 
-					if ($asker) 
+					if ($asker)
 					{
 						$quser = JUser::getInstance($asker);
-						if (is_object($quser)) 
+						if (is_object($quser))
 						{
 							$asker_id = $quser->get('id');
 						}
 
-						if (isset($asker_id)) 
+						if (isset($asker_id))
 						{
-							// Remove hold 
+							// Remove hold
 							$sql = "DELETE FROM `#__users_transactions` WHERE category='answers' AND type='hold' AND referenceid=" . $parentid . " AND uid='" . $asker_id . "'";
 							$database->setQuery($sql);
-							if (!$database->query()) 
+							if (!$database->query())
 							{
 								$this->setError($database->getErrorMsg());
 								return false;
@@ -357,20 +426,20 @@ class plgSupportAnswers extends JPlugin
 					}
 				}
 
-				$message .= JText::sprintf('This is to notify you that your question #%s was removed from the site due to granted complaint received from a user.', $parentid);
+				$message .= JText::sprintf('PLG_SUPPORT_ANSWERS_NOTIFY_QUESTION_REMOVED', $parentid);
 			break;
 
 			case 'answercomment':
 				$comment = new \Hubzero\Item\Comment($database);
 				$comment->load($referenceid);
 				$comment->state = 2;
-				if (!$comment->store()) 
+				if (!$comment->store())
 				{
 					$this->setError($comment->getError());
 					return false;
 				}
 
-				$message .= JText::sprintf('This is to notify you that your comment on an answer to question #%s was removed from the site due to granted complaint received from a user.', $parentid);
+				$message .= JText::sprintf('PLG_SUPPORT_ANSWERS_NOTIFY_COMMENT_REMOVED', $parentid);
 			break;
 		}
 
@@ -379,7 +448,7 @@ class plgSupportAnswers extends JPlugin
 
 	/**
 	 * Retrieves the reward (points) value on an item
-	 * 
+	 *
 	 * @param      integer $id ID of item to look up
 	 * @return     integer
 	 */
@@ -387,7 +456,7 @@ class plgSupportAnswers extends JPlugin
 	{
 		$database = JFactory::getDBO();
 
-		// check if question owner assigned a reward for answering his Q 
+		// check if question owner assigned a reward for answering his Q
 		$sql = "SELECT amount FROM `#__users_transactions` WHERE category='answers' AND type='hold' AND referenceid=" . $id;
 		$database->setQuery($sql);
 

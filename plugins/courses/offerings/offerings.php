@@ -45,7 +45,7 @@ class plgCoursesOfferings extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onCourseViewAreas($course)
@@ -97,7 +97,7 @@ class plgCoursesOfferings extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a course view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $course Current course
 	 * @param      string  $active Current active area
 	 * @return     array
@@ -106,15 +106,15 @@ class plgCoursesOfferings extends \Hubzero\Plugin\Plugin
 	{
 		// The output array we're returning
 		$arr = array(
-			'name'     => 'offerings',
+			'name'     => $this->_name,
 			'html'     => '',
 			'metadata' => ''
 		);
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($active)) 
+		if (is_array($active))
 		{
-			if (!in_array($arr['name'], $active)) 
+			if (!in_array($arr['name'], $active))
 			{
 				return $arr;
 			}
@@ -126,7 +126,7 @@ class plgCoursesOfferings extends \Hubzero\Plugin\Plugin
 
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'courses',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'overview'
 			)

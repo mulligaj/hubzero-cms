@@ -34,105 +34,90 @@ defined('_JEXEC') or die('Restricted access');
 $option = JRequest::getCmd('option', 'com_resources');
 $task = JRequest::getWord('task', '');
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-	
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect('index.php', JText::_('ALERTNOTAUTH'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
-}
-
-jimport('joomla.application.component.helper');
 
 // Include jtables
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'resource.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'type.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'assoc.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'review.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'doi.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'contributor.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'license.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'role.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'role.type.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'resource.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'type.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'assoc.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'review.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'doi.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'contributor.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'license.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'role.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'role.type.php');
 
 // include helpers
-require_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'html.php');
-require_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'resources.php');
-require_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'utilities.php');
-require_once(JPATH_ROOT . DS . 'components' . DS . $option . DS . 'helpers' . DS . 'tags.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'html.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'resources.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'utilities.php');
+require_once(JPATH_COMPONENT_SITE . DS . 'helpers' . DS . 'tags.php');
 
 // include importer
 require_once JPATH_COMPONENT_ADMINISTRATOR . DS . 'import' . DS . 'importer.php';
 
 // get controller name
 $controllerName = JRequest::getCmd('controller', 'items');
-if (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))
+if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php'))
 {
 	$controllerName = 'items';
 }
 
 JSubMenuHelper::addEntry(
-	JText::_('Resources'),
+	JText::_('COM_RESOURCES'),
 	'index.php?option=' . $option,
 	($controllerName == 'items' && $task != 'orphans')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Orphans'),
+	JText::_('COM_RESOURCES_ORPHANS'),
 	'index.php?option=' . $option . '&controller=items&task=orphans',
 	$task == 'orphans'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Types'),
+	JText::_('COM_RESOURCES_TYPES'),
 	'index.php?option=' . $option . '&controller=types',
 	$controllerName == 'types'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Licenses'),
+	JText::_('COM_RESOURCES_LICENSES'),
 	'index.php?option=' . $option . '&controller=licenses',
 	$controllerName == 'licenses'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Authors'),
+	JText::_('COM_RESOURCES_AUTHORS'),
 	'index.php?option=' . $option . '&controller=authors',
 	$controllerName == 'authors'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Roles'),
+	JText::_('COM_RESOURCES_ROLES'),
 	'index.php?option=' . $option . '&controller=roles',
 	$controllerName == 'roles'
 );
+require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_plugins' . DS . 'helpers' . DS . 'plugins.php');
+$canDo = PluginsHelper::getActions();
+if ($canDo->get('core.manage'))
+{
+	JSubMenuHelper::addEntry(
+		JText::_('COM_RESOURCES_PLUGINS'),
+		'index.php?option=' . $option . '&controller=plugins',
+		$controllerName == 'plugins'
+	);
+}
 JSubMenuHelper::addEntry(
-	JText::_('Plugins'),
-	'index.php?option=' . $option . '&controller=plugins',
-	$controllerName == 'plugins'
-);
-JSubMenuHelper::addEntry(
-	JText::_('Import'),
+	JText::_('COM_RESOURCES_IMPORT'),
 	'index.php?option=' . $option . '&controller=import',
 	$controllerName == 'import'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Import Hooks'),
+	JText::_('COM_RESOURCES_IMPORTHOOK'),
 	'index.php?option=' . $option . '&controller=importhooks',
 	$controllerName == 'importhooks'
 );
 
-require_once(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'ResourcesController' . ucfirst($controllerName);
 
 // Instantiate controller

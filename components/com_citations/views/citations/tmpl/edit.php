@@ -31,6 +31,9 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$this->css()
+     ->js();
+
 $allow_tags = $this->config->get("citation_allow_tags","no");
 $allow_badges = $this->config->get("citation_allow_badges","no");
 
@@ -41,12 +44,12 @@ $fieldset_label = ($allow_tags == "yes" && $allow_badges == "yes") ? "Tags and B
 $t = array();
 $b = array();
 
-foreach($this->tags as $tag) 
+foreach ($this->tags as $tag)
 {
 	$t[] = $tag['raw_tag'];
 }
 
-foreach($this->badges as $badge) 
+foreach ($this->badges as $badge)
 {
 	$b[] = $badge['raw_tag'];
 }
@@ -67,19 +70,19 @@ if (isset($_SERVER['HTTP_REFERER']) && filter_var($_SERVER['HTTP_REFERER'], FILT
 $pid = JRequest::getInt( 'publication', 0 );
 
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<ul>
-		<li class="last">
-			<a class="browse btn" href="<?php echo $backLink ?>">Back</a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+	<div id="content-header-extra">
+		<ul>
+			<li class="last">
+				<a class="browse btn" href="<?php echo $backLink ?>"><?php echo JText::_('COM_CITATIONS_BACK'); ?></a>
+			</li>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header><!-- / #content-header -->
 
-<div class="main section">
+<section class="main section">
 	<?php if ($pid) { ?>
 		<h3><?php echo JText::_('COM_CITATIONS_CITATION_FOR'); ?> <?php echo JText::_('COM_CITATIONS_PUBLICATION') . ' #' . $pid; ?></h3>
 	<?php } ?>
@@ -88,84 +91,94 @@ $pid = JRequest::getInt( 'publication', 0 );
 	<?php } ?>
 	<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="post" id="hubForm" class="add-citation">
 		<div class="explaination">
-			<p><?php echo JText::_('Please enter the information for the work that references content on this site. <strong>Not all fields may apply to the citation</strong> - fill in only those that do.'); ?></p>
+			<p><?php echo JText::_('COM_CITATIONS_DETAILS_DESC'); ?></p>
 		</div>
 		<fieldset>
-			<legend><?php echo JText::_('Details'); ?></legend>
+			<legend><?php echo JText::_('COM_CITATIONS_DETAILS'); ?></legend>
 
-			<div class="group twoup">
-				<label for="type">
-					<?php echo JText::_('Type'); ?>: <span class="required">Required</span>
-					<select name="type" id="type">
-						<option value=""> - Select a Citation Type &mdash;</option>
-						<?php
-							foreach($this->types as $t) {
-								$sel = ($this->row->type == $t['id']) ? "selected=\"selected\"" : "";
- 								echo "<option {$sel} value=\"{$t['id']}\">{$t['type_title']}</option>";
-							}
-						?>
-					</select>
-				</label>
-
-				<label for="cite">
-					<?php echo JText::_('COM_CITATIONS_CITE_KEY'); ?>:
-					<input type="text" name="cite" id="cite" size="30" maxlength="250" value="<?php echo $this->row->cite; ?>" />
-					<span class="hint"><?php echo JText::_('COM_CITATIONS_CITE_KEY_EXPLANATION'); ?></span>
-				</label>
+			<div class="grid">
+				<div class="col span6">
+					<label for="type">
+						<?php echo JText::_('COM_CITATIONS_TYPE'); ?>: <span class="required">Required</span>
+						<select name="type" id="type">
+							<option value=""> <?php echo JText::_('COM_CITATIONS_TYPE_SELECT'); ?></option>
+							<?php
+								foreach ($this->types as $t) {
+									$sel = ($this->row->type == $t['id']) ? "selected=\"selected\"" : "";
+									echo "<option {$sel} value=\"{$t['id']}\">{$t['type_title']}</option>";
+								}
+							?>
+						</select>
+					</label>
+				</div>
+				<div class="col span6 omega">
+					<label for="cite">
+						<?php echo JText::_('COM_CITATIONS_CITE_KEY'); ?>:
+						<input type="text" name="cite" id="cite" size="30" maxlength="250" value="<?php echo $this->row->cite; ?>" />
+						<span class="hint"><?php echo JText::_('COM_CITATIONS_CITE_KEY_EXPLANATION'); ?></span>
+					</label>
+				</div>
 			</div>
 
 			<label for="ref_type">
 				<?php echo JText::_('COM_CITATIONS_REF_TYPE'); ?>:
 				<input type="text" name="ref_type" id="ref_type" size="11" maxlength="50" value="<?php echo $this->row->ref_type; ?>" />
 			</label>
-			
-			<div class="group threeup">
-				<label for="date_submit">
-					<?php echo JText::_('COM_CITATIONS_DATE_SUBMITTED'); ?>:
-					<input type="text" name="date_submit" id="date_submit" size="30" maxlength="250" value="<?php echo $this->row->date_submit; ?>" />
-					<span class="hint">YYYY-MM-DD HH:MM:SS</span>
-				</label>
 
-				<label for="date_accept">
-					<?php echo JText::_('COM_CITATIONS_DATE_ACCEPTED'); ?>:
-					<input type="text" name="date_accept" id="date_accept" size="30" maxlength="250" value="<?php echo $this->row->date_accept; ?>" />
-					<span class="hint">YYYY-MM-DD HH:MM:SS</span>
-				</label>
-
-				<label for="date_publish">
-					<?php echo JText::_('COM_CITATIONS_DATE_PUBLISHED'); ?>:
-					<input type="text" name="date_publish" id="date_publish" size="30" maxlength="250" value="<?php echo $this->row->date_publish; ?>" />
-					<span class="hint">YYYY-MM-DD HH:MM:SS</span>
-				</label>
+			<div class="grid">
+				<div class="col span4">
+					<label for="date_submit">
+						<?php echo JText::_('COM_CITATIONS_DATE_SUBMITTED'); ?>:
+						<input type="text" name="date_submit" id="date_submit" size="30" maxlength="250" value="<?php echo $this->row->date_submit; ?>" />
+						<span class="hint"><?php echo JText::_('COM_CITATIONS_DATE_HINT'); ?></span>
+					</label>
+				</div>
+				<div class="col span4">
+					<label for="date_accept">
+						<?php echo JText::_('COM_CITATIONS_DATE_ACCEPTED'); ?>:
+						<input type="text" name="date_accept" id="date_accept" size="30" maxlength="250" value="<?php echo $this->row->date_accept; ?>" />
+						<span class="hint"><?php echo JText::_('COM_CITATIONS_DATE_HINT'); ?></span>
+					</label>
+				</div>
+				<div class="col span4 omega">
+					<label for="date_publish">
+						<?php echo JText::_('COM_CITATIONS_DATE_PUBLISHED'); ?>:
+						<input type="text" name="date_publish" id="date_publish" size="30" maxlength="250" value="<?php echo $this->row->date_publish; ?>" />
+						<span class="hint"><?php echo JText::_('COM_CITATIONS_DATE_HINT'); ?></span>
+					</label>
+				</div>
 			</div>
 
-			<div class="group twoup">
-				<label for="year">
-					<?php echo JText::_('COM_CITATIONS_YEAR'); ?>:
-					<input type="text" name="year" id="year" size="4" maxlength="4" value="<?php echo $this->row->year; ?>" />
-				</label>
-
-				<label for="month">
-					<?php echo JText::_('COM_CITATIONS_MONTH'); ?>:
-					<input type="text" name="month" id="month" size="11" maxlength="50" value="<?php echo $this->row->month; ?>" />
-				</label>
-			</div> 
+			<div class="grid">
+				<div class="col span6">
+					<label for="year">
+						<?php echo JText::_('COM_CITATIONS_YEAR'); ?>:
+						<input type="text" name="year" id="year" size="4" maxlength="4" value="<?php echo $this->row->year; ?>" />
+					</label>
+				</div>
+				<div class="col span6 omega">
+					<label for="month">
+						<?php echo JText::_('COM_CITATIONS_MONTH'); ?>:
+						<input type="text" name="month" id="month" size="11" maxlength="50" value="<?php echo $this->row->month; ?>" />
+					</label>
+				</div>
+			</div>
 
 			<label for="author">
 				<?php echo JText::_('COM_CITATIONS_AUTHORS'); ?>:
 				<input type="text" name="author" id="author" size="30" value="<?php echo $this->row->author; ?>" />
-				<span class="hint"><?php echo JText::_('Lastname, Firstname; Lastname, Firstname; Lastname ...'); ?></span>
+				<span class="hint"><?php echo JText::_('COM_CITATIONS_AUTHORS_HINT'); ?></span>
 			</label>
-			
+
 			<label for="authoraddress">
-				<?php echo JText::_('Author Address'); ?>:
+				<?php echo JText::_('COM_CITATIONS_AUTHOR_ADDRESS'); ?>:
 				<input type="text" name="author_address" id="authoraddress" size="30" value="<?php echo $this->row->author_address; ?>" />
 			</label>
 
 			<label for="editor">
 				<?php echo JText::_('COM_CITATIONS_EDITORS'); ?>:
 				<input type="text" name="editor" id="editor" size="30" maxlength="250" value="<?php echo $this->row->editor; ?>" />
-				<span class="hint"><?php echo JText::_('Lastname, Firstname; Lastname, Firstname; Lastname ...'); ?></span>
+				<span class="hint"><?php echo JText::_('COM_CITATIONS_AUTHORS_HINT'); ?></span>
 			</label>
 
 			<label for="title">
@@ -177,9 +190,9 @@ $pid = JRequest::getInt( 'publication', 0 );
 				<?php echo JText::_('COM_CITATIONS_BOOK_TITLE'); ?>:
 				<input type="text" name="booktitle" id="booktitle" size="30" maxlength="250" value="<?php echo $this->row->booktitle; ?>" />
 			</label>
-			
+
 			<label for="shorttitle">
-				<?php echo JText::_('Short Title'); ?>:
+				<?php echo JText::_('COM_CITATIONS_SHORT_TITLE'); ?>:
 				<input type="text" name="short_title" id="shorttitle" size="30" maxlength="250" value="<?php echo $this->row->short_title; ?>" />
 			</label>
 
@@ -187,46 +200,56 @@ $pid = JRequest::getInt( 'publication', 0 );
 				<?php echo JText::_('COM_CITATIONS_JOURNAL'); ?>:
 				<input type="text" name="journal" id="journal" size="30" maxlength="250" value="<?php echo $this->row->journal; ?>" />
 			</label>
-			
-			<div class="group threeup">
-				<label for="volume">
-					<?php echo JText::_('COM_CITATIONS_VOLUME'); ?>:
-					<input type="text" name="volume" id="volume" size="11" maxlength="11" value="<?php echo $this->row->volume; ?>" />
-				</label>
 
-				<label for="number">
-					<?php echo JText::_('COM_CITATIONS_ISSUE'); ?>:
-					<input type="text" name="number" id="number" size="11" maxlength="50" value="<?php echo $this->row->number; ?>" />
-				</label>
-
-				<label for="pages">
-					<?php echo JText::_('COM_CITATIONS_PAGES'); ?>:
-					<input type="text" name="pages" id="pages" size="11" maxlength="250" value="<?php echo $this->row->pages; ?>" />
-				</label>
+			<div class="grid">
+				<div class="col span4">
+					<label for="volume">
+						<?php echo JText::_('COM_CITATIONS_VOLUME'); ?>:
+						<input type="text" name="volume" id="volume" size="11" maxlength="11" value="<?php echo $this->row->volume; ?>" />
+					</label>
+				</div>
+				<div class="col span4">
+					<label for="number">
+						<?php echo JText::_('COM_CITATIONS_ISSUE'); ?>:
+						<input type="text" name="number" id="number" size="11" maxlength="50" value="<?php echo $this->row->number; ?>" />
+					</label>
+				</div>
+				<div class="col span4 omega">
+					<label for="pages">
+						<?php echo JText::_('COM_CITATIONS_PAGES'); ?>:
+						<input type="text" name="pages" id="pages" size="11" maxlength="250" value="<?php echo $this->row->pages; ?>" />
+					</label>
+				</div>
 			</div>
-			
-			<div class="group twoup">
-				<label for="isbn">
-					<?php echo JText::_('COM_CITATIONS_ISBN'); ?>:
-					<input type="text" name="isbn" id="isbn" size="11" maxlength="50" value="<?php echo $this->row->isbn; ?>" />
-				</label>
 
-				<label for="doi">
-					<abbr title="<?php echo JText::_('Digital Object Identifier'); ?>"><?php echo JText::_('COM_CITATIONS_DOI'); ?></abbr>:
-					<input type="text" name="doi" id="doi" size="30" maxlength="250" value="<?php echo $this->row->doi; ?>" />
-				</label>
+			<div class="grid">
+				<div class="col span6">
+					<label for="isbn">
+						<?php echo JText::_('COM_CITATIONS_ISBN'); ?>:
+						<input type="text" name="isbn" id="isbn" size="11" maxlength="50" value="<?php echo $this->row->isbn; ?>" />
+					</label>
+				</div>
+				<div class="col span6 omega">
+					<label for="doi">
+						<abbr title="<?php echo JText::_('COM_CITATIONS_DOI_FULL'); ?>"><?php echo JText::_('COM_CITATIONS_DOI'); ?></abbr>:
+						<input type="text" name="doi" id="doi" size="30" maxlength="250" value="<?php echo $this->row->doi; ?>" />
+					</label>
+				</div>
 			</div>
-			
-			<div class="group twoup">
-				<label for="callnumber">
-					<?php echo JText::_('Call Number'); ?>:
-					<input type="text" name="call_number" id="callnumber" value="<?php echo $this->row->call_number; ?>" />
-				</label>
 
-				<label for="accessionnumber">
-					<?php echo JText::_('Accession Number'); ?>:
-					<input type="text" name="accession_number" id="accessionnumber"  value="<?php echo $this->row->accession_number; ?>" />
-				</label>
+			<div class="grid">
+				<div class="col span6">
+					<label for="callnumber">
+						<?php echo JText::_('COM_CITATIONS_CALL_NUMBER'); ?>:
+						<input type="text" name="call_number" id="callnumber" value="<?php echo $this->row->call_number; ?>" />
+					</label>
+				</div>
+				<div class="col span6 omega">
+					<label for="accessionnumber">
+						<?php echo JText::_('COM_CITATIONS_ACCESSION_NUMBER'); ?>:
+						<input type="text" name="accession_number" id="accessionnumber"  value="<?php echo $this->row->accession_number; ?>" />
+					</label>
+				</div>
 			</div>
 
 			<label for="series">
@@ -236,7 +259,7 @@ $pid = JRequest::getInt( 'publication', 0 );
 
 			<label for="edition">
 				<?php echo JText::_('COM_CITATIONS_EDITION'); ?>:
-				<input type="text" name="edition" id="edition" size="30" maxlength="250" value="<?php echo $this->row->edition; ?>" /> 
+				<input type="text" name="edition" id="edition" size="30" maxlength="250" value="<?php echo $this->row->edition; ?>" />
 				<span class="hint"><?php echo JText::_('COM_CITATIONS_EDITION_EXPLANATION'); ?></span>
 			</label>
 
@@ -252,7 +275,7 @@ $pid = JRequest::getInt( 'publication', 0 );
 
 			<label for="institution">
 				<?php echo JText::_('COM_CITATIONS_INSTITUTION'); ?>:
-				<input type="text" name="institution" id="institution" size="30" maxlength="250" value="<?php echo $this->row->institution; ?>" /> 
+				<input type="text" name="institution" id="institution" size="30" maxlength="250" value="<?php echo $this->row->institution; ?>" />
 				<span class="hint"><?php echo JText::_('COM_CITATIONS_INSTITUTION_EXPLANATION'); ?></span>
 			</label>
 
@@ -263,13 +286,13 @@ $pid = JRequest::getInt( 'publication', 0 );
 
 			<label for="location">
 				<?php echo JText::_('COM_CITATIONS_LOCATION'); ?>:
-				<input type="text" name="location" id="location" size="30" maxlength="250" value="<?php echo $this->row->location; ?>" /> 
+				<input type="text" name="location" id="location" size="30" maxlength="250" value="<?php echo $this->row->location; ?>" />
 				<span class="hint"><?php echo JText::_('COM_CITATIONS_LOCATION_EXPLANATION'); ?></span>
 			</label>
 
 			<label for="howpublished">
 				<?php echo JText::_('COM_CITATIONS_PUBLISH_METHOD'); ?>:
-				<input type="text" name="howpublished" id="howpublished" size="30" maxlength="250" value="<?php echo $this->row->howpublished; ?>" /> 
+				<input type="text" name="howpublished" id="howpublished" size="30" maxlength="250" value="<?php echo $this->row->howpublished; ?>" />
 				<span class="hint"><?php echo JText::_('COM_CITATIONS_PUBLISH_METHOD_EXPLANATION'); ?></span>
 			</label>
 
@@ -285,101 +308,102 @@ $pid = JRequest::getInt( 'publication', 0 );
 			</label>
 
 			<label for="abstract">
-				<?php echo JText::_('Abstract'); ?>:
+				<?php echo JText::_('COM_CITATIONS_ABSTRACT'); ?>:
 				<textarea name="abstract" id="abstract" rows="8" cols="10"><?php echo stripslashes($this->row->abstract); ?></textarea>
 			</label>
-			
+
 			<label for="note">
-				<?php echo JText::_('Notes'); ?>:
+				<?php echo JText::_('COM_CITATIONS_NOTES'); ?>:
 				<textarea name="note" id="note" rows="8" cols="10"><?php echo stripslashes($this->row->note); ?></textarea>
 			</label>
-			
+
 			<label for="keywords">
-				<?php echo JText::_('Keywords'); ?>:
+				<?php echo JText::_('COM_CITATIONS_KEYWORDS'); ?>:
 				<textarea name="keywords" id="keywords" rows="8" cols="10"><?php echo stripslashes($this->row->keywords); ?></textarea>
 			</label>
-				
+
 			<label for="research_notes">
-				<?php echo JText::_('Research Notes'); ?>:
+				<?php echo JText::_('COM_CITATIONS_RESEARCH_NOTES'); ?>:
 				<textarea name="research_notes" id="research_notes" rows="8" cols="10"><?php echo stripslashes($this->row->research_notes); ?></textarea>
 			</label>
-			
+
 			<div class="group twoup">
 				<label for="language">
-					<?php echo JText::_('Language'); ?>:
+					<?php echo JText::_('COM_CITATIONS_LANGUAGE'); ?>:
 					<input type="text" name="language" id="language" size="11" maxlength="50" value="<?php echo $this->row->language; ?>" />
 				</label>
 
 				<label for="label">
-					<?php echo JText::_('Label'); ?>:
+					<?php echo JText::_('COM_CITATIONS_LABEL'); ?>:
 					<input type="text" name="label" id="label" size="30" maxlength="250" value="<?php echo $this->row->label; ?>" />
 				</label>
 			</div>
 		</fieldset><div class="clear"></div>
 
 		<fieldset>
-			<legend><?php echo JText::_('Manually Format Citation'); ?>:</legend>
-			<p class="warning"><?php echo JText::_('Note: Override the citation output by entering the full citation below'); ?></p>
+			<legend><?php echo JText::_('COM_CITATIONS_MANUALLY_FORMAT'); ?>:</legend>
+			<p class="warning"><?php echo JText::_('COM_CITATIONS_MANUALLY_FORMAT_HINT'); ?></p>
 			<label for="format_type">
-				<?php echo JText::_('Format Type'); ?>:
+				<?php echo JText::_('COM_CITATIONS_MANUALLY_FORMAT_FORMAT'); ?>:
 				<select id="format_type" name="format">
-					<option value="apa" <?php echo ($this->row->format == 'apa') ? 'selected="selected"' : ''; ?>><?php echo JText::_('APA'); ?></option>
-					<option value="ieee" <?php echo ($this->row->format == 'ieee') ? 'selected="selected"' : ''; ?>><?php echo JText::_('IEEE'); ?></option>
+					<option value="apa" <?php echo ($this->row->format == 'apa') ? 'selected="selected"' : ''; ?>><?php echo JText::_('COM_CITATIONS_MANUALLY_FORMAT_APA'); ?></option>
+					<option value="ieee" <?php echo ($this->row->format == 'ieee') ? 'selected="selected"' : ''; ?>><?php echo JText::_('COM_CITATIONS_MANUALLY_FORMAT_IEEE'); ?></option>
 				</select>
 			</label>
 			<label for="formatted">
-				<?php echo JText::_('Citation'); ?>:
+				<?php echo JText::_('COM_CITATIONS_MANUALLY_FORMAT_CITATION'); ?>:
 				<textarea name="formatted" id="formatted" rows="8" cols="10"><?php echo stripslashes($this->row->formatted); ?></textarea>
 			</label>
 		</fieldset><div class="clear"></div>
-		
+
+
 		<?php if ($allow_tags == "yes" || $allow_badges == "yes") : ?>
 			<div class="explaination">
-				<p><?php echo JText::_(''); ?></p>
+				<p></p>
 			</div>
 			<fieldset>
 				<legend><?php echo $fieldset_label; ?></legend>
 				<?php if ($allow_tags == "yes") : ?>
 					<label>
-						Tags: <span class="optional">Optional</span>
-						<?php 
+						<?php echo JText::_('COM_CITATIONS_TAGS'); ?>: <span class="optional">Optional</span>
+						<?php
 							if (count($tags_list) > 0) {
 								echo $tags_list[0];
 							} else {
 								echo "<input type=\"text\" name=\"tags\" value=\"{$tags}\" />";
 							}
 						?>
-						<span class="hint"><?php echo JText::_('Enter tags separated by commas (e.g. negf theory, ion transport).'); ?></span>
+						<span class="hint"><?php echo JText::_('COM_CITATIONS_TAGS_HINT'); ?></span>
 					</label>
 				<?php endif; ?>
-				
+
 				<?php if ($allow_badges == "yes") : ?>
 					<label class="badges">
-						Badges: <span class="optional">Optional</span>
-						<?php 
+						<?php echo JText::_('COM_CITATIONS_BADGES'); ?>: <span class="optional">Optional</span>
+						<?php
 							if (count($badges_list) > 0) {
 								echo $badges_list[0];
 							} else {
 								echo "<input type=\"text\" name=\"badges\" value=\"{$badges}\" />";
 							}
 						?>
-						<span class="hint"><?php echo JText::_('Enter badges separated by commas (e.g.evidence-based, peer-reviewed).'); ?></span>
+						<span class="hint"><?php echo JText::_('COM_CITATIONS_BADGES_HINT'); ?></span>
 					</label>
 				<?php endif; ?>
 			</fieldset><div class="clear"></div>
 		<?php endif; ?>
-		
+
 		<?php if ($pid) { ?>
 			<input type="hidden" name="assocs[0][oid]" value="<?php echo $pid; ?>" />
 			<input type="hidden" name="assocs[0][tbl]" value="publication" />
 			<input type="hidden" name="assocs[0][id]" value="0" />
 		<?php } else { ?>
 		<div class="explaination">
-			<p><?php echo JText::_('Please enter all the resources the work references.'); ?></p>
+			<p><?php echo JText::_('COM_CITATIONS_ASSOCIATION_DESC'); ?></p>
 		</div>
 		<fieldset>
 			<legend><?php echo JText::_('COM_CITATIONS_CITATION_FOR'); ?></legend>
-			
+
 			<div class="field-wrap">
 			<table id="assocs">
 				<thead>
@@ -412,7 +436,7 @@ $pid = JRequest::getInt( 'publication', 0 );
 								$this->assocs[$i]->type = NULL;
 								$this->assocs[$i]->tbl = NULL;
 							}
-							
+
 							echo "\t\t\t".'  <tr>'."\n";
 							echo "\t\t\t".'   <td><select name="assocs['.$i.'][tbl]">'."\n";
 							echo ' <option value=""';
@@ -428,7 +452,7 @@ $pid = JRequest::getInt( 'publication', 0 );
 							echo "\t\t\t".'   <td><input type="text" name="assocs['.$i.'][oid]" value="'.$this->assocs[$i]->oid.'" /></td>'."\n";
 							echo "\t\t\t\t".'<input type="hidden" name="assocs['.$i.'][id]" value="'.$this->assocs[$i]->id.'" />'."\n";
 							echo "\t\t\t\t".'<input type="hidden" name="assocs['.$i.'][cid]" value="'.$this->assocs[$i]->cid.'" /></td>'."\n";
-							echo "\t\t\t".'  </tr>'."\n";							
+							echo "\t\t\t".'  </tr>'."\n";
 						}
 				?>
 				</tbody>
@@ -438,7 +462,7 @@ $pid = JRequest::getInt( 'publication', 0 );
 		<?php } ?>
 		<fieldset>
 			<legend><?php echo JText::_('COM_CITATIONS_AFFILIATION'); ?></legend>
-			
+
 			<label>
 				<input type="checkbox" class="option" name="affiliated" id="affiliated" value="1"<?php if ($this->row->affiliated) { echo ' checked="checked"'; } ?> />
 				<?php echo JText::_('COM_CITATIONS_AFFILIATED_WITH_YOUR_ORG'); ?>
@@ -448,7 +472,7 @@ $pid = JRequest::getInt( 'publication', 0 );
 				<input type="checkbox" class="option" name="fundedby" id="fundedby" value="1"<?php if ($this->row->fundedby) { echo ' checked="checked"'; } ?> />
 				<?php echo JText::_('COM_CITATIONS_FUNDED_BY_YOUR_ORG'); ?>
 			</label>
-			
+
 			<input type="hidden" name="uid" value="<?php echo $this->row->uid; ?>" />
 			<input type="hidden" name="created" value="<?php echo $this->row->created; ?>" />
 			<input type="hidden" name="id" value="<?php echo $this->row->id; ?>" />
@@ -456,6 +480,6 @@ $pid = JRequest::getInt( 'publication', 0 );
 			<input type="hidden" name="task" value="save" />
 		</fieldset>
 		<div class="clear"></div>
-		<p class="submit"><input type="submit" name="create" value="<?php echo JText::_('Save'); ?>" /></p>
+		<p class="submit"><input type="submit" name="create" value="<?php echo JText::_('COM_CITATIONS_SAVE'); ?>" /></p>
 	</form>
-</div>
+</section>

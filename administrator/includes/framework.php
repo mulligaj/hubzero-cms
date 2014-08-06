@@ -100,13 +100,7 @@ switch ($config->error_reporting)
 		break;
 }
 
-if (!isset($config->profile))
-{
-        $config->profile = 0;
-}
-
 define('JDEBUG', $config->debug);
-define('JPROFILE', $config->debug || $config->profile);
 
 unset($config);
 
@@ -115,8 +109,7 @@ unset($config);
  */
 
 // System profiler.
-
-if (JPROFILE) {
+if (JDEBUG) {
 	jimport('joomla.error.profiler');
 	$_PROFILER = JProfiler::getInstance('Application');
 }

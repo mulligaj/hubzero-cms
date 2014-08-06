@@ -33,17 +33,17 @@ defined('_JEXEC') or die('Restricted access');
 $canDo = MembersHelper::getActions('component');
 
 JToolBarHelper::title(JText::_('Members') . ': ' . JText::_('Plugins'), 'user.png');
-if ($canDo->get('core.edit.state')) 
+if ($canDo->get('core.edit.state'))
 {
 	JToolBarHelper::publishList();
 	JToolBarHelper::unpublishList();
 	//JToolBarHelper::spacer();
 }
-/*if ($canDo->get('core.create')) 
+/*if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editListX();
 }*/
@@ -51,11 +51,11 @@ if ($canDo->get('core.edit'))
 <form action="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter">
 		<?php echo $this->states; ?>
-	
+
 		<input type="submit" name="filter_submit" id="filter_submit" value="<?php echo JText::_('Go'); ?>" />
 	</fieldset>
-	
-	<table class="adminlist" summary="<?php echo JText::_('A list of resource plugins'); ?>">
+
+	<table class="adminlist">
 		<thead>
 			<tr>
 				<th scope="col">
@@ -109,8 +109,8 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 	$published 	= JHTML::_('grid.published', $row, $i);
 
 	$ordering = ($this->filters['sort'] == 'p.folder');
-	
-	switch ($row->published) 
+
+	switch ($row->published)
 	{
 		case '2':
 			$task = 'publish';
@@ -156,19 +156,11 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 				<td>
 <?php if ($tbl->isCheckedOut($this->user->get('id'), $row->checked_out) || !$canDo->get('core.edit.state')) { ?>
 					<span class="state <?php echo $cls; ?>">
-<?php 		if (version_compare(JVERSION, '1.6', 'lt')) { ?>
-						<span><img src="images/<?php echo $img; ?>" width="16" height="16" border="0" alt="<?php echo $alt; ?>" /></span>
-<?php 		} else { ?>
 						<span class="text"><?php echo $alt; ?></span>
-<?php 		} ?>
 					</span>
 <?php } else { ?>
 					<a class="state <?php echo $cls; ?>" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task; ?>&amp;id[]=<?php echo $row->id; ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo JText::sprintf('Set this to %s',$task);?>">
-<?php 		if (version_compare(JVERSION, '1.6', 'lt')) { ?>
-						<span><img src="images/<?php echo $img; ?>" width="16" height="16" border="0" alt="<?php echo $alt; ?>" /></span>
-<?php 		} else { ?>
 						<span class="text"><?php echo $alt; ?></span>
-<?php 		} ?>
 					</a>
 <?php } ?>
 				</td>
@@ -207,6 +199,6 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 	<input type="hidden" name="sort_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sort']; ?>" />
 	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

@@ -54,21 +54,21 @@ class Module extends Object
 
 	/**
 	 * JRegistry
-	 * 
+	 *
 	 * @var object
 	 */
 	public $params = null;
 
 	/**
 	 * Database row
-	 * 
+	 *
 	 * @var object
 	 */
 	public $module = null;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param   object $params JParameter/JRegistry
 	 * @param   object $module Database row
 	 * @return  void
@@ -90,7 +90,7 @@ class Module extends Object
      */
 	public function escape($var)
 	{
-		if (in_array($this->_escape, array('htmlspecialchars', 'htmlentities'))) 
+		if (in_array($this->_escape, array('htmlspecialchars', 'htmlentities')))
 		{
 			return call_user_func($this->_escape, $var, ENT_COMPAT, $this->_charset);
 		}
@@ -109,16 +109,39 @@ class Module extends Object
 	}
 
 	/**
-	 * Push CSS to the document
-	 * 
-	 * @param   string  $stylesheet Stylesheet name (optional, uses component name if left blank)
-	 * @param   string  $component  Component name
-	 * @param   string  $type       Mime encoding type
-	 * @param   string  $media      Media type that this stylesheet applies to
-	 * @param   string  $attribs    Attributes to add to the link
-	 * @return  void
+	 * Determine the asset directory
+	 *
+	 * @param   string $path    File path
+	 * @param   string $default Default directory
+	 * @return  string
 	 */
-	public function css($stylesheet = '', $module = null, $type = 'text/css', $media = null, $attribs = array())
+	private function _assetDir(&$path, $default='')
+	{
+		if (substr($path, 0, 2) == './')
+		{
+			$path = substr($path, 2);
+
+			return '';
+		}
+
+		if (substr($path, 0, 1) == '/')
+		{
+			$path = substr($path, 1);
+
+			return '/';
+		}
+
+		return $default;
+	}
+
+	/**
+	 * Push CSS to the document
+	 *
+	 * @param   string  $stylesheet Stylesheet name (optional, uses component name if left blank)
+	 * @param   string  $module     Module name
+	 * @return  object
+	 */
+	public function css($stylesheet = '', $module = null)
 	{
 		if (!$module)
 		{
@@ -136,9 +159,16 @@ class Module extends Object
 			$stylesheet .= '.css';
 		}
 
+		$dir = $this->_assetDir($stylesheet, 'css');
+		if ($dir == '/')
+		{
+			Assets::addStylesheet($dir . $stylesheet);
+			return $this;
+		}
+
 		if ($module == 'system')
 		{
-			Assets::addSystemStylesheet($stylesheet);
+			Assets::addSystemStylesheet($stylesheet, $dir);
 			return $this;
 		}
 
@@ -147,7 +177,7 @@ class Module extends Object
 			$module = 'mod_' . $module;
 		}
 
-		Assets::addModuleStylesheet($module, $stylesheet, $type, $media, $attribs);
+		Assets::addModuleStylesheet($module, $stylesheet, $dir);
 
 		return $this;
 	}
@@ -156,13 +186,10 @@ class Module extends Object
 	 * Push javascript to the document
 	 *
 	 * @param   string  $stylesheet Stylesheet name (optional, uses component name if left blank)
-	 * @param   string  $component  Component name
-	 * @param   string  $type       Mime encoding type
-	 * @param   string  $media      Media type that this stylesheet applies to
-	 * @param   string  $attribs    Attributes to add to the link
-	 * @return  void
+	 * @param   string  $module     Module name
+	 * @return  object
 	 */
-	public function js($script = '', $module = null, $type = "text/javascript", $defer = false, $async = false)
+	public function js($script = '', $module = null)
 	{
 		if (!$module)
 		{
@@ -172,6 +199,13 @@ class Module extends Object
 		if ($module === true || strstr($script, '(') || strstr($script, ';'))
 		{
 			\JFactory::getDocument()->addScriptDeclaration($script);
+			return $this;
+		}
+
+		$dir = $this->_assetDir($script, 'js');
+		if ($dir == '/')
+		{
+			Assets::addScript($dir . $script);
 			return $this;
 		}
 
@@ -186,14 +220,47 @@ class Module extends Object
 			$module = 'mod_' . $module;
 		}
 
-		Assets::addModuleScript($module, $script, $type, $defer, $async);
+		Assets::addModuleScript($module, $script, $dir);
 
 		return $this;
 	}
 
 	/**
+	 * Get the path to an image
+	 *
+	 * @param   string  $image   Image name
+	 * @param   string  $module  Module name
+	 * @return  string
+	 */
+	public function img($image, $component = null)
+	{
+		if (!$module)
+		{
+			$module = $this->module->module;
+		}
+
+		$dir = $this->_assetDir($image, 'img');
+		if ($dir == '/')
+		{
+			return rtrim(\JURI::base(true), '/') . $dir . $image;
+		}
+
+		if ($module == 'system')
+		{
+			return Assets::getSystemImage($image);
+		}
+
+		if (substr($module, 0, strlen('mod_')) !== 'mod_')
+		{
+			$module = 'mod_' . $module;
+		}
+
+		return Assets::getModuleImage($module, $image, $dir);
+	}
+
+	/**
 	 * Display module
-	 * 
+	 *
 	 * @return  void
 	 */
 	public function display()

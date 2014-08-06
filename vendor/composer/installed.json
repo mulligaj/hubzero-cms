@@ -346,83 +346,18 @@
         ]
     },
     {
-        "name": "willdurand/geocoder",
-        "version": "2.4.2",
-        "version_normalized": "2.4.2.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/geocoder-php/Geocoder.git",
-            "reference": "258e2f5c84a9cea03096f6f11ecdc0293fbc7b93"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/geocoder-php/Geocoder/zipball/258e2f5c84a9cea03096f6f11ecdc0293fbc7b93",
-            "reference": "258e2f5c84a9cea03096f6f11ecdc0293fbc7b93",
-            "shasum": ""
-        },
-        "require": {
-            "php": ">=5.3.0"
-        },
-        "require-dev": {
-            "geoip/geoip": "~1.13",
-            "guzzle/guzzle": "@stable",
-            "kriswallsmith/buzz": "@stable",
-            "zendframework/zend-http": "~2.1"
-        },
-        "suggest": {
-            "ext-curl": "Enabling the curl extension allows you to use the CurlHttpAdapter.",
-            "ext-geoip": "Enabling the geoip extension allows you to use the MaxMindProvider.",
-            "geoip/geoip": "If you are going to use the MaxMindBinaryProvider (conflict with geoip extension).",
-            "guzzle/guzzle": "Enabling Guzzle allows you to use the GuzzleHttpAdapter.",
-            "kriswallsmith/buzz": "Enabling Buzz allows you to use the BuzzHttpAdapter.",
-            "zendframework/zend-http": "Enabling Zend Http allows you to use the ZendHttpAdapter."
-        },
-        "time": "2014-01-05 01:57:42",
-        "type": "library",
-        "extra": {
-            "branch-alias": {
-                "dev-master": "2.4-dev"
-            }
-        },
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Geocoder": "src/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "authors": [
-            {
-                "name": "William Durand",
-                "email": "william.durand1@gmail.com",
-                "homepage": "http://www.willdurand.fr"
-            }
-        ],
-        "description": "The almost missing Geocoder PHP 5.3 library.",
-        "homepage": "http://geocoder-php.org",
-        "keywords": [
-            "abstraction",
-            "geocoder",
-            "geocoding",
-            "geoip"
-        ]
-    },
-    {
         "name": "guzzle/guzzle",
         "version": "dev-master",
         "version_normalized": "9999999-dev",
         "source": {
             "type": "git",
             "url": "https://github.com/guzzle/guzzle3.git",
-            "reference": "92d9934f2fca1da15178c91239576ae26e505e60"
+            "reference": "55ac3a0eda562f9d961dcd7dc4813713397c96a0"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/guzzle/guzzle3/zipball/92d9934f2fca1da15178c91239576ae26e505e60",
-            "reference": "92d9934f2fca1da15178c91239576ae26e505e60",
+            "url": "https://api.github.com/repos/guzzle/guzzle3/zipball/55ac3a0eda562f9d961dcd7dc4813713397c96a0",
+            "reference": "55ac3a0eda562f9d961dcd7dc4813713397c96a0",
             "shasum": ""
         },
         "require": {
@@ -463,11 +398,11 @@
             "zendframework/zend-cache": "2.*,<2.3",
             "zendframework/zend-log": "2.*,<2.3"
         },
-        "time": "2014-05-07 17:04:22",
+        "time": "2014-07-29 19:57:57",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "3.8-dev"
+                "dev-master": "3.9-dev"
             }
         },
         "installation-source": "dist",
@@ -505,84 +440,104 @@
         ]
     },
     {
-        "name": "tplaner/when",
-        "version": "dev-develop",
-        "version_normalized": "dev-develop",
+        "name": "willdurand/geocoder",
+        "version": "2.5.0",
+        "version_normalized": "2.5.0.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/tplaner/when.git",
-            "reference": "266c22fd81f05074396214807e192d3bf600e802"
+            "url": "https://github.com/geocoder-php/Geocoder.git",
+            "reference": "50e54f88b539de0ca3864e8e6a48412d1358d8b7"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/tplaner/when/zipball/266c22fd81f05074396214807e192d3bf600e802",
-            "reference": "266c22fd81f05074396214807e192d3bf600e802",
+            "url": "https://api.github.com/repos/geocoder-php/Geocoder/zipball/50e54f88b539de0ca3864e8e6a48412d1358d8b7",
+            "reference": "50e54f88b539de0ca3864e8e6a48412d1358d8b7",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.0"
         },
-        "time": "2013-12-13 21:55:19",
+        "require-dev": {
+            "geoip/geoip": "~1.13",
+            "guzzle/guzzle": "@stable",
+            "kriswallsmith/buzz": "@stable",
+            "zendframework/zend-http": "~2.1"
+        },
+        "suggest": {
+            "ext-curl": "Enabling the curl extension allows you to use the CurlHttpAdapter.",
+            "ext-geoip": "Enabling the geoip extension allows you to use the MaxMindProvider.",
+            "geoip/geoip": "If you are going to use the MaxMindBinaryProvider (conflict with geoip extension).",
+            "guzzle/guzzle": "Enabling Guzzle allows you to use the GuzzleHttpAdapter.",
+            "kriswallsmith/buzz": "Enabling Buzz allows you to use the BuzzHttpAdapter.",
+            "zendframework/zend-http": "Enabling Zend Http allows you to use the ZendHttpAdapter."
+        },
+        "time": "2014-05-16 09:11:44",
         "type": "library",
+        "extra": {
+            "branch-alias": {
+                "dev-master": "2.5-dev"
+            }
+        },
         "installation-source": "dist",
         "autoload": {
             "psr-0": {
-                "When": "src/"
+                "Geocoder": "src/"
             }
         },
+        "notification-url": "https://packagist.org/downloads/",
         "license": [
             "MIT"
         ],
         "authors": [
             {
-                "name": "Tom Planer",
-                "email": "tplaner@gmail.com"
+                "name": "William Durand",
+                "email": "william.durand1@gmail.com",
+                "homepage": "http://www.willdurand.fr"
             }
         ],
-        "description": "Date/Calendar recursion library.",
-        "homepage": "https://github.com/tplaner/When",
+        "description": "The almost missing Geocoder PHP 5.3 library.",
+        "homepage": "http://geocoder-php.org",
         "keywords": [
-            "DateTime",
-            "date",
-            "recurrence",
-            "time"
-        ],
-        "support": {
-            "source": "https://github.com/tplaner/when/tree/develop",
-            "issues": "https://github.com/tplaner/when/issues"
-        }
+            "abstraction",
+            "geocoder",
+            "geocoding",
+            "geoip"
+        ]
     },
     {
         "name": "symfony/event-dispatcher",
-        "version": "v2.4.4",
-        "version_normalized": "2.4.4.0",
+        "version": "v2.5.2",
+        "version_normalized": "2.5.2.0",
         "target-dir": "Symfony/Component/EventDispatcher",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/EventDispatcher.git",
-            "reference": "e539602e5455aa086c0e81e604745af7789e4d8a"
+            "reference": "2215d2ef6fd7ab24d55576a3d924df575c741762"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/e539602e5455aa086c0e81e604745af7789e4d8a",
-            "reference": "e539602e5455aa086c0e81e604745af7789e4d8a",
+            "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/2215d2ef6fd7ab24d55576a3d924df575c741762",
+            "reference": "2215d2ef6fd7ab24d55576a3d924df575c741762",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.3"
         },
         "require-dev": {
-            "symfony/dependency-injection": "~2.0"
+            "psr/log": "~1.0",
+            "symfony/config": "~2.0",
+            "symfony/dependency-injection": "~2.0",
+            "symfony/stopwatch": "~2.2"
         },
         "suggest": {
             "symfony/dependency-injection": "",
             "symfony/http-kernel": ""
         },
-        "time": "2014-04-16 10:34:31",
+        "time": "2014-07-09 09:05:48",
         "type": "library",
         "extra": {
             "branch-alias": {
-                "dev-master": "2.4-dev"
+                "dev-master": "2.5-dev"
             }
         },
         "installation-source": "dist",
@@ -611,109 +566,102 @@
         "homepage": "http://symfony.com"
     },
     {
-        "name": "kriswallsmith/buzz",
-        "version": "v0.10",
-        "version_normalized": "0.10.0.0",
+        "name": "facebook/php-sdk-v4",
+        "version": "4.0.9",
+        "version_normalized": "4.0.9.0",
         "source": {
             "type": "git",
-            "url": "https://github.com/kriswallsmith/Buzz.git",
-            "reference": "759432d66387e3433d3b06cb6f773b97225b9b17"
+            "url": "https://github.com/facebook/facebook-php-sdk-v4.git",
+            "reference": "a20dc24e0536ba7332f79b74c5a4deb45fa998f8"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/kriswallsmith/Buzz/zipball/759432d66387e3433d3b06cb6f773b97225b9b17",
-            "reference": "759432d66387e3433d3b06cb6f773b97225b9b17",
+            "url": "https://api.github.com/repos/facebook/facebook-php-sdk-v4/zipball/a20dc24e0536ba7332f79b74c5a4deb45fa998f8",
+            "reference": "a20dc24e0536ba7332f79b74c5a4deb45fa998f8",
+            "shasum": ""
+        },
+        "require": {
+            "php": ">=5.4.0"
+        },
+        "require-dev": {
+            "guzzlehttp/guzzle": "~4.0",
+            "mockery/mockery": "dev-master",
+            "phpunit/phpunit": "3.7.*"
+        },
+        "suggest": {
+            "guzzlehttp/guzzle": "Allows for implementation of the Guzzle HTTP client"
+        },
+        "time": "2014-06-27 11:59:52",
+        "type": "library",
+        "installation-source": "dist",
+        "autoload": {
+            "psr-4": {
+                "Facebook\\": "src/Facebook/"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "license": [
+            "Facebook Platform"
+        ],
+        "authors": [
+            {
+                "name": "Facebook",
+                "homepage": "https://github.com/facebook/facebook-php-sdk-v4/contributors"
+            }
+        ],
+        "description": "Facebook SDK for PHP",
+        "homepage": "https://github.com/facebook/facebook-php-sdk-v4",
+        "keywords": [
+            "facebook",
+            "sdk"
+        ]
+    },
+    {
+        "name": "tplaner/when",
+        "version": "dev-develop",
+        "version_normalized": "dev-develop",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/tplaner/When.git",
+            "reference": "2e7aae395422165ad76b7d67e6e89cfcb3ce0b5a"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/tplaner/When/zipball/2e7aae395422165ad76b7d67e6e89cfcb3ce0b5a",
+            "reference": "2e7aae395422165ad76b7d67e6e89cfcb3ce0b5a",
             "shasum": ""
         },
         "require": {
             "php": ">=5.3.0"
         },
-        "require-dev": {
-            "phpunit/phpunit": "3.7.*"
-        },
-        "suggest": {
-            "ext-curl": "*"
-        },
-        "time": "2013-05-19 03:41:15",
+        "time": "2014-06-16 22:55:57",
         "type": "library",
         "installation-source": "dist",
         "autoload": {
             "psr-0": {
-                "Buzz": "lib/"
+                "When": "src/"
             }
         },
-        "notification-url": "https://packagist.org/downloads/",
         "license": [
             "MIT"
         ],
         "authors": [
             {
-                "name": "Kris Wallsmith",
-                "email": "kris.wallsmith@gmail.com",
-                "homepage": "http://kriswallsmith.net/"
+                "name": "Tom Planer",
+                "email": "tplaner@gmail.com"
             }
         ],
-        "description": "Lightweight HTTP client",
-        "homepage": "https://github.com/kriswallsmith/Buzz",
+        "description": "Date/Calendar recursion library.",
+        "homepage": "https://github.com/tplaner/When",
         "keywords": [
-            "curl",
-            "http client"
-        ]
-    },
-    {
-        "name": "m4tthumphrey/php-gitlab-api",
-        "version": "6.4.3",
-        "version_normalized": "6.4.3.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/m4tthumphrey/php-gitlab-api.git",
-            "reference": "039883df2526802bb46b46c7e371cebaa7e3b9a7"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/m4tthumphrey/php-gitlab-api/zipball/039883df2526802bb46b46c7e371cebaa7e3b9a7",
-            "reference": "039883df2526802bb46b46c7e371cebaa7e3b9a7",
-            "shasum": ""
-        },
-        "require": {
-            "ext-curl": "*",
-            "kriswallsmith/buzz": ">=0.7",
-            "php": ">=5.3.2"
-        },
-        "time": "2014-01-10 16:27:01",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-0": {
-                "Gitlab\\": "lib/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
+            "DateTime",
+            "date",
+            "recurrence",
+            "time"
         ],
-        "authors": [
-            {
-                "name": "Thibault Duplessis",
-                "email": "thibault.duplessis@gmail.com",
-                "homepage": "http://ornicar.github.com"
-            },
-            {
-                "name": "KnpLabs Team",
-                "homepage": "http://knplabs.com"
-            },
-            {
-                "name": "Matt Humphrey",
-                "email": "matt@m4tt.co",
-                "homepage": "http://m4tt.io",
-                "role": "Lead Developer"
-            }
-        ],
-        "description": "GitLab API client",
-        "homepage": "https://github.com/m4tthumphrey/php-gitlab-api",
-        "keywords": [
-            "api",
-            "gitlab"
-        ]
+        "support": {
+            "source": "https://github.com/tplaner/When/tree/develop",
+            "issues": "https://github.com/tplaner/When/issues"
+        }
     }
 ]

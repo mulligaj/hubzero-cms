@@ -27,7 +27,7 @@ defined('_JEXEC') or die('Restricted access');
 
 if ($this->comments) { ?>
 	<ol class="comments">
-	<?php 
+	<?php
 		$cls = 'odd';
 		if (isset($this->cls))
 		{
@@ -36,25 +36,18 @@ if ($this->comments) { ?>
 
 		$this->depth++;
 
-		foreach ($this->comments as $comment) 
+		foreach ($this->comments as $comment)
 		{
-			$view = new \Hubzero\Plugin\View(
-				array(
-					'folder'  => 'hubzero',
-					'element' => 'comments',
-					'name'    => 'view',
-					'layout'  => 'item'
-				)
-			);
-			$view->option     = $this->option;
-			$view->comment    = $comment;
-			$view->obj_type   = $this->obj_type;
-			$view->obj        = $this->obj;
-			$view->params     = $this->params;
-			$view->depth      = $this->depth;
-			$view->cls        = $cls;
-			$view->url        = $this->url;
-			$view->display();
+			$this->view('item')
+			     ->set('option', $this->option)
+			     ->set('comment', $comment)
+			     ->set('obj_type', $this->obj_type)
+			     ->set('obj', $this->obj)
+			     ->set('params', $this->params)
+			     ->set('depth', $this->depth)
+			     ->set('cls', $cls)
+			     ->set('url', $this->url)
+			     ->display();
 		}
 	?>
 	</ol>

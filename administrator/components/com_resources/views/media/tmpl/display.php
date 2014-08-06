@@ -28,7 +28,8 @@
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_JEXEC') or die('Restricted access');
+
 if ($this->getError()) {
 	echo '<p class="error">' . implode('<br />', $this->getErrors()) . '</p>';
 }
@@ -52,11 +53,11 @@ function goUpDir()
 </script>
 
 <form action="index.php" name="adminForm" id="adminForm" method="post" enctype="multipart/form-data">
-	<p>path = <?php echo $this->path; ?></p>
-	
+	<p><?php echo JText::sprintf('COM_RESOURCES_MEDIA_PATH', $this->path); ?></p>
+
 	<fieldset>
 		<label>
-			Directory
+			<?php echo JText::_('COM_RESOURCES_MEDIA_DIRECTORY'); ?>
 			<?php echo $this->dirPath; ?>
 		</label>
 
@@ -64,25 +65,25 @@ function goUpDir()
 			<iframe src="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=list&amp;tmpl=component&amp;listdir=<?php echo $this->listdir; ?>&amp;subdir=<?php echo $this->subdir; ?>" name="imgManager" id="imgManager" width="98%" height="180"></iframe>
 		</div>
 	</fieldset>
-	
+
 	<fieldset>
 		<table>
 			<tbody>
 				<tr>
-					<td><label for="upload"><?php echo JText::_('Upload'); ?></label></td>
+					<td><label for="upload"><?php echo JText::_('COM_RESOURCES_MEDIA_UPLOAD'); ?></label></td>
 					<td><input type="file" name="upload" id="upload" /></td>
 				</tr>
 				<tr>
 					<td> </td>
-					<td><input type="checkbox" name="batch" id="batch" value="1" /> <label for="batch"><?php echo JText::_('Unpack file (.zip, .tar, etc)'); ?></label></td>
+					<td><input type="checkbox" name="batch" id="batch" value="1" /> <label for="batch"><?php echo JText::_('COM_RESOURCES_MEDIA_UPLOAD_UNPACK'); ?></label></td>
 				</tr>
 				<tr>
-					<td><label for="foldername"><?php echo JText::_('Create Directory'); ?></label></td>
+					<td><label for="foldername"><?php echo JText::_('COM_RESOURCES_MEDIA_CREATE_DIRECTORY'); ?></label></td>
 					<td><input type="text" name="foldername" id="foldername" /></td>
 				</tr>
 				<tr>
 					<td> </td>
-					<td><input type="submit" value="<?php echo JText::_('Create or Upload'); ?>" /></td>
+					<td><input type="submit" value="<?php echo JText::_('COM_RESOURCES_MEDIA_ACTION_UPLOAD'); ?>" /></td>
 				</tr>
 			</tbody>
 		</table>
@@ -93,5 +94,6 @@ function goUpDir()
 		<input type="hidden" name="listdir" id="listdir" value="<?php echo $this->listdir; ?>" />
 		<input type="hidden" name="task" value="upload" />
 	</fieldset>
-	<?php echo JHTML::_( 'form.token' ); ?>
+
+	<?php echo JHTML::_('form.token'); ?>
 </form>

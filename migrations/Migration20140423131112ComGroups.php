@@ -6,7 +6,7 @@ use Hubzero\Content\Migration\Base;
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Migration script for ...
+ * Migration script for deleting duplicate groups and enforcing with index
  **/
 class Migration20140423131112ComGroups extends Base
 {
@@ -16,7 +16,7 @@ class Migration20140423131112ComGroups extends Base
 	public function up()
 	{
 		// select all groups with duplicate cname's
-		$query = "SELECT gidNumber, cn, description 
+		$query = "SELECT gidNumber, cn, description
 				  FROM `#__xgroups` WHERE cn IN (
 					  SELECT cn FROM `#__xgroups` GROUP BY cn HAVING COUNT(*) > 1
 				  ) ORDER BY gidNumber;";

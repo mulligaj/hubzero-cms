@@ -303,7 +303,7 @@ class CoursesControllerAssets extends \Hubzero\Component\AdminController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// load the request vars
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 		$tmpl   = JRequest::getVar('tmpl', '');
 
 		// instatiate course page object for saving
@@ -360,13 +360,13 @@ class CoursesControllerAssets extends \Hubzero\Component\AdminController
 
 		// Rename the temporary upload directory if it exist
 		$lid = $fields['lid'];
-		if ($lid != $row->get('id')) 
+		if ($lid != $row->get('id'))
 		{
 			$path = JPATH_ROOT . DS . trim($this->config->get('uploadpath', '/site/courses'), DS) . DS . $fields['course_id'];
-			if (is_dir($path . DS . $lid)) 
+			if (is_dir($path . DS . $lid))
 			{
 				jimport('joomla.filesystem.folder');
-				if (!JFolder::move($path . DS . $lid, $path . DS . $row->get('id'))) 
+				if (!JFolder::move($path . DS . $lid, $path . DS . $row->get('id')))
 				{
 					$this->setError(JFolder::move($path . DS . $lid, $path . DS . $row->get('id')));
 				}
@@ -448,7 +448,7 @@ class CoursesControllerAssets extends \Hubzero\Component\AdminController
 			}
 			else
 			{
-				echo '<p class="message">' . JText::_('Entry successfully saved') . '</p>';
+				echo '<p class="message">' . JText::_('COM_COURSES_ITEM_SAVED') . '</p>';
 			}
 			return;
 		}

@@ -32,46 +32,14 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $option = JRequest::getCmd('option', 'com_feedback');
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-	
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect( 'index.php', JText::_('ALERTNOTAUTH') );
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include scripts
 require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'quotes.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'selectedquotes.php');
 require_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'feedback.php');
-
-$type = JRequest::getVar('type', 'regular');
-
-JSubMenuHelper::addEntry(
-	JText::_('Submitted'),
-	'index.php?option=com_feedback&controller=quotes&type=regular',
-	$type == 'regular'
-);
-JSubMenuHelper::addEntry(
-	JText::_('Selected'),
-	'index.php?option=com_feedback&controller=quotes&type=selected',
-	$type == 'selected'
-);
 
 $controllerName = JRequest::getCmd('controller', 'quotes');
 if (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))

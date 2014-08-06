@@ -38,7 +38,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Executes a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -48,19 +48,20 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Lists publications
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
 		// Push some styles to the template
 		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'publications.css');
+		$document->addStyleSheet('components' . DS . $this->_option . DS
+			. 'assets' . DS . 'css' . DS . 'publications.css');
 
 		// Get configuration
 		$app = JFactory::getApplication();
 		$config = JFactory::getConfig();
-			
+
 		// Incoming
 		$this->view->filters = array();
 		$this->view->filters['limit']    = $app->getUserStateFromRequest(
@@ -117,7 +118,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
-		
+
 		// Get component config
 		$pconfig = JComponentHelper::getParams( $this->_option );
 		$this->view->config = $pconfig;
@@ -139,9 +140,9 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit form for a publication
-	 * 
+	 *
 	 * @param      integer $isnew Flag for editing (0) or creating new (1)
-	 * @return     void 
+	 * @return     void
 	 */
 	public function editTask($isnew=0)
 	{
@@ -150,29 +151,33 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		// Get the publications component config
 		$this->view->config = $this->config;
 
+		// Use new curation flow?
+		$this->view->useBlocks  = $this->view->config->get('curation', 0);
+
 		// Push some styles to the template
 		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'publications.css');
+		$document->addStyleSheet('components' . DS . $this->_option . DS
+			. 'assets' . DS . 'css' . DS . 'publications.css');
 
 		// Incoming publication ID
 		$id = JRequest::getVar('id', array(0));
-		if (is_array($id)) 
+		if (is_array($id))
 		{
 			$id = $id[0];
 		}
-		
+
 		// Is this a new publication? TBD
 		if (!$id)
-		{		
+		{
 			$this->view->isnew = 1;
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('New publications can only be added via projects on the front-end.'),
+				JText::_('COM_PUBLICATIONS_ERROR_CREATE_FRONT_END'),
 				'notice'
 			);
-			return;			
-		}		
-		
+			return;
+		}
+
 		// Incoming version
 		$version 	= JRequest::getVar( 'version', '' );
 
@@ -184,32 +189,33 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 
 		// Instantiate publication object
 		$objP = new Publication( $this->database );
-		
+
 		// Instantiate Version
 		$this->view->row = new PublicationVersion($this->database);
-				
+
 		// Check that version exists
 		$version = $this->view->row->checkVersion($id, $version) ? $version : 'default';
 		$this->view->version = $version;
-		
+
 		// Get publication information
 		$this->view->pub = $objP->getPublication($id, $version);
 		$objP->load($id);
 		$this->view->objP = $objP;
-		
+
 		// If publication not found, raise error
-		if (!$this->view->pub) 
+		if (!$this->view->pub)
 		{
 			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_NOT_FOUND') );
 			return;
 		}
-		
-		// Load version	
-		$vid = $this->view->pub->version_id;						
+
+		// Load publication project
+		$this->view->pub->_project = new Project($this->database);
+		$this->view->pub->_project->load($this->view->pub->project_id);
+
+		// Load version
+		$vid = $this->view->pub->version_id;
 		$this->view->row->load($vid);
-		
-		// Check if pub is ready to be released
-		$checked = array('content' => 0, 'description' => 0, 'authors' => 0);
 
 		// Fail if checked out not by 'me'
 		if ($this->view->objP->checked_out
@@ -217,7 +223,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('This resource is currently being edited by another administrator'),
+				JText::_('COM_PUBLICATIONS_ERROR_CHECKED_OUT'),
 				'notice'
 			);
 			return;
@@ -228,14 +234,15 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 
 		if (trim($this->view->row->published_down) == '0000-00-00 00:00:00')
 		{
-			$this->view->row->published_down = JText::_('Never');
+			$this->view->row->published_down = JText::_('COM_PUBLICATIONS_NEVER');
 		}
 
 		// Get name of resource creator
 		$creator = JUser::getInstance($this->view->row->created_by);
 
 		$this->view->row->created_by_name = $creator->get('name');
-		$this->view->row->created_by_name = ($this->view->row->created_by_name) ? $this->view->row->created_by_name : JText::_('Unknown');
+		$this->view->row->created_by_name = ($this->view->row->created_by_name)
+			? $this->view->row->created_by_name : JText::_('COM_PUBLICATIONS_UNKNOWN');
 
 		// Get name of last person to modify resource
 		if ($this->view->row->modified_by)
@@ -243,79 +250,98 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$modifier = JUser::getInstance($this->view->row->modified_by);
 
 			$this->view->row->modified_by_name = $modifier->get('name');
-			$this->view->row->modified_by_name = ($this->view->row->modified_by_name) ? $this->view->row->modified_by_name : JText::_('Unknown');
+			$this->view->row->modified_by_name = ($this->view->row->modified_by_name)
+				? $this->view->row->modified_by_name : JText::_('COM_PUBLICATIONS_UNKNOWN');
 		}
 		else
 		{
 			$this->view->row->modified_by_name = '';
 		}
-		
+
 		// Get publications helper
 		$helper = new PublicationHelper($this->database, $this->view->row->id, $id);
-		
-		// Build publication path 
+
+		// Build publication path
 		$base_path = $this->view->config->get('webpath');
 		$path = $helper->buildPath($id, $this->view->row->id, $base_path);
-		
+
 		// Archival package?
-		$this->view->archPath = JPATH_ROOT . $path . DS . JText::_('Publication').'_'.$id.'.zip';
+		$this->view->archPath = JPATH_ROOT . $path . DS
+			. JText::_('Publication').'_'.$id.'.zip';
 
 		// Get params definitions
-		$this->view->params  = new JParameter($this->view->row->params, JPATH_COMPONENT . DS . 'publications.xml');
-
-		// Build selects of various categories
-		$rt = new PublicationCategory($this->database);
-		$this->view->lists['category'] = PublicationsHtml::selectCategory(
-			$rt->getContribCategories(), 'category', $this->view->pub->category, '', '', '', ''
+		$this->view->params  = new JParameter(
+			$this->view->row->params,
+			JPATH_COMPONENT . DS . 'publications.xml'
 		);
-	
+
+		// Get category
+		$this->view->pub->_category = new PublicationCategory( $this->database );
+		$this->view->pub->_category->load($this->view->pub->category);
+		$this->view->pub->_category->_params = new JParameter( $this->view->pub->_category->params );
+
+		$this->view->lists['category'] = PublicationsAdminHtml::selectCategory(
+			$this->view->pub->_category->getContribCategories(),
+			'category',
+			$this->view->pub->category,
+			'',
+			'',
+			'',
+			''
+		);
+
 		// Get master type info
-		$mtObj = new PublicationMasterType( $this->database );
-		$mtObj->load($this->view->pub->master_type);
-		$this->view->typeParams = new JParameter( $mtObj->params );
-		
+		$mt = new PublicationMasterType( $this->database );
+		$this->view->pub->_type = $mt->getType($this->view->pub->base);
+		$this->view->typeParams = new JParameter( $this->view->pub->_type->params );
+
 		// Get attachments
 		$pContent = new PublicationAttachment( $this->database );
-		$primary = $pContent->getAttachments( $this->view->row->id, $filters = array('role' => '1') );
-		$secondary = $pContent->getAttachments( $this->view->row->id, $filters = array('role' => '0') );
-		if (count($primary) > 0) 
+		$this->view->pub->_attachments = $pContent->sortAttachments ( $this->view->pub->version_id );
+
+		// Curation
+		if ($this->view->useBlocks)
 		{
-			$checked['content'] = 1;
+			// Get manifest from either version record (published) or master type
+			$manifest   = $this->view->pub->curation
+						? $this->view->pub->curation
+						: $this->view->pub->_type->curation;
+
+			// Get curation model
+			$this->view->pub->_curationModel = new PublicationsCuration($this->database, $manifest);
+
+			// Set pub assoc and load curation
+			$this->view->pub->_curationModel->setPubAssoc($this->view->pub);
 		}
-		$this->view->lists['content'] = PublicationsHtml::selectContent($primary, $secondary, $this->_option);	
-		
+
+		// Draw content
+		$this->view->lists['content'] = PublicationsAdminHtml::selectContent(
+			$this->view->pub,
+			$this->_option,
+			$this->view->useBlocks,
+			$this->database
+		);
+
 		// Get pub authors
-		$pa = new PublicationAuthor( $this->database );
-		$authors = $pa->getAuthors($vid);
-		if (count($authors) > 0) 
-		{
-			$checked['authors'] = 1;
-		}
-		
-		// Get submitter
-		$this->view->submitter = $pa->getSubmitter($this->view->row->id, $this->view->row->created_by);
-		
-		// Build <select> of project owners		
-		$this->view->lists['authors'] = PublicationsHtml::selectAuthorsNoEdit($authors, $this->_option);
-		
-		// Description is there?
-		$checked['description'] = $this->view->row->title && $this->view->row->abstract && $this->view->row->description ? 1 : 0;
-		$this->view->checked = $checked;
-		
-		// Is publishing allowed?
-		if ($checked['content'] == 1 && $checked['authors'] == 1 && $checked['description'] == 1) 
-		{
-			$this->view->pub_allowed = 1;
-		}
-		else 
-		{
-			$this->view->pub_allowed = 0;
-		}
-		
+		$pAuthors 			= new PublicationAuthor( $this->database );
+		$this->view->pub->_authors 		= $pAuthors->getAuthors($this->view->pub->version_id);
+		$this->view->pub->_submitter 	= $pAuthors->getSubmitter($this->view->pub->version_id, $this->view->pub->created_by);
+
+		// Draw publication authors
+		$this->view->lists['authors'] = PublicationsAdminHtml::selectAuthorsNoEdit($this->view->pub->_authors, $this->_option);
+
 		// Get tags on this item
-		$tagsHelper = new PublicationTags( $this->database);
+		$tagsHelper = new PublicationTags( $this->database );
 		$this->view->lists['tags'] = $tagsHelper->get_tag_string($id, 0, 0, NULL, 0, 1);
-				
+
+		// Get selected license
+		$objL = new PublicationLicense( $this->database );
+		$this->view->license = $objL->getPubLicense( $this->view->pub->version_id );
+		$this->view->lists['licenses'] = PublicationsAdminHtml::selectLicense(
+			$objL->getLicenses(),
+			$this->view->license
+		);
+
 		// Set any errors
 		if ($this->getError())
 		{
@@ -325,33 +351,78 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		// Output the HTML
 		$this->view->display();
 	}
-	
+
 	/**
-	 * Edit author name and details
-	 * 
+	 * Edit content item
+	 *
 	 * @return     void
 	 */
-	public function editauthorTask()
+	public function editcontentTask()
 	{
 		// Incoming
-		$author = JRequest::getInt( 'author', 0 );
-		
-		$this->view->author = new PublicationAuthor( $this->database );
-		if (!$this->view->author->load($author))
+		$id 	= JRequest::getInt( 'id', 0 );
+		$el 	= JRequest::getInt( 'el', 0 );
+		$v 		= JRequest::getInt( 'v', 0 );
+
+		$objP = new Publication( $this->database );
+
+		// Get publication information
+		$this->view->pub = $objP->getPublication($id, $v);
+
+		// If publication not found, raise error
+		if (!$this->view->pub)
 		{
-			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_ERROR_NO_AUTHOR_RECORD') );
+			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_NOT_FOUND') );
 			return;
 		}
-		
-		$this->view->row  = new PublicationVersion( $this->database );
-		$this->view->pub  = new Publication( $this->database );
-		
-		// Load version						
-		$this->view->row->load($this->view->author->publication_version_id);
-		
-		// Load publication
-		$this->view->pub->load($this->view->row->publication_id);
-		
+
+		// Get the publications component config
+		$this->view->config = $this->config;
+
+		// Use new curation flow?
+		$this->view->useBlocks  = $this->view->config->get('curation', 0);
+
+		if (!$this->view->useBlocks)
+		{
+			$this->setError(JText::_('COM_PUBLICATIONS_ERROR_CURATION_NEEDED'));
+		}
+		else
+		{
+			// Load publication project
+			$this->view->pub->_project = new Project($this->database);
+			$this->view->pub->_project->load($this->view->pub->project_id);
+
+			// Get master type info
+			$mt = new PublicationMasterType( $this->database );
+			$this->view->pub->_type = $mt->getType($this->view->pub->base);
+			$this->view->typeParams = new JParameter( $this->view->pub->_type->params );
+
+			// Get attachments
+			$pContent = new PublicationAttachment( $this->database );
+			$this->view->pub->_attachments = $pContent->sortAttachments ( $this->view->pub->version_id );
+
+			// Get manifest from either version record (published) or master type
+			$manifest   = $this->view->pub->curation
+						? $this->view->pub->curation
+						: $this->view->pub->_type->curation;
+
+			// Get curation model
+			$this->view->pub->_curationModel = new PublicationsCuration($this->database, $manifest);
+
+			// Set pub assoc and load curation
+			$this->view->pub->_curationModel->setPubAssoc($this->view->pub);
+
+			if (!$el)
+			{
+				$this->setError();
+			}
+			else
+			{
+				$this->view->elementId = $el;
+				$this->view->element = $this->view->pub->_curationModel->getElementManifest($el, 'content');
+			}
+		}
+
 		// Set any errors
 		if ($this->getError())
 		{
@@ -360,145 +431,293 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 				$this->view->setError($error);
 			}
 		}
-		
+
 		// Push some styles to the template
 		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'publications.css');
+		$document->addStyleSheet('components' . DS . $this->_option . DS
+			. 'assets' . DS . 'css' . DS . 'publications.css');
 
 		// Output the HTML
-		$this->view->display();		
+		$this->view->display();
+
 	}
-	
+
+	/**
+	 * Save content item details
+	 *
+	 * @return     void
+	 */
+	public function savecontentTask()
+	{
+		// Check for request forgeries
+		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
+
+		// Incoming
+		$el 	 = JRequest::getInt( 'el', 0 );
+		$id 	 = JRequest::getInt( 'id', 0 );
+		$version = JRequest::getVar( 'version', '' );
+		$params  = JRequest::getVar( 'params', array(), 'request', 'array' );
+		$attachments = JRequest::getVar( 'attachments', array(), 'request', 'array' );
+
+		$row = new PublicationVersion($this->database);
+
+		$objP = new Publication( $this->database );
+
+		// Get publication information
+		$pub = $objP->getPublication($id, $version);
+
+		// If publication not found, raise error
+		if (!$pub)
+		{
+			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_NOT_FOUND') );
+			return;
+		}
+
+		// Use new curation flow?
+		$useBlocks  = $this->config->get('curation', 0);
+
+		if (!$useBlocks)
+		{
+			$this->setRedirect(
+				$url,
+				JText::_('COM_PUBLICATIONS_ERROR_CURATION_NEEDED'),
+				'error'
+			);
+			return;
+		}
+		else
+		{
+			// Load publication project
+			$pub->_project = new Project($this->database);
+			$pub->_project->load($pub->project_id);
+
+			// Get master type info
+			$mt = new PublicationMasterType( $this->database );
+			$pub->_type = $mt->getType($pub->base);
+			$typeParams = new JParameter( $pub->_type->params );
+
+			// Get attachments
+			$pContent = new PublicationAttachment( $this->database );
+			$pub->_attachments = $pContent->sortAttachments ( $pub->version_id );
+
+			// Get manifest from either version record (published) or master type
+			$manifest   = $this->view->pub->curation
+						? $this->view->pub->curation
+						: $this->view->pub->_type->curation;
+
+			// Get curation model
+			$pub->_curationModel = new PublicationsCuration($this->database, $manifest);
+
+			// Set pub assoc and load curation
+			$pub->_curationModel->setPubAssoc($pub);
+
+			if (!empty($params))
+			{
+				foreach ($params as $param => $value )
+				{
+					$row->saveParam($pub->version_id, $param, $value);
+				}
+			}
+			if (!empty($attachments))
+			{
+				foreach ($attachments as $attachId => $attach )
+				{
+					$pContent = new PublicationAttachment( $this->database );
+					if ($pContent->load($attachId))
+					{
+						$pContent->title = $attach['title'];
+						$pContent->store();
+					}
+				}
+			}
+		}
+
+		// Set redirect URL
+		$url = 'index.php?option=' . $this->_option . '&controller='
+			. $this->_controller . '&task=edit' . '&id[]=' . $id . '&version=' . $version;
+
+		// Redirect back to publication
+		$this->setRedirect(
+			$url,
+			JText::_('COM_PUBLICATIONS_SUCCESS_SAVED_CONTENT')
+		);
+	}
+
+	/**
+	 * Edit author name and details
+	 *
+	 * @return     void
+	 */
+	public function editauthorTask()
+	{
+		// Incoming
+		$author = JRequest::getInt( 'author', 0 );
+
+		$this->view->author = new PublicationAuthor( $this->database );
+		if (!$this->view->author->load($author))
+		{
+			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_ERROR_NO_AUTHOR_RECORD') );
+			return;
+		}
+
+		$this->view->row = new PublicationVersion( $this->database );
+		$this->view->pub = new Publication( $this->database );
+
+		// Load version
+		$this->view->row->load($this->view->author->publication_version_id);
+
+		// Load publication
+		$this->view->pub->load($this->view->row->publication_id);
+
+		// Set any errors
+		if ($this->getError())
+		{
+			foreach ($this->getErrors() as $error)
+			{
+				$this->view->setError($error);
+			}
+		}
+
+		// Push some styles to the template
+		$document = JFactory::getDocument();
+		$document->addStyleSheet('components' . DS . $this->_option . DS
+			. 'assets' . DS . 'css' . DS . 'publications.css');
+
+		// Output the HTML
+		$this->view->display();
+	}
+
 	/**
 	 * Delete author
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deleteauthorTask()
 	{
 		// Incoming
 		$aid = JRequest::getInt( 'aid', 0 );
-		
+
 		$pAuthor = new PublicationAuthor( $this->database );
 		if (!$pAuthor->load($aid))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Cannot load publication author to delete.'),
+				JText::_('COM_PUBLICATIONS_ERROR_LOAD_AUTHOR'),
 				'error'
 			);
 			return;
 		}
-		
+
 		$url = 'index.php?option=' . $this->_option . '&controller=' . $this->_controller;
-		
+
 		// Instantiate Version
 		$row = new PublicationVersion($this->database);
 		if ($row->load($pAuthor->publication_version_id))
 		{
-			$url .= '&task=edit' . '&id[]=' . $row->publication_id . '&version=' . $row->version_number;
+			$url .= '&task=edit' . '&id[]=' . $row->publication_id
+				. '&version=' . $row->version_number;
 		}
-		
+
 		if (!$pAuthor->delete())
 		{
 			$this->setRedirect(
 				$url,
-				JText::_('Failed to delete author information'),
+				JText::_('COM_PUBLICATIONS_ERROR_FAILED_TO_DELETE_AUTHOR'),
 				'error'
 			);
 			return;
 		}
-		
+
 		// Redirect back to publication
 		$this->setRedirect(
 			$url,
-			JText::_('Author deleted')
+			JText::_('COM_PUBLICATIONS_SUCCESS_DELETE_AUTHOR')
 		);
 		return;
 	}
-	
+
 	/**
 	 * Save author name and details
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveauthorTask()
 	{
 		// Check for request forgeries
 		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
-		
+
 		// Incoming
 		$author  = JRequest::getInt( 'author', 0 );
 		$id 	 = JRequest::getInt( 'id', 0 );
 		$version = JRequest::getVar( 'version', '' );
-		
+
 		$firstName 	= JRequest::getVar( 'firstName', '', 'post' );
 		$lastName 	= JRequest::getVar( 'lastName', '', 'post' );
-		$org 		= JRequest::getVar( 'organization', '', 'post' ); 
-		
+		$org 		= JRequest::getVar( 'organization', '', 'post' );
+
 		$pAuthor = new PublicationAuthor( $this->database );
 		if (!$author || !$pAuthor->load($author))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Cannot load publication author to save.'),
+				JText::_('COM_PUBLICATIONS_ERROR_LOAD_AUTHOR'),
 				'error'
 			);
 			return;
 		}
-		
+
 		// Save name before changes
 		$oldName = $pAuthor->name;
-		
+
 		// Set redirect URL
-		$url = 'index.php?option=' . $this->_option . '&controller=' 
+		$url = 'index.php?option=' . $this->_option . '&controller='
 			. $this->_controller . '&task=edit' . '&id[]=' . $id . '&version=' . $version;
-		
+
 		$pAuthor->organization = $org;
 		$pAuthor->firstName    = $firstName ? $firstName : $pAuthor->firstName;
 		$pAuthor->lastName     = $lastName ? $lastName : $pAuthor->lastName;
-		$name 				   = $pAuthor->firstName . ' ' . $pAuthor->lastName;		
+		$name 				   = $pAuthor->firstName . ' ' . $pAuthor->lastName;
 		$pAuthor->name    	   = $name ? $name : $pAuthor->name;
 		if (!$pAuthor->store())
 		{
 			$this->setRedirect(
 				$url,
-				JText::_('Failed to save author information'),
+				JText::_('COM_PUBLICATIONS_ERROR_FAILED_TO_SAVE_AUTHOR'),
 				'error'
 			);
 			return;
 		}
-		
+
 		// Instantiate Version
 		$row = new PublicationVersion($this->database);
 		$row->load($pAuthor->publication_version_id);
-		
+
 		// Instantiate publication object
 		$objP = new Publication( $this->database );
 		$objP->load($row->publication_id);
-				
+
 		// Update DOI in case of name change
 		if ($row->doi && $oldName != $pAuthor->name)
 		{
 			// Get updated authors
 			$authors = $pAuthor->getAuthors($pAuthor->publication_version_id);
-			
+
 			// Collect DOI metadata
 			$metadata = $this->_collectMetadata($row, $objP, $authors);
-			
+
 			if (!PublicationUtilities::updateDoi($row->doi, $row, $authors, $this->config, $metadata, $doierr))
 			{
 				$this->setError(JText::_('COM_PUBLICATIONS_ERROR_DOI').' '.$doierr);
 			}
 		}
-		
+
 		// Redirect back to publication
 		$this->setRedirect(
 			$url,
-			JText::_('Author information updated')
-		);		
+			JText::_('COM_PUBLICATIONS_SUCCESS_SAVED_AUTHOR')
+		);
 	}
-	
+
 	/**
 	 * Save a publication and fall through to edit view
 	 *
@@ -512,88 +731,99 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Saves a publication
 	 * Redirects to main listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask($redirect = false)
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
-		
+
 		// Incoming
 		$id 			= JRequest::getInt( 'id', 0 );
 		$action 		= JRequest::getVar( 'admin_action', '' );
 		$published_up 	= JRequest::getVar( 'published_up', '' );
-			
+
 		// Is this a new publication? TBD
 		$isnew = $id ? 0 : 1;
 		if (!$id)
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Cannot load the publication to save.'),
+				JText::_('COM_PUBLICATIONS_ERROR_LOAD_PUBLICATION'),
 				'error'
 			);
-			return;			
+			return;
 		}
-					
+
 		// Incoming version
 		$version 	= JRequest::getVar( 'version', '' );
 
 		// Instantiate publication object
 		$objP = new Publication( $this->database );
-		
+
 		// Instantiate Version
 		$row = new PublicationVersion($this->database);
-						
+
+		if (!$row->bind($_POST))
+		{
+			echo PublicationsAdminHtml::alert($row->getError());
+			exit();
+		}
+
 		// Check that version exists
 		$version = $row->checkVersion($id, $version) ? $version : 'default';
-		
+
 		// Get publication information
 		$pub = $objP->getPublication($id, $version);
 		$objP->load($id);
-				
+
 		// If publication not found, raise error
-		if (!$pub) 
+		if (!$pub)
 		{
 			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_NOT_FOUND') );
 			return;
 		}
-		
+
 		// Set redirect URL
-		$url = 'index.php?option=' . $this->_option . '&controller=' 
+		$url = 'index.php?option=' . $this->_option . '&controller='
 			. $this->_controller . '&task=edit' . '&id[]=' . $id . '&version=' . $version;
-		
+
 		// Load version	for editing
-		$vid = $pub->version_id;						
+		$vid = $pub->version_id;
 		$row->load($vid);
-		
+
 		// Load version before changes
 		$old = new PublicationVersion($this->database);
 		$old->load($vid);
-				
+
 		// Get authors
 		$pa = new PublicationAuthor( $this->database );
 		$authors = $pa->getAuthors($vid);
-				
+
 		// Checkin resource
 		$objP->checkin();
-		
+
 		// Get pub project
 		$project = new Project($this->database);
 		$project->load($pub->project_id);
-		
+
 		// Incoming updates
-		$title 			= trim(JRequest::getVar( 'title', '', 'post' )); 
+		$title 			= trim(JRequest::getVar( 'title', '', 'post' ));
 		$title 			= htmlspecialchars($title);
-		$abstract 		= trim(JRequest::getVar( 'abstract', '', 'post' )); 
+		$abstract 		= trim(JRequest::getVar( 'abstract', '', 'post' ));
 		$abstract 		= \Hubzero\Utility\Sanitize::clean(htmlspecialchars($abstract));
-		$description 	= trim(JRequest::getVar( 'description', '', 'post' ));	
+		$description 	= trim(JRequest::getVar( 'description', '', 'post' ));
 		$description 	= stripslashes($description);
 		$release_notes 	= stripslashes(trim(JRequest::getVar( 'release_notes', '', 'post' )));
 		$metadata 		= '';
 		$activity 		= '';
-					
+
+		// Save publication record
+		$objP->alias    = trim(JRequest::getVar( 'alias', '', 'post' ));
+		$objP->category = trim(JRequest::getInt( 'category', 0, 'post' ));
+		$objP->store();
+
 		// Get metadata
 		if (isset($_POST['nbtag']))
 		{
@@ -601,10 +831,10 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$type->load($pub->category);
 
 			$fields = array();
-			if (trim($type->customFields) != '') 
+			if (trim($type->customFields) != '')
 			{
 				$fs = explode("\n", trim($type->customFields));
-				foreach ($fs as $f) 
+				foreach ($fs as $f)
 				{
 					$fields[] = explode('=', $f);
 				}
@@ -614,79 +844,113 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			foreach ($nbtag as $tagname => $tagcontent)
 			{
 				$tagcontent = trim(stripslashes($tagcontent));
-				if ($tagcontent != '') 
+				if ($tagcontent != '')
 				{
 					$metadata .= "\n".'<nb:'.$tagname.'>'.$tagcontent.'</nb:'.$tagname.'>'."\n";
-				} 
-				else 
+				}
+				else
 				{
-					foreach ($fields as $f) 
+					foreach ($fields as $f)
 					{
-						if ($f[0] == $tagname && end($f) == 1) 
+						if ($f[0] == $tagname && end($f) == 1)
 						{
-							echo PublicationsHtml::alert(JText::sprintf('COM_PUBLICATIONS_REQUIRED_FIELD_CHECK', $f[1]));
+							echo PublicationsAdminHtml::alert(JText::sprintf('COM_PUBLICATIONS_REQUIRED_FIELD_CHECK', $f[1]));
 							exit();
 						}
 					}
 				}
 			}
 		}
-				
-		// Save title, abstract and description
+
+		// Save incoming
 		$row->title 		= $title ? $title : $row->title;
-		$row->abstract 		= $abstract ? \Hubzero\Utility\String::truncate($abstract, 250) : $row->abstract;
+		$row->abstract 		= $abstract
+							? \Hubzero\Utility\String::truncate($abstract, 250)
+							: $row->abstract;
 		$row->description 	= $description ? $description : $row->description;
-		$row->metadata 		= $metadata ? $metadata : $row->metadata;	
+		$row->metadata 		= $metadata ? $metadata : $row->metadata;
 		$row->published_up 	= $published_up ? $published_up : $row->published_up;
 		$row->release_notes	= $release_notes;
-						
+		$row->license_type	= JRequest::getInt( 'license_type', 0, 'post' );
+		$row->license_text	= trim(JRequest::getVar( 'license_text', '', 'post' ));
+		$row->license_type	= JRequest::getInt( 'license_type', 0, 'post' );
+
+		// publish up
+		$published_up 		= trim(JRequest::getVar( 'published_up', '', 'post' ));
+		$published_down 	= trim(JRequest::getVar( 'published_down', '', 'post' ));
+
+		$row->published_up  = $published_up
+							? JFactory::getDate($published_up, JFactory::getConfig()->get('offset'))->toSql()
+							: '0000-00-00 00:00:00';
+		$row->published_down= $published_down && trim($published_down) != 'Never'
+							? JFactory::getDate($published_down, JFactory::getConfig()->get('offset'))->toSql()
+							: '0000-00-00 00:00:00';
+		$row->doi		    = trim(JRequest::getVar( 'doi', '', 'post' ));
+
+		// Determine action (if status is flipped)
+		$state = JRequest::getInt( 'state', 0 );
+		if ($old->state != $state)
+		{
+			switch ($state)
+			{
+				case 1:
+					$action = $old->state == 0 ? 'republish' : 'publish';
+					break;
+				case 0:
+					$action = 'unpublish';
+					break;
+				case 3:
+				case 4:
+					$action = 'revert';
+					break;
+			}
+
+			$row->state = $state;
+		}
+
 		// Update DOI with latest information
-		if ($row->doi && !$action 
-			&& ($row->title != $old->title
-			|| $row->abstract != $old->abstract))
+		if ($row->doi && !$action
+			&& $row->title != $old->title)
 		{
 			// Collect DOI metadata
 			$metadata = $this->_collectMetadata($row, $objP, $authors);
-			
-			if (!PublicationUtilities::updateDoi($row->doi, $row, $authors, $this->config, $metadata, $doierr))
+
+			if (!PublicationUtilities::updateDoi(
+				$row->doi,
+				$row,
+				$authors,
+				$this->config,
+				$metadata,
+				$doierr
+			))
 			{
 				$this->setError(JText::_('COM_PUBLICATIONS_ERROR_DOI').' '.$doierr);
 			}
 		}
-		
-		// Get parameters
-		$params = JRequest::getVar('params', '', 'post');
-		if (is_array($params))
-		{
-			$txt = array();
-			foreach ($params as $k => $v)
-			{
-				$txt[] = "$k=$v";
-			}
-			$row->params = implode("\n", $txt);
-		}
-		
+
 		// Email config
 		$pubtitle 	= \Hubzero\Utility\String::truncate($row->title, 100);
-		$subject 	= JText::_('Version') . ' ' . $row->version_label . ' ' 
-					. JText::_('COM_PUBLICATIONS_OF') . ' ' . JText::_('publication') . ' "' . $pubtitle . '" ';
+		$subject 	= JText::_('Version') . ' ' . $row->version_label . ' '
+					. JText::_('COM_PUBLICATIONS_OF') . ' '
+					. strtolower(JText::_('COM_PUBLICATIONS_PUBLICATION'))
+					. ' "' . $pubtitle . '" ';
 		$sendmail 	= 0;
 		$message 	= rtrim(\Hubzero\Utility\Sanitize::clean(JRequest::getVar( 'message', '' )));
-		$output 	= JText::_('Item successfully saved.');			
-		
+		$output 	= JText::_('COM_PUBLICATIONS_SUCCESS_SAVED_ITEM');
+
 		// Admin actions
-		if ($action) 
+		if ($action)
 		{
 			$output = '';
-			require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+			require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
 				. DS . 'com_projects'. DS . 'tables' . DS . 'project.activity.php');
 			$objAA = new ProjectActivity ( $this->database );
-			switch ($action) 
+			switch ($action)
 			{
-				case 'publish': 
-				case 'republish':  
-				    	 
-					// MKAIP --------------> 
+				case 'publish':
+				case 'republish':
+
+					// Need '/..' because we are an administrator component
 					$mkaip = JPATH_BASE . '/../cli/mkaip/bin/mkaip';
 
 					if (file_exists($mkaip))
@@ -697,67 +961,73 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 					{
 						$row->state = 1;	// published
 					}
-					// MKAIP -------------->
-					  
-				 	$activity = $action == 'publish' 
+
+					$activity = $action == 'publish'
 						? JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_PUBLISHED')
-						: JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_REPUBLISHED');   
-					$subject .= $action == 'publish'  
+						: JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_REPUBLISHED');
+					$subject .= $action == 'publish'
 						? JText::_('COM_PUBLICATIONS_MSG_ADMIN_PUBLISHED')
 						: JText::_('COM_PUBLICATIONS_MSG_ADMIN_REPUBLISHED');
-						
+
 					$row->published_down = '0000-00-00 00:00:00';
 					if ( $action == 'publish')
 					{
-						$row->published_up 	 = $published_up ? $published_up : JFactory::getDate()->toSql();
+						$row->published_up 	 = $published_up
+							? $published_up : JFactory::getDate()->toSql();
 					}
-					
+
 					// Collect DOI metadata
 					$metadata = $this->_collectMetadata($row, $objP, $authors);
-																								
-					// Issue a DOI
-					if ($this->config->get('doi_service') && $this->config->get('doi_shoulder'))
-					{
-						if (!$row->doi) 
-						{					
-							$doi = PublicationUtilities::registerDoi($row, $authors, $this->config, $metadata, $doierr);
 
-							if ($doi) 
+					// Issue a DOI
+					if ($this->config->get('doi_service')
+						&& $this->config->get('doi_shoulder'))
+					{
+						if (!$row->doi)
+						{
+							$doi = PublicationUtilities::registerDoi(
+								$row,
+								$authors,
+								$this->config,
+								$metadata,
+								$doierr
+							);
+
+							if ($doi)
 							{
 								$row->doi = $doi;
-								if ($doierr) 
+								if ($doierr)
 								{
 									$this->setError(JText::_('COM_PUBLICATIONS_ERROR_DOI').' '.$doierr);
 								}
 							}
-							else 
+							else
 							{
 								$this->setRedirect(
 									$url, JText::_('COM_PUBLICATIONS_ERROR_DOI').' '.$doierr, 'error'
 								);
 								return;
-							}		
+							}
 						}
-						else 
+						else
 						{
 							// Update DOI with latest information
-							if (!PublicationUtilities::updateDoi($row->doi, $row, 
+							if (!PublicationUtilities::updateDoi($row->doi, $row,
 								$authors, $this->config, $metadata, $doierr))
 							{
 								$this->setError(JText::_('COM_PUBLICATIONS_ERROR_DOI').' '.$doierr);
-							}						
+							}
 						}
-					}					
-					
+					}
+
 					// Save date accepted
-					if ($action == 'publish') 
+					if ($action == 'publish')
 					{
 						$row->accepted = JFactory::getDate()->toSql();
 					}
 					$row->modified = JFactory::getDate()->toSql();
 					$row->modified_by = $this->juser->get('id');
-					
-					// MKAIP -------------->
+
 					// Create OAIS Archival Information Package
 					if (!$this->getError() && file_exists($mkaip))
 					{
@@ -789,62 +1059,61 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 								$pipes
 							)
 						);
-					}					
-					// MKAIP -------------->
-					
-					if (!$this->getError()) 
+					}
+
+					if (!$this->getError())
 					{
 						$output .= ' '.JText::_('COM_PUBLICATIONS_ITEM').' ';
-						$output .= $action == 'publish'  
+						$output .= $action == 'publish'
 							? JText::_('COM_PUBLICATIONS_MSG_ADMIN_PUBLISHED')
 							: JText::_('COM_PUBLICATIONS_MSG_ADMIN_REPUBLISHED');
 					}
 					break;
-					
+
 				case 'revert':
-					$row->state 		 	= 4; // revert to draft
-					$activity = JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_REVERTED');   
+					$row->state 		 	= $state ? $state : 4;
+					$activity = JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_REVERTED');
 					$subject .= JText::_('COM_PUBLICATIONS_MSG_ADMIN_REVERTED');
 					$output .= ' '.JText::_('COM_PUBLICATIONS_ITEM').' ';
 					$output .= JText::_('COM_PUBLICATIONS_MSG_ADMIN_REVERTED');
 					break;
-				
-				case 'unpublish':      
-					$row->state 		 	= 0; 
+
+				case 'unpublish':
+					$row->state 		 	= 0;
 					$row->published_down    = JFactory::getDate()->toSql();
-					$activity = JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_UNPUBLISHED');   
-					$subject .= JText::_('COM_PUBLICATIONS_MSG_ADMIN_UNPUBLISHED'); 
-					
+					$activity = JText::_('COM_PUBLICATIONS_ACTIVITY_ADMIN_UNPUBLISHED');
+					$subject .= JText::_('COM_PUBLICATIONS_MSG_ADMIN_UNPUBLISHED');
+
 					$output .= ' '.JText::_('COM_PUBLICATIONS_ITEM').' ';
 					$output .= JText::_('COM_PUBLICATIONS_MSG_ADMIN_UNPUBLISHED');
 					break;
 			}
-			
+
 			// Add activity
 			$activity .= ' '.strtolower(JText::_('version')).' '.$row->version_label.' '
 			.JText::_('COM_PUBLICATIONS_OF').' '.strtolower(JText::_('publication')).' "'
 			.$pubtitle.'" ';
-			
+
 			// Build return url
-			$link 	= '/projects/' . $project->alias . '/publications/' 
+			$link 	= '/projects/' . $project->alias . '/publications/'
 					. $id . '/?version=' . $row->version_number;
-			
-			if ($action != 'message' && !$this->getError()) 
+
+			if ($action != 'message' && !$this->getError())
 			{
-				$aid = $objAA->recordActivity( $pub->project_id, $this->juser->get('id'), 
+				$aid = $objAA->recordActivity( $pub->project_id, $this->juser->get('id'),
 					$activity, $id, $pubtitle, $link, 'publication', 0, $admin = 1 );
 				$sendmail = $this->config->get('email') ? 1 : 0;
-				
+
 				// Append comment to activity
 				if ($message && $aid)
 				{
-					require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
+					require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
 						. DS . 'com_projects' . DS . 'tables' . DS . 'project.comment.php');
 					$objC = new ProjectComment( $this->database );
-					
+
 					$comment = \Hubzero\Utility\String::truncate($message, 250);
 					$comment = \Hubzero\Utility\Sanitize::stripAll($comment);
-					
+
 					$objC->itemid = $aid;
 					$objC->tbl = 'activity';
 					$objC->parent_activity = $aid;
@@ -853,25 +1122,25 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 					$objC->created = JFactory::getDate()->toSql();
 					$objC->created_by = $this->juser->get('id');
 					$objC->store();
-					
+
 					// Get new entry ID
-					if (!$objC->id) 
+					if (!$objC->id)
 					{
 						$objC->checkin();
 					}
-					
+
 					$objAA = new ProjectActivity ( $this->database );
-					
-					if ( $objC->id ) 
+
+					if ( $objC->id )
 					{
 						$what = JText::_('COM_PROJECTS_AN_ACTIVITY');
 						$curl = '#tr_'.$aid; // same-page link
 						$caid = $objAA->recordActivity( $pub->project_id, $this->juser->get('id'),
-						 	JText::_('COM_PROJECTS_COMMENTED') . ' ' . JText::_('COM_PROJECTS_ON')
+						JText::_('COM_PROJECTS_COMMENTED') . ' ' . JText::_('COM_PROJECTS_ON')
 							. ' ' . $what, $objC->id, $what, $curl, 'quote', 0, 1 );
-						
+
 						// Store activity ID
-						if ($caid) 
+						if ($caid)
 						{
 							$objC->activityid = $aid;
 							$objC->store();
@@ -880,21 +1149,21 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 				}
 			}
 		}
-		
+
 		// Do we have a message to send?
-		if ($message) 
+		if ($message)
 		{
 			$subject .= ' - '.JText::_('COM_PUBLICATIONS_MSG_ADMIN_NEW_MESSAGE');
-			$sendmail = 1;  
+			$sendmail = 1;
 			$output .= ' '.JText::_('COM_PUBLICATIONS_MESSAGE_SENT');
-		}	
-		
+		}
+
 		// Updating entry if anything changed
-		if ($row != $old && !$this->getError()) 
+		if ($row != $old && !$this->getError())
 		{
 			$row->modified    = JFactory::getDate()->toSql();
 			$row->modified_by = $this->juser->get('id');
-			
+
 			// Store content
 			if (!$row->store())
 			{
@@ -902,27 +1171,37 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 					$url,  $row->getError(), 'error'
 				);
 				return;
-			}			
+			}
 		}
-		
+
+		// Save parameters
+		$params = JRequest::getVar('params', '', 'post');
+		if (is_array($params))
+		{
+			foreach ($params as $k => $v)
+			{
+				$row->saveParam($row->id, $k, $v);
+			}
+		}
+
 		// Incoming tags
 		$tags = JRequest::getVar('tags', '', 'post');
 
 		// Save the tags
 		$rt = new PublicationTags($this->database);
 		$rt->tag_object($this->juser->get('id'), $id, $tags, 1, 1);
-	
+
 		// Get ids of publication authors with accounts
 		$notify = $pa->getAuthors($row->id, 1, 1, 1, true);
 		$notify[] = $row->created_by;
 		$notify = array_unique($notify);
 
 		// Send email
-		if ($sendmail && !$this->getError()) 
-		{			
-			$this->_emailContributors($row, $project, $subject, $message, $notify, $action);	
+		if ($sendmail && !$this->getError())
+		{
+			$this->_emailContributors($row, $project, $subject, $message, $notify, $action);
 		}
-		
+
 		// Append any errors
 		if ($this->getError())
 		{
@@ -944,12 +1223,11 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 				$output
 			);
 		}
-		
 	}
-	
+
 	/**
 	 * Collect DOI metadata
-	 * 
+	 *
 	 * @param      object $row      Publication
 	 * @return     void
 	 */
@@ -959,13 +1237,13 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		$objT = new PublicationCategory($this->database);
 		$objT->load($objP->category);
 		$typetitle = ucfirst($objT->alias);
-		
+
 		// Collect metadata
 		$metadata = array();
 		$metadata['typetitle'] 		= $typetitle ? $typetitle : 'Dataset';
 		$metadata['resourceType'] 	= isset($objT->dc_type) && $objT->dc_type ? $objT->dc_type : 'Dataset';
 		$metadata['language'] 		= 'en';
-		
+
 		// Get dc:contibutor
 		$project = new Project($this->database);
 		$project->load($objP->project_id);
@@ -973,16 +1251,16 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		$owner 	 = $project->owned_by_user ? $project->owned_by_user : $project->created_by_user;
 		if ($profile->load( $owner ))
 		{
-			$metadata['contributor'] = $profile->get('name');	
+			$metadata['contributor'] = $profile->get('name');
 		}
-		
+
 		// Get previous version DOI
 		$lastPub = $row->getLastPubRelease($objP->id);
 		if ($lastPub && $lastPub->doi)
 		{
-			$metadata['relatedDoi'] = $row->version_number > 1 ? $lastPub->doi : '';	
+			$metadata['relatedDoi'] = $row->version_number > 1 ? $lastPub->doi : '';
 		}
-							
+
 		// Get license type
 		$objL = new PublicationLicense( $this->database);
 		if ($objL->loadLicense($row->license_type))
@@ -990,38 +1268,38 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$metadata['rightsType'] = isset($objL->dc_type) && $objL->dc_type ? $objL->dc_type : 'other';
 			$metadata['license'] = $objL->title;
 		}
-		
-		return $metadata;		
+
+		return $metadata;
 	}
 
 	/**
 	 * Sends a message to authors (or creator) of a publication
-	 * 
+	 *
 	 * @param      object $row      Publication
 	 * @param      object $project  Project
 	 * @return     void
 	 */
-	private function _emailContributors($row, $project, $subject = '', $message = '', 
+	private function _emailContributors($row, $project, $subject = '', $message = '',
 		$authors = array(), $action = 'publish')
 	{
 		if (!$row || !$project)
 		{
 			return false;
 		}
-		
+
 		// Get pub authors' ids
-		if (empty($authors)) 
+		if (empty($authors))
 		{
 			$pa = new PublicationAuthor( $this->database );
 			$authors = $pa->getAuthors($row->id, 1, 1, 1);
 		}
-		
+
 		// No authors – send to publication creator
-		if (count($authors) == 0) 
+		if (count($authors) == 0)
 		{
 			$authors = array($row->created_by);
 		}
-		
+
 		// Make sure there are no duplicates
 		$authors = array_unique($authors);
 
@@ -1034,18 +1312,19 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$from = array();
 			$from['email'] = $jconfig->getValue('config.mailfrom');
 			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('PUBLICATIONS');
-			
-			$subject = $subject ? $subject : JText::_('COM_PUBLICATIONS_STATUS_UPDATE');
-			
+
+			$subject = $subject
+				? $subject : JText::_('COM_PUBLICATIONS_STATUS_UPDATE');
+
 			// Get message body
-			$eview 					= new JView( array('name'=>'emails', 'layout' => 'admin_plain' ) );
+			$eview 					= new \Hubzero\Component\View( array('name'=>'emails', 'layout' => 'admin_plain' ) );
 			$eview->option 			= $this->_option;
 			$eview->subject 		= $subject;
 			$eview->action 			= $action;
 			$eview->row 			= $row;
 			$eview->message			= $message;
 			$eview->project			= $project;
-			
+
 			$body = array();
 			$body['plaintext'] 	= $eview->loadTemplate();
 			$body['plaintext'] 	= str_replace("\n", "\r\n", $body['plaintext']);
@@ -1059,46 +1338,47 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			JPluginHelper::importPlugin('xmessage');
 			$dispatcher = JDispatcher::getInstance();
 			if (!$dispatcher->trigger('onSendMessage', array(
-				'publication_status_changed', 
-				$subject, 
-				$body, 
-				$from, 
-				$authors, 
+				'publication_status_changed',
+				$subject,
+				$body,
+				$from,
+				$authors,
 				$this->_option)
 			))
 			{
-				$this->setError(JText::_('Failed to message authors.'));
+				$this->setError(JText::_('COM_PUBLICATIONS_ERROR_FAILED_MESSAGE_AUTHORS'));
 			}
 		}
 	}
-	
+
 	/**
 	 * Displays versions of a publication
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function versionsTask()
-	{				
+	{
 		// Get the publications component config
 		$this->view->config = $this->config;
 
 		// Push some styles to the template
 		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'publications.css');
+		$document->addStyleSheet('components' . DS . $this->_option . DS
+			. 'assets' . DS . 'css' . DS . 'publications.css');
 
 		// Incoming publication ID
 		$id = JRequest::getInt('id', 0);
-	
+
 		// Need ID
 		if (!$id)
-		{		
+		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Publication not found.'),
+				JText::_('COM_PUBLICATIONS_ERROR_LOAD_PUBLICATION'),
 				'notice'
 			);
-			return;			
-		}		
+			return;
+		}
 
 		// Grab some filters for returning to place after editing
 		$this->view->return = array();
@@ -1107,19 +1387,19 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		$this->view->return['status'] = JRequest::getVar('status', '');
 
 		// Instantiate project publication
-		$objP = new Publication( $this->database );	
-		$objV = new PublicationVersion( $this->database );	
-		
+		$objP = new Publication( $this->database );
+		$objV = new PublicationVersion( $this->database );
+
 		$this->view->pub = $objP->getPublication($id);
-		if (!$this->view->pub) 
-		{		
-			JError::raiseError( 404, JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_NOT_FOUND') );
+		if (!$this->view->pub)
+		{
+			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_ERROR_LOAD_PUBLICATION') );
 			return;
 		}
-		
+
 		// Get versions
 		$this->view->versions = $objV->getVersions( $id, $filters = array('withdev' => 1));
-				
+
 		// Set any errors
 		if ($this->getError())
 		{
@@ -1129,11 +1409,11 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		// Output the HTML
 		$this->view->display();
 	}
-	
+
 	/**
 	 * Removes a publication
 	 * Redirects to main listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -1144,60 +1424,62 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		// Incoming
 		$id 	 = JRequest::getInt( 'id', 0 );
 		$version = JRequest::getVar( 'version', '' );
-		
+
 		// Ensure we have some IDs to work with
 		if (!$id)
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Cannot load the publication to delete.'),
+				JText::_('COM_PUBLICATIONS_ERROR_LOAD_PUBLICATION'),
 				'notice'
 			);
-			return;			
+			return;
 		}
-		
+
 		// Load publication
 		$objP = new Publication( $this->database );
-		if (!$objP->load($id)) 
+		if (!$objP->load($id))
 		{
 			JError::raiseError( 404, JText::_('COM_PUBLICATIONS_NOT_FOUND') );
 			return;
 		}
 
-		if ($version != 'all') 
-		{			
+		if ($version != 'all')
+		{
 			// Check that version exists
 			$version = $row->checkVersion($id, $version) ? $version : 'default';
-			
-			// Load version	
-			$row = new PublicationVersion($this->database);		
-			if (!$row->loadVersion($pid, $version)) 
+
+			// Load version
+			$row = new PublicationVersion($this->database);
+			if (!$row->loadVersion($pid, $version))
 			{
 				JError::raiseError( 404, JText::_('COM_PUBLICATIONS_VERSION_NOT_FOUND') );
 				return;
 			}
 
 			// Save version ID
-			$vid = $row->id;						
+			$vid = $row->id;
 		}
-		else 
+		else
 		{
 			// Delete all versions
 		}
-		
+
 		// Redirect
-		$output = ($version != 'all') ? JText::_('Publication version deleted.') : JText::_('Publication records deleted.');
+		$output = ($version != 'all')
+			? JText::_('COM_PUBLICATIONS_SUCCESS_VERSION_DELETED')
+			: JText::_('COM_PUBLICATIONS_SUCCESS_RECORDS_DELETED');
 		$this->setRedirect(
 			$this->buildRedirectURL(),
 			$output
 		);
-		
+
 		return;
 	}
 
 	/**
 	 * Checks in a checked-out publication and redirects
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cancelTask()
@@ -1214,13 +1496,18 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		$row->checkin();
 
 		// Redirect
-		$this->_redirect = $this->buildRedirectURL($id);
+		$this->setRedirect(
+			'index.php?option=' . $this->_option
+			. '&controller=' . $this->_controller
+		);
+
+		return;
 	}
 
 	/**
 	 * Resets the rating of a resource
 	 * Redirects to edit task for the resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function resetratingTask()
@@ -1241,12 +1528,14 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$row->store();
 			$row->checkin();
 
-			$this->_message = JText::_('Successfully reset Rating');
+			$this->_message = JText::_('COM_PUBLICATIONS_SUCCESS_RATING_RESET');
 		}
 
 		// Redirect
 		$this->setRedirect(
-			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=edit&id[]=' . $id,
+			'index.php?option=' . $this->_option
+			. '&controller=' . $this->_controller
+			. '&task=edit&id[]=' . $id,
 			$this->_message
 		);
 	}
@@ -1254,7 +1543,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Resets the ranking of a resource
 	 * Redirects to edit task for the resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function resetrankingTask()
@@ -1274,20 +1563,22 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$row->store();
 			$row->checkin();
 
-			$this->_message = JText::_('Successfully reset Ranking');
+			$this->_message = JText::_('COM_PUBLICATIONS_SUCCESS_RANKING_RESET');
 		}
 
 		// Redirect
 		$this->setRedirect(
-			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=edit&id[]=' . $id,
+			'index.php?option=' . $this->_option
+			. '&controller=' . $this->_controller
+			. '&task=edit&id[]=' . $id,
 			$this->_message
 		);
 	}
-	
+
 	/**
 	 * Produces archival package for publication
 	 * Redirects to edit task for the resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function archiveTask()
@@ -1296,8 +1587,9 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		$pid 		= JRequest::getInt('pid', 0);
 		$vid 		= JRequest::getInt('vid', 0);
 		$version 	= JRequest::getVar( 'version', '' );
-		
-		require_once( JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS . 'helpers' . DS . 'helper.php' );
+
+		require_once( JPATH_ROOT . DS . 'components' . DS
+			. 'com_projects' . DS . 'helpers' . DS . 'helper.php' );
 
 		if ($pid)
 		{
@@ -1305,15 +1597,15 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$dispatcher = JDispatcher::getInstance();
 			$result = $dispatcher->trigger( 'archivePub', array($pid, $vid) );
 
-			$this->_message = JText::_('Archival package produced');
+			$this->_message = JText::_('COM_PUBLICATIONS_SUCCESS_ARCHIVAL');
 		}
-		
+
 		// Checkin the resource
 		$row = new Publication($this->database);
 		$row->load($pid);
 		$row->checkin();
-		
-		$url = 'index.php?option=' . $this->_option . '&controller=' 
+
+		$url = 'index.php?option=' . $this->_option . '&controller='
 			. $this->_controller . '&task=edit' . '&id[]=' . $pid . '&version=' . $version;
 
 		// Redirect
@@ -1323,7 +1615,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Checks-in one or more resources
 	 * Redirects to the main listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function checkinTask()
@@ -1333,7 +1625,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$id  = JRequest::getInt('id', 0);
-		
+
 		if ($id)
 		{
 			// Load the object and checkin
@@ -1341,69 +1633,31 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$row->load($id);
 			$row->checkin();
 		}
-		
+
 		// Redirect
-		$this->_redirect = 'index.php?option=' . $this->_option . '&controller=' . $this->_controller;
+		$this->_redirect = 'index.php?option=' . $this->_option
+			. '&controller=' . $this->_controller;
 	}
 
 	/**
 	 * Builds the appropriate URL for redirction
-	 * 
-	 * @param      integer $pid Parent resource ID (optional)
+	 *
 	 * @return     string
 	 */
-	private function buildRedirectURL($pid=0)
+	private function buildRedirectURL()
 	{
-		$url  = 'index.php?option=' . $this->_option . '&controller=' . $this->_controller;
+		$url  = 'index.php?option=' . $this->_option
+			. '&controller=' . $this->_controller;
+
+		// Incoming
+		$id  = JRequest::getInt('id', 0);
+		$url .= $id ? '&task=edit&id[]=' . $id : '';
 		return $url;
 	}
 
 	/**
-	 * Builds a select list of users
-	 * 
-	 * @param      string  $name       Name of the select element
-	 * @param      string  $active     Selected value
-	 * @param      integer $nouser     Display an empty start option
-	 * @param      string  $javascript Any JS to attach to the select element
-	 * @param      string  $order      Field to order the users by
-	 * @return     string
-	 */
-	private function userSelect($name, $active, $nouser=0, $javascript=NULL, $order='a.name')
-	{
-		$database = JFactory::getDBO();
-
-		$group_id = 'g.id';
-		$aro_id = 'aro.id';
-
-		$query = "SELECT a.id AS value, a.name AS text, g.name AS groupname"
-			. "\n FROM #__users AS a"
-			. "\n INNER JOIN #__core_acl_aro AS aro ON aro.value = a.id"	// map user to aro
-			. "\n INNER JOIN #__core_acl_groups_aro_map AS gm ON gm.aro_id = " . $aro_id . ""	// map aro to group
-			. "\n INNER JOIN #__core_acl_aro_groups AS g ON " . $group_id . " = gm.group_id"
-			. "\n WHERE a.block = '0' AND " . $group_id . "=25"
-			. "\n ORDER BY ". $order;
-
-		$database->setQuery($query);
-		$result = $database->loadObjectList();
-
-		if ($nouser)
-		{
-			$users[] = JHTML::_('select.option', '0', 'Do not change', 'value', 'text');
-			$users = array_merge($users, $result);
-		}
-		else
-		{
-			$users = $result;
-		}
-
-		$users = JHTML::_('select.genericlist', $users, $name, ' ' . $javascript, 'value', 'text', $active, false, false);
-
-		return $users;
-	}
-
-	/**
 	 * Gets the full name of a user from their ID #
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function authorTask()
@@ -1427,4 +1681,3 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		echo $name . ' (' . $profile->get('uidNumber') . ')';
 	}
 }
-

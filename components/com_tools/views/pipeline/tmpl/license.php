@@ -25,9 +25,9 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$open 					= ($this->code == '@OPEN') ? 1 : 0 ;
-$this->codeaccess 		= ($this->code == '@OPEN') ? 'open' : 'closed';
-$newstate   			= ($this->action == 'confirm') ? 'Approved' :  $this->status['state'];
+$open             = ($this->code == '@OPEN') ? 1 : 0 ;
+$this->codeaccess = ($this->code == '@OPEN') ? 'open' : 'closed';
+$newstate         = ($this->action == 'confirm') ? 'Approved' :  $this->status['state'];
 
 $codeChoices = array(
 	'@OPEN' => JText::_('COM_TOOLS_OPEN_SOURCE'),
@@ -38,38 +38,42 @@ $licenseChoices = array(
 	'0' => JText::_('Choose a template')
 );
 
-if ($this->licenses) 
+if ($this->licenses)
 {
-	foreach ($this->licenses as $l) 
+	foreach ($this->licenses as $l)
 	{
-		if ($l->name != 'default') 
+		if ($l->name != 'default')
 		{
 			$licenseChoices[$l->name] = $l->title;
 		}
 	}
 }
+
+$this->css('pipeline.css')
+     ->js('pipeline.js');
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li><a class="icon-config btn" href="<?php echo JRoute::_('index.php?option='.$this->option.'&controller='.$this->controller.'&task=status&app='.$this->status['toolname']); ?>"><?php echo JText::_('COM_TOOLS_TOOL_STATUS'); ?></a></li>
-		<li class="last"><a class="icon-add btn" href="<?php echo JRoute::_('index.php?option='.$this->option.'&controller='.$this->controller.'&task=create'); ?>"><?php echo JText::_('COM_TOOLS_CONTRIBTOOL_NEW_TOOL'); ?></a></li>
-	</ul>
-</div><!-- / #content-header-extra -->
+	<div id="content-header-extra">
+		<ul id="useroptions">
+			<li><a class="icon-config btn" href="<?php echo JRoute::_('index.php?option='.$this->option.'&controller='.$this->controller.'&task=status&app='.$this->status['toolname']); ?>"><?php echo JText::_('COM_TOOLS_TOOL_STATUS'); ?></a></li>
+			<li class="last"><a class="icon-add btn" href="<?php echo JRoute::_('index.php?option='.$this->option.'&controller='.$this->controller.'&task=create'); ?>"><?php echo JText::_('COM_TOOLS_CONTRIBTOOL_NEW_TOOL'); ?></a></li>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header><!-- / #content-header -->
 
-<div class="main section">
-<?php if ($this->getError()) { ?>
-	<p class="error"><?php echo $this->getError(); ?></p>
-<?php } ?>
-<?php
-	if ($this->action == 'confirm') {
-		ToolsHelperHtml::writeApproval('Confirm license');
-	}
-	//$license = ($this->status['license'] && !$open) ? $this->status['license'] : '' ;
-?>
+<section class="main section">
+	<?php if ($this->getError()) { ?>
+		<p class="error"><?php echo $this->getError(); ?></p>
+	<?php } ?>
+	<?php
+		if ($this->action == 'confirm')
+		{
+			ToolsHelperHtml::writeApproval('Confirm license');
+		}
+		//$license = ($this->status['license'] && !$open) ? $this->status['license'] : '' ;
+	?>
 	<div class="grid">
 		<div class="col span-half">
 			<h3>
@@ -77,7 +81,7 @@ if ($this->licenses)
 			</h3>
 			<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=license&app=' . $this->status['toolname']); ?>" method="post" id="licenseForm" name="licenseForm">
 				<fieldset class="versionfield">
-					<label><?php echo JText::_('COM_TOOLS_CODE_ACCESS'); ?>:</label> 
+					<label><?php echo JText::_('COM_TOOLS_CODE_ACCESS'); ?>:</label>
 					<?php echo ToolsHelperHtml::formSelect('t_code', 't_code', $codeChoices, $this->code, 'shifted', ''); ?>
 					<span id="choice-icon">&nbsp;</span>
 					<div id="closed-source">
@@ -89,21 +93,21 @@ if ($this->licenses)
 					</div>
 					<div id="open-source">
 						<div id="lic">
-							<label><?php echo JText::_('COM_TOOLS_LICENSE_TEMPLATE'); ?>:</label> 
+							<label><?php echo JText::_('COM_TOOLS_LICENSE_TEMPLATE'); ?>:</label>
 							<?php echo ToolsHelperHtml::formSelect('templates', 'templates',  $licenseChoices, $this->license_choice['template'], 'shifted', ''); ?>
 						</div>
 						<div class="licinput" >
 							<label><?php echo JText::_('COM_TOOLS_LICENSE_TEXT'); ?><span class="required"><?php echo JText::_('COM_TOOLS_REQUIRED'); ?></span>
 							<textarea name="license" cols="50" rows="15" id="license" placeholder="<?php echo JText::_('COM_TOOLS_ENTER_LICENSE_TEXT'); ?>"> <?php echo $this->escape(stripslashes($this->license_choice['text'])); ?></textarea>
 							</label>
-							<?php 
-							if ($this->licenses) 
+							<?php
+							if ($this->licenses)
 							{
-								foreach ($this->licenses as $l) 
+								foreach ($this->licenses as $l)
 								{
 									echo '<div class="hidden" id="' . $l->name . '" >' . $this->escape(stripslashes($l->text)) . '</div>' . "\n";
 								}
-							} 
+							}
 							?>
 							<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 							<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
@@ -126,7 +130,7 @@ if ($this->licenses)
 							</p>
 						</div>
 						<label for="field-authorize">
-							<input type="checkbox" name="authorize" id="field-authorize" value="1" /> 
+							<input type="checkbox" name="authorize" id="field-authorize" value="1" />
 							<span class="required"><?php echo JText::_('COM_TOOLS_REQUIRED'); ?></span><?php echo JText::_('COM_TOOLS_LICENSE_CERTIFY') . ' '.JText::_('COM_TOOLS_LICENSE_UNDER_SPECIFIED'); ?>
 						</label>
 					</div>
@@ -146,4 +150,4 @@ if ($this->licenses)
 			</p>
 		</div><!-- / .col span-half -->
 	</div><!-- / .grid -->
-</div><!-- / .main section -->
+</section><!-- / .main section -->

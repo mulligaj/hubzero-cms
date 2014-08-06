@@ -30,10 +30,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-JToolBarHelper::title(JText::_('Publications') . ': [' . JText::_('Categories') . ']', 'addedit.png');
+JToolBarHelper::title(JText::_('COM_PUBLICATIONS_PUBLICATIONS') . ': [' . JText::_('COM_PUBLICATIONS_CATEGORIES') . ']', 'addedit.png');
 JToolBarHelper::addNew();
 JToolBarHelper::editList();
-JToolBarHelper::publishList('changestatus', 'Change Status');
+JToolBarHelper::publishList('changestatus', JText::_('COM_PUBLICATIONS_CHANGE_STATUS'));
 
 ?>
 <form action="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>" method="post" name="adminForm" id="adminForm">
@@ -41,10 +41,10 @@ JToolBarHelper::publishList('changestatus', 'Change Status');
 		<thead>
 			<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count( $this->rows );?>);" /></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('ID'), 'id', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('Name'), 'name', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('Contributable'), 'contributable', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('Status'), 'state', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_ID'), 'id', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_NAME'), 'name', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_CONTRIBUTABLE'), 'contributable', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_STATUS'), 'state', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -58,8 +58,6 @@ $k = 0;
 for ($i=0, $n=count( $this->rows ); $i < $n; $i++)
 {
 	$row = &$this->rows[$i];
-	$class  = $row->state == 1 ? 'item_on' : 'item_off';
-	$cClass = $row->contributable == 1 ? 'item_on' : 'item_off';
 ?>
 			<tr class="<?php echo "row$k"; ?>">
 				<td class="narrow">
@@ -70,16 +68,23 @@ for ($i=0, $n=count( $this->rows ); $i < $n; $i++)
 				</td>
 				<td>
 					<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->id; ?>">
-						<span><?php echo $this->escape($row->name); ?></span></a>
-						<span class="block faded"><?php echo JText::_('Alias') . ': ' .$this->escape($row->alias); ?> |
-							<?php echo JText::_('URL Alias') . ': ' .$this->escape($row->url_alias); ?> |
-							<?php echo JText::_('dc_type') . ': ' .$this->escape($row->dc_type); ?></span>
+						<span><?php echo $this->escape($row->name); ?></span>
+					</a>
+					<span class="block faded">
+						<?php echo JText::_('COM_PUBLICATIONS_FIELD_ALIAS') . ': ' .$this->escape($row->alias); ?> |
+						<?php echo JText::_('COM_PUBLICATIONS_FIELD_URL_ALIAS') . ': ' .$this->escape($row->url_alias); ?> |
+						<?php echo JText::_('COM_PUBLICATIONS_FIELD_DC_TYPE') . ': ' .$this->escape($row->dc_type); ?>
+					</span>
 				</td>
 				<td class="centeralign narrow">
-					<span class="<?php echo $cClass; ?>">&nbsp;</span>
+					<span class="state <?php echo ($row->contributable == 1 ? 'yes' : 'no'); ?>">
+						<span><?php echo ($row->contributable == 1 ? JText::_('JYES') : JText::_('JNO')); ?></span>
+					</span>
 				</td>
 				<td class="centeralign narrow">
-					<span class="<?php echo $class; ?>">&nbsp;</span>
+					<span class="state <?php echo ($row->state == 1 ? 'on' : 'off'); ?>">
+						<span><?php echo ($row->state == 1 ? JText::_('COM_PUBLICATIONS_ON') : JText::_('COM_PUBLICATIONS_OFF')); ?></span>
+					</span>
 				</td>
 			</tr>
 <?php
@@ -94,6 +99,6 @@ for ($i=0, $n=count( $this->rows ); $i < $n; $i++)
 	<input type="hidden" name="task" value="" />
 	<input type="hidden" name="boxchecked" value="0" />
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sort']; ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />	
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
 	<?php echo JHTML::_('form.token'); ?>
 </form>

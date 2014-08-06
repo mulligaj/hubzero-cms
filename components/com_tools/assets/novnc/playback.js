@@ -1,7 +1,7 @@
 /*
  * noVNC: HTML5 VNC client
  * Copyright (C) 2012 Joel Martin
- * Licensed under MPL 2.0 (see LICENSE.txt)
+ * Licensed under LGPL-3 (see LICENSE.LGPL-3)
  */
 
 "use strict";
@@ -79,22 +79,10 @@ queue_next_packet = function () {
     }
 };
 
-var bytes_processed = 0;
-
 do_packet = function () {
     //Util.Debug("Processing frame: " + frame_idx);
-    var frame = VNC_frame_data[frame_idx],
-        start = frame.indexOf('{', 1) + 1;
-    bytes_processed += frame.length - start;
-    if (VNC_frame_encoding === 'binary') {
-        var u8 = new Uint8Array(frame.length - start);
-        for (var i = 0; i < frame.length - start; i++) {
-            u8[i] = frame.charCodeAt(start + i);
-        }
-        rfb.recv_message({'data' : u8});
-    } else {
-        rfb.recv_message({'data' : frame.slice(start)});
-    }
+    var frame = VNC_frame_data[frame_idx];
+    rfb.recv_message({'data' : frame.slice(frame.indexOf('{', 1) + 1)});
     frame_idx += 1;
 
     queue_next_packet();

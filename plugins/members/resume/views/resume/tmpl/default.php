@@ -32,51 +32,11 @@
 defined('_JEXEC') or die('Restricted access');
 
 $juser = JFactory::getUser();
+
+$this->css('jobs', 'com_jobs');
 ?>
 
-	<div class="aside">
-		<div class="container">
-		<?php if ($this->self) { ?>
-			<p><?php echo JText::_('PLG_MEMBERS_RESUME_HUB_OFFERS'); ?></p>
-		<?php } else { ?>
-			<p><?php echo JText::_('PLG_MEMBERS_RESUME_NOTICE_YOU_ARE_EMPLOYER'); ?></p>
-		<?php } ?>
-
-			<p>
-				<a href="<?php echo JRoute::_('index.php?option=com_jobs'); ?>" class="icon-next">
-					<?php echo ($this->config->get('industry') ? JText::sprintf('PLG_MEMBERS_RESUME_VIEW_JOBS_IN', $this->config->get('industry')) : JText::_('PLG_MEMBERS_RESUME_VIEW_JOBS')); ?>
-				</a>
-			</p>
-		</div><!-- / .container -->
-
-		<?php if ($this->self && $this->js->active) { ?>
-		<div class="container">
-			<ul class="jobstats">
-				<li class="statstitle"><?php echo JText::_('PLG_MEMBERS_RESUME_YOUR_STATS'); ?></li>
-				<li>
-					<span><?php echo $this->stats['totalviewed']; ?></span>
-					<?php echo JText::_('PLG_MEMBERS_RESUME_TOTAL_VIEWED'); ?>
-				</li>
-				<li>
-					<span><?php echo $this->stats['viewed_thismonth']; ?></span>
-					<?php echo JText::_('PLG_MEMBERS_RESUME_VIEWED_PAST_30_DAYS'); ?>
-				</li>
-				<li>
-					<span><?php echo $this->stats['viewed_thisweek']; ?></span>
-					<?php echo JText::_('PLG_MEMBERS_RESUME_VIEWED_PAST_7_DAYS'); ?>
-				</li>
-				<li>
-					<span><?php echo $this->stats['viewed_today']; ?></span>
-					<?php echo JText::_('PLG_MEMBERS_RESUME_VIEWED_PAST_24_HOURS'); ?>
-				</li>
-				<li>
-					<span><?php echo $this->stats['shortlisted']; ?></span>
-					<?php echo JText::_('PLG_MEMBERS_RESUME_PROFILE_SHORTLISTED'); ?>
-				</li>
-			</ul>
-		</div><!-- / .container -->
-		<?php } ?>
-	</div><!-- / .aside -->
+<section class="main section">
 	<div class="subject">
 		<?php if ($this->getError()) { ?>
 		<p class="error"><?php echo implode('<br />', $this->getErrors()); ?></p>
@@ -137,7 +97,7 @@ $juser = JFactory::getUser();
 						</span>
 					</label>
 					<label class="cats">
-						<?php echo JText::_('PLG_MEMBERS_RESUME_POSITION_SOUGHT'); ?>: 
+						<?php echo JText::_('PLG_MEMBERS_RESUME_POSITION_SOUGHT'); ?>:
 					</label>
 
 					<?php
@@ -182,7 +142,7 @@ $juser = JFactory::getUser();
 
 					<div class="submitblock">
 						<span class="selectgroup">
-							<input type="submit" value="<?php echo $this->editpref == 1 ? JText::_('PLG_MEMBERS_RESUME_ACTION_SAVE_AND_INCLUDE') : JText::_('PLG_MEMBERS_RESUME_ACTION_SAVE'); ?>" /> 
+							<input type="submit" value="<?php echo $this->editpref == 1 ? JText::_('PLG_MEMBERS_RESUME_ACTION_SAVE_AND_INCLUDE') : JText::_('PLG_MEMBERS_RESUME_ACTION_SAVE'); ?>" />
 							<span class="cancelaction">
 								<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=resume'); ?>"><?php echo JText::_('PLG_MEMBERS_RESUME_CANCEL'); ?></a>
 							</span>
@@ -196,35 +156,27 @@ $juser = JFactory::getUser();
 		</div>
 	<?php } ?>
 
-		<?php 
+		<?php
 		// seeker details block
-		if ($this->js->active && $this->file) 
+		if ($this->js->active && $this->file)
 		{
 			// get seeker info
 			$seeker = $this->js->getSeeker($this->member->get('uidNumber'), $juser->get('id'));
 
-			if (!$seeker or count($seeker)==0) 
+			if (!$seeker or count($seeker)==0)
 			{
 				echo '<p class="error">'.JText::_('PLG_MEMBERS_RESUME_ERROR_RETRIEVING_PROFILE').'</p>';
 			}
-			else 
+			else
 			{
-				//echo $this->showSeeker($seeker[0], $this->emp, 0, $this->option);
-				$view = new \Hubzero\Plugin\View(
-					array(
-						'folder'  => 'members',
-						'element' => 'resume',
-						'name'    => 'resume',
-						'layout'  => 'seeker'
-					)
-				);
-				$view->seeker = $seeker[0];
-				$view->emp    = $this->emp;
-				$view->admin  = 0;
-				$view->option = $this->option;
-				$view->params = $this->params;
-				$view->list   = 0;
-				$view->display();
+				$this->view('seeker')
+				     ->set('seeker', $seeker[0])
+				     ->set('emp', $this->emp)
+				     ->set('admin', 0)
+				     ->set('option', $this->option)
+				     ->set('params', $this->params)
+				     ->set('list', 0)
+				     ->display();
 			}
 		}
 		?>
@@ -241,10 +193,10 @@ $juser = JFactory::getUser();
 				<tbody>
 					<tr>
 						<td>
-						<?php 
+						<?php
 						$title = $this->resume->title ?  stripslashes($this->resume->title) : $this->resume->filename;
-						$default_title = $this->member->get('firstname') 
-									? $this->member->get('firstname').' '.$this->member->get('lastname').' '.JText::_('PLG_MEMBERS_RESUME') 
+						$default_title = $this->member->get('firstname')
+									? $this->member->get('firstname').' '.$this->member->get('lastname').' '.JText::_('PLG_MEMBERS_RESUME')
 									: $this->member->get('name').' '.JText::_('PLG_MEMBERS_RESUME');
 						?>
 						<?php if ($this->edittitle && $this->self) { ?>
@@ -284,8 +236,8 @@ $juser = JFactory::getUser();
 			<form class="addResumeForm" method="post" action="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=resume'); ?>" enctype="multipart/form-data">
 				<fieldset>
 					<legend>
-						<?php echo ($this->resume->id && $this->file) 
-									? JText::_('PLG_MEMBERS_RESUME_ACTION_UPLOAD_NEW_RESUME') . ' <span>(' . JText::_('PLG_MEMBERS_RESUME_WILL_BE_REPLACED') . ')</span>' . "\n" 
+						<?php echo ($this->resume->id && $this->file)
+									? JText::_('PLG_MEMBERS_RESUME_ACTION_UPLOAD_NEW_RESUME') . ' <span>(' . JText::_('PLG_MEMBERS_RESUME_WILL_BE_REPLACED') . ')</span>' . "\n"
 									:  JText::_('PLG_MEMBERS_RESUME_ACTION_UPLOAD_A_RESUME') . "\n"; ?>
 					</legend>
 					<div>
@@ -306,4 +258,49 @@ $juser = JFactory::getUser();
 		<?php } ?>
 
 	</div><!-- / .subject -->
-	<div class="clear"></div>
+	<div class="aside">
+		<div class="container">
+			<?php if ($this->self) { ?>
+				<p><?php echo JText::_('PLG_MEMBERS_RESUME_HUB_OFFERS'); ?></p>
+			<?php } else { ?>
+				<p><?php echo JText::_('PLG_MEMBERS_RESUME_NOTICE_YOU_ARE_EMPLOYER'); ?></p>
+			<?php } ?>
+
+			<p>
+				<a class="icon-next btn" href="<?php echo JRoute::_('index.php?option=com_jobs'); ?>">
+					<?php echo ($this->config->get('industry') ? JText::sprintf('PLG_MEMBERS_RESUME_VIEW_JOBS_IN', $this->config->get('industry')) : JText::_('PLG_MEMBERS_RESUME_VIEW_JOBS')); ?>
+				</a>
+			</p>
+		</div><!-- / .container -->
+
+		<?php if ($this->self && $this->js->active) { ?>
+		<div class="container">
+			<table class="jobstats">
+				<caption><?php echo JText::_('PLG_MEMBERS_RESUME_YOUR_STATS'); ?></caption>
+				<tbody>
+					<tr>
+						<th><?php echo JText::_('PLG_MEMBERS_RESUME_TOTAL_VIEWED'); ?></th>
+						<td><?php echo $this->stats['totalviewed']; ?></td>
+					</tr>
+					<tr>
+						<th><?php echo JText::_('PLG_MEMBERS_RESUME_VIEWED_PAST_30_DAYS'); ?></th>
+						<td><?php echo $this->stats['viewed_thismonth']; ?></td>
+					</tr>
+					<tr>
+						<th><?php echo JText::_('PLG_MEMBERS_RESUME_VIEWED_PAST_7_DAYS'); ?></th>
+						<td><?php echo $this->stats['viewed_thisweek']; ?></td>
+					</tr>
+					<tr>
+						<th><?php echo JText::_('PLG_MEMBERS_RESUME_VIEWED_PAST_24_HOURS'); ?></th>
+						<td><?php echo $this->stats['viewed_today']; ?></td>
+					</tr>
+					<tr>
+						<th><?php echo JText::_('PLG_MEMBERS_RESUME_PROFILE_SHORTLISTED'); ?></th>
+						<td><?php echo $this->stats['shortlisted']; ?></td>
+					</tr>
+				</tbody>
+			</table>
+		</div><!-- / .container -->
+		<?php } ?>
+	</div><!-- / .aside -->
+</section>

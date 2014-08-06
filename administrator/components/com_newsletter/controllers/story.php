@@ -29,7 +29,7 @@
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access'); 
+defined('_JEXEC') or die('Restricted access');
 
 class NewsletterControllerStory extends \Hubzero\Component\AdminController
 {
@@ -42,8 +42,8 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 	{
 		$this->editTask();
 	}
-	
-	
+
+
 	/**
 	 * Edit Newsletter Story Task
 	 *
@@ -53,16 +53,16 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 	{
 		//set layout
 		$this->view->setLayout('edit');
-		
+
 		//get request vars
 		$this->view->type 	= strtolower(JRequest::getVar("type", "primary"));
 		$this->view->id 	= JRequest::getInt("id", 0);
 		$this->view->sid 	= JRequest::getInt("sid", 0);
-		
+
 		//load campaign
 		$this->view->newsletter = new NewsletterNewsletter( $this->database );
 		$this->view->newsletter->load( $this->view->id );
-		
+
 		//default object
 		$this->view->story                  = new stdClass;
 		$this->view->story->id 				= null;
@@ -71,7 +71,7 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		$this->view->story->story 			= null;
 		$this->view->story->readmore_title 	= null;
 		$this->view->story->readmore_link 	= null;
-		
+
 		//are we editing
 		if ($this->view->sid)
 		{
@@ -83,10 +83,10 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 			{
 				$this->view->story = new NewsletterSecondaryStory( $this->database );
 			}
-			
+
 			$this->view->story->load( $this->view->sid );
 		}
-		
+
 		// Set any errors
 		if ($this->getError())
 		{
@@ -96,8 +96,8 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		// Output the HTML
 		$this->view->display();
 	}
-	
-	
+
+
 	/**
 	 * Save Newsletter Story Task
 	 *
@@ -108,7 +108,7 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		//get story
 		$story = JRequest::getVar("story", array(), 'post', 'ARRAY', JREQUEST_ALLOWHTML);
 		$type = JRequest::getVar("type", "primary");
-		
+
 		//are we working with a primary or secondary story
 		if ($type == "primary")
 		{
@@ -118,30 +118,30 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		{
 			$newsletterStory = new NewsletterSecondaryStory( $this->database );
 		}
-		
+
 		//check to make sure we have an order
 		if (!isset($story['order']) || $story['order'] == '' || $story['order'] == 0)
 		{
 			$currentHighestOrder = $newsletterStory->_getCurrentHighestOrder( $story['nid'] );
 			$newOrder = $currentHighestOrder + 1;
-			
+
 			$story['order'] = $newOrder;
 		}
-		
-		//save the story 
+
+		//save the story
 		if (!$newsletterStory->save($story))
 		{
 			$this->setError( $newsletterStory->getError() );
 			$this->editTask();
 			return;
 		}
-		
+
 		//inform and redirect
-		$this->_message = JText::_('Newsletter Story Successfully Saved');
+		$this->_message = JText::_('COM_NEWSLETTER_STORY_SAVED_SUCCESS');
 		$this->_redirect = 'index.php?option=com_newsletter&controller=newsletter&task=edit&id[]='.$newsletterStory->nid;
 	}
-	
-	
+
+
 	/**
 	 * Reorder Newsletter Story Task
 	 *
@@ -154,7 +154,7 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		$sid 		= JRequest::getInt('sid', 0);
 		$type 		= JRequest::getWord('type', 'primary');
 		$direction 	= JRequest::getWord('direction', 'down');
-		
+
 		//what kind of story do we want
 		if (strtolower($type) == 'primary')
 		{
@@ -164,15 +164,15 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		{
 			$story = new NewsletterSecondaryStory( $this->database );
 		}
-		
+
 		//load the story
 		$story->load( $sid );
-		
+
 		//set vars
 		$lowestOrder = 1;
 		$highestOrder = $story->_getCurrentHighestOrder( $id );
 		$currentOrder = $story->order;
-		
+
 		//move page up or down
 		if ($direction == 'down')
 		{
@@ -185,19 +185,19 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		else
 		{
 			$newOrder = $currentOrder - 1;
-			if($newOrder < $lowestOrder)
+			if ($newOrder < $lowestOrder)
 			{
 				$newOrder = $lowestOrder;
 			}
 		}
-		
+
 		$database = JFactory::getDBO();
-		
+
 		//is there a nother story having the order we want?
 		$sql = "SELECT * FROM {$story->getTableName()} WHERE `order`=" . $database->quote( $newOrder ) . " AND nid=" . $database->quote( $id );
 		$database->setQuery( $sql );
 		$moveTo = $database->loadResult();
-		
+
 		//if there isnt just update story
 		if (!$moveTo)
 		{
@@ -211,20 +211,20 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 			$sql = "UPDATE {$story->getTableName()} SET `order`=" . $database->quote( $newOrder ) . " WHERE id=" . $database->quote( $sid );
 			$database->setQuery( $sql );
 			$database->query();
-			
+
 			$sql = "UPDATE {$story->getTableName()} SET `order`=" . $database->quote( $currentOrder ) . " WHERE id=" . $database->quote( $moveTo );
 			$database->setQuery( $sql );
 			$database->query();
 		}
-		
+
 		//set success message
-		$this->_message = JText::_('Newsletter Story Successfully Reordered');
-		
+		$this->_message = JText::_('COM_NEWSLETTER_STORY_REORDER_SUCCESS');
+
 		//redirect back to campaigns list
 		$this->_redirect = 'index.php?option=com_newsletter&controller=newsletter&task=edit&id[]=' . $id . '#' . $type . '-stories';
 	}
-	
-	
+
+
 	/**
 	 * Delete Newsletter Task
 	 *
@@ -236,7 +236,7 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		$id 	= JRequest::getInt('id', 0);
 		$sid 	= JRequest::getInt('sid', 0);
 		$type 	= JRequest::getWord('type', 'primary');
-		
+
 		if (strtolower($type) == 'primary')
 		{
 			$story = new NewsletterPrimaryStory( $this->database );
@@ -245,29 +245,29 @@ class NewsletterControllerStory extends \Hubzero\Component\AdminController
 		{
 			$story = new NewsletterSecondaryStory( $this->database );
 		}
-		
+
 		//load the story
 		$story->load( $sid );
-		
+
 		//mark as deleted
 		$story->deleted = 1;
-		
+
 		//save so story is marked deleted
 		if (!$story->save( $story ))
 		{
-			$this->setError('Unable to delete newsletter story.');
+			$this->setError(JText::_('COM_NEWSLETTER_STORY_DELETE_FAIL'));
 			$this->editTask();
 			return;
 		}
-		
+
 		//set success message
-		$this->_message = JText::_('Newsletter Story Successfully Deleted');
-		
+		$this->_message = JText::_('COM_NEWSLETTER_STORY_DELETE_SUCCESS');
+
 		//redirect back to campaigns list
 		$this->_redirect = 'index.php?option=com_newsletter&controller=newsletter&task=edit&id[]=' . $id;
 	}
-	
-	
+
+
 	/**
 	 * Display all campaigns task
 	 *

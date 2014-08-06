@@ -31,22 +31,16 @@
 defined('_JEXEC') or die('Restricted access');
 
 // Menu items
-JToolBarHelper::title(JText::_('APC Directory Entries'), 'config.png');
+JToolBarHelper::title(JText::_('COM_SYSTEM_APC_DIR'), 'config.png');
 
 $this->MYREQUEST = $this->MYREQUEST;
 $MY_SELF   = $this->MY_SELF;
 
 ?>
 
-<div role="navigation" class="sub-navigation">
-	<ul id="subsubmenu">
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>">Host</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=system">System</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=user">User</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=dircache" class="active">Directory</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=version">Version</a></li>
-	</ul>
-</div>
+<?php
+	$this->view('_submenu')->display();
+?>
 
 <form action="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
@@ -70,12 +64,12 @@ $MY_SELF   = $this->MY_SELF;
 			<option value="A"<?php echo $this->MYREQUEST['SORT1']=='A' ? ' selected="selected"' : ''; ?>>Avg. Size</option>
 			<option value="C"<?php echo $this->MYREQUEST['SORT1']=='C' ? ' selected="selected"' : ''; ?>>Avg. Hits</option>
 		</select>
-		
+
 		<select name="SORT2">
 			<option value="D"<?php echo $this->MYREQUEST['SORT2']=='D' ? ' selected="selected"' : ''; ?>>DESC</option>
 			<option value="A"<?php echo $this->MYREQUEST['SORT2']=='A' ? ' selected="selected"' : ''; ?>>ASC</option>
 		</select>
-		
+
 		<select name="COUNT" onChange="form.submit()">
 			<option value="10" <?php echo $this->MYREQUEST['COUNT']=='10' ? ' selected="selected"' : ''; ?>>Top 10</option>
 			<option value="20" <?php echo $this->MYREQUEST['COUNT']=='20' ? ' selected="selected"' : ''; ?>>Top 20</option>
@@ -88,7 +82,7 @@ $MY_SELF   = $this->MY_SELF;
 		</select>
 		</div>
 		<div class="col width-40 fltrt">
-		<label for="AGGR">Group By Dir Level:</label> 
+		<label for="AGGR">Group By Dir Level:</label>
 		<select name="AGGR" id="AGGR">
 			<option value="" selected="selected">None</option>
 		<?php for ($i = 1; $i < 10; $i++) { ?>
@@ -99,23 +93,23 @@ $MY_SELF   = $this->MY_SELF;
 		</div>
 	</fieldset>
 	<div class="clr"></div>
-	
+
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th><?php echo SystemHtml::sortheader('S','Directory Name',  "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('T','Number of Files', "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('H','Total Hits',      "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('Z','Total Size',      "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('C','Avg. Hits',       "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('A','Avg. Size',       "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'S','Directory Name',  "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'T','Number of Files', "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'H','Total Hits',      "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'Z','Total Size',      "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'C','Avg. Hits',       "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'A','Avg. Size',       "&OB=" . $this->MYREQUEST['OB']); ?></th>
 			</tr>
 		</thead>
 		<tbody>
-<?php 
+<?php
 	// builds list with alpha numeric sortable keys
 	$tmp = $list = array();
-	foreach($this->cache[$this->scope_list[$this->MYREQUEST['SCOPE']]] as $entry)
+	foreach ($this->cache[$this->scope_list[$this->MYREQUEST['SCOPE']]] as $entry)
 	{
 		$n = dirname($entry['filename']);
 		if ($this->MYREQUEST['AGGR'] > 0)
@@ -145,7 +139,7 @@ $MY_SELF   = $this->MY_SELF;
 		$list[$kn . $k] = array($k, $v['ents'], $v['hits'], $v['size']);
 	}
 
-	if ($list) 
+	if ($list)
 	{
 		// sort list
 		switch ($this->MYREQUEST['SORT2'])
@@ -155,7 +149,7 @@ $MY_SELF   = $this->MY_SELF;
 		}
 		// output list
 		$i = 0;
-		foreach ($list as $entry) 
+		foreach ($list as $entry)
 		{
 			echo
 				'<tr class="row' . $i%2 . '">' .
@@ -167,7 +161,7 @@ $MY_SELF   = $this->MY_SELF;
 				'<td class="td-n center">' . round($entry[3] / $entry[1]) . '</td>' .
 				'</tr>';
 
-			if (++$i == $this->MYREQUEST['COUNT']) 
+			if (++$i == $this->MYREQUEST['COUNT'])
 			{
 				break;
 			}

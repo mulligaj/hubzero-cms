@@ -32,31 +32,32 @@ defined('_JEXEC') or die('Restricted access');
 
 $tmpl = JRequest::getVar('tmpl', '');
 
-$text = ($this->task == 'edit' ? JText::_('EDIT') : JText::_('NEW'));
+$text = ($this->task == 'edit' ? JText::_('COM_GROUPS_EDIT') : JText::_('COM_GROUPS_NEW'));
 
 $canDo = GroupsHelper::getActions('group');
 
 if ($tmpl != 'component')
 {
-	JToolBarHelper::title(JText::_('COM_GROUPS').': <small><small>[ ' . $text . ' ]</small></small>', 'groups.png');
-	if ($canDo->get('core.edit')) 
+	JToolBarHelper::title(JText::_('COM_GROUPS').': ' . $text, 'groups.png');
+	if ($canDo->get('core.edit'))
 	{
 		JToolBarHelper::save();
 	}
 	JToolBarHelper::cancel();
 }
 
+JHTML::_('behavior.framework');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
-	
+
 	if (pressbutton == 'cancel') {
 		submitform(pressbutton);
 		return;
 	}
-	
+
 	// form field validation
 	if (form.usernames.value == '') {
 		alert('<?php echo JText::_('COM_GROUPS_ERROR_MISSING_INFORMATION'); ?>');
@@ -66,8 +67,8 @@ function submitbutton(pressbutton)
 	window.top.setTimeout("window.parent.location='index.php?option=<?php echo $this->option; ?>&controller=<?php echo $this->controller; ?>&gid=<?php echo $this->group->get('cn'); ?>'", 700);
 }
 
-window.addEvent('domready', function(){
-	window.addEvent('keypress', function(){
+jQuery(document).ready(function($){
+	$(window).on('keypress', function(){
 		if (window.event.keyCode == 13) {
 			submitbutton('addusers');
 		}
@@ -77,22 +78,22 @@ window.addEvent('domready', function(){
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo implode('<br />', $this->getError()); ?></p>
 <?php } ?>
-<form action="index.php" method="post" name="adminForm" id="item-form">
+<form action="index.php" method="post" name="adminForm" id="component-form">
 <?php if ($tmpl == 'component') { ?>
 	<fieldset>
-		<div style="float: right">
-			<button type="button" onclick="submitbutton('addusers');"><?php echo JText::_( 'Save' );?></button>
-			<button type="button" onclick="window.parent.document.getElementById('sbox-window').close();"><?php echo JText::_( 'Cancel' );?></button>
-		</div>
 		<div class="configuration" >
-			<?php echo JText::_('Add users') ?>
+			<div class="fltrt configuration-options">
+				<button type="button" onclick="submitbutton('addusers');"><?php echo JText::_( 'COM_GROUPS_MEMBER_SAVE' );?></button>
+				<button type="button" onclick="window.parent.$.fancybox.close();"><?php echo JText::_( 'COM_GROUPS_MEMBER_CANCEL' );?></button>
+			</div>
+			<?php echo JText::_('COM_GROUPS_MEMBER_ADD') ?>
 		</div>
 	</fieldset>
 <?php } ?>
 	<div class="col width-100">
 		<fieldset class="adminform">
 			<legend><span><?php echo JText::_('COM_GROUPS_DETAILS'); ?></span></legend>
-			
+
 			<input type="hidden" name="gid" value="<?php echo $this->group->get('cn'); ?>" />
 			<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 			<input type="hidden" name="controller" value="<?php echo $this->controller; ?>">

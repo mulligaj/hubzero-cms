@@ -70,13 +70,13 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 			''
 		));
 		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.browse.sort', 
-			'filter_order', 
+			$this->_option . '.browse.sort',
+			'filter_order',
 			'cn'
 		));
 		$this->view->filters['sort_Dir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.browse.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.browse.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 		$this->view->filters['sortby'] = $this->view->filters['sort'] . ' ' . $this->view->filters['sort_Dir'];
@@ -87,7 +87,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		$this->view->filters['authorized'] = 'admin';
 
 		$canDo = GroupsHelper::getActions('group');
-		if (!$canDo->get('core.admin')) 
+		if (!$canDo->get('core.admin'))
 		{
 			if ($this->view->filters['type'][0] == 'system' || $this->view->filters['type'][0] == 0)
 			{
@@ -97,20 +97,20 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 			if ($this->view->filters['type'][0] == 'all')
 			{
 				$this->view->filters['type'] = array(
-					//0,  No system groups 
+					//0,  No system groups
 					1,  // hub
-					2,  // project 
+					2,  // project
 					3   // super
 				);
 			}
 		}
-		
+
 		//approved filter
 		$this->view->filters['approved'] = JRequest::getVar('approved');
-		
+
 		//published filter
 		//$this->view->filters['published'] = JRequest::getVar('published', 1);
-		
+
 		//created filter
 		$this->view->filters['created'] = JRequest::getVar('created', '');
 
@@ -198,15 +198,15 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		{
 			$id = '';
 		}
-		
+
 		// determine task
 		$task = ($id == '') ? 'create' : 'edit';
 
 		$this->view->group = new \Hubzero\User\Group();
 		$this->view->group->read($id);
-		
+
 		// make sure we are organized
-		if (!$this->authorize($task, $this->view->group)) 
+		if (!$this->authorize($task, $this->view->group))
 		{
 			return;
 		}
@@ -266,9 +266,10 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		{
 			$isNew = true;
 
-			// Set the task - if anything fails and we re-enter edit mode 
+			// Set the task - if anything fails and we re-enter edit mode
 			// we need to know if we were creating new or editing existing
 			$this->_task = 'new';
+			$before = new \Hubzero\User\Group();
 		}
 		else
 		{
@@ -276,8 +277,9 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 
 			// Load the group
 			$group->read($g['gidNumber']);
+			$before = clone($group);
 		}
-		
+
 		$task = ($this->_task == 'edit') ? 'edit' : 'create';
 		if (!$this->authorize($task, $group))
 		{
@@ -318,7 +320,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		{
 			$this->setError(JText::_('COM_GROUPS_ERROR_INVALID_ID'));
 		}
-		
+
 		//only check if cn exists if we are creating or have changed the cn
 		if ($this->_task == 'new' || $group->get('cn') != $g['cn'])
 		{
@@ -327,7 +329,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 				$this->setError(JText::_('COM_GROUPS_ERROR_GROUP_ALREADY_EXIST'));
 			}
 		}
-		
+
 		// Push back into edit mode if any errors
 		if ($this->getError())
 		{
@@ -346,12 +348,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		}
 
 		// group params
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-		$gparams = new $paramsClass($group->get('params'));
+		$gparams = new JRegistry($group->get('params'));
 
 		// set membership control param
 		$membership_control = (isset($g['params']['membership_control'])) ? 1 : 0;
@@ -397,14 +394,19 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		$group->set('plugins', $g['plugins']);
 		$group->set('params', $params);
 		$group->update();
-		
+
+		// Get plugins
+		JPluginHelper::importPlugin('groups');
+		$dispatcher = JDispatcher::getInstance();
+		$dispatcher->trigger('onGroupAfterSave', array($before, $group));
+
 		// log edit
 		GroupsModelLog::log(array(
 			'gidNumber' => $group->get('gidNumber'),
 			'action'    => 'group_edited',
 			'comments'  => 'edited by administrator'
 		));
-		
+
 		// handle special groups
 		if ($group->isSuperGroup())
 		{
@@ -413,7 +415,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 			// git lab stuff
 			$this->_handSuperGroupGitlab($group);
 		}
-		
+
 		// Output messsage and redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
@@ -431,7 +433,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 	{
 		//get the upload path for groups
 		$uploadPath = JPATH_ROOT . DS . trim($this->config->get('uploadpath', '/site/groups'), DS) . DS . $group->get('gidNumber');
-		
+
 		// get the source path
 		$srcPath = JPATH_COMPONENT . DS . 'super' . DS . 'default' . DS . '.';
 
@@ -441,7 +443,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 			if (!JFolder::create($uploadPath))
 			{
 				JFactory::getApplication()
-					->enqueueMessage('Unable to create group folder. Please try again later.', 'error');
+					->enqueueMessage(JText::_('COM_GROUPS_SUPER_UNABLE_TO_CREATE'), 'error');
 			}
 		}
 
@@ -449,20 +451,20 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		if (!is_writable($uploadPath))
 		{
 			JFactory::getApplication()
-					->enqueueMessage('Group folder ('.$uploadPath.') is not writable. Plase modify the folder permissions and try again later.', 'error');
+					->enqueueMessage(JText::sprintf('COM_GROUPS_SUPER_FOLDER_NOT_WRITABLE', $uploadpath), 'error');
 			return;
 		}
-		
+
 		// copy over default template recursively
 		// must have  /. at the end of source path to get all items in that directory
 		// also doesnt overwrite already existing files/folders
 		shell_exec("cp -rn $srcPath $uploadPath");
-		
+
 		// make sure files are group read and writable
 		// make sure files are all group owned properly
 		shell_exec("chmod -R 2770 $uploadPath");
 		shell_exec("chgrp -R " . $this->config->get('super_group_file_owner', 'access-content') . " " . $uploadPath);
-		
+
 		// get all current users granted permissionss
 		$this->database->setQuery("SHOW GRANTS FOR CURRENT_USER();");
 		$grants = $this->database->loadResultArray();
@@ -524,7 +526,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 				}
 			}
 		}
-		
+
 		// log super group change
 		GroupsModelLog::log(array(
 			'gidNumber' => $group->get('gidNumber'),
@@ -550,7 +552,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		if (!$gitlabManagement || $gitlabUrl == '' || $gitlabKey == '')
 		{
 			JFactory::getApplication()
-					->enqueueMessage('Gitlab is not setup properly for managing super group repositories. Please complete setup in the Groups params and save the super group again.', 'warning');
+					->enqueueMessage(JText::_('COM_GROUPS_GITLAB_NOT_SETUP'), 'warning');
 			return;
 		}
 
@@ -567,11 +569,10 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		$projectName = $group->get('cn');
 
 		// instantiate new gitlab client
-		$client = new \Gitlab\Client($gitlabUrl);
-		$client->authenticate($gitlabKey, \Gitlab\Client::AUTH_URL_TOKEN);
+		$client = new GroupsHelperGitlab($gitlabUrl, $gitlabKey);
 
 		// get list of groups
-		$groups = $client->api('groups')->all();
+		$groups = $client->groups();
 
 		// attempt to get already existing group
 		$gitLabGroup = null;
@@ -587,12 +588,14 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		// create group if doesnt exist
 		if ($gitLabGroup == null)
 		{
-			$gitLabGroup = $client->api('groups')
-				->create($groupName, strtolower($groupName));
+			$gitLabGroup = $client->createGroup(array(
+				'name' => $groupName,
+				'path' => strtolower($groupName)
+			));
 		}
 
 		//get groups projects
-		$projects = $client->api('projects')->all();
+		$projects = $client->projects();
 
 		// attempt to get already existing project
 		$gitLabProject = null;
@@ -608,21 +611,21 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		// create project if doesnt exist
 		if ($gitLabProject == null)
 		{
-			$gitLabProject = $client->api('projects')->create($projectName, array(
-				'namespace_id' => $gitLabGroup['id'],
-				'name'         => $projectName,
-				'description'  => $group->get('description'),
-				'issues_enabled' => true,
+			$gitLabProject = $client->createProject(array(
+				'namespace_id'           => $gitLabGroup['id'],
+				'name'                   => $projectName,
+				'description'            => $group->get('description'),
+				'issues_enabled'         => true,
 				'merge_requests_enabled' => true,
-				'wiki_enabled' => true,
-				'snippets_enabled' => true,
+				'wiki_enabled'           => true,
+				'snippets_enabled'       => true,
 			));
 		}
 
 		// path to group folder
 		$uploadPath = JPATH_ROOT . DS . trim($this->config->get('uploadpath', '/site/groups'), DS) . DS . $group->get('gidNumber');
 
-		// build author info for making first commit 
+		// build author info for making first commit
 		$authorInfo = '"' . JFactory::getConfig()->get('sitename') . ' Groups <groups@' . $_SERVER['HTTP_HOST'] . '>"';
 
 		// check to see if we already have git repo
@@ -630,28 +633,30 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		if (is_dir($uploadPath . DS . '.git'))
 		{
 			return;
-		} 
+		}
 
 		// build command to run via shell
 		// this will init the git repo, make the inital commit and push to the repo management machine
 		$cmd  = 'sh ' . JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_groups' . DS . 'assets' . DS . 'scripts' . DS . 'gitlab_setup.sh ';
 		$cmd .= $uploadPath  . ' ' . $authorInfo . ' ' . $gitLabProject['ssh_url_to_repo'] . ' 2>&1';
-		
+
 		// execute command
 		$output = shell_exec($cmd);
-		
+
 		// make sure everything went well
 		if (preg_match("/Host key verification failed/uis", $output))
 		{
 			JFactory::getApplication()
-					->enqueueMessage('Gitlab is not setup properly for managing super group repositories. Please make sure the hub has a valid SSH key and has been added to Gitlab to allow the HUB to make commits.', 'warning');
+					->enqueueMessage(JText::_('COM_GROUPS_GITLAB_NOT_SETUP_SSH'), 'warning');
 			return;
 		}
 
 		// protect master branch
 		// allows only admins to accept Merge Requests
-		$project = new \Gitlab\Model\Project($gitLabProject['id'], $client);
-		$project->protectBranch('master');
+		$protected = $client->protectBranch(array(
+			'id' => $gitLabProject['id'],
+			'branch' => 'master'
+		));
 	}
 
 	/**
@@ -691,42 +696,44 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 			// make sure its a super group
 			if (!$group->isSuperGroup())
 			{
-				$failed[] = array('group' => $group->get('cn'), 'message' => 'Not a super group.');
+				$failed[] = array('group' => $group->get('cn'), 'message' => JText::_('COM_GROUPS_GITLAB_NOT_SUPER_GROUP'));
 				continue;
 			}
-			
+
 			// path to group folder
 			$uploadPath = JPATH_ROOT . DS . trim($this->config->get('uploadpath', '/site/groups'), DS) . DS . $group->get('gidNumber');
 
 			// make sure we have an upload path
 			if (!is_dir($uploadPath))
 			{
-				$failed[] = array('group' => $group->get('cn'), 'message' => 'Group upload path does not exist.');
+				$failed[] = array('group' => $group->get('cn'), 'message' => JText::_('COM_GROUPS_GITLAB_UPLOAD_PATH_DOESNT_EXIST'));
 				continue;
 			}
 
 			// make sure we have a git repo
 			if (!is_dir($uploadPath . DS . '.git'))
 			{
-				$failed[] = array('group' => $group->get('cn'), 'message' => 'Group assets are not versioned by git.');
+				$failed[] = array('group' => $group->get('cn'), 'message' => JText::_('COM_GROUPS_GITLAB_NOT_MANAGED_BY_GIT'));
 				continue;
 			}
 
 			// build command to run via shell
 			// this will run a "git pull --rebase origin master"
-			$cmd  = 'sh ' . JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_groups' . DS . 'assets' . DS . 'scripts' . DS . 'gitlab_pull.sh ';
-			$cmd .= $uploadPath . ' 2>&1';
-			
+			$cmd  = 'sh ' . JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_groups' . DS . 'assets' . DS . 'scripts' . DS . 'gitlab_pull_and_migrate.sh ';
+			$cmd .= $uploadPath . ' ' . JPATH_ROOT . ' 2>&1';
+
 			// execute command
 			$output = shell_exec($cmd);
 
 			// did we succeed
-			if (preg_match("/First, Rewinding head to replay your work on top of it/uis", $output) || preg_match("/Current branch master is up to date./uis", $output))
+			if (preg_match("/Updating the repository...complete/uis", $output))
 			{
+				// add success message
 				$success[] = array('group' => $group->get('cn'), 'message' => $output);
 			}
 			else
 			{
+				// add failed message
 				$failed[] = array('group' => $group->get('cn'), 'message' => $output);
 			}
 		}
@@ -775,7 +782,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 				{
 					continue;
 				}
-				if (!$this->authorize('delete', $group)) 
+				if (!$this->authorize('delete', $group))
 				{
 					continue;
 				}
@@ -817,14 +824,14 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 				{
 					$log .= implode('', $logs);
 				}
-				
+
 				// Delete group
 				if (!$group->delete())
 				{
 					JError::raiseError(500, 'Unable to delete group');
 					return;
 				}
-				
+
 				// log publishing
 				GroupsModelLog::log(array(
 					'gidNumber' => $group->get('gidNumber'),
@@ -867,7 +874,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		$ids = JRequest::getVar('id', array());
 
 		// Get the single ID we're working with
-		if (!is_array($ids)) 
+		if (!is_array($ids))
 		{
 			$ids = array();
 		}
@@ -891,7 +898,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 				//set the group to be published and update
 				$group->set('published', 1);
 				$group->update();
-				
+
 				// log publishing
 				GroupsModelLog::log(array(
 					'gidNumber' => $group->get('gidNumber'),
@@ -902,7 +909,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 				// Output messsage and redirect
 				$this->setRedirect(
 					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::_('Group has been published.')
+					JText::_('COM_GROUPS_PUBLISHED')
 				);
 			}
 		}
@@ -962,7 +969,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 			}
 		}
 	}
-	
+
 	/**
 	 * Approve a group
 	 *
@@ -978,7 +985,7 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 		{
 			$ids = array();
 		}
-		
+
 		// Do we have any IDs?
 		if (!empty($ids))
 		{
@@ -994,11 +1001,11 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 				{
 					continue;
 				}
-				
+
 				//set the group to be published and update
 				$group->set('approved', 1);
 				$group->update();
-				
+
 				// log publishing
 				GroupsModelLog::log(array(
 					'gidNumber' => $group->get('gidNumber'),
@@ -1006,11 +1013,11 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 					'comments'  => 'approved by administrator'
 				));
 			}
-			
+
 			// Output messsage and redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Group has been Approved.')
+				JText::_('COM_GROUPS_APPROVED')
 			);
 		}
 	}
@@ -1022,13 +1029,13 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 	 */
 	/**
 	 * Check if a group alias is valid
-	 * 
+	 *
 	 * @param 		integer 	$cname 			Group alias
 	 * @param 		boolean		$allowDashes 	Allow dashes in cn
 	 * @return 		boolean		True if valid, false if not
 	 */
-    private function _validCn( $cn, $allowDashes = false )
-    {
+	private function _validCn( $cn, $allowDashes = false )
+	{
 		$regex = '/^[0-9a-zA-Z]+[_0-9a-zA-Z]*$/i';
 		if ($allowDashes)
 		{
@@ -1037,16 +1044,16 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 
 		if (preg_match($regex, $cn))
 		{
-			if (is_numeric($cn) && intval($cn) == $cn && $cn >= 0) 
+			if (is_numeric($cn) && intval($cn) == $cn && $cn >= 0)
 			{
 				return false;
-			} 
-			else 
+			}
+			else
 			{
 				return true;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			return false;
 		}
@@ -1063,22 +1070,22 @@ class GroupsControllerManage extends \Hubzero\Component\AdminController
 	{
 		// get users actions
 		$canDo = GroupsHelper::getActions('group');
-		
+
 		// build task name
 		$taskName = 'core.' . $task;
-		
+
 		// can user perform task
 		if (!$canDo->get($taskName) || (!$canDo->get('core.admin') && $task == 'edit' && $group->get('type') == 0))
 		{
 			// No access - redirect to main listing
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Not Authorized'),
+				JText::_('COM_GROUPS_NOT_AUTH'),
 				'error'
 			);
 			return false;
 		}
-		
+
 		return true;
 	}
 }

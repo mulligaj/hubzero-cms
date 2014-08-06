@@ -32,18 +32,17 @@ $v = $browser->major();
 <?php } ?>
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/html/mod_reportproblems/mod_reportproblems.css" />
 		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/print.css" />
-<?php if (JPluginHelper::isEnabled('system', 'jquery')) { ?>
+
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/jquery.js"></script>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/jquery.ui.js"></script>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/jquery.fancybox.js"></script>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/jquery.tools.js"></script>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/hub.jquery.js"></script>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/modules/mod_reportproblems/mod_reportproblems.jquery.js"></script>
-<?php } else { ?>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/mootools.js"></script>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/hub.js"></script>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/modules/mod_reportproblems/mod_reportproblems.js"></script>
-<?php } ?>
+
+		<!--[if lt IE 9]>
+			<script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/html5.js"></script>
+		<![endif]-->
+
 		<!--[if IE 10]>
 			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie10.css" />
 		<![endif]-->
@@ -77,7 +76,7 @@ $v = $browser->major();
 						</p>
 					<?php endif; ?>
 					</div><!-- / #topbar -->
-					<div id="masthead">
+					<header id="masthead">
 						<div class="inner">
 							<h1>
 								<a href="<?php echo empty($this->baseurl) ? "/" : $this->baseurl; ?>" title="<?php echo $config->getValue('config.sitename'); ?>">
@@ -86,7 +85,7 @@ $v = $browser->major();
 								</a>
 							</h1>
 							<ul id="account" class="<?php echo (!$juser->get('guest')) ? 'loggedin' : 'loggedout'; ?>">
-							<?php if (!$juser->get('guest')) { 
+							<?php if (!$juser->get('guest')) {
 									$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
 							?>
 								<li id="account-info">
@@ -107,25 +106,24 @@ $v = $browser->major();
 											<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=messages'); ?>"><span><?php echo JText::_('TPL_HUBBASIC_ACCOUNT_MESSAGES'); ?></span></a>
 										</li>
 										<li id="account-logout">
-											<a href="<?php echo JRoute::_('index.php?option=com_logout'); ?>"><span><?php echo JText::_('TPL_HUBBASIC_LOGOUT'); ?></span></a>
+											<a href="<?php echo JRoute::_('index.php?option=com_users&view=logout'); ?>"><span><?php echo JText::_('TPL_HUBBASIC_LOGOUT'); ?></span></a>
 										</li>
 									</ul>
 								</li>
 							<?php } else { ?>
 								<li id="account-login">
-									<a href="<?php echo JRoute::_('index.php?option=com_login'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?>"><?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?></a>
+									<a href="<?php echo JRoute::_('index.php?option=com_users&view=login'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?>"><?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?></a>
 								</li>
 								<li id="account-register">
-									<a href="<?php echo JRoute::_('index.php?option=com_register'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_SIGN_UP'); ?>"><?php echo JText::_('TPL_HUBBASIC_REGISTER'); ?></a>
+									<a href="<?php echo JRoute::_('index.php?option=com_members&controller=register'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_SIGN_UP'); ?>"><?php echo JText::_('TPL_HUBBASIC_REGISTER'); ?></a>
 								</li>
 							<?php } ?>
 							</ul><!-- / #account -->
-							<div id="nav">
-								<a name="nav"></a>
+							<nav id="nav" role="menu">
 								<?php \Hubzero\Module\Helper::displayModules('user3'); ?>
-							</div><!-- / #nav -->
+							</nav><!-- / #nav -->
 						</div><!-- / .inner -->
-					</div><!-- / #masthead -->
+					</header><!-- / #masthead -->
 
 					<div id="sub-masthead">
 						<div id="trail">
@@ -137,11 +135,9 @@ $v = $browser->major();
 		</div><!-- / #top -->
 
 		<div id="wrap">
-			<div id="content" class="<?php echo JRequest::getCmd('option', ''); ?> <?php echo 'code' . $this->error->getCode(); ?>">
+			<main id="content" class="<?php echo JRequest::getCmd('option', ''); ?> <?php echo 'code' . $this->error->getCode(); ?>">
 				<div class="inner">
-					<a name="content" id="content-anchor"></a>
-
-					<div class="main section">
+					<section class="main section">
 						<div class="grid">
 							<div class="col span-half">
 								<div id="errormessage">
@@ -187,21 +183,20 @@ $v = $browser->major();
 							<?php echo $this->error->getMessage(); ?>
 						</p>
 					<?php } ?>
-					</div><!-- / .main section -->
+					</section><!-- / .main section -->
 
 				<?php if ($this->debug) { ?>
-					<div id="techinfo">
+					<section id="techinfo">
 						<?php echo $this->renderBacktrace(); ?>
-					</div><!-- / #techinfo -->
+					</section><!-- / #techinfo -->
 				<?php } ?>
 				</div><!-- / .inner -->
-			</div><!-- / #content -->
+			</main><!-- / #content -->
 		</div><!-- / #wrap -->
 
-		<div id="footer">
-			<a name="footer" id="footer-anchor"></a>
+		<footer id="footer">
 			<?php \Hubzero\Module\Helper::displayModules('footer'); ?>
-		</div><!-- / #footer -->
+		</footer><!-- / #footer -->
 
 		<?php \Hubzero\Module\Helper::displayModules('endpage'); ?>
 	</body>

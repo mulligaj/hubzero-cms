@@ -38,7 +38,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Upload a file or create a new folder
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function uploadTask()
@@ -52,7 +52,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$listdir = JRequest::getVar('listdir', '', 'post');
 		if (!$listdir)
 		{
-			$this->setError(JText::_('RESOURCES_NO_LISTDIR'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_NO_LISTDIR'));
 			$this->displayTask();
 			return;
 		}
@@ -68,9 +68,9 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		if ($foldername != '')
 		{
 			// Make sure the name is valid
-			if (preg_match("#[^0-9a-zA-Z_]#i", $foldername))
+			if (preg_match("/[^0-9a-zA-Z_]/i", $foldername))
 			{
-				$this->setError(JText::_('Directory name must only contain alphanumeric characters and no spaces please.'));
+				$this->setError(JText::_('COM_RESOURCES_ERROR_DIR_INVALID_CHARACTERS'));
 			}
 			else
 			{
@@ -79,17 +79,17 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 					jimport('joomla.filesystem.folder');
 					if (!JFolder::create($path . DS . $foldername))
 					{
-						$this->setError(JText::_('UNABLE_TO_CREATE_UPLOAD_PATH'));
+						$this->setError(JText::_('COM_RESOURCES_ERROR_UNABLE_TO_CREATE_UPLOAD_PATH'));
 					}
 				}
 				else
 				{
-					$this->setError(JText::_('Directory already exists'));
+					$this->setError(JText::_('COM_RESOURCES_ERROR_DIR_EXISTS'));
 				}
 			}
 			// Directory created
-		} 
-		else 
+		}
+		else
 		{
 			// Make sure the upload path exist
 			if (!is_dir($path))
@@ -97,7 +97,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 				jimport('joomla.filesystem.folder');
 				if (!JFolder::create($path))
 				{
-					$this->setError(JText::_('UNABLE_TO_CREATE_UPLOAD_PATH'));
+					$this->setError(JText::_('COM_RESOURCES_ERROR_UNABLE_TO_CREATE_UPLOAD_PATH'));
 					$this->displayTask();
 					return;
 				}
@@ -107,7 +107,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 			$file = JRequest::getVar('upload', '', 'files', 'array');
 			if (!$file['name'])
 			{
-				$this->setError(JText::_('RESOURCES_NO_FILE'));
+				$this->setError(JText::_('COM_RESOURCES_ERROR_NO_FILE'));
 				$this->displayTask();
 				return;
 			}
@@ -127,7 +127,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 			// Perform the upload
 			if (!JFile::upload($file['tmp_name'], $path . DS . $file['name']))
 			{
-				$this->setError(JText::_('ERROR_UPLOADING'));
+				$this->setError(JText::_('COM_RESOURCES_ERROR_UPLOADING'));
 			}
 			else
 			{
@@ -140,11 +140,11 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 					//include libs
 					jimport('joomla.filesystem.folder');
 					jimport('joomla.filesystem.file');
-					
+
 					//build path
 					$path = rtrim($path, DS) . DS;
 					$escaped_file = escapeshellarg($path . $file['name']);
-					
+
 					//determine command to uncompress
 					switch ($ext)
 					{
@@ -153,19 +153,19 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 						case 'zip':
 						default:       $cmd = "unzip {$escaped_file} -d {$path}";
 					}
-					
+
 					//unzip file
 					if ($result = shell_exec($cmd))
 					{
 						// Remove original archive
 						JFile::delete( $path . $file['name'] );
-						
+
 						// Remove MACOSX dirs if there
 						if (JFolder::exists($path . '__MACOSX'))
 						{
 							JFolder::delete($path . '__MACOSX');
 						}
-						
+
 						//remove ._ files
 						$dotFiles = JFolder::files($path, '._[^\s]*', true, true);
 						foreach ($dotFiles as $dotFile)
@@ -183,7 +183,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete a folder and contents
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deletefolderTask()
@@ -197,7 +197,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$listdir = JRequest::getVar('listdir', '');
 		if (!$listdir)
 		{
-			$this->setError(JText::_('RESOURCES_NO_LISTDIR'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_NO_LISTDIR'));
 			$this->displayTask();
 			return;
 		}
@@ -206,7 +206,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$parts = explode('/', $listdir);
 		if (count($parts) < 3)
 		{
-			$this->setError(JText::_('DIRECTORY_NOT_FOUND'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_DIRECTORY_NOT_FOUND'));
 			$this->displayTask();
 			return;
 		}
@@ -221,7 +221,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$folder = JRequest::getVar('delFolder', '');
 		if (!$folder)
 		{
-			$this->setError(JText::_('RESOURCES_NO_DIRECTORY'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_NO_DIRECTORY'));
 			$this->displayTask();
 			return;
 		}
@@ -229,9 +229,9 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$folder = ResourcesUtilities::normalizePath($folder);
 
 		// Check if the folder even exists
-		if (!is_dir($path . $folder) or !$folder) 
+		if (!is_dir($path . $folder) or !$folder)
 		{
-			$this->setError(JText::_('DIRECTORY_NOT_FOUND'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_DIRECTORY_NOT_FOUND'));
 		}
 		else
 		{
@@ -239,7 +239,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 			jimport('joomla.filesystem.folder');
 			if (!JFolder::delete($path . $folder))
 			{
-				$this->setError(JText::_('UNABLE_TO_DELETE_DIRECTORY'));
+				$this->setError(JText::_('COM_RESOURCES_ERROR_UNABLE_TO_DELETE_DIRECTORY'));
 			}
 		}
 
@@ -249,7 +249,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Deletes a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deletefileTask()
@@ -263,7 +263,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$listdir = JRequest::getVar('listdir', '');
 		if (!$listdir)
 		{
-			$this->setError(JText::_('RESOURCES_NO_LISTDIR'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_NO_LISTDIR'));
 			$this->displayTask();
 			return;
 		}
@@ -272,7 +272,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$parts = explode('/', $listdir);
 		if (count($parts) < 3)
 		{
-			$this->setError(JText::_('DIRECTORY_NOT_FOUND'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_DIRECTORY_NOT_FOUND'));
 			$this->displayTask();
 			return;
 		}
@@ -287,7 +287,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$file = JRequest::getVar('delFile', '');
 		if (!$file)
 		{
-			$this->setError(JText::_('RESOURCES_NO_FILE'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_NO_FILE'));
 			$this->displayTask();
 			return;
 		}
@@ -295,7 +295,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		// Check if the file even exists
 		if (!file_exists($path . DS . $file) or !$file)
 		{
-			$this->setError(JText::_('FILE_NOT_FOUND'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_FILE_NOT_FOUND'));
 		}
 		else
 		{
@@ -303,7 +303,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 			jimport('joomla.filesystem.file');
 			if (!JFile::delete($path . DS . $file))
 			{
-				$this->setError(JText::_('UNABLE_TO_DELETE_FILE'));
+				$this->setError(JText::_('COM_RESOURCES_ERROR_UNABLE_TO_DELETE_FILE'));
 			}
 		}
 
@@ -313,7 +313,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display an upload form and file listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -322,7 +322,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$this->view->listdir = JRequest::getVar('listdir', '');
 		if (!$this->view->listdir)
 		{
-			echo '<p class="error">' . JText::_('No list directory provided.') . '</p>';
+			echo '<p class="error">' . JText::_('COM_RESOURCES_ERROR_NO_LISTDIR') . '</p>';
 			return;
 		}
 
@@ -376,7 +376,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Lists all files and folders for a given directory
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function listTask()
@@ -385,7 +385,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 		$this->view->listdir = JRequest::getVar('listdir', '');
 		if (!$this->view->listdir)
 		{
-			echo '<p class="error">' . JText::_('No list directory provided.') . '</p>';
+			echo '<p class="error">' . JText::_('COM_RESOURCES_ERROR_NO_LISTDIR') . '</p>';
 			return;
 		}
 
@@ -449,7 +449,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Scans directory and builds multi-dimensional array of all files and sub-directories
-	 * 
+	 *
 	 * @param      string $base Directory to scan
 	 * @return     array
 	 */

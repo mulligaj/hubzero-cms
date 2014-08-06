@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Hubzero\Log;
 
@@ -8,7 +8,7 @@ use Monolog\Logger as MonologLogger;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Formatter\LineFormatter;
 
-class Writer 
+class Writer
 {
 	/**
 	 * The Monolog logger instance.
@@ -82,14 +82,14 @@ class Writer
 	 * @param  string  $format
 	 * @return void
 	 */
-	public function useFiles($path, $level = 'debug', $format='', $dateFormat = 'Y-m-d H:i:s')
+	public function useFiles($path, $level = 'debug', $format='')
 	{
 		$level = $this->parseLevel($level);
 
 		$handler = new StreamHandler($path, $level);
 		if ($format)
 		{
-			$handler->setFormatter(new LineFormatter($format, $dateFormat));
+			$handler->setFormatter(new LineFormatter($format, 'Y-m-d H:i:s'));
 		}
 
 		$this->monolog->pushHandler($handler);

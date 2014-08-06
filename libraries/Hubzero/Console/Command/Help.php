@@ -39,33 +39,8 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Help class for rendering utility-wide help documentation
  **/
-class Help implements CommandInterface
+class Help extends Base implements CommandInterface
 {
-	/**
-	 * Output object, implements the Output interface
-	 *
-	 * @var object
-	 **/
-	private $output;
-
-	/**
-	 * Arguments object, implements the Argument interface
-	 *
-	 * @var object
-	 **/
-	private $arguments;
-
-	/**
-	 * Constructor - sets output mechanism and arguments for use by command
-	 *
-	 * @return void
-	 **/
-	public function __construct(Output $output, Arguments $arguments)
-	{
-		$this->output    = $output;
-		$this->arguments = $arguments;
-	}
-
 	/**
 	 * Default (required) command
 	 *
@@ -85,7 +60,11 @@ class Help implements CommandInterface
 					'format' => 'underline'
 			))
 			->addSpacer()
-			->addLine('Usage: muse [command] [task] [options]')
+			->addString('Usage: muse ')
+			->addString('[command] ', array('color'=>'green'))
+			->addString('[task] ', array('color'=>'yellow'))
+			->addString('[options]')
+			->addSpacer()
 			->addSpacer()
 			->addLine('Commands');
 
@@ -143,7 +122,7 @@ class Help implements CommandInterface
 	private function getCommands()
 	{
 		// Get files from command directory to use in list
-		$files    = array_diff(scandir(__DIR__), array('..', '.', 'CommandInterface.php'));
+		$files    = array_diff(scandir(__DIR__), array('..', '.', 'CommandInterface.php', 'Base.php'));
 		$commands = array();
 
 		foreach ($files as $file)

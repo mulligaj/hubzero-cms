@@ -41,9 +41,16 @@ defined('_JEXEC') or die('Restricted access');
 class Base
 {
 	/**
-	 * Database object
+	 * Base database object (should have joomla extensions and migrations log tables in it)
 	 *
 	 * @var object
+	 **/
+	private $baseDb;
+
+	/**
+	 * Db object available to migrations
+	 *
+	 * @var string
 	 **/
 	protected $db;
 
@@ -55,14 +62,37 @@ class Base
 	protected $callbacks = array();
 
 	/**
+	 * Options
+	 *
+	 * @var array
+	 **/
+	protected $options = array();
+
+	/**
+	 * Whether or not we're running in protected mode
+	 *
+	 * @var bool
+	 **/
+	private $protectedMode = true;
+
+	/**
 	 * Constructor
 	 *
+	 * @param  object - database object (primary)
+	 * @param  array  - callbacks
+	 * @param  object - alternate db
 	 * @return void
 	 **/
-	public function __construct($db, $callbacks=array())
+	public function __construct($db, $callbacks=array(), $altDb=null)
 	{
-		$this->db        = $db;
+		$this->baseDb    = $db;
+		$this->db        = (isset($altDb)) ? $altDb : $db;
 		$this->callbacks = $callbacks;
+
+		if (!isset($altDb))
+		{
+			$this->protectedMode = false;
+		}
 	}
 
 	/**
@@ -86,6 +116,17 @@ class Base
 	}
 
 	/**
+	 * undocumented function
+	 *
+	 * @param  (string) $key
+	 * @return (string) $value
+	 **/
+	public function getOption($key)
+	{
+		return (isset($this->options[$key])) ? $this->options[$key] : false;
+	}
+
+	/**
 	 * Try to get the root credentials from a variety of locations
 	 *
 	 * @return (mixed) $return - array of creds or false on failure
@@ -96,7 +137,7 @@ class Base
 		$conf_file = DS . 'root' . DS . '.my.cnf';
 		$hub_maint = DS . 'etc'  . DS . 'mysql' . DS . 'hubmaint.cnf';
 
-		if (file_exists($secrets))
+		if (is_file($secrets) && is_readable($secrets))
 		{
 			$conf = Ini::parse($secrets);
 			$user = 'root';
@@ -108,7 +149,7 @@ class Base
 			}
 		}
 
-		if (file_exists($conf_file))
+		if (is_file($conf_file) && is_readable($conf_file))
 		{
 			$conf = Ini::parse($conf_file, true);
 			$user = (isset($conf['client']['user'])) ? $conf['client']['user'] : false;
@@ -142,6 +183,11 @@ class Base
 	 **/
 	public function runAsRoot()
 	{
+		if ($this->protectedMode)
+		{
+			return false;
+		}
+
 		if ($creds = $this->getRootCredentials())
 		{
 			// Instantiate a config object
@@ -185,12 +231,12 @@ class Base
 	 **/
 	public function addComponentEntry($name, $option=NULL, $enabled=1, $params='', $createMenuItem=true)
 	{
-		if ($this->db->tableExists('#__components'))
+		if ($this->baseDb->tableExists('#__components'))
 		{
 			// First, make sure it isn't already there
-			$query = "SELECT `id` FROM `#__components` WHERE `name` = " . $this->db->quote($name);
-			$this->db->setQuery($query);
-			if ($this->db->loadResult())
+			$query = "SELECT `id` FROM `#__components` WHERE `name` = " . $this->baseDb->quote($name);
+			$this->baseDb->setQuery($query);
+			if ($this->baseDb->loadResult())
 			{
 				return true;
 			}
@@ -214,9 +260,9 @@ class Base
 			}
 
 			$query = "INSERT INTO `#__components` (`name`, `link`, `menuid`, `parent`, `admin_menu_link`, `admin_menu_alt`, `option`, `ordering`, `admin_menu_img`, `iscore`, `params`, `enabled`)";
-			$query .= " VALUES ('{$name}', 'option={$option}', 0, 0, 'option={$option}', '{$name}', '{$option}', {$ordering}, '', 0, ".$this->db->quote($params).", {$enabled})";
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query .= " VALUES ('{$name}', 'option={$option}', 0, 0, 'option={$option}', '{$name}', '{$option}', {$ordering}, '', 0, ".$this->baseDb->quote($params).", {$enabled})";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 		}
 		else
 		{
@@ -227,11 +273,11 @@ class Base
 			$name = $option;
 
 			// First, make sure it isn't already there
-			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `name` = " . $this->db->quote($option);
-			$this->db->setQuery($query);
-			if ($this->db->loadResult())
+			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `name` = " . $this->baseDb->quote($option);
+			$this->baseDb->setQuery($query);
+			if ($this->baseDb->loadResult())
 			{
-				$component_id = $this->db->loadResult();
+				$component_id = $this->baseDb->loadResult();
 			}
 			else
 			{
@@ -243,16 +289,16 @@ class Base
 				}
 
 				$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
-				$query .= " VALUES ('{$name}', 'component', '{$option}', '', 1, {$enabled}, 1, 0, '', ".$this->db->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
-				$this->db->setQuery($query);
-				$this->db->query();
-				$component_id = $this->db->insertId();
+				$query .= " VALUES ('{$name}', 'component', '{$option}', '', 1, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
+				$component_id = $this->baseDb->insertId();
 			}
 
 			// Secondly, add asset entry if not yet created
-			$query = "SELECT `id` FROM `#__assets` WHERE `name` = " . $this->db->quote($option);
-			$this->db->setQuery($query);
-			if (!$this->db->loadResult())
+			$query = "SELECT `id` FROM `#__assets` WHERE `name` = " . $this->baseDb->quote($option);
+			$this->baseDb->setQuery($query);
+			if (!$this->baseDb->loadResult())
 			{
 				// Build default ruleset
 				$defaulRules = array(
@@ -281,9 +327,9 @@ class Base
 			if ($createMenuItem)
 			{
 				// Check for an admin menu entry...if it's not there, create it
-				$query = "SELECT `id` FROM `#__menu` WHERE `menutype` = 'main' AND `title` = " . $this->db->quote($option);
-				$this->db->setQuery($query);
-				if ($this->db->loadResult())
+				$query = "SELECT `id` FROM `#__menu` WHERE `menutype` = 'main' AND `title` = " . $this->baseDb->quote($option);
+				$this->baseDb->setQuery($query);
+				if ($this->baseDb->loadResult())
 				{
 					return true;
 				}
@@ -292,8 +338,8 @@ class Base
 
 				$query = "INSERT INTO `#__menu` (`menutype`, `title`, `alias`, `note`, `path`, `link`, `type`, `published`, `parent_id`, `level`, `component_id`, `ordering`, `checked_out`, `checked_out_time`, `browserNav`, `access`, `img`, `template_style_id`, `params`, `lft`, `rgt`, `home`, `language`, `client_id`)";
 				$query .= " VALUES ('main', '{$option}', '{$alias}', '', '{$alias}', 'index.php?option={$option}', 'component', {$enabled}, 1, 1, {$component_id}, 0, 0, '0000-00-00 00:00:00', 0, 0, '', 0, '', 0, 0, 0, '*', 1)";
-				$this->db->setQuery($query);
-				$this->db->query();
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
 
 				// If we have the nested set class available, use it to rebuild lft/rgt
 				if (class_exists('JTableNested') && method_exists('JTableNested', 'rebuild'))
@@ -307,7 +353,7 @@ class Base
 							'user'     => $config->getValue('user'),
 							'password' => $config->getValue('password'),
 							'database' => $config->getValue('db')
-						) 
+						)
 					);
 
 					$table = new \JTableMenu($database);
@@ -328,7 +374,7 @@ class Base
 	 **/
 	public function addPluginEntry($folder, $element, $enabled=1, $params='')
 	{
-		if ($this->db->tableExists('#__plugins'))
+		if ($this->baseDb->tableExists('#__plugins'))
 		{
 			$folder  = strtolower($folder);
 			$element = strtolower($element);
@@ -336,16 +382,16 @@ class Base
 
 			// First, make sure it isn't already there
 			$query = "SELECT `id` FROM `#__plugins` WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
-			$this->db->setQuery($query);
-			if ($this->db->loadResult())
+			$this->baseDb->setQuery($query);
+			if ($this->baseDb->loadResult())
 			{
 				return true;
 			}
 
 			// Get ordering
-			$query = "SELECT MAX(ordering) FROM `#__plugins` WHERE `folder` = " . $this->db->quote($folder);
-			$this->db->setQuery($query);
-			$ordering = (is_numeric($this->db->loadResult())) ? $this->db->loadResult()+1 : 1;
+			$query = "SELECT MAX(ordering) FROM `#__plugins` WHERE `folder` = " . $this->baseDb->quote($folder);
+			$this->baseDb->setQuery($query);
+			$ordering = (is_numeric($this->baseDb->loadResult())) ? $this->baseDb->loadResult()+1 : 1;
 
 			if (!empty($params) && is_array($params))
 			{
@@ -359,9 +405,9 @@ class Base
 			}
 
 			$query = "INSERT INTO `#__plugins` (`name`, `element`, `folder`, `access`, `ordering`, `published`, `iscore`, `client_id`, `checked_out`, `checked_out_time`, `params`)";
-			$query .= " VALUES ('{$name}', '{$element}', '{$folder}', 0, {$ordering}, {$enabled}, 0, 0, 0, '0000-00-00 00:00:00', ".$this->db->quote($params).")";
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query .= " VALUES ('{$name}', '{$element}', '{$folder}', 0, {$ordering}, {$enabled}, 0, 0, 0, '0000-00-00 00:00:00', ".$this->baseDb->quote($params).")";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 		}
 		else
 		{
@@ -371,16 +417,16 @@ class Base
 
 			// First, make sure it isn't already there
 			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
-			$this->db->setQuery($query);
-			if ($this->db->loadResult())
+			$this->baseDb->setQuery($query);
+			if ($this->baseDb->loadResult())
 			{
 				return true;
 			}
 
 			// Get ordering
-			$query = "SELECT MAX(ordering) FROM `#__extensions` WHERE `folder` = " . $this->db->quote($folder);
-			$this->db->setQuery($query);
-			$ordering = (is_numeric($this->db->loadResult())) ? $this->db->loadResult()+1 : 1;
+			$query = "SELECT MAX(ordering) FROM `#__extensions` WHERE `folder` = " . $this->baseDb->quote($folder);
+			$this->baseDb->setQuery($query);
+			$ordering = (is_numeric($this->baseDb->loadResult())) ? $this->baseDb->loadResult()+1 : 1;
 
 			if (!empty($params) && is_array($params))
 			{
@@ -388,9 +434,85 @@ class Base
 			}
 
 			$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
-			$query .= " VALUES ('{$name}', 'plugin', '{$element}', '{$folder}', 0, {$enabled}, 1, 0, '', ".$this->db->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query .= " VALUES ('{$name}', 'plugin', '{$element}', '{$folder}', 0, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+		}
+	}
+
+	/**
+	 * Save plugin params
+	 *
+	 * @param $folder  - (string) plugin folder
+	 * @param $element - (string) plugin element
+	 * @param $params  - (array)  plugin params (if already known)
+	 * @return void
+	 **/
+	public function savePluginParams($folder, $element, $params)
+	{
+		if ($this->baseDb->tableExists('#__plugins'))
+		{
+			$folder  = strtolower($folder);
+			$element = strtolower($element);
+			$name    = ucfirst($folder) . ' - ' . ucfirst($element);
+
+			// First, make sure we have a plugin entry existing
+			$query = "SELECT `id` FROM `#__plugins` WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
+			$this->baseDb->setQuery($query);
+			if (!$id = $this->baseDb->loadResult())
+			{
+				$this->addPluginEntry($folder, $element, 1, $params);
+				return;
+			}
+
+			// Build params string
+			if (is_array($params))
+			{
+				$p = '';
+				foreach ($params as $k => $v)
+				{
+					$p .= "{$k}={$v}\n";
+				}
+
+				$params = $p;
+			}
+			else
+			{
+				return false;
+			}
+
+			$query = "UPDATE `#__plugins` SET `params` = " . $this->baseDb->quote($params) . " WHERE `id` = " . $this->baseDb->quote($id);
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+		}
+		else
+		{
+			$folder  = strtolower($folder);
+			$element = strtolower($element);
+			$name    = 'plg_' . $folder . '_' . $element;
+
+			// First, make sure it isn't already there
+			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
+			$this->baseDb->setQuery($query);
+			if (!$id = $this->baseDb->loadResult())
+			{
+				$this->addPluginEntry($folder, $element, 1, $params);
+				return;
+			}
+
+			// Build params JSON
+			if (is_array($params))
+			{
+				$params = json_encode($params);
+			}
+			else
+			{
+				return false;
+			}
+
+			$query = "UPDATE `#__extensions` SET `params` = " . $this->baseDb->quote($params) . " WHERE `extension_id` = " . $this->baseDb->quote($id);
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 		}
 	}
 
@@ -400,18 +522,19 @@ class Base
 	 * @param $element - (string) plugin element
 	 * @param $enabled - (int)    whether or not the plugin should be enabled
 	 * @param $params  - (array)  plugin params (if already known)
+	 * @param $params  - (string) client (site=0, admin=1)
 	 * @return bool
 	 **/
-	public function addModuleEntry($element, $enabled=1, $params='')
+	public function addModuleEntry($element, $enabled=1, $params='', $client=0)
 	{
-		if ($this->db->tableExists('#__extensions'))
+		if ($this->baseDb->tableExists('#__extensions'))
 		{
 			$name = $element;
 
 			// First, make sure it isn't already there
-			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `name` = " . $this->db->quote($name);
-			$this->db->setQuery($query);
-			if ($this->db->loadResult())
+			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `name` = " . $this->baseDb->quote($name);
+			$this->baseDb->setQuery($query);
+			if ($this->baseDb->loadResult())
 			{
 				return true;
 			}
@@ -424,9 +547,56 @@ class Base
 			}
 
 			$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
-			$query .= " VALUES ('{$name}', 'module', '{$element}', '', 0, {$enabled}, 1, 0, '', ".$this->db->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query .= " VALUES ('{$name}', 'module', '{$element}', '', {$client}, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+		}
+	}
+
+	/**
+	 * Add, as needed, templates to the CMS
+	 *
+	 * @param $element - (string) template element
+	 * @param $name    - (string) template name
+	 * @param $client  - (int)    admin or site client
+	 * @param $enabled - (int)    whether or not the template should be enabled
+	 * @param $home    - (int)    whether or not this should become the enabled template
+	 * @param $styles  - (array)  template styles
+	 * @return bool
+	 **/
+	public function addTemplateEntry($element, $name=null, $client=1, $enabled=1, $home=0, $styles='')
+	{
+		if ($this->baseDb->tableExists('#__extensions'))
+		{
+			// First, see if it already exists
+			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `type` = 'template' AND `element` = '{$element}' AND `client_id` = '{$client}'";
+			$this->baseDb->setQuery($query);
+
+			if (!$this->baseDb->loadResult())
+			{
+				if (!isset($name))
+				{
+					$name = $element;
+				}
+
+				$query  = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
+				$query .= " VALUES ('{$name}', 'template', '{$element}', '', '{$client}', '{$enabled}', '1', '0', '{}', '{}', '', '', '0', '0000-00-00 00:00:00', '0', '0')";
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
+
+				// If we're setting this template to be default, disable others first
+				if ($home)
+				{
+					$query = "UPDATE `#__template_styles` SET `home` = 0 WHERE `client_id` = '{$client}'";
+					$this->baseDb->setQuery($query);
+					$this->baseDb->query();
+				}
+
+				$query  = "INSERT INTO `#__template_styles` (`template`, `client_id`, `home`, `title`, `params`)";
+				$query .= " VALUES ('{$element}', '{$client}', '{$home}', '{$name}', '".json_encode($styles)."')";
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
+			}
 		}
 	}
 
@@ -438,20 +608,20 @@ class Base
 	 **/
 	public function deleteComponentEntry($name)
 	{
-		if ($this->db->tableExists('#__components'))
+		if ($this->baseDb->tableExists('#__components'))
 		{
 			// Delete component entry
-			$query = "DELETE FROM `#__components` WHERE `name` = " . $this->db->quote($name);
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query = "DELETE FROM `#__components` WHERE `name` = " . $this->baseDb->quote($name);
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 		}
 		else
 		{
 			$name = 'com_' . strtolower($name);
 			// Delete component entry
-			$query = "DELETE FROM `#__extensions` WHERE `name` = " . $this->db->quote($name);
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query = "DELETE FROM `#__extensions` WHERE `name` = " . $this->baseDb->quote($name);
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 
 			// Remove the component container in the assets table
 			$asset = \JTable::getInstance('Asset');
@@ -461,9 +631,9 @@ class Base
 			}
 
 			// Check for an admin menu entry...if it's not there, create it
-			$query = "DELETE FROM `#__menu` WHERE `menutype` = 'main' AND `title` = " . $this->db->quote($name);
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query = "DELETE FROM `#__menu` WHERE `menutype` = 'main' AND `title` = " . $this->baseDb->quote($name);
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 
 			// If we have the nested set class available, use it to rebuild lft/rgt
 			if (class_exists('JTableNested') && method_exists('JTableNested', 'rebuild'))
@@ -477,7 +647,7 @@ class Base
 						'user'     => $config->getValue('user'),
 						'password' => $config->getValue('password'),
 						'database' => $config->getValue('db')
-					) 
+					)
 				);
 
 				$table = new \JTableMenu($database);
@@ -494,19 +664,19 @@ class Base
 	 **/
 	public function deletePluginEntry($folder, $element=NULL)
 	{
-		if ($this->db->tableExists('#__plugins'))
+		if ($this->baseDb->tableExists('#__plugins'))
 		{
 			// Delete plugin(s) entry
-			$query = "DELETE FROM `#__plugins` WHERE `folder` = " . $this->db->quote($folder) . ((!is_null($element)) ? " AND `element` = '{$element}'" : "");
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query = "DELETE FROM `#__plugins` WHERE `folder` = " . $this->baseDb->quote($folder) . ((!is_null($element)) ? " AND `element` = '{$element}'" : "");
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 		}
 		else
 		{
 			// Delete plugin(s) entry
-			$query = "DELETE FROM `#__extensions` WHERE `folder` = " . $this->db->quote($folder) . ((!is_null($element)) ? " AND `element` = '{$element}'" : "");
-			$this->db->setQuery($query);
-			$this->db->query();
+			$query = "DELETE FROM `#__extensions` WHERE `folder` = " . $this->baseDb->quote($folder) . ((!is_null($element)) ? " AND `element` = '{$element}'" : "");
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 		}
 	}
 
@@ -518,15 +688,62 @@ class Base
 	 **/
 	public function deleteModuleEntry($element)
 	{
-		if ($this->db->tableExists('#__extensions'))
+		if ($this->baseDb->tableExists('#__extensions'))
 		{
 			// Delete module entry
 			$query = "DELETE FROM `#__extensions` WHERE `element` = '{$element}'";
-			$this->db->setQuery($query);
-			$this->db->query();
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+
+			// See if entries are present in #__modules table as well
+			$query = "SELECT `id` FROM `#__modules` WHERE `module` = '{$element}'";
+			$this->baseDb->setQuery($query);
+			$ids = $this->baseDb->loadColumn();
+
+			if ($ids && count($ids) > 0)
+			{
+				// Delete modules and module menu entries
+				$query = "DELETE FROM `#__modules` WHERE `id` IN (" . implode(',', $ids) . ")";
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
+
+				$query = "DELETE FROM `#__modules_menu` WHERE `moduleid` IN (" . implode(',', $ids) . ")";
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
+			}
 		}
 	}
 
+	/**
+	 * Remove template entires from the appropriate tables
+	 *
+	 * @param $name   - (string) template element name
+	 * @param $client - (int) client id
+	 * @return bool
+	 **/
+	public function deleteTemplateEntry($element, $client=1)
+	{
+		if ($this->baseDb->tableExists('#__extensions'))
+		{
+			$query = "DELETE FROM `#__extensions` WHERE `type` = 'template' AND `element` = '{$element}' AND `client_id` = '{$client}'";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+
+			$query = "DELETE FROM `#__template_styles` WHERE `template` = '{$element}' AND `client_id` = '{$client}'";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+
+			// Now make sure we have an enabled template (don't really care which one it is)
+			$query = "SELECT `id` FROM `#__template_styles` WHERE `home` = 1 AND `client_id` = '{$client}'";
+			$this->baseDb->setQuery($query);
+			if (!$this->baseDb->loadResult())
+			{
+				$query = "UPDATE `#__template_styles` SET `home` = 1 WHERE `client_id` = '{$client}' LIMIT 1";
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
+			}
+		}
+	}
 	/**
 	 * Enable plugin
 	 *
@@ -561,17 +778,17 @@ class Base
 	 **/
 	private function setPluginStatus($folder, $element, $enabled=1)
 	{
-		if ($this->db->tableExists('#__plugins'))
+		if ($this->baseDb->tableExists('#__plugins'))
 		{
 			$query = "UPDATE `#__plugins` SET `published` = '{$enabled}' WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
-			$this->db->setQuery($query);
-			$this->db->query();
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 		}
 		else
 		{
 			$query = "UPDATE `#__extensions` SET `enabled` = '{$enabled}' WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
-			$this->db->setQuery($query);
-			$this->db->query();
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
 		}
 	}
 }

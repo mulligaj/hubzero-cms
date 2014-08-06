@@ -25,10 +25,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css()
+     ->js();
+
 $database = JFactory::getDBO();
 $juser = JFactory::getUser();
 
-if (!isset($this->reviews) || !$this->reviews) 
+if (!isset($this->reviews) || !$this->reviews)
 {
 	$this->reviews = array();
 }
@@ -44,7 +47,7 @@ $this->reviews = new \Hubzero\Base\ItemList($this->reviews);
 </h3>
 <p class="section-options">
 	<?php if ($juser->get('guest')) { ?>
-			<a href="<?php echo JRoute::_('index.php?option=com_login&return=' . base64_encode(JRoute::_('index.php?option=' . $this->option . '&id=' . $this->publication->id . '&active=reviews&action=addreview#reviewform'))); ?>" class="icon-add add btn">
+			<a href="<?php echo JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode(JRoute::_('index.php?option=' . $this->option . '&id=' . $this->publication->id . '&active=reviews&action=addreview#reviewform'))); ?>" class="icon-add add btn">
 				<?php echo JText::_('PLG_PUBLICATION_REVIEWS_WRITE_A_REVIEW'); ?>
 			</a>
 	<?php } else { ?>
@@ -61,23 +64,16 @@ $this->reviews = new \Hubzero\Base\ItemList($this->reviews);
 <?php
 if ($this->reviews->total() > 0)
 {
-	$view = new \Hubzero\Plugin\View(
-		array(
-			'folder'  => 'publications',
-			'element' => 'reviews',
-			'name'    => 'browse',
-			'layout'  => '_list'
-		)
-	);
-	$view->parent      = 0;
-	$view->cls         = 'odd';
-	$view->depth       = 0;
-	$view->option      = $this->option;
-	$view->publication = $this->publication;
-	$view->comments    = $this->reviews;
-	$view->config      = $this->config;
-	$view->base        = 'index.php?option=' . $this->option . '&id=' . $this->publication->id . '&active=reviews';
-	$view->display();
+	$this->view('_list')
+	     ->set('parent', 0)
+	     ->set('cls', 'odd')
+	     ->set('depth', 0)
+	     ->set('option', $this->option)
+	     ->set('publication', $this->publication)
+	     ->set('comments', $this->reviews)
+	     ->set('config', $this->config)
+	     ->set('base', 'index.php?option=' . $this->option . '&id=' . $this->publication->id . '&active=reviews')
+	     ->display();
 }
 else
 {
@@ -85,25 +81,19 @@ else
 }
 
 // Display the review form if needed
-if (!$juser->get('guest')) 
+if (!$juser->get('guest'))
 {
 	$myreview = $this->h->myreview;
-	if (is_object($myreview)) 
+	if (is_object($myreview))
 	{
-		$view = new \Hubzero\Plugin\View(
-			array(
-				'folder'  => 'publications',
-				'element' => 'reviews',
-				'name'    => 'review'
-			)
-		);
-		$view->option      = $this->option;
-		$view->review      = $this->h->myreview;
-		$view->banking     = $this->banking;
-		$view->infolink    = $this->infolink;
-		$view->publication = $this->publication;
-		$view->juser       = $juser;
-		$view->display();
+		$this->view('default', 'review')
+		     ->set('option', $this->option)
+		     ->set('review', $this->h->myreview)
+		     ->set('banking', $this->banking)
+		     ->set('infolink', $this->infolink)
+		     ->set('publication', $this->publication)
+		     ->set('juser', $juser)
+		     ->display();
 	}
 }
 

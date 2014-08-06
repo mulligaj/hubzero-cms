@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
@@ -30,54 +30,51 @@
 
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css();
+
 $juser = JFactory::getUser();
 
 $this->category->set('section_alias', $this->section->get('alias'));
 $this->post->set('section', $this->section->get('alias'));
 $this->post->set('category', $this->category->get('alias'));
 
-if ($this->post->exists()) 
+if ($this->post->exists())
 {
 	$action = $this->post->link('edit');
-} 
-else 
+}
+else
 {
 	$action = $this->post->link('new');
 }
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo JText::_('COM_FORUM'); ?></h2>
-</div>
-<div id="content-header-extra">
-	<p><a class="icon-comments comments btn" href="<?php echo JRoute::_($this->category->link()); ?>"><?php echo JText::_('COM_FORUM_ALL_DISCUSSIONS'); ?></a></p>
-</div>
-<div class="clear"></div>
+
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-comments comments btn" href="<?php echo JRoute::_($this->category->link()); ?>">
+				<?php echo JText::_('COM_FORUM_ALL_DISCUSSIONS'); ?>
+			</a>
+		</p>
+	</div>
+</header>
 
 <?php
-	foreach ($this->notifications as $notification) 
+	foreach ($this->notifications as $notification)
 	{
 		echo '<p class="' . $notification['type'] . '">' . $notification['message'] . '</p>';
 	}
 ?>
 
-<div class="main section">
-	<h3 class="post-comment-title">
-	<?php if ($this->post->exists()) { ?>
-		<?php echo JText::_('COM_FORUM_EDIT_DISCUSSION'); ?>
-	<?php } else { ?>
-		<?php echo JText::_('COM_FORUM_NEW_DISCUSSION'); ?>
-	<?php } ?>
-	</h3>			
-	<div class="aside">
-		<div class="container">
-			<p><strong><?php echo JText::_('COM_FORUM_WHAT_IS_STICKY'); ?></strong><br />
-			<?php echo JText::_('COM_FORUM_STICKY_EXPLANATION'); ?></p>
-
-			<p><strong><?php echo JText::_('COM_FORUM_WHAT_IS_LOCKING'); ?></strong><br />
-			<?php echo JText::_('COM_FORUM_LOCKING_EXPLANATION'); ?></p>
-		</div>
-	</div><!-- /.aside -->
+<section class="main section">
 	<div class="subject">
+		<h3>
+		<?php if ($this->post->exists()) { ?>
+			<?php echo JText::_('COM_FORUM_EDIT_DISCUSSION'); ?>
+		<?php } else { ?>
+			<?php echo JText::_('COM_FORUM_NEW_DISCUSSION'); ?>
+		<?php } ?>
+		</h3>
 		<form action="<?php echo JRoute::_($action); ?>" method="post" id="commentform" enctype="multipart/form-data">
 			<p class="comment-member-photo">
 				<a class="comment-anchor" name="commentform"></a>
@@ -93,13 +90,13 @@ else
 				<div class="grid">
 					<div class="col span-half">
 						<label for="field-sticky">
-							<input class="option" type="checkbox" name="fields[sticky]" id="field-sticky" value="1"<?php if ($this->post->get('sticky')) { echo ' checked="checked"'; } ?> /> 
+							<input class="option" type="checkbox" name="fields[sticky]" id="field-sticky" value="1"<?php if ($this->post->get('sticky')) { echo ' checked="checked"'; } ?> />
 							<?php echo JText::_('COM_FORUM_FIELD_STICKY'); ?>
 						</label>
 					</div>
 					<div class="col span-half omega">
 						<label for="field-closed">
-							<input class="option" type="checkbox" name="fields[closed]" id="field-closed" value="1"<?php if ($this->post->get('closed')) { echo ' checked="checked"'; } ?> /> 
+							<input class="option" type="checkbox" name="fields[closed]" id="field-closed" value="1"<?php if ($this->post->get('closed')) { echo ' checked="checked"'; } ?> />
 							<?php echo JText::_('COM_FORUM_FIELD_CLOSED_THREAD'); ?>
 						</label>
 					</div>
@@ -142,10 +139,10 @@ else
 
 				<label>
 					<?php echo JText::_('COM_FORUM_FIELD_TAGS'); ?>:
-					<?php 
+					<?php
 						JPluginHelper::importPlugin('hubzero');
 						$tf = JDispatcher::getInstance()->trigger(
-							'onGetMultiEntry', 
+							'onGetMultiEntry',
 							array(array('tags', 'tags', 'actags', '', $this->post->tags('string')))
 						);
 
@@ -177,14 +174,14 @@ else
 						</p>
 					<?php } ?>
 				</fieldset>
-				
+
 				<label for="field-anonymous" id="comment-anonymous-label">
-					<input class="option" type="checkbox" name="fields[anonymous]" id="field-anonymous" value="1"<?php if ($this->post->get('anonymous')) { echo ' checked="checked"'; } ?> /> 
+					<input class="option" type="checkbox" name="fields[anonymous]" id="field-anonymous" value="1"<?php if ($this->post->get('anonymous')) { echo ' checked="checked"'; } ?> />
 					<?php echo JText::_('COM_FORUM_FIELD_ANONYMOUS'); ?>
 				</label>
 
 				<p class="submit">
-					<input type="submit" value="<?php echo JText::_('COM_FORUM_SUBMIT'); ?>" />
+					<input type="submit" class="btn btn-success" value="<?php echo JText::_('COM_FORUM_SUBMIT'); ?>" />
 				</p>
 
 				<div class="sidenote">
@@ -211,5 +208,13 @@ else
 			<?php echo JHTML::_('form.token'); ?>
 		</form>
 	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / .below section -->
+	<aside class="aside">
+		<div class="container">
+			<p><strong><?php echo JText::_('COM_FORUM_WHAT_IS_STICKY'); ?></strong><br />
+			<?php echo JText::_('COM_FORUM_STICKY_EXPLANATION'); ?></p>
+
+			<p><strong><?php echo JText::_('COM_FORUM_WHAT_IS_LOCKING'); ?></strong><br />
+			<?php echo JText::_('COM_FORUM_LOCKING_EXPLANATION'); ?></p>
+		</div>
+	</aside><!-- /.aside -->
+</section><!-- / .below section -->

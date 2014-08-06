@@ -40,22 +40,8 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Scaffolding class for generating template extensions
  **/
-class Scaffolding implements CommandInterface
+class Scaffolding extends Base implements CommandInterface
 {
-	/**
-	 * Output object, implements the Output interface
-	 *
-	 * @var object
-	 **/
-	protected $output;
-
-	/**
-	 * Arguments object, implements the Argument interface
-	 *
-	 * @var object
-	 **/
-	protected $arguments;
-
 	/**
 	 * Array of vars to replace in template
 	 *
@@ -78,14 +64,23 @@ class Scaffolding implements CommandInterface
 	private $type = false;
 
 	/**
+	 * Whether or not to look for template vars or just do a blind replacement
+	 *
+	 * @var bool
+	 **/
+	private $doBlindReplacements = false;
+
+	/**
 	 * Constructor - sets output mechanism and arguments for use by command
 	 *
+	 * @param  object - output renderer
+	 * @param  object - command arguments
 	 * @return void
 	 **/
 	public function __construct(Output $output, Arguments $arguments)
 	{
-		$this->output    = $output;
-		$this->arguments = $arguments;
+		parent::__construct($output, $arguments);
+
 		$this->type      = $this->arguments->getOpt(3);
 	}
 
@@ -160,24 +155,24 @@ class Scaffolding implements CommandInterface
 		if (!$user_name || !$user_email)
 		{
 			$this->output
-				 ->addSpacer()
-				 ->addLine('You can specify your name and email via:')
-				 ->addLine(
-				 	'muse configure --name="John Doe"',
-				 	array(
-				 		'indentation' => '2',
-				 		'color'       => 'blue'
-				 	)
-				 )
-				 ->addLine(
-				 	'muse configure --email=john.doe@gmail.com',
-				 	array(
-				 		'indentation' => '2',
-				 		'color'       => 'blue'
-				 	)
-				 )
-				 ->addSpacer()
-				 ->error("Error: failed to retrieve author name and/or email.");
+			     ->addSpacer()
+			     ->addLine('You can specify your name and email via:')
+			     ->addLine(
+					'muse configure --name="John Doe"',
+					array(
+						'indentation' => '2',
+						'color'       => 'blue'
+					)
+				)
+				->addLine(
+					'muse configure --email=john.doe@gmail.com',
+					array(
+						'indentation' => '2',
+						'color'       => 'blue'
+					)
+				)
+				->addSpacer()
+				->error("Error: failed to retrieve author name and/or email.");
 		}
 
 		$obj->addReplacement('author_name', $user_name)
@@ -188,6 +183,40 @@ class Scaffolding implements CommandInterface
 	}
 
 	/**
+	 * Copy item and attempt to rename appropriatly
+	 *
+	 * @return void
+	 **/
+	public function copy()
+	{
+		$class = __NAMESPACE__ . '\\Scaffolding\\' . ucfirst($this->type);
+
+		if (class_exists($class))
+		{
+			$obj = new $class($this->output, $this->arguments);
+		}
+		else
+		{
+			if (empty($this->type))
+			{
+				$this->output->error('Error: Sorry, scaffolding can\'t copy nothing. Try telling it what you want to copy.');
+			}
+			else
+			{
+				$this->output->error('Error: Sorry, scaffolding doesn\'t know how to copy a ' . $this->type);
+			}
+		}
+
+		if (!method_exists($obj, 'doCopy'))
+		{
+			$this->output->error('Error: scaffolding doesn\'t know how to copy a ' . $this->type);
+		}
+
+		// Do the actual copy
+		$obj->doCopy();
+	}
+
+	/**
 	 * Get the type of template we're making
 	 *
 	 * @return (string) $type
@@ -195,6 +224,18 @@ class Scaffolding implements CommandInterface
 	protected function getType()
 	{
 		return $this->type;
+	}
+
+	/**
+	 * Set blind replacement var
+	 *
+	 * @return (object) $this - for method chaining
+	 **/
+	protected function doBlindReplacements()
+	{
+		$this->doBlindReplacements = true;
+
+		return $this;
 	}
 
 	/**
@@ -253,14 +294,15 @@ class Scaffolding implements CommandInterface
 	/**
 	 * Add a new template file
 	 *
-	 * @param  (string) $filename - template filename
+	 * @param  (string) $filename    - template filename
 	 * @param  (string) $destination - final location of template file after making
-	 * @return (object) $this - for method chaining
+	 * @param  (bool)   $fullPath    - true if full path is given
+	 * @return (object) $this        - for method chaining
 	 **/
-	protected function addTemplateFile($filename, $destination)
+	protected function addTemplateFile($filename, $destination, $fullPath=false)
 	{
 		$this->templateFiles[] = array(
-			'path'        => __DIR__ . DS . 'Scaffolding' . DS . 'Templates' . DS . $filename,
+			'path'        => ((!$fullPath) ? __DIR__ . DS . 'Scaffolding' . DS . 'Templates' . DS . $filename : $filename),
 			'destination' => $destination
 		);
 
@@ -321,6 +363,11 @@ class Scaffolding implements CommandInterface
 
 					// Now do all basic replacements
 					$contents = str_replace("%={$k}=%", $v, $contents);
+
+					if ($this->doBlindReplacements)
+					{
+						$contents = str_replace($k, $v, $contents);
+					}
 				}
 			}
 		}
@@ -480,8 +527,8 @@ class Scaffolding implements CommandInterface
 			array( 'person', 'people'   )
 		);
 
-		$uncountable = array( 
-			'sheep', 
+		$uncountable = array(
+			'sheep',
 			'fish',
 			'series',
 			'species',

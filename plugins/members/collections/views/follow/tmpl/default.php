@@ -35,6 +35,8 @@ $database = JFactory::getDBO();
 $this->juser = JFactory::getUser();
 
 $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=' . $this->name;
+
+$this->css();
 ?>
 
 <form method="get" action="<?php echo JRoute::_($base . '&task=' . $this->collection->get('alias')); ?>" id="collections">
@@ -61,8 +63,8 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 	</p>
 
 	<div id="posts">
-<?php 
-if ($this->rows->total() > 0) 
+<?php
+if ($this->rows->total() > 0)
 {
 	foreach ($this->rows as $row)
 	{
@@ -81,21 +83,14 @@ if ($this->rows->total() > 0)
 		<div class="post <?php echo $type; ?>" id="b<?php echo $row->get('id'); ?>" data-id="<?php echo $row->get('id'); ?>" data-closeup-url="<?php echo JRoute::_($base . '&task=post/' . $row->get('id')); ?>" data-width="600" data-height="350">
 			<div class="content">
 			<?php
-				$view = new \Hubzero\Plugin\View(
-					array(
-						'folder'  => 'members',
-						'element' => $this->name,
-						'name'    => 'post',
-						'layout'  => 'default_' . $type
-					)
-				);
-				$view->name       = $this->name;
-				$view->option     = $this->option;
-				$view->member     = $this->member;
-				$view->params     = $this->params;
-				$view->row        = $row;
-				$view->board      = $this->collection;
-				$view->display();
+				$this->view('default_' . $type, 'post')
+				     ->set('name', $this->name)
+				     ->set('option', $this->option)
+				     ->set('member', $this->member)
+				     ->set('params', $this->params)
+				     ->set('row', $row)
+				     ->set('board', $this->collection)
+				     ->display();
 			?>
 			<?php if (count($item->tags()) > 0) { ?>
 				<div class="tags-wrap">
@@ -152,11 +147,11 @@ if ($this->rows->total() > 0)
 					<p>
 						<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $item->get('created_by')); ?>">
 							<?php echo $this->escape(stripslashes($item->creator()->get('name'))); ?>
-						</a> 
-						posted 
+						</a>
+						posted
 						<br />
 						<span class="entry-date">
-							<span class="entry-date-at">@</span> <span class="date"><?php echo JHTML::_('date', $item->get('created'), JText::_('TIME_FORMAT_HZ1')); ?></span> 
+							<span class="entry-date-at">@</span> <span class="date"><?php echo JHTML::_('date', $item->get('created'), JText::_('TIME_FORMAT_HZ1')); ?></span>
 							<span class="entry-date-on">on</span> <span class="time"><?php echo JHTML::_('date', $item->get('created'), JText::_('DATE_FORMAT_HZ1')); ?></span>
 						</span>
 					</p>
@@ -170,14 +165,14 @@ if ($this->rows->total() > 0)
 					<p>
 						<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->get('created_by')); ?>">
 							<?php echo $this->escape(stripslashes($row->creator()->get('name'))); ?>
-						</a> 
-						onto 
+						</a>
+						onto
 						<a href="<?php echo JRoute::_($base . ($this->collection->get('is_default') ? '' : '/' . $this->collection->get('alias'))); ?>">
 							<?php echo $this->escape(stripslashes($this->collection->get('title'))); ?>
 						</a>
 						<br />
 						<span class="entry-date">
-							<span class="entry-date-at">@</span> <span class="date"><?php echo JHTML::_('date', $row->get('created'), JText::_('DATE_FORMAT_HZ1')); ?></span> 
+							<span class="entry-date-at">@</span> <span class="date"><?php echo JHTML::_('date', $row->get('created'), JText::_('DATE_FORMAT_HZ1')); ?></span>
 							<span class="entry-date-on">on</span> <span class="time"><?php echo JHTML::_('date', $row->get('created'), JText::_('DATE_FORMAT_HZ1')); ?></span>
 						</span>
 					</p>

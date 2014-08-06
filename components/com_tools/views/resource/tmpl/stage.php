@@ -38,11 +38,11 @@ $key = $this->stage-1;
 $html = "\t\t".'<div class="clear"></div>'."\n";
 $html .= "\t\t".'<ol id="steps" style="border-bottom:1px solid #ccc;margin-bottom:0;padding-bottom:0.7em;">'."\n";
 $html .= "\t\t".' <li>'.JText::_('COM_TOOLS_CONTRIBTOOL_EDIT_PAGE_FOR').' ';
-if ($this->version=='dev') 
+if ($this->version=='dev')
 {
 	$html .= JText::_('COM_TOOLS_CONTRIBTOOL_TIP_NEXT_TOOL_RELEASE');
 }
-else 
+else
 {
 	$html .= JText::_('COM_TOOLS_CONTRIBTOOL_TIP_CURRENT_VERSION');
 }
@@ -51,7 +51,7 @@ $html .= ':</li>'."\n";
 	for ($i=0, $n=count( $this->stages ); $i < $n; $i++)
 	{
 		$html .= "\t\t".' <li';
-		if ($i==$key) 
+		if ($i==$key)
 		{
 			$html .= ' class="active"';
 		}
@@ -65,7 +65,7 @@ $html .= ':</li>'."\n";
 		{
 			$html .='<a href="'.JRoute::_('index.php?option=' . $this->option . '&task=' . $this->controller . '&step='.($i+1).'&app=' . $this->row->alias . '&editversion=current').'">'.$this->stages[$i].'</a>';
 		}
-		else 
+		else
 		{
 			$html .= $this->stages[$i];
 		}
@@ -75,24 +75,24 @@ $html .= ':</li>'."\n";
 
 $html .= "\t\t".'</ol>'."\n";
 $html .= "\t\t".'<p class="';
-if ($this->version=='dev') 
+if ($this->version=='dev')
 {
-	if ($this->vnum) 
+	if ($this->vnum)
 	{
 		$html .= 'devversion">'.ucfirst(JText::_('COM_TOOLS_VERSION')).' '.$this->vnum;
 	}
-	else 
+	else
 	{
-		$html .= 'devversion">'.ucfirst(JText::_('Next version'));
+		$html .= 'devversion">'.ucfirst(JText::_('COM_TOOLS_CONTRIBTOOL_NEXT_VERSION'));
 	}
-	$html .= ' - '.JText::_('not published yet (changes take effect later)');
+	$html .= ' - '.JText::_('COM_TOOLS_CONTRIBTOOL_NOT_PUBLISHED_YET');
 }
-else if ($this->version=='current' ) 
+else if ($this->version=='current' )
 {
-	$html .= 'currentversion">'.ucfirst(JText::_('COM_TOOLS_VERSION')).' '.$this->vnum.' - '.JText::_('published now (changes take effect immediately)');
+	$html .= 'currentversion">'.ucfirst(JText::_('COM_TOOLS_VERSION')).' '.$this->vnum.' - '.JText::_('COM_TOOLS_CONTRIBTOOL_PUBLISHED_NOW');
 }
-$html .= ($this->version=='dev' && $this->status['published']) ? ' <span style="margin-left:2em;"><a href="'.JRoute::_('index.php?option=' . $this->option . '&task=' . $this->controller . '&step='.$this->stage.'&app=' . $this->row->alias . '&editversion=current').'">'.JText::_('change current published version instead').'</a></span>' : '';
-$html .= ($this->version=='current' && $this->status['published']) ? ' <span style="margin-left:2em;"><a href="'.JRoute::_('index.php?option=' . $this->option . '&task=' . $this->controller . '&step='.$this->stage.'&app=' . $this->row->alias).'">'.JText::_('change upcoming version instead').'</a></span>' : '' ;
+$html .= ($this->version=='dev' && $this->status['published']) ? ' <span style="margin-left:2em;"><a href="'.JRoute::_('index.php?option=' . $this->option . '&task=' . $this->controller . '&step='.$this->stage.'&app=' . $this->row->alias . '&editversion=current').'">'.JText::_('COM_TOOLS_CONTRIBTOOL_CHANGE_CURRENT_VERSION').'</a></span>' : '';
+$html .= ($this->version=='current' && $this->status['published']) ? ' <span style="margin-left:2em;"><a href="'.JRoute::_('index.php?option=' . $this->option . '&task=' . $this->controller . '&step='.$this->stage.'&app=' . $this->row->alias).'">'.JText::_('COM_TOOLS_CONTRIBTOOL_CHANGE_UPCOMING_VERSION').'</a></span>' : '' ;
 $html .='</p>'."\n";
 
 $html .= "\t\t".'<div class="clear"></div>'."\n";

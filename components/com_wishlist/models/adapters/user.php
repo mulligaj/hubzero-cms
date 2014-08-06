@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'adapters' . DS . 'abstract.php');
+require_once(__DIR__ . DS . 'abstract.php');
 
 /**
  * Adapter class for an entry link for member blog
@@ -40,7 +40,7 @@ class WishlistModelAdapterUser extends WishlistModelAdapterAbstract
 {
 	/**
 	 * URL segments
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_segments = array(
@@ -49,7 +49,7 @@ class WishlistModelAdapterUser extends WishlistModelAdapterAbstract
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $scope_id Scope ID (group, course, etc.)
 	 * @return     void
 	 */
@@ -67,7 +67,7 @@ class WishlistModelAdapterUser extends WishlistModelAdapterAbstract
 
 	/**
 	 * Generate and return the title for this wishlist
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function title()
@@ -77,7 +77,7 @@ class WishlistModelAdapterUser extends WishlistModelAdapterAbstract
 
 	/**
 	 * Retrieve a property from the internal item object
-	 * 
+	 *
 	 * @param      string $key Property to retrieve
 	 * @return     string
 	 */
@@ -107,7 +107,7 @@ class WishlistModelAdapterUser extends WishlistModelAdapterAbstract
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type   The type of link to return
 	 * @param      mixed  $params Optional string or associative array of params to append
 	 * @return     string
@@ -115,6 +115,15 @@ class WishlistModelAdapterUser extends WishlistModelAdapterAbstract
 	public function link($type='', $params=null)
 	{
 		$segments = $this->_segments;
+
+		if ($this->get('category'))
+		{
+			$segments['category'] = $this->get('category');
+		}
+		if ($this->get('referenceid'))
+		{
+			$segments['rid'] = $this->get('referenceid');
+		}
 
 		$anchor = '';
 
@@ -126,32 +135,43 @@ class WishlistModelAdapterUser extends WishlistModelAdapterAbstract
 			break;
 
 			case 'edit':
-				$segments['task']  = 'edit';
-				$segments['entry'] = $this->get('id');
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'edit';
+					$segments['wishid'] = $this->get('wishid');
+				}
 			break;
 
 			case 'delete':
 				$segments['task']  = 'delete';
-				$segments['entry'] = $this->get('id');
+				if ($this->get('wishid'))
+				{
+					$segments['wishid'] = $this->get('wishid');
+				}
 			break;
 
+			case 'add':
+			case 'addwish':
 			case 'new':
-				$segments['task'] = 'new';
+				$segments['task'] = 'add';
 			break;
 
-			case 'comments':
-				$segments['task']  = JHTML::_('date', $this->get('publish_up'), 'Y') . '/';
-				$segments['task'] .= JHTML::_('date', $this->get('publish_up'), 'm') . '/';
-				$segments['task'] .= $this->get('alias');
+			case 'settings':
+				unset($segments['category']);
+				unset($segments['rid']);
 
-				$anchor = '#comments';
+				$segments['task'] = 'settings';
+				$segments['id'] = $this->get('wishlist');
 			break;
 
 			case 'permalink':
 			default:
-				$segments['task']  = JHTML::_('date', $this->get('publish_up'), 'Y') . '/';
-				$segments['task'] .= JHTML::_('date', $this->get('publish_up'), 'm') . '/';
-				$segments['task'] .= $this->get('alias');
+				$segments['task'] = 'wishlist';
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+				}
 			break;
 		}
 
@@ -177,5 +197,43 @@ class WishlistModelAdapterUser extends WishlistModelAdapterAbstract
 		$segments = array_merge($segments, (array) $params);
 
 		return $this->_base . '?' . (string) $this->_build($segments) . (string) $anchor;
+	}
+
+	/**
+	 * Append an item to the breadcrumb trail.
+	 * If no item is provided, it will build the trail up to the list
+	 *
+	 * @param      string $title Breadcrumb title
+	 * @param      string $url   Breadcrumb URL
+	 * @return     string
+	 */
+	public function pathway($title=null, $url=null)
+	{
+		$pathway = JFactory::getApplication()->getPathway();
+
+		if (!$title)
+		{
+			$pathway->addItem(
+				JText::_('Members'),
+				'index.php?option=' . $this->get('option')
+			);
+			$pathway->addItem(
+				stripslashes($this->_item->title),
+				'index.php?option=' . $this->get('option') . '&id=' . $this->get('referenceid')
+			);
+			$pathway->addItem(
+				JText::_('Wishlist'),
+				'index.php?option=' . $this->get('option') . '&active=wishlist&category=' . $this->get('category') . '&rid=' . $this->get('referenceid')
+			);
+		}
+		else
+		{
+			$pathway->addItem(
+				$title,
+				$url
+			);
+		}
+
+		return $this;
 	}
 }

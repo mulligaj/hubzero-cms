@@ -40,7 +40,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Upload a file to the wiki via AJAX
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function ajaxUploadTask()
@@ -48,18 +48,11 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		// Check for request forgeries
 		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
 
-		// Check if they're logged in
-		if ($this->juser->get('guest')) 
-		{
-			echo json_encode(array('error' => JText::_('Must be logged in.')));
-			return;
-		}
-
 		// Ensure we have an ID to work with
 		$id = JRequest::getInt('id', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			echo json_encode(array('error' => JText::_('COM_COURSES_NO_ID')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_NO_ID')));
 			return;
 		}
 
@@ -94,36 +87,36 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		}
 		else
 		{
-			echo json_encode(array('error' => JText::_('File not found')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_NO_FILE_FOUND')));
 			return;
 		}
 
-		if (!is_dir($path)) 
+		if (!is_dir($path))
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path)) 
+			if (!JFolder::create($path))
 			{
-				echo json_encode(array('error' => JText::_('Error uploading. Unable to create path.')));
+				echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_UNABLE_TO_CREATE_UPLOAD_PATH')));
 				return;
 			}
 		}
 
 		if (!is_writable($path))
 		{
-			echo json_encode(array('error' => JText::_('Server error. Upload directory isn\'t writable.')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_UPLOAD_DIRECTORY_IS_NOT_WRITABLE')));
 			return;
 		}
 
 		//check to make sure we have a file and its not too big
-		if ($size == 0) 
+		if ($size == 0)
 		{
-			echo json_encode(array('error' => JText::_('File is empty')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_EMPTY_FILE')));
 			return;
 		}
-		if ($size > $sizeLimit) 
+		if ($size > $sizeLimit)
 		{
 			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
-			echo json_encode(array('error' => JText::sprintf('File is too large. Max file upload size is %s', $max)));
+			echo json_encode(array('error' => JText::sprintf('COM_COURSES_ERROR_FILE_TOO_LARGE', $max)));
 			return;
 		}
 
@@ -140,7 +133,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		$ext = $pathinfo['extension'];
 		if (!in_array(strtolower($ext), $allowedExtensions))
 		{
-			echo json_encode(array('error' => JText::_('File type not allowed.')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_UNKNOWN_FILE_TYPE')));
 			return;
 		}
 
@@ -166,14 +159,14 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		}
 
 		// Do we have an old file we're replacing?
-		if (($curfile = JRequest::getVar('currentfile', ''))) 
+		if (($curfile = JRequest::getVar('currentfile', '')))
 		{
 			// Remove old image
-			if (file_exists($path . DS . $curfile)) 
+			if (file_exists($path . DS . $curfile))
 			{
-				if (!JFile::delete($path . DS . $curfile)) 
+				if (!JFile::delete($path . DS . $curfile))
 				{
-					echo json_encode(array('error' => JText::_('UNABLE_TO_DELETE_FILE')));
+					echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_UNABLE_TO_DELETE_FILE')));
 					return;
 				}
 			}
@@ -202,11 +195,11 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 			break;
 
 			default:
-				echo json_encode(array('error' => JText::_('Invalid type.')));
+				echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_INVALID_TYPE')));
 				return;
 			break;
 		}
-		if (!$model->store()) 
+		if (!$model->store())
 		{
 			echo json_encode(array('error' => $model->getError()));
 			return;
@@ -217,7 +210,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 		//echo result
 		echo json_encode(array(
-			'success'   => true, 
+			'success'   => true,
 			'file'      => $filename . '.' . $ext,
 			'directory' => str_replace(JPATH_ROOT, '', $path),
 			'id'        => $id,
@@ -229,7 +222,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 	/**
 	 * Upload a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function uploadTask()
@@ -244,9 +237,9 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$id = JRequest::getInt('id', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			$this->setError(JText::_('COM_COURSES_NO_ID'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_ID'));
 			$this->displayTask('', $id);
 			return;
 		}
@@ -263,7 +256,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 		// Incoming file
 		$file = JRequest::getVar('upload', '', 'files', 'array');
-		if (!$file['name']) 
+		if (!$file['name'])
 		{
 			$this->setError(JText::_('COM_COURSES_NO_FILE'));
 			$this->displayTask('', $id);
@@ -271,12 +264,12 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		}
 		$curfile = JRequest::getVar('curfile', '');
 
-		if (!is_dir($path)) 
+		if (!is_dir($path))
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path)) 
+			if (!JFolder::create($path))
 			{
-				$this->setError(JText::_('COM_COURSES_UNABLE_TO_CREATE_UPLOAD_PATH'));
+				$this->setError(JText::_('COM_COURSES_ERROR_UNABLE_TO_CREATE_UPLOAD_PATH'));
 				$this->displayTask('', $id);
 				return;
 			}
@@ -288,22 +281,22 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		$file['name'] = str_replace(' ', '_', $file['name']);
 
 		// Perform the upload
-		if (!JFile::upload($file['tmp_name'], $path . DS . $file['name'])) 
+		if (!JFile::upload($file['tmp_name'], $path . DS . $file['name']))
 		{
-			$this->setError(JText::_('ERROR_UPLOADING'));
+			$this->setError(JText::_('COM_COURSES_ERROR_UPLOADING'));
 			$file = $curfile;
-		} 
-		else 
+		}
+		else
 		{
 			// Do we have an old file we're replacing?
-			if (($curfile = JRequest::getVar('currentfile', ''))) 
+			if (($curfile = JRequest::getVar('currentfile', '')))
 			{
 				// Remove old image
-				if (file_exists($path . DS . $curfile)) 
+				if (file_exists($path . DS . $curfile))
 				{
-					if (!JFile::delete($path . DS . $curfile)) 
+					if (!JFile::delete($path . DS . $curfile))
 					{
-						$this->setError(JText::_('UNABLE_TO_DELETE_FILE'));
+						$this->setError(JText::_('COM_COURSES_ERROR_UNABLE_TO_DELETE_FILE'));
 						$this->displayTask($file['name'], $id);
 						return;
 					}
@@ -330,12 +323,12 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 				break;
 
 				default:
-					$this->setError(JText::_('Invalid type.'));
+					$this->setError(JText::_('COM_COURSES_ERROR_INVALID_TYPE'));
 					$this->displayTask($file['name'], $id);
 					return;
 				break;
 			}
-			if (!$model->store()) 
+			if (!$model->store())
 			{
 				$this->setError($model->getError());
 			}
@@ -349,7 +342,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 	/**
 	 * Upload a file to the wiki via AJAX
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function ajaxRemoveTask()
@@ -357,18 +350,11 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		// Check for request forgeries
 		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
 
-		// Check if they're logged in
-		if ($this->juser->get('guest')) 
-		{
-			echo json_encode(array('error' => JText::_('Must be logged in.')));
-			return;
-		}
-
 		// Ensure we have an ID to work with
 		$id = JRequest::getInt('id', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			echo json_encode(array('error' => JText::_('COM_COURSES_NO_ID')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_NO_ID')));
 			return;
 		}
 
@@ -406,27 +392,27 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 			break;
 
 			default:
-				echo json_encode(array('error' => JText::_('Invalid type.')));
+				echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_INVALID_TYPE')));
 				return;
 			break;
 		}
 
-		if (!file_exists($path . DS . $file) or !$file) 
+		if (!file_exists($path . DS . $file) or !$file)
 		{
 			$this->setError(JText::_('FILE_NOT_FOUND'));
-		} 
-		else 
+		}
+		else
 		{
 			// Attempt to delete the file
 			jimport('joomla.filesystem.file');
-			if (!JFile::delete($path . DS . $file)) 
+			if (!JFile::delete($path . DS . $file))
 			{
-				echo json_encode(array('error' => JText::_('UNABLE_TO_DELETE_FILE')));
+				echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_UNABLE_TO_DELETE_FILE')));
 				return;
 			}
 		}
 
-		if (!$model->store()) 
+		if (!$model->store())
 		{
 			echo json_encode(array('error' => $model->getError()));
 			return;
@@ -434,7 +420,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 		//echo result
 		echo json_encode(array(
-			'success'   => true, 
+			'success'   => true,
 			'file'      => '',
 			'directory' => str_replace(JPATH_ROOT, '', $path),
 			'id'        => $id,
@@ -446,7 +432,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -458,21 +444,21 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 		// Check for request forgeries
 		JRequest::checkToken('get') or jexit('Invalid Token');
-		
+
 		// Incoming member ID
 		$id = JRequest::getInt('id', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			$this->setError(JText::_('MEMBERS_NO_ID'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_ID'));
 			$this->displayTask('', $id);
 			return;
 		}
 
 		// Incoming file
 		$file = JRequest::getVar('file', '');
-		if (!$file) 
+		if (!$file)
 		{
-			$this->setError(JText::_('MEMBERS_NO_FILE'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_FILE_FOUND'));
 			$this->displayTask('', $id);
 			return;
 		}
@@ -481,17 +467,17 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		$type = strtolower(JRequest::getWord('type', ''));
 		$path = $this->_path($type, $id);
 
-		if (!file_exists($path . DS . $file) or !$file) 
+		if (!file_exists($path . DS . $file) or !$file)
 		{
-			$this->setError(JText::_('FILE_NOT_FOUND'));
-		} 
-		else 
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_FILE_FOUND'));
+		}
+		else
 		{
 			// Attempt to delete the file
 			jimport('joomla.filesystem.file');
-			if (!JFile::delete($path . DS . $file)) 
+			if (!JFile::delete($path . DS . $file))
 			{
-				$this->setError(JText::_('UNABLE_TO_DELETE_FILE'));
+				$this->setError(JText::_('COM_COURSES_ERROR_UNABLE_TO_DELETE_FILE'));
 				$this->displayTask($file, $id);
 				return;
 			}
@@ -516,12 +502,12 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 				break;
 
 				default:
-					$this->setError(JText::_('Invalid type.'));
+					$this->setError(JText::_('COM_COURSES_ERROR_INVALID_TYPE'));
 					$this->displayTask($file, $id);
 					return;
 				break;
 			}
-			if (!$model->store()) 
+			if (!$model->store())
 			{
 				$this->setError($model->getError());
 			}
@@ -534,7 +520,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display a file and its info
-	 * 
+	 *
 	 * @param      integer $id ID
 	 * @return     string
 	 */
@@ -561,7 +547,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 			break;
 
 			default:
-				$this->setError(JText::_('Invalid type.'));
+				$this->setError(JText::_('COM_COURSES_ERROR_INVALID_TYPE'));
 				return '';
 			break;
 		}
@@ -571,7 +557,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display a file and its info
-	 * 
+	 *
 	 * @param      string  $file File name
 	 * @param      integer $id   User ID
 	 * @return     void
@@ -584,7 +570,7 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 		$this->view->config = $this->config;
 
 		// Incoming
-		if (!$id) 
+		if (!$id)
 		{
 			$id = JRequest::getInt('id', 0);
 		}
@@ -616,13 +602,13 @@ class CoursesControllerLogo extends \Hubzero\Component\AdminController
 			break;
 
 			default:
-				$this->setError(JText::_('Invalid type.'));
+				$this->setError(JText::_('COM_COURSES_ERROR_INVALID_TYPE'));
 				return;
 			break;
 		}
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{

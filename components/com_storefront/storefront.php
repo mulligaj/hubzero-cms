@@ -31,14 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-if (version_compare(JVERSION, '1.6', 'lt'))
-{
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-}
-
 //import needed joomla libs
 jimport('joomla.filesystem.folder');
 jimport('joomla.application.component.view');
@@ -58,11 +50,11 @@ $controllerName = JRequest::getCmd('controller', '');
 if (empty($controllerName))
 {
 	// Load default controller if no controller provided
-	$controllerName = 'storefront';	
+	$controllerName = 'storefront';
 }
 elseif (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))
 {
-	JError::raiseError(404, JText::_('Page Not Found'));	
+	JError::raiseError(404, JText::_('Page Not Found'));
 }
 
 require_once(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php');

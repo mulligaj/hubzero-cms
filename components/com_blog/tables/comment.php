@@ -39,56 +39,77 @@ class BlogTableComment extends JTable
 
 	/**
 	 * int(11) primary key
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $id         = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $entry_id   = NULL;
 
 	/**
 	 * text
-	 * 
+	 *
 	 * @var string
 	 */
 	var $content    = NULL;
 
 	/**
 	 * datetime(0000-00-00 00:00:00)
-	 * 
+	 *
 	 * @var string
 	 */
 	var $created    = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $created_by = NULL;
 
 	/**
 	 * int(3)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $anonymous  = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $parent     = NULL;
 
 	/**
+	 * tinyint(2)
+	 *
+	 * @var integer
+	 */
+	var $state     = NULL;
+
+	/**
+	 * datetime(0000-00-00 00:00:00)
+	 *
+	 * @var string
+	 */
+	var $modified    = NULL;
+
+	/**
+	 * int(11)
+	 *
+	 * @var integer
+	 */
+	var $modified_by = NULL;
+
+	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$db JDatabase
 	 * @return     void
 	 */
@@ -99,32 +120,38 @@ class BlogTableComment extends JTable
 
 	/**
 	 * Validate data
-	 * 
+	 *
 	 * @return     boolean True if data is valid
 	 */
 	public function check()
 	{
 		$this->content = trim($this->content);
-		if ($this->content == '') 
+		if ($this->content == '')
 		{
 			$this->setError(JText::_('COM_BLOG_ERROR_PROVIDE_CONTENT='));
 			return false;
 		}
 
-		if (!$this->entry_id) 
+		if (!$this->entry_id)
 		{
 			$this->setError(JText::_('COM_BLOG_ERROR_MISSING_ENTRY_ID'));
 			return false;
 		}
 
 		$juser = JFactory::getUser();
-		if (!$this->created_by) 
+		if (!$this->created_by)
 		{
 			$this->created_by = $juser->get('id');
 		}
 		if (!$this->id)
 		{
+			$this->state   = ($this->state !== null ? $this->state : 1);
 			$this->created = JFactory::getDate()->toSql();
+		}
+		else
+		{
+			$this->modified    = JFactory::getDate()->toSql();
+			$this->modified_by = $juser->get('id');
 		}
 
 		return true;
@@ -132,7 +159,7 @@ class BlogTableComment extends JTable
 
 	/**
 	 * Get a record from the database and bind it to this
-	 * 
+	 *
 	 * @param      integer $entry_id Blog entry
 	 * @param      integer $user_id  User ID
 	 * @return     boolean True if record found
@@ -147,24 +174,24 @@ class BlogTableComment extends JTable
 
 	/**
 	 * Get all comments off another comment on an entry
-	 * 
+	 *
 	 * @param      integer $entry_id Blog entry
 	 * @param      integer $parent   Parent comment
 	 * @return     array
 	 */
 	public function getComments($entry_id=NULL, $parent=NULL)
 	{
-		if (!$entry_id) 
+		if (!$entry_id)
 		{
 			$entry_id = $this->entry_id;
 		}
-		/*if (!$parent) 
+		/*if (!$parent)
 		{
 			$parent = 0;
 		}*/
 
 		$sql  = "SELECT * FROM $this->_tbl WHERE entry_id=" . $this->_db->Quote($entry_id);
-		if (!is_null($parent)) 
+		if (!is_null($parent))
 		{
 			$sql .= " AND parent=" . $this->_db->Quote($parent);
 		}
@@ -176,29 +203,25 @@ class BlogTableComment extends JTable
 
 	/**
 	 * Get all comments on an entry
-	 * 
+	 *
 	 * @param      integer $entry_id Blog entry
-	 * @return     array..
+	 * @param      array   $filters  Extra filters to apply to the query
+	 * @return     array
 	 */
-	public function getAllComments($entry_id=NULL)
+	public function getAllComments($entry_id=NULL, $filters=array())
 	{
-		if (!$entry_id) 
+		if (!$entry_id)
 		{
 			$entry_id = $this->entry_id;
 		}
 
 		$comments = array();
 
-		$rows = $this->getComments($entry_id);
-		if ($rows) 
-		{
-			$ra = null;
-			if (is_file(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'reportabuse.php')) 
-			{
-				include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'reportabuse.php');
-				$ra = new ReportAbuse($this->_db);
-			}
+		$filters['entry_id'] = $entry_id;
 
+		$rows = $this->getEntries($filters);
+		if ($rows)
+		{
 			$children = array(
 				0 => array()
 			);
@@ -208,11 +231,7 @@ class BlogTableComment extends JTable
 			foreach ($rows as $v)
 			{
 				$v->replies = 0;
-				$v->reports = 0;
-				if (is_object($ra)) 
-				{
-					$v->reports = $ra->getCount(array('id' => $v->id, 'category' => 'blog'));
-				}
+
 				$pt      = $v->parent;
 				$list    = @$children[$pt] ? $children[$pt] : array();
 				array_push($list, $v);
@@ -226,7 +245,7 @@ class BlogTableComment extends JTable
 
 	/**
 	 * Recursive function to build tree
-	 * 
+	 *
 	 * @param      integer $id       Parent ID
 	 * @param      string  $indent   Indent text
 	 * @param      array   $list     List of records
@@ -253,33 +272,33 @@ class BlogTableComment extends JTable
 
 	/**
 	 * Delete descendants of a comment
-	 * 
+	 *
 	 * @param      integer $id Parent of comments to delete
 	 * @return     boolean True if comments were deleted
 	 */
 	public function deleteChildren($id=NULL)
 	{
-		if (!$id) 
+		if (!$id)
 		{
 			$id = $this->id;
 		}
 
 		$this->_db->setQuery("SELECT id FROM $this->_tbl WHERE parent=" . $this->_db->Quote($id));
 		$comments = $this->_db->loadObjectList();
-		if ($comments) 
+		if ($comments)
 		{
 			foreach ($comments as $row)
 			{
 				// Delete children
 				$this->_db->setQuery("DELETE FROM $this->_tbl WHERE parent=" . $this->_db->Quote($row->id));
-				if (!$this->_db->query()) 
+				if (!$this->_db->query())
 				{
 					$this->setError($this->_db->getErrorMsg());
 					return false;
 				}
 			}
 			$this->_db->setQuery("DELETE FROM $this->_tbl WHERE parent=" . $this->_db->Quote($id));
-			if (!$this->_db->query()) 
+			if (!$this->_db->query())
 			{
 				$this->setError($this->_db->getErrorMsg());
 				return false;
@@ -297,7 +316,7 @@ class BlogTableComment extends JTable
 	 */
 	public function setState($oid=null, $state=0)
 	{
-		if (!$oid) 
+		if (!$oid)
 		{
 			$oid = $this->id;
 		}
@@ -309,7 +328,7 @@ class BlogTableComment extends JTable
 		}
 
 		$this->_db->setQuery("UPDATE $this->_tbl SET state=" . $this->_db->Quote($state) . " WHERE id=" . $this->_db->Quote($oid));
-		if (!$this->_db->query()) 
+		if (!$this->_db->query())
 		{
 			$this->setError($this->_db->getErrorMsg());
 			return false;
@@ -331,7 +350,7 @@ class BlogTableComment extends JTable
 			$id = array_map('intval', $id);
 			$id = implode(',', $id);
 		}
-		else 
+		else
 		{
 			$id = intval($id);
 		}
@@ -345,7 +364,7 @@ class BlogTableComment extends JTable
 			$id = implode(',', $rows);
 
 			$this->_db->setQuery("UPDATE $this->_tbl SET state=$state WHERE parent IN ($id)");
-			if (!$this->_db->query()) 
+			if (!$this->_db->query())
 			{
 				$this->setError($this->_db->getErrorMsg());
 				return false;
@@ -358,7 +377,7 @@ class BlogTableComment extends JTable
 	/**
 	 * Return a count of entries based off of filters passed
 	 * Used for admin interface
-	 * 
+	 *
 	 * @param      array $filters Filters to build query from
 	 * @return     integer
 	 */
@@ -374,7 +393,7 @@ class BlogTableComment extends JTable
 	/**
 	 * Get entries based off of filters passed
 	 * Used for admin interface
-	 * 
+	 *
 	 * @param      array $filters Filters to build query from
 	 * @return     array
 	 */
@@ -389,7 +408,7 @@ class BlogTableComment extends JTable
 	/**
 	 * Build a query from filters passed
 	 * Used for admin interface
-	 * 
+	 *
 	 * @param      array $filters Filters to build query from
 	 * @return     string SQL
 	 */
@@ -401,25 +420,41 @@ class BlogTableComment extends JTable
 			"c.created_by=u.uidNumber"
 		);
 
-		if (isset($filters['created_by']) && (int) $filters['created_by'] != 0) 
+		if (isset($filters['created_by']) && (int) $filters['created_by'] != 0)
 		{
 			$where[] = "c.created_by=" . $this->_db->Quote(intval($filters['created_by']));
 		}
-		if (isset($filters['entry_id']) && (int) $filters['entry_id'] != 0) 
+		if (isset($filters['modified_by']) && (int) $filters['modified_by'] != 0)
+		{
+			$where[] = "c.modified_by=" . $this->_db->Quote(intval($filters['modified_by']));
+		}
+		if (isset($filters['entry_id']) && (int) $filters['entry_id'] != 0)
 		{
 			$where[] = "c.entry_id=" . $this->_db->Quote(intval($filters['entry_id']));
 		}
-		if (isset($filters['parent'])) 
+		if (isset($filters['parent']))
 		{
-			$where[] = "c.parent=" . $this->_db->Quote(intval($filters['parent'])) . "'";
+			$where[] = "c.parent=" . $this->_db->Quote(intval($filters['parent']));
 		}
-		if (isset($filters['anonymous'])) 
+		if (isset($filters['state']))
 		{
-			$where[] = "c.anonymous=" . $this->_db->Quote(intval($filters['anonymous'])) . "'";
+			if (is_array($filters['state']))
+			{
+				$filters['state'] = array_map('intval', $filters['state']);
+				$where[] = "c.state IN (" . implode(',', $filters['state']) . ")";
+			}
+			else if ($filters['state'] >= 0)
+			{
+				$where[] = "c.state=" . $this->_db->Quote(intval($filters['state']));
+			}
 		}
-		if (isset($filters['search']) && $filters['search'] != '') 
+		if (isset($filters['anonymous']))
 		{
-			$where[] = "LOWER(c.content) LIKE '%" . $this->_db->getEscaped(strtolower($filters['search'])) . "%'";
+			$where[] = "c.anonymous=" . $this->_db->Quote(intval($filters['anonymous']));
+		}
+		if (isset($filters['search']) && $filters['search'] != '')
+		{
+			$where[] = "LOWER(c.content) LIKE " . $this->_db->quote('%' . strtolower($filters['search']) . '%');
 		}
 
 		if (count($where) > 0)
@@ -427,16 +462,16 @@ class BlogTableComment extends JTable
 			$query .= " WHERE " . implode(" AND ", $where);
 		}
 
-		if (!isset($filters['sort']) || !$filters['sort']) 
+		if (!isset($filters['sort']) || !$filters['sort'])
 		{
 			$filters['sort'] = 'created';
 		}
-		if (!isset($filters['sort_Dir'])|| !in_array(strtoupper($filters['sort_Dir']), array('ASC', 'DESC'))) 
+		if (!isset($filters['sort_Dir'])|| !in_array(strtoupper($filters['sort_Dir']), array('ASC', 'DESC')))
 		{
 			$filters['sort_Dir'] = 'DESC';
 		}
 		$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'];
-		/*if (isset($filters['limit']) && $filters['limit'] != 0) 
+		/*if (isset($filters['limit']) && $filters['limit'] != 0)
 		{
 			$query .= " LIMIT " . $filters['start'] . "," . $filters['limit'];
 		}*/

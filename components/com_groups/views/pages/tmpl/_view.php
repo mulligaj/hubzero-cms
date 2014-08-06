@@ -50,35 +50,35 @@ $overviewPageAccess = \Hubzero\User\Group\Helper::getPluginAccess($this->group, 
 $pagePrivacy = ($this->page->get('privacy') == 'default') ? $overviewPageAccess : $this->page->get('privacy');
 
 // check to make sure user has access this page
-if (($pagePrivacy== 'registered' && $this->juser->get('guest')) || 
-   ($pagePrivacy == 'members' && !in_array($this->juser->get('id'), $this->group->get('members'))))
+if (($pagePrivacy== 'registered' && $this->juser->get('guest'))
+	||($pagePrivacy == 'members' && !in_array($this->juser->get('id'), $this->group->get('members'))))
 {
-	$this->version->set('content', '<p class="info">You currently don\'t have the permissions to access this group page.</p>');
+	$this->version->set('content', '<p class="info">' . JText::_('COM_GROUPS_PAGES_PAGE_UNABLE_TO_VIEW') . '</p>');
 }
 ?>
 
 <div class="group-page page-<?php echo $this->page->get('alias'); ?>">
-	
+
 	<?php if ($newerVersion && $this->authorized == 'manager') : ?>
 		<div class="group-page group-page-notice notice-info">
-			<h4>Newer Version Pending Approval</h4>
-			<p>A newer version of this page has been submitted and is pending approval from a site administrator. Approvals are made during normal business hours Monday - Friday 8am to 5pm <abbr title="Eastern Standard Time">EST</abbr>.</p>
+			<h4><?php echo JText::_('COM_GROUPS_PAGES_PAGE_VERSION_PENDING_APPROVAL'); ?></h4>
+			<p><?php echo JText::_('COM_GROUPS_PAGES_PAGE_VERSION_PENDING_APPROVAL_DESC'); ?></p>
 		</div>
 	<?php endif; ?>
-	
+
 	<?php echo $this->version->content('parsed'); ?>
-	
+
 	<div class="group-page-toolbar grid">
 		<?php
 			$firstVersion     = $versions->last();
 			$currentVersion   = $this->version;
-			$createdDate      = ($firstVersion->get('created')) ? JHTML::_('date', $firstVersion->get('created'), 'D F j, Y') : JText::_('n/a');
-			$modifiedDate     = ($currentVersion->get('created')) ? JHTML::_('date', $currentVersion->get('created'), 'D F j, Y g:i a') : JText::_('n/a');
+			$createdDate      = ($firstVersion->get('created')) ? JHTML::_('date', $firstVersion->get('created'), 'D F j, Y') : JText::_('COM_GROUPS_PAGES_PAGE_NA');
+			$modifiedDate     = ($currentVersion->get('created')) ? JHTML::_('date', $currentVersion->get('created'), 'D F j, Y g:i a') : JText::_('COM_GROUPS_PAGES_PAGE_NA');
 			$createdProfile   = \Hubzero\User\Profile::getInstance( $firstVersion->get("created_by") );
 			$modifiedProfile  = \Hubzero\User\Profile::getInstance( $currentVersion->get("created_by") );
-			$createdBy        = (is_object($createdProfile)) ? $createdProfile->get('name') : JText::_('System');
-			$modifiedBy       = (is_object($modifiedProfile)) ? $modifiedProfile->get('name') : JText::_('System');
-			
+			$createdBy        = (is_object($createdProfile)) ? $createdProfile->get('name') : JText::_('COM_GROUPS_PAGES_PAGE_SYSTEM');
+			$modifiedBy       = (is_object($modifiedProfile)) ? $modifiedProfile->get('name') : JText::_('COM_GROUPS_PAGES_PAGE_SYSTEM');
+
 			$createdLink  = 'javascript:void(0);';
 			$modifiedLink = 'javascript:void(0);';
 			if (is_object($createdProfile))
@@ -89,49 +89,49 @@ if (($pagePrivacy== 'registered' && $this->juser->get('guest')) ||
 			{
 				$modifiedLink     = JRoute::_('index.php?option=com_members&id='.$modifiedProfile->get('uidNumber'));
 			}
-			
+
 			$createdLink      = '<a href="'.$createdLink.'">'.$createdBy.'</a>';
 			$modifiedLink     = '<a href="'.$modifiedLink.'">'.$modifiedBy.'</a>';
-			
+
 			$editPageLink     = JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&controller=pages&task=edit&pageid='.$this->page->get('id'));
 			$setPageHomeLink  = JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&controller=pages&task=sethome&pageid='.$this->page->get('id'));
 			$overrideHomeLink = JRoute::_('index.php?option=com_help&component=groups&page=pages&cn='.$this->group->get('cn').'#grouphomepageoverride');
-			
+
 			// current location
 			$editPageLink    .= '&return=' . base64_encode(JURI::getInstance()->toString());
 			$setPageHomeLink .= '&return=' . base64_encode(JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn')));
 			$categoryLink     = JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&controller=pages&filter=' . $category->get('id'));
 		?>
-		
-		
+
+
 		<div class="page-meta col span10">
 			<?php if ($this->page->get('id') != 0) : ?>
-				<span class="created" title="<?php echo JText::sprintf('Created by %s', $createdDate, $createdBy); ?>">
-					<?php echo JText::sprintf('Created by %s', $createdLink); ?>
+				<span class="created" title="<?php echo JText::sprintf('COM_GROUPS_PAGES_PAGE_CREATED', $createdDate, $createdBy); ?>">
+					<?php echo JText::sprintf('COM_GROUPS_PAGES_PAGE_CREATED', $createdLink); ?>
 				</span>
-				<span class="modified" title="<?php echo JText::sprintf('Last Modified %s by %s', $modifiedDate, $modifiedBy); ?>">
-					<?php echo JText::sprintf('Last Modified %s by %s', $modifiedDate, $modifiedLink); ?>
+				<span class="modified" title="<?php echo JText::sprintf('COM_GROUPS_PAGES_PAGE_MODIFIED', $modifiedDate, $modifiedBy); ?>">
+					<?php echo JText::sprintf('COM_GROUPS_PAGES_PAGE_MODIFIED', $modifiedDate, $modifiedLink); ?>
 				</span>
 			<?php endif; ?>
-		</div> 
-		
+		</div>
+
 		<?php if ($this->authorized == 'manager') : ?>
 			<div class="page-controls col span2 omega">
 				<ul class="page-controls">
 				<?php if ($this->page->get('id') != 0) : ?>
 					<li>
-						<a class="edit" title="<?php echo JText::_('Edit Page'); ?>" data-title="<?php echo JText::_('Edit Page'); ?>" href="<?php echo $editPageLink; ?>">
-							<span><?php echo JText::_('Edit Page'); ?></span>
+						<a class="edit" title="<?php echo JText::_('COM_GROUPS_PAGES_EDIT_PAGE'); ?>" data-title="<?php echo JText::_('COM_GROUPS_PAGES_EDIT_PAGE'); ?>" href="<?php echo $editPageLink; ?>">
+							<span><?php echo JText::_('COM_GROUPS_PAGES_EDIT_PAGE'); ?></span>
 						</a>
 					</li>
 					<?php if ($this->page->get('home') != 1) : ?>
 						<li>
-							<a class="home" title="<?php echo JText::_('Set as Home Page'); ?>" data-title="<?php echo JText::_('Set as Home Page'); ?>" href="<?php echo $setPageHomeLink; ?>">
-								<span><?php echo JText::_('Set as Home Page'); ?></span>
+							<a class="home" title="<?php echo JText::_('COM_GROUPS_PAGES_SET_HOME'); ?>" data-title="<?php echo JText::_('COM_GROUPS_PAGES_SET_HOME'); ?>" href="<?php echo $setPageHomeLink; ?>">
+								<span><?php echo JText::_('COM_GROUPS_PAGES_SET_HOME'); ?></span>
 							</a>
 						</li>
 					<?php endif; ?>
-					
+
 					<?php if ($category->get('id') != '') : ?>
 						<li>
 							<a href="<?php echo $categoryLink; ?>" class="tooltips category" title="In <?php echo $category->get('title'); ?>" style="background-color:#<?php echo $category->get('color'); ?>"></a>
@@ -139,8 +139,8 @@ if (($pagePrivacy== 'registered' && $this->juser->get('guest')) ||
 					<?php endif; ?>
 				<?php else : ?>
 					<li>
-						<a class="popup override" title="<?php echo JText::_('Override This page'); ?>" data-title="<?php echo JText::_('Override This page'); ?>" href="<?php echo $overrideHomeLink; ?>">
-							<span><?php echo JText::_('Override This page'); ?></span>
+						<a class="popup override" title="<?php echo JText::_('COM_GROUPS_PAGES_OVERRIDE_PAGE'); ?>" data-title="<?php echo JText::_('COM_GROUPS_PAGES_OVERRIDE_PAGE'); ?>" href="<?php echo $overrideHomeLink; ?>">
+							<span><?php echo JText::_('COM_GROUPS_PAGES_OVERRIDE_PAGE'); ?></span>
 						</a>
 					</li>
 				<?php endif; ?>

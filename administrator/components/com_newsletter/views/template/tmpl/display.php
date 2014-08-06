@@ -32,13 +32,14 @@
 defined('_JEXEC') or die('Restricted access');
 
 //set the title
-JToolBarHelper::title('<a href="index.php?option='.$this->option.'">' . JText::_( 'Newsletter Templates' ) . '</a>', 'template.png');
+JToolBarHelper::title(JText::_('COM_NEWSLETTER_NEWSLETTER_TEMPLATES'), 'template.png');
 
 //add toolbar buttons
 JToolBarHelper::addNew();
 JToolBarHelper::editList();
-JToolBarHelper::custom('duplicate', 'copy', '', 'Copy');
-JToolBarHelper::deleteList('Are you sure you want to delete the selected Newsletter Template(s)?', 'delete');
+JToolBarHelper::custom('duplicate', 'copy', '', 'COM_NEWSLETTER_TOOLBAR_COPY');
+JToolBarHelper::spacer();
+JToolBarHelper::deleteList('COM_NEWSLETTER_TEMPLATE_DELETE_CHECK', 'delete');
 JToolBarHelper::spacer();
 JToolBarHelper::preferences($this->option, '550');
 ?>
@@ -48,17 +49,17 @@ JToolBarHelper::preferences($this->option, '550');
 		echo '<p class="error">' . $this->getError() . '</p>';
 	}
 ?>
-<form action="index.php" method="post" name="adminForm">
+<form action="index.php" method="post" name="adminForm" id="adminForm">
 	<table class="adminlist">
 		<thead>
 			<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->templates); ?>);" /></th>
-				<th><?php echo JText::_('Template'); ?></th>
+				<th><?php echo JText::_('COM_NEWSLETTER_TEMPLATE'); ?></th>
 			</tr>
 		</thead>
 		<tbody>
 			<?php if (count($this->templates) > 0) : ?>
-				<?php foreach($this->templates as $k => $template) : ?>
+				<?php foreach ($this->templates as $k => $template) : ?>
 					<tr>
 						<td width="30">
 							<input type="checkbox" name="id[]" id="cb<?php echo $k;?>" value="<?php echo $template->id; ?>" onclick="isChecked(this.checked);" />
@@ -75,8 +76,8 @@ JToolBarHelper::preferences($this->option, '550');
 			<?php else : ?>
 				<tr>
 					<td colspan="2">
-						<?php echo JText::_('Currently there are no Newsletter Templates.'); ?> 
-						<a onclick="javascript:submitbutton('add')" href="#"><?php echo JText::_('Click here to create a new one!'); ?></a>
+						<?php echo JText::_('COM_NEWSLETTER_NO_TEMPLATES'); ?>
+						<a onclick="javascript:submitbutton('add')" href="#"><?php echo JText::_('COM_NEWSLETTER_NO_TEMPLATES_CREATE'); ?></a>
 					</td>
 				</tr>
 			<?php endif; ?>
@@ -86,4 +87,4 @@ JToolBarHelper::preferences($this->option, '550');
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="add" />
 	<input type="hidden" name="boxchecked" value="0" />
-</form>	
+</form>

@@ -57,10 +57,10 @@ class modRecentQuestions extends \Hubzero\Module\Module
 			case 'both':   $st = "a.state<2"; break;
 			default:       $st = ""; break;
 		}
-		
+
 		$this->tag = JRequest::getVar('tag', '', 'get');
 		$this->style = JRequest::getVar('style', '', 'get');
-		
+
 		if ($this->tag) 
 		{
 			$query = "SELECT a.id, a.subject, a.question, a.state, a.created, a.created_by, a.anonymous, (SELECT COUNT(*) FROM #__answers_responses AS r WHERE r.question_id=a.id) AS rcount"
@@ -82,7 +82,7 @@ class modRecentQuestions extends \Hubzero\Module\Module
 		}
 		$query .= " ORDER BY a.created DESC";
 		$query .= ($limit) ? " LIMIT " . $limit : "";
-		
+
 		$this->database->setQuery($query);
 		$this->rows = $this->database->loadObjectList();
 

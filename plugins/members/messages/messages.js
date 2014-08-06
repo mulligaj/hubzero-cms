@@ -5,118 +5,103 @@
  * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-//-----------------------------------------------------------
-//  Ensure we have our namespace
-//-----------------------------------------------------------
-if (!HUB) {
-	var HUB = {};
+if (!jq) {
+	var jq = $;
 }
 
-//----------------------------------------------------------
-// Resource Ranking pop-ups
-//----------------------------------------------------------
-HUB.MembersMsg = {
-	checkAll: function( ele, clsName ) {
-		if (ele.checked) {
+String.prototype.nohtml = function () {
+	if (this.indexOf('?') == -1) {
+		return this + '?no_html=1';
+	} else {
+		return this + '&no_html=1';
+	}
+};
+
+jQuery(document).ready(function(jq){
+	var $ = jq;
+
+	$('#msgall').on('change', function(e) {
+		if (this.checked) {
 			var val = true;
 		} else {
 			var val = false;
 		}
-		
-		$$('input.'+clsName).each(function(el) {
-			if (el.checked) {
-				el.checked = val;
-			} else {
-				el.checked = val;
+
+		$('input.chkbox').each(function(i, el) {
+			if (val && !$(el).attr('checked')) {
+				$(el).attr('checked', 'checked');
+			} else if (!val && $(el).attr('checked')) {
+				$(el).removeAttr('checked');
 			}
 		});
-	},
-	
-	initalize: function() 
-	{
-		// Modal boxes for presentations
-		
-		$$('a.message-link').each(function(el) {
-			if (el.href.indexOf('?') == -1) {
-				el.href = el.href + '?no_html=1';
-			} else {
-				el.href = el.href + '&no_html=1';
-			}
-			el.addEvent('click', function(e) {
-				new Event(e).stop();
+	});
 
-				SqueezeBoxHub.fromElement(el,{
-					handler: 'url', 
-					size: {x: 700, y: 400}, 
-					ajaxOptions: {
-						method: 'get',
-						onComplete: function() {
-							
-						}
-					}
-				});
+	$('a.message-link').fancybox({
+		type: 'ajax',
+		width: 700,
+		height: 'auto',
+		autoSize: false,
+		fitToView: false,  
+		titleShow: false,
+		tpl: {
+			wrap:'<div class="fancybox-wrap"><div class="fancybox-skin"><div class="fancybox-outer"><div id="sbox-content" class="fancybox-inner"></div></div></div></div>'
+		},
+		beforeLoad: function() {
+			href = $(this).attr('href').nohtml();
+			$(this).attr('href', href);
+		},
+		afterShow: function() {
+			$(this.element).removeClass('unread');
+			$(this.element)
+				.parents('tr')
+				.find('td.status span')
+				.removeClass('unread');
+		}
+	}); 
+
+	$('#message-toolbar a.new').fancybox({
+		type: 'ajax',
+		width: 700,
+		height: 'auto',
+		autoSize: false,
+		fitToView: false,
+		titleShow: false,
+		tpl: {
+			wrap:'<div class="fancybox-wrap"><div class="fancybox-skin"><div class="fancybox-outer"><div id="sbox-content" class="fancybox-inner"></div></div></div></div>'
+		},
+		beforeLoad: function() {
+			href = $(this).attr('href').nohtml()
+			$(this).attr('href', href);
+		},
+		afterLoad: function(upcomingObject, currentObject) {
+			var dom = $(upcomingObject.content);
+			dom.filter('script').each(function() {
+				$.globalEval(this.text || this.textContent || this.innerHTML || '');
 			});
-		});
-	
-		//------
-		
-		$$('#message-toolbar a.new').each(function(el) {
-			if (el.href.indexOf('?') == -1) {
-				el.href = el.href + '?no_html=1';
-			} else {
-				el.href = el.href + '&no_html=1';
-			}
-			el.addEvent('click', function(e) {
-				new Event(e).stop();
+		},
+		afterShow: function() {
+			if ($('#hubForm-ajax')) {
+				$('#hubForm-ajax').on('submit', function(e) {
+					e.preventDefault();
 
-				SqueezeBoxHub.fromElement(el,{
-					handler: 'url', 
-					size: {x: 700, y: 418}, 
-					ajaxOptions: {
-						method: 'get',
-						evalScripts: true,
-						onComplete: function() {
-							frm = $('hubForm-ajax');
-							if (frm) {
-								frm.addEvent('submit', function(e) {
-									new Event(e).stop();
-									members = $('members').getValue();
-									message = $('msg-message').getValue();
-									
-									if(!members) {
-										alert("Must select a message recipient.");
-										return false;
-									}
-									
-									if(!message) {
-										alert("You must enter a message.");
-										return false;
-									} 
-									
-									frm.send({
-										onComplete: function() {
-											SqueezeBoxHub.close();
-											Growl.Bezel({
-												image: '/components/com_members/images/mail.png',
-												title: 'Message Sent',
-												text: 'Your Message was successfully sent to ' + to + '.',
-												duration: 2
-											});
-										}
-							        });
-								});
-							}
-						}
+					members = $('#members').val();
+					message = $('#msg-message').val();
+
+					if (!members) {
+						alert("Must select a message recipient.");
+						return false;
 					}
+
+					if (!message) {
+						alert("You must enter a message.");
+						return false;
+					}
+
+					$.post($(this).attr('action'),$(this).serialize(), function(data) {
+						$.fancybox.close();
+					});
 				});
-			});
-		});
-		
-		//-----
-		
-	}
-}
-
-//--------
-
-window.addEvent("domready",HUB.MembersMsg.initalize);
+			}
+		}
+	});
+});

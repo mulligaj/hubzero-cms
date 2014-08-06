@@ -32,70 +32,70 @@
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Table class for forum posts
+ * Table class for collection item asset
  */
 class CollectionsTableAsset extends JTable
 {
 	/**
 	 * int(11) Primary key
-	 * 
-	 * @var integer 
+	 *
+	 * @var integer
 	 */
 	var $id         = NULL;
 
 	/**
 	 * int(11)
-	 * 
-	 * @var integer 
+	 *
+	 * @var integer
 	 */
 	var $item_id = NULL;
 
 	/**
 	 * varchar(255)
-	 * 
-	 * @var string  
+	 *
+	 * @var string
 	 */
 	var $filename    = NULL;
 
 	/**
 	 * text
-	 * 
-	 * @var string  
+	 *
+	 * @var string
 	 */
 	var $description = NULL;
 
 	/**
 	 * datetime(0000-00-00 00:00:00)
-	 * 
-	 * @var string  
+	 *
+	 * @var string
 	 */
 	var $created    = NULL;
 
 	/**
 	 * int(11)
-	 * 
-	 * @var integer 
+	 *
+	 * @var integer
 	 */
 	var $created_by = NULL;
 
 	/**
 	 * int(2)
-	 * 
-	 * @var integer 
+	 *
+	 * @var integer
 	 */
 	var $state = NULL;
 
 	/**
 	 * varchar(50)
-	 * 
+	 *
 	 * @var string
 	 */
 	var $type = NULL;
 
 	/**
 	 * int(3)
-	 * 
-	 * @var integer 
+	 *
+	 * @var integer
 	 */
 	var $ordering = NULL;
 
@@ -112,23 +112,22 @@ class CollectionsTableAsset extends JTable
 
 	/**
 	 * Validate data
-	 * 
+	 *
 	 * @return     boolean True if data is valid
 	 */
 	public function check()
 	{
 		$this->item_id = intval($this->item_id);
-
-		if (!$this->item_id) 
+		if (!$this->item_id)
 		{
-			$this->setError(JText::_('Please provide an item ID'));
+			$this->setError(JText::_('COM_COLLECTIONS_ERROR_MISSING_ITEM_ID'));
 			return false;
 		}
 
 		$this->filename = trim($this->filename);
-		if (!$this->filename) 
+		if (!$this->filename)
 		{
-			$this->setError(JText::_('Please provide a file name'));
+			$this->setError(JText::_('COM_COLLECTIONS_ERROR_MISSING_FILE_NAME'));
 			return false;
 		}
 
@@ -140,12 +139,11 @@ class CollectionsTableAsset extends JTable
 			$this->type = 'file';
 		}
 
-		if (!$this->id) 
+		if (!$this->id)
 		{
-			$juser = JFactory::getUser();
-			$this->created = JFactory::getDate()->toSql();
-			$this->created_by = $juser->get('id');
-			$this->state = 1;
+			$this->created    = JFactory::getDate()->toSql();
+			$this->created_by = JFactory::getUser()->get('id');
+			$this->state      = 1;
 
 			$this->ordering = $this->_getHighestOrdering($this->item_id) + 1;
 		}
@@ -155,7 +153,7 @@ class CollectionsTableAsset extends JTable
 
 	/**
 	 * Get the last page in the ordering
-	 * 
+	 *
 	 * @param      string  $gid    Group alias (cn)
 	 * @return     integer
 	 */
@@ -168,44 +166,122 @@ class CollectionsTableAsset extends JTable
 
 	/**
 	 * Load a record
-	 * 
+	 *
 	 * @param      integer $oid     ID
 	 * @param      integer $item_id Item ID
 	 * @return     boolean True upon success, False if errors
 	 */
 	public function load($oid=null, $item_id=null)
 	{
-		if (is_numeric($oid)) 
+		if (is_numeric($oid))
 		{
 			return parent::load($oid);
 		}
 
-		$this->_db->setQuery("SELECT * FROM $this->_tbl WHERE item_id=" . $this->_db->Quote(intval($item_id)) . " AND filename=" . $this->_db->Quote($oid));
-		if ($result = $this->_db->loadAssoc()) 
+		$fields = array(
+			'item_id'  => (int) $item_id,
+			'filename' => (string) $oid
+		);
+
+		return parent::load($fields);
+	}
+
+	/**
+	 * Return data based on a set of filters. Returned value 
+	 * can be integer, object, or array
+	 * 
+	 * @param   string $what
+	 * @param   array  $filters
+	 * @return  mixed
+	 */
+	public function find($what='', $filters=array())
+	{
+		$what = strtolower(trim($what));
+
+		switch ($what)
 		{
-			return $this->bind($result);
-		} 
-		else 
-		{
-			$this->setError($this->_db->getErrorMsg());
-			return false;
+			case 'count':
+				$query = "SELECT COUNT(*) " . $this->_buildQuery($filters);
+
+				$this->_db->setQuery($query);
+				return $this->_db->loadResult();
+			break;
+
+			case 'one':
+				$filters['limit'] = 1;
+
+				$result = null;
+				if ($results = $this->find('list', $filters))
+				{
+					$result = $results[0];
+				}
+
+				return $result;
+			break;
+
+			case 'first':
+				$filters['start'] = 0;
+				$filters['limit'] = 1;
+
+				$result = null;
+				if ($results = $this->find('list', $filters))
+				{
+					$result = $results[0];
+				}
+
+				return $result;
+			break;
+
+			case 'all':
+				if (isset($filters['limit']))
+				{
+					unset($filters['limit']);
+				}
+				return $this->find('list', $filters);
+			break;
+
+			case 'list':
+			default:
+				$query = "SELECT a.*, u.name";
+				$query .= $this->_buildQuery($filters);
+
+				if (!isset($filters['sort']) || !$filters['sort'])
+				{
+					$filters['sort'] = 'a.ordering';
+				}
+				if (!isset($filters['sort_Dir']) || !$filters['sort_Dir'])
+				{
+					$filters['sort_Dir'] = 'ASC';
+				}
+				$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'];
+
+				if (isset($filters['limit']) && $filters['limit'] > 0)
+				{
+					$filters['start'] = (isset($filters['start']) ? $filters['start'] : 0);
+
+					$query .= " LIMIT " . (int) $filters['start'] . "," . (int) $filters['limit'];
+				}
+
+				$this->_db->setQuery($query);
+				return $this->_db->loadObjectList();
+			break;
 		}
 	}
 
 	/**
 	 * Build a query based off of filters passed
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     string SQL
 	 */
-	public function buildQuery($filters=array())
+	protected function _buildQuery($filters=array())
 	{
 		$query  = " FROM $this->_tbl AS a";
 		$query .= " LEFT JOIN #__users AS u ON a.created_by=u.id";
 
 		$where = array();
 
-		if (isset($filters['item_id'])) 
+		if (isset($filters['item_id']))
 		{
 			if (is_array($filters['item_id']))
 			{
@@ -217,24 +293,24 @@ class CollectionsTableAsset extends JTable
 				$where[] = "a.item_id=" . $this->_db->Quote(intval($filters['item_id']));
 			}
 		}
-		if (isset($filters['filename'])) 
+		if (isset($filters['filename']))
 		{
 			$where[] = "a.filename=" . $this->_db->Quote($filters['filename']);
 		}
-		/*if (isset($filters['description'])) 
+		/*if (isset($filters['description']))
 		{
 			$where[] = "a.description=" . $this->_db->Quote($filters['description']);
 		}*/
-		if (isset($filters['search']) && $filters['search'] != '') 
+		if (isset($filters['search']) && $filters['search'] != '')
 		{
-			$where[] = "(LOWER(a.filename) LIKE '%" . $this->_db->getEscaped(strtolower($filters['search'])) . "%' 
-					OR LOWER(a.description) LIKE '%" . $this->_db->getEscaped(strtolower($filters['search'])) . "%')";
+			$where[] = "(LOWER(a.filename) LIKE " . $this->_db->quote('%' . strtolower($filters['search']) . '%') . "
+					OR LOWER(a.description) LIKE " . $this->_db->quote('%' . strtolower($filters['search']) . '%') . ")";
 		}
-		if (isset($filters['created_by'])) 
+		if (isset($filters['created_by']))
 		{
 			$where[] = "a.created_by=" . $this->_db->Quote(intval($filters['created_by']));
 		}
-		if (!isset($filters['state'])) 
+		if (!isset($filters['state']))
 		{
 			$filters['state'] = 1;
 		}
@@ -251,51 +327,29 @@ class CollectionsTableAsset extends JTable
 
 	/**
 	 * Get a record count
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     integer
 	 */
 	public function getCount($filters=array())
 	{
-		$query = "SELECT COUNT(*) " . $this->buildQuery($filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
+		return $this->find('count', $filters);
 	}
 
 	/**
 	 * Get records
-	 * 
+	 *
 	 * @param      array $filters Filters to construct query from
 	 * @return     array
 	 */
 	public function getRecords($filters=array())
 	{
-		$query = "SELECT a.*, u.name";
-		$query .= $this->buildQuery($filters);
-
-		if (!isset($filters['sort']) || !$filters['sort']) 
-		{
-			$filters['sort'] = 'a.ordering';
-		}
-		if (!isset($filters['sort_Dir']) || !$filters['sort_Dir']) 
-		{
-			$filters['sort_Dir'] = 'ASC';
-		}
-		$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'];
-
-		if (isset($filters['limit']) && $filters['limit'] != 0) 
-		{
-			$query .= ' LIMIT ' . intval($filters['start']) . ',' . intval($filters['limit']);
-		}
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
+		return $this->find('list', $filters);
 	}
 
 	/**
 	 * Rename a file and mark the record as "deleted"
-	 * 
+	 *
 	 * @param      integer $id   Entry ID
 	 * @param      string  $path File path
 	 * @return     boolean True on success, false on error
@@ -308,7 +362,7 @@ class CollectionsTableAsset extends JTable
 		}
 		if (!$id)
 		{
-			$this->setError(JText::_('Missing argument.'));
+			$this->setError(JText::_('COM_COLLECTIONS_ERROR_MISSING_ID'));
 			return false;
 		}
 
@@ -316,13 +370,12 @@ class CollectionsTableAsset extends JTable
 
 		if (!$this->filename)
 		{
-			$this->setError(JText::_('No filename found.'));
+			$this->setError(JText::_('COM_COLLECTIONS_ERROR_MISSING_FILE_NAME'));
 			return false;
 		}
 
 		//$UrlPtn = "(?:https?:|mailto:|ftp:|gopher:|news:|file:)(?:[^ |\\/\"\']*\\/)*[^ |\\t\\n\\/\"\']*[A-Za-z0-9\\/?=&~_]";
-
-		//if (!preg_match("/$UrlPtn/", $this->filename) && $this->filename != 'http://') 
+		//if (!preg_match("/$UrlPtn/", $this->filename) && $this->filename != 'http://')
 		if ($this->type == 'file')
 		{
 			jimport('joomla.filesystem.file');
@@ -335,15 +388,15 @@ class CollectionsTableAsset extends JTable
 
 			$file = $path . DS . $this->filename;
 
-			if (!file_exists($file) or !$file) 
+			if (!file_exists($file) or !$file)
 			{
-				$this->setError(JText::_('FILE_NOT_FOUND'));
+				$this->setError(JText::_('COM_COLLECTIONS_FILE_NOT_FOUND'));
 				return false;
 			}
 
-			if (!JFile::move($file, $path . DS . $fileRemoved)) 
+			if (!JFile::move($file, $path . DS . $fileRemoved))
 			{
-				$this->setError(JText::_('Unable to rename file'));
+				$this->setError(JText::_('COM_COLLECTIONS_ERROR_UNABLE_TO_RENAME_FILE'));
 				return false;
 			}
 
@@ -354,7 +407,7 @@ class CollectionsTableAsset extends JTable
 
 		if (!$this->store())
 		{
-			$this->setError(JText::_('Unable to update record'));
+			$this->setError(JText::_('COM_COLLECTIONS_ERROR_UNABLE_TO_UPDATE_RECORD'));
 			return false;
 		}
 
@@ -363,14 +416,14 @@ class CollectionsTableAsset extends JTable
 
 	/**
 	 * Delete a record
-	 * 
+	 *
 	 * @param      integer $oid   Entry ID
 	 * @return     boolean True on success, false on error
 	 */
 	public function delete($oid=null)
 	{
 		$k = $this->_tbl_key;
-		if ($oid) 
+		if ($oid)
 		{
 			$this->$k = intval($oid);
 		}
@@ -381,30 +434,11 @@ class CollectionsTableAsset extends JTable
 		$path = JPATH_ROOT . DS . trim($config->get('filepath', '/site/collections'), DS) . DS . $this->item_id;
 
 		jimport('joomla.filesystem.file');
-		if (!JFile::delete($path . DS . $this->filename)) 
+		if (!JFile::delete($path . DS . $this->filename))
 		{
-			$this->setError(JText::_('UNABLE_TO_DELETE_FILE'));
+			$this->setError(JText::_('COM_COLLECTIONS_ERROR_UNABLE_TO_DELETE_FILE'));
 		}
 
 		return parent::delete();
 	}
-
-	/**
-	 * Inserts a new row if id is zero or updates an existing row in the database table
-	 *
-	 * Can be overloaded/supplemented by the child class
-	 *
-	 * @access public
-	 * @param boolean If false, null object variables are not updated
-	 * @return null|string null if successful otherwise returns and error message
-	 */
-	/*public function store($updateNulls=false)
-	{
-		$res = parent::store($updateNulls);
-		if ($res)
-		{
-			$this->reorder("item_id=" . $this->_db->Quote(intval($this->item_id)));
-		}
-		return $res;
-	}*/
 }

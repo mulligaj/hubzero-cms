@@ -33,12 +33,12 @@ defined('_JEXEC') or die('Restricted access');
 $this->css();
 
 JToolBarHelper::title(JText::_('COM_GROUPS'), 'groups.png');
-JToolBarHelper::back();
+JToolBarHelper::custom('display','back','back','COM_GROUPS_BACK', false);
 
 JHTML::_('behavior.tooltip');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.getElementById('adminForm');
 	if (pressbutton == 'cancel') {
@@ -56,16 +56,16 @@ function submitbutton(pressbutton)
 		<table class="adminlist success">
 			<thead>
 			 	<tr>
-					<th scope="col"><?php echo JText::_('The following groups successfully pulled in new code'); ?></th>
+					<th scope="col"><?php echo JText::_('COM_GROUPS_PULL_SUCCESS'); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php foreach ($this->success as $success) : ?>
 					<tr>
 						<td>
-							<?php 
+							<?php
 								$group = \Hubzero\User\Group::getInstance($success['group']);
-								echo '<strong>' . $group->get('description') . ' (' . $group->get('cn') . ')</strong>'; 
+								echo '<strong>' . $group->get('description') . ' (' . $group->get('cn') . ')</strong>';
 							?>
 							<br />
 							<br />
@@ -82,16 +82,16 @@ function submitbutton(pressbutton)
 		<table class="adminlist failed">
 			<thead>
 			 	<tr>
-					<th scope="col"><?php echo JText::_('The following groups successfully failed to pull new code'); ?></th>
+					<th scope="col"><?php echo JText::_('COM_GROUPS_PULL_FAIL'); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php foreach ($this->failed as $failed) : ?>
 					<tr>
 						<td>
-							<?php 
+							<?php
 								$group = \Hubzero\User\Group::getInstance($failed['group']);
-								echo '<strong>' . $group->get('description') . ' (' . $group->get('cn') . ')</strong>'; 
+								echo '<strong>' . $group->get('description') . ' (' . $group->get('cn') . ')</strong>';
 							?>
 							<br />
 							<br />

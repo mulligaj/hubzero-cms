@@ -31,37 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Tags plugin class for publications
  */
-class plgTagsPublications extends JPlugin
+class plgTagsPublications extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Publication areas
-	 * 
-	 * @var array
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	private $_areas = null;
-
-	/**
-	 * Publication categories
-	 * 
-	 * @var array
-	 */
-	private $_cats  = null;
-
-	/**
-	 * Record count
-	 * 
-	 * @var integer
-	 */
-	private $_total = null;
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$subject The object to observe
 	 * @param      array  $config   An optional associative array of configuration settings.
 	 * @return     void
@@ -70,53 +54,13 @@ class plgTagsPublications extends JPlugin
 	{
 		parent::__construct($subject, $config);
 
-		$this->loadLanguage();
-
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-			. DS . 'com_publications' . DS . 'tables' . DS . 'category.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-			. DS . 'com_publications' . DS . 'tables' . DS . 'publication.php');
-	}
-
-	/**
-	 * Return the name of the area this plugin retrieves records for
-	 * 
-	 * @return     array
-	 */
-	public function onTagAreas()
-	{
-		$areas = $this->_areas;
-		if (is_array($areas)) 
-		{
-			return $areas;
-		}
-
-		$categories = $this->_cats;
-		if (!is_array($categories)) 
-		{
-			// Get categories
-			$database = JFactory::getDBO();
-			$rt = new PublicationCategory($database);
-			$categories = $rt->getCategories();
-			$this->_cats = $categories;
-		}
-
-		$cats = array();
-		for ($i = 0; $i < count($categories); $i++)
-		{
-			$cats[$categories[$i]->name] = $categories[$i]->name;
-		}
-
-		$areas = array(
-			'publications' => $cats
-		);
-		$this->_areas = $areas;
-		return $areas;
+		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_publications' . DS . 'tables' . DS . 'category.php');
+		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_publications' . DS . 'tables' . DS . 'publication.php');
 	}
 
 	/**
 	 * Retrieve records for items tagged with specific tags
-	 * 
+	 *
 	 * @param      array   $tags       Tags to match records against
 	 * @param      mixed   $limit      SQL record limit
 	 * @param      integer $limitstart SQL record limit start
@@ -126,25 +70,33 @@ class plgTagsPublications extends JPlugin
 	 */
 	public function onTagView($tags, $limit=0, $limitstart=0, $sort='', $areas=null)
 	{
-		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas) && $limit) 
-		{
-			$ars = $this->onTagAreas();
-			if (!array_intersect($areas, $ars)
-			 && !array_intersect($areas, array_keys($ars))
-			 && !array_intersect($areas, array_keys($ars['publications']))) 
-			{
-				return array();
-			}
-		}
-
-		// Do we have any tags?
-		if (empty($tags)) 
-		{
-			return NULL;
-		}
+		$response = array(
+			'name'     => $this->_name,
+			'title'    => JText::_('PLG_TAGS_PUBLICATIONS'),
+			'total'    => 0,
+			'results'  => null,
+			'sql'      => '',
+			'children' => array()
+		);
 
 		$database = JFactory::getDBO();
+		$rt = new PublicationCategory($database);
+		foreach ($rt->getCategories() as $category)
+		{
+			$response['children'][$category->alias] = array(
+				'name'     => $category->alias,
+				'title'    => $category->name,
+				'total'    => 0,
+				'results'  => null,
+				'sql'      => '',
+				'id'       => $category->id
+			);
+		}
+
+		if (empty($tags))
+		{
+			return $response;
+		}
 
 		$ids = array();
 		foreach ($tags as $tag)
@@ -158,114 +110,77 @@ class plgTagsPublications extends JPlugin
 		// Build query
 		$filters = array();
 		$filters['tags'] = $ids;
-		$filters['now'] = date('Y-m-d H:i:s', time() + 0 * 60 * 60);
+		$filters['now'] = JFactory::getDate()->toSql();
 		$filters['sortby'] = ($sort) ? $sort : 'ranking';
 		$filters['authorized'] = false;
 
 		$juser = JFactory::getUser();
 		$filters['usergroups'] = \Hubzero\User\Helper::getGroups($juser->get('id'), 'all');
 
-		// Get categories
-		$categories = $this->_cats;
-		if (!is_array($categories)) 
+		$filters['select'] = 'count';
+
+		foreach ($response['children'] as $k => $t)
 		{
-			$rt = new PublicationCategory($database);
-			$categories = $rt->getCategories();
-		}
-		
-		$cats = array();
-		for ($i = 0; $i < count($categories); $i++)
-		{
-			$cats[$categories[$i]->name] = array();
-			$cats[$categories[$i]->name]['id'] = $categories[$i]->id;
+			$filters['type'] = $t['id'];
+
+			// Execute a count query for each area/category
+			$database->setQuery($this->_buildPluginQuery($filters));
+			$response['children'][$k]['total'] = $database->loadResult();
+			$response['total'] += $response['children'][$k]['total'];
 		}
 
-		if ($limit) 
+		if ($areas && ($areas == $response['name']) || isset($response['children'][$areas]))
 		{
-			if ($this->_total != null) 
-			{
-				$total = 0;
-				$t = $this->_total;
-				foreach ($t as $l)
-				{
-					$total += $l;
-				}
-
-				if (count($areas) <= 1 && $total == 0) 
-				{
-					return array();
-				}
-			}
-
-			$filters['select'] = 'records';
-			$filters['limit'] = (count($areas) > 1) ? 'all' : $limit;
+			$filters['select']     = 'records';
+			$filters['limit']      = $limit;
 			$filters['limitstart'] = $limitstart;
-			$filters['sortby'] = ($sort) ? $sort : 'date';
+			$filters['sortby']     = ($sort) ? $sort : 'date';
 
 			// Check the area of return. If we are returning results for a specific area/category
 			// we'll need to modify the query a bit
-			if (count($areas) == 1 && !isset($areas['publications']) && $areas[0] != 'publications') 
+			if (isset($response['children'][$areas]))
 			{
-				$filters['category'] = $cats[$areas[0]]['id'];
+				$filters['type'] = $response['children'][$areas]['id'];
+
+				$database->setQuery($this->_buildPluginQuery($filters));
+				$response['children'][$areas]['results'] = $database->loadObjectList();
 			}
-			
-			// Get results
-			$query = $this->_buildPluginQuery($filters);
-			
-			if (count($areas) > 1) 
+			else
 			{
-				plgTagsPublications::documents();
-				return $query;
+				unset($filters['type']);
+
+				$database->setQuery($this->_buildPluginQuery($filters));
+				$response['results'] = $database->loadObjectList();
 			}
-
-			// Get results
-			$database->setQuery($query);
-			$rows = $database->loadObjectList();
-
-			// Did we get any results?
-			if ($rows) 
-			{
-				// Loop through the results and set each item's HREF
-				foreach ($rows as $key => $row)
-				{
-					$rows[$key]->href = JRoute::_('index.php?option=com_publications&id=' . $row->id);
-				}
-			}
-
-			// Return the results
-			return $rows;
-		} 
-		else 
-		{
-			$filters['select'] = 'count';
-
-			// Get a count
-			$counts = array();
-			$ares = $this->onTagAreas();
-			foreach ($ares as $area=>$val)
-			{
-				if (is_array($val)) 
-				{
-					foreach ($val as $a => $t)
-					{
-						$filters['category'] = $cats[$a]['id'];
-
-						// Execute a count query for each area/category
-						$database->setQuery($this->_buildPluginQuery($filters));
-						$counts[] = $database->loadResult();
-					}
-				}
-			}
-
-			// Return the counts
-			$this->_total = $counts;
-			return $counts;
 		}
+		else
+		{
+			$filters['select']     = 'records';
+			$filters['limit']      = 'all';
+			$filters['limitstart'] = $limitstart;
+			$filters['sortby']     = ($sort) ? $sort : 'date';
+
+			// Check the area of return. If we are returning results for a specific area/category
+			// we'll need to modify the query a bit
+			if (isset($response['children'][$areas]))
+			{
+				$filters['type'] = $response['children'][$areas]['id'];
+
+				$response['children'][$key]['sql'] = $this->_buildPluginQuery($filters);
+			}
+			else
+			{
+				unset($filters['type']);
+				$response['sql'] = $this->_buildPluginQuery($filters);
+			}
+		}
+
+		return $response;
 	}
 
 	/**
 	 * Build a database query
-	 * 
+	 *
 	 * @param      array $filters Options for building the query
 	 * @return     string SQL
 	 */
@@ -277,24 +192,24 @@ class plgTagsPublications extends JPlugin
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_publications' . DS . 'tables' . DS . 'category.php');
 		$rt = new PublicationCategory($database);
 
-		if (isset($filters['select']) && $filters['select'] == 'count') 
+		if (isset($filters['select']) && $filters['select'] == 'count')
 		{
-			if (isset($filters['tags'])) 
+			if (isset($filters['tags']))
 			{
 				$query = "SELECT count(f.id) FROM (SELECT r.id, COUNT(DISTINCT t.tagid) AS uniques ";
-			} 
-			else 
+			}
+			else
 			{
 				$query = "SELECT count(DISTINCT r.id) ";
 			}
-		} 
-		else 
+		}
+		else
 		{
-			$query = "SELECT DISTINCT r.id, V.title, V.version_number as alias, 
-					V.abstract as itext, V.id as ftext, V.state AS state, V.created, V.created_by, 
-					V.modified, V.published_up as publish_up, V.published_down as publish_down,  
+			$query = "SELECT DISTINCT r.id, V.title, V.version_number as alias,
+					V.abstract as itext, V.id as ftext, V.state AS state, V.created, V.created_by,
+					V.modified, V.published_up as publish_up, V.published_down as publish_down,
 					CONCAT('index.php?option=com_publications&id=', r.id) AS href, 'publications' AS section ";
-			if (isset($filters['tags'])) 
+			if (isset($filters['tags']))
 			{
 				$query .= ", COUNT(DISTINCT t.tagid) AS uniques ";
 			}
@@ -302,20 +217,20 @@ class plgTagsPublications extends JPlugin
 		}
 		$query .= "FROM #__publication_versions as V, #__publications AS r ";
 		$query .= "LEFT JOIN " . $rt->getTableName() . " AS rt ON r.category=rt.id";
-		if (isset($filters['tag'])) 
+		if (isset($filters['tag']))
 		{
 			$query .= ", #__tags_object AS t, #__tags AS tg ";
 		}
-		if (isset($filters['tags'])) 
+		if (isset($filters['tags']))
 		{
 			$query .= ", #__tags_object AS t ";
 		}
 		$query .= "WHERE V.publication_id=r.id AND V.state=1 AND V.main = 1 ";
-		if (isset($filters['tag'])) 
+		if (isset($filters['tag']))
 		{
 			$query .= "AND t.objectid=r.id AND t.tbl='publications' AND t.tagid=tg.id AND (tg.tag='" . $filters['tag'] . "' OR tg.alias='" . $filters['tag'] . "') ";
 		}
-		if (isset($filters['tags'])) 
+		if (isset($filters['tags']))
 		{
 			$ids = implode(',', $filters['tags']);
 			$query .= "AND t.objectid=r.id AND t.tbl='publications' AND t.tagid IN (" . $ids . ") ";
@@ -324,15 +239,15 @@ class plgTagsPublications extends JPlugin
 			$query .= "AND r.category=" . $filters['category'] . " ";
 		}
 
-		if (isset($filters['tags'])) 
+		if (isset($filters['tags']))
 		{
 			$query .= " GROUP BY r.id HAVING uniques=" . count($filters['tags']) . " ";
 		}
-		if (isset($filters['select']) && $filters['select'] != 'count') 
+		if (isset($filters['select']) && $filters['select'] != 'count')
 		{
-			if (isset($filters['sortby'])) 
+			if (isset($filters['sortby']))
 			{
-				if (isset($filters['groupby'])) 
+				if (isset($filters['groupby']))
 				{
 					$query .= "GROUP BY r.id ";
 				}
@@ -349,14 +264,14 @@ class plgTagsPublications extends JPlugin
 					case 'jobs':    $query .= "jobs DESC";                     break;
 				}
 			}
-			if (isset($filters['limit']) && $filters['limit'] != 'all') 
+			if (isset($filters['limit']) && $filters['limit'] != 'all')
 			{
 				$query .= " LIMIT " . $filters['limitstart'] . "," . $filters['limit'];
 			}
 		}
-		if (isset($filters['select']) && $filters['select'] == 'count') 
+		if (isset($filters['select']) && $filters['select'] == 'count')
 		{
-			if (isset($filters['tags'])) 
+			if (isset($filters['tags']))
 			{
 				$query .= ") AS f";
 			}
@@ -366,30 +281,23 @@ class plgTagsPublications extends JPlugin
 	}
 
 	/**
-	 * Include needed libraries and push scripts and CSS to the document
-	 * 
-	 * @return     void
-	 */
-	public static function documents()
-	{
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_publications' . DS . 'helpers' . DS . 'helper.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-			. DS . 'com_publications' . DS . 'tables' . DS . 'author.php');
-	}
-
-	/**
 	 * Static method for formatting results
-	 * 
+	 *
 	 * @param      object $row Database row
 	 * @return     string HTML
 	 */
 	public static function out($row)
 	{
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_publications' . DS . 'helpers' . DS . 'helper.php');
+		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_publications' . DS . 'tables' . DS . 'author.php');
+
+		$row->href = JRoute::_('index.php?option=com_publications&id=' . $row->id);
+
 		$database = JFactory::getDBO();
-		
+
 		// Instantiate a helper object
 		$helper = new PublicationHelper($database, $row->ftext, $row->id);
-		
+
 		// Get version authors
 		$pa = new PublicationAuthor( $database );
 		$authors = $pa->getAuthors($row->ftext);
@@ -401,7 +309,7 @@ class plgTagsPublications extends JPlugin
 		$row->category = $row->data1;
 		$row->area     = $row->data2;
 		$row->ranking  = $row->data3;
-	
+
 		// Set the display date
 		switch ($config->get('show_date'))
 		{
@@ -411,7 +319,7 @@ class plgTagsPublications extends JPlugin
 			case 3: $thedate = JHTML::_('date', $row->publish_up, JText::_('DATE_FORMAT_HZ1'));    break;
 		}
 
-		if (strstr($row->href, 'index.php')) 
+		if (strstr($row->href, 'index.php'))
 		{
 			$row->href = JRoute::_($row->href);
 		}
@@ -420,21 +328,21 @@ class plgTagsPublications extends JPlugin
 		// Start building the HTML
 		$html  = "\t".'<li class="';
 		$html .= 'publication">' . "\n";
-		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '/?v=' . $row->alias . '">' 
+		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '/?v=' . $row->alias . '">'
 			. stripslashes($row->title) . '</a></p>' . "\n";
 
 		$html .= "\t\t" . '<p class="details">' . $thedate . ' <span>|</span> ' . $row->area;
-		if ($helper->contributors) 
+		if ($helper->contributors)
 		{
-			$html .= ' <span>|</span> ' . JText::_('PLG_TAGS_PUBLICATIONS_CONTRIBUTORS') 
+			$html .= ' <span>|</span> ' . JText::_('PLG_TAGS_PUBLICATIONS_CONTRIBUTORS')
 				. ' ' . stripslashes($helper->showContributors( $authors, true, false ));
 		}
 		$html .= '</p>' . "\n";
-		if ($row->itext) 
+		if ($row->itext)
 		{
 			$html .= "\t\t" . '<p>' . \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->itext)), 200) . '</p>' . "\n";
-		} 
-	
+		}
+
 		$html .= "\t\t" . '<p class="href">' . $juri->base() . trim($row->href . '/?v=' . $row->alias, DS) . '</p>' . "\n";
 		$html .= "\t" . '</li>'."\n";
 

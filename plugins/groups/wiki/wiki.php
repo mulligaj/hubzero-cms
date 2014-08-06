@@ -45,7 +45,7 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onGroupAreas()
@@ -62,7 +62,7 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a group view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $group      Current group
 	 * @param      string  $option     Name of the component
 	 * @param      string  $authorized User's authorization level
@@ -87,9 +87,9 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 		$this_area = $this->onGroupAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
-			if (!in_array($this_area['name'], $areas)) 
+			if (!in_array($this_area['name'], $areas))
 			{
 				$return = 'metadata';
 			}
@@ -104,7 +104,7 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 
 		if ($arr['metadata']['count'] <= 0)
 		{
-			if ($result = $book->scribe($option)) 
+			if ($result = $book->scribe($option))
 			{
 				$this->setError($result);
 			}
@@ -113,7 +113,7 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 		}
 
 		// Determine if we need to return any HTML (meaning this is the active plugin)
-		if ($return == 'html') 
+		if ($return == 'html')
 		{
 			//set group members plugin access level
 			$group_plugin_acl = $access[$active];
@@ -125,30 +125,34 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 			$members = $group->get('members');
 
 			//if set to nobody make sure cant access
-			if ($group_plugin_acl == 'nobody') 
+			if ($group_plugin_acl == 'nobody')
 			{
 				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_OFF', ucfirst($active)) . '</p>';
 				return $arr;
 			}
 
 			//check if guest and force login if plugin access is registered or members
-			if ($juser->get('guest') 
-			 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members')) 
+			if ($juser->get('guest')
+			 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members'))
 			{
 				$url = $_SERVER['REQUEST_URI'];
 				if (!JURI::isInternal($url))
 				{
 					$url = JRoute::_('index.php?option=com_groups&cn='.$group->get('cn').'&active='.$active);
 				}
-				$message = JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active));
-				$this->redirect( "/login?return=".base64_encode($url), $message, 'warning' );
+
+				$this->redirect(
+					JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($url)),
+					JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active)),
+					'warning'
+				);
 				return;
 			}
 
 			//check to see if user is member and plugin access requires members
-			if (!in_array($juser->get('id'), $members) 
-			 && $group_plugin_acl == 'members' 
-			 && $authorized != 'admin') 
+			if (!in_array($juser->get('id'), $members)
+			 && $group_plugin_acl == 'members'
+			 && $authorized != 'admin')
 			{
 				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_REQUIRES_MEMBER', ucfirst($active)) . '</p>';
 				return $arr;
@@ -156,7 +160,7 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 
 			// Set some variables for the wiki
 			$scope = trim(JRequest::getVar('scope', ''));
-			if (!$scope) 
+			if (!$scope)
 			{
 				JRequest::setVar('scope', $group->get('cn') . DS . $active);
 			}
@@ -200,7 +204,7 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 			$pagename = trim(JRequest::getVar('pagename', ''));
 
 			if (substr(strtolower($pagename), 0, strlen('image:')) == 'image:'
-			 || substr(strtolower($pagename), 0, strlen('file:')) == 'file:') 
+			 || substr(strtolower($pagename), 0, strlen('file:')) == 'file:')
 			{
 				$controllerName = 'media';
 				$action = 'download';
@@ -245,8 +249,44 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 	}
 
 	/**
+	 * Update wiki pages if a group changes its CN
+	 *
+	 * @param      object $before Group before changed
+	 * @param      object $after  Group after changed
+	 */
+	public function onGroupAfterSave($before, $after)
+	{
+		if (!$before->get('cn') || $after->get('cn') == $before->get('cn'))
+		{
+			return;
+		}
+
+		$database = JFactory::getDBO();
+		$database->setQuery("UPDATE `#__wiki_page` SET `group_cn`=" . $database->quote($after->get('cn')) . " WHERE `group_cn`=" . $database->quote($before->get('cn')));
+		if (!$database->query())
+		{
+			return;
+		}
+
+		$database->setQuery("SELECT id, scope FROM `#__wiki_page` WHERE `group_cn`=" . $database->quote($after->get('cn')));
+		if ($results = $database->loadObjectList())
+		{
+			$pattern = '^' . str_replace(array('-', ':'), array('\-', '\:'), $before->get('cn'));
+			foreach ($results as $result)
+			{
+				$result->scope = preg_replace("/$pattern/i", $after->get('cn'), $result->scope);
+				$database->setQuery("UPDATE `#__wiki_page` SET `scope`=" . $database->quote($result->scope) . " WHERE `id`=" . $database->quote($result->id));
+				if (!$database->query())
+				{
+					$this->setError($database->getErrorMsg());
+				}
+			}
+		}
+	}
+
+	/**
 	 * Remove any associated resources when group is deleted
-	 * 
+	 *
 	 * @param      object $group Group being deleted
 	 * @return     string Log of items removed
 	 */
@@ -264,7 +304,7 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 		// Start the log text
 		$log = JText::_('PLG_GROUPS_WIKI_LOG') . ': ';
 
-		if (count($ids) > 0) 
+		if (count($ids) > 0)
 		{
 			// Loop through all the IDs for pages associated with this group
 			foreach ($ids as $id)
@@ -285,8 +325,8 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 				// Add the page ID to the log
 				$log .= $id->id . ' ' . "\n";
 			}
-		} 
-		else 
+		}
+		else
 		{
 			$log .= JText::_('PLG_GROUPS_WIKI_NO_RESULTS_FOUND')."\n";
 		}
@@ -297,7 +337,7 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return a count of items that will be removed when group is deleted
-	 * 
+	 *
 	 * @param      object $group Group to delete
 	 * @return     string
 	 */
@@ -308,13 +348,13 @@ class plgGroupsWiki extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Get a list of page IDs associated with this group
-	 * 
+	 *
 	 * @param      string $gid Group alias
 	 * @return     array
 	 */
 	public function getPageIDs($gid=NULL)
 	{
-		if (!$gid) 
+		if (!$gid)
 		{
 			return array();
 		}

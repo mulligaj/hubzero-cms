@@ -31,18 +31,12 @@
 defined('_JEXEC') or die('Restricted access');
 
 // Menu items
-JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
+JToolBarHelper::title(JText::_('COM_SYSTEM_APC_USER'), 'config.png');
 ?>
 
-<div role="navigation" class="sub-navigation">
-	<ul id="subsubmenu">
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>">Host</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=system">System</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=user" class="active">User</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=dircache">Directory</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=version">Version</a></li>
-	</ul>
-</div>
+<?php
+	$this->view('_submenu')->display();
+?>
 
 <form action="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>" method="post" name="adminForm" id="adminForm">
 
@@ -58,12 +52,12 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 		echo '<tr><th>Attribute</th><th>Value</th></tr></thead><tbody>';
 
 		$m=0;
-		foreach($scope_list as $j => $list)
+		foreach ($scope_list as $j => $list)
 		{
-			foreach($cache[$list] as $i => $entry)
+			foreach ($cache[$list] as $i => $entry)
 			{
 				if (md5($entry[$fieldkey])!=$this->MYREQUEST['SH']) continue;
-				foreach($entry as $k => $value)
+				foreach ($entry as $k => $value)
 				{
 					if ($k == "num_hits")
 					{
@@ -71,7 +65,7 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 					}
 					if ($k == 'deletion_time')
 					{
-						if(!$entry['deletion_time']) $value = "None";
+						if (!$entry['deletion_time']) $value = "None";
 					}
 					echo
 						'<tr class=tr-' . $m . '>',
@@ -80,7 +74,7 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 						'</tr>';
 					$m=1-$m;
 				}
-				if($fieldkey == 'info')
+				if ($fieldkey == 'info')
 				{
 					echo "<tr class=tr-$m><td class=td-0>Stored Value</td><td class=td-last><pre>";
 					$output = var_export(apc_fetch($entry[$fieldkey]),true);
@@ -108,7 +102,7 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 			<option value="A"<?php echo $this->MYREQUEST['SCOPE']=='A' ? ' selected="selected"' : ''; ?>>Active</option>
 			<option value="D"<?php echo $this->MYREQUEST['SCOPE']=='D' ? ' selected="selected"' : ''; ?>>Deleted</option>
 		</select>
-		
+
 		<label for="filter-sort1">Sorting:</label>
 		<select name="SORT1" id="filter-sort1">
 			<option value="H"<?php echo $this->MYREQUEST['SORT1']=='H' ? ' selected="selected"' : ''; ?>>Hits</option>
@@ -122,12 +116,12 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 			<option value="D"<?php echo $this->MYREQUEST['SORT1']=='T' ? ' selected="selected"' : ''; ?>>Timeout</option>
 		<?php } ?>
 		</select>
-		
+
 		<select name="SORT2">
 			<option value="D"<?php echo $this->MYREQUEST['SORT2']=='D' ? ' selected="selected"' : ''; ?>>DESC</option>
 			<option value="A"<?php echo $this->MYREQUEST['SORT2']=='A' ? ' selected="selected"' : ''; ?>>ASC</option>
 		</select>
-		
+
 		<select name="COUNT" onChange="form.submit()">
 			<option value="10" <?php echo $this->MYREQUEST['COUNT']=='10' ? ' selected="selected"' : ''; ?>>Top 10</option>
 			<option value="20" <?php echo $this->MYREQUEST['COUNT']=='20' ? ' selected="selected"' : ''; ?>>Top 20</option>
@@ -142,7 +136,7 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 		<div class="col width-40 fltrt">
 		<label for="filter_search">Search:</label>
 		<input name="SEARCH" id="filter_search" value="<?php echo $this->MYREQUEST['SEARCH']; ?>" type="text" size="25" />
-		
+
 		&nbsp;<input type="submit" value="GO!" />
 		</div>
 	</fieldset>
@@ -164,26 +158,21 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th><?php echo SystemHtml::sortheader('S',$fieldheading,   "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('H','Hits',          "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('Z','Size',          "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('A','Last accessed', "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('M','Last modified', "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('C','Created at',    "&OB=" . $this->MYREQUEST['OB']); ?></th>
-<?php
-		if ($fieldname=='info')
-		{
-			$cols+=1;
-?>
-				<th><?php echo SystemHtml::sortheader('T','Timeout', "&OB=" . $this->MYREQUEST['OB']); ?></th>
-<?php
-		}
-?>
-				<th><?php echo SystemHtml::sortheader('D','Deleted at', "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'S',$fieldheading,   "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'H','Hits',          "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'Z','Size',          "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'A','Last accessed', "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'M','Last modified', "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'C','Created at',    "&OB=" . $this->MYREQUEST['OB']); ?></th>
+			<?php if ($fieldname=='info') { ?>
+				<?php $cols+=1; ?>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'T','Timeout', "&OB=" . $this->MYREQUEST['OB']); ?></th>
+			<?php } ?>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'D','Deleted at', "&OB=" . $this->MYREQUEST['OB']); ?></th>
 			</tr>
 		</thead>
 		<tbody>
-<?php 
+<?php
 	// builds list with alpha numeric sortable keys
 	//
 	$list = array();
@@ -206,7 +195,7 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 	if ($list)
 	{
 		// sort list
-		switch ($this->MYREQUEST['SORT2']) 
+		switch ($this->MYREQUEST['SORT2'])
 		{
 			case "A": krsort($list); break;
 			case "D": ksort($list);  break;
@@ -234,10 +223,14 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 
 				if ($fieldname=='info')
 				{
-					if(isset($entry['ttl']) && $entry['ttl'])
+					if (isset($entry['ttl']) && $entry['ttl'])
+					{
 						echo '<td class="td-n center">'.$entry['ttl'].' seconds</td>';
+					}
 					else
+					{
 						echo '<td class="td-n center">None</td>';
+					}
 				}
 				if (isset($entry['deletion_time']) && $entry['deletion_time'])
 				{
@@ -255,11 +248,16 @@ JToolBarHelper::title(JText::_('APC User Entries'), 'config.png');
 				}
 				echo '</tr>';
 				$i++;
+
 				if ($i == $this->MYREQUEST['COUNT'])
+				{
 					break;
+				}
 			}
 		}
-	} else {
+	}
+	else
+	{
 		echo '<tr class="tr-0"><td class="center" colspan="',$cols,'"><i>No data</i></td></tr>';
 	}
 	echo '</tbody></table>';

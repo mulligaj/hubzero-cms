@@ -31,25 +31,26 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$orauthor = $this->or->creator('name') ? $this->or->creator('name') : JText::_('Unknown');
+if (!$this->sub)
+{
+	$this->css();
+}
 
-$drauthor = $this->dr->creator('name') ? $this->dr->creator('name') : JText::_('Unknown');
+$orauthor = $this->or->creator('name') ? $this->or->creator('name') : JText::_('COM_WIKI_UNKNOWN');
+$drauthor = $this->dr->creator('name') ? $this->dr->creator('name') : JText::_('COM_WIKI_UNKNOWN');
 ?>
-	<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
+	<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 		<h2><?php echo $this->escape($this->title); ?></h2>
 		<?php
-		if (!$this->page->isStatic()) 
+		if (!$this->page->isStatic())
 		{
-			$view = new JView(array(
-				'base_path' => $this->base_path, 
-				'name'      => 'page',
-				'layout'    => 'authors'
-			));
-			$view->page     = $this->page;
-			$view->display();
+			$this->view('authors', 'page')
+			     ->setBasePath($this->base_path)
+			     ->set('page', $this->page)
+			     ->display();
 		}
 		?>
-	</div><!-- /#content-header -->
+	</header><!-- /#content-header -->
 
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
@@ -60,37 +61,34 @@ $drauthor = $this->dr->creator('name') ? $this->dr->creator('name') : JText::_('
 <?php } ?>
 
 <?php
-	$view = new JView(array(
-		'base_path' => $this->base_path, 
-		'name'      => 'page',
-		'layout'    => 'submenu'
-	));
-	$view->option     = $this->option;
-	$view->controller = $this->controller;
-	$view->page       = $this->page;
-	$view->task       = $this->task;
-	$view->config     = $this->config;
-	$view->sub        = $this->sub;
-	$view->display();
+	$this->view('submenu', 'page')
+	     ->setBasePath($this->base_path)
+	     ->set('option', $this->option)
+	     ->set('controller', $this->controller)
+	     ->set('page', $this->page)
+	     ->set('task', $this->task)
+	     ->set('sub', $this->sub)
+	     ->display();
 ?>
 
-<div class="main section">
-	<div class="grid">
-		<div class="col span-half">
-			<dl class="diff-versions">
-				<dt><?php echo JText::_('COM_WIKI_VERSION') . ' ' . $this->or->get('version'); ?><dt>
-				<dd><time datetime="<?php echo $this->or->get('created'); ?>"><?php echo $this->or->get('created'); ?></time> by <?php echo $this->escape($orauthor); ?><dd>
+<section class="main section">
+	<div class="section-inner">
+		<div class="grid">
+			<div class="col span-half">
+				<dl class="diff-versions">
+					<dt><?php echo JText::_('COM_WIKI_VERSION') . ' ' . $this->or->get('version'); ?><dt>
+					<dd><?php echo JText::sprintf('COM_WIKI_HISTORY_CREATED_BY', '<time datetime="' . $this->or->get('created') . '">' . $this->or->get('created') . '</time>', $this->escape($orauthor)); ?><dd>
 
-				<dt><?php echo JText::_('COM_WIKI_VERSION') . ' ' . $this->dr->get('version'); ?><dt>
-				<dd><time datetime="<?php echo $this->dr->get('created'); ?>"><?php echo $this->dr->get('created'); ?></time> by <?php echo $this->escape($drauthor); ?><dd>
-			</dl>
-		</div><!-- / .aside -->
-		<div class="col span-half omega">
-			<p class="diff-deletedline"><del class="diffchange">Deletions</del> or items before changed</p>
-			<p class="diff-addedline"><ins class="diffchange">Additions</ins> or items after changed</p>
-		</div><!-- / .subject -->
-	</div><!-- / .section -->
+					<dt><?php echo JText::_('COM_WIKI_VERSION') . ' ' . $this->dr->get('version'); ?><dt>
+					<dd><?php echo JText::sprintf('COM_WIKI_HISTORY_CREATED_BY', '<time datetime="' . $this->dr->get('created') . '">' . $this->dr->get('created') . '</time>', $this->escape($drauthor)); ?><dd>
+				</dl>
+			</div><!-- / .aside -->
+			<div class="col span-half omega">
+				<p class="diff-deletedline"><?php echo JText::_('COM_WIKI_HISTORY_DELETIONS'); ?></p>
+				<p class="diff-addedline"><?php echo JText::_('COM_WIKI_HISTORY_ADDITIONS'); ?></p>
+			</div><!-- / .subject -->
+		</div><!-- / .section -->
 
-	<?php echo $this->content; ?>
-</div><!-- / .main section -->
-<div class="clear"></div>
+		<?php echo $this->content; ?>
+	</div>
+</section><!-- / .main section -->

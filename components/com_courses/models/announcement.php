@@ -41,21 +41,21 @@ class CoursesModelAnnouncement extends CoursesModelAbstract
 {
 	/**
 	 * JTable class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CoursesTableAnnouncement';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_courses.announcement.content';
 
 	/**
 	 * Object scope
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'announcement';
@@ -73,12 +73,12 @@ class CoursesModelAnnouncement extends CoursesModelAbstract
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$oid])) 
+		if (!isset($instances[$oid]))
 		{
 			$instances[$oid] = new self($oid);
 		}
@@ -88,13 +88,13 @@ class CoursesModelAnnouncement extends CoursesModelAbstract
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What data to return
 	 * @return     boolean
 	 */
 	public function published($as='')
 	{
-		$dt = ($this->get('publish_up') && $this->get('publish_up') != '0000-00-00 00:00:00') 
+		$dt = ($this->get('publish_up') && $this->get('publish_up') != '0000-00-00 00:00:00')
 			? $this->get('publish_up')
 			: $this->get('created');
 		switch (strtolower($as))
@@ -115,7 +115,7 @@ class CoursesModelAnnouncement extends CoursesModelAbstract
 
 	/**
 	 * Get the state of the entry as either text or numerical value
-	 * 
+	 *
 	 * @param      string  $as      Format to return state in [text, number]
 	 * @param      integer $shorten Number of characters to shorten text to
 	 * @return     mixed String or Integer
@@ -123,61 +123,55 @@ class CoursesModelAnnouncement extends CoursesModelAbstract
 	public function content($as='parsed', $shorten=0)
 	{
 		$as = strtolower($as);
+		$options = array();
 
 		switch ($as)
 		{
 			case 'parsed':
-				if ($content = $this->get('content_parsed'))
+				$content = $this->get('content_parsed', null);
+				if ($content === null)
 				{
-					if ($shorten)
-					{
-						$content = \Hubzero\Utility\String::truncate($content, $shorten, array('html' => true));
-					}
-					return $content;
+					$config = array(
+						'option'   => 'com_courses',
+						'scope'    => 'courses',
+						'pagename' => $this->get('id'),
+						'pageid'   => 0,
+						'filepath' => '',
+						'domain'   => ''
+					);
+
+					$content = stripslashes($this->get('content'));
+					$this->importPlugin('content')->trigger('onContentPrepare', array(
+						$this->_context,
+						&$this,
+						&$config
+					));
+
+					$this->set('content_parsed', $this->get('content')); //implode('', $content));
+					$this->set('content', $content);
+
+					return $this->content($as, $shorten);
 				}
-
-				$config = array(
-					'option'   => 'com_courses',
-					'scope'    => 'courses',
-					'pagename' => $this->get('id'),
-					'pageid'   => 0,
-					'filepath' => '',
-					'domain'   => ''
-				);
-
-				$content = stripslashes($this->get('content'));
-				$this->importPlugin('content')->trigger('onContentPrepare', array(
-					$this->_context,
-					&$this,
-					&$config
-				));
-
-				$this->set('content_parsed', $this->get('content')); //implode('', $content));
-				$this->set('content', $content);
-
-				return $this->content($as, $shorten);
+				$options['html'] = true;
 			break;
 
 			case 'clean':
 				$content = strip_tags($this->content('parsed'));
-				if ($shorten)
-				{
-					$content = \Hubzero\Utility\String::truncate($content, $shorten);
-				}
-				return $content;
 			break;
 
 			case 'raw':
 			default:
 				$content = stripslashes($this->get('content'));
 				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
-				if ($shorten)
-				{
-					$content = \Hubzero\Utility\String::truncate($content, $shorten);
-				}
-				return $content;
+				$content = html_entity_decode($content);
 			break;
 		}
+
+		if ($shorten)
+		{
+			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
+		}
+		return $content;
 	}
 }
 

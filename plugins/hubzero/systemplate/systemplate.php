@@ -38,7 +38,7 @@ class plgHubzeroSystemplate extends \Hubzero\Plugin\Plugin
 {
 	/**
 	 * Return information about this hub
-	 * 
+	 *
 	 * @return  array
 	 */
 	public function onSystemOverview()
@@ -52,8 +52,6 @@ class plgHubzeroSystemplate extends \Hubzero\Plugin\Plugin
 
 		// Get the active site template
 		$db = JFactory::getDbo();
-
-		// Site
 		$query = $db->getQuery(true);
 		$query->select('id, home, template, s.params');
 		$query->from('#__template_styles as s');
@@ -63,7 +61,7 @@ class plgHubzeroSystemplate extends \Hubzero\Plugin\Plugin
 
 		$db->setQuery($query);
 		$templates = $db->loadObjectList('id');
-		foreach ($templates as $template) 
+		foreach ($templates as $template)
 		{
 			if ($template->home == 1)
 			{
@@ -88,6 +86,7 @@ class plgHubzeroSystemplate extends \Hubzero\Plugin\Plugin
 
 				$overrides[] = str_replace(JPATH_ROOT . '/templates/' . $tmpl . '/html', '', $name);
 			}
+
 		}
 
 		$response->data['overrides'] = $this->_obj('Overrides', $overrides);
@@ -97,7 +96,7 @@ class plgHubzeroSystemplate extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Assign label and data to an object
-	 * 
+	 *
 	 * @param   string $label
 	 * @param   mixed  $value
 	 * @return  object

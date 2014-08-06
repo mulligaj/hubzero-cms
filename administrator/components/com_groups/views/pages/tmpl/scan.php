@@ -30,10 +30,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-JToolBarHelper::title($this->group->get('description').': <small><small>['.$this->page->get('title').' - Page Scan]</small></small>', 'groups.png');
-JToolBarHelper::custom('markscanned', 'check', 'check', 'Mark Scanned', false);
+$this->css();
+
+JToolBarHelper::title($this->group->get('description').': '.$this->page->get('title').' - ' . JText::_('COM_GROUPS_PAGES_SCAN'), 'groups.png');
+JToolBarHelper::custom('markscanned', 'check', 'check', 'COM_GROUPS_PAGES_MARK_SCANNED', false);
 JToolBarHelper::spacer();
-JToolBarHelper::custom('scanagain', 'check', 'check', 'Scan Again', false);
+JToolBarHelper::custom('scanagain', 'check', 'check', 'COM_GROUPS_PAGES_SCAN_AGAIN', false);
 JToolBarHelper::cancel();
 
 // page version content
@@ -41,11 +43,11 @@ $content = $this->page->version()->get('content');
 ?>
 
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	if (pressbutton == 'markscanned')
 	{
-		if (!confirm('Are you sure you want to mark scanned?'))
+		if (!confirm('<?php echo JText::_('COM_GROUPS_PAGES_MARK_SCANNED_CONFIRM'); ?>'))
 		{
 			return false;
 		}
@@ -55,7 +57,7 @@ function submitbutton(pressbutton)
 </script>
 
 <form action="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;gid=<?php echo $this->group->cn; ?>" method="post" name="adminForm" id="item-form">
-	
+
 	<?php
 		unset($this->issues->count);
 		$severe = $elevated = $minor = array();
@@ -72,28 +74,28 @@ function submitbutton(pressbutton)
 	?>
 	<?php if (count($severe) > 0) : ?>
 		<p class="error">
-			<?php echo JText::sprintf('The following issues are considered <strong>SEVERE</strong> and should be address before approving: <br/><br > %s', implode('<br />', $severe)); ?>
+			<?php echo JText::sprintf('COM_GROUPS_PAGES_SCAN_SEVERE', implode('<br />', $severe)); ?>
 		</p>
 	<?php endif; ?>
-	
+
 	<?php if (count($elevated) > 0) : ?>
 		<p class="warning">
-			<?php echo JText::sprintf('The following issues are considered <strong>ELEVATED</strong> and should be address before approving: <br/><br > %s', implode('<br />', $elevated)); ?>
+			<?php echo JText::sprintf('COM_GROUPS_PAGES_SCAN_ELEVATED', implode('<br />', $elevated)); ?>
 		</p>
 	<?php endif; ?>
-	
+
 	<?php if (count($minor) > 0) : ?>
 		<p class="info">
-			<?php echo JText::sprintf('The following issues are considered <strong>MINOR</strong> and should be address before approving: <br/><br > %s', implode('<br />', $elevated)); ?>
+			<?php echo JText::sprintf('COM_GROUPS_PAGES_SCAN_MINOR', implode('<br />', $elevated)); ?>
 		</p>
 	<?php endif; ?>
-	
-	<h3><?php echo JText::_('View Raw Code'); ?></h3>
+
+	<h3><?php echo JText::_('COM_GROUPS_PAGES_VIEW_RAW_CODE'); ?></h3>
 	<div class="code">
 		<?php
 			$lines = explode("\n", $content);
 			$lineCode = '';
-			for($i=1; $i <= count($lines); $i++)
+			for ($i=1; $i <= count($lines); $i++)
 			{
 				$lineCode .= "&nbsp;".$i."&nbsp;<br>";
 			}
@@ -107,10 +109,10 @@ function submitbutton(pressbutton)
 			</tr>
 		</table>
 	</div>
-	
-	<h3><?php echo JText::_('Update Content'); ?></h3>
+
+	<h3><?php echo JText::_('COM_GROUPS_PAGES_UPDATE_CONTENT'); ?></h3>
 	<textarea name="page[content]" rows="40"><?php echo $content; ?></textarea>
-	
+
 	<input type="hidden" name="page[id]" value="<?php echo $this->page->get('id'); ?>">
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />

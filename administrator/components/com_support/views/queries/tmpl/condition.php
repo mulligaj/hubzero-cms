@@ -31,13 +31,12 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 <fieldset class="condition-set">
 	<p class="operator">
-		<button class="remove" alt="Remove">&times;</button>
-		Match
-		<select>
-			<option value="AND"<?php if (strtolower($this->condition->operator) == 'and') { echo ' selected="selected"'; } ?>>all</option>
-			<option value="OR"<?php if (strtolower($this->condition->operator) == 'or') { echo ' selected="selected"'; } ?>>any</option>
-		</select>
-		of the following:
+		<button class="remove" alt="<?php echo JText::_('COM_SUPPORT_QUERY_REMOVE'); ?>">&times;</button>
+		<?php echo JText::sprintf('COM_SUPPORT_QUERY_MATCH',
+		'<select>
+			<option value="AND"' . (strtolower($this->condition->operator) == 'and' ? ' selected="selected"' : '' ) . '>' . JText::_('COM_SUPPORT_QUERY_ALL') . '</option>
+			<option value="OR"' . (strtolower($this->condition->operator) == 'or' ? ' selected="selected"' : '') . '>' . JText::_('COM_SUPPORT_QUERY_ANY') . '</option>
+		</select>'); ?>
 	</p>
 	<div>
 		<div class="querystmts">
@@ -48,65 +47,65 @@ if ($this->condition->expressions)
 	{
 		$operators = $this->conditions->{$expression->fldval}->operators;
 		$values    = $this->conditions->{$expression->fldval}->values;
-?>
-		<p class="conditions"><button class="remove" alt="Remove">&times;</button> <select class="fld">
-				<option value="open"<?php if ($expression->fldval == 'open') { echo ' selected="selected"'; } ?>>Open/Closed</option>
-				<option value="status"<?php if ($expression->fldval == 'status') { echo ' selected="selected"'; } ?>>Status</option>
-				<option value="login"<?php if ($expression->fldval == 'login') { echo ' selected="selected"'; } ?>>Submitter</option>
-				<option value="owner"<?php if ($expression->fldval == 'owner') { echo ' selected="selected"'; } ?>>Owner</option>
-				<option value="group"<?php if ($expression->fldval == 'group') { echo ' selected="selected"'; } ?>>Group</option>
-				<option value="id"<?php if ($expression->fldval == 'id') { echo ' selected="selected"'; } ?>>ID</option>
-				<option value="report"<?php if ($expression->fldval == 'report') { echo ' selected="selected"'; } ?>>Report</option>
-				<option value="resolved"<?php if ($expression->fldval == 'resolved') { echo ' selected="selected"'; } ?>>Resolution</option>
-				<option value="severity"<?php if ($expression->fldval == 'severity') { echo ' selected="selected"'; } ?>>Severity</option>
-				<option value="tag"<?php if ($expression->fldval == 'tag') { echo ' selected="selected"'; } ?>>Tag</option>
-				<option value="type"<?php if ($expression->fldval == 'type') { echo ' selected="selected"'; } ?>>Type</option>
-				<option value="created"<?php if ($expression->fldval == 'created') { echo ' selected="selected"'; } ?>>Created</option>
-				<option value="category"<?php if ($expression->fldval == 'category') { echo ' selected="selected"'; } ?>>Category</option>
+		?>
+		<p class="conditions"><button class="remove" alt="<?php echo JText::_('COM_SUPPORT_QUERY_REMOVE'); ?>">&times;</button> <select class="fld">
+				<option value="open"<?php if ($expression->fldval == 'open') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_OPEN'); ?></option>
+				<option value="status"<?php if ($expression->fldval == 'status') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_STATUS'); ?></option>
+				<option value="login"<?php if ($expression->fldval == 'login') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SUBMITTER'); ?></option>
+				<option value="owner"<?php if ($expression->fldval == 'owner') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_OWNER'); ?></option>
+				<option value="group"<?php if ($expression->fldval == 'group') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_GROUP'); ?></option>
+				<option value="id"<?php if ($expression->fldval == 'id') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_ID'); ?></option>
+				<option value="report"<?php if ($expression->fldval == 'report') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_REPORT'); ?></option>
+				<option value="resolved"<?php if ($expression->fldval == 'resolved') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>
+				<option value="severity"<?php if ($expression->fldval == 'severity') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SEVERITY'); ?></option>
+				<option value="tag"<?php if ($expression->fldval == 'tag') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TAG'); ?></option>
+				<option value="type"<?php if ($expression->fldval == 'type') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TYPE'); ?></option>
+				<option value="created"<?php if ($expression->fldval == 'created') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_CREATED'); ?></option>
+				<option value="category"<?php if ($expression->fldval == 'category') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_CATEGORY'); ?></option>
 			</select>
 			<select class="op">
-<?php 
-		if ($operators)
-		{
-			foreach ($operators as $operator)
-			{
-?>
-				<option value="<?php echo $operator->val; ?>"<?php if ($expression->opval == $operator->val) { echo ' selected="selected"'; } ?>><?php echo $operator->label; ?></option>
-<?php 
-			}
-		}
-?>
+				<?php
+				if ($operators)
+				{
+					foreach ($operators as $operator)
+					{
+						?>
+						<option value="<?php echo $operator->val; ?>"<?php if ($expression->opval == $operator->val) { echo ' selected="selected"'; } ?>><?php echo $operator->label; ?></option>
+						<?php
+					}
+				}
+				?>
 			</select>
-<?php 
+		<?php
 		if (is_array($values))
 		{
-?>
+			?>
 			<select class="val">
-<?php
+			<?php
 			foreach ($values as $value)
 			{
-?>
+				?>
 				<option value="<?php echo $value->val; ?>"<?php if ($expression->val == $value->val) { echo ' selected="selected"'; } ?>><?php echo $value->label; ?></option>
-<?php 
+				<?php
 			}
-?>
+			?>
 			</select>
-<?php
+			<?php
 		}
-		else 
+		else
 		{
 			if ($expression->val == '$me')
 			{
 				$juser = JFactory::getUser();
 				$expression->val = $juser->get('username');
 			}
-?>
+			?>
 			<input type="text" class="val" value="<?php echo $this->escape(stripslashes($expression->val)); ?>" />
-<?php
+			<?php
 		}
-?>
+		?>
 		</p>
-<?php
+		<?php
 	}
 }
 ?>
@@ -116,22 +115,19 @@ if ($this->condition->expressions)
 			</span>
 		</div>
 	</div>
-<?php
+	<?php
 	if ($this->condition->nestedexpressions && count($this->condition->nestedexpressions) > 0)
 	{
 		foreach ($this->condition->nestedexpressions as $nested)
 		{
-			$view = new JView(array(
-				'name'   => $this->controller,
-				'layout' => 'condition'
-			));
-			$view->option     = $this->option;
-			$view->controller = $this->controller;
-			$view->condition  = $nested;
-			$view->conditions = $this->conditions;
-			$view->row        = $this->row;
-			$view->display();
+			$this->view('condition')
+			     ->set('option', $this->option)
+			     ->set('controller', $this->controller)
+			     ->set('condition', $nested)
+			     ->set('conditions', $this->conditions)
+			     ->set('row', $this->row)
+			     ->display();
 		}
 	}
-?>
+	?>
 </fieldset>

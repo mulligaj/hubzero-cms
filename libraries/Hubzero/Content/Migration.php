@@ -35,7 +35,7 @@ defined('_JEXEC') or die('Restricted access');
 
 /**
 * HUBzero Database migrations class
-* 
+*
 * @TODO: add flag to ignore development scripts?
 */
 class Migration
@@ -64,9 +64,19 @@ class Migration
 	/**
 	 * Variable holding database object
 	 *
+	 * If an alternate db is given, this db will hold the connection to the
+	 * primary joomla database where the extensions and logs tables are found
+	 *
 	 * @var string
 	 **/
 	private $db = null;
+
+	/**
+	 * Alternate db, passed to migrations if specified
+	 *
+	 * @var string
+	 **/
+	private $altDb = null;
 
 	/**
 	 * Log messages themselves (stored as array to return to browser, or other client)
@@ -90,12 +100,19 @@ class Migration
 	private $callbacks;
 
 	/**
+	 * Table holding migration entries
+	 *
+	 * @var string
+	 **/
+	private $tbl_name = '#__migrations';
+
+	/**
 	 * Constructor
 	 *
 	 * @param $docroot - default null, which should then resolve to hub docroot
 	 * @return void
 	 **/
-	public function __construct($docroot=null)
+	public function __construct($docroot=null, $db=null)
 	{
 		// Try to determine the document root if none provided
 		if (is_null($docroot))
@@ -114,13 +131,19 @@ class Migration
 			return false;
 		}
 
+		if (isset($db))
+		{
+			$this->altDb = $db;
+		}
+
 		// Try to figure out the date of the last file run
 		try
 		{
-			$this->db->setQuery('SELECT `file` FROM `migrations` WHERE `direction` = \'up\' ORDER BY `file` DESC LIMIT 1');
+			$scope = ($this->db->tableHasField($this->get('tbl_name'), 'scope')) ? ' AND `scope` = '.$this->db->quote($this->docroot . DS . 'migrations') : '';
+			$this->db->setQuery('SELECT `file` FROM `'.$this->get('tbl_name').'` WHERE `direction` = \'up\'' . $scope . ' ORDER BY `file` DESC LIMIT 1');
 			$rowup = $this->db->loadAssoc();
 
-			$this->db->setQuery('SELECT `file` FROM `migrations` WHERE `direction` = \'down\' ORDER BY `file` DESC LIMIT 1');
+			$this->db->setQuery('SELECT `file` FROM `'.$this->get('tbl_name').'` WHERE `direction` = \'down\'' . $scope . ' ORDER BY `file` DESC LIMIT 1');
 			$rowdown = $this->db->loadAssoc();
 
 			if (count($rowup) > 0)
@@ -172,8 +195,16 @@ class Migration
 		}
 		else
 		{
-			$this->log('Error: document root does not contain a configuration file', 'error');
-			return false;
+			if (file_exists(JPATH_ROOT . '/configuration.php'))
+			{
+				// If there's one in the provided doc root, use that
+				require_once JPATH_ROOT . '/configuration.php';
+			}
+			else
+			{
+				$this->log('Error: document root does not contain a configuration file', 'error');
+				return false;
+			}
 		}
 
 		// Instantiate a config object
@@ -198,18 +229,24 @@ class Migration
 		}
 
 		// Check for the existance of the migrations table
-		try
+		$tables = $db->getTableList();
+		$prefix = $db->getPrefix();
+
+		if (in_array('migrations', $tables))
 		{
-			$db->setQuery("SELECT `id` FROM `migrations` LIMIT 1");
-			$db->query();
+			$this->setTableName('migrations');
 		}
-		catch (\PDOException $e)
+		else if (in_array($prefix . 'migrations', $tables))
 		{
-			if ($this->createMigrationsTable($db) === false)
-			{
-				return false;
-			}
+			$this->setTableName('#__migrations');
 		}
+		else if ($this->createMigrationsTable($db) === false)
+		{
+			return false;
+		}
+
+		// Add a callback so that a migration can update $this in real time if necessary
+		$this->registerCallback('migration', $this);
 
 		return $db;
 	}
@@ -299,6 +336,12 @@ class Migration
 			$this->log("Ignore dates: all eligible files will be included!");
 		}
 
+		// Now, fire hooks
+		if (!$dryrun && !$logOnly)
+		{
+			$this->fireHooks('onBeforeMigrate');
+		}
+
 		// Loop through files and run their '$direction' method
 		foreach ($this->files as $file)
 		{
@@ -317,7 +360,8 @@ class Migration
 					if (is_numeric($this->last_run[$direction]) && $date <= $this->last_run[$direction] && !$force)
 					{
 						// This migration is older than the current, but let's see if we should inform that it should still be run
-						$this->db->setQuery("SELECT `direction` FROM migrations WHERE `file` = " . $this->db->Quote($file) . " ORDER BY `date` DESC LIMIT 1");
+						$scope = ($this->db->tableHasField($this->get('tbl_name'), 'scope')) ? ' AND `scope` = '.$this->db->quote($this->docroot . DS . 'migrations') : '';
+						$this->db->setQuery("SELECT `direction` FROM `{$this->get('tbl_name')}` WHERE `file` = " . $this->db->Quote($file) . "{$scope} ORDER BY `date` DESC LIMIT 1");
 						$row = $this->db->loadResult();
 
 						// Check if last run was either not in the current direction we're going,
@@ -345,7 +389,8 @@ class Migration
 			try
 			{
 				// Look to the database log to see the last run on this file
-				$this->db->setQuery("SELECT `direction` FROM migrations WHERE `file` = " . $this->db->Quote($file) . " ORDER BY `date` DESC LIMIT 1");
+				$scope = ($this->db->tableHasField($this->get('tbl_name'), 'scope')) ? ' AND `scope` = '.$this->db->quote($this->docroot . DS . 'migrations') : '';
+				$this->db->setQuery("SELECT `direction` FROM `{$this->get('tbl_name')}` WHERE `file` = " . $this->db->Quote($file) . "{$scope} ORDER BY `date` DESC LIMIT 1");
 				$row = $this->db->loadResult();
 
 				// If the last migration for this file doesn't exist, or, it was the opposite of $direction, we can go ahead and run it.
@@ -356,7 +401,7 @@ class Migration
 					$ignore = true;
 				}
 			}
-			catch (\PDOException $e) 
+			catch (\PDOException $e)
 			{
 				$ignore = false;
 			}
@@ -411,7 +456,7 @@ class Migration
 			$this->affectedFiles[] = $info['filename'];
 
 			// Instantiate our class
-			$class = new $classname($this->db, $this->callbacks);
+			$class = new $classname($this->db, $this->callbacks, $this->altDb);
 
 			// Check if we're making a dry run, or only logging changes
 			if ($dryrun || $logOnly)
@@ -422,7 +467,7 @@ class Migration
 				}
 				elseif ($logOnly)
 				{
-					$this->recordMigration($file, $hash, $direction);
+					$this->recordMigration($file, $this->docroot . DS . 'migrations', $hash, $direction);
 					$this->log("Marking as run: {$direction}() in {$file}", 'success');
 				}
 			}
@@ -449,7 +494,7 @@ class Migration
 				}
 
 				// Try running the '$direction' SQL
-				if(method_exists($class, $direction))
+				if (method_exists($class, $direction))
 				{
 					try
 					{
@@ -474,7 +519,7 @@ class Migration
 							}
 						}
 
-						$this->recordMigration($file, $hash, $direction);
+						$this->recordMigration($file, $this->docroot . DS . 'migrations', $hash, $direction);
 						$this->log("Completed {$direction}() in {$file}", 'success');
 					}
 					catch (\PDOException $e)
@@ -506,18 +551,89 @@ class Migration
 			}
 		}
 
+		// Now, fire hooks
+		if (!$dryrun && !$logOnly)
+		{
+			$this->fireHooks('onAfterMigrate');
+		}
+
 		return true;
+	}
+
+	/**
+	 * Fire migration pre/post hooks
+	 *
+	 * @param  (string) $timing - which hooks to fire
+	 * @return void
+	 **/
+	private function fireHooks($timing)
+	{
+		$exclude   = array(".", "..");
+		$directory = $this->docroot . DS . 'migrations' . DS . 'hooks';
+
+		// Make sure we have a hooks directroy
+		if (!is_dir($directory))
+		{
+			return;
+		}
+
+		$hooks = array_diff(scandir($directory), $exclude);
+
+		if (count($hooks) > 0)
+		{
+			foreach ($hooks as $hook)
+			{
+				// Get the file name
+				$info     = pathinfo($hook);
+				$fullpath = $this->docroot . DS . 'migrations' . DS . 'hooks' . DS . $hook;
+
+				// Include the file
+				if (is_file($fullpath))
+				{
+					require_once $fullpath;
+				}
+				else
+				{
+					continue;
+				}
+
+				// Set classname
+				$classname = $info['filename'];
+
+				// Instantiate our class
+				$class = new $classname($this->db, $this->callbacks);
+				$hookTiming = $class->getOption('timing');
+
+				if ($hookTiming != $timing && $hookTiming != 'onAll')
+				{
+					continue;
+				}
+
+				if (method_exists($class, 'fire'))
+				{
+					$result = $class->fire();
+
+					if (is_array($result) && !$result['success'])
+					{
+						// Just a warning...display message and carry on (my wayward son)
+						$message = (isset($result['message']) && !empty($result['message'])) ? $result['message'] : '[no message provided]';
+						$this->log("Warning: post hook '{$hook}' resulted in an error: {$message}", 'warning');
+					}
+				}
+			}
+		}
 	}
 
 	/**
 	 * Record migration in migrations table
 	 *
-	 * @param $file - path to file being recorded
-	 * @param $hash - hash of file
+	 * @param $file  - path to file being recorded
+	 * @param $scope - folder of migration
+	 * @param $hash  - hash of file
 	 * @param $direction - up or down
 	 * @return void
 	 **/
-	protected function recordMigration($file, $hash, $direction)
+	protected function recordMigration($file, $scope, $hash, $direction)
 	{
 		// Try inserting a migration record into the database
 		try
@@ -533,7 +649,12 @@ class Migration
 					'action_by' => (php_sapi_name() == 'cli') ? exec("whoami") : \JFactory::getUser()->get('id')
 				);
 
-			$this->db->insertObject('migrations', $obj);
+			if ($this->db->tableHasField($this->get('tbl_name'), 'scope'))
+			{
+				$obj->scope = $scope;
+			}
+
+			$this->db->insertObject($this->get('tbl_name'), $obj);
 		}
 		catch (\PDOException $e)
 		{
@@ -560,6 +681,16 @@ class Migration
 	}
 
 	/**
+	 * Set the table name used for internal logging of migrations
+	 *
+	 * @return void
+	 **/
+	public function setTableName($tbl_name)
+	{
+		$this->tbl_name = $tbl_name;
+	}
+
+	/**
 	 * Register a callback
 	 *
 	 * @param  (string)  $name - callback name
@@ -580,9 +711,10 @@ class Migration
 	{
 		$this->log('Migrations table did not exist...attempting to create it now');
 
-		$query = "CREATE TABLE `migrations` (
+		$query = "CREATE TABLE `{$this->get('tbl_name')}` (
 					`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					`file` varchar(255) NOT NULL DEFAULT '',
+					`scope` varchar(255) NOT NULL,
 					`hash` char(32) NOT NULL DEFAULT '',
 					`direction` varchar(10) NOT NULL DEFAULT '',
 					`date` datetime NOT NULL,

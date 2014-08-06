@@ -59,14 +59,14 @@ defined('_JEXEC') or die('Restricted access');
 
 /**
  * Short description for 'modEventsLatest'
- * 
+ *
  * Long description (if any) ...
  */
 class modEventsLatest extends \Hubzero\Module\Module
 {
 	/**
 	 * Display module output
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function display()
@@ -90,7 +90,7 @@ class modEventsLatest extends \Hubzero\Module\Module
 
 	/**
 	 * Generate module output
-	 * 
+	 *
 	 * @return     voif
 	 */
 	public function run()
@@ -100,7 +100,7 @@ class modEventsLatest extends \Hubzero\Module\Module
 		{
 			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'html.php');
 			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'date.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'repeat.php');
+			//include_once(JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'repeat.php');
 		}
 		else
 		{
@@ -113,7 +113,7 @@ class modEventsLatest extends \Hubzero\Module\Module
 
 	/**
 	 * This custom sort compare function compares the start times of events that are refernced by the a & b vars
-	 * 
+	 *
 	 * @param      object &$a Parameter description (if any) ...
 	 * @param      object &$b Parameter description (if any) ...
 	 * @return     integer Return description (if any) ...
@@ -134,7 +134,7 @@ class modEventsLatest extends \Hubzero\Module\Module
 	 * except no actual output is performed.  Rather this function returns an array of references to
 	 * $rows within the $rows (ie events) input array which occur on the input '$date'.  This
 	 * is determined by the complicated com_event algorithm according to the event's repeatting type.
-	 * 
+	 *
 	 * @param      array &$rows Parameter description (if any) ...
 	 * @param      unknown $date Parameter description (if any) ...
 	 * @param      array &$seenThisEvent Parameter description (if any) ...
@@ -144,7 +144,7 @@ class modEventsLatest extends \Hubzero\Module\Module
 	{
 		$num_events = count($rows);
 		$new_rows_events = array();
-		
+
 		if ($num_events > 0)
 		{
 			$year  = date('Y', $date);
@@ -171,9 +171,9 @@ class modEventsLatest extends \Hubzero\Module\Module
 
 	/**
 	 * Short description for '_displayLatestEvents'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @return     void
 	 */
 	private function _displayLatestEvents()
@@ -259,14 +259,14 @@ class modEventsLatest extends \Hubzero\Module\Module
 		// Display events
 		$query = "SELECT #__events.* FROM #__events, #__categories as b"
 			. "\nWHERE #__events.catid = b.id "
-            . "\n   AND #__events.state='1'"
+			. "\n   AND #__events.state='1'"
 			. "\n	AND ((publish_up <= '$todayBegin%' AND publish_down >= '$todayBegin%')"
 			. "\n	OR (publish_up <= '$endDate%' AND publish_down >= '$endDate%')"
 			. "\n   OR (publish_up <= '$endDate%' AND publish_up >= '$todayBegin%')"
 			. "\n   OR (publish_down <= '$endDate%' AND publish_down >= '$todayBegin%'))"
 			. "\n   AND (#__events.scope IS NULL OR #__events.scope=" . $database->quote('event') . ")"
 			. "\nORDER BY publish_up ASC LIMIT $maxEvents";
-		
+
 		// Retrieve the list of returned records as an array of objects
 		$database->setQuery($query);
 		$this->events = $database->loadObjectList();
@@ -309,7 +309,7 @@ class modEventsLatest extends \Hubzero\Module\Module
 		// echo '<pre>';
 		// print_r(this);
 		// echo '</pre>';
-		
+
 		// // Do we actually have any events to display?
 		// if ($events < $maxEvents && ($mode==1 || $mode==3))
 		// {

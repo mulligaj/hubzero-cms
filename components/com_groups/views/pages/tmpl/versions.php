@@ -33,26 +33,30 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $editPageUrl = 'index.php?option=com_groups&cn='.$this->group->get('cn').'&controller=pages&task=edit&pageid='.$this->page->get('id');
 
+// add styles & scripts
+$this->css()
+	 ->js();
 ?>
+<header id="content-header">
+	<h2><?php echo JText::sprintf('COM_GROUPS_PAGES_VERSIONS_FOR_PAGE', $this->page->get('title')); ?></h2>
 
-<div id="content-header" class="full">
-	<h2><?php echo JText::sprintf('Page Versions: %s', $this->page->get('title')); ?></h2>
-</div>
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li><a class="icon-edit edit btn" href="<?php echo JRoute::_($editPageUrl); ?>">Edit Page</a></li>
-	</ul>
-</div>
+	<div id="content-header-extra">
+		<ul id="useroptions">
+			<li><a class="icon-edit edit btn" href="<?php echo JRoute::_($editPageUrl); ?>">
+				<?php echo JText::_('COM_GROUPS_PAGES_EDIT_PAGE_BACK'); ?>
+			</a></li>
+		</ul>
+	</div>
+</header>
 
-
-<div class="main section group-page-versions">
+<section class="main section group-page-versions">
 	<table>
 		<thead>
 			<tr>
-				<th>Verion</th>
-				<th>Created</th>
-				<th>Approved</th>
-				<th>Actions</th>
+				<th><?php echo JText::_('COM_GROUPS_PAGES_VERSIONS_VERSION'); ?></th>
+				<th><?php echo JText::_('COM_GROUPS_PAGES_VERSIONS_CREATED'); ?></th>
+				<th><?php echo JText::_('COM_GROUPS_PAGES_VERSIONS_APPROVED'); ?></th>
+				<th><?php echo JText::_('COM_GROUPS_PAGES_VERSIONS_ACTIONS'); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -60,23 +64,23 @@ $editPageUrl = 'index.php?option=com_groups&cn='.$this->group->get('cn').'&contr
 				<?php $cls = ($k == 0) ? 'current' : ''; ?>
 				<tr class="<?php echo $cls; ?>">
 					<td>
-						<?php 
+						<?php
 							echo $pageVersion->get('version');
-							echo ($k == 0) ? ' (current)' : '';
+							echo ($k == 0) ? JText::_('COM_GROUPS_PAGES_VERSIONS_CURRENT') : '';
 						?>
 					</td>
 					<td>
 						<?php
-							$created = 'n/a';
+							$created = JText::_('COM_GROUPS_PAGES_PAGE_NA');
 							if ($pageVersion->get('created') != null)
 							{
 								$created = JHTML::_('date', $pageVersion->get('created'), 'F d, Y @ g:ia');
 							}
-							
-							$created_by = 'n/a';
+
+							$created_by = JText::_('COM_GROUPS_PAGES_PAGE_NA');
 							if ($pageVersion->get('created_by') == 1000)
 							{
-								$created_by = 'System';
+								$created_by = JText::_('COM_GROUPS_PAGES_PAGE_SYSTEM');
 							}
 							else if ($pageVersion->get('created_by') != null && is_numeric($pageVersion->get('created_by')))
 							{
@@ -92,19 +96,19 @@ $editPageUrl = 'index.php?option=com_groups&cn='.$this->group->get('cn').'&contr
 							<span class="created-by"><?php echo $created_by; ?></span>
 						</div>
 					</td>
-					
+
 					<td>
 						<?php
-							$approved_on = 'n/a';
+							$approved_on = JText::_('COM_GROUPS_PAGES_PAGE_NA');
 							if ($pageVersion->get('approved_on') != null)
 							{
 								$approved_on = JHTML::_('date', $pageVersion->get('approved_on'), 'F d, Y @ g:ia');
 							}
-							
-							$approved_by = 'n/a';
+
+							$approved_by = JText::_('COM_GROUPS_PAGES_PAGE_NA');
 							if ($pageVersion->get('approved_by') == 1000)
 							{
-								$approved_by = 'System';
+								$approved_by = JText::_('COM_GROUPS_PAGES_PAGE_SYSTEM');
 							}
 							else if ($pageVersion->get('approved_by') != null && is_numeric($pageVersion->get('approved_by')))
 							{
@@ -120,14 +124,14 @@ $editPageUrl = 'index.php?option=com_groups&cn='.$this->group->get('cn').'&contr
 							<span class="approved-by"><?php echo $approved_by; ?></span>
 						</div>
 					</td>
-					
+
 					<td width="100px">
 						<a target="_blank" class="btn btn-secondary" href="<?php echo JRoute::_('index.php?option=com_groups&cn='.$this->group->get('cn').'&controller=pages&task=raw&pageid='.$this->page->get('id').'&version='.$pageVersion->get('version')); ?>">
-							View Raw
+							<?php echo JText::_('COM_GROUPS_PAGES_VERSIONS_VIEW_RAW'); ?>
 						</a>
 					</td>
 				</tr>
 			<?php endforeach; ?>
 		</tbody>
 	</table>
-</div>
+</section>

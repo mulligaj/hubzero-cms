@@ -31,84 +31,66 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$this->css('browse.css');
+
 //$maxtextlen = 42;
 $juser = JFactory::getUser();
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
 
-<?php if ($this->config->get('access-create-course')) { ?>
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li class="last">
-			<a class="add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=course&task=new'); ?>"><?php echo JText::_('Create Course'); ?></a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+	<?php if ($this->config->get('access-create-course')) { ?>
+	<div id="content-header-extra">
+		<p>
+			<a class="add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=course&task=new'); ?>"><?php echo JText::_('COM_COURSES_CREATE_COURSE'); ?></a>
+		</p>
+	</div><!-- / #content-header-extra -->
+	<?php } ?>
+</header>
+
+<?php foreach ($this->notifications as $notification) { ?>
+	<p class="<?php echo $notification['type']; ?>"><?php echo $notification['message']; ?></p>
 <?php } ?>
 
-<?php
-	foreach ($this->notifications as $notification) {
-		echo "<p class=\"{$notification['type']}\">{$notification['message']}</p>";
-	}
-?>
-
-<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=browse'); ?>" method="get">
-	<div class="main section">
-		<div class="aside">
-			<div class="container">
-				<h3><?php echo JText::_('Finding a course'); ?></h3>
-				<p><?php echo JText::_('Use the sorting and filtering options to see courses listed alphabetically by title, alias, or popularity.'); ?></p>
-				<p><?php echo JText::_('Use the "Search" to find specific courses by title or description if you would like to check out their offerings.'); ?></p>
-			</div><!-- / .container -->
-			<div class="container">
-				<h3><?php echo JText::_('Popular Categories'); ?></h3>
-				<?php 
-				$tags = $this->model->tags('cloud', 20, $this->filters['tag']);
-				if ($tags) {
-					echo $tags;
-				} else {
-					echo '<p>' . JText::_('No categories have been set.') . '</p>';
-				} ?>
-			</div><!-- / .container -->
-		</div><!-- / .aside -->
+<section class="main section">
+	<form class="section-inner" action="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=browse'); ?>" method="get">
 		<div class="subject">
 
 			<div class="container data-entry">
-				<input class="entry-search-submit" type="submit" value="<?php echo JText::_('Search'); ?>" />
+				<input class="entry-search-submit" type="submit" value="<?php echo JText::_('COM_COURSES_SEARCH'); ?>" />
 				<fieldset class="entry-search">
-					<legend><?php echo JText::_('Search for Courses'); ?></legend>
-					<label for="entry-search-field"><?php echo JText::_('Enter keyword or phrase'); ?></label>
-					<input type="text" name="search" id="entry-search-field" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('Enter keyword or phrase'); ?>" />
+					<legend><?php echo JText::_('COM_COURSES_SEARCH_LEGEND'); ?></legend>
+					<label for="entry-search-field"><?php echo JText::_('COM_COURSES_SEARCH_LABEL'); ?></label>
+					<input type="text" name="search" id="entry-search-field" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('COM_COURSES_SEARCH_PLACEHOLDER'); ?>" />
 					<input type="hidden" name="sortby" value="<?php echo $this->escape($this->filters['sortby']); ?>" />
 					<input type="hidden" name="index" value="<?php echo $this->escape($this->filters['index']); ?>" />
 				</fieldset>
-				<?php if ($this->filters['tag']) { ?>
-				<fieldset class="applied-tags">
-					<ol class="tags">
-					<?php
-					$url  = 'index.php?option=' . $this->option . '&task=browse';
-					$url .= ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
-					$url .= ($this->filters['sortby'] ? '&sortby=' . $this->escape($this->filters['sortby']) : '');
-					$url .= ($this->filters['index']  ? '&index=' . $this->escape($this->filters['index'])   : '');
-					$url .= ($this->filters['group']  ? '&group=' . $this->escape($this->filters['group'])   : '');
 
-					$tags = $this->model->parseTags($this->filters['tag']);
-					foreach ($tags as $tag)
-					{
-						?>
-						<li>
-							<a href="<?php echo JRoute::_($url . '&tag=' . implode(',', $this->model->parseTags($this->filters['tag'], $tag))); ?>">
-								<?php echo $this->escape(stripslashes($tag)); ?>
-								<span class="remove">x</a>
-							</a>
-						</li>
+				<?php if ($this->filters['tag']) { ?>
+					<fieldset class="applied-tags">
+						<ol class="tags">
 						<?php
-					}
-					?>
-					</ol>
-				</fieldset>
+						$url  = 'index.php?option=' . $this->option . '&task=browse';
+						$url .= ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
+						$url .= ($this->filters['sortby'] ? '&sortby=' . $this->escape($this->filters['sortby']) : '');
+						$url .= ($this->filters['index']  ? '&index=' . $this->escape($this->filters['index'])   : '');
+						$url .= ($this->filters['group']  ? '&group=' . $this->escape($this->filters['group'])   : '');
+
+						$tags = $this->model->parseTags($this->filters['tag']);
+						foreach ($tags as $tag)
+						{
+							?>
+							<li>
+								<a href="<?php echo JRoute::_($url . '&tag=' . implode(',', $this->model->parseTags($this->filters['tag'], $tag))); ?>">
+									<?php echo $this->escape(stripslashes($tag)); ?>
+									<span class="remove">x</a>
+								</a>
+							</li>
+							<?php
+						}
+						?>
+						</ol>
+					</fieldset>
 				<?php } ?>
 			</div><!-- / .container -->
 
@@ -126,7 +108,7 @@ $juser = JFactory::getUser();
 						</a>
 					</p>
 					<p class="course-group-description">
-						<?php echo JText::_('Brought to you by:'); ?>
+						<?php echo JText::_('COM_COURSES_BROUGHT_BY_GROUP'); ?>
 					</p>
 					<h3 class="course-group-title">
 						<a href="<?php echo JRoute::_('index.php?option=com_courses&task=browse&group=' . $group->get('cn')); ?>">
@@ -144,20 +126,20 @@ $juser = JFactory::getUser();
 				$qs .= ($this->filters['group']  ? '&group=' . $this->escape($this->filters['group'])   : '');
 				?>
 				<ul class="entries-menu order-options">
-					<li><a<?php echo ($this->filters['sortby'] == 'title') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=title' . $qs); ?>" title="Sort by title">&darr; Title</a></li>
-					<li><a<?php echo ($this->filters['sortby'] == 'alias') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=alias' . $qs); ?>" title="Sort by alias">&darr; Alias</a></li>
-					<li><a<?php echo ($this->filters['sortby'] == 'popularity') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=popularity' . $qs); ?>" title="Sort by popularity">&darr; Popularity</a></li>
+					<li><a<?php echo ($this->filters['sortby'] == 'title') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=title' . $qs); ?>" title="<?php echo JText::_('COM_COURSES_SORT_BY_TITLE'); ?>"><?php echo JText::_('COM_COURSES_SORT_TITLE'); ?></a></li>
+					<li><a<?php echo ($this->filters['sortby'] == 'alias') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=alias' . $qs); ?>" title="<?php echo JText::_('COM_COURSES_SORT_BY_ALIAS'); ?>"><?php echo JText::_('COM_COURSES_SORT_ALIAS'); ?></a></li>
+					<li><a<?php echo ($this->filters['sortby'] == 'popularity') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=popularity' . $qs); ?>" title="<?php echo JText::_('COM_COURSES_SORT_BY_POPULARITY'); ?>"><?php echo JText::_('COM_COURSES_SORT_POPULARITY'); ?></a></li>
 				</ul>
 
 				<?php
-				$url  = 'index.php?option=' . $this->option . '&task=browse';
+				/*$url  = 'index.php?option=' . $this->option . '&task=browse';
 				$url .= ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
 				$url .= ($this->filters['sortby'] ? '&sortby=' . $this->escape($this->filters['sortby']) : '');
 				$url .= ($this->filters['tag']    ? '&tag=' . $this->escape($this->filters['tag'])       : '');
 				$url .= ($this->filters['group']  ? '&group=' . $this->escape($this->filters['group'])   : '');
 
 				$html  = '<a href="' . JRoute::_($url) . '"';
-				if ($this->filters['index'] == '') 
+				if ($this->filters['index'] == '')
 				{
 					$html .= ' class="active-index"';
 				}
@@ -167,52 +149,51 @@ $juser = JFactory::getUser();
 				foreach ($letters as $letter)
 				{
 					$html .= '<a href="' . JRoute::_($url . '&index=' . strtolower($letter)) . '"';
-					if ($this->filters['index'] == strtolower($letter)) 
+					if ($this->filters['index'] == strtolower($letter))
 					{
 						$html .= ' class="active-index"';
 					}
 					$html .= '>' . strtoupper($letter) . '</a> ' . "\n";
-				}
+				}*/
 				?>
 				<div class="clearfix"></div>
 
-				<table class="courses entries">
-					<caption>
+				<h3>
 					<?php
 						$s = $this->filters['start']+1;
 						$e = ($this->total > ($this->filters['start'] + $this->filters['limit'])) ? ($this->filters['start'] + $this->filters['limit']) : $this->total;
 
-						if ($this->filters['search'] != '') {
-							echo 'Search for "'.$this->escape($this->filters['search']).'" in ';
+						if ($this->filters['search'] != '')
+						{
+							if ($this->filters['tag'] != '')
+							{
+								echo JText::sprintf('COM_COURSES_SEARCH_FOR_IN_WITH', $this->escape($this->filters['search']), $this->escape($this->filters['tag']));
+							}
+							else
+							{
+								echo JText::sprintf('COM_COURSES_SEARCH_FOR_IN', $this->escape($this->filters['search']));
+							}
 						}
-						?>
-						<?php echo JText::_('Courses'); ?> 
-						<?php
-						if ($this->filters['tag'] != '') {
-							echo 'with tag "'.$this->escape($this->filters['tag']).'"';
+						else if ($this->filters['tag'] != '')
+						{
+							echo JText::sprintf('COM_COURSES_COURSES_WITH', $this->escape($this->filters['tag']));
 						}
+						else
+						{
+							echo JText::_('COM_COURSES');
+						}
+						/*if ($this->filters['index']) { ?>
+							echo JText::_('starting with "%s"', strToUpper($this->filters['index']);
+						}*/
 					?>
-						<?php if ($this->filters['index']) { ?>
-							<?php echo JText::_('starting with'); ?> "<?php echo strToUpper($this->filters['index']); ?>"
-						<?php } ?>
 					<?php if ($this->courses->total() > 0) { ?>
-						<span>(<?php echo $s.'-'.$e; ?> of <?php echo $this->total; ?>)</span>
+						<span><?php echo $s.'-'.$e; ?> of <?php echo $this->total; ?></span>
 					<?php } ?>
-					</caption>
-					<thead>
-						<tr>
-							<th colspan="2<?php //echo ($this->config->get('access-admin-component')) ? '4' : '3'; ?>">
-								<span class="index-wrap">
-									<span class="index">
-										<?php echo $html; ?>
-									</span>
-								</span>
-							</th>
-						</tr>
-					</thead>
-					<tbody>
+				</h3>
+
+				<ol class="courses entries">
 				<?php
-				if ($this->courses->total() > 0) 
+				if ($this->courses->total() > 0)
 				{
 					foreach ($this->courses as $course)
 					{
@@ -232,48 +213,58 @@ $juser = JFactory::getUser();
 							$status = 'new';
 						}
 				?>
-						<tr<?php echo ($status) ? ' class="' . $status . '"' : ''; ?>>
-							<th>
-								<span class="entry-id"><?php echo $course->get('id'); ?></span>
-							</th>
-							<td>
-								<a class="entry-title" href="<?php echo JRoute::_($course->link()); ?>">
-									<?php echo $this->escape(stripslashes($course->get('title'))); ?>
-								</a><br />
-							<?php
-								$instructors = $course->instructors();
-								if (count($instructors) > 0) 
-								{
-									$names = array();
-									foreach ($instructors as $i)
-									{
-										$instructor = \Hubzero\User\Profile::getInstance($i->get('user_id'));
+						<li<?php echo ($status) ? ' class="' . $status . '"' : ''; ?>>
+							<article>
+								<h4>
+									<a class="entry-title" href="<?php echo JRoute::_($course->link()); ?>">
+										<?php echo $this->escape(stripslashes($course->get('title'))); ?>
+									</a>
+								</h4>
+								<p class="course-identity">
+									<a href="<?php echo JRoute::_($course->link()); ?>">
+										<?php if ($logo = $course->logo()) { ?>
+											<img src="<?php echo $logo; ?>" alt="<?php echo $this->escape(stripslashes($course->get('title'))); ?>" />
+										<?php } else { ?>
+											<span></span>
+										<?php } ?>
+									</a>
+								</p>
+								<dl class="entry-meta">
+									<dt>
+										<span>
+											<?php echo JText::sprintf('COM_COURSES_COURSE_NUMBER', $course->get('id')); ?>
+										</span>
+									</dt>
+									<dd class="instructors">
+										<?php
+											$instructors = $course->instructors();
+											if (count($instructors) > 0)
+											{
+												$names = array();
+												foreach ($instructors as $i)
+												{
+													$instructor = \Hubzero\User\Profile::getInstance($i->get('user_id'));
 
-										$names[] = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $i->get('user_id')) . '">' . $this->escape(stripslashes($instructor->get('name'))) . '</a>';
-									}
-							?>
-								<span class="entry-details">
-									Instructors: <span class="entry-instructors"><?php echo implode(', ', $names); ?></span>
-								</span>
-							<?php
-								}
-							?>
-								<span class="entry-content">
+													$names[] = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $i->get('user_id')) . '">' . $this->escape(stripslashes($instructor->get('name'))) . '</a>';
+												}
+										?>
+												<?php echo JText::_('COM_COURSES_COURSE_INSTRUCTORS'); ?>: <span class="entry-instructors"><?php echo implode(', ', $names); ?></span>
+										<?php
+											}
+										?>
+									</dd>
+								</dl>
+								<p class="entry-content">
 									<?php echo \Hubzero\Utility\String::truncate(stripslashes($course->get('blurb')), 200); ?>
-								</span>
-							</td>
-						</tr>
-				<?php 
-					} // for loop 
+								</p>
+							</article>
+						</li>
+				<?php
+					} // for loop
 				} else { ?>
-						<tr>
-							<td colspan="2<?php //echo ($this->authorized) ? '4' : '3'; ?>">
-								<p class="warning"><?php echo JText::_('No results found'); ?></p>
-							</td>
-						</tr>
+					<li><p class="warning"><?php echo JText::_('COM_COURSES_NO_RESULTS_FOUND'); ?></p></li>
 				<?php } ?>
-					</tbody>
-				</table>
+				</ol>
 
 				<?php
 				$this->pageNav->setAdditionalUrlParam('index', $this->filters['index']);
@@ -284,6 +275,21 @@ $juser = JFactory::getUser();
 				<div class="clearfix"></div>
 			</div><!-- / .container -->
 		</div><!-- / .subject -->
-	</div><!-- / .main section -->
-	<div class="clear"></div>
-</form>
+		<aside class="aside">
+			<div class="container">
+				<h3><?php echo JText::_('COM_COURSES_FINDING_A_COURSE'); ?></h3>
+				<p><?php echo JText::_('COM_COURSES_FINDING_A_COURSE_EXPLANATION'); ?></p>
+			</div><!-- / .container -->
+			<div class="container">
+				<h3><?php echo JText::_('COM_COURSES_POPULAR_CATEGORIES'); ?></h3>
+				<?php
+				$tags = $this->model->tags('cloud', 20, $this->filters['tag']);
+				if ($tags) {
+					echo $tags;
+				} else {
+					echo '<p>' . JText::_('COM_COURSES_POPULAR_CATEGORIES_NONE') . '</p>';
+				} ?>
+			</div><!-- / .container -->
+		</aside><!-- / .aside -->
+	</form>
+</section><!-- / .main section -->

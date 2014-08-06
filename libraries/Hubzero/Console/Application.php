@@ -97,6 +97,12 @@ class Application
 			$this->output->makeNonInteractive();
 		}
 
+		// Check for color flag and set on output accordingly
+		if ($this->arguments->getOpt('no-colors'))
+		{
+			$this->output->makeUnColored();
+		}
+
 		$class = $this->arguments->get('class');
 		$task  = $this->arguments->get('task');
 
@@ -117,5 +123,37 @@ class Application
 		$command->{$task}();
 
 		$this->output->render();
+	}
+
+	/**
+	 * Method to call another console command
+	 *
+	 * @return void
+	 **/
+	public static function call($class, $task, Arguments $arguments, Output $output)
+	{
+		// Namespace class
+		$class = __NAMESPACE__ . '\\Command\\' . ucfirst($class);
+
+		// Say no to infinite nesting!
+		$backtrace = debug_backtrace();
+		$previous  = $backtrace[1];
+		$prevClass = $previous['class'];
+		$prevTask  = $previous['function'];
+
+		if ($prevClass == $class && $prevTask == $task)
+		{
+			$output->error('You\'ve attempted to enter an infinite loop. We\'ve stopped you. You\'re welcome.');
+		}
+
+		// If task is help, set the output to our output class with extra methods for rendering help doc
+		if ($task == 'help')
+		{
+			$output = $output->getHelpOutput();
+		}
+
+		$command = new $class($output, $arguments);
+
+		$command->{$task}();
 	}
 }

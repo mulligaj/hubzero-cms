@@ -27,21 +27,21 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $num = count($this->choices);
 
-switch ($num) 
+switch ($num)
 {
 	case 2:
-	default: 			
-		$numcols = 'two'; 	
+	default:
+		$numcols = 'two';
 		break;
 	case 3:
-		$numcols = 'three'; 
+		$numcols = 'three';
 		break;
 	case 4:
-		$numcols = 'four';  
+		$numcols = 'four';
 		break;
 }
 
-?>	
+?>
 <div id="plg-header">
 <?php if($this->project->provisioned == 1 ) { ?>
 <h3 class="prov-header"><a href="<?php echo $this->route; ?>"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_MY_SUBMISSIONS')); ?></a> &raquo; <?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_START_PUBLICATION')); ?></h3>
@@ -49,24 +49,18 @@ switch ($num)
 <h3 class="publications c-header"><a href="<?php echo $this->route; ?>"><?php echo $this->title; ?></a> &raquo; <span class="indlist"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_START_PUBLICATION')); ?></span></h3>
 <?php } ?>
 </div>
-<?php if($this->project->provisioned == 1 ) { ?>
-	<div class="aside">
-		<div id="start-projectnote">
-			<h4><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_NEED_PROJECT'); ?></h4>
-			<p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_CONTRIB_START'); ?></p>
-			<p class="getstarted-links"><a href="/members/myaccount/projects"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_VIEW_YOUR_PROJECTS'); ?></a> | <a href="/projects/start" class="addnew"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_START_PROJECT'); ?></a></p>
-		</div>
-	</div><!-- / .aside -->
-	<div class="subject">
+<?php if ($this->project->provisioned == 1 ) { ?>
+<div class="grid">
+	<div class="col span9">
 <?php } ?>
 <div class="welcome">
 	<h3><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_NEWPUB_WHAT'); ?></h3>
 	<div id="suggestions">
 		<ul>
-		<?php for( $i = 0; $i < count($this->choices); $i++) 
-		{ 			
+		<?php for( $i = 0; $i < count($this->choices); $i++)
+		{
 			$current = $this->choices[$i];
-			
+
 			// Check if type is supported (need a plugin)
 			if (!JPluginHelper::isEnabled('projects', $current->alias))
 			{
@@ -74,13 +68,20 @@ switch ($num)
 			}
 		?>
 		<li class="s-<?php echo $current->alias; ?>"><a href="<?php echo $this->url.'?action=new'.a.'base='.$current->alias; ?>"><?php echo $current->type; ?> <span class="block"><?php echo $current->description; ?></span></a></li>
-		
+
 		<?php } ?>
 		</ul>
 		<div class="clear"></div>
 	</div>
 </div>
-<?php if($this->project->provisioned == 1 ) { ?>
-		<div class="clear"></div>
+<?php if ($this->project->provisioned == 1 ) { ?>
 	</div><!-- / .subject -->
+	<div class="col span3 omega">
+		<div id="start-projectnote">
+			<h4><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_NEED_PROJECT'); ?></h4>
+			<p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_CONTRIB_START'); ?></p>
+			<p class="getstarted-links"><a href="/members/myaccount/projects"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_VIEW_YOUR_PROJECTS'); ?></a> | <a href="/projects/start" class="addnew"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_START_PROJECT'); ?></a></p>
+		</div>
+	</div><!-- / .aside -->
+</div>
 <?php } ?>

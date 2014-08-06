@@ -34,9 +34,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for 'parse'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object &$uri Parameter description (if any) ...
 	 * @return     array Return description (if any) ...
 	 */
@@ -99,16 +99,17 @@ class JRouterApi extends JRouter
 						return $vars;
 				}
 
-				if ($vars['option'] == 'com_register') // register component can be accessed with incomplete registration
+				if ($vars['option'] == 'com_members' && ((isset($vars['controller']) && $vars['controller'] == 'register') || (isset($vars['view']) && $vars['view'] == 'register'))) // register component can be accessed with incomplete registration
 				{
-						return $vars;
+					return $vars;
 				}
 
 				if ($uri->getPath() != 'legal/terms')
 				{
 					$vars = array();
 					/*
-					$vars['option'] = 'com_register';
+					$vars['option'] = 'com_members';
+					$vars['controller'] = 'register';
 
 					if ($juser->get('tmp_user'))
 						$vars['task'] = 'create';
@@ -121,7 +122,7 @@ class JRouterApi extends JRouter
 					$vars['option'] = 'com_members';
 					$vars['id'] = $juser->get("id");
 					$vars['active'] = 'profile';
-					
+
 					$this->setVars($vars);
 					JRequest::set($vars, 'get', true );  // overwrite existing
 					return $vars;
@@ -141,7 +142,7 @@ class JRouterApi extends JRouter
 				{
 					return $vars;
 				}
-				else if ($vars['option'] == 'com_register')
+				else if ($vars['option'] == 'com_members' && ((isset($vars['controller']) && $vars['controller'] == 'register') || (isset($vars['view']) && $vars['view'] == 'register')))
 				{
 					if (!empty($vars['task']))
 						if ( ($vars['task'] == 'unconfirmed') || ($vars['task'] == 'change') || ($vars['task'] == 'resend') || ($vars['task'] == 'confirm') )
@@ -149,7 +150,8 @@ class JRouterApi extends JRouter
 				}
 
 				$vars = array();
-				$vars['option'] = 'com_register';
+				$vars['option'] = 'com_members';
+				$vars['controller'] = 'register';
 				$vars['task'] = 'unconfirmed';
 
 				$this->setVars($vars);
@@ -164,9 +166,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for 'build'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $url Parameter description (if any) ...
 	 * @return     object Return description (if any) ...
 	 */
@@ -217,9 +219,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for '_parseRawRoute'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object &$uri Parameter description (if any) ...
 	 * @return     array Return description (if any) ...
 	 */
@@ -270,9 +272,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for '_parseSefRoute'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object &$uri Parameter description (if any) ...
 	 * @return     mixed Return description (if any) ...
 	 */
@@ -284,7 +286,7 @@ class JRouterApi extends JRouter
 		if ($app->getCfg('sef_groups'))
 		{
 			$servername = rtrim(JURI::base(),'/');
-				
+
 			$serveruri = JURI::getInstance($servername);
 			$sfqdn = $serveruri->getHost();
 			$rfqdn = $uri->getHost();
@@ -537,9 +539,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for '_buildRawRoute'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown &$uri Parameter description (if any) ...
 	 * @return     void
 	 */
@@ -549,9 +551,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for '_buildSefRoute'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object &$uri Parameter description (if any) ...
 	 * @return     unknown Return description (if any) ...
 	 */
@@ -559,7 +561,7 @@ class JRouterApi extends JRouter
 	{
 		// Get the route
 		$route = $uri->getPath();
-        
+
 		// Get the query data
 		$query = $uri->getQuery(true);
 
@@ -650,7 +652,7 @@ class JRouterApi extends JRouter
 		// Unset unneeded query information
 		unset($query['Itemid']);
 		unset($query['option']);
-        
+
 		//Set query again in the URI
 		$uri->setQuery($query);
 		$uri->setPath($route);
@@ -658,9 +660,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for '_processParseRules'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object &$uri Parameter description (if any) ...
 	 * @return     array Return description (if any) ...
 	 */
@@ -686,9 +688,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for '_processBuildRules'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object &$uri Parameter description (if any) ...
 	 * @return     void
 	 */
@@ -729,9 +731,9 @@ class JRouterApi extends JRouter
 
 	/**
 	 * Short description for '_createURI'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $url Parameter description (if any) ...
 	 * @return     object Return description (if any) ...
 	 */

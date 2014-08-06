@@ -31,43 +31,33 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Usage plugin class for domain class
  */
-class plgUsageDomainclass extends JPlugin
+class plgUsageDomainclass extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the name of the area this plugin retrieves records for
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function onUsageAreas()
 	{
-		$areas = array(
+		return array(
 			'domainclass' => JText::_('PLG_USAGE_DOMAINCLASS')
 		);
-		return $areas;
 	}
 
 	/**
 	 * Build a table for the class list
-	 * 
+	 *
 	 * @param      object &$db     JDatabase
 	 * @param      string $class   Class type
 	 * @param      mixed  $t       Parameter description (if any) ...
@@ -78,11 +68,11 @@ class plgUsageDomainclass extends JPlugin
 	{
 		// Set class list parameters...
 		$hub = 1;
-		if (!$enddate) 
+		if (!$enddate)
 		{
 			$dtmonth = date("m") - 1;
 			$dtyear = date("Y");
-			if (!$dtmonth) 
+			if (!$dtmonth)
 			{
 				$dtmonth = 12;
 				$dtyear = $dtyear - 1;
@@ -95,14 +85,14 @@ class plgUsageDomainclass extends JPlugin
 		$sql = "SELECT name, valfmt, size FROM classes WHERE class = " . $db->Quote($class);
 		$db->setQuery($sql);
 		$result = $db->loadRow();
-		if ($result) 
+		if ($result)
 		{
 			$classname = $result[0];
 			$valfmt = $result[1];
 			$size = $result[2];
 		}
 		$html = '';
-		if ($classname) 
+		if ($classname)
 		{
 			// Prepare some date ranges...
 			$enddate .= '-00';
@@ -111,7 +101,7 @@ class plgUsageDomainclass extends JPlugin
 			$dt = $dtyear . '-' . sprintf("%02d", $dtmonth) . '-00';
 			$dtyearnext = $dtyear + 1;
 			$dtmonthnext = floor(substr($enddate, 5, 2) + 1);
-			if ($dtmonthnext > 12) 
+			if ($dtmonthnext > 12)
 			{
 				$dtmonthnext = 1;
 				$dtyearnext++;
@@ -136,15 +126,15 @@ class plgUsageDomainclass extends JPlugin
 				$sql = "SELECT classvals.name, classvals.value FROM classes, classvals WHERE classes.class = classvals.class AND classvals.hub = " . $db->Quote($hub) . " AND classes.class = " . $db->Quote($class) . " AND classvals.datetime = " . $db->Quote($dt) . " AND classvals.period = " . $db->Quote($period[$pidx]["key"]) . " AND classvals.rank = '0'";
 				$db->setQuery($sql);
 				$results = $db->loadObjectList();
-				if ($results) 
+				if ($results)
 				{
 					foreach ($results as $row)
 					{
 						$formattedval = UsageHtml::valformat($row->value, $valfmt);
-						if (strstr($formattedval, 'day') !== FALSE) 
+						if (strstr($formattedval, 'day') !== FALSE)
 						{
 							$chopchar = strrpos($formattedval, ',');
-							if ($chopchar !== FALSE) 
+							if ($chopchar !== FALSE)
 							{
 								$formattedval = substr($formattedval, 0, $chopchar) . '+';
 							}
@@ -152,7 +142,7 @@ class plgUsageDomainclass extends JPlugin
 						array_push($classlistset, array($row->name, $row->value, $formattedval, sprintf("%0.1f%%", 100)));
 					}
 				}
-				if (!count($classlistset)) 
+				if (!count($classlistset))
 				{
 					array_push($classlistset, array('n/a', 0, 'n/a', 'n/a'));
 				}
@@ -162,11 +152,11 @@ class plgUsageDomainclass extends JPlugin
 				$sql = "SELECT classvals.rank, classvals.name, classvals.value FROM classes, classvals WHERE classes.class = classvals.class AND classvals.hub = '" . $db->Quote($hub) . " AND classes.class = " . $db->Quote($class) . " AND datetime = " . $db->Quote($dt) . " AND classvals.period = " . $db->Quote($period[$pidx]["key"]) . " AND classvals.rank > '0' ORDER BY classvals.rank, classvals.name";
 				$db->setQuery($sql);
 				$results = $db->loadObjectList();
-				if ($results) 
+				if ($results)
 				{
 					foreach ($results as $row)
 					{
-						if ($row->rank > 0 && (!$size || $row->rank <= $size)) 
+						if ($row->rank > 0 && (!$size || $row->rank <= $size))
 						{
 							while ($rank < $row->rank)
 							{
@@ -174,19 +164,19 @@ class plgUsageDomainclass extends JPlugin
 								$rank++;
 							}
 							$formattedval = UsageHtml::valformat($row->value, $valfmt);
-							if (strstr($formattedval, 'day') !== FALSE) 
+							if (strstr($formattedval, 'day') !== FALSE)
 							{
 								$chopchar = strrpos($formattedval, ',');
-								if ($chopchar !== FALSE) 
+								if ($chopchar !== FALSE)
 								{
 									$formattedval = substr($formattedval, 0, $chopchar) . '+';
 								}
 							}
-							if ($classlistset[0][1] > 0) 
+							if ($classlistset[0][1] > 0)
 							{
 								array_push($classlistset, array($row->name, $row->value, $formattedval, sprintf("%0.1f%%", (100 * $row->value / $classlistset[0][1]))));
-							} 
-							else 
+							}
+							else
 							{
 								array_push($classlistset, array($row->name, $row->value, $formattedval, 'n/a'));
 							}
@@ -200,7 +190,7 @@ class plgUsageDomainclass extends JPlugin
 					$rank++;
 				}
 				array_push($classlist, $classlistset);
-				if ($rank > $maxrank) 
+				if ($rank > $maxrank)
 				{
 					$maxrank = $rank;
 				}
@@ -209,7 +199,7 @@ class plgUsageDomainclass extends JPlugin
 			$cls = 'even';
 
 			// Print class list table...
-			$html .= '<table summary="' . $classname . '">' . "\n";
+			$html .= '<table>' . "\n";
 			$html .= "\t" . '<caption>Table ' . $t . ': ' . $classname . '</caption>' . "\n";
 			$html .= "\t" . '<thead>' . "\n";
 			$html .= "\t\t" . '<tr>' . "\n";
@@ -258,7 +248,7 @@ class plgUsageDomainclass extends JPlugin
 
 	/**
 	 * Event call for displaying usage data
-	 * 
+	 *
 	 * @param      string $option        Component name
 	 * @param      string $task          Component task
 	 * @param      object $db            JDatabase
@@ -270,10 +260,10 @@ class plgUsageDomainclass extends JPlugin
 	public function onUsageDisplay($option, $task, $db, $months, $monthsReverse, $enddate)
 	{
 		// Check if our task is the area we want to return results for
-		if ($task) 
+		if ($task)
 		{
 			if (!in_array($task, $this->onUsageAreas())
-			 && !in_array($task, array_keys($this->onUsageAreas()))) 
+			 && !in_array($task, array_keys($this->onUsageAreas())))
 			{
 				return '';
 			}

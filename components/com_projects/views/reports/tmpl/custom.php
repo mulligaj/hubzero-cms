@@ -32,15 +32,15 @@ $to     = JRequest::getVar( 'todate', JHTML::_('date', JFactory::getDate()->toSq
 $filter = JRequest::getVar( 'searchterm', '');
 
 ?>
-<div id="content-header" class="reports">
+<header id="content-header" class="reports">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
+</header><!-- / #content-header -->
 
-<div class="main section custom-reports" id="custom-reports">
+<section class="main section custom-reports" id="custom-reports">
 	<div class="status-msg">
-	<?php 
+	<?php
 		// Display error or success message
-		if ($this->getError()) { 
+		if ($this->getError()) {
 			echo ('<p class="witherror">' . $this->getError().'</p>');
 		}
 		else if ($this->msg) {
@@ -114,4 +114,4 @@ $filter = JRequest::getVar( 'searchterm', '');
 			</div>
 		</form>
 	</div>
-</div>
+</section>

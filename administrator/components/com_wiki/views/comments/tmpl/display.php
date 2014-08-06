@@ -33,24 +33,27 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = WikiHelper::getActions('comment');
 
-JToolBarHelper::title(JText::_('Wiki') . ': ' . JText::_('Page Comments'), 'wiki.png');
+JToolBarHelper::title(JText::_('COM_WIKI') . ': ' . JText::_('COM_WIKI_PAGE') . ': ' . JText::_('COM_WIKI_COMMENTS'), 'wiki.png');
 
-if ($canDo->get('core.delete')) 
+if ($canDo->get('core.delete'))
 {
 	JToolBarHelper::deleteList('', 'delete');
 }
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editList();
 }
-if ($canDo->get('core.create')) 
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
+JToolBarHelper::spacer();
+JToolBarHelper::help('comments');
+
 JHTML::_('behavior.tooltip');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 	if (pressbutton == 'cancel') {
@@ -62,12 +65,13 @@ function submitbutton(pressbutton)
 }
 </script>
 
-<form action="index.php" method="post" name="adminForm">
+<form action="index.php" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
-		<label for="filter_search"><?php echo JText::_('SEARCH'); ?>:</label> 
-		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" />
+		<label for="filter_search"><?php echo JText::_('JSEARCH_FILTER'); ?>:</label>
+		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('COM_WIKI_FILTER_SEARCH_PLACEHOLDER'); ?>" />
 
-		<input type="submit" value="<?php echo JText::_('GO'); ?>" />
+		<input type="submit" value="<?php echo JText::_('COM_WIKI_GO'); ?>" />
+		<button type="button" onclick="$('#filter_search').val('');this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
 	</fieldset>
 	<div class="clr"></div>
 
@@ -80,71 +84,62 @@ function submitbutton(pressbutton)
 			</tr>
 			<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Comment', 'content', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Author', 'created_by', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Anonymous', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'State', 'status', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Created', 'created', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_WIKI_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_WIKI_COL_COMMENT', 'content', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_WIKI_COL_CREATOR', 'created_by', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_WIKI_COL_ANONYMOUS', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_WIKI_COL_STATE', 'status', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_WIKI_COL_CREATED', 'created', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
- 			<tr>
- 				<td colspan="7"><?php echo $this->pageNav->getListFooter(); ?></td>
- 			</tr>
+			<tr>
+				<td colspan="7"><?php echo $this->pageNav->getListFooter(); ?></td>
+			</tr>
 		</tfoot>
 		<tbody>
 <?php
 $k = 0;
-$config	= JFactory::getConfig();
-$now	= JFactory::getDate();
-$db		= JFactory::getDBO();
 
-$nullDate = $db->getNullDate();
 $rows = $this->rows;
 for ($i=0, $n=count($rows); $i < $n; $i++)
 {
 	$row =& $rows[$i];
 
-	if (!$row->anonymous) 
+	if (!$row->anonymous)
 	{
-		$cimg2  = 'publish_x.png';
-		$calt2  = JText::_('Off');
-		$cls2   = 'unpublish';
+		$calt2  = JText::_('JOFF');
+		$cls2   = 'off';
 		$state2 = 1;
-	} 
-	else 
+	}
+	else
 	{
-		$cimg2  = 'publish_g.png';
-		$calt2  = JText::_('On');
-		$cls2   = 'publish';
+		$calt2  = JText::_('JON');
+		$cls2   = 'on';
 		$state2 = 0;
 	}
-	
-	switch ($row->status) 
+
+	switch ($row->status)
 	{
 		case 2:
-			$cimg1  = 'disabled.png';
-			$calt1  = JText::_('Trashed');
+			$calt1  = JText::_('JTRASHED');
 			$cls1   = 'trash';
 			$state1 = 'publish';
 		break;
 
 		case 1:
-			$cimg1  = 'publish_x.png';
-			$calt1  = JText::_('Abusive');
+			$calt1  = JText::_('COM_WIKI_STATE_ABUSIVE');
 			$cls1   = 'unpublish';
 			$state1 = 'publish';
 		break;
 
 		case 0:
 		default:
-			$cimg1  = 'publish_g.png';
-			$calt1  = JText::_('Published');
+			$calt1  = JText::_('JPUBLISHED');
 			$cls1   = 'publish';
 			$state1 = 'unpublish';
 		break;
-	} 
+	}
 ?>
 			<tr class="<?php echo "row$k"; ?>">
 				<td>
@@ -155,15 +150,15 @@ for ($i=0, $n=count($rows); $i < $n; $i++)
 				</td>
 				<td>
 					<?php echo $row->treename; ?>
-<?php if ($canDo->get('core.edit')) { ?>
+				<?php if ($canDo->get('core.edit')) { ?>
 					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->id; ?>">
 						<?php echo \Hubzero\Utility\String::truncate($this->escape(stripslashes($row->ctext)), 90); ?>
 					</a>
-<?php } else { ?>
+				<?php } else { ?>
 					<span>
 						<?php echo \Hubzero\Utility\String::truncate($this->escape(stripslashes($row->ctext)), 90); ?>
 					</span>
-<?php } ?>
+				<?php } ?>
 				</td>
 				<td>
 					<?php echo $this->escape(stripslashes($row->name)); ?>
@@ -198,6 +193,6 @@ for ($i=0, $n=count($rows); $i < $n; $i++)
 	<input type="hidden" name="pageid" value="<?php echo $this->filters['pageid']; ?>" />
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sort']; ?>" />
 	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

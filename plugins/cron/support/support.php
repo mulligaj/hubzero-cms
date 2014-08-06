@@ -40,7 +40,7 @@ class plgCronSupport extends JPlugin
 {
 	/**
 	 * Return a list of events
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function onCronEvents()
@@ -65,6 +65,11 @@ class plgCronSupport extends JPlugin
 				'name'   => 'sendTicketList',
 				'label'  =>  JText::_('PLG_CRON_SUPPORT_EMAIL_LIST'),
 				'params' => 'ticketlist'
+			),
+			array(
+				'name'   => 'cleanTempUploads',
+				'label'  =>  JText::_('PLG_CRON_SUPPORT_CLEAN_UPLOADS'),
+				'params' => 'tickettemp'
 			)
 		);
 
@@ -73,7 +78,44 @@ class plgCronSupport extends JPlugin
 
 	/**
 	 * Close tickets in a pending state for a specific amount of time
-	 * 
+	 *
+	 * @return     boolean
+	 */
+	public function cleanTempUploads($params=null)
+	{
+		$sconfig = JComponentHelper::getParams('com_support');
+		$path = JPATH_ROOT . DS . trim($sconfig->get('webpath', '/site/tickets'), DS);
+
+		$days = intval($params->get('support_tickettemp_age', '7'));
+
+		$old = time() - ($days * 24 * 60 * 60);
+
+		jimport('joomla.filesystem.file');
+
+		$dirIterator = new DirectoryIterator($path);
+		foreach ($dirIterator as $file)
+		{
+			if (!$file->isDir())
+			{
+				continue;
+			}
+
+			$name = $file->getFilename();
+			if (substr($name, 0, 1) != '-')
+			{
+				continue;
+			}
+
+			if (abs($name) < $old)
+			{
+				JFolder::delete($file->getPathname());
+			}
+		}
+	}
+
+	/**
+	 * Close tickets in a pending state for a specific amount of time
+	 *
 	 * @return     boolean
 	 */
 	public function onClosePending($params=null)
@@ -170,9 +212,9 @@ class plgCronSupport extends JPlugin
 				}
 
 				$where[] = "t.`id` NOT IN (
-							SELECT jto.`objectid` FROM `#__tags_object` AS jto 
-							JOIN `#__tags` AS jt ON jto.`tagid`=jt.`id` 
-							WHERE jto.`tbl`='support' 
+							SELECT jto.`objectid` FROM `#__tags_object` AS jto
+							JOIN `#__tags` AS jt ON jto.`tagid`=jt.`id`
+							WHERE jto.`tbl`='support'
 							AND (
 								jt.`tag` IN (" . implode(", ", $tags) . ") OR jt.`raw_tag` IN (" . implode(", ", $tags) . ")
 							)
@@ -189,9 +231,9 @@ class plgCronSupport extends JPlugin
 				}
 
 				$where[] = "t.`id` IN (
-							SELECT jto.`objectid` FROM `#__tags_object` AS jto 
-							JOIN `#__tags` AS jt ON jto.`tagid`=jt.`id` 
-							WHERE jto.`tbl`='support' 
+							SELECT jto.`objectid` FROM `#__tags_object` AS jto
+							JOIN `#__tags` AS jt ON jto.`tagid`=jt.`id`
+							WHERE jto.`tbl`='support'
 							AND (
 								jt.`tag` IN (" . implode(", ", $tags) . ") OR jt.`raw_tag` IN (" . implode(", ", $tags) . ")
 							)
@@ -273,7 +315,7 @@ class plgCronSupport extends JPlugin
 
 	/**
 	 * Send emails reminding people of their open tickets
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function sendTicketsReminder($params=null)
@@ -381,9 +423,9 @@ class plgCronSupport extends JPlugin
 			}
 
 			// Plain text
-			$eview = new JView(array(
+			$eview = new \Hubzero\Component\View(array(
 				'base_path' => JPATH_ROOT . DS . 'components' . DS . 'com_support',
-				'name'      => 'emails', 
+				'name'      => 'emails',
 				'layout'    => 'tickets_plain'
 			));
 			$eview->option     = 'com_support';
@@ -427,7 +469,7 @@ class plgCronSupport extends JPlugin
 
 	/**
 	 * Send emails reminding people of their open tickets
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function sendTicketList($params=null)
@@ -536,9 +578,9 @@ class plgCronSupport extends JPlugin
 				}
 
 				$where[] = "t.`id` NOT IN (
-							SELECT jto.`objectid` FROM `#__tags_object` AS jto 
-							JOIN `#__tags` AS jt ON jto.`tagid`=jt.`id` 
-							WHERE jto.`tbl`='support' 
+							SELECT jto.`objectid` FROM `#__tags_object` AS jto
+							JOIN `#__tags` AS jt ON jto.`tagid`=jt.`id`
+							WHERE jto.`tbl`='support'
 							AND (
 								jt.`tag` IN (" . implode(", ", $tags) . ") OR jt.`raw_tag` IN (" . implode(", ", $tags) . ")
 							)
@@ -555,9 +597,9 @@ class plgCronSupport extends JPlugin
 				}
 
 				$where[] = "t.`id` IN (
-							SELECT jto.`objectid` FROM `#__tags_object` AS jto 
-							JOIN `#__tags` AS jt ON jto.`tagid`=jt.`id` 
-							WHERE jto.`tbl`='support' 
+							SELECT jto.`objectid` FROM `#__tags_object` AS jto
+							JOIN `#__tags` AS jt ON jto.`tagid`=jt.`id`
+							WHERE jto.`tbl`='support'
 							AND (
 								jt.`tag` IN (" . implode(", ", $tags) . ") OR jt.`raw_tag` IN (" . implode(", ", $tags) . ")
 							)
@@ -782,9 +824,9 @@ class plgCronSupport extends JPlugin
 				continue;
 			}
 
-			$eview = new JView(array(
+			$eview = new \Hubzero\Component\View(array(
 				'base_path' => JPATH_ROOT . DS . 'components' . DS . 'com_support',
-				'name'      => 'emails', 
+				'name'      => 'emails',
 				'layout'    => 'ticketlist_plain'
 			));
 			$eview->option     = 'com_support';

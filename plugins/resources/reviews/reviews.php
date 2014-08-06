@@ -31,16 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for review
  */
-class plgResourcesReviews extends JPlugin
+class plgResourcesReviews extends \Hubzero\Plugin\Plugin
 {
 	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
+	 */
+	protected $_autoloadLanguage = true;
+
+	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$subject Event observer
 	 * @param      array  $config   Optional config values
 	 * @return     void
@@ -49,38 +54,31 @@ class plgResourcesReviews extends JPlugin
 	{
 		parent::__construct($subject, $config);
 
-		$this->loadLanguage();
-
 		$this->infolink = '/kb/points/';
-		$upconfig = JComponentHelper::getParams('com_members');
-		$this->banking = $upconfig->get('bankAccounts');
+		$this->banking = JComponentHelper::getParams('com_members')->get('bankAccounts');
 	}
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
 	public function &onResourcesAreas($model)
 	{
-		if ($model->type->params->get('plg_reviews')
-			&& $model->access('view-all')) 
+		$areas = array();
+
+		if ($model->type->params->get('plg_reviews') && $model->access('view-all'))
 		{
-			$areas = array(
-				'reviews' => JText::_('PLG_RESOURCES_REVIEWS')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['reviews'] = JText::_('PLG_RESOURCES_REVIEWS');
 		}
+
 		return $areas;
 	}
 
 	/**
 	 * Rate a resource
-	 * 
+	 *
 	 * @param      string $option Name of the component
 	 * @return     array
 	 */
@@ -89,8 +87,8 @@ class plgResourcesReviews extends JPlugin
 		$id = JRequest::getInt('rid', 0);
 
 		$arr = array(
-			'area' => 'reviews',
-			'html' => '',
+			'area'     => $this->_name,
+			'html'     => '',
 			'metadata' => ''
 		);
 
@@ -109,7 +107,7 @@ class plgResourcesReviews extends JPlugin
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -119,32 +117,32 @@ class plgResourcesReviews extends JPlugin
 	public function onResources($model, $option, $areas, $rtrn='all')
 	{
 		$arr = array(
-			'area' => 'reviews',
-			'html' => '',
+			'area'     => $this->_name,
+			'html'     => '',
 			'metadata' => ''
 		);
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				$rtrn = 'metadata';
 			}
 		}
-		if (!$model->type->params->get('plg_reviews')) 
+		if (!$model->type->params->get('plg_reviews'))
 		{
 			return $arr;
 		}
 
 		$ar = $this->onResourcesAreas($model);
-		if (empty($ar)) 
+		if (empty($ar))
 		{
 			$rtrn = '';
 		}
 
-		include_once(__DIR__ . '/models/review.php');
+		include_once(__DIR__ . DS . 'models' . DS . 'review.php');
 
 		// Instantiate a helper object and perform any needed actions
 		$h = new PlgResourcesReviewsHelper();
@@ -163,27 +161,25 @@ class plgResourcesReviews extends JPlugin
 		}
 
 		// Are we returning any HTML?
-		if ($rtrn == 'all' || $rtrn == 'html') 
+		if ($rtrn == 'all' || $rtrn == 'html')
 		{
-			\Hubzero\Document\Assets::addPluginStylesheet('resources', 'reviews');
-			\Hubzero\Document\Assets::addPluginScript('resources', 'reviews');
-
 			// Did they perform an action?
 			// If so, they need to be logged in first.
-			if (!$h->loggedin) 
+			if (!$h->loggedin)
 			{
 				// Instantiate a view
-				$rtrn = JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $option . '&id=' . $model->resource->id . '&active=reviews', false, true), 'server');
-				//$this->_redirect = JRoute::_('index.php?option=com_login&return=' . base64_encode($rtrn));
-				JFactory::getApplication()->redirect(JRoute::_('index.php?option=com_login&return=' . base64_encode($rtrn)));
+				$rtrn = JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $option . '&id=' . $model->resource->id . '&active=' . $this->_name, false, true), 'server');
+				JFactory::getApplication()->redirect(
+					JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($rtrn))
+				);
 				return;
-			} 
+			}
 
 			// Instantiate a view
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
-					'element' => 'reviews',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'browse'
 				)
 			);
@@ -200,7 +196,7 @@ class plgResourcesReviews extends JPlugin
 			$view->banking  = $this->banking;
 			$view->infolink = $this->infolink;
 			$view->config   = $this->params;
-			if ($h->getError()) 
+			if ($h->getError())
 			{
 				foreach ($h->getErrors() as $error)
 				{
@@ -213,29 +209,21 @@ class plgResourcesReviews extends JPlugin
 		}
 
 		// Build the HTML meant for the "about" tab's metadata overview
-		if ($rtrn == 'all' || $rtrn == 'metadata') 
+		if ($rtrn == 'all' || $rtrn == 'metadata')
 		{
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'=>'resources',
-					'element'=>'reviews',
-					'name'=>'metadata'
+					'folder'  => $this->_type,
+					'element' => $this->_name,
+					'name'    => 'metadata'
 				)
 			);
-			if ($model->resource->alias) 
-			{
-				$url = JRoute::_('index.php?option=' . $option . '&alias=' . $model->resource->alias . '&active=reviews');
-				$url2 = JRoute::_('index.php?option=' . $option . '&alias=' . $model->resource->alias . '&active=reviews&action=addreview#reviewform');
-			} 
-			else 
-			{
-				$url = JRoute::_('index.php?option=' . $option . '&id=' . $model->resource->id . '&active=reviews');
-				$url2 = JRoute::_('index.php?option=' . $option . '&id=' . $model->resource->id . '&active=reviews&action=addreview#reviewform');
-			}
+
+			$url  = 'index.php?option=' . $option . '&' . ($model->resource->alias ? 'alias=' . $model->resource->alias : 'id=' . $model->resource->id) . '&active=' . $this->_name;
 
 			$view->reviews = $reviews;
-			$view->url = $url;
-			$view->url2 = $url2;
+			$view->url     = JRoute::_($url);
+			$view->url2    = JRoute::_($url . '&action=addreview#reviewform');
 
 			$arr['metadata'] = $view->loadTemplate();
 		}
@@ -245,7 +233,7 @@ class plgResourcesReviews extends JPlugin
 
 	/**
 	 * Get all replies for an item
-	 * 
+	 *
 	 * @param      object  $item     Item to look for reports on
 	 * @param      string  $category Item type
 	 * @param      integer $level    Depth
@@ -260,17 +248,17 @@ class plgResourcesReviews extends JPlugin
 
 		$hc = new \Hubzero\Item\Comment($database);
 		$comments = $hc->find(array(
-			'parent'    => ($level == 1 ? 0 : $item->id), 
+			'parent'    => ($level == 1 ? 0 : $item->id),
 			'item_id'   => $id,
 			'item_type' => $category
 		));
 
-		if ($comments) 
+		if ($comments)
 		{
 			foreach ($comments as $comment)
 			{
 				$comment->replies = self::getComments($id, $comment, 'review', $level, $abuse);
-				if ($abuse) 
+				if ($abuse)
 				{
 					$comment->abuse_reports = self::getAbuseReports($comment->id, 'review');
 				}
@@ -281,7 +269,7 @@ class plgResourcesReviews extends JPlugin
 
 	/**
 	 * Get abuse reports for a comment
-	 * 
+	 *
 	 * @param      integer $item     Item to look for reports on
 	 * @param      string  $category Item type
 	 * @return     integer
@@ -298,49 +286,16 @@ class plgResourcesReviews extends JPlugin
 /**
  * Helper class for reviews
  */
-class PlgResourcesReviewsHelper extends JObject
+class PlgResourcesReviewsHelper extends \Hubzero\Base\Object
 {
 	/**
-	 * Container for data
-	 * 
-	 * @var array
-	 */
-	private $_data  = array();
-
-	/**
-	 * Set a property
-	 * 
-	 * @param      string $property Property name
-	 * @param      mixed  $value    Property value
-	 * @return     void
-	 */
-	public function __set($property, $value)
-	{
-		$this->_data[$property] = $value;
-	}
-
-	/**
-	 * Get a property
-	 * 
-	 * @param      unknown $property Property to set
-	 * @return     mixed
-	 */
-	public function __get($property)
-	{
-		if (isset($this->_data[$property])) 
-		{
-			return $this->_data[$property];
-		}
-	}
-
-	/**
 	 * Redirect page
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function redirect()
 	{
-		if ($this->_redirect != NULL) 
+		if ($this->_redirect != NULL)
 		{
 			$app = JFactory::getApplication();
 			$app->redirect($this->_redirect, $this->_message, $this->_messageType);
@@ -349,7 +304,7 @@ class PlgResourcesReviewsHelper extends JObject
 
 	/**
 	 * Execute an action
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -359,11 +314,11 @@ class PlgResourcesReviewsHelper extends JObject
 
 		$this->loggedin = true;
 
-		if ($action) 
+		if ($action)
 		{
 			// Check the user's logged-in status
 			$juser = JFactory::getUser();
-			if ($juser->get('guest')) 
+			if ($juser->get('guest'))
 			{
 				$this->loggedin = false;
 				return;
@@ -377,15 +332,15 @@ class PlgResourcesReviewsHelper extends JObject
 			case 'editreview':   $this->editreview();   break;
 			case 'savereview':   $this->savereview();   break;
 			case 'deletereview': $this->deletereview(); break;
-			case 'savereply': 	 $this->savereply(); 	break;
+			case 'savereply':    $this->savereply();    break;
 			case 'deletereply':  $this->deletereply();  break;
-			case 'rateitem':   	 $this->rateitem();  	break;
+			case 'rateitem':     $this->rateitem();     break;
 		}
 	}
 
 	/**
 	 * Save a reply
-	 * 
+	 *
 	 * @return     void
 	 */
 	private function savereply()
@@ -396,7 +351,7 @@ class PlgResourcesReviewsHelper extends JObject
 		$juser = JFactory::getUser();
 
 		// Is the user logged in?
-		if ($juser->get('guest')) 
+		if ($juser->get('guest'))
 		{
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_LOGIN_NOTICE'));
 			return;
@@ -408,7 +363,7 @@ class PlgResourcesReviewsHelper extends JObject
 		// Trim and addslashes all posted items
 		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
 
-		if (!$id) 
+		if (!$id)
 		{
 			// Cannot proceed
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_COMMENT_ERROR_NO_REFERENCE_ID'));
@@ -418,7 +373,7 @@ class PlgResourcesReviewsHelper extends JObject
 		$database = JFactory::getDBO();
 
 		$row = new \Hubzero\Item\Comment($database);
-		if (!$row->bind($comment)) 
+		if (!$row->bind($comment))
 		{
 			$this->setError($row->getError());
 			return;
@@ -433,14 +388,14 @@ class PlgResourcesReviewsHelper extends JObject
 		$row->created_by = ($row->id ? $row->created_by : $juser->get('id'));
 
 		// Check for missing (required) fields
-		if (!$row->check()) 
+		if (!$row->check())
 		{
 			$this->setError($row->getError());
 			return;
 		}
 
 		// Save the data
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			$this->setError($row->getError());
 			return;
@@ -449,7 +404,7 @@ class PlgResourcesReviewsHelper extends JObject
 
 	/**
 	 * Delete a reply
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deletereply()
@@ -458,17 +413,17 @@ class PlgResourcesReviewsHelper extends JObject
 		$resource =& $this->resource;
 
 		// Incoming
-		$replyid = JRequest::getInt('refid', 0);
+		$replyid = JRequest::getInt('comment', 0);
 
 		// Do we have a review ID?
-		if (!$replyid) 
+		if (!$replyid)
 		{
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_COMMENT_ERROR_NO_REFERENCE_ID'));
 			return;
 		}
 
 		// Do we have a resource ID?
-		if (!$resource->id) 
+		if (!$resource->id)
 		{
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_NO_RESOURCE_ID'));
 			return;
@@ -476,21 +431,23 @@ class PlgResourcesReviewsHelper extends JObject
 
 		// Delete the review
 		$reply = new \Hubzero\Item\Comment($database);
+		$reply->load($replyid);
 
-		$comments = $reply->find(array('parent'=>$replyid, 'item_type'=>'review', 'item_id' => $resource->id));
-		if (count($comments) > 0) 
+		// Permissions check
+		if ($reply->created_by != JFactory::getUser()->get('id'))
 		{
-			foreach ($comments as $comment)
-			{
-				$reply->delete($comment->id);
-			}
+			return;
 		}
-		$reply->delete($replyid);
+
+		$reply->setState($replyid, 2);
+
+		$this->_redirect = JRoute::_('index.php?option=' . $this->_option . '&id=' . $resource->id . '&active=reviews');
+		$this->redirect();
 	}
 
 	/**
 	 * Rate an item
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function rateitem()
@@ -505,14 +462,14 @@ class PlgResourcesReviewsHelper extends JObject
 		$ip   = JRequest::ip();
 		$rid  = JRequest::getInt('id', 0);
 
-		if (!$id) 
+		if (!$id)
 		{
 			// Cannot proceed
 			return;
 		}
 
 		// Is the user logged in?
-		if ($juser->get('guest')) 
+		if ($juser->get('guest'))
 		{
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_PLEASE_LOGIN_TO_VOTE'));
 			return;
@@ -523,7 +480,7 @@ class PlgResourcesReviewsHelper extends JObject
 		$rev->load($id);
 		$voted = $rev->getVote($id, $cat, $juser->get('id'));
 
-		if (!$voted && $vote) // && $rev->user_id != $juser->get('id')) 
+		if (!$voted && $vote) // && $rev->user_id != $juser->get('id'))
 		{
 			require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_answers' . DS . 'tables' . DS . 'vote.php');
 			$v = new Vote($database);
@@ -533,12 +490,12 @@ class PlgResourcesReviewsHelper extends JObject
 			$v->ip          = $ip;
 			$v->voted       = JFactory::getDate()->toSql();
 			$v->helpful     = $vote;
-			if (!$v->check()) 
+			if (!$v->check())
 			{
 				$this->setError($v->getError());
 				return;
 			}
-			if (!$v->store()) 
+			if (!$v->store())
 			{
 				$this->setError($v->getError());
 				return;
@@ -546,7 +503,7 @@ class PlgResourcesReviewsHelper extends JObject
 		}
 
 		// update display
-		if ($ajax) 
+		if ($ajax)
 		{
 			$response = $rev->getRating($id, $juser->get('id'));
 
@@ -564,23 +521,21 @@ class PlgResourcesReviewsHelper extends JObject
 
 			$view->display();
 			exit();
-		} 
-		else 
-		{
-			$this->_redirect = JRoute::_('index.php?option=' . $this->_option . '&id=' . $rid . '&active=reviews');
 		}
+
+		$this->_redirect = JRoute::_('index.php?option=' . $this->_option . '&id=' . $rid . '&active=reviews');
 	}
 
 	/**
 	 * Edit a review
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editreview()
 	{
 		// Is the user logged in?
 		$juser = JFactory::getUser();
-		if ($juser->get('guest')) 
+		if ($juser->get('guest'))
 		{
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_LOGIN_NOTICE'));
 			return;
@@ -589,7 +544,7 @@ class PlgResourcesReviewsHelper extends JObject
 		$resource =& $this->resource;
 
 		// Do we have an ID?
-		if (!$resource->id) 
+		if (!$resource->id)
 		{
 			// No - fail! Can't do anything else without an ID
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_NO_RESOURCE_ID'));
@@ -597,19 +552,20 @@ class PlgResourcesReviewsHelper extends JObject
 		}
 
 		// Incoming
-		$myr = JRequest::getInt('myrating', 0);
+		$myr = JRequest::getInt('comment', 0);
 
 		$database = JFactory::getDBO();
 
 		$review = new ResourcesReview($database);
 		$review->loadUserReview($resource->id, $juser->get('id'));
-		if (!$review->id) {
+		if (!$review->id)
+		{
 			// New review, get the user's ID
 			$review->user_id = $juser->get('id');
 			$review->resource_id = $resource->id;
 			$review->tags = '';
-		} 
-		else 
+		}
+		else
 		{
 			// Editing a review, do some prep work
 			$review->comment = str_replace('<br />', '', $review->comment);
@@ -627,7 +583,7 @@ class PlgResourcesReviewsHelper extends JObject
 
 	/**
 	 * Save a review
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function savereview()
@@ -636,7 +592,7 @@ class PlgResourcesReviewsHelper extends JObject
 		$resource_id = JRequest::getInt('resource_id', 0);
 
 		// Do we have a resource ID?
-		if (!$resource_id) 
+		if (!$resource_id)
 		{
 			// No ID - fail! Can't do anything else without an ID
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_NO_RESOURCE_ID'));
@@ -647,7 +603,7 @@ class PlgResourcesReviewsHelper extends JObject
 
 		// Bind the form data to our object
 		$row = new ResourcesReview($database);
-		if (!$row->bind($_POST)) 
+		if (!$row->bind($_POST))
 		{
 			$this->setError($row->getError());
 			return;
@@ -655,19 +611,22 @@ class PlgResourcesReviewsHelper extends JObject
 
 		// Perform some text cleaning, etc.
 		$row->id        = JRequest::getInt('reviewid', 0);
+		if (!$row->id)
+		{
+			$row->state = 1;
+		}
 		$row->comment   = \Hubzero\Utility\Sanitize::clean($row->comment);
-		//$row->comment   = nl2br($row->comment);
 		$row->anonymous = ($row->anonymous == 1 || $row->anonymous == '1') ? $row->anonymous : 0;
 		$row->created   = ($row->created) ? $row->created : JFactory::getDate()->toSql();
 
 		// Check for missing (required) fields
-		if (!$row->check()) 
+		if (!$row->check())
 		{
 			$this->setError($row->getError());
 			return;
 		}
 		// Save the data
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			$this->setError($row->getError());
 			return;
@@ -680,7 +639,7 @@ class PlgResourcesReviewsHelper extends JObject
 
 		// Process tags
 		$tags = trim(JRequest::getVar('review_tags', ''));
-		if ($tags) 
+		if ($tags)
 		{
 			$rt = new ResourcesTags($database);
 			$rt->tag_object($row->user_id, $resource_id, $tags, 1, 0);
@@ -720,7 +679,7 @@ class PlgResourcesReviewsHelper extends JObject
 		// Send message
 		JPluginHelper::importPlugin('xmessage');
 		$dispatcher = JDispatcher::getInstance();
-		if (!$dispatcher->trigger('onSendMessage', array('resources_new_comment', $subject, $message, $from, $users, $this->_option))) 
+		if (!$dispatcher->trigger('onSendMessage', array('resources_new_comment', $subject, $message, $from, $users, $this->_option)))
 		{
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_FAILED_TO_MESSAGE'));
 		}
@@ -728,7 +687,7 @@ class PlgResourcesReviewsHelper extends JObject
 
 	/**
 	 * Delete a review
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deletereview()
@@ -737,58 +696,56 @@ class PlgResourcesReviewsHelper extends JObject
 		$resource =& $this->resource;
 
 		// Incoming
-		$reviewid = JRequest::getInt('reviewid', 0);
+		$reviewid = JRequest::getInt('comment', 0);
 
 		// Do we have a review ID?
-		if (!$reviewid) 
+		if (!$reviewid)
 		{
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_NO_ID'));
 			return;
 		}
 
 		// Do we have a resource ID?
-		if (!$resource->id) 
+		if (!$resource->id)
 		{
 			$this->setError(JText::_('PLG_RESOURCES_REVIEWS_NO_RESOURCE_ID'));
 			return;
 		}
 
 		$review = new ResourcesReview($database);
+		$review->load($reviewid);
+
+		// Permissions check
+		if ($review->user_id != JFactory::getUser()->get('id'))
+		{
+			return;
+		}
+
+		$review->state = 2;
+		$review->store();
 
 		// Delete the review's comments
 		$reply = new \Hubzero\Item\Comment($database);
 
-		$comments1 = $reply->find(array('parent'=>$reviewid, 'item_type'=>'review', 'item_id' => $resource->id));
-		if (count($comments1) > 0) 
+		$comments1 = $reply->find(array(
+			'parent'    => $reviewid,
+			'item_type' => 'review',
+			'item_id'   => $resource->id
+		));
+		if (count($comments1) > 0)
 		{
 			foreach ($comments1 as $comment1)
 			{
-				$comments2 = $reply->find(array('parent'=>$comment1->id, 'item_type'=>'review', 'item_id' => $resource->id));
-				if (count($comments2) > 0) 
-				{
-					foreach ($comments2 as $comment2)
-					{
-						$comments3 = $reply->find(array('parent'=>$comment2->id, 'item_type'=>'review', 'item_id' => $resource->id));
-						if (count($comments3) > 0) 
-						{
-							foreach ($comments3 as $comment3)
-							{
-								$reply->delete($comment3->id);
-							}
-						}
-						$reply->delete($comment2->id);
-					}
-				}
-				$reply->delete($comment1->id);
+				$reply->setState($comment1->id, 2);
 			}
 		}
-
-		// Delete the review
-		$review->delete($reviewid);
 
 		// Recalculate the average rating for the parent resource
 		$resource->calculateRating();
 		$resource->updateRating();
+
+		$this->_redirect = JRoute::_('index.php?option=' . $this->_option . '&id=' . $resource->id . '&active=reviews');
+		$this->redirect();
 	}
 }
 

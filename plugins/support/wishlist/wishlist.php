@@ -31,30 +31,29 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Support plugin class for com_wishlist entries
  */
-class plgSupportWishlist extends JPlugin
+class plgSupportWishlist extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Is the category one this plugin handles?
+	 *
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     boolean
 	 */
-	public function __construct(&$subject, $config)
+	private function _canHandle($category)
 	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
+		if (in_array($category, array('wish', 'wishcomment')))
+		{
+			return true;
+		}
+		return false;
 	}
 
 	/**
 	 * Retrieves a row from the database
-	 * 
+	 *
 	 * @param      string $refid    ID of the database table row
 	 * @param      string $category Element type (determines table to look in)
 	 * @param      string $parent   If the element has a parent element
@@ -62,19 +61,19 @@ class plgSupportWishlist extends JPlugin
 	 */
 	public function getReportedItem($refid, $category, $parent)
 	{
-		if ($category != 'wish' && $category != 'wishcomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
 
-		if ($category == 'wish') 
+		if ($category == 'wish')
 		{
 			$query  = "SELECT ws.id, ws.about as text, ws.proposed AS created, ws.proposed_by as author, ws.subject as subject";
 			$query .= ", 'wish' as parent_category, ws.anonymous as anon";
 			$query .= " FROM #__wishlist_item AS ws";
 			$query .= " WHERE ws.id=" . $refid;
-		} 
-		else if ($category == 'wishcomment') 
+		}
+		else if ($category == 'wishcomment')
 		{
 			$query  = "SELECT rr.id, rr.content as text, rr.created, rr.created_by as author, NULL as subject";
 			$query .= ", rr.category as parent_category, rr.anonymous as anon";
@@ -85,7 +84,7 @@ class plgSupportWishlist extends JPlugin
 		$database = JFactory::getDBO();
 		$database->setQuery($query);
 		$rows = $database->loadObjectList();
-		if ($rows) 
+		if ($rows)
 		{
 			foreach ($rows as $key => $row)
 			{
@@ -94,7 +93,7 @@ class plgSupportWishlist extends JPlugin
 					$rows[$key]->text = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $row->text);
 				}
 				$rows[$key]->href = ($parent) ? JRoute::_('index.php?option=com_wishlist&task=wishlist&id=' . $parent) : '';
-				if ($rows[$key]->parent_category == 'wishcomment') 
+				if ($rows[$key]->parent_category == 'wishcomment')
 				{
 					$rows[$key]->href = JRoute::_('index.php?option=com_wishlist&task=wish&wishid=' . $parent);
 				}
@@ -105,7 +104,7 @@ class plgSupportWishlist extends JPlugin
 
 	/**
 	 * Looks up ancestors to find root element
-	 * 
+	 *
 	 * @param      integer $parentid ID to check for parents of
 	 * @param      string  $category Element type (determines table to look in)
 	 * @return     integer
@@ -115,20 +114,20 @@ class plgSupportWishlist extends JPlugin
 		$database = JFactory::getDBO();
 		$refid = $parentid;
 
-		if ($category == 'wishcomment') 
+		if ($category == 'wishcomment')
 		{
 			$pdata = $this->parent($parentid);
 			$category = $pdata->category;
 			$refid = $pdata->referenceid;
 
-			if ($pdata->category == 'wishcomment') 
+			if ($pdata->category == 'wishcomment')
 			{
 				// Yet another level?
 				$pdata = $this->parent($pdata->referenceid);
 				$category = $pdata->category;
 				$refid = $pdata->referenceid;
 
-				if ($pdata->category == 'wishcomment') 
+				if ($pdata->category == 'wishcomment')
 				{
 					// Yet another level?
 					$pdata = $this->parent($pdata->referenceid);
@@ -138,16 +137,16 @@ class plgSupportWishlist extends JPlugin
 			}
 		}
 
-		if ($category == 'wish') 
+		if ($category == 'wish')
 		{
-			$database->setQuery("SELECT wishlist FROM #__wishlist_item WHERE id=" . $refid);
-		 	return $database->loadResult();
+			$database->setQuery("SELECT wishlist FROM `#__wishlist_item` WHERE id=" . $refid);
+			return $database->loadResult();
 		}
 	}
 
 	/**
 	 * Retrieve parent element
-	 * 
+	 *
 	 * @param      integer $parentid ID of element to retrieve
 	 * @return     object
 	 */
@@ -163,33 +162,112 @@ class plgSupportWishlist extends JPlugin
 
 	/**
 	 * Returns the appropriate text for category
-	 * 
+	 *
 	 * @param      string  $category Element type (determines text)
 	 * @param      integer $parentid ID of element to retrieve
 	 * @return     string
 	 */
 	public function getTitle($category, $parentid)
 	{
-		if ($category != 'wish' && $category != 'wishcomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
 
+		$this->loadLanguage();
+
 		switch ($category)
 		{
 			case 'wish':
-				return JText::sprintf('Wish from list #%s', $parentid);
-         	break;
+				return JText::sprintf('PLG_SUPPORT_WISHLIST_WISH_OF', $parentid);
+			break;
 
 			case 'wishcomment':
-				return JText::sprintf('Comment to wish  #%s', $parentid);
-         	break;
+				return JText::sprintf('PLG_SUPPORT_WISHLIST_COMMENT_OF', $parentid);
+			break;
 		}
 	}
 
 	/**
+	 * Mark an item as flagged
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     string
+	 */
+	public function onReportItem($refid, $category)
+	{
+		if (!$this->_canHandle($category))
+		{
+			return null;
+		}
+
+		$database = JFactory::getDBO();
+
+		switch ($category)
+		{
+			case 'wish':
+				include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.php');
+
+				$wish = new Wish($database);
+				$wish->load($refid);
+				$wish->status = 7;
+				$wish->store();
+			break;
+
+			case 'wishcomment':
+				$comment = new \Hubzero\Item\Comment($database);
+				$comment->load($refid);
+				$comment->state = 3;
+				$comment->store();
+			break;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Release a reported item
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $parent   If the element has a parent element
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     array
+	 */
+	public function releaseReportedItem($refid, $parent, $category)
+	{
+		if (!$this->_canHandle($category))
+		{
+			return null;
+		}
+
+		$database = JFactory::getDBO();
+
+		switch ($category)
+		{
+			case 'wish':
+				include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_wishlist' . DS . 'tables' . DS . 'wish.php');
+
+				$wish = new Wish($database);
+				$wish->load($refid);
+				$wish->status = 0;
+				$wish->store();
+			break;
+
+			case 'wishcomment':
+				$comment = new \Hubzero\Item\Comment($database);
+				$comment->load($refid);
+				$comment->state = 1;
+				$comment->store();
+			break;
+		}
+
+		return '';
+	}
+
+	/**
 	 * Removes an item reported as abusive
-	 * 
+	 *
 	 * @param      integer $referenceid ID of the database table row
 	 * @param      integer $parentid    If the element has a parent element
 	 * @param      string  $category    Element type (determines table to look in)
@@ -198,10 +276,12 @@ class plgSupportWishlist extends JPlugin
 	 */
 	public function deleteReportedItem($referenceid, $parentid, $category, $message)
 	{
-		if ($category != 'wish' && $category != 'wishcomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
+
+		$this->loadLanguage();
 
 		$database = JFactory::getDBO();
 
@@ -224,20 +304,20 @@ class plgSupportWishlist extends JPlugin
 				$objR = new WishRank($database);
 				$objR->remove_vote($referenceid);
 
-				$message .= JText::sprintf('This is to notify you that your wish on wish list #%s ' . $parentid . ' was removed from the site due to granted complaint received from a user.', $parentid);
+				$message .= JText::sprintf('PLG_SUPPORT_WISHLIST_NOTIFICATION_OF_WISH_REMOVAL', $parentid);
 			break;
 
 			case 'wishcomment':
 				$comment = new \Hubzero\Item\Comment($database);
 				$comment->load($referenceid);
 				$comment->state = 2;
-				if (!$comment->store()) 
+				if (!$comment->store())
 				{
 					$this->setError($comment->getError());
 					return false;
 				}
 
-				$message .= JText::sprintf('This is to notify you that your comment on wish #%s ' . $parentid . ' was removed from the site due to granted complaint received from a user.', $parentid);
+				$message .= JText::sprintf('PLG_SUPPORT_WISHLIST_NOTIFICATION_OF_COMMENT_REMOVAL', $parentid);
 			break;
 		}
 

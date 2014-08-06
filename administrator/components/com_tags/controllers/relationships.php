@@ -36,38 +36,45 @@ defined('_JEXEC') or die('Restricted access');
  */
 class TagsControllerRelationships extends \Hubzero\Component\AdminController
 {
+	/**
+	 * Prelead
+	 *
+	 * @var string
+	 */
 	private $preload;
 
 	/**
 	 * Show a form for looking up a tag's relationships
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
-		$this->preload = 'nikki';
 		$this->view->setLayout('display');
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
 				$this->view->setError($error);
 			}
 		}
-		
-		if (isset($_REQUEST['tag']) && (int)$_REQUEST['tag'] == $_REQUEST['tag']) {
-			$this->database->setQuery('SELECT tag FROM #__tags WHERE id = '.$_REQUEST['tag']);
+
+		$tag = JRequest::getVar('tag', null);
+		if ($tag && (int) $tag == $tag)
+		{
+			$this->database->setQuery('SELECT tag FROM `#__tags` WHERE id = ' . $tag);
 			$this->view->set('preload', $this->database->loadResult());
 		}
+
 		// Output the HTML
 		$this->view->display();
 	}
 
 	/**
 	 * Show a form for managing focus areas
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function metaTask()
@@ -75,7 +82,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 		$this->view->setLayout('meta');
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -90,7 +97,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 	/**
 	 * Implicit relationship lookup
 	 * Generates data in JSON format
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function implicitTask()
@@ -104,8 +111,8 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 
 		$rv = $tag = $this->get_tag($tag);
 		$nodes[] = array(
-			'id'      => $rv['id'], 
-			'tag'     => $rv['tag'], 
+			'id'      => $rv['id'],
+			'tag'     => $rv['tag'],
 			'raw_tag' => $rv['raw_tag']
 		);
 		if (!$rv['new'])
@@ -114,7 +121,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 				'SELECT t.id, t.tag, t.raw_tag, count(t.id) AS count FROM #__tags_object to1
 				LEFT JOIN #__tags_object to2 ON to2.tbl = to1.tbl AND to2.objectid = to1.objectid
 				INNER JOIN #__tags t ON t.id = to2.tagid
-				WHERE to1.tagid = ' . $rv['id'] . ' AND t.id != ' . $rv['id'] . ' AND to1.label IS NULL   
+				WHERE to1.tagid = ' . $rv['id'] . ' AND t.id != ' . $rv['id'] . ' AND to1.label IS NULL
 				GROUP BY t.id, t.tag, t.raw_tag
 				ORDER BY count DESC
 				LIMIT 20'
@@ -137,8 +144,8 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 				$nodes[] = $row;
 				$idx_map[$row['id']] = ++$t_idx;
 				$links[] = array(
-					'source' => $idx + 1, 
-					'target' => 0, 
+					'source' => $idx + 1,
+					'target' => 0,
 					'value'  => $row['count']
 				);
 				$follow[$idx + 1] = $row['id'];
@@ -149,7 +156,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 					'SELECT t.id, t.tag, t.raw_tag, count(t.id) AS count FROM #__tags_object to1
 					LEFT JOIN #__tags_object to2 ON to2.tbl = to1.tbl AND to2.objectid = to1.objectid
 					INNER JOIN #__tags t ON t.id = to2.tagid
-					WHERE to1.tagid = ' . $tag_id . ' AND t.id != ' . $tag_id . ' AND to1.label IS NULL 
+					WHERE to1.tagid = ' . $tag_id . ' AND t.id != ' . $tag_id . ' AND to1.label IS NULL
 					GROUP BY t.id, t.tag, t.raw_tag
 					ORDER BY count DESC
 					LIMIT 10'
@@ -172,8 +179,8 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 						$idx_map[$row['id']] = $t_idx;
 					}
 					$links[] = array(
-						'source' => $idx, 
-						'target' => $target_idx, 
+						'source' => $idx,
+						'target' => $target_idx,
 						'value'  => $row['count']
 					);
 				}
@@ -191,7 +198,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 	/**
 	 * Hierarchical relationship lookup
 	 * Generates data in JSON format
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function hierarchyTask()
@@ -206,8 +213,8 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 		$rv = $tag = $this->get_tag($tag);
 		$tag['type'] = 'center';
 		$nodes = array(array(
-			'id'      => $rv['id'], 
-			'tag'     => $rv['tag'], 
+			'id'      => $rv['id'],
+			'tag'     => $rv['tag'],
 			'raw_tag' => $rv['raw_tag']
 		));
 		$tagIdMap = array($rv['id'] => 0);
@@ -268,7 +275,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 	/**
 	 * Tag suggester for autocompletion
 	 * Generates data in JSON format
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function suggestTask()
@@ -277,7 +284,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 
 		if (isset($_GET['term']))
 		{
-			$this->database->setQuery('SELECT raw_tag FROM #__tags WHERE raw_tag LIKE \'%' . $this->database->getEscaped($_GET['term']) . '%\'');
+			$this->database->setQuery("SELECT raw_tag FROM `#__tags` WHERE raw_tag LIKE " . $this->database->quote('%' . $_GET['term'] . '%'));
 			$later = array();
 			foreach ($this->database->loadResultArray() as $tag)
 			{
@@ -299,14 +306,14 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 				$suggestions = array_slice($suggestions, 0, (int)$_GET['limit']);
 			}
 		}
-		header('Content-type: application/octet-stream'); 
+		header('Content-type: application/octet-stream');
 		echo json_encode($suggestions);
 		exit();
 	}
 
 	/**
 	 * Update a tag's relationships
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function updateTask()
@@ -317,7 +324,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 			$this->database->execute();
 			$tag = $this->get_tag($tid);
 			$preload = $tag['raw_tag'];
-			$normalize = create_function('$a', 'return preg_replace(\'/[^a-zA-Z0-9]/\', \'\', strtolower($a));'); 
+			$normalize = create_function('$a', 'return preg_replace(\'/[^a-zA-Z0-9]/\', \'\', strtolower($a));');
 			// reconcile post data with what we already know about a tag's relationships
 			foreach (array(
 				'labels'   => array(
@@ -359,7 +366,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 					}
 				}
 				// any tags that have not been unset were deleted on the form, so we need to reflect that in the database
-				foreach ($ex as $e_tag=>$_v)
+				foreach ($ex as $e_tag => $_v)
 				{
 					$e_tag = $this->get_tag($e_tag, false);
 					$this->database->setQuery(sprintf($sql[1], $tid, $e_tag['id']));
@@ -373,7 +380,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete a tag and its relationships
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deleteTask()
@@ -416,7 +423,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 
 	/**
 	 * Update focus areas
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function updatefocusareasTask()
@@ -439,10 +446,10 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 				continue;
 			}
 			$new_tag = $this->get_tag($_POST['name-' . $id], false);
-			$this->database->setQuery('UPDATE #__focus_areas SET 
-				mandatory_depth = ' . ($_POST['mandatory-' . $id] === 'mandatory' ? 1 : ($_POST['mandatory-' . $id] === 'depth' ? (int)$_POST['mandatory-depth-' . $id] : 'NULL')) . ', 
-				multiple_depth = ' . ($_POST['multiple-' . $id]  === 'multiple'  ? 1 : ($_POST['multiple-' . $id]  === 'depth' ? (int)$_POST['multiple-depth-' . $id]  : 'NULL')) . ', 
-				tag_id = ' . $new_tag['id'].' 
+			$this->database->setQuery('UPDATE #__focus_areas SET
+				mandatory_depth = ' . ($_POST['mandatory-' . $id] === 'mandatory' ? 1 : ($_POST['mandatory-' . $id] === 'depth' ? (int)$_POST['mandatory-depth-' . $id] : 'NULL')) . ',
+				multiple_depth = ' . ($_POST['multiple-' . $id]  === 'multiple'  ? 1 : ($_POST['multiple-' . $id]  === 'depth' ? (int)$_POST['multiple-depth-' . $id]  : 'NULL')) . ',
+				tag_id = ' . $new_tag['id'].'
 				WHERE id = ' . $id
 			);
 			$this->database->execute();
@@ -464,7 +471,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 			$this->database->setQuery('INSERT INTO #__focus_areas(mandatory_depth, multiple_depth, tag_id) VALUES (' .
 				($_POST['mandatory-new-' . $idx] === 'mandatory' ? 1 : ($_POST['mandatory-new-' . $idx] === 'depth' ? (int)$_POST['mandatory-depth-new-' . $idx] : 'NULL')) . ', ' .
 				($_POST['multiple-new-' . $idx]  === 'multiple'  ? 1 : ($_POST['multiple-new-' . $idx]  === 'depth' ? (int)$_POST['multiple-depth-new-' . $idx]  : 'NULL')) . ', ' .
-				$tag['id'] . ')' 
+				$tag['id'] . ')'
 			);
 			$this->database->execute();
 			$id = $this->database->insertid();
@@ -499,7 +506,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 	public function get_tag($tag_str, $detailed = true)
 	{
 		$this->database->setQuery(
-			is_int($tag_str) 
+			is_int($tag_str)
 				? 'SELECT DISTINCT t.id, tag, raw_tag, description, COUNT(to1.id) AS count FROM #__tags t LEFT JOIN #__tags_object to1 ON to1.tagid = t.id WHERE t.id = ' . $tag_str . ' GROUP BY t.id, tag, raw_tag, description'
 				: 'SELECT DISTINCT t.id, tag, raw_tag, description, COUNT(to1.id) AS count FROM #__tags t LEFT JOIN #__tags_object to1 ON to1.tagid = t.id WHERE tag = ' . $this->database->quote($tag_str) . ' OR raw_tag = ' . $this->database->quote($tag_str) . ' GROUP BY t.id, tag, raw_tag, description'
 		);
@@ -511,7 +518,7 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 				'count' => $tag['count'],
 				'raw_tag' => $tag['raw_tag'],
 				'description' => $tag['description'],
-				'new' => false 
+				'new' => false
 			);
 			if (!$detailed)
 			{
@@ -520,32 +527,32 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 
 			$this->database->setQuery(
 				'SELECT DISTINCT t.raw_tag
-				FROM #__tags_object to1  
-				INNER JOIN #__tags t ON t.id = to1.tagid 
+				FROM #__tags_object to1
+				INNER JOIN #__tags t ON t.id = to1.tagid
 				WHERE to1.tbl = \'tags\' AND to1.label = \'label\' AND to1.objectid = ' . $tag['id']
 			);
 			$rv['labeled'] = $this->database->loadResultArray();
 
 			$this->database->setQuery(
 				'SELECT DISTINCT t.raw_tag
-				FROM #__tags_object to1  
-				INNER JOIN #__tags t ON t.id = to1.objectid 
+				FROM #__tags_object to1
+				INNER JOIN #__tags t ON t.id = to1.objectid
 				WHERE to1.tbl = \'tags\' AND to1.label = \'label\' AND to1.tagid = ' . $tag['id']
 			);
 			$rv['labels'] = $this->database->loadResultArray();
 
 			$this->database->setQuery(
 				'SELECT DISTINCT t.raw_tag
-				FROM #__tags_object to1  
-				INNER JOIN #__tags t ON t.id = to1.tagid 
+				FROM #__tags_object to1
+				INNER JOIN #__tags t ON t.id = to1.tagid
 				WHERE to1.tbl = \'tags\' AND to1.label = \'parent\' AND to1.objectid = ' . $tag['id']
 			);
 			$rv['parents'] = $this->database->loadResultArray();
 
 			$this->database->setQuery(
 				'SELECT DISTINCT t.raw_tag
-				FROM #__tags_object to1  
-				INNER JOIN #__tags t ON t.id = to1.objectid 
+				FROM #__tags_object to1
+				INNER JOIN #__tags t ON t.id = to1.objectid
 				WHERE to1.tbl = \'tags\' AND to1.label = \'parent\' AND to1.tagid = ' . $tag['id']
 			);
 			$rv['children'] = $this->database->loadResultArray();
@@ -553,10 +560,12 @@ class TagsControllerRelationships extends \Hubzero\Component\AdminController
 
 			return $rv;
 		}
+
 		$norm_tag = preg_replace('/[^a-zA-Z0-9]/', '', strtolower($tag_str));
 		$this->database->setQuery('INSERT INTO #__tags(tag, raw_tag) VALUES(\'' . $norm_tag . '\', ' . $this->database->quote($tag_str) . ')');
 		$this->database->execute();
 		$id = $this->database->insertid();
+
 		return array(
 			'id'          => $id,
 			'tag'         => $norm_tag,

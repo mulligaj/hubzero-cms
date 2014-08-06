@@ -40,6 +40,7 @@ defined('_JEXEC') or die('Restricted access');
 	<li><a href="#macros">Custom Macros</a></li>
 	<li><a href="#php-pages">PHP Pages</a></li>
 	<li><a href="#databases">Databases</a></li>
+	<li><a href="#migrations">Migrations</a></li>
 	<li><a href="#components">Components</a></li>
 </ul>
 
@@ -98,7 +99,10 @@ echo htmlentities('<group:include type="toolbar" />') . "\n";
 echo htmlentities('<group:include type="modules" position="{position}" />') . "\n";
 echo htmlentities('<group:include type="module" title="{title}" />') . "\n";
 echo htmlentities('<group:include type="googleanalytics" account="{account}" />') . "\n";
+echo htmlentities('<group:include type="script" base="" source="{file_path}" />') . "\n";
+echo htmlentities('<group:include type="stylesheet" base="" source="{file_path}" />') . "\n";
 ?></pre>
+<p class="info">For <u>Script</u> &amp; <u>Stylesheet</u> group includes you can specify a base param of "template" which will automatically prepend "/template/assets/js" or "/template/assets/css" to the source. If no base is specified, it will look for the file in the groups "uploads" directory.</p>
 
 <hr />
 
@@ -165,7 +169,10 @@ Template Name: My Custom Page
 <pre><?php
 echo htmlentities('<group:include type="modules" position="{position}" />') . "\n";
 echo htmlentities('<group:include type="module" title="{title}" />') . "\n";
+echo htmlentities('<group:include type="script" base="" source="{file_path}" />') . "\n";
+echo htmlentities('<group:include type="stylesheet" base="" source="{file_path}" />') . "\n";
 ?></pre>
+<p class="info">For <u>Script</u> &amp; <u>Stylesheet</u> group includes you can specify a base param of "template" which will automatically prepend "/template/assets/js" or "/template/assets/css" to the source. If no base is specified, it will look for the file in the groups "uploads" directory.</p>
 
 <hr />
 
@@ -269,7 +276,10 @@ class {{macro_name}} extends Macro
 <pre><?php
 echo htmlentities('<group:include type="modules" position="{position}" />') . "\n";
 echo htmlentities('<group:include type="module" title="{title}" />') . "\n";
+echo htmlentities('<group:include type="script" base="" source="{file_path}" />') . "\n";
+echo htmlentities('<group:include type="stylesheet" base="" source="{file_path}" />') . "\n";
 ?></pre>
+<p class="info">For <u>Script</u> &amp; <u>Stylesheet</u> group includes you can specify a base param of "template" which will automatically prepend "/template/assets/js" or "/template/assets/css" to the source. If no base is specified, it will look for the file in the groups "uploads" directory.</p>
 
 <hr />
 
@@ -305,6 +315,24 @@ return array(
 
 <hr />
 
+<h3 id="migrations">Migrations</h3>
+<p>Migrations allow you a group update its separate database without having to connect to the live database and manually updating the schema. Another benefit to using migrations is that they are automatically run everytime the super groups code is updated from Gitlab!</p>
+
+<h6>Creating a Migration</h6>
+<p>Migrations can be created easily with the HUbzero command line application "Muse". From the command line run the following command (in the web root):</p>
+<pre>cli/muse.php group scaffolding migration --group={group_cn} -e=com_{component}</pre>
+<p class="info">Simply replate {group_cn} with your groups cname and {component} with the component. The migration file will be automatically placed into the correct location, ready for you to modify and commit when ready.</p>
+
+<hr />
+
+<h6>Running Migrations</h6>
+<p>Running migrations is almost as easy as creating them with once again help from the Hubzero command line application. From the command line run the following command (in the web root):</p>
+<pre>cli/muse.php group migrate -if --group={group_cn}</pre>
+<p class="info">Simply replate {group_cn} with your groups cname. The -i argument means ignore dates (run migrations it could have missed) and -f means actually run.</p>
+<p class="warning">Note: You only need to manually run migrations in a dev environment. When groups code is updated on live, migrations are automatically run.</p>
+
+<hr />
+
 <h3 id="components">Components</h3>
 <p>Super groups now have the ability to have their own components. They are setup the <u>exact</u> same as a regular component except for their file location. For more information regarding developing components see: <a target="_blank" href="https://hubzero.org/documentation/1.2.2/webdevs">https://hubzero.org/documentation/1.2.2/webdevs</a></p>
 
@@ -327,3 +355,10 @@ return array(
 <p class="warning">Note: You should be able to move the component to the main components folder and and have it work without any changes.</p>
 
 <p class="info">URL's built within a super group component will automatically have "/groups/{group_cn}/" prepended to them. Please dont manually do that in your component or it will result in an error.</p>
+
+<hr />
+
+<h6>Creating Components</h6>
+<p>Creating components can always be done manually by creating the files in the correct location as described above. You can also utilize the Hubzero command line application. From the command line run the following command (in the web root):</p>
+<pre>cli/muse.php group scaffolding component --group={group_cn} -n=com_{component}</pre>
+<p class="info">Simply replate {group_cn} with your groups cname and {component} with the component. The component files will be automatically placed into the correct location, ready for you to modify and commit when ready.</p>

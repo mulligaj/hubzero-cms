@@ -38,51 +38,26 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
 	{
-		$this->dateFormat = '%d %b %Y';
-		$this->dateFormatShort = '%d %b';
-		$this->timeFormat = '%I:%M %p';
-		$this->yearFormat  = "%Y";
-		$this->monthFormat = "%m";
-		$this->dayFormat   = "%d";
-		$this->tz = 0;
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$this->dateFormat = JText::_('DATE_FORMAT_HZ1');
-			$this->dateFormatShort = 'd M';
-			$this->timeFormat = 'h:i A';
-			$this->yearFormat  = "Y";
-			$this->monthFormat = "m";
-			$this->dayFormat   = "d";
-			$this->tz = false;
-		}
+		$this->dateFormat = JText::_('DATE_FORMAT_HZ1');
+		$this->dateFormatShort = 'd M';
+		$this->timeFormat = 'h:i A';
+		$this->yearFormat  = "Y";
+		$this->monthFormat = "m";
+		$this->dayFormat   = "d";
 
 		$this->_setup();
 
-		$this->_getStyles();
-
 		$this->_task = ($this->_task) ? $this->_task : JRequest::getString('task', $this->config->getCfg('startview'));
 
-		switch ($this->_task)
-		{
-			case 'delete':   $this->delete();   break;
-			case 'add':      $this->edit();     break;
-			case 'edit':     $this->edit();     break;
-			case 'save':     $this->save();     break;
-			case 'details':  $this->details();  break;
-			case 'day':      $this->day();      break;
-			case 'week':     $this->week();     break;
-			case 'month':    $this->month();    break;
-			case 'year':     $this->year();     break;
-			case 'register': $this->register(); break;
-			case 'process':  $this->process();  break;
+		$this->registerTask('register', 'eventregister');
+		$this->registerTask('add', 'edit');
 
-			default: $this->month(); break;
-		}
+		parent::execute();
 	}
 
 	/**
@@ -94,7 +69,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 	{
 		$pathway = JFactory::getApplication()->getPathway();
 
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
 				JText::_(strtoupper($this->_name)),
@@ -183,27 +158,27 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		switch ($this->_task)
 		{
 			case 'year':
-				if ($this->year) 
+				if ($this->year)
 				{
 					$this->_title .= ': ' . $this->year;
 				}
 			break;
 			case 'month':
-				if ($this->year) 
+				if ($this->year)
 				{
 					$this->_title .= ': ' . $this->year;
 				}
-				if ($this->month) 
+				if ($this->month)
 				{
 					$this->_title .= '/' . $this->month;
 				}
 			break;
 			case 'day':
-				if ($this->year) 
+				if ($this->year)
 				{
 					$this->_title .= ': ' . $this->year;
 				}
-				if ($this->month) 
+				if ($this->month)
 				{
 					$this->_title .= '/' . $this->month;
 				}
@@ -212,19 +187,19 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 				}
 			break;
 			case 'week':
-				if ($this->year) 
+				if ($this->year)
 				{
 					$this->_title .= ': ' . $this->year;
 				}
-				if ($this->month) 
+				if ($this->month)
 				{
 					$this->_title .= '/' . $this->month;
 				}
-				if ($this->day) 
+				if ($this->day)
 				{
 					$this->_title .= '/' . $this->day;
 				}
-				if ($this->_task && $this->_task == 'week') 
+				if ($this->_task && $this->_task == 'week')
 				{
 					$this->_title .= ': ' . JText::sprintf('EVENTS_WEEK_OF', $this->day);
 				}
@@ -236,7 +211,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Perform some initial setup and set some commonly used vars
-	 * 
+	 *
 	 * @return     void
 	 */
 	private function _setup()
@@ -269,11 +244,11 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		$category = JRequest::getInt('category', 0);
 
-		if ($day<="9"&preg_match("/(^[1-9]{1})/", $day)) 
+		if ($day<="9"&preg_match("/(^[1-9]{1})/", $day))
 		{
 			$day = "0$day";
 		}
-		if ($month<="9"&preg_match("/(^[1-9]{1})/", $month)) 
+		if ($month<="9"&preg_match("/(^[1-9]{1})/", $month))
 		{
 			$month = "0$month";
 		}
@@ -282,15 +257,15 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Find the date of the first event
 		$row = $ee->getFirst();
-		if ($row) 
+		if ($row)
 		{
 			$pyear = substr($row, 0, 4);
 			$pmonth = substr($row, 4, 2);
-			if ($year < $pyear) 
+			if ($year < $pyear)
 			{
 				$year = $pyear;
 			}
-			if ($month < $pmonth) 
+			if ($month < $pmonth)
 			{
 				//$month = $pmonth;
 			}
@@ -298,21 +273,21 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Find the date of the last event
 		$row = $ee->getLast();
-		if ($row) 
+		if ($row)
 		{
 			$thisyear = strftime("%Y", time()+($this->offset*60*60));
 			$fyear = substr($row,0,4);
 			$fmonth = substr($row,4,2);
-			if ($year > $fyear && $year > $thisyear) 
+			if ($year > $fyear && $year > $thisyear)
 			{
 				$year = ($fyear > $thisyear) ? $fyear : $thisyear;
 			}
-			if ($month > $fmonth) 
+			if ($month > $fmonth)
 			{
 				//$month = $fmonth;
 			}
 		}
-*/
+		*/
 		$this->year  = $year;
 		$this->month = $month;
 		$this->day   = $day;
@@ -324,10 +299,10 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * List events for a given year
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function year()
+	public function yearTask()
 	{
 		// Get some needed info
 		$year   = $this->year;
@@ -343,14 +318,14 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$filters['year'] = $year;
 		$filters['category'] = $this->category;
 		$filters['scope'] = 'event';
-		
+
 		// Retrieve records
 		$ee = new EventsEvent($this->database);
 		$rows = $ee->getEvents('year', $filters);
 
 		// Everyone has access unless restricted to admins in the configuration
 		$authorized = true;
-		if ($this->config->getCfg('adminlevel')) 
+		if ($this->config->getCfg('adminlevel'))
 		{
 			$authorized = $this->_authorize();
 		}
@@ -365,38 +340,35 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$this->_buildPathway();
 
 		// Output HMTL
-		$view = new JView(array(
-			'name'   => 'browse',
-			'layout' => 'year'
-		));
-		$view->option = $this->_option;
-		$view->title = $this->_title;
-		$view->task = $this->_task;
-		$view->year = $year;
-		$view->month = $month;
-		$view->day = $day;
-		$view->rows = $rows;
-		$view->authorized = $authorized;
-		$view->fields = $this->config->getCfg('fields');
-		$view->category = $this->category;
-		$view->categories = $categories;
-		$view->offset = $offset;
-		if ($this->getError()) 
+		$this->view->setLayout('year')->setName('browse');
+		$this->view->option = $this->_option;
+		$this->view->title = $this->_title;
+		$this->view->task = $this->_task;
+		$this->view->year = $year;
+		$this->view->month = $month;
+		$this->view->day = $day;
+		$this->view->rows = $rows;
+		$this->view->authorized = $authorized;
+		$this->view->fields = $this->config->getCfg('fields');
+		$this->view->category = $this->category;
+		$this->view->categories = $categories;
+		$this->view->offset = $offset;
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
-				$view->setError($error);
+				$this->view->setError($error);
 			}
 		}
-		$view->display();
+		$this->view->display();
 	}
 
 	/**
 	 * List events for a given year and month
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function month()
+	public function monthTask()
 	{
 		// Get some needed info
 		$offset = $this->offset;
@@ -411,7 +383,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$select_date_fin = $year . '-' . $month . '-' . date("t",mktime(0, 0, 0, ($month+1), 0, (int) $year)) . ' 23:59:59';
 		$select_date = JFactory::getDate($select_date, JFactory::getConfig()->get('offset'));
 		$select_date_fin = JFactory::getDate($select_date_fin, JFactory::getConfig()->get('offset'));
-		
+
 		// Set some filters
 		$filters = array();
 		$filters['gid'] = $gid;
@@ -419,14 +391,14 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$filters['select_date_fin'] = $select_date_fin->toSql();
 		$filters['category'] = $this->category;
 		$filters['scope'] = 'event';
-		
+
 		// Retrieve records
 		$ee = new EventsEvent($this->database);
 		$rows = $ee->getEvents('month', $filters);
 
 		// Everyone has access unless restricted to admins in the configuration
 		$authorized = true;
-		if ($this->config->getCfg('adminlevel')) 
+		if ($this->config->getCfg('adminlevel'))
 		{
 			$authorized = $this->_authorize();
 		}
@@ -440,41 +412,36 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		// Build the pathway
 		$this->_buildPathway();
 
-		$this->_getScripts('assets/js/' . $this->_name);
-
 		// Output HTML
-		$view = new JView(array(
-			'name'   => 'browse',
-			'layout' => 'month'
-		));
-		$view->option = $this->_option;
-		$view->title = $this->_title;
-		$view->task = $this->_task;
-		$view->year = $year;
-		$view->month = $month;
-		$view->day = $day;
-		$view->rows = $rows;
-		$view->authorized = $authorized;
-		$view->fields = $this->config->getCfg('fields');
-		$view->category = $this->category;
-		$view->categories = $categories;
-		$view->offset = $offset;
-		if ($this->getError()) 
+		$this->view->setLayout('month')->setName('browse');
+		$this->view->option = $this->_option;
+		$this->view->title = $this->_title;
+		$this->view->task = $this->_task;
+		$this->view->year = $year;
+		$this->view->month = $month;
+		$this->view->day = $day;
+		$this->view->rows = $rows;
+		$this->view->authorized = $authorized;
+		$this->view->fields = $this->config->getCfg('fields');
+		$this->view->category = $this->category;
+		$this->view->categories = $categories;
+		$this->view->offset = $offset;
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
-				$view->setError($error);
+				$this->view->setError($error);
 			}
 		}
-		$view->display();
+		$this->view->display();
 	}
 
 	/**
 	 * List events for a given year/month/week
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function week()
+	public function weekTask()
 	{
 		// Get some needed info
 		$offset = $this->offset;
@@ -485,7 +452,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		$startday = _CAL_CONF_STARDAY;
 		$numday = ((date("w",mktime(0,0,0,$month,$day,$year))-$startday)%7);
-		if ($numday == -1) 
+		if ($numday == -1)
 		{
 			$numday = 6;
 		}
@@ -496,8 +463,8 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$this_enddate = clone($this_date);
 		$this_enddate->addDays(+6);
 
-		$sdt = JHTML::_('date', $this_date->year . '-' . $this_date->month . '-' . $this_date->day . ' 00:00:00', $this->dateFormatShort, $this->tz);
-		$edt = JHTML::_('date', $this_enddate->year . '-' . $this_enddate->month . '-' . $this_enddate->day . ' 00:00:00', $this->dateFormatShort, $this->tz);
+		$sdt = JHTML::_('date', $this_date->year . '-' . $this_date->month . '-' . $this_date->day . ' 00:00:00', $this->dateFormatShort);
+		$edt = JHTML::_('date', $this_enddate->year . '-' . $this_enddate->month . '-' . $this_enddate->day . ' 00:00:00', $this->dateFormatShort);
 
 		$this_currentdate = $this_date;
 
@@ -513,7 +480,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$rows = array();
 		for ($d = 0; $d < 7; $d++)
 		{
-			if ($d > 0) 
+			if ($d > 0)
 			{
 				$this_currentdate->addDays(+1);
 			}
@@ -531,7 +498,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Everyone has access unless restricted to admins in the configuration
 		$authorized = true;
-		if ($this->config->getCfg('adminlevel')) 
+		if ($this->config->getCfg('adminlevel'))
 		{
 			$authorized = $this->_authorize();
 		}
@@ -543,41 +510,38 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$this->_buildPathway();
 
 		// Output HTML;
-		$view = new JView(array(
-			'name'   => 'browse',
-			'layout' => 'week'
-		));
-		$view->option = $this->_option;
-		$view->title = $this->_title;
-		$view->task = $this->_task;
-		$view->year = $year;
-		$view->month = $month;
-		$view->day = $day;
-		$view->rows = $rows;
-		$view->authorized = $authorized;
-		$view->fields = $this->config->getCfg('fields');
-		$view->category = $this->category;
-		$view->categories = $categories;
-		$view->offset = $offset;
-		$view->startdate = $sdt;
-		$view->enddate = $edt;
-		$view->week = $week;
-		if ($this->getError()) 
+		$this->view->setLayout('week')->setName('browse');
+		$this->view->option = $this->_option;
+		$this->view->title = $this->_title;
+		$this->view->task = $this->_task;
+		$this->view->year = $year;
+		$this->view->month = $month;
+		$this->view->day = $day;
+		$this->view->rows = $rows;
+		$this->view->authorized = $authorized;
+		$this->view->fields = $this->config->getCfg('fields');
+		$this->view->category = $this->category;
+		$this->view->categories = $categories;
+		$this->view->offset = $offset;
+		$this->view->startdate = $sdt;
+		$this->view->enddate = $edt;
+		$this->view->week = $week;
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
-				$view->setError($error);
+				$this->view->setError($error);
 			}
 		}
-		$view->display();
+		$this->view->display();
 	}
 
 	/**
 	 * View events for a given day
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function day()
+	public function dayTask()
 	{
 		// Get some needed info
 		$year   = $this->year;
@@ -598,12 +562,12 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Go through each event and ensure it should be displayed
 		// $events = array();
-		// if (count($rows) > 0) 
+		// if (count($rows) > 0)
 		// {
 		// 	foreach ($rows as $row)
 		// 	{
 		// 		$checkprint = new EventsRepeat($row, $year, $month, $day);
-		// 		if ($checkprint->viewable == true) 
+		// 		if ($checkprint->viewable == true)
 		// 		{
 		// 			$events[] = $row;
 		// 		}
@@ -612,7 +576,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Everyone has access unless restricted to admins in the configuration
 		$authorized = true;
-		if ($this->config->getCfg('adminlevel')) 
+		if ($this->config->getCfg('adminlevel'))
 		{
 			$authorized = $this->_authorize();
 		}
@@ -627,38 +591,35 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$this->_buildPathway();
 
 		// Output HTML
-		$view = new JView(array(
-			'name'   => 'browse',
-			'layout' => 'day'
-		));
-		$view->option = $this->_option;
-		$view->title = $this->_title;
-		$view->task = $this->_task;
-		$view->year = $year;
-		$view->month = $month;
-		$view->day = $day;
-		$view->rows = $events;
-		$view->authorized = $authorized;
-		$view->fields = $this->config->getCfg('fields');
-		$view->category = $this->category;
-		$view->categories = $categories;
-		$view->offset = $offset;
-		if ($this->getError()) 
+		$this->view->setLayout('day')->setName('browse');
+		$this->view->option = $this->_option;
+		$this->view->title = $this->_title;
+		$this->view->task = $this->_task;
+		$this->view->year = $year;
+		$this->view->month = $month;
+		$this->view->day = $day;
+		$this->view->rows = $events;
+		$this->view->authorized = $authorized;
+		$this->view->fields = $this->config->getCfg('fields');
+		$this->view->category = $this->category;
+		$this->view->categories = $categories;
+		$this->view->offset = $offset;
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
-				$view->setError($error);
+				$this->view->setError($error);
 			}
 		}
-		$view->display();
+		$this->view->display();
 	}
 
 	/**
 	 * View details of an event
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function details()
+	public function detailsTask()
 	{
 		// Get some needed info
 		$offset = $this->offset;
@@ -673,19 +634,19 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		// Load event
 		$row = new EventsEvent($this->database);
 		$row->load($id);
-		
+
 		// Ensure we have an event
-		if (!$row) 
+		if (!$row)
 		{
 			JError::raiseError(404, JText::_('EVENTS_CAL_LANG_NO_EVENTFOR') . ' ' . JText::_('EVENTS_CAL_LANG_THIS_DAY'));
 			return;
 		}
-		
+
 		//is this a group rescricted event
 		if ($row->scope == 'group')
 		{
 			$group = \Hubzero\User\Group::getInstance( $row->scope_id );
-			
+
 			//if we have a group and we are a member
 			if (is_object($group))
 			{
@@ -714,7 +675,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 						: $event_down->get24hrTime();
 
 		// Kludge for overnight events, advance the displayed stop_date by 1 day when an overnighter is detected
-		if ($row->stop_time < $row->start_time) 
+		if ($row->stop_time < $row->start_time)
 		{
 			$event_down->addDays(1);
 		}
@@ -731,7 +692,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Contact
 		$row->contact_info = stripslashes(strip_tags($row->contact_info));
-		if (substr($row->contact_info, 0, strlen('mailto:')) == 'mailto:') 
+		if (substr($row->contact_info, 0, strlen('mailto:')) == 'mailto:')
 		{
 			$row->contact_info = '<a href="mailto:' . $this->obfuscate(substr($row->contact_info, strlen('mailto:'))) . '">' . $this->obfuscate(substr($row->contact_info, strlen('mailto:'))) . '</a>';
 		}
@@ -743,7 +704,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$row->contact_info = preg_replace("/(http:\/\/)((-|$alphadigit|\.)+)(\.$alphadigit+)/i", "<a href=\"http://$2$5$8\">$1$2$5$8</a>", $row->contact_info);
 
 		// Images - replace the {mosimage} plugins in both text areas
-		// if ($row->images) 
+		// if ($row->images)
 		// {
 		// 	$row->images = explode("\n", $row->images);
 		// 	$images = array();
@@ -775,11 +736,11 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// 	for ($i=0, $n=count($text)-1; $i < $n; $i++)
 		// 	{
-		// 		if (isset($images[$i])) 
+		// 		if (isset($images[$i]))
 		// 		{
 		// 			$row->content .= $images[$i];
 		// 		}
-		// 		if (isset($text[$i+1])) 
+		// 		if (isset($text[$i+1]))
 		// 		{
 		// 			$row->content .= $text[$i+1];
 		// 		}
@@ -795,7 +756,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		//$row->content = stripslashes($row->content);
 
 		$fields = $this->config->getCfg('fields');
-		if (!empty($fields)) 
+		if (!empty($fields))
 		{
 			for ($i=0, $n=count($fields); $i < $n; $i++)
 			{
@@ -818,7 +779,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$authorized = true;
 
 		$auth = true;
-		if ($this->config->getCfg('adminlevel')) 
+		if ($this->config->getCfg('adminlevel'))
 		{
 			$auth = $this->_authorize();
 		}
@@ -836,27 +797,27 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Set the pathway
 		$pathway = JFactory::getApplication()->getPathway();
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(JText::_(
-				strtoupper($this->_name)), 
+				strtoupper($this->_name)),
 				'index.php?option=' . $this->_option
 			);
 		}
 		$pathway->addItem(
-			$eyear, 
+			$eyear,
 			'index.php?option=' . $this->_option . '&year=' . $eyear
 		);
 		$pathway->addItem(
-			$emonth, 
+			$emonth,
 			'index.php?option=' . $this->_option . '&year=' . $eyear . '&month=' . $emonth
 		);
 		$pathway->addItem(
-			$eday, 
+			$eday,
 			'index.php?option=' . $this->_option . '&year=' . $eyear . '&month=' . $emonth . '&day=' . $eday
 		);
 		$pathway->addItem(
-			stripslashes($row->title), 
+			stripslashes($row->title),
 			'index.php?option=' . $this->_option . '&task=details&id=' . $row->id
 		);
 
@@ -865,7 +826,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Load the current page
 		$page = new EventsPage($this->database);
-		if ($alias) 
+		if ($alias)
 		{
 			$page->loadFromAlias($alias, $row->id);
 		}
@@ -873,7 +834,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		// Get the pages for this workshop
 		$pages = $page->loadPages($row->id);
 
-		if ($alias) 
+		if ($alias)
 		{
 			$pathway->addItem(
 				stripslashes($page->title),
@@ -882,42 +843,40 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		}
 
 		// Build the HTML
-		$view = new JView(array(
-			'name' => 'details'
-		));
+		$this->view->setLayout('default')->setName('details');
 		if (JRequest::getVar('no_html', 0))
 		{
-			$view->setLayout('modal');
+			$this->view->setLayout('modal');
 		}
-		$view->option = $this->_option;
-		$view->title = JText::_(strtoupper($this->_name)) . ': ' . JText::_(strtoupper($this->_name) . '_' . strtoupper($this->_task));
-		$view->task = $this->_task;
-		$view->year = $eyear;
-		$view->month = $emonth;
-		$view->day = $eday;
-		$view->row = $row;
-		$view->authorized = $authorized;
-		$view->fields = $fields;
-		$view->config = $this->config;
-		$view->categories = $categories;
-		$view->offset = $offset;
-		$view->tags = $tags;
-		$view->auth = $auth;
-		$view->page = $page;
-		$view->pages = $pages;
-		if ($this->getError()) 
+		$this->view->option = $this->_option;
+		$this->view->title = JText::_(strtoupper($this->_name)) . ': ' . JText::_(strtoupper($this->_name) . '_' . strtoupper($this->_task));
+		$this->view->task = $this->_task;
+		$this->view->year = $eyear;
+		$this->view->month = $emonth;
+		$this->view->day = $eday;
+		$this->view->row = $row;
+		$this->view->authorized = $authorized;
+		$this->view->fields = $fields;
+		$this->view->config = $this->config;
+		$this->view->categories = $categories;
+		$this->view->offset = $offset;
+		$this->view->tags = $tags;
+		$this->view->auth = $auth;
+		$this->view->page = $page;
+		$this->view->pages = $pages;
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
-				$view->setError($error);
+				$this->view->setError($error);
 			}
 		}
-		$view->display();
+		$this->view->display();
 	}
 
 	/**
 	 * Obfuscate an email adress
-	 * 
+	 *
 	 * @param      string $email Address to obfuscate
 	 * @return     string
 	 */
@@ -925,20 +884,20 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 	{
 		$length = strlen($email);
 		$obfuscatedEmail = '';
-		for ($i = 0; $i < $length; $i++) 
+		for ($i = 0; $i < $length; $i++)
 		{
 			$obfuscatedEmail .= '&#' . ord($email[$i]) . ';';
 		}
-		
+
 		return $obfuscatedEmail;
 	}
 
 	/**
 	 * Display a form for registering for an event
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function register()
+	public function eventregisterTask()
 	{
 		$document = JFactory::getDocument();
 
@@ -953,7 +912,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$id = JRequest::getInt('id', 0, 'request');
 
 		// Ensure we have an ID
-		if (!$id) 
+		if (!$id)
 		{
 			$this->_redirect = JRoute::_('index.php?option=' . $this->_option);
 			return;
@@ -964,14 +923,14 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$event->load($id);
 
 		// Ensure we have an event
-		if (!$event->title || $event->registerby == '0000-00-00 00:00:00') 
+		if (!$event->title || $event->registerby == '0000-00-00 00:00:00')
 		{
 			$this->_redirect = JRoute::_('index.php?option=' . $this->_option);
 			return;
 		}
 
 		$auth = true;
-		if ($this->config->getCfg('adminlevel')) 
+		if ($this->config->getCfg('adminlevel'))
 		{
 			$auth = $this->_authorize();
 		}
@@ -987,27 +946,27 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Set the pathway
 		$pathway = JFactory::getApplication()->getPathway();
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(JText::_(
-				strtoupper($this->_name)), 
+				strtoupper($this->_name)),
 				'index.php?option=' . $this->_option
 			);
 		}
 		$pathway->addItem(
-			$eyear, 
+			$eyear,
 			'index.php?option=' . $this->_option . '&year=' . $eyear
 		);
 		$pathway->addItem(
-			$emonth, 
+			$emonth,
 			'index.php?option=' . $this->_option . '&year=' . $eyear . '&month=' . $emonth
 		);
 		$pathway->addItem(
-			$eday, 
+			$eday,
 			'index.php?option=' . $this->_option . '&year=' . $eyear . '&month=' . $emonth . '&day=' . $eday
 		);
 		$pathway->addItem(
-			stripslashes($event->title), 
+			stripslashes($event->title),
 			'index.php?option=' . $this->_option . '&task=details&id=' . $event->id
 		);
 		$pathway->addItem(
@@ -1026,7 +985,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$now = time();
 
 		$register = array();
-		if (!$this->juser->get('guest')) 
+		if (!$this->juser->get('guest'))
 		{
 			$profile = new \Hubzero\User\Profile();
 			$profile->load($this->juser->get('id'));
@@ -1040,71 +999,72 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		}
 
 		// Is the registration open?
-		if ($registerby >= $now) 
+		if ($registerby >= $now)
 		{
 			// Is the registration restricted?
-			if ($event->restricted) 
+			if ($event->restricted)
 			{
 				$passwrd = JRequest::getVar('passwrd', '', 'post');
 
-				if ($event->restricted == $passwrd) 
+				if ($event->restricted == $passwrd)
 				{
 					// Instantiate a view
-					$view = new JView(array('name' => 'register'));
-					$view->state = 'open';
-				} 
-				else 
-				{
-					// Instantiate a view
-					$view = new JView(array('name' => 'register', 'layout' => 'restricted'));
-					$view->state = 'restricted';
+					$this->view->setLayout('default');
+					$this->view->state = 'open';
 				}
-			} 
-			else 
+				else
+				{
+					// Instantiate a view
+					$this->view->setLayout('restricted');
+					$this->view->state = 'restricted';
+				}
+			}
+			else
 			{
 				// Instantiate a view
-				$view = new JView(array('name' => 'register'));
-				$view->state = 'open';
+				$this->view->setLayout('default');
+				$this->view->state = 'open';
 			}
-		} 
-		else 
+		}
+		else
 		{
 			// Instantiate a view
-			$view = new JView(array('name' => 'register', 'layout' => 'closed'));
-			$view->state = 'closed';
+			$this->view->setLayout('closed');
+			$this->view->state = 'closed';
 		}
 
 		// Output HTML
-		$view->option = $this->_option;
-		$view->title = JText::_(strtoupper($this->_name)) . ': ' . JText::_('EVENTS_REGISTER');
-		$view->task = $this->_task;
-		$view->year = $year;
-		$view->month = $month;
-		$view->day = $day;
-		$view->offset = $offset;
-		$view->event = $event;
-		$view->authorized = $auth;
-		$view->page = $page;
-		$view->pages = $pages;
-		$view->register = $register;
-		$view->arrival = null;
-		$view->departure = null;
-		if ($this->getError()) 
+		$this->view->setName('register');
+		$this->view->option = $this->_option;
+		$this->view->title = JText::_(strtoupper($this->_name)) . ': ' . JText::_('EVENTS_REGISTER');
+		$this->view->task = $this->_task;
+		$this->view->year = $year;
+		$this->view->month = $month;
+		$this->view->day = $day;
+		$this->view->offset = $offset;
+		$this->view->event = $event;
+		$this->view->authorized = $auth;
+		$this->view->page = $page;
+		$this->view->pages = $pages;
+		$this->view->register = $register;
+		$this->view->arrival = null;
+		$this->view->departure = null;
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
-				$view->setError($error);
+				$this->view->setError($error);
 			}
 		}
-		$view->display();
+		$this->view->display();
 	}
 
 	/**
 	 * Process event registration
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function process()
+	public function processTask()
 	{
 		$document = JFactory::getDocument();
 
@@ -1119,7 +1079,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$id = JRequest::getInt('id', 0, 'post');
 
 		// Ensure we have an ID
-		if (!$id) 
+		if (!$id)
 		{
 			$this->_redirect = JRoute::_('index.php?option=' . $this->_option);
 			return;
@@ -1131,14 +1091,14 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$this->event = $event;
 
 		// Ensure we have an event
-		if (!$event->title) 
+		if (!$event->title)
 		{
 			$this->_redirect = JRoute::_('index.php?option=' . $this->_option);
 			return;
 		}
 
 		$auth = true;
-		if ($this->config->getCfg('adminlevel')) 
+		if ($this->config->getCfg('adminlevel'))
 		{
 			$auth = $this->_authorize();
 		}
@@ -1160,27 +1120,27 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Set the pathway
 		$pathway = JFactory::getApplication()->getPathway();
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(JText::_(
-				strtoupper($this->_name)), 
+				strtoupper($this->_name)),
 				'index.php?option=' . $this->_option
 			);
 		}
 		$pathway->addItem(
-			$eyear, 
+			$eyear,
 			'index.php?option=' . $this->_option . '&year=' . $eyear
 		);
 		$pathway->addItem(
-			$emonth, 
+			$emonth,
 			'index.php?option=' . $this->_option . '&year=' . $eyear . '&month=' . $emonth
 		);
 		$pathway->addItem(
-			$eday, 
+			$eday,
 			'index.php?option=' . $this->_option . '&year=' . $eyear . '&month=' . $emonth . '&day=' . $eday
 		);
 		$pathway->addItem(
-			stripslashes($event->title), 
+			stripslashes($event->title),
 			'index.php?option=' . $this->_option . '&task=details&id=' . $event->id
 		);
 		$pathway->addItem(
@@ -1198,24 +1158,24 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$disability = JRequest::getVar('disability', NULL, 'post');
 		$race       = JRequest::getVar('race', NULL, 'post');
 
-		if ($register) 
+		if ($register)
 		{
 			$register = array_map('trim', $register);
 			$register = array_map(array('\\Hubzero\\Utility\\Sanitize', 'stripAll'), $register);
 
 			$validemail = $this->_validEmail($register['email']);
 		}
-		if ($arrival) 
+		if ($arrival)
 		{
 			$arrival = array_map('trim', $arrival);
 			$arrival = array_map(array('\\Hubzero\\Utility\\Sanitize', 'stripAll'), $arrival);
 		}
-		if ($departure) 
+		if ($departure)
 		{
 			$departure = array_map('trim', $departure);
 			$departure = array_map(array('\\Hubzero\\Utility\\Sanitize', 'stripAll'), $departure);
 		}
-		if ($dietary) 
+		if ($dietary)
 		{
 			$dietary = array_map('trim', $dietary);
 			$dietary = array_map(array('\\Hubzero\\Utility\\Sanitize', 'stripAll'), $dietary);
@@ -1224,12 +1184,12 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		// check to make sure this is the only time registering
 		if (EventsRespondent::checkUniqueEmailForEvent($register['email'], $event->id) > 0)
 		{
-			$this->setError(JText::_('You have previously registered for this event.'));
+			$this->setError(JText::_('EVENTS_EVENT_REGISTRATION_PREVIOUS'));
 			$validemail = 0;
 		}
 
 
-		if ($register['firstname'] && $register['lastname'] && ($validemail == 1)) 
+		if ($register['firstname'] && $register['lastname'] && ($validemail == 1))
 		{
 			$jconfig = JFactory::getConfig();
 
@@ -1240,7 +1200,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 				'name'  => $jconfig->getValue('config.sitename') . ' ' . JText::_('EVENTS_EVENT_REGISTRATION')
 			);
 
-			$eview = new JView(array('name'=>'register','layout'=>'email'));
+			$eview = new \Hubzero\Component\View(array('name'=>'register','layout'=>'email'));
 			$eview->option = $this->_option;
 			$eview->sitename= $jconfig->getValue('config.sitename');
 			$eview->register = $register;
@@ -1258,37 +1218,38 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 			$this->_log($register);
 
-			$view = new JView(array('name' => 'register', 'layout' => 'thanks'));
-		} 
-		else 
-		{
-			$view = new JView(array('name' => 'register'));
+			$this->view->setLayout('thanks');
 		}
-		$view->state = 'open';
-		$view->option = $this->_option;
-		$view->title = JText::_(strtoupper($this->_name)) . ': ' . JText::_('EVENTS_REGISTER');
-		$view->task = $this->_task;
-		$view->year = $year;
-		$view->month = $month;
-		$view->day = $day;
-		$view->offset = $offset;
-		$view->event = $event;
-		$view->authorized = $auth;
-		$view->page = $page;
-		$view->pages = $pages;
-		$view->register = $register;
-		$view->arrival = $arrival;
-		$view->departure = $departure;
-		if ($this->getError()) 
+		else
 		{
-			$view->setError($this->getError());
+			$this->view->setLayout('default');
 		}
-		$view->display();
+		$this->view->setName('register');
+		$this->view->state = 'open';
+		$this->view->option = $this->_option;
+		$this->view->title = JText::_(strtoupper($this->_name)) . ': ' . JText::_('EVENTS_REGISTER');
+		$this->view->task = $this->_task;
+		$this->view->year = $year;
+		$this->view->month = $month;
+		$this->view->day = $day;
+		$this->view->offset = $offset;
+		$this->view->event = $event;
+		$this->view->authorized = $auth;
+		$this->view->page = $page;
+		$this->view->pages = $pages;
+		$this->view->register = $register;
+		$this->view->arrival = $arrival;
+		$this->view->departure = $departure;
+		if ($this->getError())
+		{
+			$this->view->setError($this->getError());
+		}
+		$this->view->display();
 	}
 
 	/**
 	 * Log someone registering for an event
-	 * 
+	 *
 	 * @param      unknown $reg Parameter description (if any) ...
 	 * @return     void
 	 */
@@ -1298,7 +1259,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			'INSERT INTO #__events_respondents(
 				event_id,
 				first_name, last_name, affiliation, title, city, state, zip, country, telephone, fax, email,
-				website, position_description, highest_degree, gender, arrival, departure, disability_needs, 
+				website, position_description, highest_degree, gender, arrival, departure, disability_needs,
 				dietary_needs, attending_dinner, abstract, comment
 			)
 			VALUES (' .
@@ -1312,15 +1273,15 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		);
 		$this->database->query();
 		$races = JRequest::getVar('race', NULL, 'post');
-		if (!is_null($races) && (!isset($races['refused']) || !$races['refused'])) 
+		if (!is_null($races) && (!isset($races['refused']) || !$races['refused']))
 		{
 			$resp_id = $this->database->insertid();
 			foreach (array('nativeamerican', 'asian', 'black', 'hawaiian', 'white', 'hispanic') as $race)
 			{
-				if (array_key_exists($race, $races) && $races[$race]) 
+				if (array_key_exists($race, $races) && $races[$race])
 				{
 					$this->database->execute(
-						'INSERT INTO #__events_respondent_race_rel(respondent_id, race, tribal_affiliation) 
+						'INSERT INTO #__events_respondent_race_rel(respondent_id, race, tribal_affiliation)
 						VALUES (' . $resp_id . ', \'' . $race . '\', ' . ($race == 'nativeamerican' ? $this->database->quote($races['nativetribe']) : 'NULL') . ')'
 					);
 				}
@@ -1330,9 +1291,9 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Short description for '_getValueString'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $database Parameter description (if any) ...
 	 * @param      array $reg Parameter description (if any) ...
 	 * @param      array $values Parameter description (if any) ...
@@ -1384,14 +1345,14 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Redirect to login form
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function login()
+	public function loginTask()
 	{
 		$rtrn = JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->_option . '&task=' . $this->_task), 'server');
 		$this->setRedirect(
-			JRoute::_('index.php?option=com_login&return=' . base64_encode($rtrn)),
+			JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($rtrn)),
 			JText::_('EVENTS_LOGIN_NOTICE'),
 			'warning'
 		);
@@ -1399,47 +1360,37 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Short description for 'edit'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      mixed $row Parameter description (if any) ...
 	 * @return     unknown Return description (if any) ...
 	 */
-	protected function edit($row=NULL)
+	public function editTask($row=NULL)
 	{
 		// Check if they are logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$pathway = JFactory::getApplication()->getPathway();
-			if (count($pathway->getPathWay()) <= 0) 
+			if (count($pathway->getPathWay()) <= 0)
 			{
 				$pathway->addItem(
-					JText::_(strtoupper($this->_name)), 
+					JText::_(strtoupper($this->_name)),
 					'index.php?option=' . $this->_option
 				);
 			}
 			$pathway->addItem(
-				JText::_('EVENTS_CAL_LANG_ADD_TITLE'), 
+				JText::_('EVENTS_CAL_LANG_ADD_TITLE'),
 				'index.php?option=' . $this->_option . '&task=add'
 			);
 
-			$this->login();
+			$this->loginTask();
 			return;
-		}
-
-		// Push some styles to the tmeplate
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'calendar.css');
-
-		$this->_getScripts('assets/js/' . $this->_name);
-		if (!JPluginHelper::isEnabled('system', 'jquery'))
-		{
-			$this->_getScripts('assets/js/calendar.rc4');
 		}
 
 		// We need at least one category before we can proceed
 		$cat = new EventsCategory($this->database);
-		if ($cat->getCategoryCount($this->_option) < 1) 
+		if ($cat->getCategoryCount($this->_option) < 1)
 		{
 			JError::raiseError(500, JText::_('EVENTS_LANG_NEED_CATEGORY'));
 			return;
@@ -1449,38 +1400,38 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$id = JRequest::getInt('id', 0, 'request');
 
 		// Load event object
-		if (!is_object($row)) 
+		if (!is_object($row))
 		{
 			$row = new EventsEvent($this->database);
 			$row->load($id);
 		}
 
 		// Do we have an ID?
-		if ($row->id) 
+		if ($row->id)
 		{
 			// Yes - edit mode
 
 			// Are they authorized to make edits?
-			if (!$this->_authorize($row->created_by)) 
+			if (!$this->_authorize($row->created_by))
 			{
 				// Not authorized - redirect
 				$this->_redirect = JRoute::_('index.php?option=' . $this->_option);
 				return;
 			}
-			
+
 			//get timezone
 			$timezone = timezone_name_from_abbr('',$row->time_zone*3600, NULL);
-			
+
 			// get start date and time
 			$start_publish = JHTML::_('date', $row->publish_up, 'Y-m-d', $timezone);
 			$start_time = JHTML::_('date', $row->publish_up, 'H:i', $timezone);
-			
+
 			// get end date and time
 			$stop_publish = JHTML::_('date', $row->publish_down, 'Y-m-d', $timezone);
 			$end_time = JHTML::_('date', $row->publish_down, 'H:i', $timezone);
-			
+
 			$time_zone = $row->time_zone;
-			
+
 			$registerby_date = JHTML::_('date', $row->registerby, 'Y-m-d', $timezone);
 			$registerby_time = JHTML::_('date', $row->registerby, 'H:i', $timezone);
 
@@ -1490,10 +1441,10 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			);
 
 			$lists['state'] = JHTML::_('select.genericlist', $arr, 'state', '', 'value', 'text', $row->state, false, false);
-		} 
-		else 
+		}
+		else
 		{
-			if ($row->publish_up && $row->publish_up != '0000-00-00 00:00:00') 
+			if ($row->publish_up && $row->publish_up != '0000-00-00 00:00:00')
 			{
 				$event_up = new EventsDate($row->publish_up);
 				$start_publish = sprintf("%4d-%02d-%02d", $event_up->year, $event_up->month, $event_up->day);
@@ -1508,21 +1459,21 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 				$event_registerby = new EventsDate($row->registerby);
 				$registerby_date = sprintf("%4d-%02d-%02d", $event_registerby->year, $event_registerby->month, $event_registerby->day);
 				$registerby_time = $event_registerby->hour . ':' . $event_registerby->minute;
-			} 
-			else 
+			}
+			else
 			{
 				// No ID - we're creating a new event
 				$year  = $this->year;
 				$month = $this->month;
 				$day   = $this->day;
 
-				if ($year && $month && $day) 
+				if ($year && $month && $day)
 				{
 					$start_publish = $year . '-' . $month . '-' . $day;
 					$stop_publish = $year . '-' . $month . '-' . $day;
 					$registerby_date = $year . '-' . $month . '-' . $day;
-				} 
-				else 
+				}
+				else
 				{
 					$offset = $this->offset;
 
@@ -1546,7 +1497,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Get custom fields
 		$fields = $this->config->getCfg('fields');
-		if (!empty($fields)) 
+		if (!empty($fields))
 		{
 			for ($i=0, $n=count($fields); $i < $n; $i++)
 			{
@@ -1565,7 +1516,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$start_pm = false;
 		$end_pm = false;
 		$registerby_pm = false;
-		if ($this->config->getCfg('calUseStdTime') == 'YES') 
+		if ($this->config->getCfg('calUseStdTime') == 'YES')
 		{
 			$start_hrs = intval($start_hrs);
 			if ($start_hrs >= 12) $start_pm = true;
@@ -1630,62 +1581,60 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		// Set the pathway
 		$app = JFactory::getApplication();
 		$pathway = $app->getPathway();
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
-				JText::_(strtoupper($this->_name)), 
+				JText::_(strtoupper($this->_name)),
 				'index.php?option=' . $this->_option
 			);
 		}
 		$p = 'index.php?option=' . $this->_option . '&task=' . $this->_task;
-		if ($row->id) 
+		if ($row->id)
 		{
 			$p .= '&id=' . $row->id;
 		}
 		$pathway->addItem(
-			JText::_(strtoupper($this->_name) . '_' . strtoupper($this->_task)), 
+			JText::_(strtoupper($this->_name) . '_' . strtoupper($this->_task)),
 			$p
 		);
-		if ($row->id) 
+		if ($row->id)
 		{
 			$pathway->addItem(
-				stripslashes($row->title), 
+				stripslashes($row->title),
 				'index.php?option=' . $this->_option . '&task=details&id=' . $row->id
 			);
 		}
 
 		// Output HTML
-		$view = new JView(array(
-			'name' => 'edit'
-		));
-		$view->option = $this->_option;
-		$view->title = JText::_(strtoupper($this->_name)) . ': ' . JText::_(strtoupper($this->_name) . '_' . strtoupper($this->_task));
-		$view->task = $this->_task;
-		$view->config = $this->config;
-		$view->row = $row;
-		$view->fields = $fields;
-		$view->times = $times;
-		$view->lists = $lists;
-		$view->gid = $this->gid;
-		$view->admin = $this->_authorize();
-		if ($this->getError()) 
+		$this->view->setLayout('default')->setName('edit');
+		$this->view->option = $this->_option;
+		$this->view->title = JText::_(strtoupper($this->_name)) . ': ' . JText::_(strtoupper($this->_name) . '_' . strtoupper($this->_task));
+		$this->view->task = $this->_task;
+		$this->view->config = $this->config;
+		$this->view->row = $row;
+		$this->view->fields = $fields;
+		$this->view->times = $times;
+		$this->view->lists = $lists;
+		$this->view->gid = $this->gid;
+		$this->view->admin = $this->_authorize();
+		if ($this->getError())
 		{
-			$view->setError($this->getError());
+			$this->view->setError($this->getError());
 		}
-		$view->display();
+		$this->view->display();
 	}
 
 	/**
 	 * Delete an event
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function delete()
+	public function deleteTask()
 	{
 		// Check if they are logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
-			$this->login();
+			$this->loginTask();
 			return;
 		}
 
@@ -1693,7 +1642,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$id = JRequest::getInt('id', 0, 'request');
 
 		// Ensure we have an ID to work with
-		if (!$id) 
+		if (!$id)
 		{
 			$this->_redirect = JRoute::_('index.php?option=' . $this->_option);
 			return;
@@ -1703,7 +1652,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$event = new EventsEvent($this->database);
 		$event->load($id);
 
-		if (!$this->_authorize($event->created_by)) 
+		if (!$this->_authorize($event->created_by))
 		{
 			$this->_redirect = JRoute::_('index.php?option=' . $this->_option);
 			return;
@@ -1716,7 +1665,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		/* [!] No! Don't! True record deletion should only occur on the amdin side! - zooley 10/2013
 		$event->delete($id);
 
-		// Delete any associated pages 
+		// Delete any associated pages
 		$ep = new EventsPage($this->database);
 		$ep->deletePages($id);
 
@@ -1739,7 +1688,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$subject  = '[' . $jconfig->getValue('config.sitename') . ' ' . JText::_('EVENTS') . '] - ' . JText::_('EVENTS_EVENT_DELETED');
 
 		// Build the message to be e-mailed
-		$eview = new JView(array(
+		$eview = new \Hubzero\Component\View(array(
 			'name'   => 'emails',
 			'layout' => 'deleted'
 		));
@@ -1759,15 +1708,15 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Save an event
-	 * 
+	 *
 	 * @return     void
 	 */
-	protected function save()
+	public function saveTask()
 	{
 		// Check if they are logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
-			$this->login();
+			$this->loginTask();
 			return;
 		}
 
@@ -1785,38 +1734,38 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		// Bind the posted data to an event object
 		$row = new EventsEvent($this->database);
-		if (!$row->bind($_POST)) 
+		if (!$row->bind($_POST))
 		{
 			JError::raiseError(500, $row->getError());
 			return;
 		}
 
 		// New entry or existing?
-		if ($row->id) 
+		if ($row->id)
 		{
 			$state = 'edit';
 
 			// Existing - update modified info
 			$row->modified = strftime("%Y-%m-%d %H:%M:%S", time()+($offset*60*60));
-			if ($this->juser->get('id')) 
+			if ($this->juser->get('id'))
 			{
 				$row->modified_by = $this->juser->get('id');
 			}
-		} 
-		else 
+		}
+		else
 		{
 			$state = 'add';
-			
+
 			// New - set created info
 			$row->created = strftime("%Y-%m-%d %H:%M:%S", time()+($offset*60*60));
-			if ($this->juser->get('id')) 
+			if ($this->juser->get('id'))
 			{
 				$row->created_by = $this->juser->get('id');
 			}
 		}
 
 		// Set some fields and do some cleanup work
-		if ($row->catid) 
+		if ($row->catid)
 		{
 			$row->catid = intval($row->catid);
 		}
@@ -1827,7 +1776,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$row->content = $this->_clean($row->content);
 
 		// Get the custom fields defined in the events configuration
-		if (isset($_POST['fields'])) 
+		if (isset($_POST['fields']))
 		{
 			$fields = $_POST['fields'];
 			$fields = array_map('trim', $fields);
@@ -1836,15 +1785,15 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			$fs = $this->config->fields;
 			foreach ($fields as $param=>$value)
 			{
-				if (trim($value) != '') 
+				if (trim($value) != '')
 				{
 					$row->content .= '<ef:' . $param . '>' . $this->_clean($value) . '</ef:' . $param . '>';
-				} 
-				else 
+				}
+				else
 				{
 					foreach ($fs as $f)
 					{
-						if ($f[0] == $param && end($f) == 1) 
+						if ($f[0] == $param && end($f) == 1)
 						{
 							JError::raiseError(500, JText::sprintf('EVENTS_REQUIRED_FIELD_CHECK', $f[1]));
 							return;
@@ -1864,16 +1813,16 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$row->extra_info = $this->_clean($row->extra_info);
 
 		// Prepend http:// to URLs without it
-		if ($row->extra_info != NULL) 
+		if ($row->extra_info != NULL)
 		{
-			if ((substr($row->extra_info, 0, 7) != 'http://') && (substr($row->extra_info, 0, 8) != 'https://')) 
+			if ((substr($row->extra_info, 0, 7) != 'http://') && (substr($row->extra_info, 0, 8) != 'https://'))
 			{
 				$row->extra_info = 'http://' . $row->extra_info;
 			}
 		}
 
 		// Reformat the time into 24hr format if necessary
-		if ($this->config->getCfg('calUseStdTime') =='YES') 
+		if ($this->config->getCfg('calUseStdTime') =='YES')
 		{
 			list($hrs, $mins) = explode(':', $start_time);
 			$hrs = intval($hrs);
@@ -1893,7 +1842,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			if ($mins < 10) $mins = '0' . $mins;
 			$end_time = $hrs . ':' . $mins;
 		}
-		
+
 		// hack to fix where timezones cant be found by offset int
 		// really need to figure datetimes out
 		switch ($row->time_zone)
@@ -1914,42 +1863,42 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			case 14:     $tz = 'Pacific/Kiritimati';     break;
 			default:     $tz = timezone_name_from_abbr('',$row->time_zone*3600, NULL);
 		}
-		
+
 		// create timezone objects
 		$utcTimezone   = new DateTimezone('UTC');
 		$eventTimezone = new DateTimezone($tz);
-		
+
 		// create publish up date time string
 		$rpup = $row->publish_up;
 		$publishtime = date('Y-m-d 00:00:00');
-		if ($row->publish_up) 
+		if ($row->publish_up)
 		{
 			$publishtime = $row->publish_up . ' ' . $start_time . ':00';
 		}
-		
+
 		// set publish up date/time in UTC
 		$up = new DateTime($publishtime, $eventTimezone);
 		$up->setTimezone($utcTimezone);
 		$row->publish_up = $up->format("Y-m-d H:i:s");
-		
+
 		// create publish down date/time string
 		$publishtime = date('Y-m-d 00:00:00');
-		if ($row->publish_down) 
+		if ($row->publish_down)
 		{
 			$publishtime = $row->publish_down . ' ' . $end_time . ':00';
 		}
-		
+
 		// set publish date date/time in UTC
 		$up = new DateTime($publishtime, $eventTimezone);
 		$up->setTimezone($utcTimezone);
 		$row->publish_down = $up->format("Y-m-d H:i:s");
 
 		// Always unpublish if no Publisher otherwise publish automatically
-		if ($this->config->getCfg('adminlevel')) 
+		if ($this->config->getCfg('adminlevel'))
 		{
 			$row->state = 0;
-		} 
-		else 
+		}
+		else
 		{
 			$row->state = 1;
 		}
@@ -1958,34 +1907,34 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 		$pubdow = strtotime($row->publish_down);
 		$pubup = strtotime($row->publish_up);
-		if ($pubdow <= $pubup) 
+		if ($pubdow <= $pubup)
 		{
 			// Set the error message
-			$this->setError(JText::_('Event end time cannot be before event start time.'));
+			$this->setError(JText::_('EVENTS_EVENT_MUST_END_AFTER_START'));
 			// Fall through to the edit view
 			$this->edit($row);
 			return;
 		}
-		
+
 		//set the scope to be regular events
 		$row->scope = 'event';
-		
-		if (!$row->check()) 
+
+		if (!$row->check())
 		{
 			// Set the error message
 			$this->setError($row->getError());
 			$this->tags = $tags;
 			// Fall through to the edit view
-			$this->edit($row);
+			$this->editTask($row);
 			return;
 		}
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			// Set the error message
 			$this->setError($row->getError());
 			$this->tags = $tags;
 			// Fall through to the edit view
-			$this->edit($row);
+			$this->editTask($row);
 
 			return;
 		}
@@ -1998,17 +1947,17 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		$jconfig = JFactory::getConfig();
 
 		// Build the message to be e-mailed
-		if ($state == 'add') 
+		if ($state == 'add')
 		{
 			$subject  = '[' . $jconfig->getValue('config.sitename') . ' ' . JText::_('EVENTS_CAL_LANG_CAL_TITLE') . '] - ' . JText::_('EVENTS_CAL_LANG_MAIL_ADDED');
 
-			$eview = new JView(array('name'=>'emails','layout'=>'created'));
-		} 
-		else 
+			$eview = new \Hubzero\Component\View(array('name'=>'emails','layout'=>'created'));
+		}
+		else
 		{
 			$subject  = '[' . $jconfig->getValue('config.sitename') . ' ' . JText::_('EVENTS_CAL_LANG_CAL_TITLE') . '] - ' . JText::_('EVENTS_CAL_LANG_MAIL_ADDED');
 
-			$eview = new JView(array('name'=>'emails','layout'=>'edited'));
+			$eview = new \Hubzero\Component\View(array('name'=>'emails','layout'=>'edited'));
 		}
 		$eview->option = $this->_option;
 		$eview->sitename = $jconfig->getValue('config.sitename');
@@ -2026,7 +1975,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Send an email
-	 * 
+	 *
 	 * @param      array &$hub Parameter description (if any) ...
 	 * @param      unknown $email Parameter description (if any) ...
 	 * @param      unknown $subject Parameter description (if any) ...
@@ -2035,7 +1984,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 	 */
 	private function _sendEmail(&$hub, $email, $subject, $message)
 	{
-		if ($hub) 
+		if ($hub)
 		{
 			$jconfig = JFactory::getConfig();
 			$contact_email = $hub['email'];
@@ -2049,7 +1998,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			$headers .= "X-Priority: 3\n";
 			$headers .= "X-MSMail-Priority: High\n";
 			$headers .= 'X-Mailer: '.  $jconfig->getValue('config.sitename') ."\n";
-			if (mail($email, $subject, $message, $headers, $args)) 
+			if (mail($email, $subject, $message, $headers, $args))
 			{
 				return(1);
 			}
@@ -2059,7 +2008,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Check if an email address is valid
-	 * 
+	 *
 	 * @param      string $email Email address to check
 	 * @return     integer 1 = valid, 0 = invalid
 	 */
@@ -2067,8 +2016,8 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 	{
 		if (preg_match("/^[_\.\%0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i", $email)) {
 			return(1);
-		} 
-		else 
+		}
+		else
 		{
 			return(0);
 		}
@@ -2076,19 +2025,12 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Get all the events categories
-	 * 
+	 *
 	 * @return     array
 	 */
 	private function _getCategories()
 	{
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			$sql = "SELECT * FROM #__categories WHERE section='" . $this->_option . "' AND published = '1' ORDER BY ordering ASC";
-		}
-		else
-		{
-			$sql = "SELECT * FROM #__categories WHERE extension='" . $this->_option . "' AND published = '1' ORDER BY lft ASC";
-		}
+		$sql = "SELECT * FROM `#__categories` WHERE extension='" . $this->_option . "' AND published = '1' ORDER BY lft ASC";
 
 		$this->database->setQuery($sql);
 		$cats = $this->database->loadObjectList();
@@ -2104,9 +2046,9 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Short description for 'parseTag'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $text Parameter description (if any) ...
 	 * @param      string $tag Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
@@ -2114,13 +2056,13 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 	public static function parseTag($text, $tag)
 	{
 		preg_match("#<ef:" . $tag . ">(.*?)</ef:" . $tag . ">#s", $text, $matches);
-		if (count($matches) > 0) 
+		if (count($matches) > 0)
 		{
 			$match = $matches[0];
 			$match = str_replace('<ef:' . $tag . '>', '', $match);
 			$match = str_replace('</ef:' . $tag . '>', '', $match);
-		} 
-		else 
+		}
+		else
 		{
 			$match = '';
 		}
@@ -2129,15 +2071,15 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Short description for '_clean'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $string Parameter description (if any) ...
 	 * @return     unknown Return description (if any) ...
 	 */
 	private function _clean($string)
 	{
-		if (get_magic_quotes_gpc()) 
+		if (get_magic_quotes_gpc())
 		{
 			$string = stripslashes($string);
 		}
@@ -2162,7 +2104,7 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 		// remove javascript: and vbscript: protocol
 		$string = preg_replace('#([a-z]*)[\x00-\x20]*=[\x00-\x20]*([\`\'\"]*)[\\x00-\x20]*j[\x00-\x20]*a[\x00-\x20]*v[\x00-\x20]*a[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iUu', '$1=$2nojavascript...', $string);
 		$string = preg_replace('#([a-z]*)[\x00-\x20]*=([\'\"]*)[\x00-\x20]*v[\x00-\x20]*b[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iUu', '$1=$2novbscript...', $string);
-		//<span style="width: expression(alert('Ping!'));"></span> 
+		//<span style="width: expression(alert('Ping!'));"></span>
 		// only works in ie...
 		$string = preg_replace('#(<[^>]+)style[\x00-\x20]*=[\x00-\x20]*([\`\'\"]*).*expression[\x00-\x20]*\([^>]*>#iU', "$1>", $string);
 		$string = preg_replace('#(<[^>]+)style[\x00-\x20]*=[\x00-\x20]*([\`\'\"]*).*behaviour[\x00-\x20]*\([^>]*>#iU', "$1>", $string);
@@ -2180,9 +2122,9 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Short description for '_sendMail'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $name Parameter description (if any) ...
 	 * @param      string $email Parameter description (if any) ...
 	 * @param      unknown $subject Parameter description (if any) ...
@@ -2206,40 +2148,30 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 
 	/**
 	 * Short description for '_authorize'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $id Parameter description (if any) ...
 	 * @return     boolean Return description (if any) ...
 	 */
 	protected function _authorize($id='')
 	{
 		// Check if they are logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			return false;
 		}
 
 		// Check if they're a site admin from Joomla
-		if (version_compare(JVERSION, '1.6', 'ge'))
+		if ($this->juser->authorise('core.admin', $this->_option . '.component'))
 		{
-			if ($this->juser->authorise('core.admin', $this->_option . '.component'))
-			{
-				return true;
-			}
-		}
-		else 
-		{
-			if ($this->juser->authorize($this->_option, 'manage')) 
-			{
-				return true;
-			}
+			return true;
 		}
 
 		// Check against events configuration
-		if (!$this->config->getCfg('adminlevel')) 
+		if (!$this->config->getCfg('adminlevel'))
 		{
-			if ($id && $id == $this->juser->get('id')) 
+			if ($id && $id == $this->juser->get('id'))
 			{
 				return true;
 			}

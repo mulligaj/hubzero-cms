@@ -48,25 +48,25 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		// Filters
 		$this->view->filters = array();
 		$this->view->filters['limit']    = $app->getUserStateFromRequest(
-			$this->_option . '.jobs.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.jobs.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']    = $app->getUserStateFromRequest(
-			$this->_option . '.jobs.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.jobs.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
 		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.jobs.sort', 
-			'filter_order', 
+			$this->_option . '.jobs.sort',
+			'filter_order',
 			'id'
 		));
 		$this->view->filters['sort_Dir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.jobs.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.jobs.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 
@@ -81,13 +81,13 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		// initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -122,11 +122,11 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array(0));
-		if (is_array($ids)) 
+		if (is_array($ids))
 		{
 			$id = intval($ids[0]);
 		}
-	
+
 		// load infor from database
 		if (is_object($row))
 		{
@@ -184,12 +184,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 			}
 		}
 
-		$query = "SELECT p.* FROM `#__extensions` AS p WHERE p.type='plugin' AND p.folder='cron' AND enabled=1 ORDER BY p.ordering";
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			$query = "SELECT p.* FROM `#__plugins` AS p WHERE p.folder='cron' AND published=1 ORDER BY p.ordering";
-		}
-		$this->database->setQuery($query);
+		$this->database->setQuery("SELECT p.* FROM `#__extensions` AS p WHERE p.type='plugin' AND p.folder='cron' AND enabled=1 ORDER BY p.ordering");
 		$this->view->plugins = $this->database->loadObjectList();
 		if ($this->view->plugins)
 		{
@@ -200,7 +195,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		}
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -219,18 +214,18 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 	 *
 	 * @return	void
 	 */
-	public function applyTask() 
+	public function applyTask()
 	{
 		$this->saveTask(false);
 	}
 
 	/**
 	 * Save changes to an entry
-	 * 
+	 *
 	 * @param      boolean $redirect Redirect (true) or fall through to edit form (false) ?
 	 * @return     void
 	 */
-	public function saveTask($redirect=true) 
+	public function saveTask($redirect=true)
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
@@ -266,7 +261,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 
 		// Initiate extended database class
 		$row = new CronModelJob();
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -278,21 +273,13 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 			$row->set('next_run', $row->nextRun());
 		}
 
-		$paramsClass = 'JParameter';
-		$mthd = 'bind';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-			$mthd = 'loadArray';
-		}
-
-		$p = new $paramsClass('');
-		$p->$mthd(JRequest::getVar('params', '', 'post'));
+		$p = new JRegistry('');
+		$p->loadArray(JRequest::getVar('params', '', 'post'));
 
 		$row->set('params', $p->toString());
 
 		// Store content
-		if (!$row->store(true)) 
+		if (!$row->store(true))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -304,7 +291,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 			// Redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Item Successfully Saved')
+				JText::_('COM_CRON_ITEM_SAVED')
 			);
 			return;
 		}
@@ -314,10 +301,10 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 
 	/**
 	 * Deletes one or more records and redirects to listing
-	 * 
+	 *
 	 * @return     void
 	 */
-	public function runTask() 
+	public function runTask()
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
@@ -326,11 +313,11 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		$ids = JRequest::getVar('id', array());
 
 		// Ensure we have an ID to work with
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No entry selected'),
+				JText::_('COM_CRON_ERROR_NO_ITEMS_SELECTED'),
 				'error'
 			);
 			return;
@@ -343,7 +330,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		$output->jobs = array();
 
 		// Loop through each ID
-		foreach ($ids as $id) 
+		foreach ($ids as $id)
 		{
 			$job = new CronModelJob(intval($id));
 			if (!$job->exists())
@@ -387,7 +374,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 
 		$this->view->output = $output;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -399,10 +386,10 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 
 	/**
 	 * Deletes one or more records and redirects to listing
-	 * 
+	 *
 	 * @return     void
 	 */
-	public function removeTask() 
+	public function removeTask()
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
@@ -411,11 +398,11 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		$ids = JRequest::getVar('id', array());
 
 		// Ensure we have an ID to work with
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No entry selected'),
+				JText::_('COM_CRON_ERROR_NO_ITEMS_SELECTED'),
 				'error'
 			);
 			return;
@@ -424,7 +411,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		$obj = new CronTableJob($this->database);
 
 		// Loop through each ID
-		foreach ($ids as $id) 
+		foreach ($ids as $id)
 		{
 			if (!$obj->delete(intval($id)))
 			{
@@ -435,13 +422,13 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Item(s) Successfully Removed')
+			JText::_('COM_CRON_ITEMS_DELETED')
 		);
 	}
 
 	/**
 	 * Calls stateTask to publish entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function publishTask()
@@ -451,7 +438,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 
 	/**
 	 * Calls stateTask to unpublish entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function unpublishTask()
@@ -461,11 +448,11 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 
 	/**
 	 * Sets the state of one or more entries
-	 * 
+	 *
 	 * @param      integer The state to set entries to
 	 * @return     void
 	 */
-	public function stateTask($state=0) 
+	public function stateTask($state=0)
 	{
 		// Check for request forgeries
 		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
@@ -474,37 +461,37 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 		$ids = JRequest::getVar('id', array());
 
 		// Check for an ID
-		if (count($ids) < 1) 
+		if (count($ids) < 1)
 		{
-			$action = ($state == 1) ? JText::_('unpublish') : JText::_('publish');
+			$action = ($state == 1) ? JText::_('COM_CRON_STATE_UNPUBLISH') : JText::_('COM_CRON_STATE_PUBLISH');
 
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::sprintf('Select an entry to %s', $action),
+				JText::sprintf('COM_CRON_ERROR_SELECT_ITEMS', $action),
 				'error'
 			);
 			return;
 		}
 
-		foreach ($ids as $id) 
+		foreach ($ids as $id)
 		{
 			// Update record(s)
 			$row = new CronModelJob($id);
 			$row->set('state', $state);
-			if (!$row->store()) 
+			if (!$row->store())
 			{
 				$this->addComponentMessage($row->getError(), 'error');
 			}
 		}
 
 		// set message
-		if ($state == 1) 
+		if ($state == 1)
 		{
-			$message = JText::sprintf('%s Item(s) successfully published', count($ids));
-		} 
+			$message = JText::sprintf('COM_CRON_ITEMS_PUBLISHED', count($ids));
+		}
 		else
 		{
-			$message = JText::sprintf('%s Item(s) successfully unpublished', count($ids));
+			$message = JText::sprintf('COM_CRON_ITEMS_UNPUBLISHED', count($ids));
 		}
 
 		$this->setRedirect(
@@ -515,7 +502,7 @@ class CronControllerJobs extends \Hubzero\Component\AdminController
 
 	/**
 	 * Cancels a task and redirects to listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cancelTask()

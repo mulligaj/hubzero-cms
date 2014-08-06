@@ -31,25 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-//$this->page->set('pagename', $this->page->denamespaced());
+if (!$this->sub)
+{
+	$this->css();
+}
+$this->js();
 
 $juser = JFactory::getUser();
 ?>
-	<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
+	<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 		<h2><?php echo $this->page->get('title'); ?></h2>
-	</div><!-- /#content-header -->
-
-	<?php /*if (!$juser->get('guest') && $this->config->get('access-create')) { ?>
-	<div id="<?php echo ($this->sub) ? 'sub-content-header-extra' : 'content-header-extra'; ?>">
-		<ul id="<?php echo ($this->sub) ? 'page_options' : 'useroptions'; ?>">
-			<li>
-				<a class="add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&scope=' . $this->page->scope . '&' . ($this->sub ? 'action' : 'task') . '=new'); ?>">
-					<?php echo JText::_('COM_WIKI_NEW_PAGE'); ?>
-				</a>
-			</li>
-		</ul>
-	</div><!-- / #content-header-extra -->
-	<?php }*/ ?>
+	</header><!-- /#content-header -->
 
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
@@ -60,37 +52,29 @@ $juser = JFactory::getUser();
 <?php } ?>
 
 <?php
-	$view = new JView(array(
-		'base_path' => $this->base_path, 
-		'name'      => 'page',
-		'layout'    => 'submenu'
-	));
-	$view->option = $this->option;
-	$view->controller = $this->controller;
-	$view->page   = $this->page;
-	$view->task   = $this->task;
-	$view->config = $this->config;
-	$view->sub    = $this->sub;
-	$view->display();
+	$this->view('submenu', 'page')
+	     ->setBasePath($this->base_path)
+	     ->set('option', $this->option)
+	     ->set('controller', $this->controller)
+	     ->set('page', $this->page)
+	     ->set('task', $this->task)
+	     ->set('sub', $this->sub)
+	     ->display();
 ?>
 
-	<div class="main section">
-
-<?php
-	$view = new JView(array(
-		'base_path' => $this->base_path, 
-		'name'      => 'special',
-		'layout'    => strtolower($this->layout)
-	));
-	$view->option = $this->option;
-	$view->controller = $this->controller;
-	$view->page   = $this->page;
-	$view->task   = $this->task;
-	$view->config = $this->config;
-	$view->sub    = $this->sub;
-	$view->book   = $this->book;
-	//$view->revision = $this->revision;
-	$view->display()
-?>
-
-	</div><!-- / .main section -->
+	<section class="main section">
+		<article>
+		<?php
+			$this->view(strtolower($this->layout), 'special')
+			     ->setBasePath($this->base_path)
+			     ->set('option', $this->option)
+			     ->set('controller', $this->controller)
+			     ->set('page', $this->page)
+			     ->set('task', $this->task)
+			     ->set('sub', $this->sub)
+			     ->set('config', $this->config)
+			     ->set('book', $this->book)
+			     ->display()
+		?>
+		</article>
+	</section><!-- / .main section -->

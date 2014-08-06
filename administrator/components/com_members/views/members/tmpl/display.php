@@ -35,26 +35,26 @@ $canDo = MembersHelper::getActions('component');
 $juser =  JFactory::getUser();
 
 JToolBarHelper::title(JText::_('MEMBERS'), 'user.png');
-if ($canDo->get('core.admin')) 
+if ($canDo->get('core.admin'))
 {
 	JToolBarHelper::preferences($this->option, '550');
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.edit.state')) 
+if ($canDo->get('core.edit.state'))
 {
 	JToolBarHelper::publishList('confirm', JText::_('Confirm'));
 	JToolBarHelper::unpublishList('unconfirm', JText::_('Unconfirm'));
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.create')) 
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editList();
 }
-if ($canDo->get('core.delete')) 
+if ($canDo->get('core.delete'))
 {
 	//JToolBarHelper::deleteList();
 }
@@ -62,7 +62,7 @@ if ($canDo->get('core.delete'))
 JHTML::_('behavior.tooltip');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.getElementById('adminForm');
 	if (pressbutton == 'cancel') {
@@ -86,20 +86,20 @@ function submitbutton(pressbutton)
 				<option value="givenName"<?php if ($this->filters['search_field'] == 'givenName') { echo ' selected="selected"'; } ?>><?php echo JText::_('FIRST_NAME'); ?></option>
 				<option value="name"<?php if ($this->filters['search_field'] == 'name') { echo ' selected="selected"'; } ?>><?php echo JText::_('FULL_NAME'); ?></option>
 			</select>
-			
-			<label for="filter_search"><?php echo JText::_('for'); ?></label> 
-			<input type="text" name="search" id="filter_search" value="<?php echo $this->filters['search']; ?>" />
-			
+
+			<label for="filter_search"><?php echo JText::_('for'); ?></label>
+			<input type="text" name="search" id="filter_search" value="<?php echo $this->filters['search']; ?>" placeholder="<?php echo JText::_('Search...'); ?>" />
+
 			<input type="submit" value="<?php echo JText::_('GO'); ?>" />
 		</div>
-		<div class="col width-60 fltrt" style="text-align: right;">
+		<div class="col width-60 fltrt">
 			<select name="emailConfirmed" id="filter_emailConfirmed" onchange="document.adminForm.submit( );">
-				<option value="0"<?php if ($this->filters['emailConfirmed'] == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('- Select email confirmed -'); ?></option>
+				<option value="0"<?php if ($this->filters['emailConfirmed'] == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('- Email confirmed -'); ?></option>
 				<option value="1"<?php if ($this->filters['emailConfirmed'] == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('Confirmed'); ?></option>
 				<option value="-1"<?php if ($this->filters['emailConfirmed'] == -1) { echo ' selected="selected"'; } ?>><?php echo JText::_('Unconfirmed'); ?></option>
 			</select>
 			<select name="public" id="filter_public" onchange="document.adminForm.submit( );">
-				<option value="-1"<?php if ($this->filters['public'] == -1) { echo ' selected="selected"'; } ?>><?php echo JText::_('- Select profile access -'); ?></option>
+				<option value="-1"<?php if ($this->filters['public'] == -1) { echo ' selected="selected"'; } ?>><?php echo JText::_('- Profile access -'); ?></option>
 				<option value="1"<?php if ($this->filters['public'] == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('Public'); ?></option>
 				<option value="0"<?php if ($this->filters['public'] == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('Private'); ?></option>
 			</select>
@@ -107,9 +107,9 @@ function submitbutton(pressbutton)
 		<div class="clr"></div>
 	</fieldset>
 
-	<table class="adminlist" summary="<?php echo JText::_('TABLE_SUMMARY'); ?>">
+	<table class="adminlist">
 		<thead>
-		 	<tr>
+			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('ID'), 'uidNumber', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', JText::_('Name'), 'lname', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
@@ -133,6 +133,8 @@ function submitbutton(pressbutton)
 $default = DS . trim($this->config->get('defaultpic'), DS);
 $default = \Hubzero\User\Profile\Helper::thumbit($default);
 
+$base = str_replace('/administrator', '', JURI::base(true));
+
 $k = 0;
 for ($i=0, $n=count($this->rows); $i < $n; $i++)
 {
@@ -140,15 +142,15 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 
 	$row = &$this->rows[$i];
 
-	if (!$row->surname && !$row->givenName) 
+	if (!$row->surname && !$row->givenName)
 	{
 		$bits = explode(' ', $row->name);
 		$row->surname = array_pop($bits);
-		if (count($bits) >= 1) 
+		if (count($bits) >= 1)
 		{
 			$row->givenName = array_shift($bits);
 		}
-		if (count($bits) >= 1) 
+		if (count($bits) >= 1)
 		{
 			$row->middleName = implode(' ', $bits);
 		}
@@ -156,7 +158,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 	$row->surname = (trim($row->surname)) ? trim($row->surname) : JText::_('[undefined]');
 	$row->givenName = (trim($row->givenName)) ? trim($row->givenName) : JText::_('[undefined]');
 
-	switch ($row->emailConfirmed) 
+	switch ($row->emailConfirmed)
 	{
 		case '1':
 			$task = 'unconfirm';
@@ -178,22 +180,22 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 			break;
 	}
 
-	if (!$row->lastvisitDate || $row->lastvisitDate == "0000-00-00 00:00:00") 
+	if (!$row->lastvisitDate || $row->lastvisitDate == "0000-00-00 00:00:00")
 	{
 		$lvisit = '<span class="never" style="color:#bbb;">' . JText::_('never') . '</span>';
-	} 
-	else 
+	}
+	else
 	{
 		$lvisit = JHTML::_('date', $row->lastvisitDate, 'Y-m-d');
 	}
-	
+
 	if ($row->picture)
 	{
 		$thumb  = DS . trim($this->config->get('webpath'), DS);
 		$thumb .= DS . \Hubzero\User\Profile\Helper::niceidformat($row->uidNumber);
 		$thumb .= DS . ltrim($row->picture, DS);
 		$thumb = \Hubzero\User\Profile\Helper::thumbit($thumb);
-		
+
 		if (file_exists(JPATH_ROOT . $thumb))
 		{
 			$picture = $thumb;
@@ -208,7 +210,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 					<?php echo $row->uidNumber; ?>
 				</td>
 				<td>
-					<a class="editlinktip hasTip" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<? echo $row->uidNumber; ?>" title="<?php echo $this->escape(stripslashes($row->name)); ?>::<img border=&quot;1&quot; src=&quot;<?php echo $picture; ?>&quot; name=&quot;imagelib&quot; alt=&quot;User photo&quot; width=&quot;40&quot; height=&quot;40&quot; style=&quot;float: left; margin-right: 0.5em;&quot; /><span class=&quot;glyph org&quot;><?php echo ($row->organization) ? $this->escape(stripslashes($row->organization)) : '[organization unknown]'; ?></span><br /><span class=&quot;glyph <?php echo ($row->public) ? 'public' : 'private'; ?>&quot;><?php echo ($row->public) ? 'public profile' : 'private profile'; ?></span>">
+					<a class="editlinktip hasTip" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<? echo $row->uidNumber; ?>" title="<?php echo $this->escape(stripslashes($row->name)); ?>::<img border=&quot;1&quot; src=&quot;<?php echo $base . $picture; ?>&quot; name=&quot;imagelib&quot; alt=&quot;User photo&quot; width=&quot;40&quot; height=&quot;40&quot; style=&quot;float: left; margin-right: 0.5em;&quot; /><span class=&quot;glyph org&quot;><?php echo ($row->organization) ? $this->escape(stripslashes($row->organization)) : '[organization unknown]'; ?></span><br /><span class=&quot;glyph <?php echo ($row->public) ? 'public' : 'private'; ?>&quot;><?php echo ($row->public) ? 'public profile' : 'private profile'; ?></span>">
 						<?php echo $this->escape(stripslashes($row->surname)) . ', ' . $this->escape(stripslashes($row->givenName)) . ' ' . $this->escape(stripslashes($row->middleName)); ?>
 					</a>
 				</td>
@@ -216,9 +218,9 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 					<?php echo $this->escape($row->username); ?>
 				</td>
 				<td>
-<?php if (trim($row->email)) { ?>
+				<?php if (trim($row->email)) { ?>
 					<a href="mailto:<?php echo $row->email; ?>"><?php echo $this->escape($row->email); ?></a>
-<?php } ?>
+				<?php } ?>
 				</td>
 				<td>
 					<a class="state <?php echo $state; ?>" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task; ?>&amp;id[]=<?php echo $row->uidNumber; ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="Set this to <?php echo $task;?>">
@@ -243,7 +245,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="" />
 	<input type="hidden" name="boxchecked" value="0" />
-	
+
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sort']; ?>" />
 	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
 	<?php echo JHTML::_('form.token'); ?>

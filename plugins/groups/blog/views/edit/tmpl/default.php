@@ -42,6 +42,12 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 }
 
 $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=blog';
+
+$this->css()
+     ->css('jquery.datepicker.css', 'system')
+     ->css('jquery.timepicker.css', 'system')
+     ->js('jquery.timepicker', 'system')
+     ->js();
 ?>
 <ul id="page_options">
 	<li>
@@ -62,10 +68,10 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 		<?php if ($this->task == 'save' && !$this->entry->get('title')) { ?>
 			<p class="error"><?php echo JText::_('PLG_GROUPS_BLOG_ERROR_PROVIDE_TITLE'); ?></p>
 		<?php } ?>
-		
+
 		<label for="entry_content">
 			<?php echo JText::_('PLG_GROUPS_BLOG_FIELD_CONTENT'); ?> <span class="required"><?php echo JText::_('PLG_GROUPS_BLOG_REQUIRED'); ?></span>
-			<?php 
+			<?php
 			echo JFactory::getEditor()->display('entry[content]', $this->escape(stripslashes($this->entry->get('content'))), '', '', 50, 30, false, 'entry_content');
 			?>
 		</label>
@@ -93,7 +99,7 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 		<div class="grid">
 			<div class="col span6">
 				<label for="field-allow_comments">
-					<input type="checkbox" class="option" name="entry[allow_comments]" id="field-allow_comments" value="1"<?php if ($this->entry->get('allow_comments') == 1) { echo ' checked="checked"'; } ?> /> 
+					<input type="checkbox" class="option" name="entry[allow_comments]" id="field-allow_comments" value="1"<?php if ($this->entry->get('allow_comments') == 1) { echo ' checked="checked"'; } ?> />
 					<?php echo JText::_('PLG_GROUPS_BLOG_FIELD_ALLOW_COMMENTS'); ?>
 				</label>
 			</div>
@@ -108,7 +114,7 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 				</label>
 			</div>
 		</div>
-		
+
 		<div class="grid">
 			<div class="col span6">
 				<label for="field-publish_up">
@@ -145,7 +151,7 @@ $base = 'index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=b
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="active" value="blog" />
 	<input type="hidden" name="action" value="save" />
-		
+
 	<p class="submit">
 		<input class="btn btn-success" type="submit" value="<?php echo JText::_('PLG_GROUPS_BLOG_SAVE'); ?>" />
 

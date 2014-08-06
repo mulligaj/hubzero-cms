@@ -31,6 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+if (!$this->no_html)
+{
+	$this->css()
+	     ->js();
+	if (JPluginHelper::isEnabled('system', 'jquery'))
+	{
+		$this->js('jquery.fileuploader.js', 'system')
+		     ->js('fileupload.js');
+	}
+}
+
 $item = $this->entry->item();
 
 if (!$this->entry->exists())
@@ -64,19 +75,19 @@ if (!$dir)
 	$dir = 'tmp' . time(); // . rand(0, 100);
 }
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo JText::_('COM_COLLECTIONS'); ?></h2>
-</div>
 
-<div id="content-header-extra">
-	<ul>
-		<li>
-			<a class="about btn" href="<?php echo JRoute::_($base . '&controller=' . $this->controller . '&task=about'); ?>">
-				<span><?php echo JText::_('COM_COLLECTIONS_GETTING_STARTED'); ?></span>
-			</a>
-		</li>
-	</ul>
-</div>
+	<div id="content-header-extra">
+		<ul>
+			<li>
+				<a class="about btn" href="<?php echo JRoute::_($base . '&controller=' . $this->controller . '&task=about'); ?>">
+					<span><?php echo JText::_('COM_COLLECTIONS_GETTING_STARTED'); ?></span>
+				</a>
+			</li>
+		</ul>
+	</div>
+</header>
 
 <form method="get" action="<?php echo JRoute::_($base . '&controller=' . $this->controller); ?>" id="collections">
 	<fieldset class="filters">
@@ -105,7 +116,7 @@ if (!$dir)
 	</fieldset>
 </form>
 
-<div class="main section">
+<section class="main section">
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
 <?php } ?>
@@ -127,8 +138,6 @@ if (!$dir)
 								</label>
 							</noscript>
 						</div>
-						<script src="<?php echo $site; ?>/media/system/js/jquery.fileuploader.js"></script>
-						<script src="<?php echo $site; ?>/components/com_collections/assets/js/fileupload.jquery.js"></script>
 			<?php } else { ?>
 						<label for="upload">
 							<?php echo JText::_('COM_COLLECTIONS_FILE'); ?>
@@ -166,9 +175,9 @@ if (!$dir)
 
 	<?php if ($this->entry->get('original')) { ?>
 					<div class="field-wrap" id="ajax-uploader-list">
-				<?php 
+				<?php
 					$assets = $item->assets();
-					if ($assets->total() > 0) 
+					if ($assets->total() > 0)
 					{
 						$i = 0;
 						foreach ($assets as $asset)
@@ -193,7 +202,7 @@ if (!$dir)
 								</a>
 							</span>
 						</p>
-				<?php 
+				<?php
 							$i++;
 						}
 					}
@@ -221,7 +230,8 @@ if (!$dir)
 			</div><!-- / #post-type-form -->
 
 	<?php if ($this->entry->get('original')) { ?>
-			<div class="group">
+			<div class="grid">
+				<div class="col span6">
 	<?php } ?>
 			<?php if ($this->collections->total() > 0) { ?>
 				<label for="post-collection_id">
@@ -242,9 +252,11 @@ if (!$dir)
 			<?php } ?>
 
 	<?php if ($this->entry->get('original')) { ?>
+				</div>
+				<div class="col span6 omega">
 				<label>
 					<?php echo JText::_(strtoupper($this->option) . '_FIELD_TAGS'); ?>
-					<?php 
+					<?php
 					if (count($tf) > 0) {
 						echo $tf[0];
 					} else { ?>
@@ -252,8 +264,8 @@ if (!$dir)
 					<?php } ?>
 					<span class="hint"><?php echo JText::_(strtoupper($this->option) . '_FIELD_TAGS_HINT'); ?></span>
 				</label>
+				</div>
 			</div>
-			<div class="clear"></div>
 	<?php } ?>
 		</fieldset>
 
@@ -280,4 +292,4 @@ if (!$dir)
 		<?php } ?>
 		</p>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

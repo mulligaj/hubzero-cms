@@ -32,10 +32,10 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $canDo = AnswersHelper::getActions('question');
 
-$text = ($this->task == 'edit' ? JText::_('Edit') : JText::_('New'));
+$text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 
-JToolBarHelper::title(JText::_('Answers Manager') . ': ' . JText::_('Question') . ': ' . $text, 'answers.png');
-if ($canDo->get('core.edit')) 
+JToolBarHelper::title(JText::_('COM_ANSWERS_TITLE') . ': ' . JText::_('COM_ANSWERS_QUESTIONS') . ': ' . $text, 'answers.png');
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::apply();
 	JToolBarHelper::save();
@@ -43,13 +43,10 @@ if ($canDo->get('core.edit'))
 }
 JToolBarHelper::cancel();
 JToolBarHelper::spacer();
-JToolBarHelper::help('question.html', true);
-
-jimport('joomla.html.editor');
-$editor = JEditor::getInstance();
+JToolBarHelper::help('question');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 
@@ -59,12 +56,14 @@ function submitbutton(pressbutton)
 	}
 
 	// do field validation
-	if (document.getElementById('q_subject').value == ''){
-		alert( 'Question must have a subject' );
-	} else if (document.getElementById('q_tags').value == ''){
-		alert( 'Question must have at least one tag' );
+	if (document.getElementById('field-subject').value == ''){
+		alert('<?php echo JText::_('COM_ANSWERS_ERROR_MISSING_SUBJECT'); ?>');
+	} else if (document.getElementById('field-tags').value == ''){
+		alert('<?php echo JText::_('COM_ANSWERS_ERROR_MISSING_TAG'); ?>');
 	} else {
-		submitform( pressbutton );
+		<?php echo JFactory::getEditor()->save('text'); ?>
+
+		submitform(pressbutton);
 	}
 }
 </script>
@@ -72,85 +71,82 @@ function submitbutton(pressbutton)
 <form action="index.php" method="post" name="adminForm" id="item-form">
 	<div class="col width-60 fltlft">
 		<fieldset class="adminform">
-			<legend><span>Details</span></legend>
-			<table class="admintable">
-				<tbody>
-					<tr>
-						<td>
-							<input type="checkbox" name="question[anonymous]" id="anonymous" value="1" <?php echo ($this->row->get('anonymous')) ? 'checked="checked"' : ''; ?> /> <label for="anonymous">Anonymous</label>
-						</td>
-						<td>
-							<input type="checkbox" name="question[email]" id="email" value="1" <?php echo ($this->row->get('email')) ? 'checked="checked"' : ''; ?> /> <label for="email">Notify of responses</label>
-						</td>
-					</tr>
-					<tr>
-						<td colspan="2">
-							<label for="q_subject">Subject: <span class="required">*</span></label><br />
-							<input type="text" name="question[subject]" id="q_subject" size="30" maxlength="250" value="<?php echo $this->escape($this->row->subject('raw')); ?>" />
-						</td>
-					</tr>
-					<tr>
-						<td colspan="2">
-							<label for="question[question]">Question:</label><br />
-							<?php echo $editor->display('question[question]', $this->row->content('raw'), '100%', 'auto', '50', '15'); ?>
-						</td>
-					</tr>
-					<tr>
-						<td colspan="2">
-							<label for="q_tags">Tags: <span class="required">*</span></label><br />
-							<textarea name="question[tags]" id="q_tags" cols="50" rows="3"><?php echo $this->escape(stripslashes($this->row->tags('string'))); ?></textarea>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+			<legend><span><?php echo JText::_('JDETAILS'); ?></span></legend>
+
+			<div class="col width-50 fltlft">
+				<div class="input-wrap">
+					<input type="checkbox" name="question[anonymous]" id="field-anonymous" value="1" <?php echo ($this->row->get('anonymous')) ? 'checked="checked"' : ''; ?> />
+					<label for="field-anonymous"><?php echo JText::_('COM_ANSWERS_FIELD_ANONYMOUS'); ?></label>
+				</div>
+			</div>
+			<div class="col width-50 fltrt">
+				<div class="input-wrap">
+					<input type="checkbox" name="question[email]" id="field-email" value="1" <?php echo ($this->row->get('email')) ? 'checked="checked"' : ''; ?> />
+					<label for="field-email"><?php echo JText::_('COM_ANSWERS_FIELD_NOTIFY'); ?></label>
+				</div>
+			</div>
+			<div class="clr"></div>
+
+			<div class="input-wrap">
+				<label for="field-subject"><?php echo JText::_('COM_ANSWERS_FIELD_SUBJECT'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label><br />
+				<input type="text" name="question[subject]" id="field-subject" size="30" maxlength="250" value="<?php echo $this->escape($this->row->subject('raw')); ?>" />
+			</div>
+
+			<div class="input-wrap">
+				<label for="field-question"><?php echo JText::_('COM_ANSWERS_FIELD_QUESTION'); ?>:</label><br />
+				<?php echo JFactory::getEditor()->display('question[question]', $this->escape($this->row->content('raw')), '', '', 50, 15, false, 'field-question', null, null, array('class' => 'minimal no-footer')); ?>
+			</div>
+
+			<div class="input-wrap" data-hint="<?php echo JText::_('COM_ANSWERS_FIELD_TAGS_HINT'); ?>">
+				<label for="field-tags"><?php echo JText::_('COM_ANSWERS_FIELD_TAGS'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label><br />
+				<textarea name="question[tags]" id="field-tags" cols="50" rows="3"><?php echo $this->escape(stripslashes($this->row->tags('string'))); ?></textarea>
+				<span class="hint"><?php echo JText::_('COM_ANSWERS_FIELD_TAGS_HINT'); ?></span>
+			</div>
 		</fieldset>
 	</div>
 	<div class="col width-40 fltrt">
-		<table class="meta" summary="Metadata for this entry">
+		<table class="meta">
 			<tbody>
 				<tr>
-					<th>ID:</th>
+					<th><?php echo JText::_('COM_ANSWERS_FIELD_ID'); ?>:</th>
 					<td>
 						<?php echo $this->row->get('id', 0); ?>
 						<input type="hidden" name="question[id]" value="<?php echo $this->row->get('id'); ?>" />
 					</td>
 				</tr>
-<?php if ($this->row->get('id')) { ?>
+			<?php if ($this->row->get('id')) { ?>
 				<tr>
-					<th>Created:</th>
+					<th><?php echo JText::_('COM_ANSWERS_FIELD_CREATED'); ?>:</th>
 					<td><?php echo $this->row->get('created'); ?></td>
 				</tr>
 				<tr>
-					<th>Created by:</th>
+					<th><?php echo JText::_('COM_ANSWERS_FIELD_CREATOR'); ?>:</th>
 					<td><?php echo $this->escape(stripslashes($this->row->creator('name'))); ?></td>
 				</tr>
-<?php } ?>
+			<?php } ?>
 			</tbody>
 		</table>
-		<fieldset class="adminform">
-			<legend><span>Parameters</span></legend>
 
-			<table class="admintable">
-				<tbody>
-					<tr>
-						<td class="key"><label for="created_by">Change Creator:</label></td>
-						<td><input type="text" name="question[created_by]" id="created_by" size="25" maxlength="50" value="<?php echo $this->row->get('created_by', JFactory::getUser()->get('id')); ?>" /></td>
-					</tr>
-					<tr>
-						<td class="key"><label for="created">Created Date:</label></td>
-						<td><?php echo JHTML::_('calendar', $this->row->get('created', JFactory::getDate()->toSql()), 'question[created]', 'created', 'Y-m-d H:i:s', array('class' => 'calendar-field')); ?></td>
-					</tr>
-					<tr>
-						<td class="key"><label for="state">State:</label></td>
-						<td>
-							<select name="question[state]" id="state">
-								<option value="0"<?php echo ($this->row->get('state') == 0) ? ' selected="selected"' : ''; ?>>Open</option>
-								<option value="1"<?php echo ($this->row->get('state') == 1) ? ' selected="selected"' : ''; ?>>Closed</option>
-							</select>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+		<fieldset class="adminform">
+			<legend><span><?php echo JText::_('COM_ANSWERS_PARAMETERS'); ?></span></legend>
+
+			<div class="input-wrap">
+				<label for="field-created_by"><?php echo JText::_('COM_ANSWERS_FIELD_CREATOR'); ?>:</label><br />
+				<input type="text" name="question[created_by]" id="field-created_by" size="25" maxlength="50" value="<?php echo $this->row->get('created_by', JFactory::getUser()->get('id')); ?>" />
+			</div>
+
+			<div class="input-wrap">
+				<label for="field-created"><?php echo JText::_('COM_ANSWERS_FIELD_CREATED'); ?>:</label><br />
+				<?php echo JHTML::_('calendar', $this->row->get('created', JFactory::getDate()->toSql()), 'question[created]', 'field-created', 'Y-m-d H:i:s', array('class' => 'calendar-field')); ?></td>
+			</div>
+
+			<div class="input-wrap">
+				<label for="field-state"><?php echo JText::_('COM_ANSWERS_FIELD_STATE'); ?>:</label><br />
+				<select name="question[state]" id="field-state">
+					<option value="0"<?php echo ($this->row->get('state') == 0) ? ' selected="selected"' : ''; ?>><?php echo JText::_('COM_ANSWERS_STATE_OPEN'); ?></option>
+					<option value="1"<?php echo ($this->row->get('state') == 1) ? ' selected="selected"' : ''; ?>><?php echo JText::_('COM_ANSWERS_STATE_CLOSED'); ?></option>
+				</select>
+			</div>
 		</fieldset>
 	</div>
 	<div class="clr"></div>

@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-//require_once(JPATH_ROOT . DS . 'components' . DS . 'com_support' . DS . 'models' . DS . 'abstract.php');
-//require_once(JPATH_ROOT . DS . 'components' . DS . 'com_support' . DS . 'models' . DS . 'iterator.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'comment.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_support' . DS . 'models' . DS . 'attachment.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_support' . DS . 'models' . DS . 'changelog.php');
@@ -44,50 +42,52 @@ class SupportModelComment extends \Hubzero\Base\Model
 {
 	/**
 	 * Table name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'SupportComment';
 
 	/**
 	 * Cached data
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_cache = array(
 		'attachments.count' => null,
-		'attachments.list' => null
+		'attachments.list'  => null,
+		'recipients.added'  => array(),
+		'recipients.failed' => array()
 	);
 
 	/**
 	 * Base URL
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_base = null;
 
 	/**
 	 * JUser
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_creator = NULL;
 
 	/**
 	 * Changelog
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_log;
 
 	/**
 	 * Is the question open?
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function isPrivate()
 	{
-		if ($this->get('access') == 1) 
+		if ($this->get('access') == 1)
 		{
 			return true;
 		}
@@ -96,7 +96,7 @@ class SupportModelComment extends \Hubzero\Base\Model
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What format to return
 	 * @return     boolean
 	 */
@@ -120,14 +120,14 @@ class SupportModelComment extends \Hubzero\Base\Model
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
 	 * it returns the entire JUser object
 	 *
 	 * @return     mixed
 	 */
-	public function creator($property=null)
+	public function creator($property=null, $default=null)
 	{
 		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
@@ -142,16 +142,16 @@ class SupportModelComment extends \Hubzero\Base\Model
 			$property = ($property == 'id') ? 'uidNumber' : $property;
 			if ($property == 'picture')
 			{
-				return $this->_creator->getPicture();
+				return $this->_creator->getPicture(($this->_creator->get('uidNumber') ? 0 : 1));
 			}
-			return $this->_creator->get($property);
+			return $this->_creator->get($property, $default);
 		}
 		return $this->_creator;
 	}
 
 	/**
 	 * Get a count of or list of attachments on this model
-	 * 
+	 *
 	 * @param      string  $rtrn    Data to return state in [count, list]
 	 * @param      array   $filters Filters to apply to the query
 	 * @param      boolean $clear   Clear data cache?
@@ -205,7 +205,7 @@ class SupportModelComment extends \Hubzero\Base\Model
 
 	/**
 	 * Get the state of the entry as either text or numerical value
-	 * 
+	 *
 	 * @param      string  $as      Format to return state in [text, number]
 	 * @param      integer $shorten Number of characters to shorten text to
 	 * @return     mixed String or Integer
@@ -230,11 +230,11 @@ class SupportModelComment extends \Hubzero\Base\Model
 						$path = trim($config->get('webpath', '/site/tickets'), DS) . DS . $this->get('ticket');
 
 						$webpath = str_replace('//', '/', rtrim(JURI::getInstance()->base(), '/') . '/' . $path);
-						if (isset($_SERVER['HTTPS'])) 
+						if (isset($_SERVER['HTTPS']))
 						{
 							$webpath = str_replace('http:', 'https:', $webpath);
 						}
-						if (!strstr($webpath, '://')) 
+						if (!strstr($webpath, '://'))
 						{
 							$webpath = str_replace(':/', '://', $webpath);
 						}
@@ -246,7 +246,7 @@ class SupportModelComment extends \Hubzero\Base\Model
 					}
 
 					$comment = $this->get('comment');
-					if (!strstr($comment, '</p>') && !strstr($comment, '<pre class="wiki">')) 
+					if (!strstr($comment, '</p>') && !strstr($comment, '<pre class="wiki">'))
 					{
 						$comment = preg_replace("/<br\s?\/>/i", '', $comment);
 						$comment = htmlentities($comment, ENT_COMPAT, 'UTF-8');
@@ -283,7 +283,7 @@ class SupportModelComment extends \Hubzero\Base\Model
 
 	/**
 	 * Process an attachment macro and output a link to the file
-	 * 
+	 *
 	 * @param      array $matches Macro info
 	 * @return     string HTML
 	 */
@@ -320,6 +320,10 @@ class SupportModelComment extends \Hubzero\Base\Model
 	public function store($check=true)
 	{
 		$this->set('changelog', $this->changelog()->__toString());
+		if (!$this->get('comment'))
+		{
+			$this->set('access', 1);
+		}
 
 		return parent::store($check);
 	}
@@ -332,7 +336,7 @@ class SupportModelComment extends \Hubzero\Base\Model
 	public function delete()
 	{
 		// Can't delete what doesn't exist
-		if (!$this->exists()) 
+		if (!$this->exists())
 		{
 			return true;
 		}
@@ -351,9 +355,9 @@ class SupportModelComment extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Delete the record and all associated data
+	 * Get the changelog
 	 *
-	 * @return    boolean False if error, True on success
+	 * @return    object
 	 */
 	public function changelog()
 	{
@@ -367,7 +371,7 @@ class SupportModelComment extends \Hubzero\Base\Model
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type The type of link to return
 	 * @return     string
 	 */
@@ -394,6 +398,130 @@ class SupportModelComment extends \Hubzero\Base\Model
 		}
 
 		return $link;
+	}
+
+	/**
+	 * Add to the recipient list
+	 *
+	 * @return    object
+	 */
+	public function addTo($to, $role='')
+	{
+		$added = false;
+
+		// User ID
+		if (is_numeric($to))
+		{
+			$user = JUser::getInstance($to);
+			if ($user->get('id'))
+			{
+				if (isset($this->_cache['recipients.added'][$user->get('email')]))
+				{
+					return $this;
+				}
+				$this->_cache['recipients.added'][$user->get('email')] = array(
+					'role'    => $role,
+					'name'    => $user->get('name'),
+					'email'   => $user->get('email'),
+					'id'      => $user->get('id')
+				);
+				$added = true;
+			}
+		}
+		else if (is_string($to))
+		{
+			// Email
+			if (strstr($to, '@') && \Hubzero\Utility\Validate::email($to))
+			{
+				if (isset($this->_cache['recipients.added'][$to]))
+				{
+					return $this;
+				}
+				$this->_cache['recipients.added'][$to] = array(
+					'role'    => $role,
+					'name'    => JText::_('COM_SUPPORT_UNKNOWN'),
+					'email'   => $to,
+					'id'      => 0
+				);
+				$added = true;
+			}
+			// Username
+			else
+			{
+				$user = JUser::getInstance($to);
+				if ($user->get('id'))
+				{
+					if (isset($this->_cache['recipients.added'][$user->get('email')]))
+					{
+						return $this;
+					}
+					$this->_cache['recipients.added'][$user->get('email')] = array(
+						'role'    => $role,
+						'name'    => $user->get('name'),
+						'email'   => $user->get('email'),
+						'id'      => $user->get('id')
+					);
+					$added = true;
+				}
+			}
+		}
+		else if (is_array($to))
+		{
+			if (isset($this->_cache['recipients.added'][$to['email']]))
+			{
+				return $this;
+			}
+			$this->_cache['recipients.added'][$to['email']] = $to;
+			$added = true;
+		}
+
+		if (!$added)
+		{
+			$this->_cache['recipients.failed'][] = $to;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Get the recipient list
+	 *
+	 * @return    array
+	 */
+	public function to($who='')
+	{
+		$who = strtolower(trim($who));
+
+		switch ($who)
+		{
+			case 'id':
+			case 'ids':
+				$tos = array();
+				foreach ($this->_cache['recipients.added'] as $to)
+				{
+					if ($to['id'])
+					{
+						$tos[] = $to;
+					}
+				}
+				return $tos;
+			break;
+
+			case 'email':
+			case 'emails':
+				$tos = array();
+				foreach ($this->_cache['recipients.added'] as $to)
+				{
+					if (!$to['id'] && $to['email'])
+					{
+						$tos[] = $to;
+					}
+				}
+				return $tos;
+			break;
+		}
+
+		return $this->_cache['recipients.added'];
 	}
 }
 

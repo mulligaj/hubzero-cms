@@ -47,91 +47,98 @@ class CoursesModelCourse extends CoursesModelAbstract
 {
 	/**
 	 * JTable class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CoursesTableCourse';
 
 	/**
 	 * Object scope
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'course';
 
 	/**
 	 * CoursesModelOffering
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_offering = NULL;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_offerings = NULL;
 
 	/**
 	 * CoursesModelPermissions
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_permissions = NULL;
 
 	/**
 	 * CoursesModelOffering
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_manager = NULL;
 
 	/**
 	 * List of managers
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_managers = NULL;
 
 	/**
 	 * List of students
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_students = NULL;
 
 	/**
 	 * CoursesModelOffering
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_page = NULL;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_pages = NULL;
 
 	/**
 	 * List of plugins available for a given event
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_plugins = array();
 
 	/**
 	 * URL to this object
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_base = NULL;
 
 	/**
+	 * Certificate
+	 *
+	 * @var string
+	 */
+	private $_certificate = NULL;
+
+	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $id Course ID or alias
 	 * @return     void
 	 */
@@ -161,12 +168,12 @@ class CoursesModelCourse extends CoursesModelAbstract
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$oid])) 
+		if (!isset($instances[$oid]))
 		{
 			$instances[$oid] = new self($oid);
 		}
@@ -177,7 +184,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 	/**
 	 * Check if the current user has manager access
 	 * This is just a shortcut for the access check
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function isManager($user_id=0)
@@ -192,7 +199,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 	/**
 	 * Check if the current user has manager access
 	 * This is just a shortcut for the access check
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function isStudent($user_id=0)
@@ -206,14 +213,14 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Set and get a specific offering
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function offering($id=null)
 	{
 		// If the current offering isn't set
 		//    OR the ID passed doesn't equal the current offering's ID or alias
-		if (!isset($this->_offering) 
+		if (!isset($this->_offering)
 		 || ($id !== null && (int) $this->_offering->get('id') != $id && (string) $this->_offering->get('alias') != $id))
 		{
 			// Reset current offering
@@ -247,7 +254,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 	/**
 	 * Get a list of offerings for a course
 	 *   Accepts an array of filters to build query from
-	 * 
+	 *
 	 * @param      array $filters Filters to build query from
 	 * @return     mixed
 	 */
@@ -297,7 +304,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Check a user's authorization
-	 * 
+	 *
 	 * @param      string $action Action to check
 	 * @return     boolean True if authorized, false if not
 	 */
@@ -308,12 +315,12 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Retrieve a specific manager record by user ID
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function manager($user_id=null)
 	{
-		if (!isset($this->_manager) 
+		if (!isset($this->_manager)
 		 || ($user_id !== null && (int) $this->_manager->get('user_id') != $user_id))
 		{
 			$this->_manager = null;
@@ -337,7 +344,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 	 *   If a manager has multiple entries, it will set
 	 *   the entry int he array with the record that has
 	 *   the highest permission levels
-	 * 
+	 *
 	 * @param      array   $filters Filters to build query from
 	 * @param      boolean $clear   Force a new dataset?
 	 * @return     mixed
@@ -403,7 +410,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Get a list of students for a course
-	 * 
+	 *
 	 * @param      array   $filters Filters to build query from
 	 * @param      boolean $clear   Force a new dataset?
 	 * @return     mixed
@@ -445,7 +452,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Get a list of instructors for a course
-	 * 
+	 *
 	 * @param      array   $filters Filters to build query from
 	 * @param      boolean $clear   Force a new dataset?
 	 * @return     mixed
@@ -607,7 +614,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 			$this->importPlugin('content')->trigger('onContentBeforeSave', array(
 				'com_courses.course.description',
-				&$this, 
+				&$this,
 				$this->exists()
 			));
 		}
@@ -620,7 +627,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 		$affected = $this->_db->getAffectedRows();
 
-		// After SQL is done and has no errors, fire off onCourseUserEnrolledEvents 
+		// After SQL is done and has no errors, fire off onCourseUserEnrolledEvents
 		// for every user added to this course
 		$this->importPlugin('courses')
 		     ->trigger('onCourseSave', array($this));
@@ -641,7 +648,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Delete an entry and associated data
-	 * 
+	 *
 	 * @return     boolean True on success, false on error
 	 */
 	public function delete()
@@ -654,12 +661,12 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Check if the current user is enrolled
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function page($url=null)
 	{
-		if (!isset($this->_page) 
+		if (!isset($this->_page)
 		 || ($url !== null && (string) $this->_page->get('url') != $url))
 		{
 			$this->_page = null;
@@ -675,12 +682,12 @@ class CoursesModelCourse extends CoursesModelAbstract
 			}
 		}
 
-		return $this->_page; 
+		return $this->_page;
 	}
 
 	/**
 	 * Get a list of pages for a course
-	 * 
+	 *
 	 * @param      array $filters Filters to apply
 	 * @return     array
 	 */
@@ -728,7 +735,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Check if the current user is enrolled
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function tags($what='cloud')
@@ -753,13 +760,13 @@ class CoursesModelCourse extends CoursesModelAbstract
 			break;
 		}
 
-		return $tags; 
+		return $tags;
 	}
 
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type The type of link to return
 	 * @return     boolean
 	 */
@@ -793,19 +800,41 @@ class CoursesModelCourse extends CoursesModelAbstract
 	/**
 	 * Get a course logo
 	 *
-	 * @return     string
+	 * @param   string $rtrn Data type to return
+	 * @return  mixed
 	 */
-	public function logo()
+	public function logo($rtrn='')
 	{
+		$rtrn = strtolower(trim($rtrn));
+
+		// Return just the file name
+		if ($rtrn == 'file')
+		{
+			return $this->get('logo');
+		}
+
 		$path = '';
+		$size = array(
+			'width'  => 0,
+			'height' => 0
+		);
 
 		if ($file = $this->get('logo'))
 		{
 			$path = '/' . trim($this->config('uploadpath', '/site/courses'), '/') . '/' . $this->get('id') . '/' . $file;
 			if (file_exists(JPATH_ROOT . $path))
 			{
+				list($width, $height) = getimagesize(JPATH_ROOT . $path);
+				$size['width']  = $width;
+				$size['height'] = $height;
 				$path = \JURI::base(true) . $path;
 			}
+		}
+
+		// Return just the upload path?
+		if ($rtrn == 'size')
+		{
+			return $size;
 		}
 
 		return $path;
@@ -813,7 +842,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 
 	/**
 	 * Get the content of the entry
-	 * 
+	 *
 	 * @param      string  $as      Format to return state in [text, number]
 	 * @param      integer $shorten Number of characters to shorten text to
 	 * @return     string
@@ -861,6 +890,7 @@ class CoursesModelCourse extends CoursesModelAbstract
 			default:
 				$content = stripslashes($this->get('description'));
 				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
+				$content = html_entity_decode($content);
 			break;
 		}
 
@@ -869,6 +899,112 @@ class CoursesModelCourse extends CoursesModelAbstract
 			$content = \Hubzero\Utility\String::truncate($content, $shorten, $options);
 		}
 		return $content;
+	}
+
+	/**
+	 * Copy an entry and associated data
+	 *
+	 * @param   boolean $deep Copy associated data?
+	 * @return  boolean True on success, false on error
+	 */
+	public function copy($deep=true)
+	{
+		// Get some old info we may need
+		//  - Course ID
+		$c_id = $this->get('id');
+
+		// Reset the ID. This will force store() to create a new record.
+		$this->set('id', 0);
+		// We want to distinguish this course from the one we copied from
+		$this->set('title', $this->get('title') . ' (copy)');
+		$this->set('alias', $this->get('alias') . '_copy');
+
+		if (!$this->store())
+		{
+			return false;
+		}
+
+		if ($deep)
+		{
+			// Copy pages
+			foreach ($this->pages(array('course_id' => $c_id, 'active' => array(0, 1)), true) as $page)
+			{
+				if (!$page->copy($this->get('course_id')))
+				{
+					$this->setError($page->getError());
+				}
+			}
+
+			// Copy units
+			foreach ($this->offerings(array('course_id' => $c_id), true) as $offering)
+			{
+				if (!$offering->copy($this->get('id')))
+				{
+					$this->setError($offering->getError());
+				}
+			}
+
+			// Copy managers
+			foreach ($this->managers(array('course_id' => $c_id), true) as $manager)
+			{
+				$manager->set('id', 0);
+				$manager->set('course_id', $this->get('id'));
+				if (!$manager->store())
+				{
+					$this->setError($manager->getError());
+				}
+			}
+
+			// Copy logo
+			if ($file = $this->get('logo'))
+			{
+				$src  = '/' . trim($this->config('uploadpath', '/site/courses'), '/') . '/' . $c_id . '/' . $file;
+				if (file_exists(JPATH_ROOT . $src))
+				{
+					$dest = '/' . trim($this->config('uploadpath', '/site/courses'), '/') . '/' . $this->get('id');
+
+					if (!is_dir(JPATH_ROOT . $dest))
+					{
+						jimport('joomla.filesystem.folder');
+						if (!JFolder::create(JPATH_ROOT . $dest))
+						{
+							$this->setError(JText::_('UNABLE_TO_CREATE_UPLOAD_PATH'));
+						}
+					}
+
+					$dest .= '/' . $file;
+
+					jimport('joomla.filesystem.file');
+					if (!JFile::copy($src, $dest, JPATH_ROOT))
+					{
+						$this->setError(JText::_('Failed to copy course logo.'));
+					}
+				}
+			}
+
+			// Copy tags
+			$tagger = new CoursesTags($this->_db);
+			$tagger->tag_object(JFactory::getUser()->get('id'), $this->get('id'), $tagger->get_tag_string($c_id), 1);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get a course logo
+	 *
+	 * @return     string
+	 */
+	public function certificate()
+	{
+		if (!$this->_certificate)
+		{
+			include_once(__DIR__ . DS . 'certificate.php');
+
+			$this->_certificate = CoursesModelCertificate::getInstance(0, $this->get('id'));
+		}
+
+		return $this->_certificate;
 	}
 }
 

@@ -51,7 +51,7 @@ if ($pic && file_exists(JPATH_ROOT . $path . $pic))
 {
 	$size = filesize(JPATH_ROOT . $path . $pic);
 	list($width, $height, $type, $attr) = getimagesize(JPATH_ROOT . $path . $pic);
-	 
+
 	$picture->src = $path . $pic;
 	$picture->name = $pic;
 	$picture->size = \Hubzero\Utility\Number::formatBytes( $size );
@@ -63,13 +63,13 @@ if ($pic && file_exists(JPATH_ROOT . $path . $pic))
 	<form action="index.php" method="post" enctype="multipart/form-data">
 		<h2>Upload a New Profile Picture</h2>
 		<div id="ajax-upload-left">
-			<img id="picture-src" src="<?php echo $picture->src; ?>" alt="<?php echo $picture->name; ?>" data-default-pic="<?php echo $this->config->get('defaultpic', '/components/com_members/images/profile.gif'); ?>" />
+			<img id="picture-src" src="<?php echo $picture->src; ?>" alt="<?php echo $picture->name; ?>" data-default-pic="<?php echo $this->config->get('defaultpic', '/components/com_members/assets/img/profile.gif'); ?>" />
 			<?php if ($this->profile->get("picture") != '') : ?>
 			<a href="#" id="remove-picture">[Remove Picture]</a>
 			<?php endif; ?>
 		</div><!-- /#ajax-upload-left -->
 		<div id="ajax-upload-right">
-			<div id="ajax-uploader" data-action="/index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;id=<?php echo $this->profile->get('uidNumber'); ?>&amp;task=doajaxupload&amp;no_html=1"></div>
+			<div id="ajax-uploader" data-action="<?php echo JURI::base(true); ?>/index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;id=<?php echo $this->profile->get('uidNumber'); ?>&amp;task=doajaxupload&amp;no_html=1"></div>
 			<table>
 				<tbody>
 					<tr>
@@ -96,7 +96,7 @@ if ($pic && file_exists(JPATH_ROOT . $path . $pic))
 			<button class="section-edit-cancel">Cancel</button>
 			<button class="section-edit-submit">Save Changes</button>
 		</div><!-- /#ajax-upload-actions -->
-	
+
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="ajaxuploadsave" />
@@ -104,4 +104,4 @@ if ($pic && file_exists(JPATH_ROOT . $path . $pic))
 	<input type="hidden" name="profile[picture]" id="profile-picture" value="<?php echo $this->profile->get("picture"); ?>" />
 	<input type="hidden" name="no_html" value="1" />
 	</form>
-</div><!-- /#ajax-upload-container -->	
+</div><!-- /#ajax-upload-container -->

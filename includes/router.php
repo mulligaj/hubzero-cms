@@ -28,7 +28,7 @@ class JRouterSite extends JRouter
 	public function parse(&$uri)
 	{
 		$vars = array();
-		
+
 		// Get the application
 		$app = JApplication::getInstance('site');
 
@@ -103,7 +103,8 @@ class JRouterSite extends JRouter
 						return $vars;
 				}
 
-				if ($vars['option'] == 'com_register') // register component can be accessed with incomplete registration
+				if ($vars['option'] == 'com_members'
+				 && ((isset($vars['controller']) && $vars['controller'] == 'register') || (isset($vars['view']) && $vars['view'] == 'register'))) // register component can be accessed with incomplete registration
 				{
 					$session->set('linkaccount', false);
 					return $vars;
@@ -116,7 +117,8 @@ class JRouterSite extends JRouter
 
 					if ($juser->get('tmp_user')) // joomla tmp users
 					{
-						$vars['option'] = 'com_register';
+						$vars['option'] = 'com_members';
+						$vars['controller']	= 'register';
 						$vars['task']	= 'create';
 						$vars['act']	= '';
 					}
@@ -135,7 +137,8 @@ class JRouterSite extends JRouter
 						}
 						else
 						{
-							$vars['option'] = 'com_register';
+							$vars['option'] = 'com_members';
+							$vars['controller']	= 'register';
 							$vars['task']	= 'update';
 							$vars['act']	= '';
 						}
@@ -145,7 +148,7 @@ class JRouterSite extends JRouter
 						$o 	= JRequest::getVar('option', '');
 						$t 	= JRequest::getVar('task', '');
 						$nh = JRequest::getInt('no_html', 0);
-						
+
 						//are we trying to use the tag autocompletor when forcing registration update?
 						if ($o == 'com_tags' && $t == 'autocomplete' && $nh)
 						{
@@ -178,7 +181,7 @@ class JRouterSite extends JRouter
 				{
 					return $vars;
 				}
-				else if ($vars['option'] == 'com_register')
+				else if ($vars['option'] == 'com_members' && ((isset($vars['controller']) && $vars['controller'] == 'register') || (isset($vars['view']) && $vars['view'] == 'register')))
 				{
 					if (!empty($vars['task']))
 						if ( ($vars['task'] == 'unconfirmed') || ($vars['task'] == 'change') || ($vars['task'] == 'resend') || ($vars['task'] == 'confirm') )
@@ -186,8 +189,41 @@ class JRouterSite extends JRouter
 				}
 
 				$vars = array();
-				$vars['option'] = 'com_register';
+				$vars['option'] = 'com_members';
+				$vars['controller'] = 'register';
 				$vars['task'] = 'unconfirmed';
+
+				$this->setVars($vars);
+				JRequest::set($vars, 'get', true ); // overwrite existing
+
+				return $vars;
+			}
+
+			if (!$juser->get('approved'))
+			{
+				if ($vars['option'] == 'com_users')
+				{
+					if (($vars['view'] == 'logout') || ($vars['task'] == 'logout'))
+					{
+						return $vars;
+					}
+				}
+				else if ($uri->getPath() == 'legal/terms')
+				{
+					return $vars;
+				}
+				else if ($vars['option'] == 'com_support' && $vars['controller'] == 'tickets' && $vars['task'] == 'save')
+				{
+					return $vars;
+				}
+				else if ($vars['option'] == 'com_support' && $vars['controller'] == 'tickets' && $vars['task'] == 'new')
+				{
+					return $vars;
+				}
+
+				$vars = array();
+				$vars['option'] = 'com_users';
+				$vars['view']   = 'unapproved';
 
 				$this->setVars($vars);
 				JRequest::set($vars, 'get', true ); // overwrite existing
@@ -199,7 +235,7 @@ class JRouterSite extends JRouter
 			$expiredpassword = $session->get('expiredpassword',false);
 
 			if ($badpassword || $expiredpassword) {
-				if ($vars['option'] == 'com_members' && $vars['task'] == 'changepassword') {
+				if ($vars['option'] == 'com_members' && isset($vars['task']) && $vars['task'] == 'changepassword') {
 					return $vars;
 				}
 
@@ -342,7 +378,7 @@ class JRouterSite extends JRouter
 	{
 		$vars	= array();
 		$app	= JApplication::getInstance('site');
-		
+
 		// Call System plugin to before parsing sef route
 		JDispatcher::getInstance()->trigger('onBeforeParseSefRoute', array($uri));
 
@@ -463,7 +499,7 @@ class JRouterSite extends JRouter
 						// If menu route exactly matches url route,
 						// redirect (if necessary) to menu link
 						if (trim($item->route,"/") == trim($route,"/")) {
-							if (trim($item->route,"/") != trim($item->link,"/") 
+							if (trim($item->route,"/") != trim($item->link,"/")
 							 && trim($uri->base(true) . '/' . $item->route,"/") != trim($item->link,"/") // Added because it would cause redirect loop for instals not in top-level webroot
 							 && trim($uri->base(true) . '/index.php/' . $item->route,"/") != trim($item->link,"/")) { // Added because it would cause redirect loop for instals not in top-level webroot
 								$app->redirect($item->link);
@@ -600,7 +636,7 @@ class JRouterSite extends JRouter
 					/*
 					$segments = $this->_decodeSegments($segments);
 					 */
-					if ($component == "com_content") { 
+					if ($component == "com_content") {
 						$segments = $this->_decodeSegments($segments);
 					}
 					/* END: HUBzero Extension: don't do : to - conversion except in com_content */
@@ -646,7 +682,7 @@ class JRouterSite extends JRouter
 				$vars = $item->query;
 			}
 		}
-		
+
 		// Call System plugin to before parsing sef route
 		JDispatcher::getInstance()->trigger('onAfterParseSefRoute', array($vars));
 
@@ -662,7 +698,7 @@ class JRouterSite extends JRouter
 		if (!empty($vars['id']))
 			apache_note('action',$vars['id']);
 		/* END: HUBzero Extension to pass common query parameters to apache (for logging) */
-		
+
 		return $vars;
 	}
 
@@ -674,7 +710,7 @@ class JRouterSite extends JRouter
 	{
 		// Call System plugin to before parsing sef route
 		JDispatcher::getInstance()->trigger('onBeforeBuildSefRoute', array($uri));
-		
+
 		// Get the route
 		$route = $uri->getPath();
 
@@ -797,7 +833,7 @@ class JRouterSite extends JRouter
 		//Set query again in the URI
 		$uri->setQuery($query);
 		$uri->setPath($route);
-		
+
 		// Call System plugin to before parsing sef route
 		JDispatcher::getInstance()->trigger('onAfterBuildSefRoute', array($uri));
 	}

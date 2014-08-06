@@ -21,8 +21,12 @@ Joomla.submitform = function(task, form) {
 		/**
 		 * Added to ensure Joomla 1.5 compatibility
 		 */
-		if(!form){
+		if (!form) {
 			form = document.adminForm;
+		}
+	} else {
+		if (form instanceof jQuery) {
+			form = form[0];
 		}
 	}
 
@@ -30,12 +34,24 @@ Joomla.submitform = function(task, form) {
 		form.task.value = task;
 	}
 
+	var event;
+	if (document.createEvent) {
+		event = document.createEvent('HTMLEvents');
+		event.initEvent('submit', true, true);
+	} else if (document.createEventObject) { // IE < 9
+		event = document.createEventObject();
+		event.eventType = 'submit';
+	}
+
 	// Submit the form.
 	if (typeof form.onsubmit == 'function') {
 		form.onsubmit();
 	}
-	if (typeof form.fireEvent == "function") {
-		form.fireEvent('submit');
+	else if (typeof form.dispatchEvent == "function") {
+		form.dispatchEvent(event);
+	}
+	else if (typeof form.fireEvent == "function") {
+		form.fireEvent(event);
 	}
 	form.submit();
 };
@@ -131,34 +147,32 @@ Joomla.checkAll = function(checkbox, stub) {
  */
 Joomla.renderMessages = function(messages) {
 	Joomla.removeMessages();
-	var container = document.id('system-message-container');
+	var container = $('#system-message-container');
 
-	var dl = new Element('dl', {
-		id: 'system-message',
-		role: 'alert'
+	var dl = $('<dl>')
+				.attr('id', 'system-message')
+				.attr('role', 'alert');
+
+	$.each(messages, function (type, item) {
+		var dt = $('<dt>')
+					.addClass(type)
+					.html(type)
+					.appendTo(dl);
+
+		var dd = $('<dd>')
+					.addClass(type)
+					.addClass('message');
+		var list = $('<ul>');
+
+		$.each(item, function (index, item, object) {
+			var li = $('<li>')
+						.html(item)
+						.appendTo(list);
+		});
+		list.appendTo(dd);
+		dd.appendTo(dl);
 	});
-	Object.each(messages, function (item, type) {
-		var dt = new Element('dt', {
-			'class': type,
-			html: type
-		});
-		dt.inject(dl);
-		var dd = new Element('dd', {
-			'class': type
-		});
-		dd.addClass('message');
-		var list = new Element('ul');
-
-		Array.each(item, function (item, index, object) {
-			var li = new Element('li', {
-				html: item
-			});
-			li.inject(list);
-		}, this);
-		list.inject(dd);
-		dd.inject(dl);
-	}, this);
-	dl.inject(container);
+	dl.appendTo(container);
 };
 
 
@@ -168,8 +182,8 @@ Joomla.renderMessages = function(messages) {
  * @return	void
  */
 Joomla.removeMessages = function() {
-	var children = $$('#system-message-container > *');
-	children.destroy();
+	var children = $('#system-message-container > *');
+	children.remove();
 }
 
 /**
@@ -189,7 +203,7 @@ Joomla.isChecked = function(isitchecked, form) {
 		/**
 		 * Added to ensure Joomla 1.5 compatibility
 		 */
-		if(!form){
+		if (!form){
 			form = document.adminForm;
 		}
 	}
@@ -224,7 +238,7 @@ Joomla.tableOrdering = function(order, dir, task, form) {
 		/**
 		 * Added to ensure Joomla 1.5 compatibility
 		 */
-		if(!form){
+		if (!form){
 			form = document.adminForm;
 		}
 	}
@@ -298,7 +312,7 @@ function changeDynaList(listname, source, key, orig_key, orig_val) {
 		if (source[x][0] == key) {
 			opt = new Option();
 			opt.value = source[x][1];
-			opt.text = source[x][2];
+			opt.text  = source[x][2];
 
 			if ((orig_key == key && orig_val == opt.value) || i == 0) {
 				opt.selected = true;
@@ -479,14 +493,27 @@ function submitbutton(pressbutton) {
  * @deprecated	12.1 This function will be removed in a future version. Use Joomla.submitform() instead.
  */
 function submitform(pressbutton) {
+	var event;
+	if (document.createEvent) {
+		event = document.createEvent('HTMLEvents');
+		event.initEvent('submit', true, true);
+	} else if (document.createEventObject) { // IE < 9
+		event = document.createEventObject();
+		event.eventType = 'submit';
+	}
+
 	if (pressbutton) {
 		document.adminForm.task.value = pressbutton;
 	}
+
 	if (typeof document.adminForm.onsubmit == "function") {
 		document.adminForm.onsubmit();
 	}
-	if (typeof document.adminForm.fireEvent == "function") {
-		document.adminForm.fireEvent('submit');
+	else if (typeof document.adminForm.dispatchEvent == "function") {
+		document.adminForm.dispatchEvent(event);
+	}
+	else if (typeof document.adminForm.fireEvent == "function") {
+		document.adminForm.fireEvent(event);
 	}
 	document.adminForm.submit();
 }

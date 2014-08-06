@@ -3,7 +3,7 @@
  * @package     Joomla.Platform
  * @subpackage  Form
  *
- * @copyright   Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
+ * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
  */
 
@@ -513,7 +513,8 @@ abstract class JFormField
 		// Add the label text and closing tag.
 		if ($this->required)
 		{
-			$label .= '>' . $text . '<span class="star">&#160;*</span></label>';
+			//$label .= '>' . $text . '<span class="star">&#160;*</span></label>';
+			$label .= '>' . $text . '<span class="required star">' . JText::_('JOPTION_REQUIRED'). '</span></label>';
 		}
 		else
 		{
@@ -604,5 +605,50 @@ abstract class JFormField
 			self::$count = self::$count + 1;
 			return self::$generated_fieldname . self::$count;
 		}
+	}
+
+	/**
+	 * Method to get an attribute of the field
+	 *
+	 * @param   string  $name     Name of the attribute to get
+	 * @param   mixed   $default  Optional value to return if attribute not found
+	 *
+	 * @return  mixed             Value of the attribute / default
+	 *
+	 * @since   3.2
+	 */
+	public function getAttribute($name, $default = null)
+	{
+		if ($this->element instanceof SimpleXMLElement)
+		{
+			$attributes = $this->element->attributes();
+
+			// Ensure that the attribute exists
+			if (property_exists($attributes, $name))
+			{
+				$value = $attributes->$name;
+
+				if ($value !== null)
+				{
+					return (string) $value;
+				}
+			}
+		}
+
+		return $default;
+	}
+
+	/**
+	 * Simple method to set the value
+	 *
+	 * @param   mixed  $value  Value to set
+	 *
+	 * @return  void
+	 *
+	 * @since   3.2
+	 */
+	public function setValue($value)
+	{
+		$this->value = $value;
 	}
 }

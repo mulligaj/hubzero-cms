@@ -52,140 +52,140 @@ class CoursesModelOffering extends CoursesModelAbstract
 {
 	/**
 	 * JTable class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CoursesTableOffering';
 
 	/**
 	 * Object scope
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'offering';
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_units = NULL;
 
 	/**
 	 * CoursesModelUnit
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_unit = NULL;
 
 	/**
 	 * JUser
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_page = NULL;
 
 	/**
 	 * JUser
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_pages = NULL;
 
 	/**
 	 * JUser
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_announcements = NULL;
 
 	/**
 	 * JUser
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_roles = NULL;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_members = NULL;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_member = NULL;
 
 	/**
 	 * CoursesModelMember
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_manager = NULL;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_managers = NULL;
 
 	/**
 	 * CoursesModelMember
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_student = NULL;
 
 	/**
 	 * CoursesModelGradebook
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_gradebook = NULL;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_sections = NULL;
 
 	/**
 	 * CoursesModelSection
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_section = NULL;
 
 	/**
 	 * CoursesModelPermissions
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_permissions = NULL;
 
 	/**
 	 * URL to this object
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_link = NULL;
 
 	/**
 	 * JRegistry
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_params = NULL;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $id Course offering ID or alias
 	 * @return     void
 	 */
@@ -197,19 +197,22 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 		$this->_tbl = new CoursesTableOffering($this->_db);
 
-		if (is_numeric($oid) || is_string($oid))
+		if ($oid)
 		{
-			if (strstr($oid, ':'))
+			if (is_numeric($oid) || is_string($oid))
 			{
-				$dot = strpos($oid, ':');
-				$section = substr($oid, $dot + 1);
-				$oid = substr($oid, 0, $dot);
+				if (strstr($oid, ':'))
+				{
+					$dot = strpos($oid, ':');
+					$section = substr($oid, $dot + 1);
+					$oid = substr($oid, 0, $dot);
+				}
+				$this->_tbl->load($oid, $course_id);
 			}
-			$this->_tbl->load($oid, $course_id);
-		}
-		else if (is_object($oid) || is_array($oid))
-		{
-			$this->bind($oid);
+			else if (is_object($oid) || is_array($oid))
+			{
+				$this->bind($oid);
+			}
 		}
 
 		if ($this->exists()) // && $section)
@@ -231,7 +234,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -251,7 +254,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			$key = $oid['id'];
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new CoursesModelOffering($oid, $course_id);
 		}
@@ -261,7 +264,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Get a param value
-	 * 
+	 *
 	 * @param	   string $key     Property to return
 	 * @param	   mixed  $default Default value to return
 	 * @return     mixed
@@ -294,7 +297,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			return $this->_section;
 		}
 
-		if (!isset($this->_section) 
+		if (!isset($this->_section)
 		 || ($id !== null && (int) $this->_section->get('id') != $id && (string) $this->_section->get('alias') != $id))
 		{
 			$this->_section = null;
@@ -333,11 +336,11 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 *   Accepts either a numeric array index or a string [id, name]
 	 *   If index, it'll return the entry matching that index in the list
 	 *   If string, it'll return either a list of IDs or names
-	 * 
+	 *
 	 * @param      mixed $idx Index value
 	 * @return     array
 	 */
-	public function sections($filters=array())
+	public function sections($filters=array(), $clear=false)
 	{
 		if (!isset($filters['offering_id']))
 		{
@@ -355,7 +358,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			return $tbl->count($filters);
 		}
 
-		if (!($this->_sections instanceof CoursesModelIterator))
+		if (!($this->_sections instanceof CoursesModelIterator) || $clear)
 		{
 			$tbl = new CoursesTableSection($this->_db);
 
@@ -385,7 +388,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 */
 	public function unit($id=null)
 	{
-		if (!isset($this->_unit) 
+		if (!isset($this->_unit)
 		 || ($id !== null && (int) $this->_unit->get('id') != $id && (string) $this->_unit->get('alias') != $id))
 		{
 			$this->_unit = null;
@@ -417,7 +420,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 *   Accepts either a numeric array index or a string [id, name]
 	 *   If index, it'll return the entry matching that index in the list
 	 *   If string, it'll return either a list of IDs or names
-	 * 
+	 *
 	 * @param      mixed $idx Index value
 	 * @return     array
 	 */
@@ -468,7 +471,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	/**
 	 * Check if the current user has manager access
 	 * This is just a shortcut for the access check
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function isManager()
@@ -478,12 +481,12 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Check if the current user is enrolled
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function manager($user_id=null)
 	{
-		if (!isset($this->_manager) 
+		if (!isset($this->_manager)
 		 || ($user_id !== null && (int) $this->_manager->get('user_id') != $user_id))
 		{
 			$this->_manager = null;
@@ -492,7 +495,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			{
 				$this->_manager = $this->_managers[$user_id];
 			}
-			else 
+			else
 			{
 				$this->_manager = CoursesModelManager::getInstance($user_id, $this->get('course_id'), $this->get('id'), $this->section()->get('id'));
 			}
@@ -506,7 +509,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 *   Accepts either a numeric array index or a string [id, name]
 	 *   If index, it'll return the entry matching that index in the list
 	 *   If string, it'll return either a list of IDs or names
-	 * 
+	 *
 	 * @param      array   $filters Filters to build query from
 	 * @param      boolean $clear   Force a new dataset?
 	 * @return     mixed
@@ -573,7 +576,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	/**
 	 * Check if the current user has manager access
 	 * This is just a shortcut for the access check
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function isStudent()
@@ -587,12 +590,12 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Check if the current user is enrolled
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function student($user_id=null)
 	{
-		if (!isset($this->_student) 
+		if (!isset($this->_student)
 		 || ($user_id !== null && (int) $this->_student->get('user_id') != $user_id))
 		{
 			$this->_student = null;
@@ -619,12 +622,12 @@ class CoursesModelOffering extends CoursesModelAbstract
 			$this->_student = CoursesModelStudent::getInstance($user_id, $this->get('course_id'), $this->get('id'), $this->section()->get('id'));
 		}
 
-		return $this->_student; 
+		return $this->_student;
 	}
 
 	/**
 	 * Get offering gradebook
-	 * 
+	 *
 	 * @return     obj
 	 */
 	public function gradebook($oid=null)
@@ -637,12 +640,12 @@ class CoursesModelOffering extends CoursesModelAbstract
 			$this->_gradebook = new CoursesModelGradeBook($oid, $course);
 		}
 
-		return $this->_gradebook; 
+		return $this->_gradebook;
 	}
 
 	/**
 	 * Check if the current user is enrolled
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function students($filters=array(), $clear=false)
@@ -654,12 +657,12 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Check if the current user is enrolled
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function member($user_id=null)
 	{
-		if (!isset($this->_member) 
+		if (!isset($this->_member)
 		 || ($user_id !== null && (int) $this->_member->get('user_id') != $user_id))
 		{
 			$this->_member = null;
@@ -682,7 +685,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			$this->_member = CoursesModelMember::getInstance($user_id, $this->get('course_id'), $this->get('id'), $this->section()->get('id'));
 		}
 
-		return $this->_member; 
+		return $this->_member;
 	}
 
 	/**
@@ -690,7 +693,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 *   Accepts either a numeric array index or a string [id, name]
 	 *   If index, it'll return the entry matching that index in the list
 	 *   If string, it'll return either a list of IDs or names
-	 * 
+	 *
 	 * @param      array   $filters Filters to build query from
 	 * @param      boolean $clear   Force a new dataset?
 	 * @return     mixed
@@ -760,7 +763,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Get a list of memerships for a user
-	 * 
+	 *
 	 * @param      array   $filters Filters to build query from
 	 * @return     mixed
 	 */
@@ -805,7 +808,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 					{
 						$mdl = 'CoursesModelStudent';
 					}
-					else 
+					else
 					{
 						$mdl = 'CoursesModelManager';
 					}
@@ -824,7 +827,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 *   Accepts either a numeric array index or a string [id, name]
 	 *   If index, it'll return the entry matching that index in the list
 	 *   If string, it'll return either a list of IDs or names
-	 * 
+	 *
 	 * @param      array   $filters Filters to build query from
 	 * @param      boolean $clear   Force a new dataset?
 	 * @return     mixed
@@ -859,12 +862,12 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Check if the current user is enrolled
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function page($url=null)
 	{
-		if (!isset($this->_page) 
+		if (!isset($this->_page)
 		 || ($url !== null && (int) $this->_page['url'] != $url))
 		{
 			$this->_page = null;
@@ -885,7 +888,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 			}
 		}
 
-		return $this->_page; 
+		return $this->_page;
 	}
 
 	/**
@@ -893,7 +896,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	 *   Accepts either a numeric array index or a string [id, name]
 	 *   If index, it'll return the entry matching that index in the list
 	 *   If string, it'll return either a list of IDs or names
-	 * 
+	 *
 	 * @param      mixed $idx Index value
 	 * @return     array
 	 */
@@ -942,7 +945,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	/**
 	 * Get a list of announcements for an offering
 	 *   Accepts an array of filters to retrieve data by
-	 * 
+	 *
 	 * @param      array $filters
 	 * @return     mixed
 	 */
@@ -990,7 +993,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Check a user's authorization
-	 * 
+	 *
 	 * @param      string $action Action to check
 	 * @return     boolean True if authorized, false if not
 	 */
@@ -1022,7 +1025,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Check a user's authorization
-	 * 
+	 *
 	 * @param      string $action Action to check
 	 * @return     boolean True if authorized, false if not
 	 */
@@ -1136,12 +1139,40 @@ class CoursesModelOffering extends CoursesModelAbstract
 	}
 
 	/**
-	 * Short title for 'update'
-	 * Long title (if any) ...
+	 * Create a section linked to this offering
 	 *
-	 * @param unknown $course_id Parameter title (if any) ...
-	 * @param array $data Parameter title (if any) ...
-	 * @return boolean Return title (if any) ...
+	 * @param   boolean $validate Validate data?
+	 * @return  boolean True on success, False on error
+	 */
+	public function makeSection($alias='__default', $is_default=1)
+	{
+		$section = new CoursesModelSection();
+		$section->set('offering_id', $this->get('id'));
+		$section->set('alias', $alias);
+		$section->set('title', JText::_('Default'));
+		$section->set('state', 1);
+		$section->set('is_default', $is_default);
+		$section->set('enrollment', $this->config('default_enrollment', 0));
+		$section->set('start_date', $this->get('start_date'));
+		$section->set('end_date', $this->get('end_date'));
+		$section->set('publish_up', $this->get('publish_up'));
+		$section->set('publish_down', $this->get('publish_down'));
+		if (!$section->store())
+		{
+			$this->setError($section->getError());
+			return false;
+		}
+
+		$this->_sections = null;
+
+		return true;
+	}
+
+	/**
+	 * Store changes to the database
+	 *
+	 * @param   boolean $validate Validate data?
+	 * @return  boolean True on success, False on error
 	 */
 	public function store($validate=true)
 	{
@@ -1173,20 +1204,8 @@ class CoursesModelOffering extends CoursesModelAbstract
 		// An offering MUST have at least one __default section
 		if ($validate && $this->sections()->total() <= 0)
 		{
-			$section = new CoursesModelSection('__default', $this->get('id'));
-			$section->set('offering_id', $this->get('id'));
-			$section->set('alias', '__default');
-			$section->set('title', JText::_('Default'));
-			$section->set('state', 1);
-			$section->set('is_default', 1);
-			$section->set('enrollment', $this->config('default_enrollment', 0));
-			$section->set('start_date', $this->get('start_date'));
-			$section->set('end_date', $this->get('end_date'));
-			$section->set('publish_up', $this->get('publish_up'));
-			$section->set('publish_down', $this->get('publish_down'));
-			if (!$section->store())
+			if (!$this->makeSection('__default', 1))
 			{
-				$this->setError($section->getError());
 				return false;
 			}
 		}
@@ -1204,17 +1223,139 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Delete an entry and associated data
-	 * 
+	 *
 	 * @return     boolean True on success, false on error
 	 */
 	public function delete()
 	{
+		// Remove pages
+		foreach ($this->pages(array('active' => array(0, 1)), true) as $page)
+		{
+			if (!$page->delete())
+			{
+				$this->setError($page->getError());
+			}
+		}
+
+		// Remove announcements
+		foreach ($this->announcements(array('section_id' => -1, 'state' => -1)) as $announcement)
+		{
+			if (!$announcement->delete())
+			{
+				$this->setError($announcement->getError());
+			}
+		}
+
+		// Remove any units
+		foreach ($this->units(array('section_id' => -1), true) as $unit)
+		{
+			if (!$unit->delete())
+			{
+				$this->setError($unit->getError());
+			}
+		}
+
+		// Remove sections
+		// Each section will also remove any students in that section
+		foreach ($this->sections() as $section)
+		{
+			if (!$section->delete())
+			{
+				$this->setError($section->getError());
+			}
+		}
+
 		$value = parent::delete();
 
 		$this->importPlugin('courses')
 		     ->trigger('onOfferingDelete', array($this));
 
 		return $value;
+	}
+
+	/**
+	 * Copy an entry and associated data
+	 *
+	 * @param   integer $course_id New course to copy to
+	 * @param   boolean $deep      Copy associated data?
+	 * @return  boolean True on success, false on error
+	 */
+	public function copy($course_id=null, $deep=true)
+	{
+		// Get some old info we may need
+		//  - Offering ID
+		//  - Course ID
+		$o_id = $this->get('id');
+		$c_id = $this->get('course_id');
+
+		// Reset the ID. This will force store() to create a new record.
+		$this->set('id', 0);
+		// Are we copying to a new course?
+		if ($course_id)
+		{
+			$this->set('course_id', $course_id);
+		}
+		else
+		{
+			// Copying to the same course so we want to distinguish
+			// this offering from the one we copied from
+			$this->set('title', $this->get('title') . ' (copy)');
+			$this->set('alias', $this->get('alias') . '_copy');
+		}
+		if (!$this->store())
+		{
+			return false;
+		}
+
+		if ($deep)
+		{
+			// Copy pages
+			foreach ($this->pages(array('offering_id' => $o_id, 'active' => array(0, 1)), true) as $page)
+			{
+				if (!$page->copy($this->get('course_id'), $this->get('id')))
+				{
+					$this->setError($page->getError());
+				}
+			}
+
+			// Copy units
+			foreach ($this->units(array('offering_id' => $o_id, 'section_id' => -1), true) as $unit)
+			{
+				if (!$unit->copy($this->get('id')))
+				{
+					$this->setError($unit->getError());
+				}
+			}
+
+			// Copy logo
+			if ($file = $this->logo('file'))
+			{
+				$src  = '/' . trim($this->config('uploadpath', '/site/courses'), '/') . '/' . $c_id . '/offerings/' . $o_id . '/' . $file;
+				if (file_exists(JPATH_ROOT . $src))
+				{
+					$dest = '/' . trim($this->config('uploadpath', '/site/courses'), '/') . '/' . $this->get('course_id') . '/offerings/' . $this->get('id');
+
+					if (!is_dir(JPATH_ROOT . $dest))
+					{
+						jimport('joomla.filesystem.folder');
+						if (!JFolder::create(JPATH_ROOT . $dest))
+						{
+							$this->setError(JText::_('UNABLE_TO_CREATE_UPLOAD_PATH'));
+						}
+					}
+
+					$dest .= '/' . $file;
+
+					jimport('joomla.filesystem.file');
+					if (!JFile::copy($src, $dest, JPATH_ROOT))
+					{
+						$this->setError(JText::_('Failed to copy offering logo.'));
+					}
+				}
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -1233,8 +1374,8 @@ class CoursesModelOffering extends CoursesModelAbstract
 		//then add overview to array
 		$hub_course_plugins = $this->trigger('onCourseAreas', array());
 		array_unshift($hub_course_plugins, array(
-			'name' => 'outline', 
-			'title' => 'Outline', 
+			'name' => 'outline',
+			'title' => 'Outline',
 			'default_access' => 'members'
 		));
 
@@ -1244,13 +1385,6 @@ class CoursesModelOffering extends CoursesModelAbstract
 		//get the course plugin preferences
 		//returns array of tabs and their access level (ex. [overview] => 'anyone', [messages] => 'registered')
 		$course_plugins = $this->get('plugins');
-
-		/*$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-		$course_plugins = new $paramsClass($this->get('plugins'));*/
 
 		if ($course_plugins)
 		{
@@ -1319,7 +1453,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type The type of link to return
 	 * @return     string
 	 */
@@ -1363,7 +1497,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 					$link = $this->_link . '&task=enroll';
 				}
 			break;
-			
+
 			case 'overview':
 				$link = 'index.php?option=com_courses&gid=' . $this->get('course_alias');
 			break;
@@ -1379,7 +1513,7 @@ class CoursesModelOffering extends CoursesModelAbstract
 
 	/**
 	 * Get the offering alias with section alias
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function alias()

@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
@@ -30,39 +30,48 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+$this->css('introduction.css', 'system')
+     ->css()
+     ->js();
 ?>
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="introduction" class="section">
-	<div class="aside">
-		<p id="getstarted"><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=new'); ?>"><?php echo JText::_('Submit a resource'); ?></a></p>
-		<ul>
-			<li>
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=new'); ?>">
+				<?php echo JText::_('Submit a resource'); ?>
+			</a>
+		</p>
+	</div><!-- / #content-header -->
+</header><!-- / #content-header -->
+
+<section id="introduction" class="section">
+	<div class="grid">
+		<div class="col span9">
+			<div class="grid">
+				<div class="col span6">
+					<h3><?php echo JText::_('What are resources?'); ?></h3>
+					<p><?php echo JText::_('Resources are user-submitted pieces of content that range from video presentations to publications to simulation tools.'); ?></p>
+				</div>
+				<div class="col span6 omega">
+					<h3><?php echo JText::_('Who can submit a resource?'); ?></h3>
+					<p><?php echo JText::_('Anyone can submit a resource! Resources must be relevant to the community and may undergo a short approval process to ensure all appropriate files and information are included.'); ?></p>
+				</div>
+			</div>
+		</div>
+		<div class="col span3 omega">
+			<p>
 				<a class="popup" href="<?php echo JRoute::_('index.php?option=com_help&component=resources&page=index'); ?>">
 					<?php echo JText::_('Need Help?'); ?>
 				</a>
-			</li>
-		</ul>
-	</div><!-- / .aside -->
-	<div class="subject">
-		<div class="grid">
-			<div class="col span-half">
-				<h3><?php echo JText::_('What are resources?'); ?></h3>
-				<p><?php echo JText::_('Resources are user-submitted pieces of content that range from video presentations to publications to simulation tools.'); ?></p>
-			</div>
-			<div class="col span-half omega">
-				<h3><?php echo JText::_('Who can submit a resource?'); ?></h3>
-				<p><?php echo JText::_('Anyone can submit a resource! Resources must be relevant to the community and may undergo a short approval process to ensure all appropriate files and information are included.'); ?></p>
-			</div>
+			</p>
 		</div>
-	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / #introduction.section -->
+	</div><!-- / .aside -->
+</section><!-- / #introduction.section -->
 
-<div class="section">
-	
+<section class="section">
+
 	<div class="grid">
 		<div class="col span3">
 			<h2><?php echo JText::_('Find a resource'); ?></h2>
@@ -70,7 +79,7 @@ defined('_JEXEC') or die('Restricted access');
 		<div class="col span9 omega">
 			<div class="grid">
 				<div class="col span-half">
-					<form action="/search" method="get" class="search">
+					<form action="<?php echo JRoute::_('index.php?option=com_search'); ?>" method="get" class="search">
 						<fieldset>
 							<p>
 								<label for="rsearch"><?php echo JText::_('Keyword or phrase:'); ?></label>
@@ -122,7 +131,7 @@ if ($this->categories) {
 				}
 				?>
 				<div class="col span-third <?php echo $clm; ?>">
-					<div class="<?php echo $cls; ?>">
+					<div class="resource-type <?php echo $cls; ?>">
 						<h3>
 							<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&type=' . $category->alias); ?>">
 								<?php echo $this->escape(stripslashes($category->type)); ?>
@@ -167,5 +176,4 @@ if ($this->categories) {
 }
 ?>
 
-</div><!-- / .section -->
-
+</section><!-- / .section -->

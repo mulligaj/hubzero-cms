@@ -27,8 +27,8 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 <ol class="comments" id="t<?php echo (isset($this->parent) ? $this->parent : '0'); ?>">
 <?php
-if ($this->comments && $this->comments instanceof \Hubzero\Base\ItemList) 
-{ 
+if ($this->comments && $this->comments instanceof \Hubzero\Base\ItemList)
+{
 	$cls = 'odd';
 	if (isset($this->cls))
 	{
@@ -37,24 +37,19 @@ if ($this->comments && $this->comments instanceof \Hubzero\Base\ItemList)
 
 	$this->depth++;
 
-	foreach ($this->comments as $comment) 
+	foreach ($this->comments as $comment)
 	{
 		$comment->set('entry_id', $this->article->get('id'));
 
-		$view = new JView(
-			array(
-				'name'    => 'articles',
-				'layout'  => '_comment'
-			)
-		);
-		$view->option     = $this->option;
-		$view->comment    = $comment;
-		$view->depth      = $this->depth;
-		$view->article    = $this->article;
-		$view->cls        = $cls;
-		$view->base       = $this->base;
-		$view->display();
+		$this->view('_comment')
+		     ->set('option', $this->option)
+		     ->set('comment', $comment)
+		     ->set('depth', $this->depth)
+		     ->set('article', $this->article)
+		     ->set('cls', $cls)
+		     ->set('base', $this->base)
+		     ->display();
 	}
-} 
+}
 ?>
 </ol>

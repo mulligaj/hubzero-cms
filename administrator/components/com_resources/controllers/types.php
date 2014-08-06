@@ -38,7 +38,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 {
 	/**
 	 * List resource types
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -113,7 +113,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 
 	/**
 	 * Add a new type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -123,7 +123,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($row=null)
@@ -173,7 +173,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save a type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -253,7 +253,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 		// Check content
 		if (!$row->category)
 		{
-			$this->addComponentMessage(JText::_('Please choose a category.'), 'error');
+			$this->addComponentMessage(JText::_('COM_RESOURCES_ERROR_SELECT_CATEGORY'), 'error');
 			$this->editTask($row);
 			return;
 		}
@@ -275,13 +275,13 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Type successfully saved')
+			JText::_('COM_RESOURCES_ITEM_SAVED')
 		);
 	}
 
 	/**
 	 * Strip any non-alphanumeric characters and make lowercase
-	 * 
+	 *
 	 * @param      string  $txt    String to normalize
 	 * @param      boolean $dashes Allow dashes and underscores
 	 * @return     string
@@ -298,7 +298,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 
 	/**
 	 * Remove one or more types
-	 * 
+	 *
 	 * @return     void Redirects back to main listing
 	 */
 	public function removeTask()
@@ -315,7 +315,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 			// Redirect with error message
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No type selected'),
+				JText::_('COM_RESOURCES_NO_ITEM_SELECTED'),
 				'error'
 			);
 			return;
@@ -333,7 +333,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 				// Redirect with error message
 				$this->setRedirect(
 					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::sprintf('There are resources with type %s. Please reassign them before deleting this type.', $id),
+					JText::sprintf('COM_RESOURCES_TYPE_BEING_USED', $id),
 					'error'
 				);
 				return;
@@ -346,7 +346,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Type successfully saved')
+			JText::sprintf('COM_RESOURCES_ITEMS_REMOVED', count($ids))
 		);
 	}
 
@@ -359,7 +359,7 @@ class ResourcesControllerTypes extends \Hubzero\Component\AdminController
 	{
 		$this->setRedirect('index.php?option=' . $this->_option . '&controller=' . $this->_controller);
 	}
-	
+
 	/**
 	 * Retrieve an element's options (typically called via AJAX)
 	 *

@@ -33,17 +33,14 @@ defined('_JEXEC') or die( 'Restricted access' );
 JToolBarHelper::title( JText::_( 'MEMBERS' ).': Manage Points', 'user.png' );
 
 ?>
-<div role="navigation" class="sub-navigation">
-	<ul id="subsubmenu">
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>">Summary</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit" class="active">Look up User Balance</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=config">Configuration</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=batch">Batch Transaction</a></li>
-	</ul>
-</div>
+
+<?php
+	$this->view('_submenu')
+	     ->display();
+?>
 
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 
@@ -84,7 +81,7 @@ function submitbutton(pressbutton)
 		</fieldset>
 		<fieldset>
 			<legend><span>New Transaction</span></legend>
-		
+
 				<table class="adminform">
 			 <tbody>
 			  <tr>
@@ -160,7 +157,7 @@ function submitbutton(pressbutton)
 		</table>
 	</div>
 	<div class="clr"></div>
-	
+
 	<input type="hidden" name="id" value="<?php echo $this->row->id; ?>" />
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />

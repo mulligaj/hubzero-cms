@@ -38,7 +38,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Executes a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -62,15 +62,11 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Lists standalone resources
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
-		// Push some styles to the template
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'resources.css');
-
 		// Get configuration
 		$app = JFactory::getApplication();
 		$config = JFactory::getConfig();
@@ -150,7 +146,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * List child resources of a parent resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function childrenTask()
@@ -226,15 +222,6 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$this->view->filters['limit']
 		);
 
-		// Get sections for learning modules
-		// TODO: Phase out all learning modules code
-		$this->view->sections = array();
-		if ($this->view->parent->type == 4)
-		{
-			$rt = new ResourcesType($this->database);
-			$this->view->sections = $rt->getTypes(29);
-		}
-
 		// Set any errors
 		if ($this->getError())
 		{
@@ -250,7 +237,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * List "child" resources without any parent associations
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function orphansTask()
@@ -339,7 +326,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Show the ratings for a resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function ratingsTask()
@@ -350,7 +337,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Do we have an ID to work with?
 		if (!$id)
 		{
-			$this->setError(JText::_('Missing resource ID'));
+			$this->setError(JText::_('COM_RESOURCES_ERROR_MISSING_ID'));
 		}
 		else
 		{
@@ -374,7 +361,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Show a form for adding a child to a resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addchildTask()
@@ -395,7 +382,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Missing parent resource ID'),
+				JText::_('COM_RESOURCES_ERROR_MISSING_PARENT_ID'),
 				'error'
 			);
 			return;
@@ -454,7 +441,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 							$this->view->pid = $pid;
 
 							// No child ID! Throw an error and present the form from the previous step
-							$this->setError(JText::_('Resource with provided ID # not found.'));
+							$this->setError(JText::_('COM_RESOURCES_ERROR_RESOURCE_NOT_FOUND'));
 
 							// Get the available types
 							$rt = new ResourcesType($this->database);
@@ -479,7 +466,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 						$this->view->pid = $pid;
 
 						// No child ID! Throw an error and present the form from the previous step
-						$this->setError(JText::_('Please provide an ID #'));
+						$this->setError(JText::_('COM_RESOURCES_ERROR_MISSING_ID'));
 
 						// Get the available types
 						$rt = new ResourcesType($this->database);
@@ -506,7 +493,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Attaches a resource as a child to another resource
 	 * Redirects to parent's children listing
-	 * 
+	 *
 	 * @param      integer $id  ID of the child
 	 * @param      integer $pid ID of the parent
 	 * @return     void
@@ -518,7 +505,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Missing parent ID'), 
+				JText::_('COM_RESOURCES_ERROR_MISSING_PARENT_ID'),
 				'error'
 			);
 			return;
@@ -528,7 +515,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=children&pid=' . $pid,
-				JText::_('Missing child ID'), 
+				JText::_('COM_RESOURCES_ERROR_MISSING_CHILD_ID'),
 				'error'
 			);
 			return;
@@ -553,7 +540,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		{
 			$this->setError($assoc->getError());
 		}
-		else 
+		else
 		{
 			if (!$assoc->store(true))
 			{
@@ -566,16 +553,16 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			// Redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=children&pid=' . $pid,
-				$this->getError(), 
+				$this->getError(),
 				'error'
 			);
 		}
-		else 
+		else
 		{
 			// Redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=children&pid=' . $pid,
-				JText::_('Child successfully added')
+				JText::_('COM_RESOURCES_ITEM_SAVED')
 			);
 		}
 	}
@@ -583,7 +570,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Removes a parent/child association
 	 * Redirects to parent's children listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removechildTask()
@@ -597,7 +584,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Missing parent ID'), 
+				JText::_('COM_RESOURCES_ERROR_MISSING_PARENT_ID'),
 				'error'
 			);
 			return;
@@ -608,7 +595,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=children&pid=' . $pid,
-				JText::_('Missing child ID'), 
+				JText::_('COM_RESOURCES_ERROR_MISSING_CHILD_ID'),
 				'error'
 			);
 			return;
@@ -625,14 +612,14 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=children&pid=' . $pid,
-			JText::sprintf('%s children successfully removed', count($ids))
+			JText::sprintf('COM_RESOURCES_ITEMS_REMOVED', count($ids))
 		);
 	}
 
 	/**
 	 * Edit form for a new resource
-	 * 
-	 * @return     void 
+	 *
+	 * @return     void
 	 */
 	public function addTask()
 	{
@@ -641,9 +628,9 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit form for a resource
-	 * 
+	 *
 	 * @param      integer $isnew Flag for editing (0) or creating new (1)
-	 * @return     void 
+	 * @return     void
 	 */
 	public function editTask($isnew=0)
 	{
@@ -690,7 +677,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			}
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . $task,
-				JText::_('This resource is currently being edited by another administrator'),
+				JText::_('COM_RESOURCES_WARNING_CHECKED_OUT'),
 				'notice'
 			);
 			return;
@@ -704,7 +691,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$this->view->row->modified     = $this->database->getNullDate();
 			$this->view->row->modified_by  = 0;
 			$this->view->row->publish_up   = JFactory::getDate()->toSql();
-			$this->view->row->publish_down = 'Never';
+			$this->view->row->publish_down = JText::_('COM_RESOURCES_NEVER');
 			if ($this->view->pid)
 			{
 				$this->view->row->published  = 1;
@@ -723,7 +710,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 		if (trim($this->view->row->publish_down) == '0000-00-00 00:00:00')
 		{
-			$this->view->row->publish_down = JText::_('Never');
+			$this->view->row->publish_down = JText::_('COM_RESOURCES_NEVER');
 		}
 
 		// Get name of resource creator
@@ -745,15 +732,9 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$this->view->row->modified_by_name = '';
 		}
 
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
-		}
-
 		// Get params definitions
 		$this->view->params  = new JParameter($this->view->row->params, JPATH_COMPONENT . DS . 'resources.xml');
-		$this->view->attribs = new $paramsClass($this->view->row->attribs);
+		$this->view->attribs = new JRegistry($this->view->row->attribs);
 
 		// Build selects of various types
 		$rt = new ResourcesType($this->database);
@@ -779,11 +760,12 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		if ($this->view->row->standalone == 1)
 		{
 			// Get groups
-			$filters = array();
-			$filters['authorized'] = 'admin';
-			$filters['fields'] = array('cn','description','published','gidNumber','type');
-			$filters['type'] = array(1,3);
-			$filters['sortby'] = 'description';
+			$filters = array(
+				'authorized' => 'admin',
+				'fields'     => array('cn', 'description', 'published', 'gidNumber', 'type'),
+				'type'       => array(1, 3),
+				'sortby'     => 'description'
+			);
 			$groups = \Hubzero\User\Group::find($filters);
 
 			// Build <select> of groups
@@ -801,19 +783,19 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			if ($this->view->row->id)
 			{
 				$ma = new MembersAssociation($this->database);
-				$sql = "SELECT n.uidNumber AS id, a.authorid, a.name, n.givenName, n.middleName, n.surname, a.role, a.organization  
-						FROM " . $ma->getTableName() . " AS a  
-						LEFT JOIN " . $mp->getTableName() . " AS n ON n.uidNumber=a.authorid 
+				$sql = "SELECT n.uidNumber AS id, a.authorid, a.name, n.givenName, n.middleName, n.surname, a.role, a.organization
+						FROM " . $ma->getTableName() . " AS a
+						LEFT JOIN " . $mp->getTableName() . " AS n ON n.uidNumber=a.authorid
 						WHERE a.subtable='resources'
-						AND a.subid=" . $this->view->row->id . " 
+						AND a.subid=" . $this->view->row->id . "
 						ORDER BY a.ordering";
 				$this->database->setQuery($sql);
 				$authnames = $this->database->loadObjectList();
 			}
 
 			// Build <select> of contributors
-			$authorslist = new JView(array(
-				'name'   => $this->_controller, 
+			$authorslist = new \Hubzero\Component\View(array(
+				'name'   => $this->_controller,
 				'layout' => 'authors'
 			));
 			$authorslist->authnames = $authnames;
@@ -821,7 +803,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$authorslist->option    = $this->_option;
 			$authorslist->roles     = $rt->getRolesForType($this->view->row->type);
 
-			$this->view->lists['authors'] = $authorslist->loadTemplate(); //ResourcesHtml::selectAuthors($members, $authnames, $this->view->attribs, $this->_option);
+			$this->view->lists['authors'] = $authorslist->loadTemplate();
 
 			// Get the tags on this item
 			$rt = new ResourcesTags($this->database);
@@ -844,7 +826,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Saves a resource
 	 * Redirects to main listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -891,33 +873,25 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 				$row->created_by = $row->created_by ? $row->created_by : $this->juser->get('id');
 			}
 		}
-		
+
 		// publish up
 		$row->publish_up = JFactory::getDate($row->publish_up, JFactory::getConfig()->get('offset'))->toSql();
-		
+
 		// publish down
-		if (!$row->publish_down || trim($row->publish_down) == '0000-00-00 00:00:00' 
-			|| trim($row->publish_down) == 'Never')
+		if (!$row->publish_down || trim($row->publish_down) == '0000-00-00 00:00:00' || trim($row->publish_down) == 'Never')
 		{
 			$row->publish_down = '0000-00-00 00:00:00';
 		}
 		else
 		{
-			$row->publish_down = JFactory::getDate($row->publish_down,
-			 	JFactory::getConfig()->get('offset'))->toSql();
-		}
-		
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = 'JRegistry';
+			$row->publish_down = JFactory::getDate($row->publish_down, JFactory::getConfig()->get('offset'))->toSql();
 		}
 
 		// Get parameters
 		$params = JRequest::getVar('params', array(), 'post');
 		if (is_array($params))
 		{
-			$txt = new $paramsClass('');
+			$txt = new JRegistry('');
 			foreach ($params as $k => $v)
 			{
 				$txt->set($k, $v);
@@ -929,7 +903,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		$attribs = JRequest::getVar('attrib', array(), 'post');
 		if (is_array($attribs))
 		{
-			$txta = new $paramsClass('');
+			$txta = new JRegistry('');
 			foreach ($attribs as $k => $v)
 			{
 				if ($k == 'timeof')
@@ -938,9 +912,9 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 					{
 						$v = NULL;
 					}
-					
-					$v = trim($v) 
-						? JFactory::getDate($v, JFactory::getConfig()->get('offset'))->toSql() 
+
+					$v = trim($v)
+						? JFactory::getDate($v, JFactory::getConfig()->get('offset'))->toSql()
 						: NULL;
 				}
 				$txta->set($k, $v);
@@ -988,7 +962,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 						$f = 'found';
 					}
 				}
-				else 
+				else
 				{
 					$f = trim($tagcontent);
 					if ($f)
@@ -998,7 +972,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 				}
 				$row->fulltxt .= '</nb:' . $tagname . '>' . "\n";
 
-				if (!$tagcontent && isset($fields[$tagname]) && $fields[$tagname]->required) 
+				if (!$tagcontent && isset($fields[$tagname]) && $fields[$tagname]->required)
 				{
 					echo ResourcesHtml::alert(JText::sprintf('RESOURCES_REQUIRED_FIELD_CHECK', $fields[$tagname]->label));
 					exit();
@@ -1019,7 +993,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 		// Code cleaner for xhtml transitional compliance
 		$row->introtext = str_replace('<br>', '<br />', $row->introtext);
-		$row->fulltxt  = str_replace('<br>', '<br />', $row->fulltxt);
+		$row->fulltxt   = str_replace('<br>', '<br />', $row->fulltxt);
 
 		// Check content
 		if (!$row->check())
@@ -1076,7 +1050,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		{
 			$authorsNewstr = $authorsOldstr;
 		}
-		//if ($authorsNewstr != $authorsOldstr) 
+		//if ($authorsNewstr != $authorsOldstr)
 		//{
 			include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'contributor.php');
 
@@ -1095,7 +1069,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 					{
 						$rc->authorid     = $authorsNew[$i];
 					}
-					else 
+					else
 					{
 						$rc->authorid = $rc->getUserId($authorsNew[$i]);
 					}
@@ -1155,13 +1129,13 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			$this->buildRedirectURL($pid),
-			JText::_('Item successfully saved')
+			JText::_('COM_RESOURCES_ITEM_SAVED')
 		);
 	}
 
 	/**
 	 * Sends a message to all contributors on a resource
-	 * 
+	 *
 	 * @param      object $row      ResourcesResource
 	 * @param      object $database JDatabase
 	 * @return     void
@@ -1182,10 +1156,10 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			// E-mail "from" info
 			$from = array();
 			$from['email'] = $jconfig->getValue('config.mailfrom');
-			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('SUBMISSIONS');
+			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_RESOURCES_SUBMISSIONS');
 
 			// Message subject
-			$subject = JText::_('EMAIL_SUBJECT');
+			$subject = JText::_('COM_RESOURCES_EMAIL_SUBJECT');
 
 			$juri = JURI::getInstance();
 
@@ -1198,7 +1172,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$base = trim($base, '/');
 
 			// Build message
-			$message  = JText::sprintf('EMAIL_MESSAGE', $jconfig->getValue('config.sitename')) . "\r\n";
+			$message  = JText::sprintf('COM_RESOURCES_EMAIL_MESSAGE', $jconfig->getValue('config.sitename')) . "\r\n";
 			$message .= $base . DS . 'resources' . DS . $row->id;
 
 			// Send message
@@ -1206,7 +1180,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$dispatcher = JDispatcher::getInstance();
 			if (!$dispatcher->trigger('onSendMessage', array('resources_submission_approved', $subject, $message, $from, $contributors, $this->_option)))
 			{
-				$this->setError(JText::_('Failed to message users.'));
+				$this->setError(JText::_('COM_RESOURCES_ERROR_FAILED_TO_MESSAGE_USERS'));
 			}
 		}
 	}
@@ -1214,7 +1188,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Removes a resource
 	 * Redirects to main listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -1228,7 +1202,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Ensure we have some IDs to work with
 		if (count($ids) < 1)
 		{
-			echo ResourcesHtml::alert(JText::_('Select a resource to delete'));
+			echo ResourcesHtml::alert(JText::_('COM_RESOURCES_NO_ITEM_SELECTED'));
 			exit;
 		}
 
@@ -1247,7 +1221,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			}
 			else
 			{
-				// No stored path, derive from created date		
+				// No stored path, derive from created date
 				$listdir = ResourcesHtml::build_path($row->created, $id, '');
 			}
 
@@ -1261,22 +1235,22 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			// Check if the folder even exists
 			if (!is_dir($path) or !$path)
 			{
-				$this->setError(JText::_('DIRECTORY_NOT_FOUND'));
+				$this->setError(JText::_('COM_RESOURCES_ERROR_DIRECTORY_NOT_FOUND'));
 			}
 			else
 			{
-				if ($path == $base 
+				if ($path == $base
 				 || $path == $baseY
 				 || $path == $baseM)
 				{
-					$this->setError(JText::_('Invalid directory.'));
+					$this->setError(JText::_('COM_RESOURCES_ERROR_DIRECTORY_NOT_FOUND'));
 				}
 				else
 				{
 					// Attempt to delete the folder
 					if (!JFolder::delete($path))
 					{
-						$this->setError(JText::_('UNABLE_TO_DELETE_DIRECTORY'));
+						$this->setError(JText::_('COM_RESOURCES_ERROR_UNABLE_TO_DELETE_DIRECTORY'));
 					}
 				}
 			}
@@ -1297,60 +1271,9 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	}
 
 	/**
-	 * Changes a child resource's "grouping"
-	 * 
-	 * TODO: Phase out - used for learning modules only
-	 * 
-	 * @return     void
-	 */
-	public function regroupTask()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit('Invalid Token');
-
-		// Incoming
-		$ids = JRequest::getVar('id', array());
-		$pid = JRequest::getInt('pid', 0);
-
-		if (is_array($ids))
-		{
-			$id = $ids[0];
-		}
-		else
-		{
-			$id = 0;
-		}
-
-		// Ensure we have an ID to work with
-		if (!$id)
-		{
-			echo ResourcesHtml::alert(JText::_('No resource ID found.'));
-			exit;
-		}
-
-		// Ensure we have an ID to work with
-		if (!$pid)
-		{
-			echo ResourcesHtml::alert(JText::_('No parent resource ID found.'));
-			exit;
-		}
-
-		// Load the Association, set its new grouping, save
-		$assoc = new ResourcesAssoc($this->database);
-		$assoc->loadAssoc($pid, $id);
-		$assoc->grouping = JRequest::getInt('grouping' . $id, 0, 'post');
-		$assoc->store();
-
-		// Redirect
-		$this->setRedirect(
-			$this->buildRedirectURL($pid)
-		);
-	}
-
-	/**
 	 * Sets the access level of a resource
 	 * Redirects to main listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function accessTask()
@@ -1365,7 +1288,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Ensure we have an ID to work with
 		if (!$id)
 		{
-			echo ResourcesHtml::alert(JText::_('No Resource ID found.'));
+			echo ResourcesHtml::alert(JText::_('COM_RESOURCES_ERROR_MISSING_ID'));
 			exit;
 		}
 
@@ -1406,7 +1329,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Sets the state of a resource
 	 * Redirects to main listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function stateTask()
@@ -1423,8 +1346,12 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Check for a resource
 		if (count($ids) < 1)
 		{
-			echo ResourcesHtml::alert(JText::sprintf('Select a resource to %s',$this->_task));
-			exit();
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				JText::sprintf('COM_RESOURCES_ERROR_SELECT_TO', $this->_task),
+				'error'
+			);
+			return;
 		}
 
 		// Loop through all the IDs
@@ -1466,15 +1393,15 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 		if ($publish == '-1')
 		{
-			$this->_message = JText::sprintf('%s Item(s) successfully Archived', count($ids));
+			$this->_message = JText::sprintf('COM_RESOURCES_ITEMS_ARCHIVED', count($ids));
 		}
 		elseif ($publish == '1')
 		{
-			$this->_message = JText::sprintf('%s Item(s) successfully Published', count($ids));
+			$this->_message = JText::sprintf('COM_RESOURCES_ITEMS_PUBLISHED', count($ids));
 		}
 		elseif ($publish == '0')
 		{
-			$this->_message = JText::sprintf('%s Item(s) successfully Unpublished', count($ids));
+			$this->_message = JText::sprintf('COM_RESOURCES_ITEMS_UNPUBLISHED', count($ids));
 		}
 
 		// Redirect
@@ -1485,7 +1412,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Checks in a checked-out resource and redirects
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cancelTask()
@@ -1511,7 +1438,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Resets the hit count of a resource
 	 * Redirects to edit task for the resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function resethitsTask()
@@ -1531,7 +1458,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$row->store();
 			$row->checkin();
 
-			$this->_message = JText::_('Successfully reset Hit count');
+			$this->_message = JText::_('COM_RESOURCES_HITS_RESET');
 		}
 
 		// Redirect
@@ -1544,7 +1471,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Resets the rating of a resource
 	 * Redirects to edit task for the resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function resetratingTask()
@@ -1565,7 +1492,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$row->store();
 			$row->checkin();
 
-			$this->_message = JText::_('Successfully reset Rating');
+			$this->_message = JText::_('COM_RESOURCES_RATING_RESET');
 		}
 
 		// Redirect
@@ -1578,7 +1505,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Resets the ranking of a resource
 	 * Redirects to edit task for the resource
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function resetrankingTask()
@@ -1598,7 +1525,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$row->store();
 			$row->checkin();
 
-			$this->_message = JText::_('Successfully reset Ranking');
+			$this->_message = JText::_('COM_RESOURCES_RANKING_RESET');
 		}
 
 		// Redirect
@@ -1611,7 +1538,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Checks-in one or more resources
 	 * Redirects to the main listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function checkinTask()
@@ -1622,10 +1549,10 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Incoming
 		$ids = JRequest::getVar('id', array(0));
 
-		// Make sure we have at least one ID 
+		// Make sure we have at least one ID
 		if (count($ids) < 1)
 		{
-			echo ResourcesHtml::alert(JText::_('Select a resource to check in'));
+			echo ResourcesHtml::alert(JText::_('COM_RESOURCES_ERROR_MISSING_ID'));
 			exit;
 		}
 
@@ -1647,7 +1574,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	/**
 	 * Reorders a resource child
 	 * Redirects to parent resource's children lsiting
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function reorderTask()
@@ -1663,14 +1590,14 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Ensure we have an ID to work with
 		if (!$id)
 		{
-			echo ResourcesHtml::alert(JText::_('No resource ID found.'));
+			echo ResourcesHtml::alert(JText::_('COM_RESOURCES_ERROR_MISSING_ID'));
 			exit;
 		}
 
 		// Ensure we have a parent ID to work with
 		if (!$pid)
 		{
-			echo ResourcesHtml::alert(JText::_('No parent resource ID found.'));
+			echo ResourcesHtml::alert(JText::_('COM_RESOURCES_ERROR_MISSING_PARENT_ID'));
 			exit;
 		}
 
@@ -1715,7 +1642,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Builds the appropriate URL for redirction
-	 * 
+	 *
 	 * @param      integer $pid Parent resource ID (optional)
 	 * @return     string
 	 */
@@ -1740,7 +1667,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Builds a select list of users
-	 * 
+	 *
 	 * @param      string  $name       Name of the select element
 	 * @param      string  $active     Selected value
 	 * @param      integer $nouser     Display an empty start option
@@ -1755,25 +1682,12 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		$group_id = 'g.id';
 		$aro_id = 'aro.id';
 
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			$query = "SELECT a.id AS value, a.name AS text, g.name AS groupname"
-				. "\n FROM #__users AS a"
-				. "\n INNER JOIN #__core_acl_aro AS aro ON aro.value = a.id"	// map user to aro
-				. "\n INNER JOIN #__core_acl_groups_aro_map AS gm ON gm.aro_id = " . $aro_id . ""	// map aro to group
-				. "\n INNER JOIN #__core_acl_aro_groups AS g ON " . $group_id . " = gm.group_id"
-				. "\n WHERE a.block = '0' AND " . $group_id . "=25"
-				. "\n ORDER BY ". $order;
-		}
-		else
-		{
-			$query = "SELECT a.id AS value, a.name AS text, g.title AS groupname"
-				. "\n FROM #__users AS a"
-				. "\n INNER JOIN #__user_usergroup_map AS gm ON gm.user_id = a.id"	// map aro to group
-				. "\n INNER JOIN #__usergroups AS g ON g.id = gm.group_id"
-				. "\n WHERE a.block = '0' AND g.title='Super Users'"
-				. "\n ORDER BY ". $order;
-		}
+		$query = "SELECT a.id AS value, a.name AS text, g.title AS groupname"
+			. "\n FROM #__users AS a"
+			. "\n INNER JOIN #__user_usergroup_map AS gm ON gm.user_id = a.id"	// map aro to group
+			. "\n INNER JOIN #__usergroups AS g ON g.id = gm.group_id"
+			. "\n WHERE a.block = '0' AND g.title='Super Users'"
+			. "\n ORDER BY ". $order;
 
 		$database->setQuery($query);
 		$result = $database->loadObjectList();
@@ -1785,7 +1699,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 		if ($nouser)
 		{
-			$users[] = JHTML::_('select.option', '0', 'Do not change', 'value', 'text');
+			$users[] = JHTML::_('select.option', '0', 'COM_RESOURCES_DO_NOT_CHANGE', 'value', 'text');
 			$users = array_merge($users, $result);
 		}
 		else
@@ -1798,7 +1712,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 	/**
 	 * Gets the full name of a user from their ID #
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function authorTask()
@@ -1813,7 +1727,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 		if (!is_object($profile) || !$profile->get('uidNumber'))
 		{
-			$this->database->setQuery("SELECT id FROM #__users WHERE `name`=" . $this->database->Quote($this->view->id));
+			$this->database->setQuery("SELECT id FROM `#__users` WHERE `name`=" . $this->database->Quote($this->view->id));
 			if ($id = $this->database->loadResult())
 			{
 				$profile->load($id);
@@ -1835,7 +1749,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$this->view->org = $profile->get('organization');
 			$this->view->id  = $profile->get('uidNumber');
 		}
-		else 
+		else
 		{
 			$this->view->name = null;
 
@@ -1843,9 +1757,9 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 			$rcc = new ResourcesContributor($this->database);
 
-			if (is_numeric($this->view->id)) 
+			if (is_numeric($this->view->id))
 			{
-				$this->database->setQuery("SELECT name, organization FROM #__author_assoc WHERE authorid=" . $this->database->Quote($this->view->id) . " LIMIT 1");
+				$this->database->setQuery("SELECT name, organization FROM `#__author_assoc` WHERE authorid=" . $this->database->Quote($this->view->id) . " LIMIT 1");
 				$author = $this->database->loadObject();
 
 				if (is_object($author) && $author->name)
@@ -1878,9 +1792,10 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	 */
 	public function checkTask()
 	{
-		// hold missing 
+		// hold missing
 		$this->view->missing = array();
-		$this->view->html    = '';
+		$this->view->warning = array();
+		$this->view->good    = array();
 
 		// get all resources
 		$db  = JFactory::getDBO();
@@ -1905,17 +1820,16 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 				// checks
 				if (is_dir($path))
-				{	
-					$this->view->html .= '<font color="yellow">#' . $result->id . ': Resource path is a directory ' . $path . '</font><br />';
+				{
+					$this->view->warning[] = '<span style="color: yellow;">#' . $result->id . ': ' . JText::_('COM_RESOURCES_PATH_IS_DIRECTORY') . ' ' . $path . '</span>';
 				}
 				elseif (JURI::isInternal($path) && !file_exists($base . $path))
 				{
-					$this->view->missing[] = $result;
-					$this->view->html .= '<font color="red">#' . $result->id . ': missing resource at - ' .  $base . $path . '</font><br />';
+					$this->view->missing[] = '<span style="color: red">#' . $result->id . ': ' . JText::sprintf('COM_RESOURCES_MISSING_RESOURCE_AT', $base . $path) . '</span>';
 				}
 				else
 				{
-					$this->view->html .= '<font color="green">#' . $result->id . ': All is Good! - ' . $path . '</font><br />';
+					$this->view->good[] = '<span style="color: green">#' . $result->id . ': ' . JText::sprintf('COM_RESOURCES_NO_PROBLEMS_FOUND', $path) . '</span>';
 				}
 			}
 		}

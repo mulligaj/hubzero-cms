@@ -32,29 +32,23 @@
 defined('_JEXEC') or die('Restricted access');
 
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tables' . DS . 'asset.php');
+require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'abstract.php');
 
 /**
  * Collections model class for an Asset
  */
-class CollectionsModelAsset extends \Hubzero\Base\Model
+class CollectionsModelAsset extends CollectionsModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	public $_tbl_name = 'CollectionsTableAsset';
 
 	/**
-	 * JUser
-	 * 
-	 * @var object
-	 */
-	private $_creator = NULL;
-
-	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      mixed   $oid     ID, string, array, or object
 	 * @param      integer $item_id ID of the item asset is attached
 	 * @return     void
@@ -86,7 +80,7 @@ class CollectionsModelAsset extends \Hubzero\Base\Model
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -104,34 +98,12 @@ class CollectionsModelAsset extends \Hubzero\Base\Model
 			$key = $oid['id'] . '_' . $item_id;
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new CollectionsModelAsset($oid, $item_id);
 		}
 
 		return $instances[$key];
-	}
-
-	/**
-	 * Get the creator of this entry
-	 * 
-	 * Accepts an optional property name. If provided
-	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
-	 *
-	 * @return     mixed
-	 */
-	public function creator($property=null)
-	{
-		if (!isset($this->_creator) || !is_object($this->_creator))
-		{
-			$this->_creator = JUser::getInstance($this->created_by);
-		}
-		if ($property && $this->_creator instanceof JUser)
-		{
-			return $this->_creator->get($property);
-		}
-		return $this->_creator;
 	}
 
 	/**
@@ -171,7 +143,7 @@ class CollectionsModelAsset extends \Hubzero\Base\Model
 	 * Update content
 	 *
 	 * @param     string $field  Field name
-	 * @param     string $before 
+	 * @param     string $before
 	 * @param     string $after
 	 * @return    boolean True on success, false if errors
 	 */
@@ -201,10 +173,10 @@ class CollectionsModelAsset extends \Hubzero\Base\Model
 
 			$path = JPATH_ROOT . DS . trim($config->get('filepath', '/site/collections'), DS) . DS . $this->get('item_id');
 
-			if (!is_dir($path)) 
+			if (!is_dir($path))
 			{
 				jimport('joomla.filesystem.folder');
-				if (!JFolder::create($path)) 
+				if (!JFolder::create($path))
 				{
 					$this->setError(JText::_('Error uploading. Unable to create path.'));
 					return false;
@@ -220,7 +192,7 @@ class CollectionsModelAsset extends \Hubzero\Base\Model
 			$file['name'] = str_replace(' ', '_', $file['name']);
 
 			// Upload new files
-			if (!JFile::upload($file['tmp_name'], $path . DS . $file['name'])) 
+			if (!JFile::upload($file['tmp_name'], $path . DS . $file['name']))
 			{
 				$this->setError(JText::_('ERROR_UPLOADING') . ': ' . $file['name']);
 				return false;

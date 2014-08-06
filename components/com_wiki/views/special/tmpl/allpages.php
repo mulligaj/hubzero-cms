@@ -52,15 +52,15 @@ $where = '';
 $namespace = urldecode(JRequest::getVar('namespace', ''));
 if ($namespace)
 {
-	$where .= "AND LOWER(wp.pagename) LIKE '" . $database->getEscaped(strtolower($namespace)) . "%'";
+	$where .= "AND LOWER(wp.pagename) LIKE " . $database->quote(strtolower($namespace) . '%');
 }
 
-$query = "SELECT COUNT(*) 
-			FROM #__wiki_version AS wv 
-			INNER JOIN #__wiki_page AS wp 
-				ON wp.id = wv.pageid 
-			WHERE wv.approved = 1 
-				" . ($this->page->get('scope') ? "AND wp.scope LIKE '" . $database->getEscaped($this->page->get('scope')) . "%' " : "AND (wp.scope='' OR wp.scope IS NULL) ") . "
+$query = "SELECT COUNT(*)
+			FROM #__wiki_version AS wv
+			INNER JOIN #__wiki_page AS wp
+				ON wp.id = wv.pageid
+			WHERE wv.approved = 1
+				" . ($this->page->get('scope') ? "AND wp.scope LIKE " . $database->quote($this->page->get('scope') . '%') . " " : "AND (wp.scope='' OR wp.scope IS NULL) ") . "
 				AND wp.state < 2
 				$where
 				AND wv.id = (SELECT MAX(wv2.id) FROM #__wiki_version AS wv2 WHERE wv2.pageid = wv.pageid)";
@@ -69,11 +69,11 @@ $database->setQuery($query);
 $total = $database->loadResult();
 
 $query = "SELECT wv.pageid, (CASE WHEN (wp.`title` IS NOT NULL AND wp.`title` !='') THEN wp.`title` ELSE wp.`pagename` END) AS `title`, wp.pagename, wp.scope, wp.group_cn, wp.access, wv.version, wv.created_by, wv.created
-			FROM #__wiki_version AS wv 
-			INNER JOIN #__wiki_page AS wp 
-				ON wp.id = wv.pageid 
-			WHERE wv.approved = 1 
-				" . ($this->page->get('scope') ? "AND wp.scope LIKE '" . $database->getEscaped($this->page->get('scope')) . "%' " : "AND (wp.scope='' OR wp.scope IS NULL) ") . "
+			FROM #__wiki_version AS wv
+			INNER JOIN #__wiki_page AS wp
+				ON wp.id = wv.pageid
+			WHERE wv.approved = 1
+				" . ($this->page->get('scope') ? "AND wp.scope LIKE " . $database->quote($this->page->get('scope') . '%') . " " : "AND (wp.scope='' OR wp.scope IS NULL) ") . "
 				AND wp.state < 2
 				$where
 				AND wv.id = (SELECT MAX(wv2.id) FROM #__wiki_version AS wv2 WHERE wv2.pageid = wv.pageid)
@@ -82,25 +82,25 @@ $query = "SELECT wv.pageid, (CASE WHEN (wp.`title` IS NOT NULL AND wp.`title` !=
 $database->setQuery($query);
 $rows = $database->loadObjectList();
 ?>
-<form method="get" action="<?php echo JRoute::_($this->page->link()); ?>">
-	<div class="wikipage">
-	<fieldset>
-		<legend><?php echo JText::_('Filter list'); ?></legend>
-		
-		<label for="field-namespace">
-			<?php echo JText::_('Namespace'); ?>
-			<select name="namespace" id="field-namespace">
-				<option value=""<?php if ($namespace == '') { echo ' selected="selected"'; } ?>>all</option>
-				<option value="Help:"<?php if ($namespace == 'Help:') { echo ' selected="selected"'; } ?>>Help:</option>
-				<option value="Template:"<?php if ($namespace == 'Template:') { echo ' selected="selected"'; } ?>>Template:</option>
-			</select>
-		</label>
-		
-		<input type="submit" value="<?php echo JText::_('Go'); ?>" />
-	</fieldset>
-	
+	<form method="get" action="<?php echo JRoute::_($this->page->link()); ?>">
+		<fieldset>
+			<legend><?php echo JText::_('COM_WIKI_FILTER_LIST'); ?></legend>
+
+			<label for="field-namespace">
+				<?php echo JText::_('COM_WIKI_FIELD_NAMESPACE'); ?>
+				<select name="namespace" id="field-namespace">
+					<option value=""<?php if ($namespace == '') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_WIKI_ALL'); ?></option>
+					<option value="Help:"<?php if ($namespace == 'Help:') { echo ' selected="selected"'; } ?>>Help:</option>
+					<option value="Template:"<?php if ($namespace == 'Template:') { echo ' selected="selected"'; } ?>>Template:</option>
+				</select>
+			</label>
+
+			<input type="submit" value="<?php echo JText::_('COM_WIKI_GO'); ?>" />
+		</fieldset>
+
+		<div class="grid">
 <?php
-if ($rows) 
+if ($rows)
 {
 	$columns = array_chunk($rows, ceil(count($rows) / 3 ), true /* preserve keys */ );
 
@@ -110,57 +110,61 @@ if ($rows)
 	{
 		switch ($i)
 		{
-			case 0: $cls = 'first'; break;
-			case 1: $cls = 'second'; break;
-			case 2: $cls = 'third'; break;
+			case 0: $cls = ''; break;
+			case 1: $cls = ''; break;
+			case 2: $cls = 'omega'; break;
 		}
 ?>
-		<div class="three columns <?php echo $cls; ?>">
-			<?php
-		if (count($column) > 0)
-		{
-			$k = 0;
-			foreach ($column as $row)
+			<div class="col span4 <?php echo $cls; ?>">
+				<?php
+			if (count($column) > 0)
 			{
-				if (strtoupper(substr($row->title, 0, 1)) != $index)
+				$k = 0;
+				foreach ($column as $row)
 				{
-					$index = strtoupper(substr($row->title, 0, 1));
-					?>
-					</ul>
-					<h3><?php echo $index; ?></h3>
-					<ul>
-					<?php
-				} 
-				else if ($k == 0)
-				{
-					?>
-					<h3><?php echo $index; ?> contd.</h3>
-					<ul>
-					<?php
+					if (strtoupper(substr($row->title, 0, 1)) != $index)
+					{
+						$index = strtoupper(substr($row->title, 0, 1));
+						if ($k != 0) {
+						?>
+						</ul>
+						<?php } ?>
+						<h3><?php echo $index; ?></h3>
+						<ul>
+						<?php
+					}
+					else if ($k == 0)
+					{
+						?>
+						<h3><?php echo JText::sprintf('COM_WIKI_INDEX_CONTINUED', $index); ?></h3>
+						<ul>
+						<?php
+					}
+				?>
+					<li>
+						<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&pagename=' . $row->pagename . '&scope=' . $row->scope); ?>">
+							<?php echo $this->escape(stripslashes($row->title)); ?>
+						</a>
+					</li>
+				<?php
+					$k++;
 				}
-			?>
-				<li>
-					<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&pagename=' . $row->pagename . '&scope=' . $row->scope); ?>">
-						<?php echo $this->escape(stripslashes($row->title)); ?>
-					</a>
-				</li>
+				?>
+				</ul>
 			<?php
-				$k++;
 			}
 			?>
-			</ul>
-		<?php 
-		}
-		?>
-		</div>
+			</div>
 <?php
 		$i++;
 	}
 }
 ?>
-		<div class="clear"></div>
+		</div>
+
 		<hr />
-		<h3><?php echo JText::_('Special Pages'); ?></h3>
+
+		<h3><?php echo JText::_('COM_WIKI_SPECIAL_PAGES'); ?></h3>
 		<ul>
 		<?php
 		foreach ($this->book->special() as $key => $page)
@@ -179,5 +183,4 @@ if ($rows)
 		}
 		?>
 		</ul>
-	</div>
-</form>
+	</form>

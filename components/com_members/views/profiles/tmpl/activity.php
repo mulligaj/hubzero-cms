@@ -25,18 +25,21 @@
  *
  * @package   hubzero-cms
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   GNU General Public License, version 2 (GPLv2) 
+ * @license   GNU General Public License, version 2 (GPLv2)
  */
 
 // no direct access
 defined('_JEXEC') or die('Restricted access');
-?>
-<div id="content-header" class="full">
-	<h2><?php echo $this->title; ?></h2>
-</div>
 
-<div class="main section" id="statistics">
-	
+$this->css()
+     ->css('usage.css');
+?>
+<header id="content-header">
+	<h2><?php echo $this->title; ?></h2>
+</header>
+
+<section class="main section" id="statistics">
+
 	<table class="activeusers">
 		<caption><?php echo JText::_('COM_MEMBERS_ACTIVITY_TABLE1'); ?></caption>
 		<thead>
@@ -164,4 +167,4 @@ defined('_JEXEC') or die('Restricted access');
 		</tbody>
 	</table>
 
-</div><!-- / .section -->
+</section><!-- / .section -->

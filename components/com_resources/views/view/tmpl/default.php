@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
@@ -24,11 +24,14 @@
  *
  * @package   hubzero-cms
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   GNU General Public License, version 2 (GPLv2) 
+ * @license   GNU General Public License, version 2 (GPLv2)
  */
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
+
+$this->css()
+     ->js();
 
 $txt = '';
 $mode = strtolower(JRequest::getWord('mode', ''));
@@ -48,151 +51,121 @@ if ($mode != 'preview')
 
 $juser = JFactory::getUser();
 ?>
-		<div class="main section upperpane">
-			<div class="aside rankarea">
-<?php
-	// Show metadata
-	if ($this->model->params->get('show_metadata', 1)) 
-	{
-		$view = new JView(array(
-			'name'   => 'view',
-			'layout' => '_metadata',
-		));
-		$view->option   = $this->option;
-		$view->sections = $this->sections;
-		$view->model    = $this->model;
-		$view->display();
-	} // if ($this->model->params->get('show_metadata', 1)) 
-?>
-			</div><!-- / .aside -->
+<section class="main section upperpane">
+	<div class="subject">
+		<div class="grid overviewcontainer">
+			<div class="col span8">
+				<header id="content-header">
+					<h2>
+						<?php echo $txt . $this->escape(stripslashes($this->model->resource->title)); ?>
+						<?php if ($this->model->params->get('access-edit-resource')) { ?>
+							<a class="icon-edit edit btn" href="<?php echo JRoute::_('index.php?option=com_resources&task=draft&step=1&id=' . $this->model->resource->id); ?>">
+								<?php echo JText::_('COM_RESOURCES_EDIT'); ?>
+							</a>
+						<?php } ?>
+					</h2>
+					<input type="hidden" name="rid" id="rid" value="<?php echo $this->model->resource->id; ?>" />
+				</header>
 
-			<div class="subject">
-				<div class="overviewcontainer">
-					<div id="content-header">
-						<h2>
-							<?php echo $txt . $this->escape(stripslashes($this->model->resource->title)); ?>
-							<?php 
-								if ($this->model->params->get('access-edit-resource')) 
-								{ 
-							?>
-								<a class="icon-edit edit btn" href="<?php echo JRoute::_('index.php?option=com_resources&task=draft&step=1&id=' . $this->model->resource->id); ?>"><?php echo JText::_('COM_RESOURCES_EDIT'); ?></a>
-							<?php 
-								} // if ($this->model->params->get('access-edit-resource')) 
-							?>
-						</h2>
-						<input type="hidden" name="rid" id="rid" value="<?php echo $this->model->resource->id; ?>" />
-					</div>
-<?php
-	// Display authors
-	if ($this->model->params->get('show_authors', 1)) 
-	{
-?>
+				<?php if ($this->model->params->get('show_authors', 1)) { ?>
 					<div id="authorslist">
 						<?php
-						$view = new JView(array(
-							'name'   => 'view',
-							'layout' => '_contributors',
-						));
-						$view->option = $this->option;
-						$view->contributors = $this->model->contributors('!submitter');
-						$view->display();
+						// Display authors
+						$this->view('_contributors')
+						     ->set('option', $this->option)
+						     ->set('contributors', $this->model->contributors('!submitter'))
+						     ->display();
 						?>
 					</div><!-- / #authorslist -->
-<?php
-	} // if ($this->model->params->get('show_authors', 1)) 
-?>
-				</div><!-- / .overviewcontainer -->
+				<?php } ?>
+			</div><!-- / .overviewcontainer -->
 
-				<div class="aside launcharea">
-<?php
-	$html = '';
-	// Private/Public resource access check
-	if (!$this->model->access('view-all')) 
-	{
-		$ghtml = array();
-		foreach ($this->model->resource->getGroups() as $allowedgroup)
-		{
-			$ghtml[] = '<a href="' . JRoute::_('index.php?option=com_groups&cn=' . $allowedgroup) . '">' . $allowedgroup . '</a>';
-		}
-?>
-					<p class="warning">
-						<?php echo JText::_('COM_RESOURCES_ERROR_MUST_BE_PART_OF_GROUP') . ' ' . implode(', ', $ghtml); ?>
-					</p>
-<?php
-	} 
-	else 
-	{
-		// get launch button
-		$firstchild = $this->model->children(0);
-
-		$html .= $this->tab != 'play' && is_object($firstchild) ? ResourcesHtml::primary_child($this->option, $this->model->resource, $firstchild, '') : '';
-
-		// Display some supporting documents
-		$children = $this->model->children();
-				
-		// Sort out supporting docs
-		$html .= $children && count($children) > 1
-			   ? ResourcesHtml::sortSupportingDocs( $this->model->resource, $this->option, $children ) 
-			   : '';
-
-		//$html .= $feeds ? $feeds : '';
-		$html .= $this->tab != 'play' ? ResourcesHtml::license($this->model->params->get('license', '')) : '';
-	} // --- end else (if group check passed)
-	echo $html;
-?>
-				</div><!-- / .aside launcharea -->
-			</div><!-- / .subject -->
-<?php
-	//if ($this->resource->access == 3 && (!in_array($this->resource->group_owner, $this->usersgroups) && !$this->authorized)) {
-	if (!$this->model->access('view')) 
-	{ // show nothing else 
-?>
-		
-		</div><!-- / .main section -->
-<?php 
-	} 
-	else 
-	{
-?>
-			<div class="clear sep"></div>
-		</div><!-- / .main section -->
-		
-		<div class="main section noborder">
-			<div class="aside extracontent">
-
-<?php
-		// Get Releated Resources plugin
-		JPluginHelper::importPlugin('resources', 'related');
-		$dispatcher = JDispatcher::getInstance();
-
-		// Show related content
-		$out = $dispatcher->trigger('onResourcesSub', array($this->model->resource, $this->option, 1));
-		if (count($out) > 0) 
-		{
-			foreach ($out as $ou)
-			{
-				if (isset($ou['html'])) 
+			<div class="col span4 omega launcharea">
+				<?php
+				$html = '';
+				// Private/Public resource access check
+				if (!$this->model->access('view-all'))
 				{
-					echo $ou['html'];
+					$ghtml = array();
+					foreach ($this->model->resource->getGroups() as $allowedgroup)
+					{
+						$ghtml[] = '<a href="' . JRoute::_('index.php?option=com_groups&cn=' . $allowedgroup) . '">' . $allowedgroup . '</a>';
+					}
+				?>
+				<p class="warning">
+					<?php echo JText::_('COM_RESOURCES_ERROR_MUST_BE_PART_OF_GROUP') . ' ' . implode(', ', $ghtml); ?>
+				</p>
+				<?php
+				}
+				else
+				{
+					// get launch button
+					$firstchild = $this->model->children(0);
+
+					$html .= $this->tab != 'play' && is_object($firstchild) ? ResourcesHtml::primary_child($this->option, $this->model->resource, $firstchild, '') : '';
+
+					// Display some supporting documents
+					$children = $this->model->children();
+
+					// Sort out supporting docs
+					$html .= $children && count($children) > 1
+						   ? ResourcesHtml::sortSupportingDocs( $this->model->resource, $this->option, $children )
+						   : '';
+
+					//$html .= $feeds ? $feeds : '';
+					$html .= $this->tab != 'play' ? ResourcesHtml::license($this->model->params->get('license', '')) : '';
+				} // --- end else (if group check passed)
+				echo $html;
+				?>
+			</div><!-- / .aside launcharea -->
+		</div>
+	</div><!-- / .subject -->
+	<aside class="aside rankarea">
+		<?php
+		// Show metadata
+		if ($this->model->params->get('show_metadata', 1))
+		{
+			$this->view('_metadata')
+			     ->set('option', $this->option)
+			     ->set('sections', $this->sections)
+			     ->set('model', $this->model)
+			     ->display();
+		}
+		?>
+	</aside><!-- / .aside -->
+</section><!-- / .main section -->
+
+<?php if ($this->model->access('view')) { ?>
+	<section class="main section">
+		<div class="subject tabbed">
+			<?php echo ResourcesHtml::tabs($this->option, $this->model->resource->id, $this->cats, $this->tab, $this->model->resource->alias); ?>
+			<?php echo ResourcesHtml::sections($this->sections, $this->cats, $this->tab, 'hide', 'main'); ?>
+		</div><!-- / .subject -->
+		<aside class="aside extracontent">
+			<?php
+			// Get Releated Resources plugin
+			JPluginHelper::importPlugin('resources', 'related');
+			$dispatcher = JDispatcher::getInstance();
+
+			// Show related content
+			$out = $dispatcher->trigger('onResourcesSub', array($this->model->resource, $this->option, 1));
+			if (count($out) > 0)
+			{
+				foreach ($out as $ou)
+				{
+					if (isset($ou['html']))
+					{
+						echo $ou['html'];
+					}
 				}
 			}
-		}
 
-		// Show what's popular
-		if ($this->tab == 'about') 
-		{
-			echo \Hubzero\Module\Helper::renderModules('extracontent');
-		}
-?>
-			</div><!-- / .aside extracontent -->
-
-			<div class="subject tabbed">
-				<?php echo ResourcesHtml::tabs($this->option, $this->model->resource->id, $this->cats, $this->tab, $this->model->resource->alias); ?>
-				<?php echo ResourcesHtml::sections($this->sections, $this->cats, $this->tab, 'hide', 'main'); ?>
-			</div><!-- / .subject -->
-			<div class="clear"></div>
-		</div><!-- / .main section -->
-<?php
-	}
-?>
-		<div class="clear"></div>
+			// Show what's popular
+			if ($this->tab == 'about')
+			{
+				echo \Hubzero\Module\Helper::renderModules('extracontent');
+			}
+			?>
+		</aside><!-- / .aside extracontent -->
+	</section><!-- / .main section -->
+<?php } ?>

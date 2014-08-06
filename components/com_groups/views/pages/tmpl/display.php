@@ -30,87 +30,87 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+// add styles & scripts
+$this->css()
+	 ->js()
+     ->css('jquery.fancyselect.css', 'system')
+     ->js('jquery.fancyselect', 'system');
+
+// has home override
+$hasHomeOverride = false;
+if (file_exists(JPATH_ROOT . DS . $this->group->getBasePath() . DS . 'pages' . DS . 'overview.php'))
+{
+	$hasHomeOverride = true;
+}
 ?>
-
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
 
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li class="last">
-			<a class="icon-group group btn popup 1200x600" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn').'&controller=media&task=filebrowser&tmpl=component&path=/uploads'); ?>">
-				<?php echo JText::_('Upload Images/Files'); ?>
-			</a>
-			<a class="icon-group group btn" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn')); ?>">
-				<?php echo JText::_('Back to Group'); ?>
-			</a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+	<div id="content-header-extra">
+		<ul id="useroptions">
+			<li class="last">
+				<a class="icon-group group btn popup 1200x600" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn').'&controller=media&task=filebrowser&tmpl=component&path=/uploads'); ?>">
+					<?php echo JText::_('COM_GROUPS_ACTION_UPLOAD_MANAGER'); ?>
+				</a>
+				<a class="icon-group group btn" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn')); ?>">
+					<?php echo JText::_('COM_GROUPS_ACTION_BACK_TO_GROUP'); ?>
+				</a>
+			</li>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header>
 
-<div class="main section">
-	
+<section class="main section">
 	<?php foreach ($this->notifications as $notification) : ?>
 		<p class="<?php echo $notification['type']; ?>">
 			<?php echo $notification['message']; ?>
 		</p>
 	<?php endforeach; ?>
-	
+
+	<?php if ($this->group->isSuperGroup() && $hasHomeOverride) : ?>
+		<p class="info"><?php echo JText::_('COM_GROUPS_PAGES_SUPER_GROUP_HAS_HOME_OVERRIDE'); ?></p>
+	<?php endif; ?>
+
 	<div class="group-page-manager">
-		
 		<ul class="tabs clearfix">
-			<li><a href="#pages"><?php echo JText::_('Manage Pages'); ?></a></li>
-			<li><a href="#categories"><?php echo JText::_('Manage Page Categories'); ?></a></li>
+			<li><a data-tab="pages" href="#pages"><?php echo JText::_('COM_GROUPS_PAGES_MANAGE_PAGES'); ?></a></li>
+			<li><a data-tab="categories" href="#categories"><?php echo JText::_('COM_GROUPS_PAGES_MANAGE_PAGE_CATEGORIES'); ?></a></li>
 			<?php if ($this->group->isSuperGroup() || $this->config->get('page_modules', 0) == 1) : ?>
-				<li><a href="#modules"><?php echo JText::_('Manage Modules'); ?></a></li>
+				<li><a data-tab="modules" href="#modules"><?php echo JText::_('COM_GROUPS_PAGES_MANAGE_MODULES'); ?></a></li>
 			<?php endif ;?>
 		</ul>
-		
+
 		<form action="index.php" method="post" id="hubForm" class="full">
-			<fieldset>
-				<!-- <legend><?php echo JText::_('Manage Pages'); ?></legend> -->
+			<fieldset data-tab-content="pages">
 				<?php
-					$view = new JView(array(
-						'name'   => 'pages',
-						'layout' => 'list'
-					));
-					$view->group      = $this->group;
-					$view->categories = $this->categories;
-					$view->pages      = $this->pages;
-					$view->display();
+					$this->view('list')
+					     ->set('group', $this->group)
+					     ->set('categories', $this->categories)
+					     ->set('pages', $this->pages)
+					     ->display();
 				?>
 			</fieldset>
 
-			<fieldset>
-				<!-- <legend><?php echo JText::_('Manage Page Categories'); ?></legend> -->
+			<fieldset data-tab-content="categories">
 				<?php
-					$view = new JView(array(
-						'name'   => 'categories',
-						'layout' => 'list'
-					));
-					$view->group      = $this->group;
-					$view->categories = $this->categories;
-					$view->display();
+					$this->view('list', 'categories')
+					     ->set('group', $this->group)
+					     ->set('categories', $this->categories)
+					     ->display();
 				?>
 			</fieldset>
-			
+
 			<?php if ($this->group->isSuperGroup() || $this->config->get('page_modules', 0) == 1) : ?>
-				<fieldset>
-					<!-- <legend><?php echo JText::_('Manage Modules'); ?></legend> -->
+				<fieldset data-tab-content="modules">
 					<?php
-						$view = new JView(array(
-							'name'   => 'modules',
-							'layout' => 'list'
-						));
-						$view->group   = $this->group;
-						$view->modules = $this->modules;
-						$view->display();
+						$this->view('list', 'modules')
+						     ->set('group', $this->group)
+						     ->set('modules', $this->modules)
+						     ->display();
 					?>
 				</fieldset>
 			<?php endif; ?>
 		</form>
-		
 	</div>
-	
-</div>
+</section>

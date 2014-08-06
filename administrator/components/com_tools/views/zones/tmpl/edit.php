@@ -30,18 +30,20 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
-$text = ($this->task == 'edit' ? JText::_('Edit Zone') : JText::_('New Zone'));
+$text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 
-JToolBarHelper::title(JText::_('Tools').': ' . $text, 'tools.png');
+JToolBarHelper::title(JText::_('COM_TOOLS') . ': ' . JText::_('COM_TOOLS_ZONES') . ': ' . $text, 'tools.png');
 JToolBarHelper::apply();
 JToolBarHelper::save();
 JToolBarHelper::cancel();
+JToolBarHelper::spacer();
+JToolBarHelper::help('zone');
 
 JHtml::_('behavior.modal');
-JHtml::_('behavior.switcher');
+JHtml::_('behavior.switcher', 'submenu');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 
@@ -52,17 +54,6 @@ function submitbutton(pressbutton)
 
 	submitform(pressbutton);
 }
-document.switcher = null;
-window.addEvent('domready', function(){
-	toggler = document.id('submenu');
-	element = document.id('zone-document');
-	if (element) {
-		document.switcher = new JSwitcher(toggler, element, {cookieName: toggler.getProperty('class')});
-	}
-
-	SqueezeBox.initialize({});
-	document.assetform = SqueezeBox;
-});
 </script>
 
 <form action="index.php" method="post" name="adminForm" id="item-form">
@@ -70,10 +61,9 @@ window.addEvent('domready', function(){
 		<div id="submenu-box">
 			<div class="submenu-box">
 				<div class="submenu-pad">
-					<ul id="submenu" class="member">
-						<li><a href="#" onclick="return false;" id="profile" class="active">Profile</a></li>
-						<li><a href="#" onclick="return false;" id="locations">Locations</a></li>
-						<!-- <li><a href="index.php?option=com_tools&amp;controller=zones&amp;task=locations&amp;id=<?php echo $this->row->get('id'); ?>" id="locations">Locations</a></li> -->
+					<ul id="submenu">
+						<li><a href="#" onclick="return false;" id="profile" class="active"><?php echo JText::_('JDETAILS'); ?></a></li>
+						<li><a href="#" onclick="return false;" id="locations"><?php echo JText::_('COM_TOOLS_FIELDSET_LOCATIONS'); ?></a></li>
 					</ul>
 					<div class="clr"></div>
 				</div>
@@ -87,68 +77,66 @@ window.addEvent('domready', function(){
 			<div class="col width-60 fltlft">
 
 			<fieldset class="adminform">
-				<legend><span><?php echo JText::_('ZONE_PROFILE'); ?></span></legend>
+				<legend><span><?php echo JText::_('JDETAILS'); ?></span></legend>
 
 				<input type="hidden" name="fields[id]" value="<?php echo $this->row->get('id'); ?>" />
 				<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 				<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 				<input type="hidden" name="task" value="save" />
 
-				<table class="admintable">
-					<tbody>
-						<tr>
-							<th class="key"><label for="field-zone"><?php echo JText::_('Zone'); ?>:</label></th>
-							<td colspan="2">
-								<input type="text" name="fields[zone]" id="field-zone" maxlength="255" value="<?php echo $this->escape(stripslashes($this->row->get('zone'))); ?>" />
-								<span class="hint"><?php echo JText::_('Only letters, numbers, dashes and underscores allowed.'); ?></span>
-							</td>
-						</tr>
-						<tr>
-							<th class="key"><label for="field-zone"><?php echo JText::_('Title'); ?>:</label></th>
-							<td colspan="2"><input type="text" name="fields[title]" id="field-title" maxlength="255" value="<?php echo $this->escape(stripslashes($this->row->get('title'))); ?>" /></td>
-						</tr>
-						<tr>
-							<th class="key"><label for="field-master"><?php echo JText::_('Master'); ?>:</label></th>
-							<td colspan="2"><input type="text" name="fields[master]" id="field-master" maxlength="255" value="<?php echo $this->escape(stripslashes($this->row->get('master'))); ?>" /></td>
-						</tr>
-						<tr>
-							<th class="key"><label for="field-type"><?php echo JText::_('Type'); ?>:</label></th>
-							<td colspan="2">
-								<select name="fields[type]" id="field-type">
-									<option value="local"<?php if ($this->row->get('type') == 'local') { echo ' selected="selected"'; } ?>><?php echo JText::_('Local'); ?></option>
-									<option value="remote"<?php if ($this->row->get('type') == 'remote') { echo ' selected="selected"'; } ?>><?php echo JText::_('Remote'); ?></option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<th class="key"><?php echo JText::_('State'); ?>:</th>
-							<td><label for="field-state-up"><input class="option" type="radio" name="fields[state]" id="field-state-up" size="30" value="up"<?php if ($this->row->get('state') == 'up') { echo ' checked="checked"'; } ?> /> <?php echo JText::_('up'); ?></label></td>
-							<td><label for="field-state-down"><input class="option" type="radio" name="fields[state]" id="field-state-down" size="30" value="down"<?php if ($this->row->get('state') == 'down') { echo ' checked="checked"'; } ?> /> <?php echo JText::_('down'); ?></label></td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="input-wrap" data-hint="<?php echo JText::_('COM_TOOLS_FIELD_ZONE_HINT'); ?>">
+					<label for="field-zone"><?php echo JText::_('COM_TOOLS_FIELD_ZONE'); ?>:</label>
+					<input type="text" name="fields[zone]" id="field-zone" maxlength="255" value="<?php echo $this->escape(stripslashes($this->row->get('zone'))); ?>" />
+					<span class="hint"><?php echo JText::_('COM_TOOLS_FIELD_ZONE_HINT'); ?></span>
+				</div>
+
+				<div class="input-wrap">
+					<label for="field-zone"><?php echo JText::_('COM_TOOLS_FIELD_TITLE'); ?>:</label>
+					<input type="text" name="fields[title]" id="field-title" maxlength="255" value="<?php echo $this->escape(stripslashes($this->row->get('title'))); ?>" />
+				</div>
+
+				<div class="input-wrap">
+					<label for="field-master"><?php echo JText::_('COM_TOOLS_FIELD_MASTER'); ?>:</label>
+					<input type="text" name="fields[master]" id="field-master" maxlength="255" value="<?php echo $this->escape(stripslashes($this->row->get('master'))); ?>" />
+				</div>
+
+				<div class="input-wrap">
+					<label for="field-type"><?php echo JText::_('COM_TOOLS_FIELD_TYPE'); ?>:</label>
+					<select name="fields[type]" id="field-type">
+						<option value="local"<?php if ($this->row->get('type') == 'local') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_TOOLS_FIELD_TYPE_LOCAL'); ?></option>
+						<option value="remote"<?php if ($this->row->get('type') == 'remote') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_TOOLS_FIELD_TYPE_REMOTE'); ?></option>
+					</select>
+				</div>
+
+				<div class="input-wrap">
+					<?php echo JText::_('COM_TOOLS_FIELD_STATE'); ?>:<br />
+					<label for="field-state-up"><input class="option" type="radio" name="fields[state]" id="field-state-up" size="30" value="up"<?php if ($this->row->get('state') == 'up') { echo ' checked="checked"'; } ?> /> <?php echo JText::_('COM_TOOLS_FIELD_STATE_UP'); ?></label>
+					<label for="field-state-down"><input class="option" type="radio" name="fields[state]" id="field-state-down" size="30" value="down"<?php if ($this->row->get('state') == 'down') { echo ' checked="checked"'; } ?> /> <?php echo JText::_('COM_TOOLS_FIELD_STATE_DOWN'); ?></label>
+				</div>
 			</fieldset>
 			</div>
 			<div class="col width-40 fltrt">
 				<table class="meta">
 					<tbody>
 						<tr>
-							<th scope="row"><?php echo JText::_('ID'); ?></th>
+							<th scope="row"><?php echo JText::_('COM_TOOLS_COL_ID'); ?></th>
 							<td><?php echo $this->escape($this->row->get('id')); ?></td>
 						</tr>
 						<tr>
-							<th scope="row"><?php echo JText::_('State'); ?></th>
+							<th scope="row"><?php echo JText::_('COM_TOOLS_COL_STATE'); ?></th>
 							<td><?php echo $this->escape($this->row->get('state')); ?></td>
 						</tr>
 					</tbody>
 				</table>
 
 				<fieldset class="adminform">
-					<legend><span><?php echo JText::_('IMAGE'); ?></span></legend>
-					
+					<legend><span><?php echo JText::_('COM_TOOLS_FIELDSET_IMAGE'); ?></span></legend>
+
 					<?php
-					if ($this->row->exists()) 
+					if ($this->row->exists())
 					{
+						$this->css('fileupload.css')
+						     ->js('jquery.fileuploader.js', 'system');
 					?>
 					<div style="padding-top: 2.5em">
 						<div id="ajax-uploader" data-action="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=upload&amp;id=<?php echo $this->row->get('id'); ?>&amp;no_html=1&amp;<?php echo JUtility::getToken(); ?>=1">
@@ -157,11 +145,11 @@ window.addEvent('domready', function(){
 							</noscript>
 						</div>
 					</div>
-						<?php 
+						<?php
 						$width = 0;
 						$height = 0;
 						$this_size = 0;
-						if ($pic = $this->row->get('picture')) 
+						if ($pic = $this->row->get('picture'))
 						{
 							$path = $this->row->logo('path');
 
@@ -178,21 +166,21 @@ window.addEvent('domready', function(){
 							<tbody>
 								<tr>
 									<td rowspan="6">
-										<img id="img-display" src="<?php echo '..' . str_replace(JPATH_ROOT, '', $path) . DS . $pic; ?>" alt="<?php echo JText::_('COM_COURSES_LOGO'); ?>" />
+										<img id="img-display" src="<?php echo '..' . str_replace(JPATH_ROOT, '', $path) . DS . $pic; ?>" alt="<?php echo JText::_('COM_TOOLS_FIELDSET_IMAGE'); ?>" />
 									</td>
-									<td><?php echo JText::_('FILE'); ?>:</td>
-									<td><span id="img-name"><?php echo $this->row->get('picture', '[ none ]'); ?></span></td>
+									<td><?php echo JText::_('COM_TOOLS_IMAGE_FILE'); ?>:</td>
+									<td><span id="img-name"><?php echo $this->row->get('picture', JText::_('COM_TOOLS_IMAGE_NONE')); ?></span></td>
 								</tr>
 								<tr>
-									<td><?php echo JText::_('SIZE'); ?>:</td>
+									<td><?php echo JText::_('COM_TOOLS_IMAGE_SIZE'); ?>:</td>
 									<td><span id="img-size"><?php echo \Hubzero\Utility\Number::formatBytes($this_size); ?></span></td>
 								</tr>
 								<tr>
-									<td><?php echo JText::_('WIDTH'); ?>:</td>
+									<td><?php echo JText::_('COM_TOOLS_IMAGE_WIDTH'); ?>:</td>
 									<td><span id="img-width"><?php echo $width; ?></span> px</td>
 								</tr>
 								<tr>
-									<td><?php echo JText::_('HEIGHT'); ?>:</td>
+									<td><?php echo JText::_('COM_TOOLS_IMAGE_HEIGHT'); ?>:</td>
 									<td><span id="img-height"><?php echo $height; ?></span> px</td>
 								</tr>
 								<tr>
@@ -202,9 +190,6 @@ window.addEvent('domready', function(){
 							</tbody>
 						</table>
 
-						<script type="text/javascript" src="/media/system/js/jquery.js"></script>
-						<script type="text/javascript" src="/media/system/js/jquery.noconflict.js"></script>
-						<script type="text/javascript" src="/media/system/js/jquery.fileuploader.js"></script>
 						<script type="text/javascript">
 						String.prototype.nohtml = function () {
 							if (this.indexOf('?') == -1) {
@@ -213,9 +198,7 @@ window.addEvent('domready', function(){
 								return this + '&no_html=1';
 							}
 						};
-						jQuery(document).ready(function(jq){
-							var $ = jq;
-							
+						jQuery(document).ready(function($){
 							if ($("#ajax-uploader").length) {
 								var uploader = new qq.FileUploader({
 									element: $("#ajax-uploader")[0],
@@ -224,9 +207,9 @@ window.addEvent('domready', function(){
 									multiple: true,
 									debug: true,
 									template: '<div class="qq-uploader">' +
-												'<div class="qq-upload-button"><span>Click or drop file</span></div>' + 
-												'<div class="qq-upload-drop-area"><span>Click or drop file</span></div>' +
-												'<ul class="qq-upload-list"></ul>' + 
+												'<div class="qq-upload-button"><span><?php echo JText::_('COM_TOOLS_IMAGE_CLICK_OR_DROP'); ?></span></div>' +
+												'<div class="qq-upload-drop-area"><span><?php echo JText::_('COM_TOOLS_IMAGE_CLICK_OR_DROP'); ?></span></div>' +
+												'<ul class="qq-upload-list"></ul>' +
 											   '</div>',
 									/*onSubmit: function(id, file) {
 										//$("#ajax-upload-left").append("<div id=\"ajax-upload-uploading\" />");
@@ -261,94 +244,9 @@ window.addEvent('domready', function(){
 							});
 						});
 						</script>
-						<style>
-						/* Drag and drop file upload */
-							.qq-uploading {
-								position: absolute;
-								top: 0;
-								left: 0;
-								width: 100%;
-								height: 107px;
-								color: #fff;
-								font-size: 18px;
-								padding: 75px 0 0 0;
-								text-align: center;
-								background: rgba(0,0,0,0.75);
-							}
-							.qq-uploader {
-								position: relative;
-								margin: 0;
-								padding: 0;
-							}
-							.qq-upload-button,
-							.qq-upload-drop-area {
-								background: #f7f7f7;
-								border: 3px dashed #ddd;
-								text-align: center;
-								color: #bbb;
-								text-shadow: 0 1px 0 #FFF;
-								padding: 0;
-								margin: 1em;
-								-webkit-border-radius: 3px;
-								-moz-border-radius: 3px;
-								-ms-border-radius: 3px;
-								-o-border-radius: 3px;
-								border-radius: 3px;
-								font-size: 1.1em;
-								font-weight: bold;
-							}
-							/*.asset-uploader:hover {
-								border: 3px solid #333;
-							}*/
-							.asset-uploader .columns {
-								margin-top: 0;
-								padding-top: 0;
-							}
-							.qq-upload-button,
-							.qq-upload-drop-area {
-								text-align: center;
-								padding: 0.4em 0;
-							}
-							.qq-upload-button span,
-							.qq-upload-drop-area span {
-								position: relative;
-								padding-left: 1.5em;
-							}
-							.qq-upload-button span:before,
-							.qq-upload-drop-area span:before {
-								display: block;
-								position: absolute;
-								top: 0em;
-								left: -0.2em;
-								font-family: "Fontcons";
-								content: "\f08c"; /*"\f046";*/
-								font-size: 1.1em;
-								line-height: 1;
-								content: "\f016";
-								left: 0;
-								font-weight: normal;
-							}
-							.qq-upload-button:hover,
-							.qq-upload-drop-area:hover,
-							.qq-upload-drop-area-active {
-								/*background: #fdfce4;*/
-								border: 3px solid #333;
-								color: #333;
-								cursor: pointer;
-							}
-							.qq-upload-drop-area {
-								position: absolute;
-								top: 0;
-								left: 0;
-								right: 0;
-							}
-							.qq-upload-list {
-								display: none;
-							}
-						</style>
 					<?php
 					} else {
-						echo '<p class="warning">'.JText::_('COM_TOOLS_PICTURE_ADDED_LATER').'</p>';
+						echo '<p class="warning">' . JText::_('COM_TOOLS_PICTURE_ADDED_LATER') . '</p>';
 					}
 					?>
 				</fieldset>
@@ -358,11 +256,11 @@ window.addEvent('domready', function(){
 
 		<div id="page-locations" class="tab">
 			<fieldset class="adminform">
-				<legend><span><?php echo JText::_('Locations'); ?></span></legend>
+				<legend><span><?php echo JText::_('COM_TOOLS_FIELDSET_LOCATIONS'); ?></span></legend>
 			<?php if ($this->row->get('id')) { ?>
 				<iframe width="100%" height="400" name="locations" id="locations" frameborder="0" src="index.php?option=<?php echo $this->option; ?>&amp;controller=locations&amp;tmpl=component&amp;zone=<?php echo $this->row->get('id'); ?>"></iframe>
 			<?php } else { ?>
-				<p><?php echo JText::_('Course must be saved before managers can be added.'); ?></p>
+				<p><?php echo JText::_('COM_TOOLS_LOCATIONS_ADDED_LATER'); ?></p>
 			<?php } ?>
 		</fieldset>
 		</div>

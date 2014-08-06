@@ -30,22 +30,22 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
-?>
-<div id="content-header">
-	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li class="last">
+$this->css();
+?>
+<header id="content-header">
+	<h2><?php echo $this->title; ?></h2>
+
+	<div id="content-header-extra">
+		<p>
 			<a class="icon-search search btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=search'); ?>">
 				<span><?php echo JText::_('COM_ANSWERS_ALL_QUESTIONS'); ?></span>
 			</a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+		</p>
+	</div><!-- / #content-header-extra -->
+</header><!-- / #content-header -->
 
-<div class="main section">
+<section class="main section">
 	<?php foreach ($this->notifications as $notification) { ?>
 	<p class="<?php echo $notification['type']; ?>"><?php echo $this->escape($notification['message']); ?></p>
 	<?php } ?>
@@ -74,7 +74,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<input type="hidden" name="fields[state]" value="0" />
 
 			<label for="field-anonymous">
-				<input class="option" type="checkbox" name="fields[anonymous]" id="field-anonymous" value="1" /> 
+				<input class="option" type="checkbox" name="fields[anonymous]" id="field-anonymous" value="1" />
 				<?php echo JText::_('COM_ANSWERS_POST_QUESTION_ANON'); ?>
 			</label>
 
@@ -103,14 +103,14 @@ defined('_JEXEC') or die( 'Restricted access' );
 						stripslashes($this->question->get('question', '')), // content
 						35,  // cols
 						10,   // rows
-						'field-question'   // id 
+						'field-question'   // id
 					);
 				?>
 			</label>
 		<?php if ($this->config->get('banking')) { ?>
 			<label for="field-reward">
 				<?php echo JText::_('COM_ANSWERS_ASSIGN_REWARD'); ?>:<br />
-				<input type="text" name="fields[reward]" id="field-reward" value="" size="5" <?php if ($this->funds <= 0) { echo 'disabled="disabled" '; } ?>/> 
+				<input type="text" name="fields[reward]" id="field-reward" value="" size="5" <?php if ($this->funds <= 0) { echo 'disabled="disabled" '; } ?>/>
 				<?php echo JText::_('COM_ANSWERS_YOU_HAVE'); ?> <strong><?php echo $this->escape($this->funds); ?></strong> <?php echo JText::_('COM_ANSWERS_POINTS_TO_SPEND'); ?>
 			</label>
 		<?php } else { ?>
@@ -127,4 +127,4 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</a>
 		</p>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

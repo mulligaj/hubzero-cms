@@ -37,44 +37,34 @@ defined('_JEXEC') or die('Restricted access');
 class plgResourcesFindThisText extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
 	public function &onResourcesAreas($model)
 	{
+		$areas = array();
+
 		if ($model->type->params->get('plg_findthistext', 0)
-			&& $model->access('view-all')) 
+			&& $model->access('view-all'))
 		{
-			$areas = array(
-				'findthistext' => JText::_('PLG_RESOURCES_FINDTHISTEXT')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['findthistext'] = JText::_('PLG_RESOURCES_FINDTHISTEXT');
 		}
+
 		return $areas;
 	}
 
 	/**
 	 * Return data on a resource sub view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      integer $miniview  View style
@@ -87,25 +77,23 @@ class plgResourcesFindThisText extends \Hubzero\Plugin\Plugin
 			'html'     => '',
 			'metadata' => ''
 		);
-		
+
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				$rtrn = '';
 			}
 		}
-		
-		if ($rtrn == 'all' || $rtrn == 'html') 
-		{
-			Hubzero\Document\Assets::addPluginStyleSheet('resources', $this->_name);
 
+		if ($rtrn == 'all' || $rtrn == 'html')
+		{
 			// Instantiate a view
-			$view = new Hubzero\Plugin\View(
+			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
+					'folder'  => $this->_type,
 					'element' => $this->_name,
 					'name'    => 'index'
 				)
@@ -116,17 +104,17 @@ class plgResourcesFindThisText extends \Hubzero\Plugin\Plugin
 			$view->juser    = JFactory::getUser();
 			$view->plugin   = $this->params;
 			$view->openurl  = $this->getOpenUrl();
-			
+
 			// Return the output
 			$arr['html'] = $view->loadTemplate();
 		}
-		
+
 		return $arr;
 	}
-	
+
 	/**
 	 * Get Open URL
-	 * 
+	 *
 	 * @return     string
 	 */
 	private function getOpenUrl()
@@ -136,18 +124,18 @@ class plgResourcesFindThisText extends \Hubzero\Plugin\Plugin
 
 		//get the users id to make lookup
 		$userIp = JRequest::ip();
-		
+
 		//get the param for ip regex to use machine ip
 		$ipRegex = array(
 			'10.\d{2,5}.\d{2,5}.\d{2,5}',
 			'192.\d{1,5}.\d{1,5}.\d{1,5}'
-		); 
-		
+		);
+
 		// do we use the machine ip?
 		$useMachineIp = false;
 		foreach ($ipRegex as $ipr)
 		{
-			$match = preg_match('/'.$ipr.'/i', $userIp);
+			$match = preg_match('/' . $ipr . '/i', $userIp);
 			if ($match)
 			{
 				$useMachineIp = true;
@@ -181,14 +169,14 @@ class plgResourcesFindThisText extends \Hubzero\Plugin\Plugin
 		$resolver = $xml->resolverRegistryEntry->resolver;
 
 		//if we have resolver set vars for creating open urls
-		if ($resolver != null) 
+		if ($resolver != null)
 		{
 			$openUrl = new stdClass;
 			$openUrl->link = $resolver->baseURL;
 			$openUrl->text = $resolver->linkText;
 			$openUrl->icon = $resolver->linkIcon;
 		}
-		
+
 		// return open url
 		return $openUrl;
 	}

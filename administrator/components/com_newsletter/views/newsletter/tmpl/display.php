@@ -35,35 +35,31 @@ defined('_JEXEC') or die('Restricted access');
 JHTML::_('behavior.modal');
 
 //set title
-JToolBarHelper::title(JText::_( 'Newsletters' ), 'newsletter.png');
+JToolBarHelper::title(JText::_('COM_NEWSLETTER'), 'newsletter.png');
 
 //add buttons to toolbar
 JToolBarHelper::addNew();
 JToolBarHelper::editList();
-JToolBarHelper::custom('duplicate', 'copy', '', 'Copy');
-JToolBarHelper::deleteList('Are you sure you want to delete the selected Newsletter(s)?', 'delete');
+JToolBarHelper::custom('duplicate', 'copy', '', 'COM_NEWSLETTER_TOOLBAR_COPY');
+JToolBarHelper::deleteList('COM_NEWSLETTER_DELETE_CHECK', 'delete');
 JToolBarHelper::spacer();
 JToolBarHelper::publishList();
 JToolBarHelper::unpublishList();
 JToolBarHelper::spacer();
-JToolBarHelper::custom('preview', 'preview', '', 'Preview');
-JToolBarHelper::custom('sendtest', 'sendtest', '', 'Test Send');
-JToolBarHelper::custom('sendnewsletter', 'send', '', 'Send');
+JToolBarHelper::custom('preview', 'preview', '', 'COM_NEWSLETTER_TOOLBAR_PREVIEW');
+JToolBarHelper::custom('sendtest', 'sendtest', '', 'COM_NEWSLETTER_TOOLBAR_SEND_TEST');
+JToolBarHelper::custom('sendnewsletter', 'send', '', 'COM_NEWSLETTER_TOOLBAR_SEND');
 JToolBarHelper::spacer();
 JToolBarHelper::preferences($this->option, '550');
+
+// add js
+$this->js();
 ?>
 
-
-
 <script type="text/javascript">
-Joomla.submitbutton = function(pressbutton) 
+
+Joomla.submitbutton = function(pressbutton)
 {
-	var form = document.adminForm;
-	if (pressbutton == 'cancel') {
-		submitform( pressbutton );
-		return;
-	}
-	
 	if (pressbutton == 'preview')
 	{
 		var id = '',
@@ -75,12 +71,10 @@ Joomla.submitbutton = function(pressbutton)
 				id = parseInt(ids[i].value);
 			}
 		}
-		
+
 		HUB.Administrator.Newsletter.newsletterPreview( id );
 		return;
 	}
-	
-	// do field validation
 	submitform( pressbutton );
 }
 </script>
@@ -97,29 +91,29 @@ Joomla.submitbutton = function(pressbutton)
 		<thead>
 			<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->newsletters); ?>);" /></th>
-				<th><?php echo JText::_('Newsletter Name'); ?></th>
-				<th><?php echo JText::_('Format'); ?></th>
-				<th><?php echo JText::_('Template'); ?></th>
-				<th><?php echo JText::_('Public'); ?></th>
-				<th><?php echo JText::_('Sent'); ?></th>
-				<th><?php echo JText::_('Tracking'); ?></th>
+				<th><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_NAME'); ?></th>
+				<th><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_FORMAT'); ?></th>
+				<th><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_TEMPLATE'); ?></th>
+				<th><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_PUBLIC'); ?></th>
+				<th><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_SENT'); ?></th>
+				<th><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_TRACKING'); ?></th>
 			</tr>
 		</thead>
 		<tbody>
 			<?php if (count($this->newsletters) > 0) : ?>
-				<?php foreach($this->newsletters as $k => $newsletter) : ?>
+				<?php foreach ($this->newsletters as $k => $newsletter) : ?>
 					<tr>
 						<td width="30px">
 							<input type="checkbox" name="id[]" id="cb<?php echo $k;?>" value="<?php echo $newsletter->id; ?>" onclick="isChecked(this.checked);" />
 						</td>
 						<td><?php echo $newsletter->name; ?></td>
-						<td><?php echo ($newsletter->type == 'html') ? 'HTML' : 'Plain Text'; ?></td>
+						<td><?php echo ($newsletter->type == 'html') ? JText::_('COM_NEWSLETTER_FORMAT_HTML') : JText::_('COM_NEWSLETTER_FORMAT_PLAIN'); ?></td>
 						<td>
 							<?php
 								$activeTemplate = '';
 								if ($newsletter->template == '-1')
 								{
-									$activeTemplate = 'No Template (Content override with template)';
+									$activeTemplate = JText::_('COM_NEWSLETTER_NO_TEMPLATE');
 								}
 								else
 								{
@@ -128,42 +122,41 @@ Joomla.submitbutton = function(pressbutton)
 										if ($template->id == $newsletter->template)
 										{
 											$activeTemplate  = $template->name;
-											//$activeTemplate .= ' (<a href="'.JRoute::_('index.php?option=com_newsletter&controller=template&task=edit&id='.$template->id).'">edit</a>)';
 										}
 									}
 								}
-								
-								echo ($activeTemplate) ? $activeTemplate : '<em>No Template Found</em>';
+
+								echo ($activeTemplate) ? $activeTemplate : JText::_('COM_NEWSLETTER_NO_TEMPLATE_FOUND');
 							?>
 						</td>
 						<td width="50px">
 							<?php if ($newsletter->published) : ?>
-								<font color="green"><?php echo JText::_('Yes'); ?></font>
+								<font color="green"><?php echo JText::_('JYES'); ?></font>
 							<?php else : ?>
-								<font color="red"><?php echo JText::_('No'); ?></font>
-							<?php endif; ?>	
+								<font color="red"><?php echo JText::_('JNO'); ?></font>
+							<?php endif; ?>
 						</td>
 						<td width="50px">
 							<?php if ($newsletter->sent) : ?>
-								<font color="green"><?php echo JText::_('Yes'); ?></font>
+								<font color="green"><?php echo JText::_('JYES'); ?></font>
 							<?php else : ?>
-								<font color="red"><?php echo JText::_('No'); ?></font>
-							<?php endif; ?>	
+								<font color="red"><?php echo JText::_('JNO'); ?></font>
+							<?php endif; ?>
 						</td>
 						<td width="50px">
 							<?php if ($newsletter->tracking) : ?>
-								<strong><?php echo JText::_('Yes'); ?></strong>
+								<strong><?php echo JText::_('JYES'); ?></strong>
 							<?php else : ?>
-								<em><font color="red"><?php echo JText::_('No'); ?></font></em>
-							<?php endif; ?>	
+								<em><font color="red"><?php echo JText::_('JNO'); ?></font></em>
+							<?php endif; ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>
 			<?php else : ?>
 				<tr>
 					<td colspan="7">
-						<?php echo JText::_('Currently there are no newsletters.'); ?>
-						<a onclick="javascript:submitbutton('add');" href="#"><?php echo JText::_('Click here to create a new one!'); ?></a>
+						<?php echo JText::_('COM_NEWSLETTER_NO_NEWSLETTER'); ?>
+						<a onclick="javascript:submitbutton('add');" href="#"><?php echo JText::_('COM_NEWSLETTER_CREATE_NEWSLETTER'); ?></a>
 					</td>
 				</tr>
 			<?php endif; ?>
@@ -173,4 +166,4 @@ Joomla.submitbutton = function(pressbutton)
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="add" />
 	<input type="hidden" name="boxchecked" value="0" />
-</form>	
+</form>

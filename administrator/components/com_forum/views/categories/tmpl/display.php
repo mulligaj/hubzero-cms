@@ -30,25 +30,31 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = ForumHelper::getActions('category');
 
-JToolBarHelper::title(JText::_('Forums') . ': ' . JText::_('Categories'), 'forum.png');
-if ($canDo->get('core.admin')) {
+JToolBarHelper::title(JText::_('COM_FORUM') . ': ' . JText::_('COM_FORUM_CATEGORIES'), 'forum.png');
+if ($canDo->get('core.admin'))
+{
 	JToolBarHelper::preferences($this->option, '550');
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.edit.state')) {
+if ($canDo->get('core.edit.state'))
+{
 	JToolBarHelper::publishList();
 	JToolBarHelper::unpublishList();
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.create')) {
+if ($canDo->get('core.create'))
+{
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.delete')) {
+if ($canDo->get('core.delete'))
+{
 	JToolBarHelper::deleteList();
 }
+JToolBarHelper::spacer();
+JToolBarHelper::help('categories');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 	if (pressbutton == 'cancel') {
@@ -62,13 +68,13 @@ function submitbutton(pressbutton)
 
 <form action="index.php" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
-		<label for="scopeinfo"><?php echo JText::_('Scope:'); ?></label> 
+		<label for="scopeinfo"><?php echo JText::_('COM_FORUM_FILTER_SCOPE'); ?>:</label>
 		<select name="scopeinfo" id="scopeinfo" style="max-width: 20em;" onchange="document.adminForm.submit();">
-			<option value=""<?php if ($this->filters['scopeinfo'] == '') { echo ' selected="selected"'; } ?>><?php echo JText::_('Select...'); ?></option>
-			<option value="site:0"<?php if ($this->filters['scopeinfo'] == 'site:0') { echo ' selected="selected"'; } ?>><?php echo JText::_('[ None ]'); ?></option>
+			<option value=""<?php if ($this->filters['scopeinfo'] == '') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_FORUM_FILTER_SCOPE_SELECT'); ?></option>
+			<option value="site:0"<?php if ($this->filters['scopeinfo'] == 'site:0') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_FORUM_NONE'); ?></option>
 			<?php
 			$html = '';
-			//if ($this->results) 
+			//if ($this->results)
 			//{
 				include_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
 
@@ -80,14 +86,14 @@ function submitbutton(pressbutton)
 				$database = JFactory::getDBO();
 
 				$database->setQuery("
-					SELECT s.scope, s.scope_id, 
-						CASE 
+					SELECT s.scope, s.scope_id,
+						CASE
 							WHEN scope='course' THEN c.alias
 							WHEN scope='group' THEN g.cn
 							ELSE s.scope
 						END AS caption
 					FROM #__forum_sections AS s
-					LEFT JOIN #__xgroups AS g ON g.gidNumber=s.scope_id AND s.scope='group' 
+					LEFT JOIN #__xgroups AS g ON g.gidNumber=s.scope_id AND s.scope='group'
 					LEFT JOIN #__courses_offerings AS c ON c.id=s.scope_id AND s.scope='course'
 				");
 				$results = $database->loadObjectList();
@@ -121,7 +127,7 @@ function submitbutton(pressbutton)
 					foreach ($optgroup as $result)
 					{
 						$html .= ' <option value="' . $result->scope . ':' . $result->scope_id . '"';
-						if ($this->filters['scopeinfo'] == $result->scope . ':' . $result->scope_id) 
+						if ($this->filters['scopeinfo'] == $result->scope . ':' . $result->scope_id)
 						{
 							$html .= ' selected="selected"';
 						}
@@ -136,9 +142,9 @@ function submitbutton(pressbutton)
 		</select>
 
 <?php if ($this->filters['scopeinfo']) { ?>
-		<label for="field-section_id"><?php echo JText::_('Section:'); ?></label> 
+		<label for="field-section_id"><?php echo JText::_('COM_FORUM_FILTER_SECTION'); ?>:</label>
 		<select name="section_id" id="field-section_id" onchange="document.adminForm.submit( );">
-			<option value="-1"><?php echo JText::_('COM_FORUM_FIELD_SECTION_SELECT'); ?></option>
+			<option value="-1"><?php echo JText::_('COM_FORUM_FILTER_SECTION_SELECT'); ?></option>
 	<?php
 	/*$list = array();
 	foreach ($this->sections as $scope => $sections)
@@ -178,13 +184,13 @@ function submitbutton(pressbutton)
 		<thead>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count( $this->results );?>);" /></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Title', 'title', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'State', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Access', 'access', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Scope', 'scope', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JText::_('Threads'); ?></th>
-				<th scope="col"><?php echo JText::_('Posts'); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_FORUM_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_FORUM_COL_TITLE', 'title', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_FORUM_COL_STATE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_FORUM_COL_ACCESS', 'access', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_FORUM_COL_SCOPE', 'scope', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JText::_('COM_FORUM_THREADS'); ?></th>
+				<th scope="col"><?php echo JText::_('COM_FORUM_POSTS'); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -197,62 +203,59 @@ function submitbutton(pressbutton)
 if ($this->results)
 {
 	$k = 0;
-	for ($i=0, $n=count( $this->results ); $i < $n; $i++) 
+	for ($i=0, $n=count( $this->results ); $i < $n; $i++)
 	{
 		$row =& $this->results[$i];
-		switch ($row->state) 
+		switch ($row->state)
 		{
 			case '2':
 				$task = 'publish';
-				$img = 'disabled.png';
-				$alt = JText::_('Trashed');
+				$alt = JText::_('JTRASHED');
 				$cls = 'trash';
 			break;
 			case '1':
 				$task = 'unpublish';
-				$img = 'publish_g.png';
-				$alt = JText::_('Published');
+				$alt = JText::_('JPUBLISHED');
 				$cls = 'publish';
 			break;
 			case '0':
 			default:
 				$task = 'publish';
-				$img = 'publish_x.png';
-				$alt = JText::_('Unpublished');
+				$alt = JText::_('JUNPUBLISHED');
 				$cls = 'unpublish';
 			break;
 		}
-		
+
 		switch ($row->access)
 		{
 			case 0:
-				$color_access = 'style="color: green;"';
+				$color_access = 'public';
 				$task_access  = '1';
-				$row->groupname = JText::_('Public');
+				$row->groupname = JText::_('COM_FORUM_ACCESS_PUBLIC');
 				break;
 			case 1:
-				$color_access = 'style="color: red;"';
+				$color_access = 'registered';
 				$task_access  = '2';
-				$row->groupname = JText::_('Registered');
+				$row->groupname = JText::_('COM_FORUM_ACCESS_REGISTERED');
 				break;
 			case 2:
-				$color_access = 'style="color: black;"';
+				$color_access = 'special';
 				$task_access  = '3';
-				$row->groupname = JText::_('Special');
+				$row->groupname = JText::_('COM_FORUM_ACCESS_SPECIAL');
 				break;
 			case 3:
-				$color_access = 'style="color: blue;"';
+				$color_access = 'protected';
 				$task_access  = '4';
-				$row->groupname = JText::_('Protected');
+				$row->groupname = JText::_('COM_FORUM_ACCESS_PROTECTED');
 				break;
 			case 4:
-				$color_access = 'style="color: red;"';
+				$color_access = 'private';
 				$task_access  = '0';
-				$row->groupname = JText::_('Private');
+				$row->groupname = JText::_('COM_FORUM_ACCESS_PRIVATE');
 				break;
 		}
 ?>
-			<tr class="<?php echo "row$k"; ?>">
+			<tr class="<?php echo "row$k" . ($row->state ==2 ? ' archived' : ''); ?>">
 				<td>
 					<input type="checkbox" name="id[]" id="cb<?php echo $i;?>" value="<?php echo $row->id ?>" onclick="isChecked(this.checked, this);" />
 				</td>
@@ -260,60 +263,60 @@ if ($this->results)
 					<?php echo $row->id; ?>
 				</td>
 				<td>
-<?php if ($canDo->get('core.edit')) { ?>
+				<?php if ($canDo->get('core.edit')) { ?>
 					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->id; ?>">
 						<?php echo $this->escape(stripslashes($row->title)); ?>
 					</a>
-<?php } else { ?>
+				<?php } else { ?>
 					<span>
 						<?php echo $this->escape(stripslashes($row->title)); ?>
 					</span>
-<?php } ?>
+				<?php } ?>
 				</td>
 				<td>
-<?php if ($canDo->get('core.edit.state')) { ?>
-					<a class="state <?php echo $cls; ?>" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;section_id=<?php echo $this->filters['section_id']; ?>&amp;task=<?php echo $task; ?>&amp;id[]=<?php echo $row->id; ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="Set this to <?php echo $task;?>">
-						<span><?php if (version_compare(JVERSION, '1.6', 'lt')) { ?><img src="images/<?php echo $img;?>" width="16" height="16" border="0" alt="<?php echo $alt; ?>" /><?php } else { echo $alt; } ?></span>
+				<?php if ($canDo->get('core.edit.state')) { ?>
+					<a class="state <?php echo $cls; ?>" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;section_id=<?php echo $this->filters['section_id']; ?>&amp;task=<?php echo $task; ?>&amp;id[]=<?php echo $row->id; ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo JText::sprintf('COM_FORUM_SET_TO', $task); ?>">
+						<span><?php echo $alt; ?></span>
 					</a>
-<?php } else { ?>
+				<?php } else { ?>
 					<span class="state <?php echo $cls; ?>">
-						<span><?php if (version_compare(JVERSION, '1.6', 'lt')) { ?><img src="images/<?php echo $img;?>" width="16" height="16" border="0" alt="<?php echo $alt; ?>" /><?php } else { echo $alt; } ?></span>
+						<span><?php echo $alt; ?></span>
 					</span>
-<?php } ?>
+				<?php } ?>
 				</td>
 				<td>
-					<!-- <a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;section_id=<?php echo $this->filters['section_id']; ?>&amp;task=access&amp;access=<?php echo $task_access; ?>&amp;id[]=<?php echo $row->id; ?>&amp;<?php echo JUtility::getToken(); ?>=1" <?php echo $color_access; ?> title="Change Access"> -->
-						<span><?php echo $row->access_level; ?></span>
-					<!-- </a> -->
+					<span class="access <?php echo $color_access; ?>">
+						<span><?php echo $row->groupname; ?></span>
+					</span>
 				</td>
 				<td>
-<?php //if ($this->escape($row->group_alias)) { ?>
+				<?php //if ($this->escape($row->group_alias)) { ?>
 					<span class="scope">
 						<span><?php echo isset($list[$row->scope][$row->scope_id]) ? $this->escape($list[$row->scope][$row->scope_id]->caption) : $this->escape($row->scope) . ' (' . $this->escape($row->scope_id) . ')'; ?></span>
 					</span>
-<?php //} ?>
+				<?php //} ?>
 				</td>
 				<td>
-<?php if ($row->threads > 0) { ?>
-					<a class="glyph thread" href="index.php?option=<?php echo $this->option ?>&amp;controller=threads&amp;category_id=<? echo $row->id; ?>" title="<?php echo JText::_('View the threads for this category'); ?>">
+				<?php if ($row->threads > 0) { ?>
+					<a class="glyph thread" href="index.php?option=<?php echo $this->option ?>&amp;controller=threads&amp;category_id=<? echo $row->id; ?>" title="<?php echo JText::_('COM_FORUM_VIEW_THREADS_FOR'); ?>">
 						<span><?php echo $row->threads; ?></span>
 					</a>
-<?php } else { ?>
+				<?php } else { ?>
 					<span class="glyph thread">
 						<span><?php echo $row->threads; ?></span>
 					</span>
-<?php } ?>
+				<?php } ?>
 				</td>
 				<td>
-<?php if ($row->posts > 0) { ?>
-					<a class="glyph comment" href="index.php?option=<?php echo $this->option ?>&amp;controller=threads&amp;category_id=<? echo $row->id; ?>" title="<?php echo JText::_('View the posts for this category'); ?>">
+				<?php if ($row->posts > 0) { ?>
+					<a class="glyph comment" href="index.php?option=<?php echo $this->option ?>&amp;controller=threads&amp;category_id=<? echo $row->id; ?>" title="<?php echo JText::_('COM_FORUM_VIEW_POSTS_FOR'); ?>">
 						<span><?php echo $row->posts; ?></span>
 					</a>
-<?php } else { ?>
+				<?php } else { ?>
 					<span class="glyph comment">
 						<span><?php echo $row->posts; ?></span>
 					</span>
-<?php } ?>
+				<?php } ?>
 				</td>
 			</tr>
 <?php
@@ -330,6 +333,6 @@ if ($this->results)
 	<input type="hidden" name="boxchecked" value="0" />
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sort']; ?>" />
 	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
-	
+
 	<?php echo JHTML::_( 'form.token' ); ?>
 </form>

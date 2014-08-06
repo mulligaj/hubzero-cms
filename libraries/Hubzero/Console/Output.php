@@ -30,6 +30,8 @@
 
 namespace Hubzero\Console;
 
+use Hubzero\Console\Config;
+
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
@@ -49,7 +51,7 @@ class Output
 	 * Track default indentation for lines
 	 *
 	 * If prefering predominant indentation other than 0,
-	 * set with setDefaultIndentation() to avoid having 
+	 * set with setDefaultIndentation() to avoid having
 	 * to set on all calls to addLine().
 	 *
 	 * @var string
@@ -65,6 +67,13 @@ class Output
 	 * @var string
 	 **/
 	private $isInteractive = true;
+
+	/**
+	 * Whether or not to color output
+	 *
+	 * @var bool
+	 **/
+	private $colored = true;
 
 	/**
 	 * Set the output mode
@@ -134,11 +143,12 @@ class Output
 	 * including a new line at the end of the output
 	 *
 	 * @param  (string) $message - text of string
+	 * @param  (mixed)  $styles  - array of custom styles or string containing predefined term (see formatLine() for posibilities)
 	 * @return (object) $this    - for method chaining
 	 **/
-	public function addString($message)
+	public function addString($message, $styles=null)
 	{
-		$this->addLine($message, null, false);
+		$this->addLine($message, $styles, false);
 
 		return $this;
 	}
@@ -203,7 +213,7 @@ class Output
 	 *
 	 * Here we're expecting an array, with each entry also containing an
 	 * array with at least one key of 'message'. Another key
-	 * can also be provided with a message type, which translates to 
+	 * can also be provided with a message type, which translates to
 	 * one of the predefined styles used in formatLine().
 	 *
 	 * @param  (array) $lines - array of lines
@@ -213,7 +223,7 @@ class Output
 	{
 		foreach ($lines as $line)
 		{
-			$this->addLine($line['message'], $line['type']);
+			$this->addLine($line['message'], ((isset($line['type'])) ? $line['type'] : null));
 		}
 	}
 
@@ -224,7 +234,7 @@ class Output
 	 **/
 	public function addSpacer()
 	{
-		$this->response[] = array('message' => '');
+		$this->addLine('');
 
 		return $this;
 	}
@@ -324,7 +334,7 @@ class Output
 	 * Take line of text and styles and give back a formatted line.
 	 *
 	 * This will also translate textual colors and formatting words
-	 * to bash escape sequences. 
+	 * to bash escape sequences.
 	 *
 	 * @param  (string) $message - raw line of text
 	 * @param  (mixed)  $styles  - string or array of styles
@@ -387,8 +397,15 @@ class Output
 			}
 		}
 
-		$messageStyles = $style['format'] . ';' . $style['color'];
-		$message       = chr(27) . "[" . $messageStyles . "m" . $style['indentation'] . $message . chr(27) . "[0m";
+		if (!Config::get('color', $this->colored))
+		{
+			$message = $style['indentation'] . $message;
+		}
+		else
+		{
+			$messageStyles = $style['format'] . ';' . $style['color'];
+			$message       = chr(27) . "[" . $messageStyles . "m" . $style['indentation'] . $message . chr(27) . "[0m";
+		}
 	}
 
 	/**
@@ -439,6 +456,26 @@ class Output
 	public function getMode()
 	{
 		return $this->mode;
+	}
+
+	/**
+	 * Make output colored
+	 *
+	 * @return void
+	 **/
+	public function makeColored()
+	{
+		$this->colored = true;
+	}
+
+	/**
+	 * Make output b&w
+	 *
+	 * @return void
+	 **/
+	public function makeUnColored()
+	{
+		$this->colored = false;
 	}
 
 	/**

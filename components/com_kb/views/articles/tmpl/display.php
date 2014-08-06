@@ -30,42 +30,20 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
+
+$this->css()
+     ->js();
 ?>
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
-<div class="main section">
-<?php if ($this->getError()) { ?>
-	<p class="error"><?php echo implode("\n", $this->getErrors()); ?></p>
-<?php } ?>
-	<div class="aside">
-	<?php if (JComponentHelper::isEnabled('com_answers')) { ?>
-		<div class="container">
-			<h3><?php echo JText::_('COM_KB_COMMUNITY'); ?></h3>
-			<p>
-				<?php echo JText::_('COM_KB_COMMUNITY_CANT_FIND'); ?> <?php echo JText::sprintf('COM_KB_COMMUNITY_TRY_ANSWERS', '<a href="' . JRoute::_('index.php?option=com_answers') . '">' . JText::_('COM_ANSWERS') . '</a>'); ?>
-			</p>
-		</div><!-- / .container -->
-	<?php } ?>
-	<?php if (JComponentHelper::isEnabled('com_wishlist')) { ?>
-		<div class="container">
-			<h3><?php echo JText::_('COM_KB_FEATURE_REQUEST'); ?></h3>
-			<p>
-				<?php echo JText::_('COM_KB_HAVE_A_FEATURE_REQUEST'); ?> <a href="<?php echo JRoute::_('index.php?option=com_wishlist'); ?>"><?php echo JText::_('COM_KB_FEATURE_TELL_US'); ?></a>
-			</p>
-		</div><!-- / .container -->
-	<?php } ?>
-	<?php if (JComponentHelper::isEnabled('com_support')) { ?>
-		<div class="container">
-			<h3><?php echo JText::_('COM_KB_TROUBLE_REPORT'); ?></h3>
-			<p>
-				<?php echo JText::_('COM_KB_TROUBLE_FOUND_BUG'); ?> <a href="<?php echo JRoute::_('index.php?option=com_support&controller=tickets&task=new'); ?>"><?php echo JText::_('COM_KB_TROUBLE_TELL_US'); ?></a>
-			</p>
-		</div><!-- / .container -->
-	<?php } ?>
-	</div><!-- / .aside -->
-	<div class="subject">
-		<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&section=all'); ?>" method="post">
+</header>
+
+<section class="main section">
+	<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&section=all'); ?>" method="post" class="section-inner">
+		<div class="subject">
+			<?php if ($this->getError()) { ?>
+				<p class="error"><?php echo implode("\n", $this->getErrors()); ?></p>
+			<?php } ?>
 			<div class="container data-entry">
 				<input class="entry-search-submit" type="submit" value="<?php echo JText::_('COM_KB_SEARCH'); ?>" />
 				<fieldset class="entry-search">
@@ -82,7 +60,7 @@ defined('_JEXEC') or die('Restricted access');
 
 			<div class="container">
 				<div class="container-block">
-					<h3>Articles</h3>
+					<h3><?php echo JText::_('COM_KB_ARTICLES'); ?></h3>
 					<div class="grid">
 						<div class="col span-half">
 							<h4>
@@ -90,7 +68,7 @@ defined('_JEXEC') or die('Restricted access');
 									<?php echo JText::_('COM_KB_POPULAR_ARTICLES'); ?> <span class="more">&raquo;</span>
 								</a>
 							</h4>
-						<?php 
+						<?php
 						$popular = $this->archive->articles('popular', array('limit' => 5));
 						if ($popular->total() > 0) { ?>
 							<ul class="articles">
@@ -112,7 +90,7 @@ defined('_JEXEC') or die('Restricted access');
 									<?php echo JText::_('COM_KB_RECENT_ARTICLES'); ?> <span class="more">&raquo;</span>
 								</a>
 							</h4>
-						<?php 
+						<?php
 						$recent = $this->archive->articles('recent', array('limit' => 5));
 						if ($recent->total() > 0) { ?>
 							<ul class="articles">
@@ -132,7 +110,7 @@ defined('_JEXEC') or die('Restricted access');
 
 					<h3><?php echo JText::_('COM_KB_CATEGORIES'); ?></h3>
 					<div class="grid">
-					<?php 
+					<?php
 						$i = 0;
 
 						$filters = array();
@@ -179,7 +157,7 @@ defined('_JEXEC') or die('Restricted access');
 						</div><!-- / .col span-half <?php echo $cls; ?> -->
 						<?php //echo ($i >= 2) ? '<div class="clearfix"></div>' : ''; ?>
 							<?php
-							if ($i >= 2) 
+							if ($i >= 2)
 							{
 								$i = 0;
 							}
@@ -188,7 +166,33 @@ defined('_JEXEC') or die('Restricted access');
 					</div><!-- / .grid -->
 				</div><!-- / .container-block -->
 			</div><!-- / .container -->
-		</form>
-	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / .main section -->
+		</div><!-- / .subject -->
+
+		<aside class="aside">
+		<?php if (JComponentHelper::isEnabled('com_answers')) { ?>
+			<div class="container">
+				<h3><?php echo JText::_('COM_KB_COMMUNITY'); ?></h3>
+				<p>
+					<?php echo JText::_('COM_KB_COMMUNITY_CANT_FIND'); ?> <?php echo JText::sprintf('COM_KB_COMMUNITY_TRY_ANSWERS', '<a href="' . JRoute::_('index.php?option=com_answers') . '">' . JText::_('COM_ANSWERS') . '</a>'); ?>
+				</p>
+			</div><!-- / .container -->
+		<?php } ?>
+		<?php if (JComponentHelper::isEnabled('com_wishlist')) { ?>
+			<div class="container">
+				<h3><?php echo JText::_('COM_KB_FEATURE_REQUEST'); ?></h3>
+				<p>
+					<?php echo JText::_('COM_KB_HAVE_A_FEATURE_REQUEST'); ?> <a href="<?php echo JRoute::_('index.php?option=com_wishlist'); ?>"><?php echo JText::_('COM_KB_FEATURE_TELL_US'); ?></a>
+				</p>
+			</div><!-- / .container -->
+		<?php } ?>
+		<?php if (JComponentHelper::isEnabled('com_support')) { ?>
+			<div class="container">
+				<h3><?php echo JText::_('COM_KB_TROUBLE_REPORT'); ?></h3>
+				<p>
+					<?php echo JText::_('COM_KB_TROUBLE_FOUND_BUG'); ?> <a href="<?php echo JRoute::_('index.php?option=com_support&controller=tickets&task=new'); ?>"><?php echo JText::_('COM_KB_TROUBLE_TELL_US'); ?></a>
+				</p>
+			</div><!-- / .container -->
+		<?php } ?>
+		</aside><!-- / .aside -->
+	</form>
+</section><!-- / .main section -->

@@ -31,28 +31,14 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-jimport( 'joomla.plugin.plugin' );
-
 /**
  * Plugin for abuse reports for forum posts
  */
-class plgSupportForum extends JPlugin
+class plgSupportForum extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      unknown &$subject Parameter description (if any) ...
-	 * @param      unknown $config Parameter description (if any) ...
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-	}
-
-	/**
 	 * Get items reported as abusive
-	 * 
+	 *
 	 * @param      integer $refid    Comment ID
 	 * @param      string  $category Item type (kb)
 	 * @param      integer $parent   Parent ID
@@ -60,22 +46,22 @@ class plgSupportForum extends JPlugin
 	 */
 	public function getReportedItem($refid, $category, $parent)
 	{
-		if ($category != 'forum') 
+		if ($category != 'forum')
 		{
 			return null;
 		}
 
-		$query  = "SELECT rc.id, rc.comment as `text`, rc.parent, rc.created_by as author, rc.created, rc.title as subject, rc.anonymous as anon, 'forum' AS parent_category, 
+		$query  = "SELECT rc.id, rc.comment as `text`, rc.parent, rc.created_by as author, rc.created, rc.title as subject, rc.anonymous as anon, 'forum' AS parent_category,
 					s.alias AS section, c.alias AS category, rc.scope, rc.scope_id, rc.object_id, rc.thread
-					FROM #__forum_posts AS rc
-					LEFT JOIN #__forum_categories AS c ON c.id = rc.category_id
-					LEFT JOIN #__forum_sections AS s ON s.id = c.section_id
+					FROM `#__forum_posts` AS rc
+					LEFT JOIN `#__forum_categories` AS c ON c.id = rc.category_id
+					LEFT JOIN `#__forum_sections` AS s ON s.id = c.section_id
 					WHERE rc.id=" . $refid;
 
 		$database = JFactory::getDBO();
 		$database->setQuery($query);
 		$rows = $database->loadObjectList();
-		if ($rows) 
+		if ($rows)
 		{
 			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'tables' . DS . 'post.php');
 
@@ -97,7 +83,7 @@ class plgSupportForum extends JPlugin
 						require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
 
 						$offering = CoursesModelOffering::getInstance($row->scope_id);
-						$course = CoursesModelCourse::getInstance($offering->get('course_id'));
+						$course   = CoursesModelCourse::getInstance($offering->get('course_id'));
 
 						$url = 'index.php?option=com_courses&gid=' . $course->get('alias') . '&controller=offering&offering=' . $offering->get('alias') . '&active=discussions&thread=' . $row->thread;
 					break;
@@ -121,7 +107,7 @@ class plgSupportForum extends JPlugin
 
 	/**
 	 * Get the thread ID
-	 * 
+	 *
 	 * @param      integer $parent Parent comment to load
 	 * @return     array
 	 */
@@ -142,8 +128,61 @@ class plgSupportForum extends JPlugin
 	}
 
 	/**
+	 * Mark an item as flagged
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     string
+	 */
+	public function onReportItem($refid, $category)
+	{
+		if ($category != 'forum')
+		{
+			return null;
+		}
+
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'tables' . DS . 'post.php');
+
+		$database = JFactory::getDBO();
+
+		$comment = new ForumTablePost($database);
+		$comment->load($refid);
+		$comment->state = 3;
+		$comment->store();
+
+		return '';
+	}
+
+	/**
+	 * Release a reported item
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $parent   If the element has a parent element
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     array
+	 */
+	public function releaseReportedItem($refid, $parent, $category)
+	{
+		if ($category != 'forum')
+		{
+			return null;
+		}
+
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'tables' . DS . 'post.php');
+
+		$database = JFactory::getDBO();
+
+		$comment = new ForumTablePost($database);
+		$comment->load($refid);
+		$comment->state = 1;
+		$comment->store();
+
+		return '';
+	}
+
+	/**
 	 * Retrieves a row from the database
-	 * 
+	 *
 	 * @param      string $refid    ID of the database table row
 	 * @param      string $parent   If the element has a parent element
 	 * @param      string $category Element type (determines table to look in)
@@ -152,41 +191,18 @@ class plgSupportForum extends JPlugin
 	 */
 	public function deleteReportedItem($refid, $parent, $category, $message)
 	{
-		if ($category != 'forum') 
+		if ($category != 'forum')
 		{
 			return null;
 		}
 
 		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'tables' . DS . 'post.php');
 
-		$msg = 'This comment was found to contain objectionable material and was removed by the administrator.';
-
 		$database = JFactory::getDBO();
 
 		$comment = new ForumTablePost($database);
 		$comment->load($refid);
-		$comment->anonymous = 1;
-		$comment->state     = 2;
-		//$comment->comment   = '[[Span(This comment was found to contain objectionable material and was removed by the administrator., class="warning")]]' . "\n\n" . $comment->comment;
-		if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $comment->comment, $matches))
-		{
-			$format = strtolower(trim($matches[1]));
-			switch ($format)
-			{
-				case 'html':
-					$comment->comment = '<!-- {FORMAT:HTML} --><span class="warning">' . $msg . '</span>';
-				break;
-
-				case 'wiki':
-				default:
-					$comment->comment = '<!-- {FORMAT:WIKI} -->[[Span(' . $msg . ', class="warning")]]';
-				break;
-			}
-		}
-		else
-		{
-			$comment->comment = '[[Span(' . $msg . ', class="warning")]]';
-		}
+		$comment->state = 2;
 		$comment->store();
 
 		return '';

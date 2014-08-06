@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2014 Purdue University. All rights reserved.
  *
  * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
  *
@@ -24,21 +24,22 @@
  *
  * @package   hubzero-cms
  * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
+ * @copyright Copyright 2005-2014 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+namespace Modules\Supporttickets;
+
+use Hubzero\Module\Module;
 
 /**
  * Module class for com_support ticket data
  */
-class modSupportTickets extends \Hubzero\Module\Module
+class Helper extends Module
 {
 	/**
 	 * Display module contents
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function display()
@@ -46,44 +47,34 @@ class modSupportTickets extends \Hubzero\Module\Module
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'query.php');
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'ticket.php');
 
-		$juser = JFactory::getUser();
+		$juser    = \JFactory::getUser();
+		$database = \JFactory::getDBO();
+		$jconfig  = \JFactory::getConfig();
 
-		$this->database = JFactory::getDBO();
+		$st = new \SupportTicket($database);
 
-		$jconfig = JFactory::getConfig();
-		$this->offset = $jconfig->getValue('config.offset');
-
-		$type = JRequest::getVar('type', 'submitted');
-		$this->type  = ($type == 'automatic') ? 1 : 0;
-
-		$this->group = JRequest::getVar('group', '');
-
-		$this->year  = JRequest::getInt('year', strftime("%Y", time()+($this->offset*60*60)));
-
-		$st = new SupportTicket($this->database);
-
-		$opened = array();
-		$my = array();
-
-		$sq = new SupportQuery($this->database);
+		$sq = new \SupportQuery($database);
 		$types = array(
-			'common' => $sq->getCommon(),
-			'mine'   => $sq->getMine()
+			'common' => $sq->getCommon()
+			//'mine'   => $sq->getMine()
 		);
 		// Loop through each grouping
 		foreach ($types as $key => $queries)
 		{
 			if (!is_array($queries) || count($queries) <= 0)
 			{
-				$one = new stdClass;
+				$one = new \stdClass;
 				$one->count = 0;
-				$one->id = 0;
-				$two = new stdClass;
+				$one->id    = 0;
+
+				$two = new \stdClass;
 				$two->count = 0;
-				$two->id = 0;
-				$three = new stdClass;
+				$two->id    = 0;
+
+				$three = new \stdClass;
 				$three->count = 0;
-				$three->id = 0;
+				$three->id    = 0;
+
 				$types[$key] = $queries = array(
 					$one,
 					$two,
@@ -105,15 +96,132 @@ class modSupportTickets extends \Hubzero\Module\Module
 				}
 			}
 		}
-		$this->opened = $types['common'];
-		$this->my = $types['mine'];
 
-		// Get avgerage lifetime
-		$this->lifetime = $st->getAverageLifeOfTicket($this->type, $this->year, $this->group);
+		$this->topened = $types['common'];
 
-		$this->css();
+		$this->offset = $jconfig->getValue('config.offset');
+
+		$year  = \JRequest::getInt('year', strftime("%Y", time()+($this->offset*60*60)));
+		$month = strftime("%m", time()+($this->offset*60*60));
+
+		$this->year = $year;
+		$this->opened = array();
+		$this->closed = array();
+
+		// First ticket
+		$sql = "SELECT YEAR(created)
+				FROM `#__support_tickets`
+				WHERE report!=''
+				AND type='0' ORDER BY created ASC LIMIT 1";
+		$database->setQuery($sql);
+		$first = intval($database->loadResult());
+
+		// Opened tickets
+		$sql = "SELECT id, created, YEAR(created) AS `year`, MONTH(created) AS `month`, status, owner
+				FROM `#__support_tickets`
+				WHERE report!=''
+				AND type=0 AND open=1";
+		$sql .= " AND (`group`='' OR `group` IS NULL)";
+		$sql .= " ORDER BY created ASC";
+		$database->setQuery($sql);
+		$openTickets = $database->loadObjectList();
+
+		$open = array();
+		$this->opened['open']       = 0;
+		$this->opened['new']        = 0;
+		$this->opened['unassigned'] = 0;
+		foreach ($openTickets as $o)
+		{
+			if (!isset($open[$o->year]))
+			{
+				$open[$o->year] = array();
+			}
+			if (!isset($open[$o->year][$o->month]))
+			{
+				$open[$o->year][$o->month] = 0;
+			}
+			$open[$o->year][$o->month]++;
+
+			$this->opened['open']++;
+
+			if (!$o->status)
+			{
+				$this->opened['new']++;
+			}
+			if (!$o->owner)
+			{
+				$this->opened['unassigned']++;
+			}
+		}
+
+		// Closed tickets
+		$sql = "SELECT c.ticket, c.created_by, c.created, YEAR(c.created) AS `year`, MONTH(c.created) AS `month`, UNIX_TIMESTAMP(t.created) AS opened, UNIX_TIMESTAMP(c.created) AS closed
+				FROM `#__support_comments` AS c
+				LEFT JOIN `#__support_tickets` AS t ON c.ticket=t.id
+				WHERE t.report!=''
+				AND type=0 AND open=0";
+		$sql .= " AND (`group`='' OR `group` IS NULL)";
+		$sql .= " ORDER BY c.created ASC";
+		$database->setQuery($sql);
+		$clsd = $database->loadObjectList();
+
+		$this->opened['closed'] = 0;
+		$closedTickets = array();
+		foreach ($clsd as $closed)
+		{
+			if (!isset($closedTickets[$closed->ticket]))
+			{
+				$closedTickets[$closed->ticket] = $closed;
+			}
+			else
+			{
+				if ($closedTickets[$closed->ticket]->created < $closed->created)
+				{
+					$closedTickets[$closed->ticket] = $closed;
+				}
+			}
+		}
+		$this->closedTickets = $closedTickets;
+		$closed = array();
+		foreach ($closedTickets as $o)
+		{
+			if (!isset($closed[$o->year]))
+			{
+				$closed[$o->year] = array();
+			}
+			if (!isset($closed[$o->year][$o->month]))
+			{
+				$closed[$o->year][$o->month] = 0;
+			}
+			$closed[$o->year][$o->month]++;
+			$this->opened['closed']++;
+		}
+
+		// Group data by year and gather some info for each user
+		$y = date("Y");
+		$y++;
+		$this->closedmonths = array();
+		$this->openedmonths = array();
+		for ($k=$first, $n=$y; $k < $n; $k++)
+		{
+			$this->closedmonths[$k] = array();
+			$this->openedmonths[$k] = array();
+
+			for ($i = 1; $i <= 12; $i++)
+			{
+				if ($k == $year && $i > $month)
+				{
+					break;
+				}
+				else
+				{
+					$this->closedmonths[$k][$i] = (isset($closed[$k]) && isset($closed[$k][$i])) ? $closed[$k][$i] : 0;
+					$this->openedmonths[$k][$i] = (isset($open[$k]) && isset($open[$k][$i]))     ? $open[$k][$i]   : 0;
+				}
+			}
+		}
 
 		// Get the view
-		require(JModuleHelper::getLayoutPath($this->module->module));
+		parent::display();
 	}
 }

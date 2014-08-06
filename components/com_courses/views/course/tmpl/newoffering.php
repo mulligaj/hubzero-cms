@@ -33,19 +33,17 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 if (!$this->no_html) {
 ?>
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
 
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li class="last">
-			<a class="icon-prev btn" href="<?php echo $this->course->link(); ?>"><?php echo JText::_('Back'); ?></a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-prev btn" href="<?php echo $this->course->link(); ?>"><?php echo JText::_('COM_COURSES_BACK'); ?></a>
+		</p>
+	</div><!-- / #content-header-extra -->
+</header>
 
-<div class="main section">
+<section class="main section">
 <?php } ?>
 
 	<?php
@@ -56,22 +54,21 @@ if (!$this->no_html) {
 
 	<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="post" id="hubForm">
 		<?php if (!$this->no_html) { ?>
-		<div class="explaination">
-			<h3>Step 2</h3>
-			<p>Here is where we'll create a course offering. An offering is a collection of materials (lectures, quizzes, etc.) that represents a version or edition of a course. Generally, a significant change in course materials would be considered a new offering.</p>
-		</div>
+			<div class="explaination">
+				<p><?php echo JText::_('COM_COURSES_NEW_OFFERING_EXPLANATION'); ?></p>
+			</div>
 		<?php } ?>
 		<fieldset>
-			<legend><?php echo JText::_('Creating an offering'); ?></legend>
+			<legend><?php echo JText::_('COM_COURSES_FIELDSET_NEW_OFFERING'); ?></legend>
 
 			<label for="field-alias">
-				<?php echo JText::_('Offering identifier'); ?>
-				<input name="offering[alias]" id="field-alias" type="text" size="35" value="<?php echo $this->escape($this->offering->get('alias')); ?>" /> 
-				<span class="hint"><?php echo JText::_('This is a short identifier used for URLs. Allowed characters are letters, numbers, dashes, underscores, and periods. Example: fall2013, version1. If none is provided, one will be generated from the title.'); ?></span>
+				<?php echo JText::_('COM_COURSES_FIELD_OFFERING_ALIAS'); ?>
+				<input name="offering[alias]" id="field-alias" type="text" size="35" value="<?php echo $this->escape($this->offering->get('alias')); ?>" />
+				<span class="hint"><?php echo JText::_('COM_COURSES_FIELD_OFFERING_ALIAS_HINT'); ?></span>
 			</label>
 
 			<label for="field-title">
-				<?php echo JText::_('COM_COURSES_TITLE'); ?> <span class="required"><?php echo JText::_('COM_COURSES_REQUIRED'); ?></span>
+				<?php echo JText::_('COM_COURSES_FIELD_TITLE'); ?> <span class="required"><?php echo JText::_('JREQUIRED'); ?></span>
 				<input type="text" name="offering[title]" id="field-title" size="35" value="<?php echo $this->escape(stripslashes($this->offering->get('title'))); ?>" />
 			</label>
 		</fieldset>
@@ -90,10 +87,10 @@ if (!$this->no_html) {
 		<?php echo JHTML::_('form.token'); ?>
 
 		<p class="submit">
-			<input type="submit" value="<?php echo JText::_('Save'); ?>" />
+			<input class="btn btn-success" type="submit" value="<?php echo JText::_('COM_COURSES_SAVE'); ?>" />
 		</p>
 	</form>
 
 <?php if (!$this->no_html) { ?>
-</div><!-- / .section -->
+</section><!-- / .section -->
 <?php } ?>

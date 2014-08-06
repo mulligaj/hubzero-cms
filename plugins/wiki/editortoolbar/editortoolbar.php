@@ -31,40 +31,26 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * HUBzero plugin class for displaying a wiki editor toolbar
  */
-class plgWikiEditortoolbar extends JPlugin
+class plgWikiEditortoolbar extends \Hubzero\Plugin\Plugin
 {
 	/**
 	 * Flag for if scripts need to be pushed to the document or not
-	 * 
+	 *
 	 * @var boolean
 	 */
 	private $_pushscripts = true;
 
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-	}
-
-	/**
 	 * Initiate the editor. Push scripts to document if needed
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function onInitEditor()
 	{
-		if ($this->_pushscripts) 
+		if ($this->_pushscripts)
 		{
 			\Hubzero\Document\Assets::addPluginStylesheet($this->_type, $this->_name);
 			\Hubzero\Document\Assets::addPluginScript($this->_type, $this->_name);
@@ -77,7 +63,7 @@ class plgWikiEditortoolbar extends JPlugin
 
 	/**
 	 * Display a wiki editor
-	 * 
+	 *
 	 * @param      string  $name    Name of field
 	 * @param      string  $id      ID for field
 	 * @param      string  $content Field content
@@ -91,9 +77,7 @@ class plgWikiEditortoolbar extends JPlugin
 		$content = preg_replace('/^((?:<|&lt;)!-- \{FORMAT:(?:.*)\} --(?:>|&gt;))/i', '', $content);
 
 		$cls = ($cls) ? 'wiki-toolbar-content ' . $cls : 'wiki-toolbar-content';
-		$editor  = '<ul id="wiki-toolbar-' . $id . '" class="wiki-toolbar hide"></ul>' . "\n";
-		$editor .= '<textarea id="' . $id . '" name="' . $name . '" cols="' . $col . '" rows="' . $row . '" class="' . $cls . '">' . $content . '</textarea>' . "\n";
 
-		return $editor;
+		return '<textarea id="' . $id . '" name="' . $name . '" cols="' . $col . '" rows="' . $row . '" class="' . $cls . '">' . $content . '</textarea>' . "\n";
 	}
 }

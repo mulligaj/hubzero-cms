@@ -51,6 +51,17 @@ if ($url == '/?action=collect&nohtml=1')
 	<fieldset>
 		<legend><?php echo JText::_('PLG_CONTENT_COLLECT'); ?></legend>
 
+		<?php if ($this->collections) { ?>
+			<div class="grid in-collections">
+				<p><?php echo JText::_('PLG_CONTENT_COLLECT_ALREADY_COLLECTED'); ?></p>
+				<ul>
+				<?php foreach ($this->collections as $collection) { ?>
+					<li><a href="<?php echo JRoute::_($collection->link()); ?>"><?php echo $this->escape(stripslashes($collection->get('title'))); ?></a></li>
+				<?php } ?>
+				</ul>
+			</div>
+		<?php } ?>
+
 		<div class="grid">
 			<div class="col span-half">
 				<label for="field-collection">
@@ -58,7 +69,7 @@ if ($url == '/?action=collect&nohtml=1')
 					<select name="collection" id="field-collection">
 						<option value="0"><?php echo JText::_('PLG_CONTENT_COLLECT_SELECT'); ?></option>
 						<optgroup label="<?php echo JText::_('PLG_CONTENT_COLLECT_MY_COLLECTIONS'); ?>">
-<?php 
+<?php
 $i = 0;
 if ($this->myboards)
 {
@@ -72,7 +83,7 @@ if ($this->myboards)
 }
 ?>
 						</optgroup>
-<?php 
+<?php
 if ($this->groupboards)
 {
 	foreach ($this->groupboards as $optgroup => $boards)

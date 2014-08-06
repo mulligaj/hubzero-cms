@@ -30,6 +30,9 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=blog';
+
+$this->css()
+     ->js();
 ?>
 
 <ul id="page_options">
@@ -55,7 +58,7 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 	 		<p class="warning"><?php echo JText::sprintf('PLG_MEMBERS_BLOG_DELETE_WARNING', $this->escape(stripslashes($this->entry->get('title')))); ?></p>
 
 			<label for="confirmdel">
-				<input type="checkbox" class="option" name="confirmdel" id="confirmdel" value="1" /> 
+				<input type="checkbox" class="option" name="confirmdel" id="confirmdel" value="1" />
 				<?php echo JText::_('PLG_MEMBERS_BLOG_DELETE_CONFIRM'); ?>
 			</label>
 		</fieldset>

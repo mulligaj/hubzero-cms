@@ -712,6 +712,15 @@
 	#tktlist .trivial:after {
 		content: "\2746";
 	}
+	#tktlist .ticket-group {
+		font-weight: bold;
+	}
+	#tktlist .ticket-group:before {
+		font-family: 'Fontcons';
+		content: "\f042";
+		font-weight: normal;
+		padding-right: 0.2em;
+	}
 
 /* Ticket */
 	.ticket .entry-content {
@@ -790,12 +799,15 @@
 		background-color: #eee;
 	}
 /* Comments */
+	ol.comments li.comment {
+		margin-bottom: 1em;
+	}
 	ol.comments .comment-content {
 		margin-bottom: 0;
 		word-wrap: break-word;
 	}
 	ol.comments .comment-changelog {
-		margin: 0 0 1em 70px;
+		margin: 0 0 0 70px;
 		padding: 1.61803399em 1.61803399em;
 		background: #e8e8e8;
 		background: rgba(0, 0, 0, 0.040);
@@ -1229,6 +1241,7 @@
 		0%   { background-position-x: 0px; }
 		100% { background-position-x: 120px; }
 	}
+
 	@-moz-keyframes gradientShift {
 		0%   { background-position: 0px 0; }
 		100% { background-position: 120px 0; }
@@ -1351,6 +1364,7 @@
 		left: 0;
 		right: 0;
 	}
+	#hubForm .file-list .item-asset,
 	.file-list .item-asset {
 		background: #f7f7f7;
 		border-radius: 0.25em;

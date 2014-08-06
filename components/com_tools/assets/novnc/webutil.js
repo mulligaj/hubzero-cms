@@ -1,8 +1,7 @@
 /*
  * noVNC: HTML5 VNC client
  * Copyright (C) 2012 Joel Martin
- * Copyright (C) 2013 NTT corp.
- * Licensed under MPL 2.0 (see LICENSE.txt)
+ * Licensed under LGPL-3 (see LICENSE.txt)
  *
  * See README.md for usage and integration instructions.
  */
@@ -78,7 +77,7 @@ WebUtil.dirObj = function (obj, depth, parent) {
 
 // Read a query string variable
 WebUtil.getQueryVar = function(name, defVal) {
-    var re = new RegExp('.*[?&]' + name + '=([^&#]*)'),
+    var re = new RegExp('[?][^#]*' + name + '=([^&#]*)'),
         match = document.location.href.match(re);
     if (typeof defVal === 'undefined') { defVal = null; }
     if (match) {
@@ -95,20 +94,16 @@ WebUtil.getQueryVar = function(name, defVal) {
 
 // No days means only for this browser session
 WebUtil.createCookie = function(name,value,days) {
-    var date, expires, secure;
+    var date, expires;
     if (days) {
         date = new Date();
         date.setTime(date.getTime()+(days*24*60*60*1000));
         expires = "; expires="+date.toGMTString();
-    } else {
+    }
+    else {
         expires = "";
     }
-    if (document.location.protocol === "https:") {
-        secure = "; secure";
-    } else {
-        secure = "";
-    }
-    document.cookie = name+"="+value+expires+"; path=/"+secure;
+    document.cookie = name+"="+value+expires+"; path=/";
 };
 
 WebUtil.readCookie = function(name, defaultValue) {

@@ -37,14 +37,14 @@ class MediaViewMedia extends JViewLegacy
 
 		JHtml::_('behavior.modal');
 		$document->addScriptDeclaration("
-		window.addEvent('domready', function() {
-			document.preview = SqueezeBox;
+		jQuery(document).ready(function($){
+			document.preview = $.fancybox;
 		});");
 
-		JHtml::_('script', 'system/mootree.js', true, true, false, false);
-		JHtml::_('stylesheet', 'system/mootree.css', array(), true);
+		JHtml::_('script', 'system/jquery.treeview.js', true, true, false, false);
+		JHtml::_('stylesheet', 'system/jquery.treeview.css', array(), true);
 		if ($lang->isRTL()) :
-			JHtml::_('stylesheet', 'media/mootree_rtl.css', array(), true);
+			JHtml::_('stylesheet', 'media/jquery.treeview_rtl.css', array(), true);
 		endif;
 
 		if (DIRECTORY_SEPARATOR == '\\')
@@ -100,9 +100,9 @@ class MediaViewMedia extends JViewLegacy
 		if ($user->authorise('core.delete', 'com_media'))
 		{
 			$title = JText::_('JTOOLBAR_DELETE');
-			$dhtml = "<a href=\"#\" onclick=\"MediaManager.submit('folder.delete')\" class=\"toolbar\">
-						<span class=\"icon-32-delete\" title=\"$title\"></span>
-						$title</a>";
+			$dhtml = "<a href=\"#\" onclick=\"MediaManager.submit('folder.delete')\" data-title=\"$title\">
+						<span class=\"icon-32-delete\">$title</span>
+					</a>";
 			$bar->appendButton('Custom', $dhtml, 'delete');
 			JToolBarHelper::divider();
 		}

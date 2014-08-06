@@ -45,7 +45,7 @@ class CoursesModelFormReport extends \Hubzero\Base\Model
 	 * not actually labeled, but rather merely coordinates on a page. We must therefore
 	 * make assumptions on question numbers and response labels based on location within
 	 * the page. This is a significant shortfall, especially given that questions
-	 * or responses may at some point read horizontally, rather than vertically. 
+	 * or responses may at some point read horizontally, rather than vertically.
 	 *
 	 * @param  object - database object
 	 * @param  int    - asset id
@@ -297,12 +297,14 @@ class CoursesModelFormReport extends \Hubzero\Base\Model
 				$query .= "`#__courses_form_respondents` AS cfr WHERE cm.id = cfr.member_id ";
 				$query .= "AND cfr.id = " . $db->quote($response->respondent_id);;
 				$db->setQuery($query);
-				$student = $db->loadObject();
+				if (!$student = $db->loadObject())
+				{
+					continue;
+				}
 				if (!$student->student)
 				{
 					continue;
 				}
-
 				if (isset($section_id) && $student->section_id != $section_id)
 				{
 					continue;

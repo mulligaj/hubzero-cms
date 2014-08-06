@@ -31,61 +31,49 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for questions and answers
  */
-class plgResourcesQuestions extends JPlugin
+class plgResourcesQuestions extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
 	public function &onResourcesAreas($model)
 	{
+		$areas = array();
+
 		if (isset($model->resource->toolpublished) || isset($model->resource->revision))
 		{
-			if (isset($model->resource->thistool) 
-			 && $model->resource->thistool 
-			 && ($model->resource->revision=='dev' or !$model->resource->toolpublished)) 
+			if (isset($model->resource->thistool)
+			 && $model->resource->thistool
+			 && ($model->resource->revision=='dev' or !$model->resource->toolpublished))
 			{
 				$model->type->params->set('plg_questions', 0);
 			}
 		}
 		if ($model->type->params->get('plg_questions')
-			&& $model->access('view-all')) 
+			&& $model->access('view-all'))
 		{
-			$areas = array(
-				'questions' => JText::_('PLG_RESOURCES_QUESTIONS')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['questions'] = JText::_('PLG_RESOURCES_QUESTIONS');
 		}
+
 		return $areas;
 	}
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -101,15 +89,15 @@ class plgResourcesQuestions extends JPlugin
 		);
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				$rtrn = 'metadata';
 			}
 		}
-		if (!$model->type->params->get('plg_questions')) 
+		if (!$model->type->params->get('plg_questions'))
 		{
 			return $arr;
 		}
@@ -125,18 +113,19 @@ class plgResourcesQuestions extends JPlugin
 		// Get all the questions for this tool
 		$this->a = new AnswersTableQuestion($this->database);
 
-		$this->filters = array();
-		$this->filters['limit']    = JRequest::getInt('limit', 0);
-		$this->filters['start']    = JRequest::getInt('limitstart', 0);
-		$this->filters['tag']      = $this->model->isTool() ? 'tool:' . $this->model->resource->alias : 'resource:' . $this->model->resource->id;
-		$this->filters['q']        = JRequest::getVar('q', '');
-		$this->filters['filterby'] = JRequest::getVar('filterby', '');
-		$this->filters['sortby']   = JRequest::getVar('sortby', 'withinplugin');
+		$this->filters = array(
+			'limit'    => JRequest::getInt('limit', 0),
+			'start'    => JRequest::getInt('limitstart', 0),
+			'tag'      => ($this->model->isTool() ? 'tool:' . $this->model->resource->alias : 'resource:' . $this->model->resource->id),
+			'q'        => JRequest::getVar('q', ''),
+			'filterby' => JRequest::getVar('filterby', ''),
+			'sortby'   => JRequest::getVar('sortby', 'withinplugin')
+		);
 
 		$this->count = $this->a->getCount($this->filters);
 
 		// Are we returning HTML?
-		if ($rtrn == 'all' || $rtrn == 'html') 
+		if ($rtrn == 'all' || $rtrn == 'html')
 		{
 			switch (strtolower(JRequest::getWord('action', 'browse')))
 			{
@@ -156,17 +145,18 @@ class plgResourcesQuestions extends JPlugin
 		}
 
 		// Are we returning metadata?
-		if ($rtrn == 'all' || $rtrn == 'metadata') 
+		if ($rtrn == 'all' || $rtrn == 'metadata')
 		{
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
+					'folder'  => $this->_type,
 					'element' => $this->_name,
 					'name'    => 'metadata'
 				)
 			);
 			$view->resource = $this->model->resource;
 			$view->count    = $this->count;
+
 			$arr['metadata'] = $view->loadTemplate();
 		}
 
@@ -176,17 +166,15 @@ class plgResourcesQuestions extends JPlugin
 
 	/**
 	 * Show a list of questions attached to this resource
-	 * 
+	 *
 	 * @return     string
 	 */
 	private function _browse()
 	{
-		\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
-
 		// Instantiate a view
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'resources',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'browse'
 			)
@@ -208,7 +196,7 @@ class plgResourcesQuestions extends JPlugin
 		$view->rows     = $this->a->getResults($this->filters);
 		$view->count    = $this->count;
 		$view->limit    = $this->params->get('display_limit', 10);
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -221,18 +209,19 @@ class plgResourcesQuestions extends JPlugin
 
 	/**
 	 * Display a form for adding a question
-	 * 
+	 *
 	 * @param      object $row AnswersTableQuestion
 	 * @return     string
 	 */
 	private function _new($row=null)
 	{
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
-			$app = JFactory::getApplication();
-			$app->redirect(
-				'/login?return=' . base64_encode($_SERVER['REQUEST_URI']),
+			$rtrn = JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->option . '&id=' . $this->model->resource->id . '&active=' . $this->_name, false, true), 'server');
+
+			JFactory::getApplication()->redirect(
+				JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($rtrn)),
 				JText::_('PLG_RESOURCES_QUESTIONS_LOGIN_TO_ASK_QUESTION'),
 				'warning'
 			);
@@ -242,11 +231,9 @@ class plgResourcesQuestions extends JPlugin
 		$lang = JFactory::getLanguage();
 		$lang->load('com_answers');
 
-		\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
-
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'resources',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'question',
 				'layout'  => 'new'
@@ -270,7 +257,7 @@ class plgResourcesQuestions extends JPlugin
 		$view->banking = $upconfig->get('bankAccounts');
 
 		$view->funds = 0;
-		if ($view->banking) 
+		if ($view->banking)
 		{
 			$juser = JFactory::getUser();
 
@@ -279,7 +266,7 @@ class plgResourcesQuestions extends JPlugin
 			$view->funds = ($funds > 0) ? $funds : 0;
 		}
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -292,13 +279,13 @@ class plgResourcesQuestions extends JPlugin
 
 	/**
 	 * Save a question and redirect to the main listing when done
-	 * 
+	 *
 	 * @return     void
 	 */
 	private function _save()
 	{
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			return $this->_browse();
 		}
@@ -312,16 +299,16 @@ class plgResourcesQuestions extends JPlugin
 		$reward = JRequest::getInt('reward', 0);
 
 		// If offering a reward, do some checks
-		if ($reward) 
+		if ($reward)
 		{
 			// Is it an actual number?
-			if (!is_numeric($reward)) 
+			if (!is_numeric($reward))
 			{
 				JError::raiseError(500, JText::_('COM_ANSWERS_REWARD_MUST_BE_NUMERIC'));
 				return;
 			}
 			// Are they offering more than they can afford?
-			if ($reward > $funds) 
+			if ($reward > $funds)
 			{
 				JError::raiseError(500, JText::_('COM_ANSWERS_INSUFFICIENT_FUNDS'));
 				return;
@@ -332,26 +319,26 @@ class plgResourcesQuestions extends JPlugin
 		$fields = JRequest::getVar('question', array(), 'post', 'none', 2);
 
 		$row = new AnswersModelQuestion($fields['id']);
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->setError($row->getError());
 			return $this->_new($row);
 		}
 
-		if ($reward && $this->banking) 
+		if ($reward && $this->banking)
 		{
 			$row->set('reward', 1);
 		}
 
 		// Ensure the user added a tag
-		if (!$tags) 
+		if (!$tags)
 		{
 			$this->setError(JText::_('COM_ANSWERS_QUESTION_MUST_HAVE_TAG'));
 			return $this->_new($row);
 		}
 
 		// Store new content
-		if (!$row->store(true)) 
+		if (!$row->store(true))
 		{
 			$row->set('tags', $tags);
 
@@ -360,7 +347,7 @@ class plgResourcesQuestions extends JPlugin
 		}
 
 		// Hold the reward for this question if we're banking
-		if ($reward && $this->banking) 
+		if ($reward && $this->banking)
 		{
 			$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 			$BTL->hold($reward, JText::_('COM_ANSWERS_HOLD_REWARD_FOR_BEST_ANSWER'), 'answers', $row->get('id'));
@@ -382,10 +369,10 @@ class plgResourcesQuestions extends JPlugin
 		$receivers = array();
 
 		// Get tool contributors if question is about a tool
-		if ($tags) 
+		if ($tags)
 		{
 			$tags = explode(',', $tags);
-			if (count($tags) > 0) 
+			if (count($tags) > 0)
 			{
 				require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'author.php');
 				require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'version.php');
@@ -399,9 +386,9 @@ class plgResourcesQuestions extends JPlugin
 
 					$rev = $objV->getCurrentVersionProperty($toolname, 'revision');
 					$authors = $TA->getToolAuthors('', 0, $toolname, $rev);
-					if (count($authors) > 0) 
+					if (count($authors) > 0)
 					{
-						foreach ($authors as $author) 
+						foreach ($authors as $author)
 						{
 							$receivers[] = $author->uidNumber;
 						}
@@ -410,12 +397,12 @@ class plgResourcesQuestions extends JPlugin
 			}
 		}
 
-		if (!empty($apu)) 
+		if (!empty($apu))
 		{
 			foreach ($apu as $u)
 			{
 				$user = JUser::getInstance($u);
-				if ($user) 
+				if ($user)
 				{
 					$receivers[] = $user->get('id');
 				}
@@ -424,7 +411,7 @@ class plgResourcesQuestions extends JPlugin
 		$receivers = array_unique($receivers);
 
 		// Send the message
-		if (!empty($receivers)) 
+		if (!empty($receivers))
 		{
 			// Send a message about the new question to authorized users (specified admins or related content authors)
 			$jconfig = JFactory::getConfig();
@@ -440,10 +427,10 @@ class plgResourcesQuestions extends JPlugin
 			// Build the message
 			$juser = JFactory::getUser();
 
-			$eview = new JView(array(
+			$eview = new \Hubzero\Component\View(array(
 				'base_path' => JPATH_ROOT . DS . 'components' . DS . 'com_answers',
-				'name'   => 'emails',
-				'layout' => 'question_plaintext'
+				'name'      => 'emails',
+				'layout'    => 'question_plaintext'
 			));
 			$eview->option   = 'com_answers';
 			$eview->jconfig  = $jconfig;
@@ -464,7 +451,7 @@ class plgResourcesQuestions extends JPlugin
 
 			JPluginHelper::importPlugin('xmessage');
 			$dispatcher = JDispatcher::getInstance();
-			if (!$dispatcher->trigger('onSendMessage', array('new_question_admin', $subject, $message, $from, $receivers, 'com_answers'))) 
+			if (!$dispatcher->trigger('onSendMessage', array('new_question_admin', $subject, $message, $from, $receivers, 'com_answers')))
 			{
 				$this->setError(JText::_('COM_ANSWERS_MESSAGE_FAILED'));
 			}
@@ -472,7 +459,7 @@ class plgResourcesQuestions extends JPlugin
 
 		// Redirect to the question
 		JFactory::getApplication()->redirect(
-			JRoute::_('index.php?option=' . $this->option . '&id=' . $this->model->resource->id . '&active=questions')
+			JRoute::_('index.php?option=' . $this->option . '&id=' . $this->model->resource->id . '&active=' . $this->_name)
 		);
 	}
 }

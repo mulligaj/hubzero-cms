@@ -33,27 +33,9 @@ defined('_JEXEC') or die('Restricted access');
 
 $option = 'com_courses';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect('index.php', JText::_('ALERTNOTAUTH'));
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include scripts
@@ -67,25 +49,35 @@ if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $cont
 }
 
 JSubMenuHelper::addEntry(
-	JText::_('Courses'), 
-	'index.php?option=' .  $option . '&controller=courses', 
+	JText::_('COM_COURSES_COURSES'),
+	'index.php?option=' .  $option . '&controller=courses',
 	(!in_array($controllerName, array('students', 'roles', 'pages')))
 );
 JSubMenuHelper::addEntry(
-	JText::_('Pages'), 
-	'index.php?option=' .  $option . '&controller=pages&course=0', 
+	JText::_('COM_COURSES_PAGES'),
+	'index.php?option=' .  $option . '&controller=pages&course=0',
 	$controllerName == 'pages'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Students'), 
-	'index.php?option=' .  $option . '&controller=students&offering=0&section=0', 
+	JText::_('COM_COURSES_STUDENTS'),
+	'index.php?option=' .  $option . '&controller=students&offering=0&section=0',
 	$controllerName == 'students'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Roles'), 
-	'index.php?option=' .  $option . '&controller=roles', 
+	JText::_('COM_COURSES_ROLES'),
+	'index.php?option=' .  $option . '&controller=roles',
 	$controllerName == 'roles'
 );
+
+require_once(JPATH_ADMINISTRATOR . DS . 'components' . DS . 'com_plugins' . DS . 'helpers' . DS . 'plugins.php');
+$canDo = PluginsHelper::getActions();
+if ($canDo->get('core.manage'))
+{
+	JSubMenuHelper::addEntry(
+		JText::_('COM_COURSES_PLUGINS'),
+		'index.php?option=com_plugins&view=plugins&filter_folder=courses&filter_type=courses'
+	);
+}
 
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'CoursesController' . ucfirst($controllerName);

@@ -44,27 +44,6 @@ class Plugin extends \JPlugin
 	public $pluginMessageQueue = array();
 
 	/**
-	 * URL to redirect to
-	 * 
-	 * @var string
-	 */
-	public $_redirect = NULL;
-
-	/**
-	 * Message to send
-	 * 
-	 * @var string
-	 */
-	public $_message = NULL;
-
-	/**
-	 * Message type [error, message, warning]
-	 * 
-	 * @var string
-	 */
-	public $_messageType = NULL;
-
-	/**
 	 * Affects constructor behavior. If true, language files will be loaded automatically.
 	 *
 	 * @var    boolean
@@ -82,14 +61,13 @@ class Plugin extends \JPlugin
 	{
 		parent::__construct($subject, $config);
 
+		$this->option = (isset($config['type']) ? 'com_' . $config['type'] : 'com_' . $this->_type);
+
 		// Load the language files if needed.
 		if ($this->_autoloadLanguage)
 		{
 			$this->loadLanguage();
 		}
-
-		$this->option = 'com_' . $config['type'];
-		$this->plugin = $config['name'];
 	}
 
 	/**
@@ -102,23 +80,17 @@ class Plugin extends \JPlugin
 	 */
 	public function redirect($url, $msg='', $msgType='')
 	{
-		$url = ($url != '') ? $url : $this->_redirect;
-		$url = str_replace('&amp;', '&', $url);
-
-		$msg = ($msg) ? $msg : $this->_message;
-		$msgType = ($msgType) ? $msgType : $this->_messageType;
-
-		if ($url) 
+		if ($url)
 		{
+			$url = str_replace('&amp;', '&', $url);
+
 			//preserve plugin messages after redirect
 			if (count($this->pluginMessageQueue))
 			{
-				$session = \JFactory::getSession();
-				$session->set('plugin.message.queue', $this->pluginMessageQueue);
+				\JFactory::getSession()->set('plugin.message.queue', $this->pluginMessageQueue);
 			}
-			
-			$app = \JFactory::getApplication();
-			$app->redirect($url, $msg, $msgType);
+
+			\JFactory::getApplication()->redirect($url, $msg, $msgType);
 		}
 	}
 
@@ -131,11 +103,11 @@ class Plugin extends \JPlugin
 	 */
 	public function addPluginMessage($message, $type='message')
 	{
-		if (!count($this->pluginMessageQueue)) 
+		if (!count($this->pluginMessageQueue))
 		{
 			$session = \JFactory::getSession();
 			$pluginMessage = $session->get('plugin.message.queue');
-			if (count($pluginMessage)) 
+			if (count($pluginMessage))
 			{
 				$this->pluginMessageQueue = $pluginMessage;
 				$session->set('plugin.message.queue', null);
@@ -143,13 +115,13 @@ class Plugin extends \JPlugin
 		}
 
 		//if message is somthing
-		if ($message != '') 
+		if ($message != '')
 		{
 			$this->pluginMessageQueue[] = array(
-				'message' => $message, 
-				'type'    => strtolower($type), 
-				'option'  => $this->option, 
-				'plugin'  => $this->plugin
+				'message' => $message,
+				'type'    => strtolower($type),
+				'option'  => $this->option,
+				'plugin'  => $this->_name
 			);
 		}
 
@@ -163,20 +135,20 @@ class Plugin extends \JPlugin
 	 */
 	public function getPluginMessage()
 	{
-		if (!count($this->pluginMessageQueue)) 
+		if (!count($this->pluginMessageQueue))
 		{
 			$session = \JFactory::getSession();
 			$pluginMessage = $session->get('plugin.message.queue');
-			if (count($pluginMessage)) 
+			if (count($pluginMessage))
 			{
 				$this->pluginMessageQueue = $pluginMessage;
 				$session->set('plugin.message.queue', null);
 			}
 		}
 
-		foreach ($this->pluginMessageQueue as $k => $cmq) 
+		foreach ($this->pluginMessageQueue as $k => $cmq)
 		{
-			if ($cmq['option'] != $this->option) 
+			if ($cmq['option'] != $this->option)
 			{
 				$this->pluginMessageQueue[$k] = array();
 			}
@@ -209,18 +181,18 @@ class Plugin extends \JPlugin
 	/**
 	 * Create a plugin view and return it
 	 *
-	 * @param   string $name   View name
 	 * @param   string $layout View layout
+	 * @param   string $name   View name
 	 * @return	object
 	 */
-	/*public function view($name, $layout='default')
+	/*public function view($layout, $name='')
 	{
 		$view = new View(
 			array(
 				'folder'  => $this->_type,
 				'element' => $this->_name,
-				'name'    => $name,
-				'layout'  => $layout
+				'name'    => ($name ?: $this->_name),
+				'layout'  => ($layout ?: 'default')
 			)
 		);
 		return $view;
