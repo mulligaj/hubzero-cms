@@ -39,6 +39,7 @@ require_once JPATH_COMPONENT_SITE . DS . 'tables'      . DS . 'records.php';
 require_once JPATH_COMPONENT_SITE . DS . 'tables'      . DS . 'tasks.php';
 
 require_once JPATH_COMPONENT_SITE . DS . 'models'      . DS . 'hub.php';
+require_once JPATH_COMPONENT_SITE . DS . 'models'      . DS . 'permissions.php';
 
 require_once JPATH_COMPONENT_SITE . DS . 'helpers'     . DS . 'charts.php';
 require_once JPATH_COMPONENT_SITE . DS . 'helpers'     . DS . 'html.php';

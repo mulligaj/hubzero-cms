@@ -263,6 +263,17 @@ $this->css()
 						$row = new SupportModelTicket($row);
 					}
 
+					if ($row->get('status'))
+					{
+						foreach ($row->statuses() as $status)
+						{
+							if ($status->get('id') == $row->get('status'))
+							{
+								break;
+							}
+						}
+					}
+
 					$comments = 0;
 
 					$lastcomment = '0000-00-00 00:00:00';
@@ -283,7 +294,7 @@ $this->css()
 					}
 					?>
 					<tr class="<?php echo $cls == 'odd' ? 'even' : 'odd'; ?>">
-						<td>
+						<td<?php if ($row->get('status')) { echo ($status->get('color') ? ' style="border-left-color: #' . $status->get('color') . ';"' : ''); } ?>>
 							<span class="ticket-id">
 								<?php echo $row->get('id'); ?>
 							</span>
@@ -294,7 +305,7 @@ $this->css()
 						<td colspan="6">
 							<p>
 								<span class="ticket-author">
-									<?php echo $this->escape($row->get('name')); echo ($row->submitter('id')) ? ' (<a href="' . JRoute::_('index.php?option=com_members&id=' . $row->submitter('id')) . '">' . $this->escape($row->get('login')) . '</a>)' : ''; ?>
+									<?php echo $this->escape($row->get('name')); echo ($row->submitter('id')) ? ' (<a href="' . JRoute::_('index.php?option=com_members&id=' . $row->submitter('id')) . '">' . $this->escape($row->get('login')) . '</a>)' : ($row->get('login') ? ' (' . $this->escape($row->get('login')) . ')' : ''); ?>
 								</span>
 								<span class="ticket-datetime">
 									@ <time datetime="<?php echo $row->created(); ?>"><?php echo $row->created(); ?></time>
@@ -307,7 +318,7 @@ $this->css()
 							</p>
 							<p>
 								<a class="ticket-content" title="<?php echo $this->escape($row->content('parsed')); ?>" href="<?php echo JRoute::_($row->link() . '&show=' . $this->filters['show'] . '&search=' . $this->filters['search'] . '&limit=' . $this->filters['limit'] . '&limitstart=' . $this->filters['start']); ?>">
-									<?php echo ($row->content('clean') ? $this->escape($row->content('clean', 200)) : JText::_('COM_SUPPORT_NO_CONTENT_FOUND')); ?>
+									<?php echo ($row->content('clean') ? $row->content('clean', 200) : JText::_('COM_SUPPORT_NO_CONTENT_FOUND')); ?>
 								</a>
 							</p>
 						<?php if ($tags || $row->isOwned() || $row->get('group')) { ?>

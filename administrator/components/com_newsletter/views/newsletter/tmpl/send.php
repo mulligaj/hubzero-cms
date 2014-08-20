@@ -37,46 +37,15 @@ JToolBarHelper::title(JText::_('COM_NEWSLETTER_SEND') . ': ' . $this->newsletter
 //add buttons to toolbar
 JToolBarHelper::custom('dosendnewsletter', 'send', '', 'COM_NEWSLETTER_TOOLBAR_SEND', false);
 JToolBarHelper::cancel();
+
+// add jquery ui
+JHTML::_('behavior.framework', true);
+
+// add newsletter js
+$this->js();
 ?>
 
 <script type="text/javascript">
-
-
-jQuery(document).ready(function($){
-	var $ = jq;
-
-	$('#mailinglist').on('change', function(event) {
-		var value = $(this).val();
-		if (value != '' && value != 0)
-		{
-			$.ajax({
-				type: 'get',
-				dataType: 'json',
-				url: 'index.php?option=com_newsletter&controller=mailinglist&task=emailcount&mailinglistid='+value+'&no_html=1',
-				success: function(data)
-				{
-					var emailCount = data.length;
-
-					//show count
-					$('#mailinglist-count').show();
-
-					//set actual counter
-					$('#mailinglist-count').find('#mailinglist-count-count').html(emailCount);
-
-					//add list of emails
-					$('#mailinglist-emails').html('<br />--------------------------------<br />' + data.join('<br />'));
-				}
-			});
-		}
-		else
-		{
-			$('#mailinglist-count').hide();
-		}
-	});
-
-	$('#mailinglist-count').hide();
-});
-
 function submitbutton(pressbutton)
 {
 	//are we trying to send newsletter
@@ -125,20 +94,33 @@ function submitbutton(pressbutton)
 						<tr>
 							<th><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_SENT_PREVIOUSLY'); ?>:</th>
 							<td>
-								<?php if ($this->newsletter->sent) : ?>
-									<?php
-										$sql = "SELECT date FROM #__newsletter_mailings WHERE nid={$this->newsletter->id} ORDER BY date DESC LIMIT 1";
-										$this->database->setQuery( $sql );
-										$lastDateSent = $this->database->loadResult();
-									?>
-									<font color="green">
-										<strong><?php echo JText::_('JYES'); ?></strong>
-									</font>-
-									<?php if ($lastDateSent) : ?>
-										<?php echo JHTML::_('date', $lastDateSent, "l, F d, Y @ g:ia"); ?>
-									<?php else : ?>
-										<?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_SENT_PREVIOUSLY_NO_RECORD'); ?>
-									<?php endif; ?>
+								<?php if (count($this->mailings) > 0) : ?>
+									<?php foreach ($this->mailings as $mailing) : ?>
+										<?php
+											$status = 'In Progress';
+											$color = 'DarkGoldenRod';
+											$sent = JFactory::getDate($mailing->date);
+											$now  = JFactory::getDate('now');
+
+											// is mailing scheduled?
+											if ($sent > $now)
+											{
+												$status = 'Scheduled';
+												$color  = 'DodgerBlue';
+											}
+											// is mailing fully sent?
+											else if ($mailing->queueCount == 0)
+											{
+												$status = 'Sent';
+												$color  = 'ForestGreen';
+											}
+										?>
+										<strong>
+											<font color="<?php echo $color; ?>"><?php echo $status; ?></font> - 
+										</strong>
+										<?php echo $sent->format("l, F d, Y @ g:ia"); ?>
+										<br />
+									<?php endforeach; ?>
 								<?php else : ?>
 									<strong>
 										<font color="red"><?php echo JText::_('JNO'); ?></font>

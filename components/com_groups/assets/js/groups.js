@@ -402,14 +402,17 @@ HUB.Groups = {
 	pagesEditPageCategory: function()
 	{
 		var $ = this.jQuery;
-		
+
 		if ($('.page-category').length)
 		{
+			var currentCategory = $('.page-category').val();
+			
 			$('.page-category').HUBfancyselect({
-				onSelected: function(t, data) {
+				onSelected: function(t, data)
+				{
 					var val = $(this).attr('data-value'),
 						newCategory = '';
-						
+
 					if (val == 'other')
 					{
 						$.fancybox({
@@ -442,14 +445,30 @@ HUB.Groups = {
 										$.fancybox.close();  
 									});
 								});
+
+								$('.cancel').on('click', function(event) {
+									event.preventDefault();
+									$.fancybox.close();
+								});
 							},
 							afterClose: function() {
-								$('.page-category-label').load(window.location.href + ' .page-category-label > *', function(){
-									HUB.Groups.pagesEditPageCategory();
-									$('.page-category').HUBfancyselect('selectText', newCategory);
-								});
+								if (newCategory != '')
+								{
+									$('.page-category-label').load(window.location.href + ' .page-category-label > *', function(){
+										HUB.Groups.pagesEditPageCategory();
+										$('.page-category').HUBfancyselect('selectText', newCategory);
+									});
+								}
+								else
+								{
+									$('.page-category').HUBfancyselect('selectValue', currentCategory);
+								}
 							}
 						});
+					}
+					else
+					{
+						currentCategory = val;
 					}
 				}
 			});
@@ -560,7 +579,7 @@ HUB.Groups = {
 			activeTab = window.location.hash.replace('#', '');
 			$('.group-page-manager .tabs a').removeClass('current');
 			$('.group-page-manager form > fieldset').hide();
-			$('.group-page-manager .tabs a[data-tab="' + activeTab + '"').addClass('current');
+			$('.group-page-manager .tabs a[data-tab="' + activeTab + '"]').addClass('current');
 			$('.group-page-manager form > fieldset[data-tab-content="' + activeTab + '"]').show();
 		});
 

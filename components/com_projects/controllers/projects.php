@@ -727,8 +727,8 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 				$this->_option,
 				$authorized,
 				$this->juser->get('id'),
-				'',
-				'',
+				$this->getNotifications('success'),
+				$this->getNotifications('error'),
 				'save'
 			));
 
@@ -935,9 +935,10 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 
 		// Get messages	and errors
 		$this->view->msg = isset($this->_msg) ? $this->_msg : $this->getNotifications('success');
-		if ($this->getError())
+		$error = $this->getError() ? $this->getError() : $this->getNotifications('error');
+		if ($error)
 		{
-			$this->view->setError( $this->getError() );
+			$this->view->setError( $error );
 		}
 
 		$this->view->display();
@@ -1826,7 +1827,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		// Incoming
 		$name 		= trim(JRequest::getVar( 'name', '', 'post' ));
 		$title 		= trim(JRequest::getVar( 'title', '', 'post' ));
-		$about 		= trim(JRequest::getVar( 'about', '', 'post', 'none', 2 ));
 		$type 		= JRequest::getInt( 'type', 1, 'post' );
 		$private 	= JRequest::getInt( 'private', 1, 'post' );
 		$restricted = JRequest::getVar( 'restricted', '', 'post' );
@@ -1880,7 +1880,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 					}
 				}
 				$obj->title = \Hubzero\Utility\String::truncate($title, 250);
-				$obj->about = rtrim($about);
+				$obj->about = trim(JRequest::getVar( 'about', '', 'post', 'none', 2 ));
 				$obj->type 	= $type;
 
 				// save advanced permissions
@@ -3058,12 +3058,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			if (!$ajax) { return false; }
 			$result = JText::_('COM_PROJECTS_ERROR_NAME_EMPTY');
 		}
-		// Check for illegal characters
-		elseif (preg_match('/[^a-z0-9]/', $name))
-		{
-			if (!$ajax) { return false; }
-			$result = JText::_('COM_PROJECTS_ERROR_NAME_INVALID');
-		}
 		// Check for length
 		elseif (strlen($name) < intval($min_length))
 		{
@@ -3075,6 +3069,19 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			if (!$ajax) { return false; }
 			$result = JText::_('COM_PROJECTS_ERROR_NAME_TOO_LONG');
 		}
+		// Check for illegal characters
+		elseif (preg_match('/[^a-z0-9]/', $name))
+		{
+			if (!$ajax) { return false; }
+			$result = JText::_('COM_PROJECTS_ERROR_NAME_INVALID');
+		}
+		// Check for all numeric (not allowed)
+		elseif (is_numeric($name))
+		{
+			if (!$ajax) { return false; }
+			$result = JText::_('COM_PROJECTS_ERROR_NAME_INVALID_NUMERIC');
+		}
+
 		// Verify tool name uniqueness
 		elseif ($tool)
 		{

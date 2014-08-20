@@ -187,6 +187,12 @@ if (!$this->course->offering()->access('view') && !$sparams->get('preview', 0)) 
 									Content for this unit will be available starting <?php echo JHTML::_('date', $unit->get('publish_up'), "F j, Y, g:i a T"); ?>.
 								</p>
 							</div>
+				<?php } elseif (!$isManager && $unit->ended()) { ?>
+							<div class="grid">
+								<p class="info">
+									Content for this unit expired on <?php echo JHTML::_('date', $unit->get('publish_down'), "F j, Y, g:i a T"); ?>.
+								</p>
+							</div>
 				<?php } else if (!$isManager && !$prerequisites->hasMet('unit', $unit->get('id'))) { ?>
 							<div class="grid">
 								<p class="info">
@@ -302,15 +308,14 @@ if (!$this->course->offering()->access('view') && !$sparams->get('preview', 0)) 
 															}
 
 															$href = JRoute::_($base . '&asset=' . $a->get('id'));
-															$target = ' target="_blank"';
+															$target = '';
 															if ($a->get('type') == 'video')
 															{
 																$href = JRoute::_($base . '&active=outline&unit=' . $unit->get('alias') . '&b=' . $ag->get('alias'));
-																$target = '';
 															}
-															else if ($a->get('type') == 'form')
+															else if ($a->get('type') == 'file' || $a->get('type') == 'url')
 															{
-																$target = '';
+																$target = ' target="_blank"';
 															}
 
 															$link = '<a class="' . $cls . '" href="' . $href . '"' . $target . '>' . $this->escape(stripslashes($a->get('title'))) . '</a>';
@@ -398,15 +403,14 @@ if (!$this->course->offering()->access('view') && !$sparams->get('preview', 0)) 
 															continue;
 														}
 														$href = JRoute::_($base . '&asset=' . $a->get('id')); //$a->path($this->course->get('id'));
-														$target = ' target="_blank"';
+														$target = '';
 														if ($a->get('type') == 'video')
 														{
-															$href = JRoute::_($base . '&active=outline&unit=' . $unit->get('alias') . '&b=' . $agt->get('alias'));
-															$target = '';
+															$href = JRoute::_($base . '&active=outline&unit=' . $unit->get('alias') . '&b=' . $ag->get('alias'));
 														}
-														else if ($a->get('type') == 'form')
+														else if ($a->get('type') == 'file' || $a->get('type') == 'url')
 														{
-															$target = '';
+															$target = ' target="_blank"';
 														}
 														echo '<li><a class="asset-primary ' . $a->get('subtype') . '" href="' . $href . '"' . $target . '>' . $this->escape(stripslashes($a->get('title'))) . '</a></li>';
 													}
@@ -443,15 +447,14 @@ if (!$this->course->offering()->access('view') && !$sparams->get('preview', 0)) 
 									if ($a->isAvailable() || $isManager)
 									{
 										$href = JRoute::_($base . '&asset=' . $a->get('id')); //$a->path($this->course->get('id'));
-										$target = ' target="_blank"';
+										$target = '';
 										if ($a->get('type') == 'video')
 										{
-											$href = JRoute::_($base . '&active=outline&a=' . $unit->get('alias'));
-											$target = '';
+											$href = JRoute::_($base . '&active=outline&unit=' . $unit->get('alias') . '&b=' . $ag->get('alias'));
 										}
-										else if ($a->get('type') == 'form')
+										else if ($a->get('type') == 'file' || $a->get('type') == 'url')
 										{
-											$target = '';
+											$target = ' target="_blank"';
 										}
 										echo '<li><a class="asset ' . $a->get('subtype') . '" href="' . $href . '"' . $target . '>' . $this->escape(stripslashes($a->get('title'))) . '</a></li>';
 										$k++;

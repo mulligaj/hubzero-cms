@@ -151,10 +151,6 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	 */
 	public function childrenTask()
 	{
-		// Push some styles to the template
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'resources.css');
-
 		// Get configuration
 		$app = JFactory::getApplication();
 		$config = JFactory::getConfig();
@@ -243,10 +239,6 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 	public function orphansTask()
 	{
 		$this->view->setLayout('children');
-
-		// Push some styles to the template
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'resources.css');
 
 		$this->view->pid = '-1';
 
@@ -649,8 +641,9 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 		// Incoming resource ID
 		$id = JRequest::getVar('id', array(0));
-		if (is_array($id)) {
-			$id = $id[0];
+		if (is_array($id))
+		{
+			$id = (!empty($id) ? $id[0] : 0);
 		}
 
 		// Incoming parent ID - this determines if the resource is standalone or not
@@ -1699,7 +1692,7 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 
 		if ($nouser)
 		{
-			$users[] = JHTML::_('select.option', '0', 'COM_RESOURCES_DO_NOT_CHANGE', 'value', 'text');
+			$users[] = JHTML::_('select.option', '0', JText::_('COM_RESOURCES_DO_NOT_CHANGE'), 'value', 'text');
 			$users = array_merge($users, $result);
 		}
 		else

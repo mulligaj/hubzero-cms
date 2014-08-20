@@ -51,14 +51,6 @@ require_once JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controll
 
 $controllerName = 'UpdateController' . ucfirst(strtolower($controllerName));
 
-// Make sure this is a git repo for the time being
-$mechanism = json_decode(cli::mechanism());
-$mechanism = $mechanism[0];
-if ($mechanism != 'GIT')
-{
-	return JError::raiseWarning(406, 'The CMS update component currently only supports repositories managed via GIT');
-}
-
 JSubMenuHelper::addEntry(
 	JText::_('Dashboard'),
 	'index.php?option='.$option.'&controller=dashboard',

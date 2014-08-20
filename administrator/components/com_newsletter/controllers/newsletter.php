@@ -281,14 +281,17 @@ class NewsletterControllerNewsletter extends \Hubzero\Component\AdminController
 		$newsletter['modified_by'] 		= $this->juser->get('id');
 
 		// if no plain text was entered lets take the html content
-		if (!isset($newsletter['plain_content']) || $newsletter['plain_content'] == '')
+		if (isset($newsletter['plain_content']))
 		{
-			$newsletter['plain_content'] = strip_tags($newsletter['html_content']);
-			$newsletter['plain_content'] = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}\n/', '', $newsletter['plain_content']);
-		}
+			if ($newsletter['plain_content'] == '')
+			{
+				$newsletter['plain_content'] = strip_tags($newsletter['html_content']);
+				$newsletter['plain_content'] = preg_replace('/(?:(?:\r\n|\r|\n)\s*){2}\n/', '', $newsletter['plain_content']);
+			}
 
-		// remove html from plain content
-		$newsletter['plain_content']    = strip_tags($newsletter['plain_content']);
+			// remove html from plain content
+			$newsletter['plain_content']    = strip_tags($newsletter['plain_content']);
+		}
 
 		//save campaign
 		if (!$newsletterNewsletter->save($newsletter))
@@ -475,13 +478,25 @@ class NewsletterControllerNewsletter extends \Hubzero\Component\AdminController
 	{
 		//get the request vars
 		$id = JRequest::getInt('id', 0);
+		$no_html = JRequest::getInt('no_html', 0);
 
 		//get the newsletter
 		$newsletterNewsletter = new NewsletterNewsletter($this->database);
 		$newsletterNewsletter->load($id);
 
+		// output title 
+		if ($no_html == 0)
+		{
+			$content  = '<h2 class="modal-title">' . JText::_('COM_NEWSLETTER_PREVIEW') . '</h2><br /><br />';
+			$content .= '<iframe width="100%" height="100%" src="index.php?option=com_newsletter&task=preview&id='.$id.'&no_html=1"></iframe>';
+		}
+		else
+		{
+			$content = $newsletterNewsletter->buildNewsletter($newsletterNewsletter);
+		}
+
 		//build newsletter for displaying preview
-		echo $newsletterNewsletter->buildNewsletter($newsletterNewsletter);
+		echo $content;
 	}
 
 	/**
@@ -621,25 +636,16 @@ class NewsletterControllerNewsletter extends \Hubzero\Component\AdminController
 		$newsletterMailinglist = new NewsletterMailinglist($this->database);
 		$this->view->mailinglists = $newsletterMailinglist->getLists();
 
-		//get jquery plugin & parse params
-		$jqueryPlugin = JPluginHelper::getPlugin('system', 'jquery');
-		$jqueryPlugin->params = (isset($jqueryPlugin->params)) ? $jqueryPlugin->params : new StdClass;
-		$jqueryPluginParams = new JParameter( $jqueryPlugin->params );
+		//get the mailings
+		$newsletterMailing = new NewsletterMailing($this->database);
+		$this->view->mailings = $newsletterMailing->getMailings(null, $id);
 
-		// get document object
-		$document = JFactory::getDocument();
-
-		//add jquery if we dont have the jquery plugin enabled or not active on admin
-		if (!JPluginHelper::isEnabled('system', 'jquery') || !$jqueryPluginParams->get('activateAdmin'))
+		// get # left to send
+		foreach ($this->view->mailings as $k => $mailing)
 		{
-			$document->addScript( DS . 'media' . DS . 'system' . DS . 'js' . DS . 'jquery.js' );
-			$document->addScript( DS . 'media' . DS . 'system' . DS . 'js' . DS . 'jquery.noconflict.js' );
-			$document->addScript( DS . 'media' . DS . 'system' . DS . 'js' . DS . 'jquery.ui.js' );
-			$document->addStylesheet( DS . 'media' . DS . 'system' . DS . 'css' . DS . 'jquery.ui.css' );
+			$this->database->setQuery("SELECT COUNT(*) FROM `#__newsletter_mailing_recipients` WHERE mid=" . $this->database->quote($mailing->id) . " AND status='queued'");
+			$mailing->queueCount = $this->database->loadResult();
 		}
-
-		// add newsletter js
-		$document->addScript( 'components/com_newsletter/assets/js/newsletter.jquery.js' );
 
 		//check if we have any errors
 		if ($this->getError())

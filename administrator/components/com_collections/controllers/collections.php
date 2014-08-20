@@ -131,13 +131,18 @@ class CollectionsControllerCollections extends \Hubzero\Component\AdminControlle
 			// Incoming
 			$id = JRequest::getVar('id', array(0));
 
-			if (is_array($id) && !empty($id))
+			if (is_array($id))
 			{
-				$id = $id[0];
+				$id = (!empty($id) ? $id[0] : 0);
 			}
 
 			// Load category
 			$this->view->row = new CollectionsModelCollection($id);
+		}
+
+		if (!$this->view->row->exists())
+		{
+			$this->view->row->set('created_by', $this->juser->get('id'));
 		}
 
 		// Set any errors
@@ -181,7 +186,7 @@ class CollectionsControllerCollections extends \Hubzero\Component\AdminControlle
 		$row = new CollectionsModelCollection($fields['id']);
 		if (!$row->bind($fields))
 		{
-			$this->addComponentMessage($row->getError(), 'error');
+			$this->setError($row->getError());
 			$this->editTask($row);
 			return;
 		}
@@ -189,7 +194,7 @@ class CollectionsControllerCollections extends \Hubzero\Component\AdminControlle
 		// Store new content
 		if (!$row->store(true))
 		{
-			$this->addComponentMessage($row->getError(), 'error');
+			$this->setError($row->getError());
 			$this->editTask($row);
 			return;
 		}
@@ -222,6 +227,7 @@ class CollectionsControllerCollections extends \Hubzero\Component\AdminControlle
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		if (count($ids) > 0)
 		{
@@ -232,7 +238,7 @@ class CollectionsControllerCollections extends \Hubzero\Component\AdminControlle
 				// Delete the entry
 				if (!$entry->delete())
 				{
-					$this->addComponentMessage($entry->getError(), 'error');
+					$this->setError($entry->getError());
 				}
 			}
 		}
@@ -240,7 +246,8 @@ class CollectionsControllerCollections extends \Hubzero\Component\AdminControlle
 		// Set the redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('COM_COLLECTIONS_ITEMS_DELETED')
+			($this->getError() ? implode('<br />', $this->getErrors()) : JText::_('COM_COLLECTIONS_ITEMS_DELETED')),
+			($this->getError() ? 'error' : null)
 		);
 	}
 
@@ -359,7 +366,8 @@ class CollectionsControllerCollections extends \Hubzero\Component\AdminControlle
 		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
-		$ids = JRequest::getVar('id', array(0));
+		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		// Check for a resource
 		if (count($ids) < 1)

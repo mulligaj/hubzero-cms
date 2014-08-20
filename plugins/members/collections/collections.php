@@ -547,7 +547,8 @@ class plgMembersCollections extends \Hubzero\Plugin\Plugin
 			'user_id'       => $this->member->get('uidNumber'),
 			'search'        => JRequest::getVar('search', ''),
 			'state'         => 1,
-			'collection_id' => JRequest::getVar('board', '')
+			'collection_id' => JRequest::getVar('board', ''),
+			'access'        => -1
 		);
 
 		$view->collection = $this->model->collection($view->filters['collection_id']);
@@ -570,8 +571,9 @@ class plgMembersCollections extends \Hubzero\Plugin\Plugin
 		}
 
 		$count = array(
-			'count' => true,
-			'state' => 1
+			'count'  => true,
+			'state'  => 1,
+			'access' => -1
 		);
 		if (!$this->params->get('access-manage-collection'))
 		{
@@ -1686,7 +1688,7 @@ class plgMembersCollections extends \Hubzero\Plugin\Plugin
 		}
 
 		// Incoming
-		$fields = JRequest::getVar('fields', array(), 'post');
+		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 
 		// Bind new content
 		$row = new CollectionsModelCollection();

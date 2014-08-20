@@ -322,7 +322,7 @@ $cc = array();
 	<?php } // end if (count($comments) > 0) ?>
 
 	<div class="col width-70 fltlft">
-		<fieldset>
+		<fieldset id="commentform">
 			<legend><span><?php echo JText::_('COM_SUPPORT_TICKET_DETAILS'); ?></span></legend>
 
 			<div class="new ticket">
@@ -515,23 +515,18 @@ $cc = array();
 					<div class="col width-50 fltrt">
 						<div class="input-wrap">
 							<label for="ticket-field-status">
-								<?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_STATUS'); ?>
-								<select name="resolved" id="ticket-field-status">
-									<option value=""<?php if ($this->row->isOpen() && $this->row->get('status') < 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_OPT_OPEN'); ?></option>
-									<option value="1"<?php if ($this->row->get('status') == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_OPT_WAITING'); ?></option>
-									<optgroup label="<?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_OPT_CLOSED'); ?>">
-										<option value="noresolution"<?php if (!$this->row->isOpen() && $this->row->get('resolved') == 'noresolution') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_OPT_CLOSED'); ?></option>
-										<?php
-										if (isset($this->lists['resolutions']) && $this->lists['resolutions']!='')
-										{
-											foreach ($this->lists['resolutions'] as $anode)
-											{
-												?>
-												<option value="<?php echo $this->escape($anode->alias); ?>"<?php if ($anode->alias == $this->row->get('resolved')) { echo ' selected="selected"'; } ?>><?php echo $this->escape(stripslashes($anode->title)); ?></option>
-												<?php
-											}
-										}
-										?>
+								<?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_STATUS'); ?>:
+								<select name="status" id="ticket-field-status">
+									<optgroup label="<?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_OPT_OPEN'); ?>">
+										<?php foreach ($this->row->statuses('open') as $status) { ?>
+											<option value="<?php echo $status->get('id'); ?>"<?php if ($this->row->isOpen() && $this->row->get('status') == $status->get('id')) { echo ' selected="selected"'; } ?>><?php echo $this->escape($status->get('title')); ?></option>
+										<?php } ?>
+									</optgroup>
+									<optgroup label="<?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_OPTGROUP_CLOSED'); ?>">
+										<option value="0"<?php if (!$this->row->isOpen() && $this->row->get('status') == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_TICKET_COMMENT_OPT_CLOSED'); ?></option>
+										<?php foreach ($this->row->statuses('closed') as $status) { ?>
+											<option value="<?php echo $status->get('id'); ?>"<?php if (!$this->row->isOpen() && $this->row->get('status') == $status->get('id')) { echo ' selected="selected"'; } ?>><?php echo $this->escape($status->get('title')); ?></option>
+										<?php } ?>
 									</optgroup>
 								</select>
 							</label>
@@ -570,13 +565,13 @@ function submitbutton(pressbutton)
 
 if ($('#comment-field-template').length) {
 	$('#comment-field-template').on('change', function() {
-		if ($(this).value != 'mc') {
-			var hi = document.getElementById($(this).val()).value;
-			var co = document.getElementById('comment-field-comment');
-			co.value = hi;
+		var co = $('#comment-field-comment');
+
+		if ($(this).val() != 'mc') {
+			var hi = $('#' + $(this).val()).val();
+			co.val(hi);
 		} else {
-			var co = document.getElementById('comment-field-comment');
-			co.value = '';
+			co.val('');
 		}
 	});
 }
@@ -584,13 +579,14 @@ if ($('#comment-field-template').length) {
 if ($('#comment-field-access').length) {
 	$('#comment-field-access').on('click', function() {
 		var es = $('#email_submitter');
-		if ($(this).checked == true) {
-			if (es.checked == true) {
-				es.checked = false;
-				es.disabled = true;
+
+		if ($(this).prop('checked')) {
+			if (es.prop('checked') == true) {
+				es.prop('checked', false);
+				es.prop('disabled', true);
 			}
 		} else {
-			es.disabled = false;
+			es.prop('disabled', false);
 		}
 	});
 }

@@ -231,7 +231,7 @@ function submitbutton(pressbutton)
 				$pics = explode(DS, $pics);
 				$file = end($pics);
 			?>
-			<iframe width="100%" height="350" name="filer" id="filer" frameborder="0" src="index.php?option=<?php echo $this->option; ?>&amp;controller=media&amp;tmpl=component&amp;file=<?php echo $file; ?>&amp;id=<?php echo $this->profile->get('uidNumber'); ?>"></iframe>
+			<iframe height="350" name="filer" id="filer" src="index.php?option=<?php echo $this->option; ?>&amp;controller=media&amp;tmpl=component&amp;file=<?php echo $file; ?>&amp;id=<?php echo $this->profile->get('uidNumber'); ?>"></iframe>
 			<?php
 			} else {
 				echo '<p class="warning">'.JText::_('MEMBER_PICTURE_ADDED_LATER').'</p>';
@@ -301,7 +301,7 @@ function submitbutton(pressbutton)
 					<div class="input-wrap">
 						<label><?php echo JText::_('COL_RACE_TRIBE'); ?>: <input name="racenativetribe" id="profile[nativeTribe]" type="text" value="<?php echo $this->escape($this->profile->get('nativeTribe')); ?>" /></label><br />
 					</div>
-					<label><input type="checkbox" class="option" name="profile[race][asian]" id="raceasian" valu="asian" <?php echo (in_array('asian',$this->profile->get('race'))) ? 'checked="checked" ' : ''; ?>/> <?php echo JText::_('COL_RACE_ASIAN'); ?></label><br />
+					<label><input type="checkbox" class="option" name="profile[race][asian]" id="raceasian" value="asian" <?php echo (in_array('asian',$this->profile->get('race'))) ? 'checked="checked" ' : ''; ?>/> <?php echo JText::_('COL_RACE_ASIAN'); ?></label><br />
 					<label><input type="checkbox" class="option" name="profile[race][black]" id="raceblack" value="black" <?php echo (in_array('black',$this->profile->get('race'))) ? 'checked="checked" ' : ''; ?>/> <?php echo JText::_('COL_RACE_BLACK'); ?></label><br />
 					<label><input type="checkbox" class="option" name="profile[race][hawaiian]" id="racehawaiian" value="hawaiian" <?php echo (in_array('hawaiian',$this->profile->get('race'))) ? 'checked="checked" ' : ''; ?>/> <?php echo JText::_('COL_RACE_PACIFIC_ISLANDER'); ?></label><br />
 					<label><input type="checkbox" class="option" name="profile[race][white]" id="racewhite" value="white" <?php echo (in_array('white',$this->profile->get('race'))) ? 'checked="checked" ' : ''; ?>/> <?php echo JText::_('COL_RACE_WHITE'); ?></label><br />
@@ -350,8 +350,8 @@ function submitbutton(pressbutton)
 				<legend><span><?php echo JText::_('PASSWORD'); ?></span></legend>
 
 				<div class="input-wrap">
-					<?php echo JText::_('CURRENT_PASSWORD'); ?>:</td>
-					<input type="text" name="profile[currentpassword]" disabled="disabled" <?php echo ($this->profile->get('userPassword')) ? "value=\"{$this->profile->get('userPassword')}\"" : 'placeholder="no local password set"'; ?> /></td>
+					<?php echo JText::_('CURRENT_PASSWORD'); ?>:
+					<input type="text" name="profile[currentpassword]" disabled="disabled" <?php echo ($this->profile->get('userPassword')) ? "value=\"{$this->profile->get('userPassword')}\"" : 'placeholder="no local password set"'; ?> />
 				</div>
 				<div class="input-wrap">
 					<label for="newpass"><?php echo JText::_('NEW_PASSWORD'); ?>:</label>
@@ -440,14 +440,14 @@ function submitbutton(pressbutton)
 				<fieldset class="adminform">
 					<legend><span><?php echo JText::_('GROUPS'); ?></span></legend>
 
-					<iframe width="100%" height="500" name="grouper" id="grouper" frameborder="0" src="index.php?option=<?php echo $this->option; ?>&amp;controller=groups&amp;tmpl=component&amp;id=<?php echo $this->profile->get('uidNumber'); ?>"></iframe>
+					<iframe height="500" name="grouper" id="grouper" src="index.php?option=<?php echo $this->option; ?>&amp;controller=groups&amp;tmpl=component&amp;id=<?php echo $this->profile->get('uidNumber'); ?>"></iframe>
 				</fieldset>
 			</div>
 			<div id="page-hosts" class="tab">
 				<fieldset class="adminform">
 					<legend><span><?php echo JText::_('HOSTS'); ?></span></legend>
 
-					<iframe width="100%" height="500" name="hosts" id="hosts" frameborder="0" src="index.php?option=<?php echo $this->option; ?>&amp;controller=hosts&amp;tmpl=component&amp;id=<?php echo $this->profile->get('uidNumber'); ?>"></iframe>
+					<iframe height="500" name="hosts" id="hosts-list" src="index.php?option=<?php echo $this->option; ?>&amp;controller=hosts&amp;tmpl=component&amp;id=<?php echo $this->profile->get('uidNumber'); ?>"></iframe>
 				</fieldset>
 			</div>
 		</div>
@@ -509,7 +509,7 @@ function submitbutton(pressbutton)
 			</tbody>
 		</table>
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('DETAILS'); ?></span></legend>
+			<legend><span><?php echo JText::_('JDETAILS'); ?></span></legend>
 
 			<div class="input-wrap">
 				<label for="email"><?php echo JText::_('COL_EMAIL'); ?></label>
@@ -532,13 +532,13 @@ function submitbutton(pressbutton)
 			}
 			?>
 			<?php if ($this->profile->get('email')) { ?>
-							<input type="text" name="profile[email]" id="email" value="<?php echo $this->escape(stripslashes($this->profile->get('email'))); ?>" /> (<?php echo $confirmed; ?>)
+				<input type="text" name="profile[email]" id="email" value="<?php echo $this->escape(stripslashes($this->profile->get('email'))); ?>" /> (<?php echo $confirmed; ?>)
 			<?php } else { ?>
-							<span style="color:#c00;"><?php echo JText::_('EMAIL_NONE_ON_FILE'); ?></span><br />
-							<input type="text" name="profile[email]" id="email" value="" />
+				<span style="color:#c00;"><?php echo JText::_('EMAIL_NONE_ON_FILE'); ?></span><br />
+				<input type="text" name="profile[email]" id="email" value="" />
 
-							<input type="checkbox" name="emailConfirmed" id="emailConfirmed" value="1" />
-							<label for="emailConfirmed"><?php echo JText::_('EMAIL_CONFIRM'); ?></label>
+				<input type="checkbox" name="emailConfirmed" id="emailConfirmed" value="1" />
+				<label for="emailConfirmed"><?php echo JText::_('EMAIL_CONFIRM'); ?></label>
 			<?php } ?>
 			</div>
 			<div class="input-wrap">
@@ -554,12 +554,11 @@ function submitbutton(pressbutton)
 				<input type="text" name="profile[loginShell]" id="loginShell" value="<?php echo $this->escape($this->profile->get('loginShell')); ?>" />
 			</div>
 			<div class="input-wrap">
-				<label for=""><?php echo JText::_('COL_ADMINISTRATOR'); ?></label>
-				<?php echo ($this->profile->get('admin') ? implode(', ', $this->profile->get('admin')) : '--'); ?></td>
+				<label><?php echo JText::_('COL_ADMINISTRATOR'); ?></label>
+				<?php echo ($this->profile->get('admin') ? implode(', ', $this->profile->get('admin')) : '--'); ?>
 			</div>
 		</fieldset>
 	</div>
 	<div class="clr"></div>
 	<?php echo JHTML::_('form.token'); ?>
 </form>
-

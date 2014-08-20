@@ -39,7 +39,7 @@ statement += '<select class="fld">';
 	statement += '<option value="group">Group</option>';
 	statement += '<option value="id">ID</option>';
 	statement += '<option value="report">Report</option>';
-	statement += '<option value="resolved">Resolution</option>';
+	//statement += '<option value="resolved">Resolution</option>';
 	statement += '<option value="severity">Severity</option>';
 	statement += '<option value="tag">Tag</option>';
 	statement += '<option value="type" selected="selected">Type</option>';
@@ -198,6 +198,9 @@ var Conditions = {
 		
 		var values = Conditions.option[val].values;
 		var select = $('<input type="text" class="val" />');
+		if (val == 'created') {
+			select.attr('placeholder', 'YYYY-MM-DD');
+		}
 
 		if (values instanceof Array) {
 			select = $('<select class="val"></select>');
@@ -205,7 +208,7 @@ var Conditions = {
 				if (this.sel) {
 					val = this.val;
 				}
-			    select.append('<option value="' + this.val + '">' + this.label + '</option>');
+				select.append('<option value="' + this.val + '">' + this.label + '</option>');
 			});
 			select.val(val);
 		}

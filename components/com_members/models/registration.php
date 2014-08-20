@@ -282,7 +282,7 @@ class MembersModelRegistration
 			{
 				if ($hispaniccuban_p)
 					$hispanic[] = 'cuban';
-		 		if ($hispanicmexican_p)
+				if ($hispanicmexican_p)
 					$hispanic[] = 'mexican';
 				if ($hispanicpuertorican_p)
 					$hispanic[] = 'puertorican';
@@ -371,10 +371,11 @@ class MembersModelRegistration
 		// }
 
 		$name = JRequest::getVar('name', array(), 'post');
-		if (!is_array($name)) {
+		if (!is_array($name))
+		{
 			$name = array();
 		}
-		if($name)
+		if ($name)
 		{
 			$nm  = trim($name['first']);
 			$nm .= (isset($name['middle']) && trim($name['middle']) != '') ? ' '.$name['middle'] : '';
@@ -866,7 +867,7 @@ class MembersModelRegistration
 			{
 				$this->_missing['email'] = 'Valid Email';
 			}
-			elseif(!MembersHelperUtility::validemail($email))
+			elseif (!MembersHelperUtility::validemail($email))
 			{
 				$this->_invalid['email'] = 'Invalid email address. Please correct and try again.';
 			}
@@ -917,7 +918,8 @@ class MembersModelRegistration
 
 		if ($registrationURL != REG_HIDE)
 		{
-			if (!empty($registration['web']) && !MembersHelperUtility::validurl($registration['web']))
+			$registration['web'] = trim($registration['web']);
+			if (!empty($registration['web']) && (strstr($registration['web'], ' ') || !MembersHelperUtility::validurl($registration['web'])))
 			{
 				$this->_invalid['web'] = 'Invalid web site URL. You may be using characters that are not allowed.';
 			}
@@ -1070,7 +1072,7 @@ class MembersModelRegistration
 
 		if ($registrationRace == REG_REQUIRED)
 		{
-			if($task == 'edit')
+			if ($task == 'edit')
 			{
 				$corigin_incoming = (in_array('countryorigin', $field_to_check)) ? true : false;
 				$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));

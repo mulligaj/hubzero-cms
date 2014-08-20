@@ -107,7 +107,7 @@ $juser = JFactory::getUser();
 									<option value="group"<?php if ($this->row->sort == 'group') { echo ' selected="selected"'; }; ?>><?php echo JText::_('Group'); ?></option>
 									<option value="id"<?php if ($this->row->sort == 'id') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_ID'); ?></option>
 									<option value="report"<?php if ($this->row->sort == 'report') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_REPORT'); ?></option>
-									<option value="resolved"<?php if ($this->row->sort == 'resolved') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>
+									<?php /*<option value="resolved"<?php if ($this->row->sort == 'resolved') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>*/ ?>
 									<option value="severity"<?php if ($this->row->sort == 'severity') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SEVERITY'); ?></option>
 									<option value="tag"<?php if ($this->row->sort == 'tag') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TAG'); ?></option>
 									<option value="type"<?php if ($this->row->sort == 'type') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TYPE'); ?></option>
@@ -171,11 +171,12 @@ $juser = JFactory::getUser();
 ?>
 	<form action="index.php" method="post" name="adminForm" id="queryForm">
 		<fieldset>
-			<div style="float: right">
-				<button type="button" onclick="saveAndUpdate();"><?php echo JText::_('JAPPLY');?></button>
-				<button type="button" onclick="window.parent.$.fancybox.close();"><?php echo JText::_('JCANCEL');?></button>
-			</div>
-			<div class="configuration" >
+			<div class="configuration">
+				<div class="configuration-options">
+					<button type="button" onclick="saveAndUpdate();"><?php echo JText::_('JAPPLY');?></button>
+					<button type="button" onclick="window.parent.$.fancybox.close();"><?php echo JText::_('JCANCEL');?></button>
+				</div>
+
 				<?php echo JText::_('COM_SUPPORT_QUERY_BUILDER'); ?>
 			</div>
 		</fieldset>
@@ -215,7 +216,7 @@ $juser = JFactory::getUser();
 					<option value="group"<?php if ($this->row->sort == 'group') { echo ' selected="selected"'; }; ?>><?php echo JText::_('Group'); ?></option>
 					<option value="id"<?php if ($this->row->sort == 'id') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_ID'); ?></option>
 					<option value="report"<?php if ($this->row->sort == 'report') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_REPORT'); ?></option>
-					<option value="resolved"<?php if ($this->row->sort == 'resolved') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>
+					<?php /*<option value="resolved"<?php if ($this->row->sort == 'resolved') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>*/ ?>
 					<option value="severity"<?php if ($this->row->sort == 'severity') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SEVERITY'); ?></option>
 					<option value="tag"<?php if ($this->row->sort == 'tag') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TAG'); ?></option>
 					<option value="type"<?php if ($this->row->sort == 'type') { echo ' selected="selected"'; }; ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TYPE'); ?></option>

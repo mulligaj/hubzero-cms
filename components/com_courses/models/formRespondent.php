@@ -180,17 +180,23 @@ class PdfFormRespondent
 		if (!$gradebook->get('id'))
 		{
 			$grade = array(
-				'member_id' => $this->member_id,
-				'score'     => $score,
-				'scope'     => 'asset',
-				'scope_id'  => $asset_id
+				'member_id'      => $this->member_id,
+				'score'          => $score,
+				'scope'          => 'asset',
+				'scope_id'       => $asset_id,
+				'score_recorded' => \JFactory::getDate()->toSql()
 			);
 
 			$gradebook->save($grade);
 		}
 		elseif ($score > $gradebook->get('score'))
 		{
-			$gradebook->save(array('score'=>$score));
+			$gradebook->save(
+				array(
+					'score'          => $score,
+					'score_recorded' => \JFactory::getDate()->toSql()
+				)
+			);
 		}
 	}
 
@@ -332,6 +338,20 @@ class PdfFormRespondent
 	public function getAttemptNumber()
 	{
 		return $this->attempt;
+	}
+
+	/**
+	 * Get array of completed attempts
+	 *
+	 * @return array
+	 **/
+	public function getCompletedAttempts()
+	{
+		$dbh   = JFactory::getDBO();
+		$query  = 'SELECT `attempt` FROM `#__courses_form_respondents` WHERE `deployment_id` = ' . $dbh->quote($this->depId);
+		$query .= ' AND `member_id` = ' . $dbh->quote($this->member_id) . ' AND `finished` IS NOT NULL ORDER BY `attempt` ASC';
+		$dbh->setQuery($query);
+		return $dbh->loadColumn();
 	}
 
 	/**

@@ -323,6 +323,10 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 				if ($watch == 'start')
 				{
 					$this->view->row->watch($this->juser);
+					if (!$this->view->row->isWatching($this->juser, true))
+					{
+						$this->setError(JText::_('COM_SUPPORT_ERROR_FAILED_TO_WATCH'));
+					}
 				}
 			}
 		}
@@ -491,7 +495,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 
 		// Create a new support comment object and populate it
 		$rowc = new SupportModelComment();
-		$rowc->set('ticket', $id);
+		$rowc->set('ticket', $row->get('id'));
 		$rowc->set('comment', nl2br($comment));
 		$rowc->set('created', JFactory::getDate()->toSql());
 		$rowc->set('created_by', $this->juser->get('id'));
@@ -628,7 +632,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 				{
 					$token = $encryptor->buildEmailToken(1, 1, -9999, $id);
 
-					$emails[] = array(
+					$email = array(
 						$to['email'],
 						'htc-' . $token . strstr($jconfig->getValue('config.mailfrom'), '@')
 					);

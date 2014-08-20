@@ -19,9 +19,9 @@ var rootcondition = '<fieldset class="condition-set">';
 			rootcondition += '<option value="OR">any</option>';
 		rootcondition += '</select> of the following:';
 	rootcondition += '</p>';
-	rootcondition += '<div>';
-		rootcondition += '<div class="querystmts">';
-			rootcondition += '<span>';
+	rootcondition += '<div class="querycntnr">';
+		rootcondition += '<div class="querycntnr querystmts">';
+			rootcondition += '<span class="query-btns">';
 				rootcondition += '<button class="add">+</button> <button class="addroot">...</button>';
 			rootcondition += '</span>';
 		rootcondition += '</div>';
@@ -39,7 +39,7 @@ statement += '<select class="fld">';
 	statement += '<option value="group">Group</option>';
 	statement += '<option value="id">ID</option>';
 	statement += '<option value="report">Report</option>';
-	statement += '<option value="resolved">Resolution</option>';
+	statement += '<option value="status">Status</option>';
 	statement += '<option value="severity">Severity</option>';
 	statement += '<option value="tag">Tag</option>';
 	statement += '<option value="type" selected="selected">Type</option>';
@@ -199,6 +199,9 @@ var Conditions = {
 
 		var values = Conditions.option[val].values;
 		var select = $('<input type="text" class="val" />');
+		if (val == 'created') {
+			select.attr('placeholder', 'YYYY-MM-DD');
+		}
 
 		if (values instanceof Array) {
 			select = $('<select class="val"></select>');

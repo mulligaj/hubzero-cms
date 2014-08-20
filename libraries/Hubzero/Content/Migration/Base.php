@@ -69,6 +69,13 @@ class Base
 	protected $options = array();
 
 	/**
+	 * Errors
+	 *
+	 * @var array
+	 **/
+	protected $errors = array();
+
+	/**
 	 * Whether or not we're running in protected mode
 	 *
 	 * @var bool
@@ -112,11 +119,11 @@ class Base
 		}
 
 		// Call function
-		call_user_func_array(array($this->callbacks[$callback], $func), $args);
+		return call_user_func_array(array($this->callbacks[$callback], $func), $args);
 	}
 
 	/**
-	 * undocumented function
+	 * Get option - these are specified/overwritten by the individual migrations/hooks
 	 *
 	 * @param  (string) $key
 	 * @return (string) $value
@@ -124,6 +131,48 @@ class Base
 	public function getOption($key)
 	{
 		return (isset($this->options[$key])) ? $this->options[$key] : false;
+	}
+
+	/**
+	 * Return a middleware database object
+	 *
+	 * @return object
+	 */
+	public function getMWDBO()
+	{
+		static $instance;
+
+		if (!is_object($instance))
+		{
+			$config = $this->getParams('com_tools');
+
+			$options['driver']   = 'pdo';
+			$options['host']     = $config->get('mwDBHost');
+			$options['port']     = $config->get('mwDBPort');
+			$options['user']     = $config->get('mwDBUsername');
+			$options['password'] = $config->get('mwDBPassword');
+			$options['database'] = $config->get('mwDBDatabase');
+			$options['prefix']   = $config->get('mwDBPrefix');
+
+			try
+			{
+				$instance = \JDatabase::getInstance($options);
+			}
+			catch (\PDOException $e)
+			{
+				$instance = NULL;
+				return false;
+			}
+
+			// Test the connection
+			if (!$instance->connected())
+			{
+				$instance = NULL;
+				return false;
+			}
+		}
+
+		return $instance;
 	}
 
 	/**
@@ -217,6 +266,79 @@ class Base
 		}
 
 		return false;
+	}
+
+	/**
+	 * Set an error
+	 *
+	 * @param  (string) $message
+	 * @param  (string) $type
+	 * @return void
+	 **/
+	public function setError($message, $type='fatal')
+	{
+		$this->errors[] = array('type' => $type, 'message' => $message);
+	}
+
+	/**
+	 * Get errors
+	 *
+	 * @return (array) - errors
+	 **/
+	public function getErrors()
+	{
+		return $this->errors;
+	}
+
+	/**
+	 * Get element params
+	 *
+	 * @param  $option  - (string) com_xyz
+	 * @return (object) - JRegistry of params
+	 **/
+	public function getParams($element)
+	{
+		if ($this->baseDb->tableExists('#__components'))
+		{
+			if (substr($element, 0, 4) == 'plg_')
+			{
+				$ext = explode("_", $element);
+				$query = "SELECT `params` FROM `#__plugins` WHERE `folder` = " . $this->baseDb->quote($ext[1]) . " AND `element` = " . $this->baseDb->quote($ext[2]);
+			}
+			else
+			{
+				$query = "SELECT `params` FROM `#__components` WHERE `option` = " . $this->baseDb->quote($element);
+			}
+
+			$this->baseDb->setQuery($query);
+			$params = $this->baseDb->loadResult();
+		}
+		else
+		{
+			if (substr($element, 0, 4) == 'plg_')
+			{
+				$ext = explode("_", $element);
+				$query = "SELECT `params` FROM `#__extensions` WHERE `folder` = " . $this->baseDb->quote($ext[1]) . " AND `element` = " . $this->baseDb->quote($ext[2]);
+			}
+			else
+			{
+				$query = "SELECT `params` FROM `#__extensions` WHERE `element` = " . $this->baseDb->quote($element);
+			}
+
+			$this->baseDb->setQuery($query);
+			$params = $this->baseDb->loadResult();
+		}
+
+		if ($params)
+		{
+			$params = new \JRegistry($params);
+		}
+		else
+		{
+			$params = new \JRegistry();
+		}
+
+		return $params;
 	}
 
 	/**
@@ -696,6 +818,24 @@ class Base
 			$this->baseDb->query();
 
 			// See if entries are present in #__modules table as well
+			$query = "SELECT `id` FROM `#__modules` WHERE `module` = '{$element}'";
+			$this->baseDb->setQuery($query);
+			$ids = $this->baseDb->loadColumn();
+
+			if ($ids && count($ids) > 0)
+			{
+				// Delete modules and module menu entries
+				$query = "DELETE FROM `#__modules` WHERE `id` IN (" . implode(',', $ids) . ")";
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
+
+				$query = "DELETE FROM `#__modules_menu` WHERE `moduleid` IN (" . implode(',', $ids) . ")";
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
+			}
+		}
+		else
+		{
 			$query = "SELECT `id` FROM `#__modules` WHERE `module` = '{$element}'";
 			$this->baseDb->setQuery($query);
 			$ids = $this->baseDb->loadColumn();

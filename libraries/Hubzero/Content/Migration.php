@@ -107,6 +107,13 @@ class Migration
 	private $tbl_name = '#__migrations';
 
 	/**
+	 * Whether or not to ignore callbacks
+	 *
+	 * @var bool
+	 **/
+	private $ignoreCallbacks = false;
+
+	/**
 	 * Constructor
 	 *
 	 * @param $docroot - default null, which should then resolve to hub docroot
@@ -499,22 +506,39 @@ class Migration
 					try
 					{
 						$result = $class->$direction();
+						$errors = $class->getErrors();
 
-						if (is_object($result) && isset($result->error))
+						// Loop through errors if we have them
+						if ($errors && count($errors) > 0)
 						{
-							if (isset($result->error->type) && $result->error->type == 'fatal')
+							// Track whether we should log this as completed or continue to next file
+							$log = true;
+							foreach ($errors as $error)
 							{
-								// Completely failed...stop immediately
-								$message = (isset($result->error->message) && !empty($result->error->message)) ? $result->error->message : '[no message provided]';
-								$this->log("Error: running {$direction}() resulted in a fatal error in {$file}: {$message}", 'error');
-								return false;
+								if ($error['type'] == 'fatal')
+								{
+									// Completely failed...stop immediately
+									$this->log("Error: running {$direction}() resulted in a fatal error in {$file}: {$error['message']}", 'error');
+									return false;
+								}
+								else if ($error['type'] == 'warning')
+								{
+									// Just a warning...display message and carry on (my wayward son)
+									$this->log("Warning: running {$direction}() resulted in a non-fatal error in {$file}: {$error['message']}", 'warning');
+									// Continue...i.e. don't log that this migration was run, so it shows up again on the next run
+									$log = false;
+									continue;
+								}
+								else if ($error['type'] == 'info')
+								{
+									// Informational error (is that a real thing?)
+									$this->log("Info: running {$direction}() noted this in {$file}: {$error['message']}", 'info');
+								}
 							}
-							else if (isset($result->error->type) && $result->error->type == 'warning')
+
+							// Now check if we're logging this file
+							if (!$log)
 							{
-								// Just a warning...display message and carry on (my wayward son)
-								$message = (isset($result->error->message) && !empty($result->error->message)) ? $result->error->message : '[no message provided]';
-								$this->log("Warning: running {$direction}() resulted in a non-fatal error in {$file}: {$message}", 'warning');
-								// Continue...i.e. don't log that this migration was run, so it shows up again on the next run
 								continue;
 							}
 						}
@@ -633,7 +657,7 @@ class Migration
 	 * @param $direction - up or down
 	 * @return void
 	 **/
-	protected function recordMigration($file, $scope, $hash, $direction)
+	public function recordMigration($file, $scope, $hash, $direction)
 	{
 		// Try inserting a migration record into the database
 		try
@@ -664,6 +688,26 @@ class Migration
 	}
 
 	/**
+	 * Set ignore callbacks to true
+	 *
+	 * @return void
+	 **/
+	public function ignoreCallbacks()
+	{
+		$this->ignoreCallbacks = true;
+	}
+
+	/**
+	 * Set ignore callbacks to false
+	 *
+	 * @return void
+	 **/
+	public function honorCallbacks()
+	{
+		$this->ignoreCallbacks = false;
+	}
+
+	/**
 	 * Logging mechanism
 	 *
 	 * @param $message - message to log
@@ -674,7 +718,7 @@ class Migration
 	{
 		$this->log[] = array('message' => $message, 'type' => $type);
 
-		if (isset($this->callbacks['message']) && is_callable($this->callbacks['message']))
+		if (!$this->ignoreCallbacks && isset($this->callbacks['message']) && is_callable($this->callbacks['message']))
 		{
 			$this->callbacks['message']($message, $type);
 		}

@@ -159,16 +159,12 @@ class CoursesControllerSections extends \Hubzero\Component\AdminController
 		else
 		{
 			// Incoming
-			$ids = JRequest::getVar('id', array());
+			$id = JRequest::getVar('id', array(0));
 
 			// Get the single ID we're working with
-			if (is_array($ids))
+			if (is_array($id))
 			{
-				$id = (!empty($ids)) ? $ids[0] : 0;
-			}
-			else
-			{
-				$id = 0;
+				$id = (!empty($id)) ? $id[0] : 0;
 			}
 
 			$this->view->row = CoursesModelSection::getInstance($id);
@@ -629,19 +625,16 @@ class CoursesControllerSections extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 		$offering_id = JRequest::getInt('offering', 0);
-
-		// Get the single ID we're working with
-		if (!is_array($ids))
-		{
-			$ids = array();
-		}
 
 		$num = 0;
 
 		// Do we have any IDs?
 		if (!empty($ids))
 		{
+			$offering_id = 0;
+
 			foreach ($ids as $id)
 			{
 				// Load the course page
@@ -653,6 +646,8 @@ class CoursesControllerSections extends \Hubzero\Component\AdminController
 					continue;
 				}
 
+				$offering_id = $model->get('offering_id');
+
 				// Delete course
 				if (!$model->delete())
 				{
@@ -661,6 +656,31 @@ class CoursesControllerSections extends \Hubzero\Component\AdminController
 				}
 
 				$num++;
+			}
+
+			if ($num && $offering_id)
+			{
+				$filters = array(
+					'count'       => true,
+					'offering_id' => $offering_id,
+					'is_default'  => 1
+				);
+				$offering = CoursesModelOffering::getInstance($filters['offering_id']);
+
+				if (!$offering->sections($filters))
+				{
+					$sections = $offering->sections(array(
+						'count'    => false,
+						'sort'     => 'id',
+						'sort_Dir' => 'ASC',
+						'limit'    => 1,
+						'start'    => 0
+					));
+					foreach ($sections as $section)
+					{
+						$section->makeDefault();
+					}
+				}
 			}
 		}
 
@@ -679,16 +699,12 @@ class CoursesControllerSections extends \Hubzero\Component\AdminController
 	public function makedefaultTask()
 	{
 		// Incoming
-		$ids = JRequest::getVar('id', array());
+		$id = JRequest::getVar('id', 0);
 
 		// Get the single ID we're working with
-		if (is_array($ids))
+		if (is_array($id))
 		{
-			$id = (!empty($ids)) ? $ids[0] : 0;
-		}
-		else
-		{
-			$id = 0;
+			$id = (!empty($id)) ? $id[0] : 0;
 		}
 
 		$row = CoursesModelSection::getInstance($id);
@@ -732,12 +748,7 @@ class CoursesControllerSections extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
-
-		// Get the single ID we're working with
-		if (!is_array($ids))
-		{
-			$ids = array();
-		}
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		// Do we have any IDs?
 		$num = 0;

@@ -56,10 +56,9 @@ $base = 'index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') .
 	     ->set('params', $this->params)
 	     ->set('name', $this->name)
 	     ->set('active', ($this->collection->exists() ? '' : 'posts'))
-	     ->set('collections', ($this->collection->exists() ? 0 : $this->collections))
+	     ->set('collections', $this->collections)
 	     ->set('posts', $this->posts)
-	     ->set('followers', ($this->collection->exists() ? 0 : $this->followers))
-	     ->set('following', ($this->params->get('access-can-follow') ? $this->following : 0))
+	     ->set('followers', $this->followers) //->set('following', $this->following)
 	     ->display();
 	?>
 
@@ -77,7 +76,7 @@ $base = 'index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') .
 				"<?php echo $this->escape(stripslashes($this->collection->get('title'))); ?>"
 			</span>
 			<span class="posts count">
-				<?php echo JText::sprintf('PLG_GROUPS_COLLECTIONS_STATS_POSTS', '<strong>' . $this->rows->total() . '</strong>'); ?>
+				<?php echo JText::sprintf('PLG_GROUPS_COLLECTIONS_STATS_POSTS', '<strong>' . $this->count . '</strong>'); ?>
 			</span>
 			<?php if (!$juser->get('guest')) { ?>
 				<?php if ($this->collection->isFollowing()) { ?>
@@ -141,11 +140,7 @@ $base = 'index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') .
 							</p>
 							<div class="actions">
 								<?php if (!$juser->get('guest')) { ?>
-									<?php if ($item->get('created_by') == $juser->get('id')) { ?>
-										<a class="edit" data-id="<?php echo $row->get('id'); ?>" href="<?php echo JRoute::_($base . '&scope=post/' . $row->get('id') . '/edit'); ?>">
-											<span><?php echo JText::_('PLG_GROUPS_COLLECTIONS_EDIT'); ?></span>
-										</a>
-									<?php } else { ?>
+									<?php if ($item->get('created_by') != $juser->get('id')) { ?>
 										<a class="vote <?php echo ($item->get('voted')) ? 'unlike' : 'like'; ?>" data-id="<?php echo $row->get('id'); ?>" data-text-like="<?php echo JText::_('PLG_GROUPS_COLLECTIONS_LIKE'); ?>" data-text-unlike="<?php echo JText::_('PLG_GROUPS_COLLECTIONS_UNLIKE'); ?>" href="<?php echo JRoute::_($base . '&scope=post/' . $row->get('id') . '/vote'); ?>">
 											<span><?php echo ($item->get('voted')) ? JText::_('PLG_GROUPS_COLLECTIONS_UNLIKE') : JText::_('PLG_GROUPS_COLLECTIONS_LIKE'); ?></span>
 										</a>
@@ -156,11 +151,16 @@ $base = 'index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') .
 										<a class="repost" data-id="<?php echo $row->get('id'); ?>" href="<?php echo JRoute::_($base . '&scope=post/' . $row->get('id') . '/collect'); ?>">
 											<span><?php echo JText::_('PLG_GROUPS_COLLECTIONS_COLLECT'); ?></span>
 										</a>
-									<?php if ($row->get('original') && ($item->get('created_by') == $juser->get('id') || $this->params->get('access-delete-item'))) { ?>
-										<a class="delete" data-id="<?php echo $row->get('id'); ?>" href="<?php echo JRoute::_($base . '&scope=post/' . $row->get('id') . '/delete'); ?>">
+									<?php if ($item->get('created_by') == $juser->get('id') || $this->params->get('access-manage-collection')) { ?>
+										<a class="edit" data-id="<?php echo $row->get('id'); ?>" href="<?php echo JRoute::_($base . '&scope=post/' . $row->get('id') . '/edit'); ?>" title="<?php echo JText::_('PLG_GROUPS_COLLECTIONS_EDIT'); ?>">
+											<span><?php echo JText::_('PLG_GROUPS_COLLECTIONS_EDIT'); ?></span>
+										</a>
+									<?php } ?>
+									<?php if ($row->get('original') && ($item->get('created_by') == $juser->get('id') || $this->params->get('access-manage-collection'))) { ?>
+										<a class="delete" data-id="<?php echo $row->get('id'); ?>" href="<?php echo JRoute::_($base . '&scope=post/' . $row->get('id') . '/delete'); ?>" title="<?php echo JText::_('PLG_GROUPS_COLLECTIONS_DELETE'); ?>">
 											<span><?php echo JText::_('PLG_GROUPS_COLLECTIONS_DELETE'); ?></span>
 										</a>
-									<?php } else if ($row->get('created_by') == $juser->get('id') || $this->params->get('access-edit-item')) { ?>
+									<?php } else if ($row->get('created_by') == $juser->get('id') || $this->params->get('access-manage-collection')) { ?>
 										<a class="unpost" data-id="<?php echo $row->get('id'); ?>" href="<?php echo JRoute::_($base . '&scope=post/' . $row->get('id') . '/remove'); ?>">
 											<span><?php echo JText::_('PLG_GROUPS_COLLECTIONS_REMOVE'); ?></span>
 										</a>
@@ -215,6 +215,11 @@ $base = 'index.php?option=' . $this->option . '&cn=' . $this->group->get('cn') .
 						<li><?php echo JText::_('PLG_GROUPS_COLLECTIONS_INSTRUCT_POST_STEP3'); ?></li>
 						<li><?php echo JText::_('PLG_GROUPS_COLLECTIONS_INSTRUCT_POST_STEP4'); ?></li>
 					</ol>
+					<div class="new-post">
+						<a class="icon-add add" href="<?php echo JRoute::_($base . '&scope=post/new&board=' . $this->collection->get('alias')); ?>">
+							<?php echo JText::_('PLG_GROUPS_COLLECTIONS_NEW_POST'); ?>
+						</a>
+					</div>
 				</div><!-- / .instructions -->
 				<div class="questions">
 					<p><strong><?php echo JText::_('PLG_GROUPS_COLLECTIONS_INSTRUCT_POST_TITLE'); ?></strong></p>

@@ -33,13 +33,13 @@ defined('_JEXEC') or die('Restricted access');
 	<p class="operator">
 		<button class="remove" alt="<?php echo JText::_('COM_SUPPORT_QUERY_REMOVE'); ?>">&times;</button>
 		<?php echo JText::sprintf('COM_SUPPORT_QUERY_MATCH',
-		'<select>
+		'<select id="match' . rand() . '">
 			<option value="AND"' . (strtolower($this->condition->operator) == 'and' ? ' selected="selected"' : '' ) . '>' . JText::_('COM_SUPPORT_QUERY_ALL') . '</option>
 			<option value="OR"' . (strtolower($this->condition->operator) == 'or' ? ' selected="selected"' : '') . '>' . JText::_('COM_SUPPORT_QUERY_ANY') . '</option>
 		</select>'); ?>
 	</p>
-	<div>
-		<div class="querystmts">
+	<div class="querycntnr">
+		<div class="querystmts querycntnr">
 <?php
 if ($this->condition->expressions)
 {
@@ -56,7 +56,7 @@ if ($this->condition->expressions)
 				<option value="group"<?php if ($expression->fldval == 'group') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_GROUP'); ?></option>
 				<option value="id"<?php if ($expression->fldval == 'id') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_ID'); ?></option>
 				<option value="report"<?php if ($expression->fldval == 'report') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_REPORT'); ?></option>
-				<option value="resolved"<?php if ($expression->fldval == 'resolved') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>
+				<?php /*<option value="resolved"<?php if ($expression->fldval == 'resolved') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_RESOLUTION'); ?></option>*/ ?>
 				<option value="severity"<?php if ($expression->fldval == 'severity') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_SEVERITY'); ?></option>
 				<option value="tag"<?php if ($expression->fldval == 'tag') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TAG'); ?></option>
 				<option value="type"<?php if ($expression->fldval == 'type') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_SUPPORT_QUERY_SORT_TYPE'); ?></option>
@@ -109,7 +109,7 @@ if ($this->condition->expressions)
 	}
 }
 ?>
-			<span>
+			<span class="query-btns">
 				<button class="add">+</button>
 				<button class="addroot">...</button>
 			</span>

@@ -25,6 +25,9 @@ jQuery(document).ready(function($) {
 		dataType   : "json",
 		type       : 'POST',
 		cache      : false,
+		success    : function ( data, textStatus, jqXHR ) {
+			HUB.CoursesOutline.message.hide();
+		},
 		statusCode : {
 			// 200 created
 			200: function ( data, textStatus, jqXHR ) {
@@ -92,6 +95,11 @@ jQuery(document).ready(function($) {
 		$('.content-box iframe').css({
 			'height' : $('.content-box').height()
 		});
+	}
+
+	// Hide deleted items box if nothing is there
+	if (!$('.assets-deleted li').length) {
+		$('.trash').hide();
 	}
 });
 
@@ -753,6 +761,11 @@ HUB.CoursesOutline = {
 				data: form,
 				statusCode: {
 					200: function( data ) {
+						// If trash is hidden, show it now
+						if (!$('.trash').is(':visible')) {
+							$('.trash').fadeIn();
+						}
+
 						// Report a message?
 						asset.hide('transfer', {to:'.header .trash', className: "transfer-effect", easing: "easeOutCubic", duration: 1000}, function() {
 							// Clone the asset for insertion to the deleted list
@@ -1193,6 +1206,17 @@ HUB.CoursesOutline = {
 					var t = $(this);
 					content.find('.cancel').click(function() {
 						$.contentBox('close');
+
+						// If pushing cancel on a new wiki that had been auto-saved, delete the wiki
+						if ($(this).data('new') && $(this).siblings('#asset_id').val()) {
+							var data = $(this).parents('.edit-form').serializeArray();
+							data.push({name : 'state', value : 2});
+
+							$.ajax({
+								url: '/api/courses/asset/save',
+								data: data
+							});
+						}
 					});
 
 					content.find('.edit-form').submit(function ( e ) {
@@ -1999,8 +2023,19 @@ HUB.CoursesOutline = {
 			errorBox = $('.error-box'),
 			error    = $('.error-message');
 
-			error.html(message);
-			errorBox.slideDown('fast');
+			if (errorBox.is(':visible')) {
+				errorBox.animate({
+					opacity: 0.4
+				}, 100, function() {
+					error.html(message);
+					$(this).animate({
+						opacity: 1
+					}, 100);
+				});
+			} else {
+				error.html(message);
+				errorBox.slideDown('fast');
+			}
 
 			if (timeout) {
 				setTimeout(this.hide, timeout);
