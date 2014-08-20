@@ -91,7 +91,7 @@ class WikiControllerHistory extends \Hubzero\Component\SiteController
 				$this->setError($result);
 			}
 
-			JDEBUG ? JProfiler::getInstance('Application')->mark('afterWikiSetup') : null;
+			JPROFILE ? JProfiler::getInstance('Application')->mark('afterWikiSetup') : null;
 		}
 
 		$this->page = $this->book->page();
@@ -293,7 +293,7 @@ class WikiControllerHistory extends \Hubzero\Component\SiteController
 		//$revision->load($id);
 
 		// Get a count of all approved revisions
-		if ($revision->getRevisionCount() <= 1) 
+		if ($this->page->revisions('count', array('approved' => 1)) <= 1)
 		{
 			// Can't delete - it's the only approved version!
 			$this->setRedirect(

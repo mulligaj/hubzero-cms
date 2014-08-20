@@ -86,7 +86,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 		// Get records
 		$this->view->rows = $obj->getRecords($this->view->filters, true);
-
+		
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
@@ -196,7 +196,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		$row = new \Hubzero\Message\Component($this->database);
 		if (!$row->bind($fields)) 
 		{
-			$this->addComponentMessage($row->getError(), 'error');
+			$this->setError($row->getError(), 'error');
 			$this->editTask($row);
 			return;
 		}
@@ -204,7 +204,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		// Check content
 		if (!$row->check()) 
 		{
-			$this->addComponentMessage($row->getError(), 'error');
+			$this->setError($row->getError(), 'error');
 			$this->editTask($row);
 			return;
 		}
@@ -212,7 +212,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		// Store content
 		if (!$row->store()) 
 		{
-			$this->addComponentMessage($row->getError(), 'error');
+			$this->setError($row->getError(), 'error');
 			$this->editTask($row);
 			return;
 		}
@@ -244,8 +244,8 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
-		$ids = JRequest::getVar('ids', array());
-
+		$ids = JRequest::getVar('id', array());
+		
 		// Do we have any IDs?
 		if (!empty($ids)) 
 		{
@@ -258,10 +258,10 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 				$row = new \Hubzero\Message\Component($this->database);
 				$row->load($id);
-
+				
 				// Remove any associations
 				$notify->deleteType($row->action);
-
+				
 				// Remove the record
 				$row->delete($id);
 			}

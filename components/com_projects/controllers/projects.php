@@ -1053,9 +1053,10 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		
 		// Get messages	and errors	
 		$view->msg = isset($this->_msg) ? $this->_msg : $this->getNotifications('success');
-		if ($this->getError()) 
+		$error = $this->getError() ? $this->getError() : $this->getNotifications('error');
+		if ($error) 
 		{
-			$view->setError( $this->getError() );
+			$view->setError( $error );
 		}
 		
 		$view->display();
@@ -3116,27 +3117,33 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		}
 
 		// Cannot be empty
-		if (!$name) 
+		if (!$name)
 		{
 			if (!$ajax) { return false; }
 			$result = JText::_('COM_PROJECTS_ERROR_NAME_EMPTY');
 		}
-		// Check for illegal characters
-		elseif (preg_match('/[^a-z0-9]/', $name)) 
-		{
-			if (!$ajax) { return false; }
-			$result = JText::_('COM_PROJECTS_ERROR_NAME_INVALID');
-		}
 		// Check for length
-		elseif (strlen($name) < intval($min_length)) 
+		elseif (strlen($name) < intval($min_length))
 		{
 			if (!$ajax) { return false; }
 			$result = JText::_('COM_PROJECTS_ERROR_NAME_TOO_SHORT');
 		}
-		elseif (strlen($name) > intval($max_length)) 
+		elseif (strlen($name) > intval($max_length))
 		{
 			if (!$ajax) { return false; }
 			$result = JText::_('COM_PROJECTS_ERROR_NAME_TOO_LONG');
+		}
+		// Check for illegal characters
+		elseif (preg_match('/[^a-z0-9]/', $name))
+		{
+			if (!$ajax) { return false; }
+			$result = JText::_('COM_PROJECTS_ERROR_NAME_INVALID');
+		}
+		// Check for all numeric (not allowed)
+		elseif (is_numeric($name))
+		{
+			if (!$ajax) { return false; }
+			$result = JText::_('COM_PROJECTS_ERROR_NAME_INVALID_NUMERIC');
 		}
 		// Verify tool name uniqueness
 		elseif ($tool) 

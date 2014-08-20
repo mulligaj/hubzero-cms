@@ -200,4 +200,39 @@ class JProfiler extends JObject
 	{
 		return $this->_buffer;
 	}
-}
+
+	public function log()
+	{
+		// <timstamp> <hubname> <ip-address> <app> <url> <query> <memory> <querycount> <timeinqueries> <totaltime>
+
+		// This method is only called once per request so we don't need to
+		// seperate logger instance creation from its use
+
+		$logger = new \Hubzero\Log\Writer(
+				new \Monolog\Logger(\JFactory::getConfig()->getValue('config.application_env')), 
+				\JDispatcher::getInstance()
+			);
+
+		$path = \JFactory::getConfig()->getValue('config.log_path');
+
+		if (is_dir('/var/log/hubzero-cms'))
+		{
+			$path = '/var/log/hubzero-cms';
+		}
+
+		$logger->useFiles($path . '/profile.log', 'info', "%datetime% %message%\n", "Y-m-d\TH:i:s.uP");
+
+		$hubname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'unknown';
+		$uri = JURI::getInstance()->getPath();
+		$uri = strtr($uri, array(" "=>"%20"));
+		$ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+		$query = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : 'unknown'; 
+		$memory = memory_get_usage(true);
+		$db = \JFactory::getDBO();
+		$querycount = $db->getCount();
+		$querytime = $db->timer;
+		$client = \JApplicationHelper::getClientInfo(\JFactory::getApplication()->getClientId())->name;
+		$time = microtime(true) - $this->_start;
+
+		$logger->info("$hubname $ip $client $uri [$query] $memory $querycount $querytime $time");
+	}}

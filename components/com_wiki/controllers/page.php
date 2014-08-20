@@ -93,7 +93,7 @@ class WikiControllerPage extends \Hubzero\Component\SiteController
 				$this->setError($result);
 			}
 
-			JDEBUG ? JProfiler::getInstance('Application')->mark('afterWikiSetup') : null;
+			JPROFILE ? JProfiler::getInstance('Application')->mark('afterWikiSetup') : null;
 		}
 
 		$this->page = $this->book->page();
@@ -278,8 +278,6 @@ class WikiControllerPage extends \Hubzero\Component\SiteController
 			return;
 		}
 
-		// Up the hit counter
-		//$this->page->hit();
 		if (JRequest::getVar('format', '') == 'raw')
 		{
 			JRequest::setVar('no_html', 1);
@@ -319,7 +317,7 @@ class WikiControllerPage extends \Hubzero\Component\SiteController
 			$this->view->revision->set('pagehtml', $p->parse($this->view->revision->get('pagetext'), $wikiconfig, true, true));
 		}
 
-		JDEBUG ? JProfiler::getInstance('Application')->mark('afterWikiParse') : null;
+		JPROFILE ? JProfiler::getInstance('Application')->mark('afterWikiParse') : null;
 
 		// Handle display events
 		JPluginHelper::importPlugin('wiki');
@@ -454,7 +452,7 @@ class WikiControllerPage extends \Hubzero\Component\SiteController
 
 		// Prep the pagename for display 
 		// e.g. "MainPage" becomes "Main Page"
-		$this->view->title = $this->page->get('title');
+		$this->view->title = (trim($this->page->get('title')) ? $this->page->get('title') : JText::_('COM_WIKI_NEW_PAGE'));
 
 		// Set the page's <title> tag
 		$document = JFactory::getDocument();
