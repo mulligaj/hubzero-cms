@@ -42,7 +42,6 @@
 	}
 	#content-header-extra {
 		width: 50%;
-		z-index: 1000;
 	}
 	#content-header-extra a {
 		border: none;
@@ -1307,7 +1306,7 @@
 		border-top: 1px dotted #CCC;
 		margin-top: 3em;
 		padding: 0 0.5em;
-		height: 20px;
+		height: 25px;
 		color: #a8a8a8;
 	}
 	.extras a {

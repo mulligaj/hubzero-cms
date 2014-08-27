@@ -915,10 +915,6 @@
 		width: 100%;
 		display: block;
 	}
-	.citation-edit .requirement {
-		width: 100%;
-		font-size: 85%;
-	}
 
 /* Author edit */
 	.profile-info img {
@@ -971,7 +967,6 @@
 		margin: 1em 0;
 	}
 	.revert-options .btn {
-		width: 100%;
 	}
 	.revert-options .and_or {
 		text-align: center;

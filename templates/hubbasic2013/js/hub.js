@@ -34,11 +34,13 @@ if (!jq) {
 	};
 }
 
+var template = {};
+
 jQuery(document).ready(function(jq){
 	var $ = jq,
 		w = 760,
 		h = 520,
-		templatepath = '/templates/hubbasic2013/';
+		templatepath = '/templates/template/';
 
 	// Set focus on username field for login form
 	if ($('#username').length > 0) {
@@ -88,7 +90,8 @@ jQuery(document).ready(function(jq){
 
 	// Init tooltips
 	if (jQuery.ui && jQuery.ui.tooltip) {
-		$('.hasTip, .tooltips').tooltip({
+		$(document).tooltip({
+			items: '.hasTip, .tooltips',
 			position: {
 				my: 'center bottom',
 				at: 'center top'
@@ -98,9 +101,6 @@ jQuery(document).ready(function(jq){
 			// done. Solution is to disable one of the animations.
 			hide: false,
 			content: function () {
-				return $(this).attr('title');
-			},
-			create: function(event, ui) {
 				var tip = $(this),
 					tipText = tip.attr('title');
 
@@ -108,6 +108,7 @@ jQuery(document).ready(function(jq){
 					var parts = tipText.split('::');
 					tip.attr('title', parts[1]);
 				}
+				return $(this).attr('title');
 			},
 			tooltipClass: 'tooltip'
 		});
@@ -155,5 +156,42 @@ jQuery(document).ready(function(jq){
 			});
 		});
 	}
-});
 
+	// Set the vars
+	template.mobileNav = $('#mobile-nav');
+	template.nav = $('nav#main-navigation');
+	template.navIcon = $('#nav-icon');
+	template.navHeight;
+	template.windowState = template.mobileNav.css('display');
+
+	$('#mobile-menu').on('click', function(e) {
+		if (!(template.nav.hasClass('open'))) {
+			template.nav.css('max-height', '1500px').addClass('open');
+			template.navIcon.addClass('open');
+		} else {
+			template.nav.css('max-height', '0').removeClass('open');
+			template.navIcon.removeClass('open');
+		}
+
+		e.preventDefault();	
+	});
+
+	$(window).resize(function() {
+		if (!template.mobileNav) {
+			return;
+		}
+
+		// Check if the state changed, do something then)
+		if (template.mobileNav.css('display') != template.windowState) {
+			// update window state to the current one
+			template.windowState = template.mobileNav.css('display');
+
+			if (template.mobileNav.css('display') == 'none') {
+				template.nav.css('max-height', '');
+			} else {
+				template.nav.removeClass('open');
+				template.navIcon.removeClass('open');
+			}
+		}
+	});
+});

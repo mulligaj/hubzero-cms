@@ -298,6 +298,27 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 	}
 
 	/**
+	 * Default Task
+	 * 
+	 * @return [type] [description]
+	 */
+	public function displayTask()
+	{
+		switch ($this->config->getCfg('startview', 'month'))
+		{
+			case 'week':
+				$this->weekTask();
+				break;
+			case 'year':
+				$this->yearTask();
+				break;
+			case 'month':
+			default:
+				$this->monthTask();
+		}
+	}
+
+	/**
 	 * List events for a given year
 	 *
 	 * @return     void
@@ -489,7 +510,13 @@ class EventsControllerEvents extends \Hubzero\Component\SiteController
 			$week['month'] = sprintf("%02d", $this_currentdate->month);
 			$week['year']  = sprintf("%4d",  $this_currentdate->year);
 
-			$filters['select_date'] = sprintf("%4d-%02d-%02d", $week['year'], $week['month'], $week['day']);
+			$select_date     = sprintf("%4d-%02d-%02d 00:00:00", $week['year'], $week['month'], $week['day']);
+			$select_date_fin = sprintf("%4d-%02d-%02d 23:59:59", $week['year'], $week['month'], $week['day']);
+			$select_date     = JFactory::getDate($select_date, JFactory::getConfig()->get('offset'));
+			$select_date_fin = JFactory::getDate($select_date_fin, JFactory::getConfig()->get('offset'));
+
+			$filters['select_date'] = $select_date->toSql();
+			$filters['select_date_fin'] = $select_date_fin->toSql();
 
 			$rows[$d] = array();
 			$rows[$d]['events'] = $ee->getEvents('day', $filters);

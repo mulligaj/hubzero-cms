@@ -104,7 +104,7 @@ $juser = JFactory::getUser();
 					?>
 					<p class="course-group-img">
 						<a href="<?php echo JRoute::_('index.php?option=com_courses&task=browse&group=' . $group->get('cn')); ?>">
-							<img src="<?php echo $group->getLogo(); ?>" <?php echo $atts; ?> alt="<?php echo $this->escape(stripslashes($group->get('description'))); ?>" />
+							<img src="<?php echo $group->getLogo(); ?>" <?php echo $atts; ?> alt="<?php echo $this->escape($group->get('description')); ?>" />
 						</a>
 					</p>
 					<p class="course-group-description">
@@ -112,7 +112,7 @@ $juser = JFactory::getUser();
 					</p>
 					<h3 class="course-group-title">
 						<a href="<?php echo JRoute::_('index.php?option=com_courses&task=browse&group=' . $group->get('cn')); ?>">
-							<?php echo $this->escape(stripslashes($group->get('description'))); ?>
+							<?php echo $this->escape($group->get('description')); ?>
 						</a>
 					</h3>
 				</div>
@@ -130,32 +130,6 @@ $juser = JFactory::getUser();
 					<li><a<?php echo ($this->filters['sortby'] == 'alias') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=alias' . $qs); ?>" title="<?php echo JText::_('COM_COURSES_SORT_BY_ALIAS'); ?>"><?php echo JText::_('COM_COURSES_SORT_ALIAS'); ?></a></li>
 					<li><a<?php echo ($this->filters['sortby'] == 'popularity') ? ' class="active"' : ''; ?> href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse&sortby=popularity' . $qs); ?>" title="<?php echo JText::_('COM_COURSES_SORT_BY_POPULARITY'); ?>"><?php echo JText::_('COM_COURSES_SORT_POPULARITY'); ?></a></li>
 				</ul>
-
-				<?php
-				/*$url  = 'index.php?option=' . $this->option . '&task=browse';
-				$url .= ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
-				$url .= ($this->filters['sortby'] ? '&sortby=' . $this->escape($this->filters['sortby']) : '');
-				$url .= ($this->filters['tag']    ? '&tag=' . $this->escape($this->filters['tag'])       : '');
-				$url .= ($this->filters['group']  ? '&group=' . $this->escape($this->filters['group'])   : '');
-
-				$html  = '<a href="' . JRoute::_($url) . '"';
-				if ($this->filters['index'] == '')
-				{
-					$html .= ' class="active-index"';
-				}
-				$html .= '>' . JText::_('ALL') . '</a> '."\n";
-
-				$letters = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z');
-				foreach ($letters as $letter)
-				{
-					$html .= '<a href="' . JRoute::_($url . '&index=' . strtolower($letter)) . '"';
-					if ($this->filters['index'] == strtolower($letter))
-					{
-						$html .= ' class="active-index"';
-					}
-					$html .= '>' . strtoupper($letter) . '</a> ' . "\n";
-				}*/
-				?>
 				<div class="clearfix"></div>
 
 				<h3>
@@ -217,13 +191,13 @@ $juser = JFactory::getUser();
 							<article>
 								<h4>
 									<a class="entry-title" href="<?php echo JRoute::_($course->link()); ?>">
-										<?php echo $this->escape(stripslashes($course->get('title'))); ?>
+										<?php echo $this->escape($course->get('title')); ?>
 									</a>
 								</h4>
 								<p class="course-identity">
 									<a href="<?php echo JRoute::_($course->link()); ?>">
 										<?php if ($logo = $course->logo()) { ?>
-											<img src="<?php echo $logo; ?>" alt="<?php echo $this->escape(stripslashes($course->get('title'))); ?>" />
+											<img src="<?php echo $logo; ?>" alt="<?php echo $this->escape($course->get('title')); ?>" />
 										<?php } else { ?>
 											<span></span>
 										<?php } ?>
@@ -255,14 +229,14 @@ $juser = JFactory::getUser();
 									</dd>
 								</dl>
 								<p class="entry-content">
-									<?php echo \Hubzero\Utility\String::truncate(stripslashes($course->get('blurb')), 200); ?>
+									<?php echo \Hubzero\Utility\String::truncate($course->get('blurb'), 200); ?>
 								</p>
 							</article>
 						</li>
 				<?php
 					} // for loop
 				} else { ?>
-					<li><p class="warning"><?php echo JText::_('COM_COURSES_NO_RESULTS_FOUND'); ?></p></li>
+					<li class="no-results"><p class="warning"><?php echo JText::_('COM_COURSES_NO_RESULTS_FOUND'); ?></p></li>
 				<?php } ?>
 				</ol>
 
