@@ -93,7 +93,7 @@ class File extends Macro
 	 */
 	public function render()
 	{
-		$content = $this->args;
+		$content = strip_tags($this->args);
 
 		// args will be null if the macro is called without parenthesis.
 		if (!$content)
@@ -248,7 +248,7 @@ class File extends Macro
 					$this->attr['rel']  = 'external';
 				}
 			}
-            return;
+			return;
 		}
 		// Check for alignment, no key given
 		// e.g., [[File(myfile.jpg, left)]]
