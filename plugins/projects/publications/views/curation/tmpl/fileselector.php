@@ -141,7 +141,8 @@ echo $complete ? ' el-complete' : ' el-incomplete'; echo $curatorStatus->status 
 
 					$data 		= new stdClass;
 					$data->path = str_replace($this->path . DS, '', $att->path);
-					$data->ext 	= strtolower(end(explode('.', $data->path)));
+					$parts 		= explode('.', $data->path);
+					$data->ext 	= strtolower(end($parts));
 
 					// Set default title
 					$incNum			   = $max > 1 ? ' (' . $i . ')' : '';
@@ -178,7 +179,7 @@ echo $complete ? ' el-complete' : ' el-incomplete'; echo $curatorStatus->status 
 
 					// Draw attachment
 					echo $modelAttach->drawAttachment($data, $this->manifest->params->typeParams, $handler);
- 				} ?>
+				} ?>
 			</ul>
 		</div>
 		<?php } elseif (!$required) {  ?>

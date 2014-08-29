@@ -280,6 +280,7 @@ if (!$this->course->offering()->access('view') && !$sparams->get('preview', 0)) 
 												{
 													// Loop through the assets
 													$k = 0;
+													$hasPrimaryVideo = false;
 													foreach ($ag->assets() as $a)
 													{
 														if ((($a->isAvailable() || $a->get('type') == 'form') && $a->isPublished()) || $isManager)
@@ -310,8 +311,9 @@ if (!$this->course->offering()->access('view') && !$sparams->get('preview', 0)) 
 
 															$href = JRoute::_($base . '&asset=' . $a->get('id'));
 															$target = '';
-															if ($a->get('type') == 'video')
+															if ($a->get('type') == 'video' && !$hasPrimaryVideo)
 															{
+																$hasPrimaryVideo = true;
 																$href = JRoute::_($base . '&active=outline&unit=' . $unit->get('alias') . '&b=' . $ag->get('alias'));
 															}
 															else if ($a->get('type') == 'file' || $a->get('type') == 'url')
@@ -322,7 +324,7 @@ if (!$this->course->offering()->access('view') && !$sparams->get('preview', 0)) 
 															$link = '<a class="' . $cls . '" href="' . $href . '"' . $target . '>' . $this->escape(stripslashes($a->get('title'))) . '</a>';
 
 															// Finally, make sure prereqs have been met
-															if ($a->get('type') != 'video' && !$prerequisites->hasMet('asset', $a->get('id')) && !$isManager)
+															if (!$prerequisites->hasMet('asset', $a->get('id')) && !$isManager)
 															{
 																$info  = "This item has prerequisites that have not yet been met. Begin by completing: ";
 																$items = array();

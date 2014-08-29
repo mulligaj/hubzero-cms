@@ -137,7 +137,7 @@ class Hubzero_API extends JApplication
 		$this->response = new \Hubzero\Api\Response();
 		$this->output = '';
 
-        parent::__construct($config);
+		parent::__construct($config);
 	}
 
 	/**
@@ -220,7 +220,7 @@ class Hubzero_API extends JApplication
 
 			if (stripos($variables_order,"E") !== false)
 			{
-				foreach($_ENV as $key => $value)
+				foreach ($_ENV as $key => $value)
 				{
 					unset($GLOBALS[$key]);
 				}
@@ -228,7 +228,7 @@ class Hubzero_API extends JApplication
 
 			if (stripos($variables_order,"G") !== false)
 			{
-				foreach($_GET as $key => $value)
+				foreach ($_GET as $key => $value)
 				{
 					unset($GLOBALS[$key]);
 				}
@@ -236,7 +236,7 @@ class Hubzero_API extends JApplication
 
 			if (stripos($variables_order,"P") !== false)
 			{
-				foreach($_POST as $key => $value)
+				foreach ($_POST as $key => $value)
 				{
 					unset($GLOBALS[$key]);
 				}
@@ -244,7 +244,7 @@ class Hubzero_API extends JApplication
 
 			if (stripos($variables_order,"C") !== false)
 			{
-				foreach($_COOKIE as $key => $value)
+				foreach ($_COOKIE as $key => $value)
 				{
 					unset($GLOBALS[$key]);
 				}
@@ -252,7 +252,7 @@ class Hubzero_API extends JApplication
 
 			if (stripos($variables_order,"S") !== false)
 			{
-				foreach($_SERVER as $key => $value)
+				foreach ($_SERVER as $key => $value)
 				{
 					unset($GLOBALS[$key]);
 				}
@@ -394,7 +394,7 @@ class Hubzero_API extends JApplication
 
 			if (!empty($queryvars))
 			{
-				foreach($queryvars as $key=>$value)
+				foreach ($queryvars as $key=>$value)
 				{
 					if (isset($queryvars[$key]))
 					{
@@ -409,7 +409,7 @@ class Hubzero_API extends JApplication
 
 			if (!empty($postvars))
 			{
-				foreach($postvars as $key=>$value)
+				foreach ($postvars as $key=>$value)
 				{
 					if (isset($queryvars[$key]))
 					{
@@ -428,25 +428,42 @@ class Hubzero_API extends JApplication
 			}
 		}
 
-		$oauthp = new \Hubzero\Oauth\Provider($params);
-		$oauthp->setRequestTokenPath('/api/oauth/request_token');
-		$oauthp->setAccessTokenPath('/api/oauth/access_token');
-		$oauthp->setAuthorizePath('/api/oauth/authorize');
+		/*
+		    If request has a Basic Auth header Oauth will throw an exception if the header doesn't
+		    conform to the OAuth protocol. We catch that (or any other)  exception and proceed as 
+		    if there was no oauth data.
 
-		$result = $oauthp->validateRequest($this->request->get('request'), $this->request->get('method'));
+		    @TODO A better approach might be to inspect the Basic Auth header and see if it even
+		    looks like OAuth was being attempted and throw an Oauth compliant error if it was.
+		*/
 
-		if (is_array($result))
+		try
 		{
-			//$this->response->setResponseProvides('application/x-www-form-urlencoded;q=1.0,text/html;q=0.9');
-			$this->response->setResponseProvides('application/x-www-form-urlencoded');
-			$this->response->setMessage($result['message'], $result['status'], $result['reason']);
-			return false;
+			$oauthp = new \Hubzero\Oauth\Provider($params);
+
+			$oauthp->setRequestTokenPath('/api/oauth/request_token');
+			$oauthp->setAccessTokenPath('/api/oauth/access_token');
+			$oauthp->setAuthorizePath('/api/oauth/authorize');
+
+			$result = $oauthp->validateRequest($this->request->get('request'), $this->request->get('method'));
+
+			if (is_array($result))
+			{
+				$this->response->setResponseProvides('application/x-www-form-urlencoded');
+				$this->response->setMessage($result['message'], $result['status'], $result['reason']);
+				return false;
+			}
+
+			$this->_provider = $oauthp;
+
+			$this->_authn['oauth_token'] = $oauthp->getToken();
+			$this->_authn['consumer_key'] = $oauthp->getConsumerKey();
+		}
+		catch (Exception $e)
+		{
+			$result = false;
 		}
 
-		$this->_provider = $oauthp;
-
-		$this->_authn['oauth_token'] = $oauthp->getToken();
-		$this->_authn['consumer_key'] = $oauthp->getConsumerKey();
 		$this->_authn['user_id'] = null;
 
 		if ($this->_authn['oauth_token'])
@@ -523,7 +540,7 @@ class Hubzero_API extends JApplication
 	 */
 	function dispatch()
 	{
-  		//if (!$this->_provider)
+		//if (!$this->_provider)
 		//{
 		//	return;
 		//}
@@ -662,9 +679,9 @@ class Hubzero_API extends JApplication
 	 * @return     string Return description (if any) ...
 	 */
 	function getName()
-    {
-        return 'api';
-    }
+	{
+		return 'api';
+	}
 
 	/**
 	 * Short description for 'getUserState'

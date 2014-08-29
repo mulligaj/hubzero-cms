@@ -546,10 +546,8 @@ HUB.CoursesOutline = {
 								afterShow: function() {
 									var contents = $('.fancybox-iframe').contents();
 
-									// Highjack the 'cancel' button to close the iframe
-									contents.find('#cancel').bind('click', function( e ) {
-										e.preventDefault();
-
+									// Listen for deployment cancel call from iframe
+									$('body').on('deploymentcancel', function () {
 										// Close fancybox
 										$.fancybox.close();
 
@@ -575,28 +573,6 @@ HUB.CoursesOutline = {
 													item.find('.asset-edit-deployment').show();
 												}
 											}
-										});
-									});
-
-									// Fallback...if for some reason the deploymentsave trigger isn't fired
-									$('.fancybox-iframe').load(function () {
-										var content = $(this).contents();
-										content.find('#done').click(function () {
-											// Close fancybox
-											$.fancybox.close();
-
-											$.ajax({
-												url: '/api/courses/asset/save',
-												data: form.serialize(),
-												statusCode: {
-													200: function ( data ) {
-														$('.outline-main').trigger('assetUpdate', [item, data.files[0]]);
-
-														// Show edit deployment icon
-														item.find('.asset-edit-deployment').show();
-													}
-												}
-											});
 										});
 									});
 								}
@@ -1076,7 +1052,7 @@ HUB.CoursesOutline = {
 			var $    = HUB.CoursesOutline.jQuery,
 			progress = parseInt(data.loaded / data.total * 100, 10);
 
-			$('.unit').find("#" + progressBarId + " .bar").stop(true, true).animate({'width': progress + '%'}, 500);
+			$('.unit').find("#" + progressBarId + " .bar").stop(true, true).animate({'width': progress + '%'}, 500, 'linear');
 
 			// If progress is 100% and extension is zip, let's add some explanation
 			if(progress == 100) {
