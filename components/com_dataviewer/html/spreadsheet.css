@@ -18,6 +18,11 @@
 	cursor: text;
 }
 
+
+#content {
+	padding: 20px 10px;
+}
+
 /* Content Fullscreen*/
 #content.fullscreen {
 	position: absolute;
@@ -179,7 +184,7 @@ ul.ui-autocomplete li a {
 #dv-spreadsheet {
 	display: inline-block;
 	background: white;
-	padding: 20px 10px;
+	min-width: 100%;
 }
 
 #dv-spreadsheet-tbl thead hr {
@@ -269,6 +274,7 @@ a.dv-link > i.icon-external-link {
 
 /* Fix for Safari 7 width issue with top level style sheet's max-width: 100% */
 table#dv-spreadsheet-tbl {
+	min-width: 850px;
 	max-width: none !important;
 }
 
