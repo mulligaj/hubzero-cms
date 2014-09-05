@@ -922,6 +922,10 @@ class SupportModelTicket extends \Hubzero\Base\Model
 				return JHTML::_('date', $this->get('created'), JText::_('TIME_FORMAT_HZ1'));
 			break;
 
+			case 'local':
+				return JHTML::_('date', $this->get('created'), $this->_db->getDateFormat());
+			break;
+
 			default:
 				return $this->get('created');
 			break;
@@ -985,6 +989,10 @@ class SupportModelTicket extends \Hubzero\Base\Model
 	public function store($check=true)
 	{
 		$this->set('open', $this->status('open'));
+		if ($this->get('open'))
+		{
+			$this->set('resolved', '');
+		}
 
 		$result = parent::store($check);
 
