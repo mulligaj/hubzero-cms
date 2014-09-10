@@ -356,7 +356,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		$groups = \Hubzero\User\Group::find($filters);
 
 		// Build <select> of groups
-		$this->view->lists['groups'] = PublicationsAdminHtml::selectGroup($groups, $this->view->pub->group_owner);
+		$this->view->lists['groups'] = PublicationsAdminHtml::selectGroup($groups, $this->view->pub->group_owner, $this->view->pub->_project->owned_by_group);
 
 		// Set any errors
 		if ($this->getError())
@@ -873,9 +873,8 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		$title 			= htmlspecialchars($title);
 		$abstract 		= trim(JRequest::getVar( 'abstract', '', 'post' ));
 		$abstract 		= \Hubzero\Utility\Sanitize::clean(htmlspecialchars($abstract));
-		$description 	= trim(JRequest::getVar( 'description', '', 'post' ));
-		$description 	= stripslashes($description);
-		$release_notes 	= stripslashes(trim(JRequest::getVar( 'release_notes', '', 'post' )));
+		$description 	= trim(JRequest::getVar( 'description', '', 'post', 'none', 2 ));
+		$release_notes 	= stripslashes(trim(JRequest::getVar( 'release_notes', '', 'post', 'none', 2 )));
 		$group_owner	= JRequest::getInt( 'group_owner', 0, 'post' );
 		$metadata 		= '';
 		$activity 		= '';
@@ -1676,6 +1675,9 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			return;
 		}
 
+		$url = 'index.php?option=' . $this->_option . '&controller='
+			. $this->_controller . '&task=edit' . '&id[]=' . $pid . '&version=' . $version;
+
 		if ($useBlocks)
 		{
 			$pub->version 	= $objV->version_number;
@@ -1709,7 +1711,15 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			$pub->_curationModel->setPubAssoc($pub);
 
 			// Produce archival package
-			$pub->_curationModel->package();
+			if (!$pub->_curationModel->package())
+			{
+				// Checkin the resource
+				$objP->checkin();
+
+				// Redirect
+				$this->setRedirect( $url, JText::_('COM_PUBLICATIONS_ERROR_ARCHIVAL'), 'error');
+				return;
+			}
 		}
 		else
 		{
@@ -1722,10 +1732,7 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		$this->_message = JText::_('COM_PUBLICATIONS_SUCCESS_ARCHIVAL');
 
 		// Checkin the resource
-		$objV->checkin();
-
-		$url = 'index.php?option=' . $this->_option . '&controller='
-			. $this->_controller . '&task=edit' . '&id[]=' . $pid . '&version=' . $version;
+		$objP->checkin();
 
 		// Redirect
 		$this->setRedirect( $url );

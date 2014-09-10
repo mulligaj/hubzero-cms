@@ -97,6 +97,31 @@ $this->css()
 				<?php } ?>
 			</div><!-- / .container -->
 
+			<?php if (isset($this->filters['tag_ignored']) && count($this->filters['tag_ignored']) > 0) { ?>
+				<div class="warning">
+					<p><?php echo JText::_('Searching only allows up to 5 tags. The following tags were ignored:'); ?></p>
+					<ol class="tags">
+					<?php
+					$url  = 'index.php?option=' . $this->option . '&task=browse';
+					$url .= ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
+					$url .= ($this->filters['sortby'] ? '&sortby=' . $this->escape($this->filters['sortby']) : '');
+					$url .= ($this->filters['type']   ? '&type=' . $this->escape($this->filters['type'])     : '');
+
+					foreach ($this->filters['tag_ignored'] as $tag)
+					{
+						?>
+						<li>
+							<a href="<?php echo JRoute::_($url . '&tag=' . $tag); ?>">
+								<?php echo $this->escape(stripslashes($tag)); ?>
+							</a>
+						</li>
+						<?php
+					}
+					?>
+					</ol>
+				</div>
+			<?php } ?>
+
 			<div class="container">
 				<?php
 				$qs  = ($this->filters['search'] ? '&search=' . $this->escape($this->filters['search']) : '');
@@ -117,6 +142,12 @@ $this->css()
 							<select name="type" id="filter-type">
 								<option value="" <?php echo (!$this->filters['type']) ? ' selected="selected"' : ''; ?>><?php echo JText::_('All Types'); ?></a>
 								<?php foreach ($this->types as $item) { ?>
+									<?php
+									if ($item->id == 7 && !JComponentHelper::isEnabled('com_tools', true))
+									{
+										continue;
+									}
+									?>
 									<option value="<?php echo $item->id; ?>"<?php echo ($this->filters['type'] == $item->id) ? ' selected="selected"' : ''; ?>><?php echo $this->escape(stripslashes($item->type)); ?></option>
 								<?php } ?>
 							</select>

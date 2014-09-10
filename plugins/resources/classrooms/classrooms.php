@@ -35,6 +35,13 @@ defined('_JEXEC') or die('Restricted access');
 class plgResourcesClassrooms extends \Hubzero\Plugin\Plugin
 {
 	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
+	 */
+	protected $_autoloadLanguage = true;
+
+	/**
 	 * Return the alias and name for this category of content
 	 *
 	 * @param      object $resource Current resource
@@ -115,7 +122,7 @@ class plgResourcesClassrooms extends \Hubzero\Plugin\Plugin
 				$rtrn = 'metadata';
 			}
 		}
-		if (false && !$model->type->params->get('plg_classrooms'))
+		if (!is_null($enabled = $model->type->params->get('plg_classrooms')) && !$enabled)
 		{
 			return $arr;
 		}
@@ -162,7 +169,7 @@ class plgResourcesClassrooms extends \Hubzero\Plugin\Plugin
 					$nodes[$row['semester']][] = $row;
 				}
 				$arr['html'][] = '<span id="cluster-data" data-tool="' . str_replace('"', '&quot;', $model->resource->alias) . '" data-seed="' . str_replace('"', '&quot;', json_encode(array_values($nodes))) . '"></span>';
-			} else { die('none?'); }
+			}
 			$arr['html'] = implode("\n", $arr['html']);
 		}
 

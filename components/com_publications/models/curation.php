@@ -1776,6 +1776,52 @@ class PublicationsCuration extends JObject
 	 *
 	 * @return     boolean
 	 */
+	public function showPackageContents()
+	{
+		if (!$this->_pub)
+		{
+			return false;
+		}
+
+		// Get elements in primary and supporting role
+		$prime    = $this->getElements(1);
+		$second   = $this->getElements(2);
+		$elements = array_merge($prime, $second);
+
+		// Do we have items to package?
+		if (!$elements)
+		{
+			return '<p class="witherror">' . JText::_('COM_PUBLICATIONS_CURATION_PACKAGE_ERROR_NO_FILES') . '</p>';
+		}
+
+		// Get attachment type model
+		$attModel = new PublicationsModelAttachments($this->_db);
+		$contents = '<ul class="filelist">';
+
+		$contents .= $attModel->showPackagedItems(
+			$elements,
+			$this->_pub
+		);
+
+		$txt   = '<img src="' . ProjectsHtml::getFileIcon('txt') . '" alt="txt" />';
+
+		// Custom license to be included in LICENSE.txt
+		if ($this->_pub->license_text)
+		{
+			$contents .= '<li>' . $txt . ' LICENSE.txt</li>';
+		}
+		$contents .= '<li>' . $txt . ' README.txt</li>';
+		$contents .= '</ul>';
+
+		return $contents;
+	}
+
+	/**
+	 * Produce publication package
+	 *
+	 *
+	 * @return     boolean
+	 */
 	public function package()
 	{
 		if (!$this->_pub)
@@ -1799,6 +1845,12 @@ class PublicationsCuration extends JObject
 
 		// Get publication path
 		$pubBase = $helper->buildPath($this->_pub->id, $this->_pub->version_id, '', '', 1);
+
+		// Empty draft?
+		if (!file_exists($pubBase))
+		{
+			return false;
+		}
 
 		// Set archival properties
 		$bundleDir  = $this->_pub->title;

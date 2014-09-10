@@ -574,19 +574,23 @@
 		list-style: none;
 	}
 	.draft-review ul.filelist img {
-		margin-right: 1em;
+		margin-right: 0.5em;
 		display: inline-block;
 		position: relative;
 		vertical-align: top;
 		margin-top: 0.2em;
 	}
-	.draft-review ul.filelist span {
-		display: inline-block;
-		width: 90%;
+	.draft-review ul.filelist span.item-details {
+		padding-left: 2em;
 	}
 	.draft-review ul.filelist li {
 		vertical-align: top;
-		line-height: 1.8em;
+		line-height: 1.2em;
+		border-bottom: 1px solid #EfEfEf;
+		min-height: 32px;
+	}
+	.draft-review ul.filelist li.level2 {
+		padding-left: 2.5em;
 	}
 	.element-instructions label {
 		display: block;
@@ -930,6 +934,20 @@
 	}
 	.pane-wrapper .submitter {
 		margin: 2em 0 1em 0;
+		padding: 0 1em 1em 1em;
+	}
+	.pane-wrapper .submitter p {
+		padding: 0;
+	}
+	.pane-wrapper .submitter p.hint {
+		margin: 0;
+	}
+	.pane-wrapper .submitter select {
+		margin-bottom: 1em;
+	}
+	.pane-wrapper .submitter.groupowner {
+		background: #ebf1f3;
+		border: 1px solid #CCC;
 	}
 
 /* Freeze editing

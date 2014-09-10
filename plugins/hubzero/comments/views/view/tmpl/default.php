@@ -103,9 +103,9 @@ $this->css()->js();
 								?>
 							</label>
 
-							<label for="commentFile">
+							<label for="comment_file">
 								<?php echo JText::_('PLG_HUBZERO_COMMENTS_ATTACH_FILE'); ?>
-								<input type="file" name="commentfile" id="commentFile" />
+								<input type="file" name="comment_file" id="comment_file" />
 							</label>
 
 							<label id="comment-anonymous-label">
@@ -135,6 +135,10 @@ $this->css()->js();
 							</div>
 						</fieldset>
 					</form>
+				<?php } ?>
+
+				<?php if ($this->params->get('comments_locked', 0) == 1) { ?>
+					<p class="info"><?php echo JText::_('PLG_HUBZERO_COMMENTS_LOCKED'); ?></p>
 				<?php } ?>
 
 				<h3 class="post-comment-title">
