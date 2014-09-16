@@ -358,7 +358,7 @@ class PublicationsControllerTypes extends \Hubzero\Component\AdminController
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
 				JText::_('COM_PUBLICATIONS_ERROR_LOAD_TYPE'),
-				'notice'
+				'error'
 			);
 			return;
 		}
@@ -375,8 +375,8 @@ class PublicationsControllerTypes extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				$url,
-				JText::_('COM_PUBLICATIONS_ERROR_LOAD_TYPE'),
-				'notice'
+				JText::_('COM_PUBLICATIONS_ERROR_SAVING_ADVANCED_CURATION'),
+				'error'
 			);
 			return;
 		}
@@ -945,5 +945,60 @@ class PublicationsControllerTypes extends \Hubzero\Component\AdminController
 	public function cancelTask()
 	{
 		$this->setRedirect('index.php?option=' . $this->_option . '&controller=' . $this->_controller);
+	}
+
+	/**
+	 * Remove one or more types
+	 *
+	 * @return     void Redirects back to main listing
+	 */
+	public function removeTask()
+	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
+		// Incoming (expecting an array)
+		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
+
+		// Ensure we have an ID to work with
+		if (empty($ids))
+		{
+			// Redirect with error message
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				JText::_('COM_PUBLICATIONS_NO_ITEM_SELECTED'),
+				'error'
+			);
+			return;
+		}
+
+		$rt = new PublicationMasterType($this->database);
+
+		foreach ($ids as $id)
+		{
+			// Check if the type is being used
+			$total = $rt->checkUsage($id);
+
+			if ($total > 0)
+			{
+				// Redirect with error message
+				$this->setRedirect(
+					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+					JText::sprintf('COM_PUBLICATIONS_TYPE_BEING_USED', $id),
+					'error'
+				);
+				return;
+			}
+
+			// Delete the type
+			$rt->delete($id);
+		}
+
+		// Redirect
+		$this->setRedirect(
+			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+			JText::sprintf('COM_PUBLICATIONS_ITEMS_REMOVED', count($ids))
+		);
 	}
 }
