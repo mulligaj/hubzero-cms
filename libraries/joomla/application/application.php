@@ -669,6 +669,9 @@ class JApplication extends JObject
 		$authenticate = JAuthentication::getInstance();
 		$response = $authenticate->authenticate($credentials, $options);
 
+		// Import the user plugin group.
+		JPluginHelper::importPlugin('user');
+
 		if ($response->status === JAuthentication::STATUS_SUCCESS)
 		{
 			// validate that the user should be able to login (different to being authenticated)
@@ -703,9 +706,6 @@ class JApplication extends JObject
 					}
 				}
 			}
-
-			// Import the user plugin group.
-			JPluginHelper::importPlugin('user');
 
 			// OK, the credentials are authenticated and user is authorised.  Lets fire the onLogin event.
 			$results = $this->triggerEvent('onUserLogin', array((array) $response, $options));
@@ -1040,10 +1040,13 @@ class JApplication extends JObject
 		}
 		*/
 		// END: HUBzero, allow php session garbage collection handle this
+		// 
+		
 
 		// Check to see the the session already exists.
-		if (($this->getCfg('session_handler') != 'database' && ($time % 2 || $session->isNew()))
+		if (($this->getCfg('session_handler') != 'database' && (time() % 2 || $session->isNew()))
 			|| ($this->getCfg('session_handler') == 'database' && $session->isNew()))
+		//if ($this->getCfg('session_handler') == 'database' && $session->isNew())
 		{
 			$this->checkSession();
 		}
@@ -1066,6 +1069,16 @@ class JApplication extends JObject
 		$db = JFactory::getDBO();
 		$session = JFactory::getSession();
 		$user = JFactory::getUser();
+
+		if ($this->getCfg('session_handler') == 'redis')
+		{
+			if ($session->isNew())
+			{
+				$session->set('registry', new JRegistry('session'));
+				$session->set('user', new JUser);
+			}
+			return;
+		}
 
 		$query = $db->getQuery(true);
 		$query->select($query->qn('session_id'))

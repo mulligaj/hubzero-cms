@@ -13,11 +13,11 @@ class Migration20120101000004Core extends Base
 	public function up()
 	{
 		if ($this->db->tableExists('#__blog_entries')
-			&& !$this->db->tableHasKey('#__blog_entries', 'jos_blog_entries_title_content_ftidx')
+			&& !$this->db->tableHasKey('#__blog_entries', 'ftidx_title_content')
 			&& $this->db->tableHasField('#__blog_entries', 'title')
 			&& $this->db->tableHasField('#__blog_entries', 'content'))
 		{
-			$query = "ALTER TABLE `#__blog_entries` ADD FULLTEXT INDEX `jos_blog_entries_title_content_ftidx` (`title` ASC, `content` ASC)";
+			$query = "ALTER TABLE `#__blog_entries` ADD FULLTEXT INDEX `ftidx_title_content` (`title` ASC, `content` ASC)";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
@@ -112,9 +112,9 @@ class Migration20120101000004Core extends Base
 				&& $this->db->tableHasField('#__citations', 'isbn')
 				&& $this->db->tableHasField('#__citations', 'doi')
 				&& $this->db->tableHasField('#__citations', 'abstract')
-				&& !$this->db->tableHasKey('#__citations', 'jos_citations_title_isbn_doi_abstract_ftidx'))
+				&& !$this->db->tableHasKey('#__citations', 'ftidx_title_isbn_doi_abstract'))
 			{
-				$query = "ALTER TABLE `#__citations` ADD FULLTEXT INDEX `jos_citations_title_isbn_doi_abstract_ftidx` (`title` ASC, `isbn` ASC, `doi` ASC, `abstract` ASC)";
+				$query = "ALTER TABLE `#__citations` ADD FULLTEXT INDEX `ftidx_title_isbn_doi_abstract` (`title` ASC, `isbn` ASC, `doi` ASC, `abstract` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
@@ -150,23 +150,23 @@ class Migration20120101000004Core extends Base
 				&& $this->db->tableHasField('#__citations_authors', 'author')
 				&& $this->db->tableHasField('#__citations_authors', 'authorid')
 				&& $this->db->tableHasField('#__citations_authors', 'uidNumber')
-				&& !$this->db->tableHasKey('#__citations_authors', 'cid_auth_authid_uid'))
+				&& !$this->db->tableHasKey('#__citations_authors', 'uidx_cid_author_authorid_uidNumber'))
 			{
-				$query = "ALTER TABLE `#__citations_authors` ADD UNIQUE INDEX `cid_auth_authid_uid` (`cid` ASC, `author` ASC, `authorid` ASC, `uidNumber` ASC)";
+				$query = "ALTER TABLE `#__citations_authors` ADD UNIQUE INDEX `uidx_cid_author_authorid_uidNumber` (`cid` ASC, `author` ASC, `authorid` ASC, `uidNumber` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
 
-			if ($this->db->tableHasField('#__citations_authors', 'authorid') && !$this->db->tableHasKey('#__citations_authors', 'authorid'))
+			if ($this->db->tableHasField('#__citations_authors', 'authorid') && !$this->db->tableHasKey('#__citations_authors', 'idx_authorid'))
 			{
-				$query = "ALTER TABLE `#__citations_authors` ADD INDEX `authorid` (`authorid` ASC)";
+				$query = "ALTER TABLE `#__citations_authors` ADD INDEX `authorid` (`idx_authorid` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
 
-			if ($this->db->tableHasField('#__citations_authors', 'uidNumber') && !$this->db->tableHasKey('#__citations_authors', 'uidNumber'))
+			if ($this->db->tableHasField('#__citations_authors', 'uidNumber') && !$this->db->tableHasKey('#__citations_authors', 'idx_uidNumber'))
 			{
-				$query = "ALTER TABLE `#__citations_authors` ADD INDEX `uidNumber` (`uidNumber` ASC)";
+				$query = "ALTER TABLE `#__citations_authors` ADD INDEX `uidNumber` (`idx_uidNumber` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
@@ -229,9 +229,9 @@ class Migration20120101000004Core extends Base
 				$this->db->query();
 			}
 
-			if ($this->db->tableHasField('#__faq', 'fulltxt') && !$this->db->tableHasKey('#__faq', 'fulltxt'))
+			if ($this->db->tableHasField('#__faq', 'fulltxt') && !$this->db->tableHasKey('#__faq', 'ftidx_fulltxt'))
 			{
-				$query = "ALTER TABLE `#__faq` ADD FULLTEXT INDEX `fulltxt` (`fulltxt` ASC)";
+				$query = "ALTER TABLE `#__faq` ADD FULLTEXT INDEX `ftidx_fulltxt` (`fulltxt` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
@@ -396,9 +396,9 @@ class Migration20120101000004Core extends Base
 
 			if ($this->db->tableHasField('#__resources', 'introtext')
 				&& $this->db->tableHasField('#__resources', 'fulltxt')
-				&& !$this->db->tableHasKey('#__resources', 'introtext'))
+				&& !$this->db->tableHasKey('#__resources', 'ftidx_introtext_fulltxt'))
 			{
-				$query = "ALTER TABLE `#__resources` ADD FULLTEXT INDEX `introtext` (`introtext` ASC, `fulltxt` ASC)";
+				$query = "ALTER TABLE `#__resources` ADD FULLTEXT INDEX `ftidx_introtext_fulltxt` (`introtext` ASC, `fulltxt` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
@@ -410,12 +410,12 @@ class Migration20120101000004Core extends Base
 				$this->db->query();
 			}
 
-			if (!$this->db->tableHasKey('#__resources', 'jos_resources_title_introtext_fulltext_ftidx')
+			if (!$this->db->tableHasKey('#__resources', 'ftidx_title_introtext_fulltxt')
 				&& $this->db->tableHasField('#__resources', 'title')
 				&& $this->db->tableHasField('#__resources', 'introtext')
 				&& $this->db->tableHasField('#__resources', 'fulltxt'))
 			{
-				$query = "ALTER TABLE `#__resources` ADD FULLTEXT INDEX `jos_resources_title_introtext_fulltext_ftidx` (`title` ASC, `introtext` ASC, `fulltxt` ASC)";
+				$query = "ALTER TABLE `#__resources` ADD FULLTEXT INDEX `ftidx_title_introtext_fulltxt` (`title` ASC, `introtext` ASC, `fulltxt` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
@@ -558,7 +558,7 @@ class Migration20120101000004Core extends Base
 				$this->db->query();
 			}
 
-			if ($this->db->tableHasKey('#__users_password_history', 'PRIMARY'))
+			if ($this->db->tableHasKey('#__users_password_history', 'PRIMARY') && $this->db->getPrimaryKey('#__users_password_history') == 'user_id')
 			{
 				$query = "ALTER TABLE `#__users_password_history` DROP PRIMARY KEY";
 				$this->db->setQuery($query);
@@ -589,12 +589,12 @@ class Migration20120101000004Core extends Base
 
 		if ($this->db->tableExists('#__users_transactions'))
 		{
-			if (!$this->db->tableHasKey('#__users_transactions', 'jos_users_transactions_referenceid_categroy_type_idx')
+			if (!$this->db->tableHasKey('#__users_transactions', 'idx_referenceid_category_type')
 				&& $this->db->tableHasField('#__users_transactions', 'referenceid')
 				&& $this->db->tableHasField('#__users_transactions', 'category')
 				&& $this->db->tableHasField('#__users_transactions', 'type'))
 			{
-				$query = "ALTER TABLE `#__users_transactions` ADD INDEX `jos_users_transactions_referenceid_categroy_type_idx` (`referenceid` ASC, `category` ASC, `type` ASC)";
+				$query = "ALTER TABLE `#__users_transactions` ADD INDEX `idx_referenceid_category_type` (`referenceid` ASC, `category` ASC, `type` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
@@ -602,9 +602,9 @@ class Migration20120101000004Core extends Base
 
 		if ($this->db->tableExists('#__vote_log')
 			&& $this->db->tableHasField('#__vote_log', 'referenceid')
-			&& !$this->db->tableHasKey('#__vote_log', 'jos_vote_log_referenceid_idx'))
+			&& !$this->db->tableHasKey('#__vote_log', 'idx_referenceid'))
 		{
-			$query = "ALTER TABLE `#__vote_log` ADD INDEX `jos_vote_log_referenceid_idx` (`referenceid` ASC)";
+			$query = "ALTER TABLE `#__vote_log` ADD INDEX `idx_referenceid` (`referenceid` ASC)";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
@@ -638,27 +638,27 @@ class Migration20120101000004Core extends Base
 
 		if ($this->db->tableExists('#__wiki_version')
 			&& $this->db->tableHasField('#__wiki_version', 'pageid')
-			&& !$this->db->tableHasKey('#__wiki_version', 'jos_wiki_version_pageid_idx'))
+			&& !$this->db->tableHasKey('#__wiki_version', 'idx_pageid'))
 		{
-			$query = "ALTER TABLE `#__wiki_version` ADD INDEX `jos_wiki_version_pageid_idx` (`pageid` ASC)";
+			$query = "ALTER TABLE `#__wiki_version` ADD INDEX `idx_pageid` (`pageid` ASC)";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
 
 		if ($this->db->tableExists('#__wishlist_item')
 			&& $this->db->tableHasField('#__wishlist_item', 'wishlist')
-			&& !$this->db->tableHasKey('#__wishlist_item', 'jos_wishlist_item_wishlist_idx'))
+			&& !$this->db->tableHasKey('#__wishlist_item', 'idx_wishlist'))
 		{
-			$query = "ALTER TABLE `#__wishlist_item` ADD INDEX `jos_wishlist_item_wishlist_idx` (`wishlist` ASC)";
+			$query = "ALTER TABLE `#__wishlist_item` ADD INDEX `idx_wishlist` (`wishlist` ASC)";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
 
 		if ($this->db->tableExists('#__wishlist_vote')
 			&& $this->db->tableHasField('#__wishlist_vote', 'wishid')
-			&& !$this->db->tableHasKey('#__wishlist_vote', 'jos_wishlist_vote_wishid_idx'))
+			&& !$this->db->tableHasKey('#__wishlist_vote', 'idx_wishid'))
 		{
-			$query = "ALTER TABLE `#__wishlist_vote` ADD INDEX `jos_wishlist_vote_wishid_idx` (`wishid` ASC)";
+			$query = "ALTER TABLE `#__wishlist_vote` ADD INDEX `idx_wishid` (`wishid` ASC)";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
@@ -740,11 +740,11 @@ class Migration20120101000004Core extends Base
 
 		if ($this->db->tableExists('#__ysearch_site_map'))
 		{
-			if (!$this->db->tableHasKey('#__ysearch_site_map', 'jos_ysearch_site_map_title_description_ftidx')
+			if (!$this->db->tableHasKey('#__ysearch_site_map', 'ftidx_title_description')
 				&& $this->db->tableHasField('#__ysearch_site_map', 'title')
 				&& $this->db->tableHasField('#__ysearch_site_map', 'description'))
 			{
-				$query = "ALTER TABLE `#__ysearch_site_map` ADD FULLTEXT INDEX `jos_ysearch_site_map_title_description_ftidx` (`title` ASC, `description` ASC)";
+				$query = "ALTER TABLE `#__ysearch_site_map` ADD FULLTEXT INDEX `ftidx_title_description` (`title` ASC, `description` ASC)";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}
@@ -752,6 +752,13 @@ class Migration20120101000004Core extends Base
 			if ($this->db->tableHasKey('#__ysearch_site_map', 'ysearch_site_map_title_description_ftidx'))
 			{
 				$query = "ALTER TABLE `#__ysearch_site_map` DROP INDEX `ysearch_site_map_title_description_ftidx`";
+				$this->db->setQuery($query);
+				$this->db->query();
+			}
+
+			if ($this->db->tableHasKey('#__ysearch_site_map', 'jos_ysearch_site_map_title_description_ftidx'))
+			{
+				$query = "ALTER TABLE `#__ysearch_site_map` DROP INDEX `jos_ysearch_site_map_title_description_ftidx`";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}

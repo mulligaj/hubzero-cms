@@ -15,10 +15,12 @@ class Migration20131016184016PlgGroupsAnnouncements extends Base
 	 **/
 	public function up()
 	{
+		$query = "";
+
 		// add email column
 		if (!$this->db->tableHasField('#__announcements', 'email'))
 		{
-			$query = "ALTER TABLE `#__announcements` ADD COLUMN `email` TINYINT(4) DEFAULT 0;";
+			$query .= "ALTER TABLE `#__announcements` ADD COLUMN `email` TINYINT(4) DEFAULT 0;";
 		}
 
 		// add sent column
@@ -27,12 +29,22 @@ class Migration20131016184016PlgGroupsAnnouncements extends Base
 			$query .= "ALTER TABLE `#__announcements` ADD COLUMN `sent` TINYINT(4) DEFAULT 0;";
 		}
 
-		// add group announcements cron
-		$query .= "INSERT INTO `#__cron_jobs` (`title`, `state`, `plugin`, `event`, `recurrence`)
-				   VALUES ('Group Announcements', 1, 'groups', 'sendGroupAnnouncements', '*/5 * * * *');";
-
 		if (!empty($query))
 		{
+			$this->db->setQuery($query);
+			$this->db->query();
+		}
+
+		$query = "SELECT title FROM `#__cron_jobs` WHERE title='Group Announcements';";
+
+		$this->db->setQuery($query);
+
+		if ($this->db->loadResult() != "Group Announcements")
+		{
+			// add group announcements cron
+			$query = "INSERT INTO `#__cron_jobs` (`title`, `state`, `plugin`, `event`, `recurrence`)
+				   VALUES ('Group Announcements', 1, 'groups', 'sendGroupAnnouncements', '*/5 * * * *');";
+
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
@@ -43,10 +55,12 @@ class Migration20131016184016PlgGroupsAnnouncements extends Base
 	 **/
 	public function down()
 	{
+		$query = "";
+
 		// add email column
 		if ($this->db->tableHasField('#__announcements', 'email'))
 		{
-			$query = "ALTER TABLE `#__announcements` DROP COLUMN `email`;";
+			$query .= "ALTER TABLE `#__announcements` DROP COLUMN `email`;";
 		}
 
 		// add sent column

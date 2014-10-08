@@ -38,19 +38,19 @@
 	.block-subject {
 		margin: 0;
 		padding: 0;
-		margin-right: 270px;
+		margin-right: 240px;
 		padding-left: 40px;
 	}
 	.block-aside {
 		float: right;
-		width: 200px;
+		width: 190px;
 		padding: 0;
 		margin-top: 3em;
 		padding-left: 1em;
 	}
 	.freeze .block-aside {
 		margin-top: 1em;
-		width: 240px;
+		width: 220px;
 	}
 	.block-info {
 		border-left: 4px solid #E2E2E2;
@@ -125,6 +125,10 @@
 		margin-top: 2em;
 		margin-top: 1em;
 		margin-left: -1.5em;
+	}
+	.field-wrap input,
+	.field-wrap textarea {
+		padding: 0.5em;
 	}
 	.el-incomplete .field-wrap input,
 	.el-incomplete .field-wrap textarea {
@@ -723,7 +727,6 @@
 		margin-bottom: 1em;
 	}
 
-
 /* Notice from authors form
 --------------------------------------------- */
 
@@ -803,6 +806,9 @@
 		position: absolute;
 		margin: 30px 0 0 -80px;
 	}
+	.handler-controls:before {
+		margin-left: -60px;
+	}
 	.output-content ul {
 		min-height: 40px;
 	}
@@ -836,6 +842,9 @@
 	}
 	ul#status-bar li a.c_incomplete {
 		color: #999;
+	}
+	a.more-content {
+		font-size: 85%;
 	}
 
 /* License
@@ -1010,9 +1019,12 @@
 	}
 	.handler-controls .handler-imageviewer {
 		padding: 1em;
+		background: #e0ebee;
+	}
+	.handler-controls .handler-imageviewer h3 {
 		padding-left: 50px;
 	}
-	.handler-controls .handler-imageviewer:before,
+	.handler-controls .handler-imageviewer h3:before,
 	.multizip p:before {
 		width: 55px;
 		height: 55px;
@@ -1033,11 +1045,10 @@
 	}
 	.handler-aside {
 		float: right;
-		width: 200px;
+		width: 190px;
 		padding: 0 0 0 30px;
 		margin-top: 3em;
 		padding-left: 1em;
-		background: #e0ebee;
 	}
 	*[class^="handler-"] h3,
 	*[class*=" handler-"] h3 {

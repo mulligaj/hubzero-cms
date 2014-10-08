@@ -42,8 +42,14 @@ $required 		= (isset($this->manifest->params->required) && $this->manifest->para
 $complete 		= isset($this->status->status) && $this->status->status == 1 ? 1 : 0;
 $elName   		= 'element' . $this->elementId;
 $max 	  		= $this->manifest->params->max;
+
+// Customize title
 $defaultTitle	= $this->manifest->params->title
-				? str_replace('{pubtitle}', $this->pub->title, $this->manifest->params->title) : NULL;
+				? str_replace('{pubtitle}', $this->pub->title,
+				$this->manifest->params->title) : NULL;
+$defaultTitle	= $this->manifest->params->title
+				? str_replace('{pubversion}', $this->pub->version_label,
+				$defaultTitle) : NULL;
 
 // Get version params and extract bundle name
 $versionParams 	= new JParameter( $this->pub->params );
@@ -65,10 +71,14 @@ $git = new ProjectsGitHelper( $config->get('gitpath', '/opt/local/bin/git'), 0, 
 );
 
 $aboutText = $this->manifest->about ? $this->manifest->about : NULL;
-
 if ($prov == 1 && isset($this->manifest->aboutProv))
 {
 	$aboutText = $this->manifest->aboutProv;
+}
+// Wrap text in a paragraph
+if (strlen($aboutText) == strlen(strip_tags($aboutText)))
+{
+	$aboutText = '<p>' . $aboutText . '</p>';
 }
 
 $section  = $this->master->block;
@@ -126,7 +136,7 @@ $curatorStatus = $this->pub->_curationModel->getCurationStatus($this->pub, $this
 ?>
 
 <div id="<?php echo $elName; ?>" class="blockelement fileselector<?php echo $required ? ' el-required' : ' el-optional';
-echo $complete ? ' el-complete' : ' el-incomplete'; ?> <?php if ($coming) { echo ' el-coming'; } ?> <?php echo $curatorStatus->status == 1 ? ' el-passed' : ''; echo $curatorStatus->status == 0 ? ' el-failed' : ''; echo $curatorStatus->updated ? ' el-updated' : ''; ?> ">
+echo $complete ? ' el-complete' : ' el-incomplete'; ?> <?php if ($coming && $this->collapse) { echo ' el-coming'; } ?> <?php echo $curatorStatus->status == 1 ? ' el-passed' : ''; echo $curatorStatus->status == 0 ? ' el-failed' : ''; echo $curatorStatus->updated ? ' el-updated' : ''; ?> ">
 	<!-- Showing status only -->
 	<div class="element_overview<?php if ($active) { echo ' hidden'; } ?>">
 		<div class="block-aside"></div>

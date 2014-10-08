@@ -137,6 +137,13 @@ class WishlistModelWish extends WishlistModelAbstract
 	private $_proposer = null;
 
 	/**
+	 * Hubzero\User\Profile
+	 *
+	 * @var object
+	 */
+	private $_owner = null;
+
+	/**
 	 * Cached data
 	 *
 	 * @var array
@@ -243,6 +250,39 @@ class WishlistModelWish extends WishlistModelAbstract
 			return $this->_proposer->get($property, $default);
 		}
 		return $this->_proposer;
+	}
+
+	/**
+	 * Get the owner of this entry
+	 *
+	 * Accepts an optional property name. If provided
+	 * it will return that property value. Otherwise,
+	 * it returns the entire object
+	 *
+	 * @param   string $property What data to return
+	 * @param   mixed  $default  Default value
+	 * @return  mixed
+	 */
+	public function owner($property=null, $default=null)
+	{
+		if (!($this->_owner instanceof \Hubzero\User\Profile))
+		{
+			$this->_owner = \Hubzero\User\Profile::getInstance($this->get('assigned'));
+			if (!$this->_owner)
+			{
+				$this->_owner = new \Hubzero\User\Profile();
+			}
+		}
+		if ($property)
+		{
+			$property = ($property == 'id') ? 'uidNumber' : $property;
+			if ($property == 'picture')
+			{
+				return $this->_owner->getPicture();
+			}
+			return $this->_owner->get($property, $default);
+		}
+		return $this->_owner;
 	}
 
 	/**
@@ -482,8 +522,9 @@ class WishlistModelWish extends WishlistModelAbstract
 					case static::WISH_STATE_REJECTED:  $state = JText::_('COM_WISHLIST_WISH_STATUS_REJECTED_INFO');  break;
 					case static::WISH_STATE_DELETED:   $state = JText::_('COM_WISHLIST_WISH_STATUS_DELETED_INFO');   break;
 					case static::WISH_STATE_GRANTED:
+						$user = JUser::getInstance($this->get('granted_by'));
 						$state = $this->granted() != '0000-00-00 00:00:00'
-								? JText::sprintf('on %s by %s', $this->granted('date'), $this->get('grantedby'))
+								? JText::sprintf('on %s by %s', $this->granted('date'), $user->get('name'))
 								: '';
 					break;
 					case static::WISH_STATE_OPEN:

@@ -1204,10 +1204,7 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 			$crypter = new JSimpleCrypt();
 			$session_id = $crypter->decrypt($token);
 
-			$db	= JFactory::getDBO();
-			$query = "SELECT * FROM #__session WHERE session_id = ".$db->Quote($session_id);
-			$db->setQuery($query);
-			$session = $db->loadObject();
+			$session = Hubzero\Session\Helper::getSession($session_id);
 
 			$juser = JFactory::getUser($session->userid);
 			$juser->guest = 0;
@@ -1277,7 +1274,7 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 		if ($this->_logging && $publication->state == 1)
 		{
 			$pubLog = new PublicationLog($this->database);
-			$aType  = $primary->role == 1 && $render != 'archive' ? 'primary' : 'support';
+			$aType  = $primary->role == 1 ? 'primary' : 'support';
 			$pubLog->logAccess($publication, $aType, $logPath);
 		}
 
@@ -2106,6 +2103,10 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 		$this->view->config 		= $this->config;
 		$this->view->publication 	= $publication;
 		$this->view->title 			= $title;
+
+		// Get license info
+		$pLicense = new PublicationLicense($this->database);
+		$this->view->license = $pLicense->getLicense($publication->license_type);
 
 		// Output HTML
 		if ($this->getError())

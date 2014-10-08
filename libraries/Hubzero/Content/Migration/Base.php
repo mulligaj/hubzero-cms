@@ -154,14 +154,23 @@ class Base
 			$options['database'] = $config->get('mwDBDatabase');
 			$options['prefix']   = $config->get('mwDBPrefix');
 
-			try
+			if ((!isset($options['password']) || $options['password'] == '')
+			 && (!isset($options['user'])     || $options['user'] == '')
+			 && (!isset($options['database']) || $options['database'] == ''))
 			{
-				$instance = \JDatabase::getInstance($options);
+				$instance = $this->db;
 			}
-			catch (\PDOException $e)
+			else
 			{
-				$instance = NULL;
-				return false;
+				try
+				{
+					$instance = \JDatabase::getInstance($options);
+				}
+				catch (\PDOException $e)
+				{
+					$instance = NULL;
+					return false;
+				}
 			}
 
 			// Test the connection
@@ -185,12 +194,13 @@ class Base
 		$secrets   = DS . 'etc'  . DS . 'hubzero.secrets';
 		$conf_file = DS . 'root' . DS . '.my.cnf';
 		$hub_maint = DS . 'etc'  . DS . 'mysql' . DS . 'hubmaint.cnf';
+		$deb_maint = DS . 'etc'  . DS . 'mysql' . DS . 'debian.cnf';
 
 		if (is_file($secrets) && is_readable($secrets))
 		{
 			$conf = Ini::parse($secrets);
 			$user = 'root';
-			$pw   = (isset($conf['MYSQL-ROOT'])) ? $conf['MYSQL-ROOT'] : false;
+			$pw   = (isset($conf['DEFAULT']['MYSQL-ROOT'])) ? $conf['DEFAULT']['MYSQL-ROOT'] : false;
 
 			if ($user && $pw)
 			{
@@ -213,6 +223,18 @@ class Base
 		if (is_file($hub_maint) && is_readable($hub_maint))
 		{
 			$conf = Ini::parse($hub_maint, true);
+			$user = (isset($conf['client']['user'])) ? $conf['client']['user'] : false;
+			$pw   = (isset($conf['client']['password'])) ? $conf['client']['password'] : false;
+
+			if ($user && $pw)
+			{
+				return array('user' => $user, 'password' => $pw);
+			}
+		}
+
+		if (is_file($deb_maint) && is_readable($deb_maint))
+		{
+			$conf = Ini::parse($deb_maint, true);
 			$user = (isset($conf['client']['user'])) ? $conf['client']['user'] : false;
 			$pw   = (isset($conf['client']['password'])) ? $conf['client']['password'] : false;
 
@@ -680,12 +702,13 @@ class Base
 	 *
 	 * @param $module   - (string)     module name
 	 * @param $position - (string)     module position
+	 * @param $always   - (bool)       if true - always install, false - only install if another module of that type isn't present
 	 * @param $params   - (array)      params (if already known)
 	 * @param $client   - (int)        client (site=0, admin=1)
 	 * @param $menus    - (int, array) menus to install to (0=all)
 	 * @return void
 	 **/
-	public function installModule($module, $position, $params='', $client=0, $menus=0)
+	public function installModule($module, $position, $always=true, $params='', $client=0, $menus=0)
 	{
 		$title    = $this->baseDb->quote(ucfirst($module));
 		$position = $this->baseDb->quote($position);
@@ -707,6 +730,17 @@ class Base
 		else
 		{
 			$params = $this->baseDb->quote(json_encode($params));
+		}
+
+		if (!$always)
+		{
+			$query = "SELECT `id` FROM `#__modules` WHERE `module` = {$module}";
+			$this->db->setQuery($query);
+
+			if ($this->db->loadResult())
+			{
+				return true;
+			}
 		}
 
 		$query = "SELECT MAX(ordering) FROM `#__modules` WHERE `position` = {$position}";
@@ -742,21 +776,31 @@ class Base
 	 * @param $styles  - (array)  template styles
 	 * @return bool
 	 **/
-	public function addTemplateEntry($element, $name=null, $client=1, $enabled=1, $home=0, $styles='')
+	public function addTemplateEntry($element, $name=null, $client=1, $enabled=1, $home=0, $styles=NULL)
 	{
 		if ($this->baseDb->tableExists('#__extensions'))
 		{
-			// First, see if it already exists
-			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `type` = 'template' AND `element` = '{$element}' AND `client_id` = '{$client}'";
-			$this->baseDb->setQuery($query);
-
-			if (!$this->baseDb->loadResult())
+			if (!isset($name))
 			{
-				if (!isset($name))
+				if (substr($element, 0, 4) == 'tpl_')
+				{
+					$name    = substr($element, 4);
+					$element = $name;
+				}
+				else
 				{
 					$name = $element;
 				}
 
+				$name = ucwords($name);
+			}
+
+			// First, see if it already exists
+			$query = "SELECT `extension_id` FROM `#__extensions` WHERE `type` = 'template' AND (`element` = '{$element}' OR `element` LIKE '{$name}') AND `client_id` = '{$client}'";
+			$this->baseDb->setQuery($query);
+
+			if (!$this->baseDb->loadResult())
+			{
 				$query  = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
 				$query .= " VALUES ('{$name}', 'template', '{$element}', '', '{$client}', '{$enabled}', '1', '0', '{}', '{}', '', '', '0', '0000-00-00 00:00:00', '0', '0')";
 				$this->baseDb->setQuery($query);
@@ -771,11 +815,25 @@ class Base
 				}
 
 				$query  = "INSERT INTO `#__template_styles` (`template`, `client_id`, `home`, `title`, `params`)";
-				$query .= " VALUES ('{$element}', '{$client}', '{$home}', '{$name}', '".json_encode($styles)."')";
+				$query .= " VALUES ('{$element}', '{$client}', '{$home}', '{$name}', " . ((isset($styles)) ? $this->baseDb->quote(json_encode($styles)) : "'{}'") . ")";
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 			}
 		}
+	}
+
+	/**
+	 * Install a template, adding it if needed
+	 *
+	 * @param $element - (string) template element
+	 * @param $name    - (string) template name
+	 * @param $client  - (int)    admin or site client
+	 * @param $styles  - (array)  template styles
+	 * @return void
+	 **/
+	public function installTemplate($element, $name=null, $client=1, $styles=NULL)
+	{
+		$this->addTemplateEntry($element, $name, $client, 1, 1, $styles);
 	}
 
 	/**
@@ -934,12 +992,18 @@ class Base
 			$this->baseDb->setQuery($query);
 			if (!$this->baseDb->loadResult())
 			{
-				$query = "UPDATE `#__template_styles` SET `home` = 1 WHERE `client_id` = '{$client}' LIMIT 1";
+				$query = "SELECT `id` FROM `#__template_styles` WHERE `client_id` = '{$client}' ORDER BY `id` DESC LIMIT 1";
 				$this->baseDb->setQuery($query);
-				$this->baseDb->query();
+				if ($id = $this->baseDb->loadResult())
+				{
+					$query = "UPDATE `#__template_styles` SET `home` = 1 WHERE `id` = '{$id}'";
+					$this->baseDb->setQuery($query);
+					$this->baseDb->query();
+				}
 			}
 		}
 	}
+
 	/**
 	 * Enable plugin
 	 *
@@ -983,6 +1047,94 @@ class Base
 		else
 		{
 			$query = "UPDATE `#__extensions` SET `enabled` = '{$enabled}' WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+		}
+	}
+
+	/**
+	 * Enable component
+	 *
+	 * @param  $element - (string) element
+	 * @return void
+	 **/
+	public function enableComponent($element)
+	{
+		$this->setComponentStatus($element);
+	}
+
+	/**
+	 * Disable component
+	 *
+	 * @param  $element - (string) element
+	 * @return void
+	 **/
+	public function disableComponent($element)
+	{
+		$this->setComponentStatus($element, 0);
+	}
+
+	/**
+	 * Enable/disable component
+	 *
+	 * @param  $element - (string) element
+	 * @param  $enabled - (int)    whether or not the component should be enabled
+	 * @return void
+	 **/
+	private function setComponentStatus($element, $enabled=1)
+	{
+		if ($this->baseDb->tableExists('#__components'))
+		{
+			$query = "UPDATE `#__components` SET `enabled` = '{$enabled}' WHERE `option` = '{$element}'";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+		}
+		else
+		{
+			$query = "UPDATE `#__extensions` SET `enabled` = '{$enabled}' WHERE `element` = '{$element}'";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+		}
+	}
+
+	/**
+	 * Enable module
+	 *
+	 * @param  $element - (string) element
+	 * @return void
+	 **/
+	public function enableModule($element)
+	{
+		$this->setModuleStatus($element);
+	}
+
+	/**
+	 * Disable module
+	 *
+	 * @param  $element - (string) element
+	 * @return void
+	 **/
+	public function disableModule($element)
+	{
+		$this->setModuleStatus($element, 0);
+	}
+
+	/**
+	 * Enable/disable module
+	 *
+	 * @param  $element - (string) element
+	 * @param  $enabled - (int)    whether or not the module should be enabled
+	 * @return void
+	 **/
+	private function setModuleStatus($element, $enabled=1)
+	{
+		if ($this->baseDb->tableExists('#__extensions'))
+		{
+			$query = "UPDATE `#__extensions` SET `enabled` = '{$enabled}' WHERE `element` = '{$element}'";
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+
+			$query = "UPDATE `#__modules` SET `published` = '{$enabled}' WHERE `module` = '{$element}'";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 		}

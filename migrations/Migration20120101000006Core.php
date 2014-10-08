@@ -62,7 +62,7 @@ class Migration20120101000006Core extends Base
 		$this->addPluginEntry('user', 'ldap');
 
 		// Modules
-		$this->installModule('search', 'search', array(
+		$this->installModule('search', 'search', false, array(
 			'label' => 'Search',
 			'width' => '20',
 			'text'  => 'Search'
@@ -108,7 +108,7 @@ class Migration20120101000006Core extends Base
 		$query = "UPDATE `#__faq` SET `fulltxt` = REPLACE(`fulltxt`,'/lostusername','/login/remind')";
 		$this->db->setQuery($query);
 		$this->db->query();
-		$query = "UPDATE `#__faq` SET `fulltxt` = REPLACE(`fulltxt`,'/report_problems/','/feedback/report_problems')";
+		$query = "UPDATE `#__faq` SET `fulltxt` = REPLACE(`fulltxt`,'\"/report_problems/','\"/feedback/report_problems')";
 		$this->db->setQuery($query);
 		$this->db->query();
 

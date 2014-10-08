@@ -31,6 +31,8 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+use Hubzero\Session\Helper as SessionHelper;
+
 include_once(JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'models' . DS . 'registration.php');
 
 /**
@@ -348,7 +350,8 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 			$admin = false;
 		}
 
-		$this->view->filters['authorized'] = $this->view->authorized;
+		$this->view->filters['authorized']     = $this->view->authorized;
+		$this->view->filters['emailConfirmed'] = true;
 
 		// Initiate a contributor object
 		$c = new MembersProfile($this->database);
@@ -532,6 +535,13 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 				'index.php?option=' . $this->_option . '&task=' . $this->_task
 			);
 			JError::raiseError(403, JText::_('MEMBERS_NOT_PUBLIC'));
+			return;
+		}
+
+		// check if unconfirmed
+		if ($profile->get('emailConfirmed') != 1 && !$this->view->authorized)
+		{
+			JError::raiseError(403, JText::_('MEMBERS_NOT_CONFIRMED'));
 			return;
 		}
 
@@ -1714,20 +1724,20 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 
 		// Get logged-in users
 		$prevuser = '';
-		$user  = array();
-		$users = array();
+		$user     = array();
+		$users    = array();
+		$guests   = array();
 
-		$sql = "SELECT s.username, s.ip, (UNIX_TIMESTAMP(UTC_TIMESTAMP()) - s.time) AS idle
-				FROM #__session AS s WHERE s.username <> ''
-				ORDER BY username, ip, idle DESC";
-
-		$this->database->setQuery($sql);
-		$result = $this->database->loadObjectList();
+		// get sessions
+		$result = SessionHelper::getAllSessions(array(
+			'guest' => 0
+		));
 
 		if ($result && count($result) > 0)
 		{
 			foreach ($result as $row)
 			{
+				$row->idle = time() - $row->time;
 				if ($prevuser != $row->username)
 				{
 					if ($user)
@@ -1735,8 +1745,9 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 						$xprofile = \Hubzero\User\Profile::getInstance($prevuser);
 
 						$users[$prevuser] = $user;
+						$users[$prevuser]['uidNumber'] = $xprofile->get('uidNumber');
 						$users[$prevuser]['name'] = $xprofile->get('name');
-						$users[$prevuser]['org'] = $xprofile->get('orginization');
+						$users[$prevuser]['org'] = $xprofile->get('organization');
 						$users[$prevuser]['orgtype'] = $xprofile->get('orgtype');
 						$users[$prevuser]['countryresident'] = $xprofile->get('countryresident');
 					}
@@ -1750,36 +1761,32 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 				$xprofile = \Hubzero\User\Profile::getInstance($prevuser);
 
 				$users[$prevuser] = $user;
+				$users[$prevuser]['uidNumber'] = $xprofile->get('uidNumber');
 				$users[$prevuser]['name'] = $xprofile->get('name');
-				$users[$prevuser]['org'] = $xprofile->get('orginization');
+				$users[$prevuser]['org'] = $xprofile->get('organization');
 				$users[$prevuser]['orgtype'] = $xprofile->get('orgtype');
 				$users[$prevuser]['countryresident'] = $xprofile->get('countryresident');
 			}
 		}
 
-		$guests = array();
-		$sql = "SELECT s.ip, (UNIX_TIMESTAMP(UTC_TIMESTAMP()) - s.time) AS idle
-				FROM #__session AS s WHERE s.username = ''
-				ORDER BY ip, idle DESC";
+		// get sessions
+		$result = SessionHelper::getAllSessions(array(
+			'guest' => 1
+		));
 
-		$this->database->setQuery($sql);
-		$result = $this->database->loadObjectList();
-		if ($result)
+		if (count($result) > 0)
 		{
-			if (count($result) > 0)
+			foreach ($result as $row)
 			{
-				foreach ($result as $row)
-				{
-					array_push($guests, array('ip' => $row->ip, 'idle' => $row->idle));
-				}
+				$row->idle = time() - $row->time;
+				array_push($guests, array('ip' => $row->ip, 'idle' => $row->idle));
 			}
 		}
-
+		
 		// Output View
 		$this->view->title = JText::_('Active Users and Guests');
 		$this->view->users = $users;
 		$this->view->guests = $guests;
-
 		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)

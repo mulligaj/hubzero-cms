@@ -32,7 +32,6 @@ namespace Hubzero\Console\Command;
 
 use Hubzero\Console\Output;
 use Hubzero\Console\Arguments;
-use Hubzero\Console\Application;
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
@@ -70,7 +69,7 @@ class Cache extends Base implements CommandInterface
 	 *
 	 * @return void
 	 */
-	public function clearAllCache()
+	public function clear()
 	{
 		// Path to cache folder
 		$cacheDir = JPATH_ROOT . DS . 'cache' . DS . '*';
@@ -108,38 +107,5 @@ class Cache extends Base implements CommandInterface
 		}
 
 		$this->output->addLine('Clear cache complete', 'success');
-	}
-
-	/**
-	 * Clear Site.css & Site.less.cache files
-	 * 
-	 * @return void
-	 */
-	public function clearCssCache()
-	{
-		$cacheDir = JPATH_ROOT . DS . 'cache';
-		$files = array('site.css', 'site.less.cache');
-
-		// Remove each file
-		foreach ($files as $file)
-		{
-			if (!is_file($cacheDir . DS . $file))
-			{
-				$this->output->addLine($file . ' does not exist', 'warning');
-				continue;
-			}
-
-			if (!unlink($cacheDir . DS . $file))
-			{
-				$this->output->addLine('Unable to delete cache file: ' . $file, 'error');
-			}
-			else
-			{
-				$this->output->addLine($file . ' deleted', 'success');
-			}
-		}
-
-		// success!
-		$this->output->addLine('All CSS cache files removed!', 'success');
 	}
 }
