@@ -50,6 +50,9 @@ if (isset($results['js'])): ?>
 		</ul>
 	</div>
 	<?php 
+	if (isset($results['clientDebug'])):
+		define('HG_DEBUG', 1);
+	endif;
 	if (isset($results['html'])):
 		echo $results['html'];
 	endif;

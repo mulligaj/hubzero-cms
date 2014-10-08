@@ -307,10 +307,13 @@ if (!defined('HG_AJAX')):
 ?>
 	<div class="count">
 		<ol class="domains">
-			<li<?= isset($domainMap['']) ? ' class="current"' : '' ?>><button type="submit" name="domain" value=""><?= number_format($results['total']) ?> results <?= $results['total'] == 0 ? ':[' : ''?></button></li>
+			<li<?= isset($domainMap['']) ? ' class="current"' : '' ?>><button type="submit" name="domain" value=""><?= p($results['total'], 'result') . ($results['total'] == 0 ? ':[' : '') ?></button></li>
 			<?php 
 				// nees :[
 				$domains = array();
+				if (!isset($results['domains'])):
+					$results['domains'] = array();
+				endif;
 				foreach ($results['domains'] as $k=>$v):
 					$domains[] = array('title' => $k, 'count' => $v);
 				endforeach;
@@ -331,7 +334,7 @@ if (!defined('HG_AJAX')):
 				});
 				foreach ($domains as $domain): 
 			?>
-				<li<?= isset($domainMap[$domain['title']]) ? ' class="current"' : '' ?>><button type="submit" name="domain" value="<?= a($domain['title']) ?>"><?= h(p($domain['count'], $domain['title'])) ?></button></li>
+				<li<?= isset($domainMap[$domain['title']]) ? ' class="current subsel"' : '' ?>><button type="submit" name="domain" value="<?= isset($domainMap[$domain['title']]) ? '' : a($domain['title']) ?>"><?= h(p($domain['count'], Inflect::singularize($domain['title']))) ?></button></li>
 			<?php endforeach; ?>
 		</ol>
 		</div>
@@ -413,12 +416,14 @@ if (!defined('HG_AJAX')):
 	<?php
 	endif;
 endif;
-if ($results['terms']['suggested']):
+if (isset($terms)):
+	if ($results['terms']['suggested']):
 ?>
 	<p class="info">(Did you mean <em><a href="/search<?= $link ?>"><?= $terms ?></a></em>?)</p>
 <?php elseif ($results['terms']['autocorrected']): ?>
 	<p class="info">(Showing results for <em><?= $terms ?></em>)</p> 
 <?php endif;
+endif;
 if ($results['results']):
 	GenericRenderer::setContext(array(
 		'tags'         => $results['tags'],

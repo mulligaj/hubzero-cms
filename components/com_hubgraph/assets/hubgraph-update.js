@@ -54,7 +54,17 @@ jQuery(function($) {
 						var btn = $('<button type="submit" />')
 							.attr('name', k + 's[]')
 							.attr('value', link[0])
-							.html(link[1].replace(re, '<em>$1</em>'));
+							.html(link[1].replace(re, '<em>$1</em>'))
+							.click(function(evt) {
+								var ma = $(this).html().match(/<em.*?>(.*?)<\/em>/);
+								if (ma) {
+									var termAr = terms.val().split(/\s+/);
+									if ((new RegExp(ma[1], 'gi')).test(termAr[termAr.length - 1])) {
+										terms.val(termAr.splice(0, termAr.length - 1).join(' '));
+									}
+								}
+							})
+							;
 						linkCats[k + 's'].append($('<li />').append(btn));
 					});
 				}

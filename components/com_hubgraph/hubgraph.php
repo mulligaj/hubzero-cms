@@ -1,8 +1,5 @@
 <?php
 defined('JPATH_BASE') or die(); 
-ini_set('display_errors', 1);
-ini_set('error_reporting', E_ALL|E_STRICT);
-
 
 require 'Inflect.php';
 
@@ -99,9 +96,6 @@ try {
 			$loggedIn     = (bool)JFactory::getUser()->id;
 			ksort($domainMap);
 			
-			if (isset($_GET['dbg'])) {
-				define('HG_DEBUG', 1);
-			}
 			if ($task == 'page') {
 				define('HG_AJAX', 1);
 				require 'views/page.html.php';

@@ -504,10 +504,10 @@ hr {
 	margin: 0;
 }
 a.related {
-	visibility: hidden;
 	font-style: italic;
 	font-size: x-small;
 	cursor: pointer;
+	opacity: 0.7;
 }
 .throbber.related {
 	margin-top: 0;
@@ -517,4 +517,13 @@ ul.related {
 }
 ul.related li {
 	padding: 0;
+}
+.domains .current.subsel button {
+	cursor: pointer !important;
+}
+.domains .current.subsel button:after {
+	color: #900;
+	content: 'x';
+	padding-left: 6px;
+	font-weight: bold;
 }

@@ -32,8 +32,10 @@ class HubgraphRequest
 	}
 
 	public function getTimeframe() {
-		if (isset($this->form['timeframe']) && preg_match('/^(?:\d\d\d\d|day|week|month|year)$/', $this->form['timeframe'])) {
-			return $this->form['timeframe'];
+		if (isset($this->form['timeframe']) && is_array($this->form['timeframe'])) {
+			return array_filter($this->form['timeframe'], function($t) {
+				return preg_match('/^(?:\d\d\d\d|day|week|month|year)$/', $t);
+			});
 		}
 		return null;
 	}
