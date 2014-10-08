@@ -340,7 +340,13 @@ if (!defined('HG_AJAX')):
 		</div>
 		<table class="facets">
 			<tbody>
-			<?php 
+			<?php
+			$timeframe = array();
+			if (isset($_GET['timeframe']) && is_array($_GET['timeframe'])) {
+				foreach ($_GET['timeframe'] as $tf) {
+					$timeframe[] = array('id' => $tf, 'title' => $tf);
+				}
+			} 
 			foreach (array('tags' => 'Tagged', 'contributors' => 'Contributed&nbsp;by', 'groups' => 'In&nbsp;group', 'timeframe' => 'Date') as $key=>$label): 
 				$transportKey = $key == 'contributors' ? 'users' : $key;
 				$inReq = isset($_GET[$transportKey]) ? array_flip($_GET[$transportKey]) : array();

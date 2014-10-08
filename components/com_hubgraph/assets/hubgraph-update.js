@@ -141,7 +141,7 @@ jQuery(function($) {
 				})
 		));
 	});
-
+/*
 	var years = [], firstYear = null;
 	$('.facets .timeframe').children('li').each(function(_, li) {
 		li = $(li);
@@ -157,12 +157,15 @@ jQuery(function($) {
 		}
 	});
 	if (years.length > 1) {
-		var sel = $('<select>').append('<option>by year...</option>');
+		var sel = $('<select>').append('<option>by year...</option>').change(function() {
+			var base = window.location.toString().replace(/([?&])timeframe[\[\]%5BD]+=[^&]+/g, '');
+			window.location = base + (base.indexOf('?') > 0 ? '&' : '?') + 'timeframe[]=' + $(this).val(); 
+		});
 		$(years).each(function(_, yr) {
 			sel.append(yr);
 		});
 		firstYear.empty().append(sel);
-	}
+	}*/
 
 	// load on scroll
 	var throbber = new Image();
