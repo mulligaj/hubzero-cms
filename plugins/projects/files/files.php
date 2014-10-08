@@ -142,8 +142,10 @@ class plgProjectsFiles extends JPlugin
 		$this->_area = $this->onProjectAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array( $areas )) {
-			if (empty($this->_area) || !in_array($this->_area['name'], $areas)) {
+		if (is_array( $areas ))
+		{
+			if (empty($this->_area) || !in_array($this->_area['name'], $areas))
+			{
 				return;
 			}
 		}
@@ -353,7 +355,7 @@ class plgProjectsFiles extends JPlugin
 					break;
 
 				case 'newdir':
-				 	$ajax 			= JRequest::getInt('ajax', 0);
+					$ajax 			= JRequest::getInt('ajax', 0);
 					$arr['html'] 	= $ajax ? $this->_newDir() :  $this->view();
 					break;
 
@@ -556,7 +558,6 @@ class plgProjectsFiles extends JPlugin
 
 		// Provisioned project?
 		$prov   = $this->_project->provisioned == 1 ? 1 : 0;
-		$prefix = $prov ? JPATH_ROOT : $this->prefix;
 
 		// Make sure Git helper is included
 		$this->getGitHelper();
@@ -618,8 +619,10 @@ class plgProjectsFiles extends JPlugin
 		$view->publication->_attachments = $pContent->sortAttachments ( $vid );
 
 		// Get curation model
-		$view->publication->_curationModel = new PublicationsCuration($this->_database,
-		 	$view->publication->_type->curation);
+		$view->publication->_curationModel = new PublicationsCuration(
+			$this->_database,
+			$view->publication->_type->curation
+		);
 
 		// Make sure block exists, else use default
 		if (!$view->publication->_curationModel->setBlock( $block, $step ))
@@ -632,15 +635,16 @@ class plgProjectsFiles extends JPlugin
 		$view->publication->_curationModel->setPubAssoc($view->publication);
 
 		// Get file list
-		if (!$prov)
+		$view->items = NULL;
+		if ($this->_project->id)
 		{
 			$view->items = $this->getList();
+		}
 
-			if (!$ajax)
-			{
-				$document = JFactory::getDocument();
-				$document->addStyleSheet('plugins' . DS . 'projects' . DS . 'files' . DS . 'css' . DS . 'selector.css');
-			}
+		if (!$ajax)
+		{
+			$document = JFactory::getDocument();
+			$document->addStyleSheet('plugins' . DS . 'projects' . DS . 'files' . DS . 'css' . DS . 'selector.css');
 		}
 
 		$view->option 		= $this->_option;
@@ -655,6 +659,12 @@ class plgProjectsFiles extends JPlugin
 		$view->step 		= $step;
 		$view->props		= $props;
 		$view->filter		= $filter;
+		$view->sizelimit 	= $this->_params->get('maxUpload', '104857600');
+
+		if ($prov)
+		{
+			$view->quota = ProjectsHtml::convertSize(floatval($this->_config->get('pubQuota', '1')), 'GB', 'b');
+		}
 
 		// Get messages	and errors
 		$view->msg = $this->_msg;
@@ -663,7 +673,6 @@ class plgProjectsFiles extends JPlugin
 			$view->setError( $this->getError() );
 		}
 		return $view->loadTemplate();
-
 	}
 
 	/**
@@ -694,7 +703,7 @@ class plgProjectsFiles extends JPlugin
 
 		// Provisioned project?
 		$prov   = $this->_project->provisioned == 1 ? 1 : 0;
-		$prefix = $this->_project->id ? JPATH_ROOT : $this->prefix;
+		$prefix = $this->_project->id ? $this->prefix : JPATH_ROOT;
 
 		// Does subdirectory exist?
 		if (!is_dir($prefix. $this->path. DS . $this->subdir))
@@ -1121,14 +1130,15 @@ class plgProjectsFiles extends JPlugin
 		$pid 		= JRequest::getInt('pid', 0);
 
 		$prov    	= ($this->_task == 'saveprov' || $this->_project->provisioned == 1) ? 1 : 0;
-		$this->_task= $prov ? 'saveprov' : $this->_task;
+		$newProv	= ($prov && !$this->_project->id) ? 1 : 0;
+		$this->_task= $newProv ? 'saveprov' : $this->_task;
 		$dirsize 	= 0;
 		$new 		= true;
 		$exists	  	= 0;
 
 		// Get temp path
-		$temp_path 	 = $prov ? 'temp' : $this->getProjectPath ($this->_project->alias, 'temp');
-		$prefix 	 = $prov ? JPATH_ROOT : $this->prefix;
+		$temp_path 	 = $newProv ? 'temp' : $this->getProjectPath ($this->_project->alias, 'temp');
+		$prefix 	 = $newProv ? JPATH_ROOT : $this->prefix;
 		$tempFile	 = NULL;
 
 		// Collect output
@@ -1159,7 +1169,7 @@ class plgProjectsFiles extends JPlugin
 		}
 
 		// Provisioned project scenario
-		if ($prov)
+		if ($newProv)
 		{
 			$quota 		= ProjectsHtml::convertSize(floatval($this->_config->get('pubQuota', '1')),
 							'GB', 'b');
@@ -1301,7 +1311,7 @@ class plgProjectsFiles extends JPlugin
 			// Commit expanded files
 			if ($z > 0)
 			{
-				if (!$prov)
+				if (!$newProv)
 				{
 					$this->_git->gitCommit($this->path, $commitMsgZip);
 				}
@@ -1350,7 +1360,7 @@ class plgProjectsFiles extends JPlugin
 
 				$this->_queue[] = $fpath;
 
-				if (!$prov)
+				if (!$newProv)
 				{
 					// Git add
 					$new = in_array($fpath, $updated) ? false : true;
@@ -3662,7 +3672,7 @@ class plgProjectsFiles extends JPlugin
 		{
 			// Which revision are we downloading?
 			$hash 	  = JRequest::getVar('hash', '');
-			$serveas  = basename($file);
+			$serveas   = basename($file);
 
 			// Multiple files selected
 			if ($multifile)
@@ -3771,28 +3781,43 @@ class plgProjectsFiles extends JPlugin
 				return;
 			}
 
-			// Initiate a new content server and serve up the file
-			$xserver = new \Hubzero\Content\Server();
-			$xserver->filename($fullpath);
-			$xserver->disposition('attachment');
-			$xserver->acceptranges(false);
-			$xserver->saveas($serveas);
-			$result = $xserver->serve_attachment($fullpath, $serveas, false);
-
-			if ($deleteTemp)
+			// Cannot download zero byte files
+			if (filesize($fullpath) == 0)
 			{
-				// Delete downloaded temp file
-				JFile::delete($fullpath);
+				$this->setError(JText::_('PLG_PROJECTS_FILES_ERROR_ZERO_BYTE'));
+				if ($deleteTemp)
+				{
+					// Delete downloaded temp file
+					JFile::delete($fullpath);
+				}
 			}
 
-			if (!$result)
+			// Proceed with download
+			if (!$this->getError())
 			{
-				// Should only get here on error
-				JError::raiseError( 404, JText::_('COM_PROJECTS_SERVER_ERROR') );
-			}
-			else
-			{
-				exit;
+				// Initiate a new content server and serve up the file
+				$xserver = new \Hubzero\Content\Server();
+				$xserver->filename($fullpath);
+				$xserver->disposition('attachment');
+				$xserver->acceptranges(false);
+				$xserver->saveas($serveas);
+				$result = $xserver->serve_attachment($fullpath, $serveas, false);
+
+				if ($deleteTemp)
+				{
+					// Delete downloaded temp file
+					JFile::delete($fullpath);
+				}
+
+				if (!$result)
+				{
+					// Should only get here on error
+					JError::raiseError( 404, JText::_('COM_PROJECTS_SERVER_ERROR') );
+				}
+				else
+				{
+					exit;
+				}
 			}
 		}
 
@@ -7177,9 +7202,6 @@ class plgProjectsFiles extends JPlugin
 			return false;
 		}
 
-		// Required
-		$mt = new \Hubzero\Content\Mimetypes();
-
 		// Build file object
 		$obj 				= new stdClass;
 		$obj->type			= 'file';
@@ -7231,7 +7253,7 @@ class plgProjectsFiles extends JPlugin
 		$obj->author 		= isset($gitData['author']) ? $gitData['author'] : NULL;
 		$obj->email 		= isset($gitData['email']) ? $gitData['email'] : NULL;
 		$obj->md5hash		= hash_file('md5', $fullPath);
-		$obj->commitHash 	= $hash ? $hash : $this->_git->gitLog($this->path, $obj->localPath, '', 'hash');
+		$obj->commitHash 	= $hash ? $hash : $gitData['hash'];
 
 		// Get public link
 		if ($this->_audience == 'external')
@@ -7252,9 +7274,9 @@ class plgProjectsFiles extends JPlugin
 			$expires = JFactory::getDate('+15 minutes')->toSql();
 
 			// Get short lived download URL
-			if ($objSt->registerStamp($this->_project->id, json_encode($reference), 'files', 0, $expires))
+			$stamp = $objSt->registerStamp($this->_project->id, json_encode($reference), 'files', 0, $expires);
+			if ($stamp)
 			{
-				$stamp = $objSt->stamp;
 				$obj->downloadUrl = $this->base . DS . 'projects' . DS . 'get?s=' . $stamp;
 			}
 		}

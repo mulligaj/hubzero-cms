@@ -34,54 +34,57 @@ defined('_JEXEC') or die('Restricted access');
 // include needed jtables
 require_once JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_groups' . DS . 'tables' . DS . 'page.version.php';
 
+/**
+ * Group page version model class
+ */
 class GroupsModelPageVersion extends \Hubzero\Base\Model
 {
 	/**
 	 * GroupsTablePageCategory
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_tbl = null;
-	
+
 	/**
 	 * Table name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'GroupsTablePageVersion';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_groups.page_version.content';
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      mixed     Object Id
+	 *
+	 * @param      mixed $oid Integer, array, or object
 	 * @return     void
 	 */
 	public function __construct($oid = null)
 	{
 		// create database object
 		$this->_db = JFactory::getDBO();
-		
+
 		// create page cateogry jtable object
 		$this->_tbl = new $this->_tbl_name($this->_db);
-		
-		// load object 
+
+		// load object
 		if (is_numeric($oid))
 		{
-			$this->_tbl->load( $oid );
+			$this->_tbl->load($oid);
 		}
-		else if(is_object($oid) || is_array($oid))
+		else if (is_object($oid) || is_array($oid))
 		{
-			$this->bind( $oid );
+			$this->bind($oid);
 		}
 	}
-	
+
 	/**
 	 * Overload Store method so we can run some purifying before save
 	 *
@@ -91,22 +94,28 @@ class GroupsModelPageVersion extends \Hubzero\Base\Model
 	 */
 	public function store($check = true, $trustedContent = false)
 	{
+		// we must have a page id to save the page
+		if ($this->get('pageid') < 1)
+		{
+			return true;
+		}
+
 		//get content
 		$content = $this->get('content');
-		
+
 		// if content is not trusted, strip php and scripts
 		if (!$trustedContent)
 		{
 			$content = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $content);
 			$content = preg_replace('/<\?[\s\S]*?\?>/', '', $content);
 		}
-		
+
 		// purify content
 		$content = $this->purify($content, $trustedContent);
-		
+
 		// set the purified content
 		$this->set('content', $content);
-		
+
 		// call parent store
 		if (!parent::store($check))
 		{
@@ -117,7 +126,7 @@ class GroupsModelPageVersion extends \Hubzero\Base\Model
 
 	/**
 	 * Get the content of the page version
-	 * 
+	 *
 	 * @param      string  $as      Format to return state in [text, number]
 	 * @param      integer $shorten Number of characters to shorten text to
 	 * @return     string
@@ -136,7 +145,7 @@ class GroupsModelPageVersion extends \Hubzero\Base\Model
 					// get group
 					$group = \Hubzero\User\Group::getInstance(JRequest::getVar('cn', JRequest::getVar('gid', '')));
 
-					// get base path 
+					// get base path
 					$basePath = JComponentHelper::getparams( 'com_groups' )->get('uploadpath');
 
 					// build config
@@ -183,15 +192,15 @@ class GroupsModelPageVersion extends \Hubzero\Base\Model
 		}
 		return $content;
 	}
-	
+
 	/**
 	 * Purify the HTML content via HTML Purifier
-	 * 
+	 *
 	 * @param     string    $content           Unpurified HTML content
-	 * @param     bool      $trustedContent    Is the content trusted?
+	 * @param     boolean   $trustedContent    Is the content trusted?
 	 * @return    string
 	 */
-	public static function purify( $content, $trustedContent = false )
+	public static function purify($content, $trustedContent = false)
 	{
 		// array to hold options
 		$options = array();
@@ -206,7 +215,7 @@ class GroupsModelPageVersion extends \Hubzero\Base\Model
 		{
 			$options['CSS.Trusted'] = true;
 			$options['HTML.Trusted'] = true;
-			
+
 			$filters[] = new HTMLPurifier_Filter_ExternalScripts();
 			$filters[] = new HTMLPurifier_Filter_Php();
 		}

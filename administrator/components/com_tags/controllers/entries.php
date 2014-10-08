@@ -38,7 +38,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 {
 	/**
 	 * List all tags
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -50,35 +50,35 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		// Incoming
 		$this->view->filters = array();
 		$this->view->filters['limit']  = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.' . $this->_controller . '.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']  = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.' . $this->_controller . '.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
 		$this->view->filters['search'] = urldecode(trim($app->getUserStateFromRequest(
 			$this->_option . '.' . $this->_controller . '.search',
-			'search', 
+			'search',
 			''
 		)));
 		$this->view->filters['by']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.by', 
-			'filterby', 
+			$this->_option . '.' . $this->_controller . '.by',
+			'filterby',
 			'all'
 		));
 		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'raw_tag'
 		));
 		$this->view->filters['sort_Dir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 		// In case limit has been changed, adjust limitstart accordingly
@@ -97,13 +97,13 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -117,7 +117,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 	/**
 	 * Add a new entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -127,7 +127,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit an entry
-	 * 
+	 *
 	 * @param      object $tag Tag being edited
 	 * @return     void
 	 */
@@ -135,23 +135,25 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 	{
 		JRequest::setVar('hidemainmenu', 1);
 
-		$this->view->setLayout('edit');
-
 		// Load a tag object if one doesn't already exist
 		if (is_object($tag))
 		{
 			$this->view->tag = $tag;
 		}
-		else 
+		else
 		{
 			// Incoming
-			$id = JRequest::getInt('id', 0, 'request');
+			$id = JRequest::getVar('id', array(0));
+			if (is_array($id) && !empty($id))
+			{
+				$id = $id[0];
+			}
 
 			$this->view->tag = new TagsModelTag(intval($id));
 		}
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -160,7 +162,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		}
 
 		// Output the HTML
-		$this->view->display();
+		$this->view->setLayout('edit')->display();
 	}
 
 	/**
@@ -177,12 +179,22 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 	}
 
 	/**
+	 * Save an entry and return to the edit form
+	 *
+	 * @return     void
+	 */
+	public function applyTask()
+	{
+		$this->saveTask(false);
+	}
+
+	/**
 	 * Save an entry
-	 * 
+	 *
 	 * @param      integer $redirect Redirect after saving? (defaults to 1 = yes)
 	 * @return     void
 	 */
-	public function saveTask($redirect=1)
+	public function saveTask($redirect=true)
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
@@ -190,14 +202,14 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		$fields = JRequest::getVar('fields', array(), 'post');
 
 		$row = new TagsModelTag(intval($fields['id']));
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
 			return;
 		}
 
-		if ($fields['admin'])
+		if (isset($fields['admin']) && $fields['admin'])
 		{
 			$row->set('admin', 1);
 		}
@@ -207,7 +219,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		}
 
 		// Store new content
-		if (!$row->store(true)) 
+		if (!$row->store(true))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -219,14 +231,16 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('TAG_SAVED')
+				JText::_('COM_TAGS_TAG_SAVED')
 			);
 		}
+
+		$this->editTask($row);
 	}
 
 	/**
 	 * Remove one or more entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -235,17 +249,14 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		$ids = JRequest::getVar('id', array());
-		if (!is_array($ids)) 
-		{
-			$ids = array();
-		}
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		// Make sure we have an ID
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No items selected'),
+				JText::_('COM_TAGS_ERROR_NO_ITEMS_SELECTED'),
 				'error'
 			);
 			return;
@@ -269,30 +280,27 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('TAG_REMOVED')
+			JText::_('COM_TAGS_TAG_REMOVED')
 		);
 	}
 
 	/**
 	 * Merge two tags into one
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function mergeTask()
 	{
 		// Incoming
-		$ids  = JRequest::getVar('id', array());
+		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
+
 		$step = JRequest::getInt('step', 1);
 		$step = ($step) ? $step : 1;
 
-		if (!is_array($ids)) 
-		{
-			$ids = array(0);
-		}
-
 		// Make sure we have some IDs to work with
-		if ($step == 1 
-		&& (!$ids || count($ids) < 1)) 
+		if ($step == 1
+		&& (!$ids || count($ids) < 1))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller
@@ -305,6 +313,8 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		switch ($step)
 		{
 			case 1:
+				JRequest::setVar('hidemainmenu', 1);
+
 				// Instantiate a new view
 				$this->view->step = 2;
 				$this->view->idstr = $idstr;
@@ -322,7 +332,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 				//$this->view->rows = $cloud->tags('list');
 
 				// Set any errors
-				if ($this->getError()) 
+				if ($this->getError())
 				{
 					$this->view->setError($this->getError());
 				}
@@ -337,11 +347,11 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 				// Get the string of tag IDs we plan to merge
 				$ind = JRequest::getVar('ids', '', 'post');
-				if ($ind) 
+				if ($ind)
 				{
 					$ids = explode(',', $ind);
-				} 
-				else 
+				}
+				else
 				{
 					$ids = array();
 				}
@@ -351,7 +361,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 				$tag_new   = JRequest::getVar('newtag', '', 'post');
 
 				// Are we merging tags into a totally new tag?
-				if ($tag_new) 
+				if ($tag_new)
 				{
 					// Yes, we are
 					$newtag = new TagsModelTag($tag_new);
@@ -364,8 +374,8 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 						$this->setError($newtag->getError());
 					}
 					$mtag = $newtag->get('id');
-				} 
-				else 
+				}
+				else
 				{
 					// No, we're merging into an existing tag
 					$mtag = $tag_exist;
@@ -379,7 +389,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 				foreach ($ids as $id)
 				{
-					if ($mtag == $id) 
+					if ($mtag == $id)
 					{
 						continue;
 					}
@@ -398,7 +408,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 				$this->setRedirect(
 					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::_('TAGS_MERGED')
+					JText::_('COM_TAGS_TAGS_MERGED')
 				);
 			break;
 		}
@@ -406,24 +416,21 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 	/**
 	 * Copy all tag associations from one tag to another
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function pierceTask()
 	{
 		// Incoming
-		$ids  = JRequest::getVar('id', array());
+		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
+
 		$step = JRequest::getInt('step', 1);
 		$step = ($step) ? $step : 1;
 
-		if (!is_array($ids)) 
-		{
-			$ids = array(0);
-		}
-
 		// Make sure we have some IDs to work with
-		if ($step == 1 
-		 && (!$ids || count($ids) < 1)) 
+		if ($step == 1
+		 && (!$ids || count($ids) < 1))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller
@@ -436,6 +443,8 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 		switch ($step)
 		{
 			case 1:
+				JRequest::setVar('hidemainmenu', 1);
+
 				$this->view->step = 2;
 				$this->view->idstr = $idstr;
 				$this->view->tags = array();
@@ -452,7 +461,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 				//$this->view->rows = $cloud->tags('list');
 
 				// Set any errors
-				if ($this->getError()) 
+				if ($this->getError())
 				{
 					$this->view->setError($this->getError());
 				}
@@ -467,11 +476,11 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 				// Get the string of tag IDs we plan to merge
 				$ind = JRequest::getVar('ids', '', 'post');
-				if ($ind) 
+				if ($ind)
 				{
 					$ids = explode(',', $ind);
-				} 
-				else 
+				}
+				else
 				{
 					$ids = array();
 				}
@@ -481,7 +490,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 				$tag_new   = JRequest::getVar('newtag', '', 'post');
 
 				// Are we merging tags into a totally new tag?
-				if ($tag_new) 
+				if ($tag_new)
 				{
 					// Yes, we are
 					$newtag = new TagsModelTag($tag_new);
@@ -494,8 +503,8 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 						$this->setError($newtag->getError());
 					}
 					$mtag = $newtag->get('id');
-				} 
-				else 
+				}
+				else
 				{
 					// No, we're merging into an existing tag
 					$mtag = $tag_exist;
@@ -503,7 +512,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 				foreach ($ids as $id)
 				{
-					if ($mtag == $id) 
+					if ($mtag == $id)
 					{
 						continue;
 					}
@@ -517,7 +526,7 @@ class TagsControllerEntries extends \Hubzero\Component\AdminController
 
 				$this->setRedirect(
 					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::_('TAGS_COPIED')
+					JText::_('COM_TAGS_TAGS_COPIED')
 				);
 			break;
 		}

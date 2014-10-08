@@ -41,14 +41,14 @@ class Events extends GroupMacro
 {
 	/**
 	 * Allow macro in partial parsing?
-	 * 
+	 *
 	 * @var string
 	 */
 	public $allowPartial = true;
 
 	/**
 	 * Returns description of macro, use, and accepted arguments
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function description()
@@ -66,7 +66,7 @@ class Events extends GroupMacro
 
 	/**
 	 * Generate macro output
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function render()
@@ -93,7 +93,7 @@ class Events extends GroupMacro
 
 		//render the events
 		$html .= $this->renderEvents($this->group, $events);
-		
+
 		//close the container
 		$html .= '</div>';
 
@@ -103,7 +103,7 @@ class Events extends GroupMacro
 
 	/**
 	 * Get a list of events for a group
-	 * 
+	 *
 	 * @param      object $group
 	 * @param      array  $filters
 	 * @return     array
@@ -114,10 +114,10 @@ class Events extends GroupMacro
 		$database = \JFactory::getDBO();
 
 		//build query
-		$sql = "SELECT * FROM #__events 
+		$sql = "SELECT * FROM #__events
 				WHERE publish_up >= UTC_TIMESTAMP()
 				AND scope=" . $database->quote('group') . "
-				AND scope_id=" . $database->Quote($group->get('gidNumber')) . " 
+				AND scope_id=" . $database->Quote($group->get('gidNumber')) . "
 				AND state=1";
 
 		//add ordering
@@ -128,7 +128,7 @@ class Events extends GroupMacro
 		{
 			$sql .= " LIMIT " . $filters['limit'];
 		}
-		
+
 		//return result
 		$database->setQuery($sql);
 		return $database->loadObjectList();
@@ -136,42 +136,43 @@ class Events extends GroupMacro
 
 	/**
 	 * Render the events
-	 * 
+	 *
 	 * @param      array     Array of group events
-	 * @return     string 
+	 * @return     string
 	 */
 	private function renderEvents($group, $events)
 	{
 		$content = '';
-		if (count($events) > 0) 
+		if (count($events) > 0)
 		{
-			foreach ($events as $event) 
+			foreach ($events as $event)
 			{
 				//build link
 				$link = \JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn') . '&active=calendar&action=details&event_id=' . $event->id);
 
 				//build date
 				$date = '';
-				$publishUp   = strtotime($event->publish_up);
-				$publishDown = strtotime($event->publish_down);
-				if (date("z", $publishUp) == date("z", $publishDown))
+				$publishUp   = $event->publish_up;
+				$publishDown = $event->publish_down;
+
+				if (date("z", strtotime($publishUp)) == date("z", strtotime($publishDown)))
 				{
-					$date  = \JFactory::getDate($publishUp)->format('m/d/Y @ g:i a');
-					$date .= ' &mdash; ' . \JFactory::getDate($publishDown)->format('g:i a');
+					$date  = \JHTML::_('date', $publishUp, 'm/d/Y @ g:i a');
+					$date .= ' &mdash; ' . \JHTML::_('date', $publishDown, 'g:i a');
 				}
 				else if (isset($event->publish_down) && $event->publish_down != '' && $event->publish_down != '0000-00-00 00:00:00')
 				{
-					$date  = \JFactory::getDate($publishUp)->format('m/d/Y @ g:i a');
-					$date .= ' &mdash; <br />&nbsp;&nbsp;&nbsp;' . \JFactory::getDate($publishDown)->format('m/d/Y @ g:i a');
+					$date  = \JHTML::_('date', $publishUp, 'm/d/Y @ g:i a');
+					$date .= ' &mdash; ' . \JHTML::_('date', $publishDown, 'm/d/Y @ g:i a');
 				}
 				else
 				{
-					$date  = \JFactory::getDate($publishUp)->format('m/d/Y @ g:i a');
+					$date  = \JHTML::_('date', $publishUp, 'm/d/Y @ g:i a');
 				}
 
 				//shorten content
 				$details = nl2br($event->content);
-				if (strlen($details) > 150) 
+				if (strlen($details) > 150)
 				{
 					$details = substr($details, 0, 150) . '...';
 				}
@@ -183,8 +184,8 @@ class Events extends GroupMacro
 				$content .= '<br /><span class="details">' . $details . '</span>';
 				$content .= '</div><br />';
 			}
-		} 
-		else 
+		}
+		else
 		{
 			$content .= '<p>Currently there are no upcoming group events. Add an event by <a href="' . \JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn') . '&active=calendar&action=add') . '">clicking here.</a></p>';
 		}

@@ -32,46 +32,49 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 $jconfig = JFactory::getConfig();
-?>
-<div id="content-header">
-	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<p>
-		<a class="main-page btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=new'); ?>">
-			<?php echo JText::_('Main page'); ?>
-		</a>
-	</p>
-</div><!-- / #content-header -->
+$this->css('create.css')
+     ->js('create.js');
+?>
+<header id="content-header">
+	<h2><?php echo $this->title; ?></h2>
+
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-main btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=new'); ?>">
+				<?php echo JText::_('Main page'); ?>
+			</a>
+		</p>
+	</div><!-- / #content-header -->
+</header><!-- / #content-header -->
 
 <?php if ($this->getError()) { ?>
 	<p class="warning"><?php echo $this->getError(); ?></p>
 <?php } ?>
 
-<div class="main section">
-	<div class="aside">
-		<h3>Select a type</h3>
-		<p>Select one of the resource types listed to proceed to the next step. The type of resource chosen can affect what information you will need to provide in the following steps.</p>
-	</div><!-- /.aside -->
+<section class="main section">
 	<div class="subject">
 		<div class="grid">
 <?php
-	if ($this->types) 
+	if ($this->types)
 	{
 		$i = 0;
 		$clm = '';
 		foreach ($this->types as $type)
 		{
-			if ($type->contributable != 1) 
+			if ($type->contributable != 1)
 			{
 				continue;
 			}
-			if ($type->id == 7) 
+			if ($type->id == 7)
 			{
+				if (!JComponentHelper::isEnabled('com_tools', true))
+				{
+					continue;
+				}
 				$url = JRoute::_('index.php?option=com_tools&task=create');
 			}
-			else 
+			else
 			{
 				$url = JRoute::_('index.php?option=' . $this->option . '&task=draft&step=' . $this->step . '&type=' . $type->id . ($this->group ? '&group=' . $this->group : ''));
 			}
@@ -85,30 +88,30 @@ $jconfig = JFactory::getConfig();
 				default: $clm = ''; break;
 			}
 
-			if (substr($type->alias, -3) == 'ies') 
+			if (substr($type->alias, -3) == 'ies')
 			{
 				$cls = $type->alias;
-			} 
-			else 
+			}
+			else
 			{
 				$cls = substr($type->alias, 0, -1);
 			}
 ?>
 		<div class="col span-third <?php echo $clm; ?>">
 			<div class="type-container <?php echo $cls; ?>">
-				<p class="type-button"><a href="<?php echo $url; ?>"><?php echo $this->escape(stripslashes($type->type)); ?></a></p>
-				<p><?php echo $this->escape(stripslashes($type->description)); ?></p>
+				<p class="type-button"><a class="btn icon-<?php echo $cls; ?>" href="<?php echo $url; ?>"><?php echo $this->escape(stripslashes($type->type)); ?></a></p>
+				<p><?php echo $this->escape(strip_tags(stripslashes($type->description))); ?></p>
 			</div>
 		</div><!-- / .col span-third <?php echo $clm; ?> -->
 <?php
-			if ($clm == 'omega') 
+			if ($clm == 'omega')
 			{
 				echo '</div><div class="grid">';
 				$clm = '';
 				$i = 0;
 			}
 		}
-		if ($i == 1 || $i == 2) 
+		if ($i == 1 || $i == 2)
 		{
 ?>
 		<div class="col span-third omage">
@@ -123,9 +126,9 @@ $jconfig = JFactory::getConfig();
 ?>
 
 		<p class="info">
-			In order for <?php echo $jconfig->getValue('config.sitename'); ?> to display your content, we must be given legal license to do so. At the very least, <?php echo $jconfig->getValue('config.sitename'); ?> must be authorized to 
-			hold, copy, distribute, and perform (play back) your material according to <a class="popup" href="/legal/license">this agreement</a>. 
-			You will retain any copyrights to the materials and decide how they should be licensed for end-user access. We encourage you to <a class="popup" href="/legal/licensing">license your contributions</a> 
+			In order for <?php echo $jconfig->getValue('config.sitename'); ?> to display your content, we must be given legal license to do so. At the very least, <?php echo $jconfig->getValue('config.sitename'); ?> must be authorized to
+			hold, copy, distribute, and perform (play back) your material according to <a class="popup" href="/legal/license">this agreement</a>.
+			You will retain any copyrights to the materials and decide how they should be licensed for end-user access. We encourage you to <a class="popup" href="/legal/licensing">license your contributions</a>
 			so that others can build upon them.
 		</p>
 
@@ -133,11 +136,11 @@ $jconfig = JFactory::getConfig();
 			<div class="container-block">
 				<h3>Frequently Asked Questions</h3>
 				<div class="entry-content">
-					<ul class="faq-list"> 
-						<li><a href="#unknowntype">What if I want to contribute a type not listed here?</a></li> 
-						<li><a href="#drafts">What if I don't have all the materials right now?</a></li> 
-						<li><a href="#submission">What happens after submission?</a></li> 
-						<li><a href="#retract">Ooops! I missed something and/or submitted too early!</a></li> 
+					<ul class="faq-list">
+						<li><a href="#unknowntype">What if I want to contribute a type not listed here?</a></li>
+						<li><a href="#drafts">What if I don't have all the materials right now?</a></li>
+						<li><a href="#submission">What happens after submission?</a></li>
+						<li><a href="#retract">Ooops! I missed something and/or submitted too early!</a></li>
 					</ul>
 				</div>
 				<div class="entry-content">
@@ -175,5 +178,8 @@ $jconfig = JFactory::getConfig();
 			</div><!-- / .container-block -->
 		</div><!-- / .container -->
 	</div><!-- /.subject -->
-	<div class="clear"></div>
-</div><!-- /.main section -->
+	<aside class="aside">
+		<h3>Select a type</h3>
+		<p>Select one of the resource types listed to proceed to the next step. The type of resource chosen can affect what information you will need to provide in the following steps.</p>
+	</aside><!-- /.aside -->
+</section><!-- /.main section -->

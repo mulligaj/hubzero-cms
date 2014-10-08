@@ -1,4 +1,35 @@
-<?php 
+<?php
+/**
+ * HUBzero CMS
+ *
+ * Copyright 2005-2011 Purdue University. All rights reserved.
+ *
+ * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ *
+ * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
+ * software: you can redistribute it and/or modify it under the terms of
+ * the GNU Lesser General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * HUBzero is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * HUBzero is a registered trademark of Purdue University.
+ *
+ * @package   hubzero-cms
+ * @author    Steve Snyder
+ * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
+ * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ */
+
+// Check to ensure this file is included in Joomla!
+defined('_JEXEC') or die('Restricted access');
 
 $defaultCountries = array(
 					array('code' => 'af', 'name' => 'AFGHANISTAN'),
@@ -288,7 +319,7 @@ $defaultCountries = array(
 					<?php endif; ?>
 					<select id="org" name="org">
 						<option value="">(select from list or enter other)</option>
-						<?php 
+						<?php
 						$dbh->setQuery('SELECT organization FROM #__xorganizations ORDER BY organization');
 						foreach ($dbh->loadAssocList() as $org)
 							echo '<option value="'.$org['organization'].'"'.(isset($_POST['org']) && $_POST['org'] === $org['organization'] ? ' selected="selected"' : '').'>'.$org['organization'].'</option>';
@@ -387,7 +418,7 @@ $defaultCountries = array(
 						</div>
 					</li>
 				<?php endif; ?>
-				<?php if (isset($row['countryorigin'])): ?> 
+				<?php if (isset($row['countryorigin'])): ?>
 					<li>
 						<?php $country = isset($_POST['countryorigin']) ? $_POST['countryorigin'] : \Hubzero\Geocode\Geocode::ipcountry(JRequest::ip()); ?>
 							<label>Are you a Legal Citizen or Permanent Resident of the <abbr title="United States">US</abbr>?</label>
@@ -395,7 +426,7 @@ $defaultCountries = array(
 								<?php if (isset($errors['countryorigin'])): ?>
 									<p class="warning">Please select your country of origin</p>
 								<?php endif; ?>
-								<label><input type="radio" class="option" name="countryorigin_us" id="corigin_usyes" value="yes" <?php if (strtolower($country) == 'us' || (isset($_POST['countryorigin_us']) && $_POST['countryorigin_us'] == 'yes')) echo 'checked="checked"'; ?> />Yes</label> 
+								<label><input type="radio" class="option" name="countryorigin_us" id="corigin_usyes" value="yes" <?php if (strtolower($country) == 'us' || (isset($_POST['countryorigin_us']) && $_POST['countryorigin_us'] == 'yes')) echo 'checked="checked"'; ?> />Yes</label>
 								<label><input type="radio" class="option" name="countryorigin_us" id="corigin_usno" value="no" <?php if (!empty($_POST['countryorigin']) && strtolower($country) != 'us' || (isset($_POST['countryorigin_us']) && $_POST['countryorigin_us'] == 'no')) echo 'checked="checked"'; ?> />No</label>
 							</div>
 
@@ -420,7 +451,7 @@ $defaultCountries = array(
 							</div>
 					</li>
 				<?php endif; ?>
-				<?php if (isset($row['countryresident'])): ?> 
+				<?php if (isset($row['countryresident'])): ?>
 					<li>
 						<?php $country = isset($_POST['countryresident']) ? $_POST['countryresident'] : \Hubzero\Geocode\Geocode::ipcountry(JRequest::ip()); ?>
 							<label>Do you currently live in the <abbr title="United States">US</abbr>?</label>
@@ -428,7 +459,7 @@ $defaultCountries = array(
 								<?php if (isset($errors['countryresident'])): ?>
 									<p class="warning">Please select your country of residency</p>
 								<?php endif; ?>
-								<label><input type="radio" class="option" name="countryresident_us" id="cores_usyes" value="yes" <?php if (strtolower($country) == 'us' || (isset($_POST['countryresident_us']) && $_POST['countryresident_us'] == 'yes')) echo 'checked="checked"'; ?> />Yes</label> 
+								<label><input type="radio" class="option" name="countryresident_us" id="cores_usyes" value="yes" <?php if (strtolower($country) == 'us' || (isset($_POST['countryresident_us']) && $_POST['countryresident_us'] == 'yes')) echo 'checked="checked"'; ?> />Yes</label>
 								<label><input type="radio" class="option" name="countryresident_us" id="cores_usno" value="no" <?php if (!empty($_POST['countryresident']) && strtolower($country) != 'us' || (isset($_POST['countryresident_us']) && $_POST['countryresident_us'] == 'no')) echo 'checked="checked"'; ?> />No</label>
 							</div>
 
@@ -456,7 +487,7 @@ $defaultCountries = array(
 				<?php if (isset($row['race'])): ?>
 					<?php $race = isset($_POST['race']) ? $_POST['race'] : array(); ?>
 					<li>
-							<label>If you are a U.S. Citizens or Permanent Residents (<a class="popup 675x678" href="/register/raceethnic">more information</a>), select your race(s) below</label>
+							<label>If you are a U.S. Citizens or Permanent Residents (<a class="popup 675x678" href="<?php echo JRoute::_('index.php?option=com_members&controller=register&task=raceethnic'); ?>">more information</a>), select your race(s) below</label>
 							<?php if (isset($errors['race'])): ?>
 								<p class="warning">Please select your race(s)</p>
 							<?php endif; ?>

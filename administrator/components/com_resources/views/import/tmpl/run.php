@@ -38,9 +38,9 @@ JToolBarHelper::title(JText::_('COM_RESOURCES_IMPORT_TITLE_RUN'), 'script.png');
 $this->js('import');
 $this->css('import');
 ?>
-<script src="/media/system/js/handlebars.js"></script>
+<script src="../media/system/js/handlebars.js"></script>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 	if (pressbutton == 'cancel') {
@@ -57,7 +57,7 @@ function submitbutton(pressbutton)
 <?php endforeach; ?>
 
 <form action="index.php?option=com_resources&amp;controller=import&amp;task=dorun" method="post" name="adminForm" id="adminForm">
-	
+
 	<fieldset class="adminform">
 		<table class="admintable">
 			<tbody>
@@ -84,7 +84,7 @@ function submitbutton(pressbutton)
 						</div>
 
 						<hr />
-						
+
 						<strong><?php echo JText::_('COM_RESOURCES_IMPORT_RUN_PROGRESS'); ?><span class="progress-percentage">0%</span></strong>
 						<div class="progress"></div>
 
@@ -100,7 +100,7 @@ function submitbutton(pressbutton)
 								{{#if record.notices}}<span class="has-notices"><?php echo JText::_('COM_RESOURCES_IMPORT_RUN_RESULT_CONTAINSNOTICES'); ?></span>{{/if}}
 								{{{ record.resource.title }}}
 							</h3>
-							
+
 							<div class="resource-data">
 								<div class="grid">
 									{{#if record.errors}}
@@ -188,7 +188,7 @@ function submitbutton(pressbutton)
 									</div>
 									<br class="clr" />
 									<hr />
-									
+
 									<div class="unused-data">
 										<h4><?php echo JText::_('COM_RESOURCES_IMPORT_RUN_RESULT_UNUSED'); ?></h4>
 										<pre>{{print_json_data raw._unused}}</pre>

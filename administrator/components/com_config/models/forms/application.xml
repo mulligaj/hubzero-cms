@@ -415,7 +415,7 @@
 		</field>
 		<field
 			name="MetaVersion"
-			type="radio"
+			type="hidden"
 			default="0"
 			label="COM_CONFIG_FIELD_METAVERSION_LABEL"
 			description="COM_CONFIG_FIELD_METAVERSION_DESC"
@@ -785,14 +785,14 @@
 			type="radio"
 			label="COM_CONFIG_FIELD_API_ENABLE_LABEL"
 			description="COM_CONFIG_FIELD_API_ENABLE_DESC"
-			required="true"
+			required="false"
 			default="0"
 			filter="integer">
 			<option
 				value="1">JYES</option>
 			<option
 				value="0">JNO</option>
-			
+
 		</field>
 
 		<field

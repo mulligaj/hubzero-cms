@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
@@ -45,66 +45,15 @@ $base = $this->offering->link() . '&active=forum';
 	</div>
 </div>
 
-<div class="main section">
-
-<?php foreach ($this->notifications as $notification) { ?>
-	<p class="<?php echo $notification['type']; ?>"><?php echo $this->escape($notification['message']); ?></p>
-<?php } ?>
-
-	<div class="aside">
-		<div class="container">
-			<h4><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ALL_TAGS'); ?></h4>
-		<?php if ($this->tags) { ?>
-			<?php echo $this->tags; ?>
-		<?php } else { ?>
-			<p><?php echo JText::_('PLG_COURSES_DISCUSSIONS_NONE'); ?></p>
-		<?php } ?>
-		</div><!-- / .container -->
-		<div class="container">
-			<h4><?php echo JText::_('PLG_COURSES_DISCUSSIONS_PARTICIPANTS'); ?></h4>
-	<?php if ($this->participants) { ?>
-			<ul>
-		<?php 
-			$anon = false;
-			foreach ($this->participants as $participant) 
-			{ 
-				if (!$participant->anonymous) { 
-				?>
-				<li><a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $participant->created_by); ?>"><?php echo $this->escape(stripslashes($participant->name)); ?></a></li>
-				<?php 
-				} else if (!$anon) {
-					$anon = true;
-				?>
-				<li><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ANONYMOUS'); ?></li>
-				<?php
-				}
-			}
-		?>
-			</ul>
-	<?php } ?>
-		</div><!-- / .container -->
-		<div class="container">
-			<h4><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ATTACHMENTS'); ?></h4>
-		<?php if ($this->attachments) { ?>
-			<ul class="attachments">
-			<?php 
-			foreach ($this->attachments as $attachment) 
-			{
-				$title = ($attachment->description) ? $attachment->description : $attachment->filename;
-			?>
-				<li><a href="<?php echo JRoute::_($base . '&unit=' . $this->category->alias . '&b=' . $attachment->parent . '&c=' . $attachment->post_id . '/' . $attachment->filename); ?>"><?php echo $this->escape($title); ?></a></li>
-			<?php } ?>
-			</ul>
-	<?php } else { ?>
-			<p><?php echo JText::_('PLG_COURSES_DISCUSSIONS_NONE'); ?></p>
-	<?php } ?>
-		</div><!-- / .container -->
-	</div><!-- / .aside  -->
-
+<section class="main section">
 	<div class="subject">
+		<?php foreach ($this->notifications as $notification) { ?>
+			<p class="<?php echo $notification['type']; ?>"><?php echo $this->escape($notification['message']); ?></p>
+		<?php } ?>
+
 		<form action="<?php echo JRoute::_($base . '&unit=' . $this->category->alias . '&b=' . $this->post->id); ?>" method="get">
 			<?php
-			if ($this->rows) 
+			if ($this->rows)
 			{
 				$last = '0000-00-00 00:00:00';
 				foreach ($this->rows as $row)
@@ -128,12 +77,12 @@ $base = $this->offering->link() . '&active=forum';
 				     ->set('attach', $this->attach)
 				     ->set('course', $this->course)
 				     ->display();
-			} 
-			else 
+			}
+			else
 			{
-		?>
+				?>
 				<p><?php echo JText::_('PLG_COURSES_DISCUSSIONS_NO_REPLIES_FOUND'); ?></p>
-		<?php 
+				<?php
 			}
 			$this->pageNav->setAdditionalUrlParam('gid', $this->course->get('alias'));
 			$this->pageNav->setAdditionalUrlParam('offering', $this->offering->get('alias'));
@@ -142,28 +91,72 @@ $base = $this->offering->link() . '&active=forum';
 			$this->pageNav->setAdditionalUrlParam('b', $this->post->id);
 
 			echo $this->pageNav->getListFooter();
-		?>
+			?>
 		</form>
 	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / .main section -->
+	<aside class="aside">
+		<div class="container">
+			<h4><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ALL_TAGS'); ?></h4>
+			<?php if ($this->tags) { ?>
+				<?php echo $this->tags; ?>
+			<?php } else { ?>
+				<p><?php echo JText::_('PLG_COURSES_DISCUSSIONS_NONE'); ?></p>
+			<?php } ?>
+		</div><!-- / .container -->
+		<div class="container">
+			<h4><?php echo JText::_('PLG_COURSES_DISCUSSIONS_PARTICIPANTS'); ?></h4>
+			<?php if ($this->participants) { ?>
+				<ul>
+				<?php
+					$anon = false;
+					foreach ($this->participants as $participant)
+					{
+						if (!$participant->anonymous) {
+						?>
+						<li><a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $participant->created_by); ?>"><?php echo $this->escape(stripslashes($participant->name)); ?></a></li>
+						<?php
+						} else if (!$anon) {
+							$anon = true;
+						?>
+						<li><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ANONYMOUS'); ?></li>
+						<?php
+						}
+					}
+				?>
+				</ul>
+			<?php } ?>
+		</div><!-- / .container -->
+		<div class="container">
+			<h4><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ATTACHMENTS'); ?></h4>
+			<?php if ($this->attachments) { ?>
+				<ul class="attachments">
+				<?php
+				foreach ($this->attachments as $attachment)
+				{
+					$title = ($attachment->description) ? $attachment->description : $attachment->filename;
+					?>
+					<li><a href="<?php echo JRoute::_($base . '&unit=' . $this->category->alias . '&b=' . $attachment->parent . '&c=' . $attachment->post_id . '/' . $attachment->filename); ?>"><?php echo $this->escape($title); ?></a></li>
+				<?php } ?>
+				</ul>
+			<?php } else { ?>
+				<p><?php echo JText::_('PLG_COURSES_DISCUSSIONS_NONE'); ?></p>
+			<?php } ?>
+		</div><!-- / .container -->
+	</aside><!-- / .aside  -->
+</section><!-- / .main section -->
 
-<div class="below section">
-	<h3 class="post-comment-title">
-		<?php echo JText::_('PLG_COURSES_DISCUSSIONS_ADD_COMMENT'); ?>
-	</h3>
-	<div class="aside">
-		<p><?php echo JText::_('PLG_COURSES_DISCUSSIONS_EDIT_HINT'); ?></p>
-	</div><!-- /.aside -->
+<section class="below section">
 	<div class="subject">
+		<h3 class="post-comment-title">
+			<?php echo JText::_('PLG_COURSES_DISCUSSIONS_ADD_COMMENT'); ?>
+		</h3>
 		<form action="<?php echo JRoute::_($base . '&unit=' . $this->category->alias . '&b=' . $this->post->id); ?>" method="post" id="commentform" enctype="multipart/form-data">
 			<p class="comment-member-photo">
-				<a class="comment-anchor" name="commentform"></a>
 				<?php
 				$juser = JFactory::getUser();
 				$anon = 1;
 				$jxuser = \Hubzero\User\Profile::getInstance($juser->get('id'));
-				if (!$juser->get('guest')) 
+				if (!$juser->get('guest'))
 				{
 					$anon = 0;
 				}
@@ -179,11 +172,11 @@ $base = $this->offering->link() . '&active=forum';
 				<p class="comment-title">
 					<strong>
 						<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id')); ?>"><?php echo $this->escape($juser->get('name')); ?></a>
-					</strong> 
+					</strong>
 					<span class="permalink">
 						<span class="comment-date-at"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_AT'); ?><</span>
-						<span class="time"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('TIME_FORMAt_HZ1')); ?></time></span> 
-						<span class="comment-date-on"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ON'); ?></span> 
+						<span class="time"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('TIME_FORMAt_HZ1')); ?></time></span>
+						<span class="comment-date-on"><?php echo JText::_('PLG_COURSES_DISCUSSIONS_ON'); ?></span>
 						<span class="date"><time datetime="<?php echo $now; ?>"><?php echo JHTML::_('date', $now, JText::_('DATE_FORMAt_HZ1')); ?></time></span>
 					</span>
 				</p>
@@ -211,7 +204,7 @@ $base = $this->offering->link() . '&active=forum';
 				</fieldset>
 
 				<label for="field-anonymous" id="comment-anonymous-label">
-					<input class="option" type="checkbox" name="fields[anonymous]" id="field-anonymous" value="1" /> 
+					<input class="option" type="checkbox" name="fields[anonymous]" id="field-anonymous" value="1" />
 					<?php echo JText::_('PLG_COURSES_DISCUSSIONS_FIELD_ANONYMOUS'); ?>
 				</label>
 
@@ -238,5 +231,7 @@ $base = $this->offering->link() . '&active=forum';
 			<?php echo JHTML::_('form.token'); ?>
 		</form>
 	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / .below section -->
+	<aside class="aside">
+		<p><?php echo JText::_('PLG_COURSES_DISCUSSIONS_EDIT_HINT'); ?></p>
+	</aside><!-- /.aside -->
+</section><!-- / .below section -->

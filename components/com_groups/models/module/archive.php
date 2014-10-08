@@ -35,86 +35,87 @@ defined('_JEXEC') or die('Restricted access');
 require_once JPATH_ROOT . DS . 'components' . DS . 'com_groups' . DS . 'models' . DS . 'module.php';
 require_once JPATH_ROOT . DS . 'components' . DS . 'com_groups' . DS . 'models' . DS . 'module' . DS . 'menu.php';
 
+/**
+ * Group module archive model class
+ */
 class GroupsModelModuleArchive extends JObject
 {
 	/**
 	 * \Hubzero\Base\Model
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_modules = null;
 
 	/**
 	 * Modules count
-	 * 
+	 *
 	 * @var integer
 	 */
 	private $_modules_count = null;
-	
+
 	/**
 	 * JDatabase
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_db = NULL;
 
 	/**
 	 * JRegistry
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_config;
-	
-	
+
 	/**
 	 * Constructor
-	 * 
-	 * @param      integer $id Course ID or alias
-	 * @return     void
+	 *
+	 * @return  void
 	 */
 	public function __construct()
 	{
 		$this->_db = JFactory::getDBO();
 	}
-	
+
 	/**
 	 * Get Instance of Module Archive
 	 *
-	 * @param   $key   Instance Key
+	 * @param   string $key Instance Key
+	 * @return  object GroupsModelModuleArchive
 	 */
 	static function &getInstance($key=null)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
-			$instances[$key] = new GroupsModelModuleArchive();
+			$instances[$key] = new self();
 		}
-		
+
 		return $instances[$key];
 	}
-	
+
 	/**
 	 * Get a list of group modules
 	 *
-	 * @param      string  $rtrn    What data to return
-	 * @param      array   $filters Filters to apply to data retrieval
-	 * @param      boolean $boolean Clear cached data?
-	 * @return     mixed
+	 * @param   string  $rtrn    What data to return
+	 * @param   array   $filters Filters to apply to data retrieval
+	 * @param   boolean $boolean Clear cached data?
+	 * @return  mixed
 	 */
-	public function modules( $rtrn = 'list', $filters = array(), $clear = false )
+	public function modules($rtrn = 'list', $filters = array(), $clear = false)
 	{
-		
 		switch (strtolower($rtrn))
 		{
 			case 'unapproved':
 				$unapproved = array();
-				if($results = $this->modules('list', $filters, true))
+				if ($results = $this->modules('list', $filters, true))
 				{
 					foreach ($results as $k => $result)
 					{
@@ -142,5 +143,4 @@ class GroupsModelModuleArchive extends JObject
 			break;
 		}
 	}
-	
 }

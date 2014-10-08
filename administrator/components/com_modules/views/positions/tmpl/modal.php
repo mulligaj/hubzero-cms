@@ -21,21 +21,20 @@ $state		= $this->state->get('filter.state');
 $template	= $this->state->get('filter.template');
 $type		= $this->state->get('filter.type');
 ?>
+<h2 class="modal-title"><?php echo JText::_('COM_MODULES'); ?></h2>
 <form action="<?php echo JRoute::_('index.php?option=com_modules&view=positions&layout=modal&tmpl=component&function='.$function.'&client_id=' .$clientId);?>" method="post" name="adminForm" id="adminForm">
-	<fieldset class="filter clearfix">
-		<div class="left">
+	<fieldset id="filter-bar" class="filters clearfix">
+		<div class="col width-40 fltlft">
 			<label for="filter_search">
 				<?php echo JText::_('JSearch_Filter_Label'); ?>
 			</label>
-			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" size="30" title="<?php echo JText::_('COM_MODULES_FILTER_SEARCH_DESC'); ?>" />
+			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" size="30" placeholder="<?php echo JText::_('COM_MODULES_FILTER_SEARCH_DESC'); ?>" />
 
-			<button type="submit">
-				<?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
-			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();">
-				<?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
+			<button type="submit"><?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
+			<button type="button" onclick="$('#filter_search').val('');this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
 		</div>
 
-		<div class="right">
+		<div class="col width-60 fltrt">
 			<select name="filter_state" class="inputbox" onchange="this.form.submit()">
 				<option value=""><?php echo JText::_('JOPTION_SELECT_PUBLISHED');?></option>
 				<?php echo JHtml::_('select.options', JHtml::_('modules.templateStates'), 'value', 'text', $state, true);?>
@@ -66,7 +65,7 @@ $type		= $this->state->get('filter.type');
 		</thead>
 		<tfoot>
 			<tr>
-				<td colspan="15">
+				<td colspan="2">
 					<?php echo $this->pagination->getListFooter(); ?>
 				</td>
 			</tr>
@@ -93,11 +92,9 @@ $type		= $this->state->get('filter.type');
 		</tbody>
 	</table>
 
-	<div>
-		<input type="hidden" name="task" value="" />
-		<input type="hidden" name="boxchecked" value="0" />
-		<input type="hidden" name="filter_order" value="<?php echo $ordering; ?>" />
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $direction; ?>" />
-		<?php echo JHtml::_('form.token'); ?>
-	</div>
+	<input type="hidden" name="task" value="" />
+	<input type="hidden" name="boxchecked" value="0" />
+	<input type="hidden" name="filter_order" value="<?php echo $ordering; ?>" />
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $direction; ?>" />
+	<?php echo JHtml::_('form.token'); ?>
 </form>

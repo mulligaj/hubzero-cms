@@ -464,16 +464,23 @@
 		padding: 1.22606798em .61803399em;
 		border: none;
 		border-bottom: 1px solid #e0e0e0;
+		border-left: ;
 	}
 	#tktlist tfoot td {
 		padding: 0.61803399em 1.61803399em 1.61803399em 1.61803399em;
 	}
-	#tktlist thead tr th:first-child, 
-	#tktlist thead tr td:first-child, 
+	#tktlist thead tr th:first-child,
+	#tktlist thead tr td:first-child {
+		padding-left: 1.61803399em;
+		border-left: 5px solid #6a6a6a;
+	}
 	#tktlist tbody tr th,
-	#tktlist tbody tr th:first-child, 
+	#tktlist tbody tr th:first-child,
 	#tktlist tbody tr td:first-child {
 		padding-left: 1.61803399em;
+		border-left-width: 5px;
+		border-left-style: solid;
+		border-left-color: transparent;
 	}
 	#tktlist tbody tr th,
 	#tktlist tbody tr th:first-child, 
@@ -603,16 +610,22 @@
 	}
 	/* Status */
 	#tktlist .status {
-		display: inline-block;
-		width: 16px;
-		height: 16px;
+		width: 1em;
+		height: 1em;
+		line-height: 1;
 		overflow: hidden;
 		text-align: left;
 		font-weight: normal;
+		display: none;
+		margin: 0.4em auto 0 auto;
+	}
+	#tktlist .status.new,
+	#tktlist .status.waiting,
+	#tktlist .status.closed {
+		display: block;
 	}
 	#tktlist .open {
 		color: #66AA00;
-		display: none;
 	}
 	#tktlist .new {
 		color: #ff1177;
@@ -627,8 +640,8 @@
 	#tktlist .status.closed:before, 
 	#tktlist .status.waiting:before,
 	#tktlist .status.new:before {
-		font-size: 16px;
-		line-height: 16px;
+		font-size: 1em;
+		line-height: 1;
 		font-family: 'Fontcons';
 		margin-right: 0.2em;
 	}
@@ -712,6 +725,15 @@
 	#tktlist .trivial:after {
 		content: "\2746";
 	}
+	#tktlist .ticket-group {
+		font-weight: bold;
+	}
+	#tktlist .ticket-group:before {
+		font-family: 'Fontcons';
+		content: "\f042";
+		font-weight: normal;
+		padding-right: 0.2em;
+	}
 
 /* Ticket */
 	.ticket .entry-content {
@@ -790,12 +812,15 @@
 		background-color: #eee;
 	}
 /* Comments */
+	ol.comments li.comment {
+		margin-bottom: 1em;
+	}
 	ol.comments .comment-content {
 		margin-bottom: 0;
 		word-wrap: break-word;
 	}
 	ol.comments .comment-changelog {
-		margin: 0 0 1em 70px;
+		margin: 0 0 0 70px;
 		padding: 1.61803399em 1.61803399em;
 		background: #e8e8e8;
 		background: rgba(0, 0, 0, 0.040);
@@ -1229,6 +1254,7 @@
 		0%   { background-position-x: 0px; }
 		100% { background-position-x: 120px; }
 	}
+
 	@-moz-keyframes gradientShift {
 		0%   { background-position: 0px 0; }
 		100% { background-position: 120px 0; }
@@ -1351,6 +1377,7 @@
 		left: 0;
 		right: 0;
 	}
+	#hubForm .file-list .item-asset,
 	.file-list .item-asset {
 		background: #f7f7f7;
 		border-radius: 0.25em;

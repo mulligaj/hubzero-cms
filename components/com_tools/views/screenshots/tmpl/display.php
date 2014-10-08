@@ -31,18 +31,22 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$this->css('component.css');
+
+$base = rtrim(JURI::base(true), '/');
+
 $this->versionlabel = ($this->version == 'current') ? JText::_('COM_TOOLS_CURRENTLY_PUBLISHED') : JText::_('COM_TOOLS_DEVELOPMENT');
 if ($this->getError()) { ?>
 	<p class="error"><?php echo implode('<br />', $this->getErrors()); ?></p>
 <?php } ?>
 
-<form action="index.php" name="hubForm" id="screenshots-form" method="post" enctype="multipart/form-data">
+<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" name="hubForm" id="screenshots-form" method="post" enctype="multipart/form-data">
 	<h3>
-		<?php echo JText::_('COM_TOOLS_EXISTING_SS'); ?> 
+		<?php echo JText::_('COM_TOOLS_EXISTING_SS'); ?>
 		<?php if ($this->published) { ?>
 			(<?php echo $this->version=='dev' ? JText::_('COM_TOOLS_DEVELOPMENT').' '.strtolower(JText::_('COM_TOOLS_VERSION')) : JText::_('COM_TOOLS_CURRENTLY_PUBLISHED').' '.strtolower(JText::_('COM_TOOLS_VERSION'));  ?>)
 		<?php } ?>
-	</h3> 
+	</h3>
 
 <?php
 $d = @dir($this->upath);
@@ -54,18 +58,18 @@ $ordering = array();
 $html = '';
 
 // pick images from the upload directory
-if ($d) 
+if ($d)
 {
 	while (false !== ($entry = $d->read()))
 	{
 		$img_file = $entry;
-		if (is_file($this->upath . DS . $img_file) && substr($entry, 0, 1) != '.' && strtolower($entry) !== 'index.html') 
+		if (is_file($this->upath . DS . $img_file) && substr($entry, 0, 1) != '.' && strtolower($entry) !== 'index.html')
 		{
-			if (preg_match("#bmp|gif|jpg|png|swf#i", $img_file)) 
+			if (preg_match("#bmp|gif|jpg|png|swf#i", $img_file))
 			{
 				$images[] = $img_file;
 			}
-			if (preg_match("#-tn#i", $img_file)) 
+			if (preg_match("#-tn#i", $img_file))
 			{
 				$tns[] = $img_file;
 			}
@@ -78,12 +82,12 @@ if ($d)
 }
 
 // get rid of images without thumbnails
-if ($images) 
+if ($images)
 {
-	foreach ($images as $key => $value) 
+	foreach ($images as $key => $value)
 	{
 		$tn = ResourcesHtml::thumbnail($value);
-		if (!is_file($this->upath . DS . $tn)) 
+		if (!is_file($this->upath . DS . $tn))
 		{
 			unset($images[$key]);
 		}
@@ -93,20 +97,20 @@ if ($images)
 
 // Get screenshot titles and ordering
 $b = 0;
-if ($images) 
+if ($images)
 {
-	foreach ($images as $ima) 
+	foreach ($images as $ima)
 	{
 		$new = array();
 		$new['img'] = $ima;
 		$new['type'] = explode('.', $new['img']);
 
 		// get title and ordering info from the database, if available
-		if (count($this->shots > 0)) 
+		if (count($this->shots > 0))
 		{
-			foreach ($this->shots as $si) 
+			foreach ($this->shots as $si)
 			{
-				if ($si->filename == $ima) 
+				if ($si->filename == $ima)
 				{
 					$new['title'] = stripslashes($si->title);
 					$new['title'] = preg_replace('/"((.)*?)"/i', "&#147;\\1&#148;", $new['title']);
@@ -122,12 +126,12 @@ if ($images)
 }
 
 // Order images
-if (count($this->shots > 0)) 
+if (count($this->shots > 0))
 {
 	// sort by ordering
 	array_multisort($ordering, $all);
 }
-else 
+else
 {
 	// sort by name
 	sort($all);
@@ -142,9 +146,9 @@ for ($i=0, $n=count($images); $i < $n; $i++)
 {
 	$tn = ResourcesHtml::thumbnail($images[$i]['img']);
 
-	if (is_file($this->upath . DS . $tn)) 
+	if (is_file($this->upath . DS . $tn))
 	{
-		if (strtolower(end($images[$i]['type'])) == 'swf') 
+		if (strtolower(end($images[$i]['type'])) == 'swf')
 		{
 			$g++;
 			$title = (isset($images[$i]['title']) && $images[$i]['title']!='') ? $images[$i]['title'] : JText::_('COM_TOOLS_DEMO').' #'.$g;
@@ -153,27 +157,27 @@ for ($i=0, $n=count($images); $i < $n; $i++)
 					$els .= '<img src="'.$this->wpath.DS.$tn.'" alt="'.$title.'" id="ss_'.$i.'" />';
 				$els .= '</a>';
 			$els .= '</li>'."\n";
-		} 
-		else 
+		}
+		else
 		{
 			$k++;
 			$title = (isset($images[$i]['title']) && $images[$i]['title']!='') ? $images[$i]['title']: JText::_('COM_TOOLS_SCREENSHOT').' #'.$k;
 			$els .= '<li>';
 				$els .= '<span class="dev_ss">';
-					$els .= '<a href="/index.php?option='.$this->option.'&amp;controller='.$this->controller.'&amp;task=edit&amp;pid='.$this->rid.'&amp;filename='.$images[$i]['img'].'&amp;version='.$this->version.'&amp;tmpl=component" class="edit_ss popup" rel="external">'.JText::_('COM_TOOLS_EDIT').'</a>';
-					$els .= '<a href="/index.php?option='.$this->option.'&amp;controller='.$this->controller.'&amp;task=delete&amp;pid='.$this->rid.'&amp;filename='.$images[$i]['img'].'&amp;version='.$this->version.'&amp;tmpl=component" class="delete_ss">'.JText::_('COM_TOOLS_DELETE').'</a>';
+					$els .= '<a href="' . $base . '/index.php?option='.$this->option.'&amp;controller='.$this->controller.'&amp;task=edit&amp;pid='.$this->rid.'&amp;filename='.$images[$i]['img'].'&amp;version='.$this->version.'&amp;tmpl=component" class="icon-edit edit popup" rel="external">'.JText::_('COM_TOOLS_EDIT').'</a>';
+					$els .= '<a href="' . $base . '/index.php?option='.$this->option.'&amp;controller='.$this->controller.'&amp;task=delete&amp;pid='.$this->rid.'&amp;filename='.$images[$i]['img'].'&amp;version='.$this->version.'&amp;tmpl=component" class="icon-delete delete">'.JText::_('COM_TOOLS_DELETE').'</a>';
 				$els .= '</span>';
-				$els .= '<a href="/index.php?option='.$this->option.'&amp;controller='.$this->controller.'&amp;task=edit&amp;pid='.$this->rid.'&amp;filename='.$images[$i]['img'].'&amp;version='.$this->version.'&amp;tmpl=component" class="popup" title="'.$title.'">';
-					$els .= '<img src="'.$this->wpath.DS.$tn.'" alt="'.$title.'" id="ss_'.$i.'" />';
+				$els .= '<a href="' . $base . '/index.php?option='.$this->option.'&amp;controller='.$this->controller.'&amp;task=edit&amp;pid='.$this->rid.'&amp;filename='.$images[$i]['img'].'&amp;version='.$this->version.'&amp;tmpl=component" class="popup" title="'.$title.'">';
+					$els .= '<img src="'.$this->wpath.'/'.$tn.'" alt="'.$title.'" id="ss_'.$i.'" />';
 				$els .= '</a>';
 			$els .= '</li>'."\n";
 		}
 		// add re-ordering option
-		if ($i != ($n-1)) 
+		if ($i != ($n-1))
 		{
 			$els .= '<li style="width:20px;top:40px;">';
-				$els .= '<a href="/index.php?option=' . $this->option . '&amp;controller=' . $this->controller . '&amp;task=order&amp;pid='.$this->rid.'&amp;fl='.$images[$i+1]['img'].'&amp;fr='.$images[$i]['img'].'&amp;ol='.($i+1).'&amp;or='.$i.'&amp;version='.$this->version.'&amp;tmpl=component">';
-					$els .= '<img src="components'.DS.$this->option.DS.'assets/img/contribute/reorder.gif" alt="" />';
+				$els .= '<a class="icon-reorder reorder" href="' . $base . '/index.php?option=' . $this->option . '&amp;controller=' . $this->controller . '&amp;task=order&amp;pid='.$this->rid.'&amp;fl='.$images[$i+1]['img'].'&amp;fr='.$images[$i]['img'].'&amp;ol='.($i+1).'&amp;or='.$i.'&amp;version='.$this->version.'&amp;tmpl=component" title="' .JText::_('COM_TOOLS_REORDER'). '">';
+					$els .= JText::_('COM_TOOLS_REORDER');
 				$els .= '</a>';
 			$els .= '</li>'."\n";
 		}
@@ -217,10 +221,10 @@ echo $html;
 	</fieldset>
 </form>
 <?php if ($this->published && $this->version=='dev') { ?>
-	<form action="index.php" name="copySSForm"  method="post" enctype="multipart/form-data">
+	<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" name="copySSForm"  method="post" enctype="multipart/form-data">
 		<fieldset style="border-top:1px solid #ccc;padding-top:1em;">
 			<legend><?php echo JText::_('COM_TOOLS_COPY_SCREENSHOTS'); ?></legend>
-			
+
 			<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 			<input type="hidden" name="version" value="<?php echo $this->version; ?>" />
 			<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
@@ -228,7 +232,7 @@ echo $html;
 			<input type="hidden" name="rid" value="<?php echo $this->rid; ?>" />
 			<input type="hidden" name="tmpl" value="component" />
 			<label>
-				<?php 
+				<?php
 				$v = $this->version=='dev' ? 'current' : 'development';
 				echo JText::_('COM_TOOLS_FROM').' '.$v.' '.strtolower(JText::_('COM_TOOLS_VERSION'));
 				?>

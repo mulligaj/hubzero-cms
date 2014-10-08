@@ -30,8 +30,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-JToolBarHelper::title($this->group->get('description').': <small><small>['.$this->page->get('title').' - Page Errors]</small></small>', 'groups.png');
-JToolBarHelper::custom('errorscheckagain', 'check', 'check', 'Check Again', false);
+$this->css();
+
+JToolBarHelper::title($this->group->get('description').': '.$this->page->get('title').' - ' . JText::_('COM_GROUPS_PAGES_ERRORS'), 'groups.png');
+JToolBarHelper::custom('errorscheckagain', 'check', 'check', 'COM_GROUPS_PAGES_CHECK_AGAIN', false);
 JToolBarHelper::cancel();
 
 // page version content
@@ -39,17 +41,17 @@ $content = $this->page->version()->get('content');
 ?>
 
 <form action="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;gid=<?php echo $this->group->cn; ?>" method="post" name="adminForm" id="item-form">
-	
+
 	<p class="error">
-		<?php echo JText::sprintf('The following errors were discovered on the "%s" page: <br /><br /> %s' , $this->page->get('title'), $this->error); ?> 
+		<?php echo JText::sprintf('COM_GROUPS_PAGES_ERROR_LIST' , $this->page->get('title'), $this->error); ?>
 	</p>
-	
-	<h3><?php echo JText::_('View Raw Code'); ?></h3>
+
+	<h3><?php echo JText::_('COM_GROUPS_PAGES_VIEW_RAW_CODE'); ?></h3>
 	<div class="code">
 		<?php
 			$lines = explode("\n", $content);
 			$lineCode = '';
-			for($i=1; $i <= count($lines); $i++)
+			for ($i=1; $i <= count($lines); $i++)
 			{
 				$lineCode .= "&nbsp;".$i."&nbsp;<br>";
 			}
@@ -63,10 +65,10 @@ $content = $this->page->version()->get('content');
 			</tr>
 		</table>
 	</div>
-	
-	<h3><?php echo JText::_('Update Content'); ?></h3>
+
+	<h3><?php echo JText::_('COM_GROUPS_PAGES_UPDATE_CONTENT'); ?></h3>
 	<textarea name="page[content]" rows="40"><?php echo $content; ?></textarea>
-	
+
 	<input type="hidden" name="page[id]" value="<?php echo $this->page->get('id'); ?>">
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />

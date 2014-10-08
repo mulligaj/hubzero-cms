@@ -106,12 +106,35 @@ class Arguments
 	/**
 	 * Getter for those additional options that a given command may use
 	 *
-	 * @param  (string) $key - option name to retieve value for
+	 * @param  (string) $key     - option name to retieve value for
+	 * @param  (mixed)  $default - default value for option
 	 * @return void
 	 **/
-	public function getOpt($key)
+	public function getOpt($key, $default=false)
 	{
-		return (isset($this->opts[$key])) ? $this->opts[$key] : false;
+		return (isset($this->opts[$key])) ? $this->opts[$key] : $default;
+	}
+
+	/**
+	 * Get all opts
+	 *
+	 * @return (array) - options
+	 **/
+	public function getOpts()
+	{
+		return $this->opts;
+	}
+
+	/**
+	 * Setter for additional options for a given command
+	 *
+	 * @param  (string) $key
+	 * @param  (mixed)  $value
+	 * @return void
+	 **/
+	public function setOpt($key, $value)
+	{
+		$this->opts[$key] = $value;
 	}
 
 	/**
@@ -125,7 +148,23 @@ class Arguments
 		{
 			// Take the first argument as command to be run - defaults to help
 			$command = (isset($this->raw[1])) ? $this->raw[1] : 'Help';
-			$class   = __NAMESPACE__ . '\\Command\\' . ucfirst($command);
+
+			// Check if we're targeting a namespaced command
+			if (strpos($command, ':'))
+			{
+				$bits    = explode(':', $command);
+				$command = '';
+				foreach ($bits as $bit)
+				{
+					$command .= '\\' . ucfirst($bit);
+				}
+			}
+			else
+			{
+				$command = '\\' . ucfirst($command);
+			}
+
+			$class = __NAMESPACE__ . '\\Command' . $command;
 
 			// Make sure class exists
 			if (class_exists($class))

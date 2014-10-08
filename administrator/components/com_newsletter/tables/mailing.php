@@ -35,78 +35,78 @@ class NewsletterMailing extends JTable
 {
 	/**
 	 * Mailing ID
-	 * 
+	 *
 	 * @var int(11)
 	 */
 	var $id 			= NULL;
-	
+
 	/**
 	 * Mailing Newsletter ID
-	 * 
+	 *
 	 * @var int(11)
 	 */
 	var $nid 			= NULL;
-	
+
 	/**
 	 * Mailing Mailinglist ID
-	 * 
+	 *
 	 * @var int(11)
 	 */
 	var $lid 			= NULL;
-	
+
 	/**
 	 * Mailing Subject
-	 * 
+	 *
 	 * @var varchar(250)
 	 */
 	var $subject 		= NULL;
-	
+
 	/**
 	 * Mailing Body
-	 * 
+	 *
 	 * @var text
 	 */
 	var $html_body		= NULL;
 
 	/**
 	 * Mailing Body
-	 * 
+	 *
 	 * @var text
 	 */
 	var $plain_body		= NULL;
-	
+
 	/**
 	 * Mailing Headers
-	 * 
+	 *
 	 * @var text
 	 */
 	var $headers 		= NULL;
-	
+
 	/**
 	 * Mailing Args
-	 * 
+	 *
 	 * @var text
 	 */
 	var $args 			= NULL;
-	
+
 	/**
 	 * Mailing Tracking
-	 * 
+	 *
 	 * @var int(11)
 	 */
 	var $tracking		= NULL;
-	
+
 	/**
 	 * Mailing Date
-	 * 
+	 *
 	 * @var datetime
 	 */
 	var $date 			= NULL;
-	
-	
+
+
 	/**
 	 * Newsletter Mailing Constructor
-	 * 
+	 *
 	 * @param 	$db		Database Object
 	 * @return 	void
 	 */
@@ -114,12 +114,12 @@ class NewsletterMailing extends JTable
 	{
 		parent::__construct( '#__newsletter_mailings', 'id', $db );
 	}
-	
-	public function getMailings( $id = null )
+
+	public function getMailings( $id = null, $nid = null )
 	{
 		$sql = "SELECT * FROM {$this->_tbl} WHERE deleted=0";
-		
-		if($id)
+
+		if ($id)
 		{
 			$sql .= " AND id=".$id;
 			$this->_db->setQuery($sql);
@@ -127,15 +127,20 @@ class NewsletterMailing extends JTable
 		}
 		else
 		{
+			if (isset($nid))
+			{
+				$sql .= " AND nid=" . $this->_db->quote($nid);
+			}
+
 			$sql .= " ORDER BY date DESC";
 			$this->_db->setQuery($sql);
 			return $this->_db->loadObjectList();
 		}
 	}
-	
+
 	public function getMailingNewsletters()
 	{
-		$sql = "SELECT nm.id AS mailing_id, n.name AS newsletter_name, n.tracking AS newsletter_tracking, nm.date AS mailing_date 
+		$sql = "SELECT nm.id AS mailing_id, n.name AS newsletter_name, n.tracking AS newsletter_tracking, nm.date AS mailing_date
 				FROM {$this->_tbl} AS nm, #__newsletters AS n
 				WHERE nm.deleted=0
 				AND nm.nid=n.id

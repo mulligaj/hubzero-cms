@@ -32,13 +32,13 @@ class modAnnouncementsHelper extends \Hubzero\Module\Module
 {
 	/**
 	 * Get a list of content pages
-	 * 
+	 *
 	 * @return     void
 	 */
 	private function _getList()
 	{
 		$db = JFactory::getDBO();
-	
+
 		$catid   = (int) $this->params->get('catid', 0);
 		$orderby = 'a.publish_up DESC';
 		$limit   = (int) $this->params->get('numitems', 0);
@@ -50,36 +50,18 @@ class modAnnouncementsHelper extends \Hubzero\Module\Module
 		$nullDate = $db->getNullDate();
 
 		// query to determine article count
-		$query = 'SELECT a.*, s.alias as secname, cc.alias as catname, ' .
+		$query = 'SELECT a.*, cc.alias as catname, cc.path as catpath, ' .
 			' CASE WHEN CHAR_LENGTH(a.alias) THEN CONCAT_WS(":", a.id, a.alias) ELSE a.id END as slug,'.
 			' CASE WHEN CHAR_LENGTH(cc.alias) THEN CONCAT_WS(":", cc.id, cc.alias) ELSE cc.id END as catslug'.
 			' FROM #__content AS a' .
 			' INNER JOIN #__categories AS cc ON cc.id = a.catid' .
-			' INNER JOIN #__sections AS s ON s.id = a.sectionid' .
 			' WHERE a.state = 1 ' .
 			' AND (a.publish_up = ' . $db->Quote($nullDate) . ' OR a.publish_up <= ' . $db->Quote($now) . ' ) ' .
 			' AND (a.publish_down = ' . $db->Quote($nullDate) . ' OR a.publish_down >= ' . $db->Quote($now) . ' )' .
 			' AND cc.id = '. (int) $catid .
-			' AND cc.section = s.id' .
 			' AND cc.published = 1' .
-			' AND s.published = 1' .
 			' ORDER BY ' . $orderby . ' ' . $limitby;
-		
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$query = 'SELECT a.*, cc.alias as catname, cc.path as catpath, ' .
-				' CASE WHEN CHAR_LENGTH(a.alias) THEN CONCAT_WS(":", a.id, a.alias) ELSE a.id END as slug,'.
-				' CASE WHEN CHAR_LENGTH(cc.alias) THEN CONCAT_WS(":", cc.id, cc.alias) ELSE cc.id END as catslug'.
-				' FROM #__content AS a' .
-				' INNER JOIN #__categories AS cc ON cc.id = a.catid' .
-				' WHERE a.state = 1 ' .
-				' AND (a.publish_up = ' . $db->Quote($nullDate) . ' OR a.publish_up <= ' . $db->Quote($now) . ' ) ' .
-				' AND (a.publish_down = ' . $db->Quote($nullDate) . ' OR a.publish_down >= ' . $db->Quote($now) . ' )' .
-				' AND cc.id = '. (int) $catid .
-				' AND cc.published = 1' .
-				' ORDER BY ' . $orderby . ' ' . $limitby;
-		}
-		
+
 		$db->setQuery($query);
 		$rows = $db->loadObjectList();
 
@@ -88,10 +70,10 @@ class modAnnouncementsHelper extends \Hubzero\Module\Module
 
 	/**
 	 * Display module content
-	 * 
+	 *
 	 * @return     void
 	 */
-	public function display() 
+	public function display()
 	{
 		//check if cache diretory is writable as cache files will be created for the announcements
 		if ($this->params->get('cache', 1) && !is_writable(JPATH_BASE . DS . 'cache'))
@@ -110,7 +92,7 @@ class modAnnouncementsHelper extends \Hubzero\Module\Module
 		// Push some CSS to the template
 		$this->css();
 
-		$this->content = $this->_getList();	
+		$this->content = $this->_getList();
 		$this->cid = (int) $this->params->get('catid', 0);
 		$this->container = $this->params->get('container', 'block-announcements');
 

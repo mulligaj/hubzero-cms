@@ -31,36 +31,30 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css()
+     ->js('spin.min.js')
+     ->js('autosubmit.js');
 ?>
 
-<div id="content-header">
+<header id="content-header">
 	<h2>Payment confirmation</h2>
-</div>
+</header>
 
-<div class="section">
+<section class="section">
+	<?php
+	$view = new \Hubzero\Component\View(array('name'=>'shared', 'layout' => 'messages'));
+	$errors = $this->getError();
+	$view->setError($this->getError());
+	$view->display();
 
-<?php
-
-$view = new JView(array('name'=>'shared', 'layout' => 'messages'));
-$errors = $this->getError();
-$view->setError($this->getError());
-$view->display();
-
-if (empty($errors))
-{
-
-?>
-
-<p>
-	Please click the button below to proceed with payment.
-</p>
-
-<?php
-
-	print_r($this->paymentCode);
-	
-}
-
-?>
-
-</div>
+	if (empty($errors))
+	{
+		?>
+		<p>
+			Please click the button below to proceed with payment.
+		</p>
+		<?php
+		print_r($this->paymentCode);
+	}
+	?>
+</section>

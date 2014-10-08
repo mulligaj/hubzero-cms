@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
@@ -24,7 +24,7 @@
  *
  * @package   hubzero-cms
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   GNU General Public License, version 2 (GPLv2) 
+ * @license   GNU General Public License, version 2 (GPLv2)
  */
 
 // Check to ensure this file is included in Joomla!
@@ -33,47 +33,43 @@ defined('_JEXEC') or die( 'Restricted access' );
 	/* Intro */
 	$jconfig = JFactory::getConfig();
 	$sitename = $jconfig->getValue('config.sitename');
-	
-	$jobsHtml = new JobsHtml();
-	
-	$promoline = $this->config->get('promoline') ? $this->config->get('promoline') : '';
-	$infolink = $this->config->get('infolink') ? $this->config->get('infolink') : '';
-?>
-<div id="content-header">
-	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<ul id="useroptions">
-	<?php if ($this->guest) { ?> 
-		<li><?php echo JText::_('COM_JOBS_PLEASE').' <a href="'.JRoute::_('index.php?option='.$this->option . '&task=view').'?action=login">'.JText::_('COM_JOBS_ACTION_LOGIN').'</a> '.JText::_('COM_JOBS_ACTION_LOGIN_TO_VIEW_OPTIONS'); ?></li>
-	<?php } else if ($this->emp && $this->allowsubscriptions) {  ?>
-		<li><a class="myjobs btn" href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=dashboard'); ?>"><?php echo JText::_('COM_JOBS_EMPLOYER_DASHBOARD'); ?></a></li>
-		<li><a class="shortlist btn" href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=resumes').'?filterby=shortlisted'; ?>"><?php echo JText::_('COM_JOBS_SHORTLIST'); ?></a></li>
-	<?php } else if ($this->admin) { ?>
-		<li>
-			<!-- <?php echo JText::_('COM_JOBS_NOTICE_YOU_ARE_ADMIN'); ?> -->
-			<a class="myjobs btn" href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=dashboard'); ?>"><?php echo JText::_('COM_JOBS_ADMIN_DASHBOARD'); ?></a>
-		</li>
-	<?php } else { ?> 
-		<li><a class="myresume btn" href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=addresume'); ?>"><?php echo JText::_('COM_JOBS_MY_RESUME'); ?></a></li>
-	<?php } ?> 
-	</ul>
-</div><!-- / #content-header-extra -->
+	$jobsHtml = new JobsHtml();
+
+	$promoline = $this->config->get('promoline') ? $this->config->get('promoline') : '';
+	$infolink = JRoute::_('index.php?option=com_help&component=jobs'); //$this->config->get('infolink') ? $this->config->get('infolink') : '';
+?>
+<header id="content-header">
+	<h2><?php echo $this->title; ?></h2>
+
+	<div id="content-header-extra">
+		<ul id="useroptions">
+		<?php if ($this->guest) { ?>
+			<li><?php echo JText::_('COM_JOBS_PLEASE').' <a href="'.JRoute::_('index.php?option='.$this->option . '&task=view').'?action=login">'.JText::_('COM_JOBS_ACTION_LOGIN').'</a> '.JText::_('COM_JOBS_ACTION_LOGIN_TO_VIEW_OPTIONS'); ?></li>
+		<?php } else if ($this->emp && $this->allowsubscriptions) {  ?>
+			<li><a class="icon-dashboard myjobs btn" href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=dashboard'); ?>"><?php echo JText::_('COM_JOBS_EMPLOYER_DASHBOARD'); ?></a></li>
+			<li><a class="icon-list shortlist btn" href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=resumes').'?filterby=shortlisted'; ?>"><?php echo JText::_('COM_JOBS_SHORTLIST'); ?></a></li>
+		<?php } else if ($this->admin) { ?>
+			<li>
+				<!-- <?php echo JText::_('COM_JOBS_NOTICE_YOU_ARE_ADMIN'); ?> -->
+				<a class="icon-dashboard myjobs btn" href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=dashboard'); ?>"><?php echo JText::_('COM_JOBS_ADMIN_DASHBOARD'); ?></a>
+			</li>
+		<?php } else { ?>
+			<li><a class="myresume btn" href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=addresume'); ?>"><?php echo JText::_('COM_JOBS_MY_RESUME'); ?></a></li>
+		<?php } ?>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header><!-- / #content-header -->
+
 <?php if ($this->msg) { ?>
 	<p class="help"><?php echo $this->msg; ?></p>
-<?php } ?>  
+<?php } ?>
 
 <?php if ($this->allowsubscriptions) { ?>
-<div id="introduction" class="section">
+<section id="introduction" class="section">
 	<?php if ($infolink) { ?>
-	<div class="aside">
-		<h3><?php echo JText::_('COM_JOBS_QUESTIONS_LINK'); ?></h3>
-		<p><?php echo '<a href="'.$infolink.'">'.JText::_('COM_JOBS_LEARN_MORE').'</a> '.JText::_('COM_JOBS_ABOUT_THE_PROCESS'); ?></p>
-	</div><!-- / .aside -->
-	<?php } ?>
-	<?php if ($infolink) { ?>
-	<div class="subject">
+	<div class="grid">
+		<div class="col span9">
 	<?php } ?>
 		<div class="grid">
 			<div class="col span-third">
@@ -83,11 +79,11 @@ defined('_JEXEC') or die( 'Restricted access' );
 				<h3><?php echo JText::_('COM_JOBS_EMPLOYERS'); ?></h3>
 				<ul>
 					<li><a href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=resumes'); ?>"><?php echo JText::_('COM_JOBS_ACTION_BROWSE_RESUMES'); ?></a></li>
-					<li><a href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=addjob'); ?>"><?php echo JText::_('COM_JOBS_ACTION_POST_JOB'); ?></a></li>				
+					<li><a href="<?php echo JRoute::_('index.php?option='.$this->option . '&task=addjob'); ?>"><?php echo JText::_('COM_JOBS_ACTION_POST_JOB'); ?></a></li>
 				</ul>
-				 <?php if ($promoline) { ?> 
+				 <?php if ($promoline) { ?>
 				<p class="promo"><?php echo $promoline; ?></p>
-				<?php } ?>	 
+				<?php } ?>
 			</div>
 			<div class="col span-third omega">
 				<h3><?php echo JText::_('COM_JOBS_SEEKERS'); ?></h3>
@@ -99,8 +95,12 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</div>
 		</div>
 	<?php if ($infolink) { ?>
-	</div><!-- / .subject -->
+		</div>
+		<div class="col span3 omega">
+			<h3><?php echo JText::_('COM_JOBS_QUESTIONS_LINK'); ?></h3>
+			<p><?php echo '<a class="popup" href="'.$infolink.'">'.JText::_('COM_JOBS_LEARN_MORE').'</a> '.JText::_('COM_JOBS_ABOUT_THE_PROCESS'); ?></p>
+		</div>
+	</div><!-- / .grid -->
 	<?php } ?>
-	<div class="clear"></div>
-</div><!-- / #introduction.section -->
+</section><!-- / #introduction.section -->
 <?php } ?>

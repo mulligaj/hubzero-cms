@@ -33,33 +33,14 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $option = 'com_answers';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect( 'index.php', JText::_('ALERTNOTAUTH') );
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
-include_once(JPATH_COMPONENT_SITE . DS . 'helpers' . DS . 'economy.php');
-require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'html.php');
-require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'answers.php');
+require_once(JPATH_COMPONENT_SITE . DS . 'helpers' . DS . 'economy.php');
 require_once(JPATH_COMPONENT_SITE . DS . 'models' . DS . 'question.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'answers.php');
 
 $controllerName = JRequest::getCmd('controller', 'questions');
 if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php'))
@@ -68,12 +49,12 @@ if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $cont
 }
 
 JSubMenuHelper::addEntry(
-	JText::_('Questions'),
+	JText::_('COM_ANSWERS_QUESTIONS'),
 	'index.php?option=' . $option,
 	($controllerName == 'questions')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Answers'),
+	JText::_('COM_ANSWERS_RESPONSES'),
 	'index.php?option=' . $option . '&controller=answers',
 	($controllerName == 'answers')
 );

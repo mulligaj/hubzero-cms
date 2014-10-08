@@ -38,7 +38,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of messaging settings
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -50,32 +50,32 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		// Get filters
 		$this->view->filters = array();
 		$this->view->filters['component'] = urldecode($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.component', 
-			'component', 
+			$this->_option . '.' . $this->_controller . '.component',
+			'component',
 			''
 		));
 		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'c.name'
 		));
 		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 
 		// Get paging variables
 		$this->view->filters['limit']        = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.' . $this->_controller . '.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']        = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.' . $this->_controller . '.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
 
@@ -86,19 +86,19 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 		// Get records
 		$this->view->rows = $obj->getRecords($this->view->filters, true);
-		
+
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
-		
+
 		$this->view->components = $obj->getComponents();
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -112,7 +112,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Create a new record
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -123,31 +123,27 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a record
-	 * 
+	 *
 	 * @param      object $row Database row
 	 * @return     void
 	 */
 	public function editTask($row=null)
 	{
-		$this->view->setLayout('edit');
+		JRequest::setVar('hidemainmenu', 1);
 
-		if (is_object($row)) 
+		if (is_object($row))
 		{
 			$this->view->row = $row;
 		}
-		else 
+		else
 		{
 			// Incoming
-			$ids = JRequest::getVar('id', array());
+			$id = JRequest::getVar('id', array());
 
 			// Get the single ID we're working with
-			if (is_array($ids)) 
+			if (is_array($id))
 			{
-				$id = (!empty($ids)) ? $ids[0] : 0;
-			} 
-			else 
-			{
-				$id = 0;
+				$id = (!empty($id)) ? $id[0] : 0;
 			}
 
 			// Initiate database class and load info
@@ -156,7 +152,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		}
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -165,12 +161,12 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		}
 
 		// Output the HTML
-		$this->view->display();
+		$this->view->setLayout('edit')->display();
 	}
 
 	/**
 	 * Save an entry and display edit form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function applyTask()
@@ -180,7 +176,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save an entry and redirect to main listing
-	 * 
+	 *
 	 * @param      integer $redirect Redirect after save?
 	 * @return     void
 	 */
@@ -194,7 +190,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 		// Load the profile
 		$row = new \Hubzero\Message\Component($this->database);
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->setError($row->getError(), 'error');
 			$this->editTask($row);
@@ -202,7 +198,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		}
 
 		// Check content
-		if (!$row->check()) 
+		if (!$row->check())
 		{
 			$this->setError($row->getError(), 'error');
 			$this->editTask($row);
@@ -210,15 +206,15 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 		}
 
 		// Store content
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			$this->setError($row->getError(), 'error');
 			$this->editTask($row);
 			return;
 		}
-		
+
 		// Redirect
-		if ($redirect) 
+		if ($redirect)
 		{
 			// Redirect
 			$this->setRedirect(
@@ -226,8 +222,8 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 				JText::_('Message Action saved'),
 				'message'
 			);
-		} 
-		else 
+		}
+		else
 		{
 			$this->editTask($row);
 		}
@@ -235,7 +231,7 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete a record
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -245,9 +241,10 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
-		
+		$ids = (!is_array($ids) ? array($ids) : $ids);
+
 		// Do we have any IDs?
-		if (!empty($ids)) 
+		if (!empty($ids))
 		{
 			$notify = new \Hubzero\Message\Notify($this->database);
 
@@ -258,10 +255,10 @@ class MembersControllerMessages extends \Hubzero\Component\AdminController
 
 				$row = new \Hubzero\Message\Component($this->database);
 				$row->load($id);
-				
+
 				// Remove any associations
 				$notify->deleteType($row->action);
-				
+
 				// Remove the record
 				$row->delete($id);
 			}

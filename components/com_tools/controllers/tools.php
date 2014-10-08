@@ -38,7 +38,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -52,7 +52,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 		if ($task != 'image'
 		 && $task != 'css'
 		 && $task != 'assets'
-		 && (!$this->config->get('mw_on') || ($this->config->get('mw_on') > 1 && !$this->config->get('access-admin-component')))) 
+		 && (!$this->config->get('mw_on') || ($this->config->get('mw_on') > 1 && !$this->config->get('access-admin-component'))))
 		{
 			// Redirect to home page
 			$this->setRedirect(
@@ -60,7 +60,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 			);
 			return;
 		}
-		
+
 		parent::execute();
 	}
 
@@ -72,7 +72,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 	protected function _buildTitle($title=null)
 	{
 		$this->_title = ($title) ? $title : JText::_(strtoupper($this->_option));
-		if ($this->_task && $this->_task != 'display') 
+		if ($this->_task && $this->_task != 'display')
 		{
 			$this->_title .= ': ' . JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task));
 		}
@@ -89,14 +89,14 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 	{
 		$pathway = JFactory::getApplication()->getPathway();
 
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
 				(isset($this->_title) ? $this->_title : JText::_(strtoupper($this->_option))),
 				'index.php?option=' . $this->_option
 			);
 		}
-		if ($this->_task && $this->_task != 'display') 
+		if ($this->_task && $this->_task != 'display')
 		{
 			$pathway->addItem(
 				JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task)),
@@ -107,7 +107,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display the landing page
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -137,11 +137,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 		// Set the pathway
 		$this->_buildPathway();
 
-		// Push some styles to the template
-		$this->_getStyles('', 'introduction.css', true); // component, stylesheet name, look in media system dir
-		$this->_getStyles($this->_option, 'tools.css');
-
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -154,7 +150,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 	/**
 	 * Tool asset delivery function.
  	 * Original purpose was to deliver a template overrideable css file for the filexfer package
-	 * 
+	 *
 	 * @return    exit
 	 */
 	public function assetsTask()
@@ -174,7 +170,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 		{
 			$file = JPATH_SITE . \Hubzero\Document\Assets::getComponentStylesheet($this->_option, $file);
 
-			if (is_readable($file)) 
+			if (is_readable($file))
 			{
 				ob_clean();
 				header("Content-Type: text/css");
@@ -194,14 +190,14 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display the FORGE logo
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function imageTask()
 	{
 		$image = JPATH_SITE . \Hubzero\Document\Assets::getComponentImage($this->_option, 'forge.png', 1);
 
-		if (is_readable($image)) 
+		if (is_readable($image))
 		{
 			ob_clean();
 			header("Content-Type: image/png");
@@ -213,14 +209,14 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display CSS
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cssTask()
 	{
 		$file = JPATH_SITE . \Hubzero\Document\Assets::getComponentStylesheet($this->_option, 'site_css.css');
 
-		if (is_readable($file)) 
+		if (is_readable($file))
 		{
 			ob_clean();
 			header("Content-Type: text/css");
@@ -232,7 +228,7 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 
 	/**
 	 * Authorization checks
-	 * 
+	 *
 	 * @param      string $assetType Asset type
 	 * @param      string $assetId   Asset id to check against
 	 * @return     void
@@ -240,44 +236,30 @@ class ToolsControllerTools extends \Hubzero\Component\SiteController
 	public function _authorize($assetType='component', $assetId=null)
 	{
 		$this->config->set('access-view-' . $assetType, true);
-		if (!$this->juser->get('guest')) 
+		if (!$this->juser->get('guest'))
 		{
-			if (version_compare(JVERSION, '1.6', 'ge'))
+			$asset  = $this->_option;
+			if ($assetId)
 			{
-				$asset  = $this->_option;
-				if ($assetId)
-				{
-					$asset .= ($assetType != 'component') ? '.' . $assetType : '';
-					$asset .= ($assetId) ? '.' . $assetId : '';
-				}
-
-				$at = '';
-				if ($assetType != 'component')
-				{
-					$at .= '.' . $assetType;
-				}
-
-				// Admin
-				$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
-				$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
-				// Permissions
-				$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
-				$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
-				$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
-				$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
-				$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
+				$asset .= ($assetType != 'component') ? '.' . $assetType : '';
+				$asset .= ($assetId) ? '.' . $assetId : '';
 			}
-			else 
+
+			$at = '';
+			if ($assetType != 'component')
 			{
-				if ($this->juser->authorize($this->_option, 'manage'))
-				{
-					$this->config->set('access-manage-' . $assetType, true);
-					$this->config->set('access-admin-' . $assetType, true);
-					$this->config->set('access-create-' . $assetType, true);
-					$this->config->set('access-delete-' . $assetType, true);
-					$this->config->set('access-edit-' . $assetType, true);
-				}
+				$at .= '.' . $assetType;
 			}
+
+			// Admin
+			$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
+			$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
+			// Permissions
+			$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
+			$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
+			$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
+			$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
+			$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
 		}
 	}
 }

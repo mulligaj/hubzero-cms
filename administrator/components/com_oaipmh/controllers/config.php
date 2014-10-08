@@ -39,17 +39,17 @@ class OaipmhControllerConfig extends \Hubzero\Component\AdminController
 	public function displayTask()
 	{
 		// get dc specs
-		$query = "SELECT id, name, query FROM #__oaipmh_dcspecs ORDER BY id";
+		$query = "SELECT id, name, query FROM `#__oaipmh_dcspecs` ORDER BY id";
 		$this->database->setQuery($query);
 		$this->view->dcs = $this->database->loadRowList();
 
 		// get query groups
-		$query = "SELECT DISTINCT display FROM #__oaipmh_dcspecs";
+		$query = "SELECT DISTINCT display FROM `#__oaipmh_dcspecs`";
 		$this->database->setQuery($query);
-		$this->view->sets = $this->database->loadResultArray();	
+		$this->view->sets = $this->database->loadResultArray();
 
 		// get last datestamp **
-		//$query = "SELECT submitted FROM #__publication_versions WHERE submitted != '0000-00-00 00:00:00' ORDER BY submitted LIMIT 1";
+		//$query = "SELECT submitted FROM `#__publication_versions` WHERE submitted != '0000-00-00 00:00:00' ORDER BY submitted LIMIT 1";
 		//$this->database->setQuery($query);
 		$this->view->last = null; //$this->database->loadResult();
 
@@ -62,10 +62,10 @@ class OaipmhControllerConfig extends \Hubzero\Component\AdminController
 	 * 
 	 * @return     void
 	 */
-	public function saveTask() 
+	public function saveTask()
 	{
 		// check for request forgeries
-		JRequest::checkToken() or jexit( 'Invalid Token' );
+		JRequest::checkToken() or jexit('Invalid Token');
 
 		// vars
 		$queries = JRequest::getVar('queries','','post');
@@ -74,16 +74,16 @@ class OaipmhControllerConfig extends \Hubzero\Component\AdminController
 
 		// update specs
 		$count = count($queries);
-		for ($i=0; $i<=$count-1; $i++) 
+		for ($i=0; $i<=$count-1; $i++)
 		{
-			$SQL = "UPDATE #__oaipmh_dcspecs SET query = " . $this->database->Quote($queries[$i]) . " WHERE id = " . $this->database->Quote($qid[$i]);
+			$SQL = "UPDATE `#__oaipmh_dcspecs` SET query = " . $this->database->Quote($queries[$i]) . " WHERE id = " . $this->database->Quote($qid[$i]);
 			$this->database->Execute($SQL);
 		}
 
 		// redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option,
-			JText::_('Config Saved')
+			JText::_('COM_OAIPMH_SETTINGS_SAVED')
 		);
 	}
 
@@ -92,39 +92,39 @@ class OaipmhControllerConfig extends \Hubzero\Component\AdminController
 	 * 
 	 * @return     void
 	 */
-	protected function addsetTask() 
+	protected function addsetTask()
 	{
 		// increment set number, load a fresh one
 		$sets = JRequest::getVar('sets', '', 'request');
 
 		$names = array(
-			"resource IDs",
-			"specify sets",
-			"title",
-			"creator",
-			"subject",
-			"date",
-			"identifier",
-			"description",
-			"type",
-			"publisher",
-			"rights",
-			"contributor",
-			"relation",
-			"format",
-			"coverage",
-			"language",
-			"source"
+			'resource IDs',
+			'specify sets',
+			'title',
+			'creator',
+			'subject',
+			'date',
+			'identifier',
+			'description',
+			'type',
+			'publisher',
+			'rights',
+			'contributor',
+			'relation',
+			'format',
+			'coverage',
+			'language',
+			'source'
 		);
-		for ($i=0; $i<17; $i++) 
+		for ($i=0; $i<17; $i++)
 		{
-			$SQL = "INSERT INTO #__oaipmh_dcspecs (name, query, display) VALUES (" . $this->database->Quote($names[$i]) . ",''," . $this->database->Quote($sets) . ")";
+			$SQL = "INSERT INTO `#__oaipmh_dcspecs` (name, query, display) VALUES (" . $this->database->Quote($names[$i]) . ",''," . $this->database->Quote($sets) . ")";
 			$this->database->Execute($SQL);
 		}
 		// redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option,
-			JText::_('Group Added')
+			JText::_('COM_OAIPMH_GROUP_ADDED')
 		);
 	}
 
@@ -133,18 +133,18 @@ class OaipmhControllerConfig extends \Hubzero\Component\AdminController
 	 * 
 	 * @return     void
 	 */
-	public function removesetTask() 
+	public function removesetTask()
 	{
 		// remove 1 query set
 		$id = JRequest::getVar('id', '', 'request');
 
-		$SQL = "DELETE FROM #__oaipmh_dcspecs WHERE display = " . $this->database->Quote($id) . " LIMIT 17";
+		$SQL = "DELETE FROM `#__oaipmh_dcspecs` WHERE display = " . $this->database->Quote($id) . " LIMIT 17";
 		$this->database->Execute($SQL);
 
 		// redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option,
-			JText::_('Group Removed')
+			JText::_('COM_OAIPMH_GROUP_REMOVED')
 		);
 	}
 }

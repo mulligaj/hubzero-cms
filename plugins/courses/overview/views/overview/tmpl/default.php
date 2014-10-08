@@ -40,14 +40,14 @@ if ($this->course->access('edit', 'course') && $field == 'description')
 	<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" class="form-inplace" method="post">
 		<label for="field_description">
 			<?php
-				echo \JFactory::getEditor()->display('course[description]', $this->escape(stripslashes($this->course->description('raw'))), '', '', 35, 50, false, 'field_description');
+				echo \JFactory::getEditor()->display('course[description]', $this->escape($this->course->description('raw')), '', '', 35, 50, false, 'field_description');
 			?>
 		</label>
 
 		<p class="submit">
-			<input type="submit" class="btn btn-success" value="<?php echo JText::_('Save'); ?>" />
+			<input type="submit" class="btn btn-success" value="<?php echo JText::_('COM_COURSES_SAVE'); ?>" />
 			<a class="btn btn-secondary" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=course&gid=' . $this->course->get('alias')); ?>">
-				<?php echo JText::_('Cancel'); ?>
+				<?php echo JText::_('COM_COURSES_CANCEL'); ?>
 			</a>
 		</p>
 
@@ -61,25 +61,25 @@ if ($this->course->access('edit', 'course') && $field == 'description')
 		<input type="hidden" name="course[id]" value="<?php echo $this->escape($this->course->get('id')); ?>" />
 		<input type="hidden" name="course[alias]" value="<?php echo $this->escape($this->course->get('alias')); ?>" />
 	</form>
-	<?php 
+	<?php
 }
 else
 {
-	if ($this->course->access('edit', 'course')) 
+	if ($this->course->access('edit', 'course'))
 	{
 		?>
 		<div class="manager-options">
 			<a class="icon-edit btn btn-secondary" href="<?php echo JRoute::_($this->course->link() . '&task=edit&field=description'); ?>">
-				<?php echo JText::_('Edit'); ?>
+				<?php echo JText::_('COM_COURSES_EDIT'); ?>
 			</a>
-			<span><strong>Long description</strong></span>
+			<span><strong><?php echo JText::_('COM_COURSES_LONG_DESCRIPTION'); ?></strong></span>
 		</div>
-		<?php 
+		<?php
 	}
 
 	if (!$this->course->get('description'))
 	{
-		echo '<p><em>' . JText::_('No overview has been provided for this course yet.') . '</em></p>';
+		echo '<p><em>' . JText::_('COM_COURSES_LONG_DESCRIPTION_NONE') . '</em></p>';
 	}
 	else
 	{

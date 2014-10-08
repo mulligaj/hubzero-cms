@@ -41,14 +41,9 @@ else
 	$offering = new CoursesModelOffering(0, $this->course->get('id'));
 }
 
-if ($offering->exists()) 
+if ($offering->exists())
 {
-	$paramsClass = 'JParameter';
-	if (version_compare(JVERSION, '1.6', 'ge'))
-	{
-		$paramsClass = 'JRegistry';
-	}
-	$params = new $paramsClass($offering->get('params'));
+	$params = new JRegistry($offering->get('params'));
 
 	$product = null;
 
@@ -56,11 +51,11 @@ if ($offering->exists())
 	{
 		$warehouse = new StorefrontModelWarehouse();
 		// Get course by pID returned with $course->add() above
-		try 
+		try
 		{
 			$product = $warehouse->getCourse($params->get('store_product_id', 0));
 		}
-		catch (Exception $e) 
+		catch (Exception $e)
 		{
 			echo 'ERROR: ' . $e->getMessage();
 		}

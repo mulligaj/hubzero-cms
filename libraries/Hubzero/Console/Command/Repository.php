@@ -32,6 +32,7 @@ namespace Hubzero\Console\Command;
 
 use Hubzero\Console\Output;
 use Hubzero\Console\Arguments;
+use Hubzero\Console\Config;
 use Hubzero\Console\Command\Utilities\Git;
 
 // Check to ensure this file is included in Joomla!
@@ -40,22 +41,8 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Repository class
  **/
-class Repository implements CommandInterface
+class Repository extends Base implements CommandInterface
 {
-	/**
-	 * Output object, implements the Output interface
-	 *
-	 * @var object
-	 **/
-	private $output;
-
-	/**
-	 * Arguments object, implements the Argument interface
-	 *
-	 * @var object
-	 **/
-	private $arguments;
-
 	/**
 	 * Repository management mechanism (i.e. git, packages, etc...)
 	 *
@@ -66,17 +53,32 @@ class Repository implements CommandInterface
 	/**
 	 * Constructor - sets output and arguments for use by command
 	 *
+	 * @param  object - output renderer
+	 * @param  object - command arguments
 	 * @return void
 	 **/
 	public function __construct(Output $output, Arguments $arguments)
 	{
-		$this->output    = $output;
-		$this->arguments = $arguments;
+		parent::__construct($output, $arguments);
+
+		// Overriding default document root?
+		$directory = JPATH_ROOT;
+		if ($this->arguments->getOpt('r'))
+		{
+			if (is_dir($this->arguments->getOpt('r')) && is_readable($this->arguments->getOpt('r')))
+			{
+				$directory = rtrim($this->arguments->getOpt('r'), DS);
+			}
+			else
+			{
+				$this->output->error('Error: Provided directory is not valid');
+			}
+		}
 
 		// Try to figure out the mechanism
-		if (is_dir(JPATH_ROOT . DS . '.git'))
+		if (is_dir($directory . DS . '.git'))
 		{
-			$this->mechanism = new Git(JPATH_ROOT);
+			$this->mechanism = new Git($directory);
 		}
 		else
 		{
@@ -114,7 +116,7 @@ class Repository implements CommandInterface
 	{
 		$mode    = $this->output->getMode();
 		$status  = $this->mechanism->status();
-		$message = (!empty($status)) 
+		$message = (!empty($status))
 			? 'This repository is managed by ' . $this->mechanism->getName() . ' and has the following divergence:'
 			: 'This repository is managed by ' . $this->mechanism->getName() . ' and is clean';
 
@@ -128,83 +130,103 @@ class Repository implements CommandInterface
 			);
 		}
 
-		if (isset($status['modified']) && count($status['modified']) > 0)
+		$colorMap = array(
+			'added'     => 'green',
+			'modified'  => 'yellow',
+			'deleted'   => 'cyan',
+			'untracked' => 'blue',
+			'merged'    => 'red'
+		);
+
+		if (is_array($status) && count($status) > 0)
 		{
-			if ($mode == 'minimal')
+			foreach ($status as $k => $v)
 			{
-				$this->output->addLine(
-					array(
-						'modified' => $status['modified']
-					)
-				);
-			}
-			else
-			{
-				$this->output->addSpacer();
-				$this->output->addLine('Modified files:');
-				foreach ($status['modified'] as $file)
+				if (count($v) > 0)
 				{
-					$this->output->addLine(
-						$file,
-						array(
-							'color'       => 'yellow',
-							'indentation' => 2
-						)
-					);
+					if ($mode == 'minimal')
+					{
+						$this->output->addLine(
+							array(
+								$k => $v
+							)
+						);
+					}
+					else
+					{
+						$this->output->addSpacer();
+						$this->output->addLine(ucfirst($k) . ' files:');
+						foreach ($v as $file)
+						{
+							$this->output->addLine(
+								$file,
+								array(
+									'color'       => $colorMap[$k],
+									'indentation' => 2
+								)
+							);
+						}
+					}
 				}
 			}
 		}
+	}
 
-		if (isset($status['deleted']) && count($status['deleted']) > 0)
+	/**
+	 * Repository log
+	 *
+	 * @return void
+	 **/
+	public function log()
+	{
+		$mode      = $this->output->getMode();
+		$length    = ($this->arguments->getOpt('length')) ? $this->arguments->getOpt('length') : 20;
+		$start     = ($this->arguments->getOpt('start')) ? $this->arguments->getOpt('start') : null;
+		$upcoming  = $this->arguments->getOpt('include-upcoming');
+		$installed = ($this->arguments->getOpt('exclude-installed')) ? false : true;
+		$search    = ($this->arguments->getOpt('search')) ? $this->arguments->getOpt('search') : null;
+		$format    = '%an: %s';
+		$count     = $this->arguments->getOpt('count');
+
+		if ($mode == 'minimal')
 		{
-			if ($mode == 'minimal')
-			{
-				$this->output->addLine(
-					array(
-						'deleted' => $status['deleted']
-					)
-				);
-			}
-			else
-			{
-				$this->output->addSpacer();
-				$this->output->addLine('Deleted files:');
-				foreach ($status['deleted'] as $file)
-				{
-					$this->output->addLine(
-						$file,
-						array(
-							'color'       => 'red',
-							'indentation' => 2
-						)
-					);
-				}
-			}
+			$format = '%H||%an||%ae||%ad||%s';
 		}
 
-		if (isset($status['untracked']) && count($status['untracked']) > 0)
+		$logs = $this->mechanism->log($length, $start, $upcoming, $installed, $search, $format, $count);
+
+		if ($count)
 		{
-			if ($mode == 'minimal')
+			$this->output->addLine($logs);
+			return;
+		}
+
+		if ($mode != 'minimal')
+		{
+			$output = array();
+			foreach ($logs as $log)
 			{
-				$this->output->addLine(
-					array(
-						'untracked' => $status['untracked']
-					)
-				);
+				$output[] = array('message'=>$log);
 			}
-			else
+
+			$this->output->addLinesFromArray($output);
+		}
+		else
+		{
+			if (is_array($logs) && count($logs) > 0)
 			{
-				$this->output->addSpacer();
-				$this->output->addLine('Untracked files:');
-				foreach ($status['untracked'] as $file)
+				foreach ($logs as $log)
 				{
-					$this->output->addLine(
-						$file,
-						array(
-							'color'       => 'blue',
-							'indentation' => 2
-						)
+					$entry = array();
+					$parts = explode('||', $log);
+					$entry[$parts[0]] = array(
+						'name'    => $parts[1],
+						'email'   => $parts[2],
+						'date'    => $parts[3],
+						'subject' => $parts[4]
 					);
+
+					$this->output->addLine($entry);
 				}
 			}
 		}
@@ -408,6 +430,7 @@ class Repository implements CommandInterface
 			if ($proceed == 'y' || $proceed == 'yes')
 			{
 				$this->mechanism->purgeRollbackPoints();
+				$this->output->addLine('Purging rollback points.');
 				$performed++;
 			}
 
@@ -424,6 +447,117 @@ class Repository implements CommandInterface
 			{
 				$this->output->addLine('Please specify which cleanup operations to perform');
 			}
+		}
+	}
+
+	/**
+	 * Run syntax checker on changed files
+	 *
+	 * @return void
+	 **/
+	public function syntax()
+	{
+		// Make sure phpcs is installed
+		exec('which phpcs', $output);
+		if (!$output)
+		{
+			$this->output->error('PHP Code Sniffer does not appear to be installed');
+		}
+
+		// Get files
+		$status = $this->mechanism->status();
+		$files  = (isset($status['added']) || isset($status['modified'])) ? array_merge($status['added'], $status['modified']) : array();
+
+		// Whether or not to scan untracked files
+		if (!$this->arguments->getOpt('exclude-untracked'))
+		{
+			$files = (isset($status['untracked'])) ? array_merge($files, $status['untracked']) : $files;
+		}
+
+		// Did we find any files?
+		if ($files && count($files) > 0)
+		{
+			// Base standards directory
+			if (!$standards = Config::get('repository_standards_dir'))
+			{
+				$this->output
+				     ->addSpacer()
+				     ->addLine('You must specify your standards directory first via:')
+				     ->addLine(
+						'muse configure --repository_standards_dir=/path/to/standards',
+						array(
+							'indentation' => '2',
+							'color'       => 'blue'
+						)
+					)
+					->addSpacer()
+					->error("Error: failed to retrieve standards directory.");
+			}
+			else
+			{
+				$standards = rtrim($standards, DS) . DS . 'HubzeroCS';
+			}
+
+			// See what branch we're on, and set standards directory accordingly
+			$branch = $this->mechanism->getMechanismVersionName();
+			$branch = str_replace('.', '', $branch);
+			if (!is_dir($standards . $branch))
+			{
+				$this->output->error('A standards directory for the current branch does not exist');
+			}
+
+			if ($this->arguments->getOpt('no-linting') && $this->arguments->getOpt('no-sniffing'))
+			{
+				$this->output->addLine('No sniffing or linting...that means we\'re not doing anything!', 'warning');
+			}
+
+			foreach ($files as $file)
+			{
+				$this->output->addString("Scanning {$file}...");
+				$passed = true;
+				$base   = $this->mechanism->getBasePath();
+				$base   = rtrim($base, DS) . DS;
+
+				// Lint files with php extension
+				if (!$this->arguments->getOpt('no-linting'))
+				{
+					if (substr($file, -4) == '.php')
+					{
+						$cmd = "php -l {$base}{$file}";
+						exec($cmd, $output, $code);
+						if ($code !== 0)
+						{
+							$passed = false;
+							$this->output->addLine("failed php linter", array('color'=>'red'));
+						}
+					}
+				}
+
+				// Now run them through PHP code sniffer
+				if (!$this->arguments->getOpt('no-sniffing'))
+				{
+					// Append specific standard (with branchname) to command
+					$cmd    = "phpcs --standard={$standards}{$branch}/ruleset.xml -n {$base}{$file}";
+					$cmd    = escapeshellcmd($cmd);
+					$result = shell_exec($cmd);
+
+					if (!empty($result))
+					{
+						$passed = false;
+						$this->output->addLine($result, array('color'=>'red'));
+					}
+				}
+
+				// Did it all pass?
+				if ($passed)
+				{
+					$this->output->addLine('clear');
+				}
+			}
+		}
+		else
+		{
+			$this->output->addLine('No files to scan');
 		}
 	}
 

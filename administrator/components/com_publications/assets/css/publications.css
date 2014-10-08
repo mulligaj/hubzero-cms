@@ -19,13 +19,13 @@
 	.no,
 	.disabled,
 	.unwriteable,
-	.registered, 
+	.registered,
 	a.registered {
 		color: red;
 		}
-	.special, 
-	a.special { 
-		color: black; 
+	.special,
+	a.special {
+		color: black;
 		}
 	.enabled,
 	.writeable,
@@ -33,14 +33,56 @@
 	.unwriteable {
 		font-weight: bold;
 		}
-	
+
 	.clear {
 		clear: both;
 		margin: 0;
 		padding: 0;
 		}
-	
-	/* Status color 
+
+	.draft,
+	.draftinternal,
+	.draftexternal,
+	.new,
+	.check,
+	.preserving,
+	.published,
+	.pending,
+	.expired,
+	.unpublished,
+	.deleted,
+	.upload,
+	.archived,
+	.ready,
+	.wip,
+	.deleted {
+		padding: 0;
+		display: block;
+		width: 12px;
+		height: 12px;
+		}
+
+	.draft span,
+	.draftinternal span,
+	.draftexternal span,
+	.new span,
+	.hasassoc span,
+	.noassoc span,
+	.preserving span,
+	.published span,
+	.pending span,
+	.expired span,
+	.unpublished span,
+	.deleted span,
+	.upload span,
+	.ready span,
+	.archived span,
+	.wip span,
+	.deleted span {
+		display: none;
+		}
+
+	/* Status color
 	--------------------------------------------- */
 	.published {
 		color: #52ad4b;
@@ -57,16 +99,20 @@
 	.unpublished {
 		color: #999;
 	}
-	.pending, .new {
+	.pending, .new, .wip {
 		color: red;
 	}
 	.preserving {
 		color: blue;
 	}
-	
+	.deleted {
+		color: black;
+	}
+
 	/* Publication status
 	--------------------------------------------- */
-	.draft, .published, .unpublished, .expired, .pending, .preserving, .posted, .archived, .ready, .new {
+	.draft, .published, .unpublished, .expired, .pending,
+	.preserving, .posted, .archived, .ready, .new, .wip, .deleted {
 		padding: 0.2em 0.5em;
 	}
 	.archived:before,
@@ -81,7 +127,9 @@
 	.new:before,
 	.archival:before,
 	.item_on:before,
-	.item_off:before {
+	.item_off:before,
+	.wip:before,
+	.deleted:before {
 		content: "";
 		width: 16px;
 		height: 16px;
@@ -94,19 +142,25 @@
 	.archived:before, .archival:before {
 		content: "\f005";
 	}
-	.published:before, 
+	.published:before,
 	.preserving:before,
 	.ready:before,
 	.unpublished:before,
 	.pending:before,
 	.new:before,
-	.archived:before {
-		content: "\f058";
+	.archived:before,
+	.expired:before {
+		content: "\f058" !important;
 	}
 	.draft:before {
 		content: "\f05d";
 	}
-
+	.deleted:before {
+		content: "\2296";	
+	}
+	.wip:before {
+		content: "\2757";
+	}
 	.item_on:before {
 		content: "\2714";
 		color: green;
@@ -120,7 +174,7 @@
 	}
 	.item_on {
 		color: green;
-	}			
+	}
 	td.status {
 		width: 150px;
 	}
@@ -133,9 +187,9 @@
 	.status a span {
 		color: #666;
 		border: none;
-	}	
+	}
 	.hasassoc,
-	.noassoc { 
+	.noassoc {
 		padding: 0;
 		margin: 0;
 		display: block;
@@ -147,16 +201,24 @@
 	.noassoc { background: url("../img/tags.gif") 0 -12px no-repeat; }
 	.hasassoc:hover,
 	.noassoc:hover { border: none; }
-	
+
 	.key {
 		margin: 0;
 		padding: 0;
 		list-style: none;
-	}
+		}
+	.key li {
+		margin: 0;
+		padding-left: 18px;
+		width: auto;
+		height: auto;
+		}
+
 	.draft:hover,
 	.draftinternal:hover,
 	.draftexternal:hover,
 	.new:hover,
+	.preserving:hover,
 	.published:hover,
 	.preserving:hover,
 	.pending:hover,
@@ -165,11 +227,12 @@
 	.deleted:hover,
 	.ready:hover,
 	.archived:hover,
-	.upload:hover { border: none; }
-	
+	.upload:hover,
+	.wip:hover,
+	.deleted:hover { border: none; }
+
 	.check { text-indent: 50px; overflow: hidden; }
-	
-	#author-list, .content-list { 
+	#author-list, .content-list {
 		list-style: none;
 		margin: 0.5em;
 		padding-left: 0;
@@ -192,13 +255,24 @@
 		font-weight: bold;
 		color: #999;
 		}
-		
+	fieldset.adminform fieldset legend {
+		padding-left: 1.5em !important;
+		background-color: #E2E2E2;
+	}
 	.notice {
-		padding: 0.3em 1em;
-		border: 1px solid #f6bc56;
+		padding: 0.2em 0.5em;
+		border: none;
 		background: #ffefd3;
 		color: #7f3e0f;
 		margin: 0.5em 0;
+		font-size: 85%;
+	}
+	.withdivider {
+		border-top: 2px solid #E2E2E2;
+	}
+	.withdivider p {
+		background: #f4eefa;
+		font-size: 85%;
 	}
 	.adminform label {
 		font-style: italic;
@@ -220,9 +294,6 @@
 		border-top: 4px solid #CCC;
 		border-bottom: 4px solid #CCC;
 	}
-	.adminform fieldset {
-		margin-top: 2em;
-	}
 	.allowed, .disallowed {
 		display: block;
 		margin-top: 1em;
@@ -240,7 +311,7 @@
 		border: 1px solid #fbeec5 !important;
 	}
 	.block {
-	 	display: block;	
+	 	display: block;
 	}
 	.faded {
 		color: #CCC;
@@ -266,7 +337,7 @@
 	.narrow {
 		width: 5%;
 	}
-	
+
 /* Publication editing
 --------------------------------------------- */
 	#system-message .message {
@@ -382,6 +453,110 @@
 		margin-right: 5em;
 		color: #ccc;
 	}
-	
-	
+	ul.element-list {
+		list-style: none;
+		margin: 0.5em 0 2em 0;
+		padding: 0;
+	}
+	ul.element-list a {
+		border: none;
+	}
+	ul.element-list li {
+		padding: 0.3em 0;
+		border-bottom: 1px dotted #CCC;
+		clear: both;
+	}
+	.extras {
+		float: right;
+		font-size: 85%;
+	}
+	ul.element-list li .item-image {
+		margin-right: 0.5em;
+		float: left;
+		height: 50px;
+	}
+	ul.element-list li .item-image img {
+		width: 60px;	
+	}
+	ul.element-list li .item-title {
+		float: left;
+	}
+	ul.element-list li .item-title .details {
+		display: block;
+		color: #CCCCCC;
+		font-size: 85%;
+	}
+	.starred:before {
+		width: 22px;
+		height: 22px;
+		font-size: 22px;
+		font-family: 'Fontcons';
+		color: #5ec1da;
+		border: none;
+		content: "\2605";
+		position: absolute;
+	}
 
+/* Curation Blocks Configuration
+--------------------------------------------- */
+	fieldset.adminform legend span.block-sequence, span.block-sequence {
+		border: 1px solid #CCC;
+		padding: 0 0.5em;
+		margin-right: 0.5em;
+		background: #fbf0ce;
+		color: #000000;
+	}
+	.blockprop {
+		background: #faf7fd;
+	}
+	.col h5 {
+		border-bottom: 1px dotted #000;
+		margin: 0.5em 1.5em 1.5em 0;
+	}
+	.tweakblock {
+		border-top: 1px dotted black;
+		margin: 1em 0;
+	}
+	.el-details {
+		display: block;
+	}
+	.orderlist {
+		list-style: none;
+	}
+	.orderlist li {
+		padding: 0.5em 1em;
+		background: #fdf7dc;
+		margin: 0.2em 0;
+		border: 1px solid #CCC;
+	}
+	.orderlist li.reorder {
+		background: #f4eafd;
+	}
+	.orderlist li.reorder:hover {
+		background: #e8d8f7;
+		cursor: pointer;
+	}
+	.editthis {
+		text-transform: lowercase;
+		margin-left: 0.5em;
+	}
+	.backto {
+		margin-left: 2.5em;
+		margin-bottom: -0.5em;
+		margin-top: 1em;
+	}
+	.sublink {
+		background: #c3f8f6;
+		padding: 0.2em 0.5em;
+	}
+	.sidenote {
+		float: right;
+		margin-right: 1em !important;
+		font-size: 85%;
+		text-transform: capitalize;
+	}
+	.sidenote:before {
+		width: 22px;
+		height: 22px;
+		font-size: 22px;
+	}

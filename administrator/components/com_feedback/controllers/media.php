@@ -38,7 +38,7 @@ class FeedbackControllerMedia extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Execute a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -56,7 +56,7 @@ class FeedbackControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Upload an image
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function uploadTask()
@@ -111,14 +111,7 @@ class FeedbackControllerMedia extends \Hubzero\Component\AdminController
 		}
 		else
 		{
-			if ($this->type == 'regular')
-			{
-				$row = new FeedbackQuotes($this->database);
-			}
-			else
-			{
-				$row = new SelectedQuotes($this->database);
-			}
+			$row = new FeedbackQuotes($this->database);
 			$row->load($qid);
 
 			// Do we have an old file we're replacing?
@@ -153,7 +146,7 @@ class FeedbackControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deleteTask()
@@ -172,14 +165,7 @@ class FeedbackControllerMedia extends \Hubzero\Component\AdminController
 
 		$qid = JRequest::getInt('qid', 0);
 
-		if ($this->type == 'regular')
-		{
-			$row = new FeedbackQuotes($this->database);
-		}
-		else
-		{
-			$row = new SelectedQuotes($this->database);
-		}
+		$row = new FeedbackQuotes($this->database);
 		$row->load($qid);
 
 		// Incoming file
@@ -221,7 +207,7 @@ class FeedbackControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display an image
-	 * 
+	 *
 	 * @param      string  $file File name
 	 * @param      integer $id   User ID
 	 * @param      integer $qid  Quote ID

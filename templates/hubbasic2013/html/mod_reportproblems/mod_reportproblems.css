@@ -142,7 +142,7 @@
 }
 #tab a {
 	margin: 0;
-	padding: 1.4em 1em 1.4em 1em;
+	padding: 1.4em 1em 1.3em 1em;
 	height: auto;
 	width: 2em;
 	overflow: hidden;
@@ -152,6 +152,7 @@
 	background: rgba(0, 0, 0, 0.15);
 	position: relative;
 	font-weight: normal;
+	white-space: nowrap;
 	/* [!] IE 7 */
 	*zoom:expression(this.runtimeStyle['zoom']='1', this.innerHTML='<small class="tab-before">&#xf059;&nbsp;</small>' + this.innerHTML);
 }

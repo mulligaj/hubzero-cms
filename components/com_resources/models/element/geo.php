@@ -33,14 +33,14 @@ class ResourcesElementGeo extends ResourcesElement
 	/**
 	* Element name
 	*
-	* @var		string
+	* @var  string
 	*/
 	protected $_name = 'Geo Location';
 
 	/**
 	* Flag for if JS has been pushed to document or not
 	*
-	* @var		string
+	* @var  string
 	*/
 	protected $_script = false;
 
@@ -57,16 +57,16 @@ class ResourcesElementGeo extends ResourcesElement
 	public function fetchTooltip($label, $description, &$element, $control_name='', $name='')
 	{
 		$output = '<label id="' . $control_name . '-' . $name . '-lbl" for="' . $control_name . '-' . $name . '"';
-		if ($description) 
+		if ($description)
 		{
 			$output .= ' class="hasTip" title="' . JText::_($label) . '::' . JText::_($description) . '">';
-		} 
-		else 
+		}
+		else
 		{
 			$output .= '>';
 		}
 		$output .= JText::_($label) . ' <span class="hint">' . JText::_('(street, city, state/province postal-code, country)') . '</span>';
-		$output .= (isset($element->required) && $element->required) ? ' <span class="required">' . JText::_('Required') . '</span>' : '';
+		$output .= (isset($element->required) && $element->required) ? ' <span class="required">' . JText::_('JOPTION_REQUIRED') . '</span>' : '';
 		$output .= '</label>';
 
 		return $output;
@@ -85,15 +85,9 @@ class ResourcesElementGeo extends ResourcesElement
 	{
 		if (!$this->_script)
 		{
-			$app = JFactory::getApplication();
-			$script = 'geo';
-			if (JPluginHelper::isEnabled('system', 'jquery') && !$app->isAdmin())
-			{
-				$script .= '.jquery';
-			}
 			$document = JFactory::getDocument();
 			$document->addScript('//maps.google.com/maps/api/js?sensor=false');
-			$document->addScript('/components/com_resources/models/element/' . $script . '.js');
+			$document->addScript(JURI::base(true) . '/components/com_resources/models/element/geo.js');
 			$this->_script = true;
 		}
 
@@ -163,13 +157,13 @@ class ResourcesElementGeo extends ResourcesElement
 
 		// case value to array (in case object)
 		$value = array_filter((array) $value);
-		
+
 		// loop through each value prop
 		foreach ($value as $k => $v)
 		{
 			array_push($parts, "<{$k}>{$v}</{$k}>");
 		}
-		
+
 		// build and return tag
 		$html  = "<{$prefix}{$tag}>";
 		$html .= implode("\n", $parts);

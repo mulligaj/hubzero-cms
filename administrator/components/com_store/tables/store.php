@@ -38,91 +38,91 @@ class Store extends  JTable
 {
 	/**
 	 * int(11) Primary key
-	 * 
+	 *
 	 * @var integer
 	 */
-	var $id         	= NULL;
+	var $id = NULL;
 
 	/**
 	 * varchar(127)
-	 * 
+	 *
 	 * @var string
 	 */
-	var $title    		= NULL;
+	var $title = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
-	var $price    		= NULL;
+	var $price = NULL;
 
 	/**
 	 * text
-	 * 
+	 *
 	 * @var string
 	 */
-	var $description    = NULL;
+	var $description = NULL;
 
 	/**
 	 * int(1)
-	 * 
+	 *
 	 * @var integer
 	 */
-	var $available    	= NULL;
+	var $available = NULL;
 
 	/**
 	 * tinyint(1)
-	 * 
+	 *
 	 * @var integer
 	 */
-	var $published   	= NULL;
+	var $published = NULL;
 
 	/**
 	 * tinyint(1)
-	 * 
+	 *
 	 * @var integer
 	 */
-	var $featured   	= NULL;
+	var $featured = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
-	var $special   		= NULL;
+	var $special = NULL;
 
 	/**
 	 * varchar(127)
-	 * 
+	 *
 	 * @var string
 	 */
-	var $category   	= NULL;
+	var $category = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
-	var $type   		= NULL;
+	var $type = NULL;
 
 	/**
 	 * datetime(0000-00-00 00:00:00)
-	 * 
+	 *
 	 * @var string
 	 */
-	var $created  		= NULL;
+	var $created = NULL;
 
 	/**
 	 * text
-	 * 
+	 *
 	 * @var string
 	 */
-	var $params 		= NULL;
+	var $params = NULL;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$db JDatabase
 	 * @return     void
 	 */
@@ -133,36 +133,36 @@ class Store extends  JTable
 
 	/**
 	 * Get a record
-	 * 
-	 * @param      integer $id 
-	 * @return     mixed Return description (if any) ...
+	 *
+	 * @param      integer $id
+	 * @return     object
 	 */
 	public function getInfo($id)
 	{
-		if ($id == null) 
+		if ($id == null)
 		{
 			return false;
 		}
 
-		$query = "SELECT * FROM $this->_tbl WHERE id=" . $id;
+		$query = "SELECT * FROM $this->_tbl WHERE id=" . $this->_db->quote($id);
 		$this->_db->setQuery($query);
 		return $this->_db->loadObjectList();
 	}
 
 	/**
 	 * Get records
-	 * 
+	 *
 	 * @param      string $rtrn    Return data (record count or array or records)
 	 * @param      array  $filters Filters to build query from
-	 * @param      object $config  JParameter
-	 * @return     array Return description (if any) ...
+	 * @param      object $config  JRegistry
+	 * @return     mixed
 	 */
 	public function getItems($rtrn='count', $filters, $config)
 	{
 		// build body of query
 		$query  = "FROM $this->_tbl AS C WHERE ";
 
-		if (isset($filters['filterby'])) 
+		if (isset($filters['filterby']))
 		{
 			switch ($filters['filterby'])
 			{
@@ -179,8 +179,8 @@ class Store extends  JTable
 					$query .= "C.published=1";
 				break;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			$query .= "C.published=1";
 		}
@@ -199,33 +199,27 @@ class Store extends  JTable
 		$query_count  = "SELECT count(*) ";
 
 		// build fetch query
-		$query_fetch  = "SELECT C.id, C.title, C.description, C.price, C.created, C.available, 
+		$query_fetch  = "SELECT C.id, C.title, C.description, C.price, C.created, C.available,
 						C.params, C.special, C.featured, C.category, C.type, C.published ";
 		$query_fetch .= $query;
-		if ($filters['limit'] && $filters['start']) 
+		if ($filters['limit'] && $filters['start'])
 		{
 			$query_fetch .= " LIMIT " . $start . ", " . $limit;
 		}
 
 		// execute query
 		$result = NULL;
-		if ($rtrn == 'count') 
+		if ($rtrn == 'count')
 		{
 			$this->_db->setQuery($query_count);
 			$result = $this->_db->loadResult();
-		} 
-		else 
+		}
+		else
 		{
 			$this->_db->setQuery($query_fetch);
 			$result = $this->_db->loadObjectList();
-			if ($result) 
+			if ($result)
 			{
-				$paramsClass = 'JParameter';
-				if (version_compare(JVERSION, '1.6', 'ge'))
-				{
-					$paramsClass = 'JRegistry';
-				}
-
 				for ($i=0; $i < count($result); $i++)
 				{
 					$row = &$result[$i];
@@ -234,7 +228,7 @@ class Store extends  JTable
 					$row->root = JPATH_ROOT;
 
 					// Get parameters
-					$params = new $paramsClass($row->params);
+					$params = new JRegistry($row->params);
 					$row->size  = $params->get('size', '');
 					$row->color = $params->get('color', '');
 				}

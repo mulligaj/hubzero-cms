@@ -182,13 +182,13 @@ class UsersModelReset extends JModelForm
 			$msg = array();
 		}
 
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_register' . DS . 'helpers' . DS . 'utility.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'helpers' . DS . 'utility.php');
 
 		if (!$password1 || !$password2) {
 			$this->setError( JText::_('you must enter your new password twice to ensure we have it correct') );
 		} elseif ($password1 != $password2) {
 			$this->setError( JText::_('the new password and confirmation you entered do not match. Please try again') );
-		} elseif (!RegisterHelperUtility::validpassword($password1)) {
+		} elseif (!MembersHelperUtility::validpassword($password1)) {
 			$this->setError( JText::_('the password you entered was invalid password. You may be using characters that are not allowed') );
 		} elseif (!empty($msg)) {
 			$this->setError( JText::_('the password does not meet site password requirements. Please choose a password meeting all the requirements listed below.') );
@@ -336,7 +336,7 @@ class UsersModelReset extends JModelForm
 
 		// Check for a user.
 		if (empty($userId)) {
-			$this->setError(JText::_('COM_USERS_INVALID_EMAIL'));
+			$this->setError(JText::_('COM_USERS_INVALID_USERNAME'));
 			return false;
 		}
 
@@ -354,7 +354,7 @@ class UsersModelReset extends JModelForm
 			$this->setError(JText::_('COM_USERS_REMIND_SUPERADMIN_ERROR'));
 			return false;
 		}
-		
+
 		// Make sure the user has not exceeded the reset limit
 		if (!$this->checkResetLimit($user)) {
 			$resetLimit = (int) JFactory::getApplication()->getParams()->get('reset_time');

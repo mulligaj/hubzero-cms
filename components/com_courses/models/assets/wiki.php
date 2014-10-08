@@ -45,9 +45,9 @@ class WikiAssetHandler extends ContentAssetHandler
 	 * @var array
 	 **/
 	protected static $info = array(
-			'action_message' => 'A textual wiki page',
-			'responds_to'    => array('wiki')
-		);
+		'action_message' => 'A textual wiki page',
+		'responds_to'    => array('wiki')
+	);
 
 	/**
 	 * Create method for this handler
@@ -68,6 +68,7 @@ class WikiAssetHandler extends ContentAssetHandler
 		if (!JRequest::getInt('id', false))
 		{
 			// Create asset
+			$this->asset['course_id'] = JRequest::getInt('course_id');
 			$return = parent::create();
 		}
 		else
@@ -93,18 +94,14 @@ class WikiAssetHandler extends ContentAssetHandler
 
 			// Max upload size
 			$sizeLimit = $config->get('upload_maxsize');
-
-			if (version_compare(JVERSION, '1.6', 'ge'))
-			{
-				$sizeLimit = $sizeLimit * 1024 * 1024;
-			}
+			$sizeLimit = $sizeLimit * 1024 * 1024;
 
 			// Get courses config
 			$cconfig = JComponentHelper::getParams('com_courses');
 
 			// Loop through files and save them (they will potentially be coming in together, in a single request)
 			for ($i=0; $i < count($_FILES['files']['name']); $i++)
-			{ 
+			{
 				$file = $_FILES['files']['name'][$i];
 				$size = (int) $_FILES['files']['size'][$i];
 
@@ -114,11 +111,11 @@ class WikiAssetHandler extends ContentAssetHandler
 				$ext      = $pathinfo['extension'];
 
 				// Check to make sure we have a file and its not too big
-				if ($size == 0) 
+				if ($size == 0)
 				{
 					return array('error' => 'File is empty');
 				}
-				if ($size > $sizeLimit) 
+				if ($size > $sizeLimit)
 				{
 					$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 					return array('error' => "File is too large. Max file upload size is $max");
@@ -145,7 +142,7 @@ class WikiAssetHandler extends ContentAssetHandler
 
 				// Move the file to the site folder
 				set_time_limit(60);
-				if(!$move = move_uploaded_file($_FILES['files']['tmp_name'][$i], $target_path))
+				if (!$move = move_uploaded_file($_FILES['files']['tmp_name'][$i], $target_path))
 				{
 					return array('error' => 'Move file failed');
 				}

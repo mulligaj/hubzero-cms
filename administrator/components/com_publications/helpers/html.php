@@ -33,17 +33,17 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 /**
  * Short description for 'ResourcesHtml'
- * 
+ *
  * Long description (if any) ...
  */
-class PublicationsHtml
+class PublicationsAdminHtml
 {
 
 	/**
 	 * Short description for 'error'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $msg Parameter description (if any) ...
 	 * @param      string $tag Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
@@ -55,9 +55,9 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'warning'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $msg Parameter description (if any) ...
 	 * @param      string $tag Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
@@ -69,9 +69,9 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'alert'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $msg Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
 	 */
@@ -82,69 +82,33 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'statusKey'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @return     void
 	 */
 	public static function statusKey()
 	{
 		?>
-			<p><?php echo JText::_('Default version status:'); ?></p>
+		<br />
 			<ul class="key">
-				<li class="draft"><span>draft</span> = <?php echo JText::_('Draft'); ?></li>
-				<li class="ready"><span>ready</span> = <?php echo JText::_('Draft ready'); ?></li>
-				<li class="new"><span>pending</span> = <?php echo JText::_('New, awaiting approval'); ?></li>
-				<!--<li class="pending"><span>coming</span> = <?php echo JText::_('Published, but is coming'); ?></li>//-->
-				<li class="preserving" style="width:auto"><span>current</span> = <?php echo JText::_('Preserving'); ?></li>
-				<li class="published"><span>current</span> = <?php echo JText::_('Published and is current'); ?></li>
-				<li class="archived"><span>archived</span> = <?php echo JText::_('Dark archive'); ?></li>
-				<!--<li class="expired"><span>expired</span> = <?php echo JText::_('Published, but expired'); ?></li>//-->
-				<li class="unpublished"><span>unpublished</span> = <?php echo JText::_('Unpublished'); ?></li>
-				<!--<li class="deleted"><span>deleted</span> = <?php echo JText::_('Deleted'); ?></li>//-->
+				<li class="draft"><?php echo JText::_('COM_PUBLICATIONS_VERSION_DRAFT'); ?></li>
+				<li class="ready"><?php echo JText::_('COM_PUBLICATIONS_VERSION_READY'); ?></li>
+				<li class="new"><?php echo JText::_('COM_PUBLICATIONS_VERSION_PENDING'); ?></li>
+				<li class="preserving"><?php echo JText::_('COM_PUBLICATIONS_VERSION_PRESERVING'); ?></li>
+				<li class="wip"><?php echo JText::_('COM_PUBLICATIONS_VERSION_WIP'); ?></li>
+				<li class="published"><?php echo JText::_('COM_PUBLICATIONS_VERSION_PUBLISHED'); ?></li>
+				<li class="unpublished"><?php echo JText::_('COM_PUBLICATIONS_VERSION_UNPUBLISHED'); ?></li>
+				<li class="deleted"><?php echo JText::_('COM_PUBLICATIONS_VERSION_DELETED'); ?></li>
 			</ul>
 		<?php
 	}
 
 	/**
-	 * Short description for 'shortenText'
-	 * 
-	 * Long description (if any) ...
-	 * 
-	 * @param      string $text Parameter description (if any) ...
-	 * @param      integer $chars Parameter description (if any) ...
-	 * @param      integer $p Parameter description (if any) ...
-	 * @return     string Return description (if any) ...
-	 */
-	public static function shortenText($text, $chars=300, $p=1)
-	{
-		$text = strip_tags($text);
-		$text = trim($text);
-
-		if (strlen($text) > $chars) 
-		{
-			$text = $text.' ';
-			$text = substr($text,0,$chars);
-			$text = substr($text,0,strrpos($text,' '));
-			$text = $text.' ...';
-		}
-		if ($text == '') 
-		{
-			$text = '...';
-		}
-		if ($p) 
-		{
-			$text = '<p>'.$text.'</p>';
-		}
-
-		return $text;
-	}
-
-	/**
 	 * Short description for 'parseTag'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $text Parameter description (if any) ...
 	 * @param      string $tag Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
@@ -152,13 +116,13 @@ class PublicationsHtml
 	public static function parseTag($text, $tag)
 	{
 		preg_match("#<nb:".$tag.">(.*?)</nb:".$tag.">#s", $text, $matches);
-		if (count($matches) > 0) 
+		if (count($matches) > 0)
 		{
 			$match = $matches[0];
 			$match = str_replace('<nb:'.$tag.'>','',$match);
 			$match = str_replace('</nb:'.$tag.'>','',$match);
-		} 
-		else 
+		}
+		else
 		{
 			$match = '';
 		}
@@ -166,27 +130,10 @@ class PublicationsHtml
 	}
 
 	/**
-	 * Short description for 'niceidformat'
-	 * 
-	 * Long description (if any) ...
-	 * 
-	 * @param      integer $someid Parameter description (if any) ...
-	 * @return     integer Return description (if any) ...
-	 */
-	public static function niceidformat($someid)
-	{
-		while (strlen($someid) < 5)
-		{
-			$someid = 0 . "$someid";
-		}
-		return $someid;
-	}
-
-	/**
 	 * Short description for 'build_path'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $date Parameter description (if any) ...
 	 * @param      unknown $pid Parameter description (if any) ...
 	 * @param      unknown $vid Parameter description (if any) ...
@@ -195,41 +142,40 @@ class PublicationsHtml
 	 * @param      unknown $root Parameter description (if any) ...
 	 * @return     unknown Return description (if any) ...
 	 */
-	
-	public static function buildPath( $pid = NULL, $vid = NULL, $base = '', $filedir = '', $root = 0 )
+
+	public static function buildPath(
+		$pid = NULL,
+		$vid = NULL,
+		$base = '',
+		$filedir = '',
+		$root = 0
+	)
 	{
-		if ($vid === NULL or $pid === NULL ) {
+		if ($vid === NULL or $pid === NULL )
+		{
 			return false;
 		}
-		if (!$base) 
+		if (!$base)
 		{
 			$pubconfig = JComponentHelper::getParams( 'com_publications' );
-			$base = $pubconfig->get('webpath');					
+			$base = $pubconfig->get('webpath');
 		}
-		
-		if (substr($base, 0, 1) != DS) 
-		{
-			$base = DS.$base;
-		}
-		if (substr($base, -1, 1) == DS) 
-		{
-			$base = substr($base, 0, (strlen($base) - 1));
-		}
-		
+
+		$base = DS . trim($base, DS);
 		$pub_dir =  \Hubzero\Utility\String::pad( $pid );
 		$version_dir =  \Hubzero\Utility\String::pad( $vid );
-		$path = $base.DS.$pub_dir.DS.$version_dir;
-		$path = $filedir ? $path.DS.$filedir : $path;
-		$path = $root ? JPATH_ROOT.$path : $path;
-		
-		return $path;		
+		$path = $base . DS . $pub_dir . DS . $version_dir;
+		$path = $filedir ? $path . DS . $filedir : $path;
+		$path = $root ? JPATH_ROOT . $path : $path;
+
+		return $path;
 	}
 
 	/**
 	 * Short description for 'writeRating'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $rating Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
 	 */
@@ -251,7 +197,7 @@ class PublicationsHtml
 			default:  $class = ' none';      break;
 		}
 
-		return '<p class="avgrating'.$class.'"><span>Rating: '.$rating.' out of 5 stars</span></p>';
+		return '<p class="avgrating' . $class . '"><span>Rating: ' . $rating.' out of 5 stars</span></p>';
 	}
 
 	//----------------------------------------------------------
@@ -260,9 +206,9 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'selectAccess'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      array $as Parameter description (if any) ...
 	 * @param      unknown $value Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
@@ -274,7 +220,7 @@ class PublicationsHtml
 		for ($i=0, $n=count( $as ); $i < $n; $i++)
 		{
 			$html .= "\t".'<option value="'.$i.'"';
-			if ($value == $i) 
+			if ($value == $i)
 			{
 				$html .= ' selected="selected"';
 			}
@@ -285,28 +231,71 @@ class PublicationsHtml
 	}
 
 	/**
+	 * License selection
+	 *
+	 * @param      array $licenses Parameter description (if any) ...
+	 * @param      unknown $value Parameter description (if any) ...
+	 * @return     string Return description (if any) ...
+	 */
+	public static function selectLicense($licenses, $selected)
+	{
+		$value = $selected ? $selected->id : 1;
+		$html  = '<select name="license_type" id="license_type">'."\n";
+		foreach ($licenses as $license)
+		{
+			$html .= "\t".'<option value="' . $license->id . '"';
+			if ($value == $license->id)
+			{
+				$html .= ' selected="selected"';
+			}
+			$html .= '>' . trim($license->name) . '</option>'."\n";
+		}
+		$html .= '</select>'."\n";
+		return $html;
+	}
+
+	/**
+	 * Project selection
+	 *
+	 * @param      array  $projects
+	 * @return     string Return description (if any) ...
+	 */
+	public static function selectProjects($projects)
+	{
+		$html  = '<select name="projectid" id="projectid">'."\n";
+		$html .= "\t".'<option value="0" selected="selected">' . JText::_('COM_PUBLICATIONS_SELECT_PROJECT') . '</option>';
+		foreach ($projects as $project)
+		{
+			$html .= "\t".'<option value="' . $project->id . '"';
+			$html .= '>' . trim($project->title) . ' (' . $project->alias . ')</option>'."\n";
+		}
+		$html .= '</select>'."\n";
+		return $html;
+	}
+
+	/**
 	 * Short description for 'selectGroup'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      array $groups Parameter description (if any) ...
 	 * @param      unknown $value Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
 	 */
-	public static function selectGroup($groups, $value)
+	public static function selectGroup($groups, $value, $groupOwner)
 	{
 		$html  = '<select name="group_owner"';
-		if (!$groups) {
+		if (!$groups || $groupOwner) {
 			$html .= ' disabled="disabled"';
 		}
 		$html .= ' style="max-width: 15em;">'."\n";
 		$html .= ' <option value="">'.JText::_('Select group ...').'</option>'."\n";
-		if ($groups) 
+		if ($groups)
 		{
 			foreach ($groups as $group)
 			{
-				$html .= ' <option value="'.$group->cn.'"';
-				if ($value == $group->cn) 
+				$html .= ' <option value="' . $group->gidNumber . '"';
+				if ($value == $group->gidNumber)
 				{
 					$html .= ' selected="selected"';
 				}
@@ -319,9 +308,9 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'selectSection'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      string $name Parameter description (if any) ...
 	 * @param      array $array Parameter description (if any) ...
 	 * @param      integer $value Parameter description (if any) ...
@@ -349,9 +338,9 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'selectCategory'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      array $arr Parameter description (if any) ...
 	 * @param      string $name Parameter description (if any) ...
 	 * @param      mixed $value Parameter description (if any) ...
@@ -365,23 +354,23 @@ class PublicationsHtml
 	{
 		$html  = '<select name="'.$name.'" id="'.$name.'"'.$js;
 		$html .= ($class) ? ' class="'.$class.'">'."\n" : '>'."\n";
-		if ($shownone != '') 
+		if ($shownone != '')
 		{
 			$html .= "\t".'<option value=""';
 			$html .= ($value == 0 || $value == '') ? ' selected="selected"' : '';
 			$html .= '>'.$shownone.'</option>'."\n";
 		}
-		if ($skip) 
+		if ($skip)
 		{
 			$skips = explode(',',$skip);
-		} 
-		else 
+		}
+		else
 		{
 			$skips = array();
 		}
 		foreach ($arr as $anode)
 		{
-			if (!in_array($anode->id, $skips)) 
+			if (!in_array($anode->id, $skips))
 			{
 				$selected = ($value && ($anode->id == $value || $anode->name == $value))
 					  ? ' selected="selected"'
@@ -395,9 +384,9 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'selectAuthorsNoEdit'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      array $authnames Parameter description (if any) ...
 	 * @param      string $option Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
@@ -407,103 +396,144 @@ class PublicationsHtml
 		$authIDs = array();
 		$html = '';
 		$i = 1;
-		if ($authnames != NULL) 
+		if ($authnames != NULL)
 		{
 			$html = '<ul id="author-list">'."\n";
 			foreach ($authnames as $authname)
 			{
 				$authIDs[] = $authname->id;
 				$name = $authname->name;
-				
-				$org = ($authname->organization) ? htmlentities($authname->organization,ENT_COMPAT,'UTF-8') : '';
-				$credit = ($authname->credit) ? htmlentities($authname->credit,ENT_COMPAT,'UTF-8') : '';
+
+				$org = ($authname->organization)
+					? htmlentities($authname->organization,ENT_COMPAT,'UTF-8') : '';
+				$credit = ($authname->credit)
+					? htmlentities($authname->credit,ENT_COMPAT,'UTF-8') : '';
 				$userid = $authname->user_id ? $authname->user_id : 'unregistered';
 
-				$html .= "\t".'<li id="author_'.$authname->id.'">'. $i . '. ' . $name .' ('.$userid.')';			
-				$html .= $org ? ' - <span class="org">'.$org.'</span>' : '';
-				$html .= ' <a class="editauthor" href="index.php?option=' . $option . '&controller=items&task=editauthor&author=' . $authname->id .'" >Edit</a> ';
-				$html .= ' <a class="editauthor" href="index.php?option=' . $option . '&controller=items&task=deleteauthor&aid=' . $authname->id .'"  >Delete</a> ';
-				if ($credit) 
+				$html .= "\t".'<li id="author_'.$authname->id.'">'
+					. $i . '. ' . $name . ' (' . $userid . ')';
+				$html .= $org ? ' - <span class="org">' . $org . '</span>' : '';
+				$html .= ' <a class="editauthor" href="index.php?option=' . $option . '&controller=items&task=editauthor&author=' . $authname->id .'" >' . JText::_('COM_PUBLICATIONS_EDIT') . '</a> ';
+				$html .= ' <a class="editauthor" href="index.php?option=' . $option . '&controller=items&task=deleteauthor&aid=' . $authname->id .'"  > ' . JText::_('COM_PUBLICATIONS_DELETE') . '</a> ';
+				if ($credit)
 				{
-					$html .= '<br />'.JText::_('Credit').': '.$credit;
+					$html .= '<br />' . JText::_('COM_PUBLICATIONS_CREDIT') . ': ' . $credit;
 				}
-				$html .= '</li>'."\n";
+				$html .= '</li>' . "\n";
 				$i++;
 			}
 			$html.= '</ul>';
 		}
-		else 
+		else
 		{
-			$html.= '<p class="notice">'.JText::_('No authors listed').'</p>';
+			$html.= '<p class="notice">' . JText::_('COM_PUBLICATIONS_NO_AUTHORS') . '</p>';
 		}
 		return $html;
 	}
-	
+
 	/**
-	 * Short description for 'selectContent'
-	 * 
-	 * Long description (if any) ...
-	 * 
-	 * @param      array $primary Parameter description (if any) ...
-	 * @param      array $secondary Parameter description (if any) ...
-	 * @param      string $option Parameter description (if any) ...
-	 * @return     string Return description (if any) ...
+	 * Select content
+	 *
+	 * @param      object $pub
+	 * @param      string $option
+	 * @return     string HTML
 	 */
-	public static function selectContent($primary, $secondary, $option)
-	{		
-		$serveas = 'download';
-			
-		$html = '';
-		$html.= '<h4>'.JText::_('Primary content').' ('.count($primary).')</h4>';
-		if (count($primary) > 0) 
+	public static function selectContent($pub, $option, $useBlocks = false, $database)
+	{
+		if (!$pub->_attachments)
 		{
-			$primaryParams = new JParameter($primary[0]->params );
-			$serveas = $primaryParams->get('serveas', 'download');
-			
-			$html .= '<ul class="content-list">'."\n";
-			foreach ($primary as $att) 
+			return '<p class="notice">' . JText::_('COM_PUBLICATIONS_NO_CONTENT') . '</p>';
+		}
+		$html 	= '';
+		$prime  = $pub->_attachments[1];
+		$second = $pub->_attachments[2];
+
+		if ($useBlocks && isset($pub->_curationModel))
+		{
+			$prime    = $pub->_curationModel->getElements(1);
+			$second   = $pub->_curationModel->getElements(2);
+			$gallery  = $pub->_curationModel->getElements(3);
+
+			// Get attachment type model
+			$attModel = new PublicationsModelAttachments($database);
+
+			// Draw list of primary elements
+			$html .= '<h5>' . JText::_('COM_PUBLICATIONS_PRIMARY_CONTENT') . '</h5>';
+			$list  = $attModel->listItems(
+				$prime,
+				$pub,
+				true
+			);
+			$html .= $list ? $list : '<p class="notice">' . JText::_('COM_PUBLICATIONS_NO_CONTENT') . '</p>';
+
+			// Draw list of secondary elements
+			$html .= '<h5>' . JText::_('COM_PUBLICATIONS_SUPPORTING_CONTENT') . '</h5>';
+			$list  = $attModel->listItems(
+				$second,
+				$pub,
+				'administrator'
+			);
+			$html .= $list ? $list : '<p class="notice">' . JText::_('COM_PUBLICATIONS_NO_CONTENT') . '</p>';
+
+			// Draw list of gallery elements
+			$html .= '<h5>' . JText::_('COM_PUBLICATIONS_GALLERY') . '</h5>';
+			$list  = $attModel->listItems(
+				$gallery,
+				$pub,
+				'administrator'
+			);
+			$html .= $list ? $list : '<p class="notice">' . JText::_('COM_PUBLICATIONS_NO_CONTENT') . '</p>';
+		}
+		else
+		{
+			$html .= '<h5>' . JText::_('COM_PUBLICATIONS_PRIMARY_CONTENT') . '</h5>';
+			if ($prime)
 			{
-				$type = $att->type;
-				if ($att->type == 'file') 
+				$html .= '<ul class="content-list">';
+				foreach ($prime as $att)
 				{
-					$ext = explode('.',$att->path);
-					$type = strtoupper(end($ext));
+					$type = $att->type;
+					if ($att->type == 'file')
+					{
+						$ext  = explode('.', $att->path);
+						$type = strtoupper(end($ext));
+					}
+					$title = $att->title ? $att->title : $att->path;
+					$html .= '<li>('.$type.') ';
+					$html .= $att->title ? $att->title : $att->path;
+					$html .= $att->title != $att->path ? '<br /><span class="ctitle">' . $att->path.'</span>' : '';
+					$html .= '</li>'."\n";
 				}
-				$title = $att->title ? $att->title : $att->path;
-				$html .= '<li>('.$type.') ';
-				$html .= $att->title ? $att->title : $att->path;
-				$html .= $att->title != $att->path ? '<br /><span class="ctitle">'.$att->path.'</span>' : '';
-				$html .= '</li>'."\n";
+				$html .= '</ul>';
 			}
-			$html .= '<li class="summary">'.JText::_('Primary content is served as').' <strong>'.$serveas.'</strong></li>'."\n";
-			$html.= '</ul>';
-		}
-		else 
-		{
-			$html.= '<p class="notice">'.JText::_('No primary content').'</p>';
-		}
-		$html.= '<h4>'.JText::_('Supporting Documents').' ('.count($secondary).')</h4>';
-		if (count($secondary) > 0) 
-		{
-			$html .= '<ul class="content-list">'."\n";
-			foreach ($secondary as $att) 
+			else
 			{
-				$type = $att->type;
-				if ($att->type == 'file') 
-				{
-					$ext = explode('.',$att->path);
-					$type = strtoupper(end($ext));
-				}
-				$html .= '<li>('.$type.') ';
-				$html .= $att->title ? $att->title : $att->path;
-				$html .= $att->title != $att->path ? '<br /><span class="ctitle">'.$att->path.'</span>' : '';
-				$html .= '</li>'."\n";
+				$html .= '<p class="notice">' . JText::_('COM_PUBLICATIONS_NO_CONTENT') . '</p>';
 			}
-			$html.= '</ul>';
-		}
-		else 
-		{
-			$html.= '<p>'.JText::_('No supporting documents').'</p>';
+			$html .= '<h5>' . JText::_('COM_PUBLICATIONS_SUPPORTING_CONTENT') . '</h5>';
+			if ($second)
+			{
+				$html .= '<ul class="content-list">';
+				foreach ($second as $att)
+				{
+					$type = $att->type;
+					if ($att->type == 'file')
+					{
+						$ext  = explode('.', $att->path);
+						$type = strtoupper(end($ext));
+					}
+					$title = $att->title ? $att->title : $att->path;
+					$html .= '<li>('.$type.') ';
+					$html .= $att->title ? $att->title : $att->path;
+					$html .= $att->title != $att->path ? '<br /><span class="ctitle">' . $att->path.'</span>' : '';
+					$html .= '</li>'."\n";
+				}
+				$html .= '</ul>';
+			}
+			else
+			{
+				$html .= '<p class="notice">' . JText::_('COM_PUBLICATIONS_NO_CONTENT') . '</p>';
+			}
 		}
 
 		return $html;
@@ -511,15 +541,15 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'dateToPath'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $date Parameter description (if any) ...
 	 * @return     string Return description (if any) ...
 	 */
 	public static function dateToPath( $date )
 	{
-		if ($date && ereg("([0-9]{4})-([0-9]{2})-([0-9]{2})[ ]([0-9]{2}):([0-9]{2}):([0-9]{2})", $date, $regs )) 
+		if ($date && ereg("([0-9]{4})-([0-9]{2})-([0-9]{2})[ ]([0-9]{2}):([0-9]{2}):([0-9]{2})", $date, $regs ))
 		{
 			$date = mktime( $regs[4], $regs[5], $regs[6], $regs[2], $regs[3], $regs[1] );
 		}
@@ -534,20 +564,20 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'dir_name'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $dir Parameter description (if any) ...
 	 * @return     integer Return description (if any) ...
 	 */
 	public static function dir_name($dir)
 	{
 		$lastSlash = intval(strrpos($dir, '/'));
-		if ($lastSlash == strlen($dir)-1) 
+		if ($lastSlash == strlen($dir)-1)
 		{
 			return substr($dir, 0, $lastSlash);
-		} 
-		else 
+		}
+		else
 		{
 			return dirname($dir);
 		}
@@ -555,23 +585,23 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'parse_size'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      mixed $size Parameter description (if any) ...
 	 * @return     mixed Return description (if any) ...
 	 */
 	public static function parse_size($size)
 	{
-		if ($size < 1024) 
+		if ($size < 1024)
 		{
 			return $size.' bytes';
-		} 
-		elseif ($size >= 1024 && $size < 1024*1024) 
+		}
+		elseif ($size >= 1024 && $size < 1024*1024)
 		{
 			return sprintf('%01.2f',$size/1024.0).' <abbr title="kilobytes">Kb</abbr>';
-		} 
-		else 
+		}
+		else
 		{
 			return sprintf('%01.2f',$size/(1024.0*1024)).' <abbr title="megabytes">Mb</abbr>';
 		}
@@ -579,9 +609,9 @@ class PublicationsHtml
 
 	/**
 	 * Short description for 'num_files'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $dir Parameter description (if any) ...
 	 * @return     integer Return description (if any) ...
 	 */
@@ -589,13 +619,13 @@ class PublicationsHtml
 	{
 		$total = 0;
 
-		if (is_dir($dir)) 
+		if (is_dir($dir))
 		{
 			$d = @dir($dir);
 
 			while (false !== ($entry = $d->read()))
 			{
-				if (substr($entry,0,1) != '.') 
+				if (substr($entry,0,1) != '.')
 				{
 					$total++;
 				}
@@ -604,90 +634,100 @@ class PublicationsHtml
 		}
 		return $total;
 	}
-	
+
 	/**
 	 * Short description for 'PublicationHelper::getPubStateProperty'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $row Parameter description (if any) ...
 	 * @return     integer Return description (if any) ...
-	 */	
-	public static function getPubStateProperty($row, $get = 'class') 
-	{	
+	 */
+	public static function getPubStateProperty($row, $get = 'class')
+	{
 		$status 	= '';
 		$class 		= '';
 		$task       = '';
 		$now 		= JFactory::getDate()->toSql();
-		
-		switch ($row->state) 
+
+		switch ($row->state)
 		{
-			case 0: 
+			case 0:
 				$class  = 'unpublished';
 				$status = JText::_('COM_PUBLICATIONS_VERSION_UNPUBLISHED');
 				$task 	= 'publish';
 				break;
-				
-			case 1: 
+
+			case 1:
 				$class   = 'published';
 				$status  = JText::_('COM_PUBLICATIONS_VERSION_PUBLISHED');
 				$task 	 = 'unpublish';
-				
-				if ($now <= $row->published_up) 
+
+				if ($now <= $row->published_up)
 				{
 					$class   = 'pending';
 					$status  = JText::_('COM_PUBLICATIONS_VERSION_COMING');
-				} 
-				elseif ($now <= $row->published_down || $row->published_down == "0000-00-00 00:00:00") 
+				}
+				elseif ($now <= $row->published_down || $row->published_down == "0000-00-00 00:00:00")
 				{
 					$class 	 = 'published';
 					$status  = JText::_('COM_PUBLICATIONS_VERSION_PUBLISHED');
-				} 
-				elseif ($row->published_down && $row->published_down != "0000-00-00 00:00:00" && $now > $row->published_down) 
+				}
+				elseif ($row->published_down && $row->published_down != "0000-00-00 00:00:00" && $now > $row->published_down)
 				{
 					$status  = JText::_('COM_PUBLICATIONS_VERSION_EXPIRED');
 					$class   = 'expired';
 				}
 				break;
-				
-			case 2: 
+
+			case 2:
 				$class   = 'deleted';
 				$status  = JText::_('COM_PUBLICATIONS_VERSION_DELETED');
 				break;
-				
+
 			case 3:
-			default: 
+			default:
 				$class   = 'draft';
 				$status  = JText::_('COM_PUBLICATIONS_VERSION_DRAFT');
 				break;
-				
-			case 4: 
+
+			case 4:
 				$class   = 'ready';
 				$status  = JText::_('COM_PUBLICATIONS_VERSION_READY');
 				break;
-				
-			case 5: 
+
+			case 5:
 				$class  = 'new';
 				$status = JText::_('COM_PUBLICATIONS_VERSION_PENDING');
 				$task = 'publish';
 				break;
-					
-			case 6: 
+
+			case 6:
 				$class  = 'archived';
 				$status = JText::_('COM_PUBLICATIONS_VERSION_DARKARCHIVE');
 				break;
-				
+
 			case 10:
 				$class	= 'preserving';
 				$status = JText::_('COM_PUBLICATIONS_VERSION_PRESERVING');
-				break;	
+				break;
+
+			case 7:
+				$class	= 'wip';
+				$status = JText::_('COM_PUBLICATIONS_VERSION_WIP');
+				break;
+
+			case 2:
+				$class	= 'deleted';
+				$status = JText::_('COM_PUBLICATIONS_VERSION_DELETED');
+				break;
 		}
-		
-		switch ($get) 
+
+		switch ($get)
 		{
 			case 'class':
 				return $class;
-				break;			
+				break;
 			case 'status':
 				return $status;
 				break;
@@ -696,10 +736,10 @@ class PublicationsHtml
 				break;
 		}
 	}
-	
+
 	/**
 	 * Remove paragraph tags and break tags
-	 * 
+	 *
 	 * @param      string $pee Text to unparagraph
 	 * @return     string
 	 */
@@ -712,22 +752,22 @@ class PublicationsHtml
 		$pee = str_replace('<br />', '', $pee);
 		$pee = trim($pee);
 		return $pee;
-	}	
-	
+	}
+
 	/**
 	 * Get project thumbnail
-	 * 
+	 *
 	 * @param      int 		$pid
 	 * @param      int 		$versionid
 	 * @param      array 	$config
 	 * @return     string HTML
 	 */
 	public static function getThumbSrc( $pid, $versionid, $config, $cat = '' )
-	{		
+	{
 		// Get publication directory path
 		$webpath = $config->get('webpath', 'site/publications');
-		$path 	 = PublicationsHtml::buildPath($pid, $versionid, $webpath);
-		
+		$path 	 = PublicationsAdminHtml::buildPath($pid, $versionid, $webpath);
+
 		if (file_exists( JPATH_ROOT . $path . DS . 'thumb.png' ))
 		{
 			return $path . DS . 'thumb.png';
@@ -735,58 +775,58 @@ class PublicationsHtml
 		else
 		{
 			// Get default picture
-			$default = $cat == 'tools' 
+			$default = $cat == 'tools'
 					? $config->get('toolpic', '/components/com_publications/assets/img/tool_thumb.gif')
 					: $config->get('defaultpic', '/components/com_publications/assets/img/resource_thumb.gif');
-			
+
 			return file_exists( JPATH_ROOT . $default) ? $default : NULL;
 		}
 	}
-	
+
 	/**
 	 * Create a thumbnail name
-	 * 
+	 *
 	 * @param      string $image Image name
 	 * @param      string $tn    Thumbnail prefix
-	 * @param      string $ext  
+	 * @param      string $ext
 	 * @return     string
 	 */
 	public static function createThumbName( $image=null, $tn='_thumb', $ext = '' )
 	{
-		if (!$image) 
+		if (!$image)
 		{
-			$this->setError( JText::_('No image set.') );
+			$this->setError( JText::_('COM_PUBLICATIONS_NO_IMAGE') );
 			return false;
 		}
-		
+
 		$image = explode('.',$image);
 		$n = count($image);
-		
-		if ($n > 1) 
+
+		if ($n > 1)
 		{
 			$image[$n-2] .= $tn;
 			$end = array_pop($image);
-			if ($ext) 
+			if ($ext)
 			{
 				$image[] = $ext;
 			}
-			else 
+			else
 			{
 				$image[] = $end;
 			}
-			
+
 			$thumb = implode('.',$image);
 		}
-		else 
+		else
 		{
 			// No extension
 			$thumb = $image[0];
 			$thumb .= $tn;
-			if ($ext) 
+			if ($ext)
 			{
 				$thumb .= '.'.$ext;
 			}
-		}	
+		}
 		return $thumb;
 	}
 }

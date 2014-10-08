@@ -40,37 +40,37 @@ class SupportModelAttachment extends \Hubzero\Base\Model
 {
 	/**
 	 * Table name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'SupportAttachment';
 
 	/**
 	 * URL for this entry
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_base = 'index.php?option=com_support';
 
 	/**
 	 * File size
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_size = null;
 
 	/**
 	 * Diemnsions for file (must be an image)
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_dimensions = null;
 
 	/**
 	 * Scan text for attachment macros {attachment#}
-	 * 
-	 * @param      string $text Text to search
-	 * @return     string HTML
+	 *
+	 * @param   string $text Text to search
+	 * @return  string HTML
 	 */
 	public function parse($text)
 	{
@@ -79,9 +79,9 @@ class SupportModelAttachment extends \Hubzero\Base\Model
 
 	/**
 	 * Process an attachment macro and output a link to the file
-	 * 
-	 * @param      array $matches Macro info
-	 * @return     string HTML
+	 *
+	 * @param   array $matches Macro info
+	 * @return  string HTML
 	 */
 	public function getAttachment($matches)
 	{
@@ -91,29 +91,29 @@ class SupportModelAttachment extends \Hubzero\Base\Model
 
 		$this->_tbl->load($id);
 
-		if ($this->output != 'web' && $this->output != 'email') 
+		if ($this->output != 'web' && $this->output != 'email')
 		{
 			return $this->link();
 		}
 
-		if (is_file($this->link('filepath'))) 
+		if (is_file($this->link('filepath')))
 		{
 			$url = $this->link();
 
-			if ($this->output != 'email' && $this->isImage()) 
+			if ($this->output != 'email' && $this->isImage())
 			{
 				$size = getimagesize($this->link('filepath'));
-				if ($size[0] > 400) 
+				if ($size[0] > 400)
 				{
 					$img = '<a href="' . $url . '"><img src="' . $url . '" alt="' . $this->get('description') . '" width="400" /></a>';
-				} 
-				else 
+				}
+				else
 				{
 					$img = '<img src="' . $url . '" alt="' . $this->get('description') . '" />';
 				}
 				return $img;
-			} 
-			else 
+			}
+			else
 			{
 				return '<a href="' . $url . '" title="' . $this->get('description') . '">' . $this->get('description', $this->get('filename')) . '</a>';
 			}
@@ -124,8 +124,8 @@ class SupportModelAttachment extends \Hubzero\Base\Model
 
 	/**
 	 * Is the file an image?
-	 * 
-	 * @return     boolean
+	 *
+	 * @return  boolean
 	 */
 	public function isImage()
 	{
@@ -133,16 +133,26 @@ class SupportModelAttachment extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Is the file an image?
-	 * 
-	 * @return     boolean
+	 * Does the file exist on the server?
+	 *
+	 * @return  boolean
+	 */
+	public function hasFile()
+	{
+		return file_exists($this->link('filepath'));
+	}
+
+	/**
+	 * Get the file size
+	 *
+	 * @return  integer
 	 */
 	public function size()
 	{
 		if ($this->_size === null)
 		{
 			$this->_size = 0;
-			if (file_exists($this->link('filepath')))
+			if ($this->hasFile())
 			{
 				$this->_size = filesize($this->link('filepath'));
 			}
@@ -152,30 +162,30 @@ class SupportModelAttachment extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Is the file an image?
-	 * 
-	 * @return     boolean
+	 * Get image width
+	 *
+	 * @return  integer
 	 */
 	public function width()
 	{
 		if (!$this->_dimensions)
 		{
-			$this->_dimensions = $this->isImage() ? getimagesize($this->link('filepath')) : array(0, 0);
+			$this->_dimensions = $this->isImage() && $this->hasFile() ? getimagesize($this->link('filepath')) : array(0, 0);
 		}
 
 		return $this->_dimensions[0];
 	}
 
 	/**
-	 * Is the file an image?
-	 * 
-	 * @return     boolean
+	 * Get image height
+	 *
+	 * @return  integer
 	 */
 	public function height()
 	{
 		if (!$this->_dimensions)
 		{
-			$this->_dimensions = $this->isImage() ? getimagesize($this->link('filepath')) : array(0, 0);
+			$this->_dimensions = $this->isImage() && $this->hasFile() ? getimagesize($this->link('filepath')) : array(0, 0);
 		}
 
 		return $this->_dimensions[1];
@@ -183,10 +193,11 @@ class SupportModelAttachment extends \Hubzero\Base\Model
 
 	/**
 	 * Generate and return various links to the entry
-	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
-	 * @param      string $type The type of link to return
-	 * @return     string
+	 * Link will vary depending upon type desired
+	 *
+	 * @param   string  $type     The type of link to return
+	 * @param   boolean $absolute Get the URL absolute to the domain?
+	 * @return  string
 	 */
 	public function link($type='', $absolute=false)
 	{
@@ -226,26 +237,26 @@ class SupportModelAttachment extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Delete redord and associated file
-	 * 
-	 * @return     boolean
+	 * Delete record and associated file
+	 *
+	 * @return  boolean
 	 */
 	public function delete()
 	{
-		$file = $this->get('filename');
-		$path = $this->link('filepath');
-
 		if (!parent::delete())
 		{
 			return false;
 		}
 
-		if (is_dir($path)) 
+		if ($this->hasFile())
 		{
+			$file = $this->get('filename');
+			$path = $this->link('filepath');
+
 			jimport('joomla.filesystem.file');
-			if (!JFile::delete($path)) 
+			if (!JFile::delete($path))
 			{
-				$this->setError(JText::sprintf('Unable to delete file %s', $file));
+				$this->setError(JText::sprintf('COM_SUPPORT_ERROR_UNABLE_TO_DELETE_FILE', $file));
 				return false;
 			}
 		}

@@ -35,43 +35,43 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_w
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'abstract.php');
 
 /**
- * Courses model class for a forum
+ * Wishlist class for a wish plan model
  */
 class WishlistModelPlan extends WishlistModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_tbl_name = 'WishlistPlan';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_wishlist.plan.pagetext';
 
 	/**
-	 * ForumModelAttachment
-	 * 
+	 * WishlistodelAttachment
+	 *
 	 * @var object
 	 */
 	protected $_attachment = null;
 
 	/**
-	 * ForumModelAttachment
-	 * 
+	 * Hubzero\User\Profile
+	 *
 	 * @var object
 	 */
 	private $_creator = null;
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      mixed $oid Integer (ID), string (alias), object or array
-	 * @return     void
+	 *
+	 * @param   mixed $oid Integer (ID), string (alias), object or array
+	 * @return  void
 	 */
 	public function __construct($oid=null, $wish=null)
 	{
@@ -90,37 +90,40 @@ class WishlistModelPlan extends WishlistModelAbstract
 				throw new \LogicException(\JText::_('Table class must be an instance of JTable.'));
 			}
 
-			if (is_numeric($oid) || is_string($oid))
+			if ($oid)
 			{
-				// Make sure $oid isn't empty
-				// This saves a database call
-				if ($oid)
+				if (is_numeric($oid) || is_string($oid))
 				{
+					// Make sure $oid isn't empty
+					// This saves a database call
 					$this->_tbl->load($oid);
 				}
-			}
-			else if (is_object($oid) || is_array($oid))
-			{
-				$this->bind($oid);
+				else if (is_object($oid) || is_array($oid))
+				{
+					$this->bind($oid);
+				}
 			}
 			else if ($wish)
 			{
-				$this->_tbl->getPlan($wish);
+				if ($plans = $this->_tbl->getPlan($wish))
+				{
+					$this->bind($plans[0]);
+				}
 			}
 		}
 	}
 
 	/**
-	 * Returns a reference to a forum post model
+	 * Returns a reference to this model
 	 *
-	 * @param      mixed $oid ID (int) or array or object
-	 * @return     object ForumModelPost
+	 * @param   mixed  $oid ID (int) or array or object
+	 * @return  object WishlistModelPlan
 	 */
 	static function &getInstance($oid=null, $wish=null)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -138,7 +141,7 @@ class WishlistModelPlan extends WishlistModelAbstract
 			$key = $oid['id'];
 		}
 
-		if (!isset($instances[$oid])) 
+		if (!isset($instances[$oid]))
 		{
 			$instances[$oid] = new self($oid, $wish);
 		}
@@ -148,35 +151,42 @@ class WishlistModelPlan extends WishlistModelAbstract
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
 	 * it returns the entire object
 	 *
-	 * @return     mixed
+	 * @param   string $property Property to retrieve
+	 * @param   mixed  $default  Default value if property not set
+	 * @return  mixed
 	 */
-	public function proposer($property=null)
+	public function creator($property=null, $default=null)
 	{
 		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
 			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+			if (!$this->_creator)
+			{
+				$this->_creator = new \Hubzero\User\Profile();
+			}
 		}
 		if ($property)
 		{
+			$property = ($property == 'id') ? 'uidNumber' : $property;
 			if ($property == 'picture')
 			{
 				return $this->_creator->getPicture($this->get('anonymous'));
 			}
-			return $this->_creator->get($property);
+			return $this->_creator->get($property, $default);
 		}
 		return $this->_creator;
 	}
 
 	/**
 	 * Return a formatted timestamp
-	 * 
-	 * @param      string $rtrn What data to return
-	 * @return     boolean
+	 *
+	 * @param   string $rtrn What data to return
+	 * @return  boolean
 	 */
 	public function created($rtrn='')
 	{
@@ -197,11 +207,11 @@ class WishlistModelPlan extends WishlistModelAbstract
 	}
 
 	/**
-	 * Get the state of the entry as either text or numerical value
-	 * 
-	 * @param      string  $as      Format to return state in [text, number]
-	 * @param      integer $shorten Number of characters to shorten text to
-	 * @return     mixed String or Integer
+	 * Get the content of the entry in various formats
+	 *
+	 * @param   string  $as      Format to return state in [text, number]
+	 * @param   integer $shorten Number of characters to shorten text to
+	 * @return  mixed String or Integer
 	 */
 	public function content($as='parsed', $shorten=0)
 	{

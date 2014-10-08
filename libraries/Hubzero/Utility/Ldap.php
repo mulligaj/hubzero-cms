@@ -211,7 +211,7 @@ class Ldap
 	/**
 	 * Sync a user's info to LDAP
 	 *
-	 * @param   mixed   $user 
+	 * @param   mixed   $user
 	 * @return  boolean
 	 */
 	public static function syncUser($user)
@@ -232,7 +232,7 @@ class Ldap
 			return false;
 		}
 
-		$query = "SELECT p.uidNumber AS uidNumber, u.username AS uid, p.name AS cn, " .
+		$query = "SELECT p.uidNumber AS uidNumber, p.username AS uid, p.name AS cn, " .
 				" p.gidNumber, p.homeDirectory, p.loginShell, " .
 				" pwd.passhash AS userPassword, pwd.shadowLastChange, pwd.shadowMin, pwd.shadowMax, pwd.shadowWarning, " .
 				" pwd.shadowInactive, pwd.shadowExpire, pwd.shadowFlag " .
@@ -299,7 +299,7 @@ class Ldap
 			$entry['objectclass'][] = 'posixAccount'; // MUST cn,gidNumber,homeDirectory,uidNumber
 			$entry['objectclass'][] = 'shadowAccount';
 
-			foreach($dbinfo as $key=>$value)
+			foreach ($dbinfo as $key=>$value)
 			{
 				if (is_array($value) && $value != array())
 				{
@@ -426,6 +426,36 @@ class Ldap
 		}
 
 		$dn = "uid=" . $ldapinfo['uid'] . ",ou=users," . $hubLDAPBaseDN;
+
+		// See if we're changing uid...if so, we need to do a rename
+		if (array_key_exists('uid', $entry))
+		{
+			$result = ldap_rename($conn, $dn, 'uid='.$entry['uid'][0], 'ou=users,'.$hubLDAPBaseDN, true);
+
+			// Set aside new uid and unset from attributes needing to be changed
+			$newUid = $entry['uid'][0];
+			unset($entry['uid']);
+
+			// See if we have any items left
+			if (empty($entry))
+			{
+				if ($result !== true)
+				{
+					self::$errors['warning'][] = ldap_error($conn);
+					return false;
+				}
+				else
+				{
+					++self::$success['modified'];
+					return true;
+				}
+			}
+
+			// Build new dn
+			$dn = "uid=" . $newUid . ",ou=users," . $hubLDAPBaseDN;
+		}
+
+		// Now do the modify
 		$result = ldap_modify($conn, $dn, $entry);
 
 		if ($result !== true)
@@ -504,7 +534,7 @@ class Ldap
 			$entry['objectclass'][] = 'top';
 			$entry['objectclass'][] = 'posixGroup';
 
-			foreach($dbinfo as $key=>$value)
+			foreach ($dbinfo as $key=>$value)
 			{
 				if (is_array($value) && $value != array())
 				{
@@ -699,7 +729,7 @@ class Ldap
 		$reqattr = array('gidNumber','cn');
 
 		$entry = ldap_search($conn, $dn, $filter, $reqattr, 0, 1, 0);
-		
+
 		$count = ldap_count_entries($conn, $entry);
 
 		// If there was a database entry, but there was no ldap entry, create the ldap entry
@@ -768,7 +798,7 @@ class Ldap
 			if (ldap_mod_add($conn, $dn, $adds) == false)
 			{
 				// if bulk add fails, try individual
-				foreach($add as $memberUid)
+				foreach ($add as $memberUid)
 				{
 					ldap_mod_add($conn, $dn, array('memberUid' => $memberUid));
 				}
@@ -806,7 +836,7 @@ class Ldap
 	public static function syncAllGroups()
 	{
 		// @TODO: chunk this to 1000 groups at a time
-		
+
 		$db = \JFactory::getDBO();
 
 		$query = "SELECT gidNumber FROM #__xgroups;";
@@ -815,12 +845,12 @@ class Ldap
 
 		$result = $db->loadResultArray();
 
-		if ($result === false) 
+		if ($result === false)
 		{
 			return false;
 		}
 
-		foreach($result as $row)
+		foreach ($result as $row)
 		{
 			self::syncGroup($row);
 
@@ -910,13 +940,13 @@ class Ldap
 
 		$gids = array();
 
-		if ($sr !== false) 
+		if ($sr !== false)
 		{
-			if (ldap_count_entries($conn, $sr) !== false) 
+			if (ldap_count_entries($conn, $sr) !== false)
 			{
 				$entry = ldap_first_entry($conn, $sr);
 
-				while ($entry !== false) 
+				while ($entry !== false)
 				{
 					$attr = ldap_get_attributes($conn, $entry);
 
@@ -987,13 +1017,13 @@ class Ldap
 
 		$gids = array();
 
-		if ($sr !== false) 
+		if ($sr !== false)
 		{
-			if (ldap_count_entries($conn, $sr) !== false) 
+			if (ldap_count_entries($conn, $sr) !== false)
 			{
 				$entry = ldap_first_entry($conn, $sr);
 
-				while ($entry !== false) 
+				while ($entry !== false)
 				{
 					$attr = ldap_get_attributes($conn, $firstentry);
 
@@ -1055,13 +1085,13 @@ class Ldap
 
 		$uids = array();
 
-		if ($sr !== false) 
+		if ($sr !== false)
 		{
-			if (ldap_count_entries($conn, $sr) !== false) 
+			if (ldap_count_entries($conn, $sr) !== false)
 			{
 				$entry = ldap_first_entry($conn, $sr);
 
-				while ($entry !== false) 
+				while ($entry !== false)
 				{
 					$attr = ldap_get_attributes($conn, $entry);
 
@@ -1102,7 +1132,7 @@ class Ldap
 			return false;
 		}
 
-		foreach($result as $row)
+		foreach ($result as $row)
 		{
 			$dn = "uid=$row," .  "ou=users," . $hubLDAPBaseDN;
 			$result = ldap_delete($conn, $dn);
@@ -1125,13 +1155,13 @@ class Ldap
 
 		$uids = array();
 
-		if ($sr !== false) 
+		if ($sr !== false)
 		{
-			if (ldap_count_entries($conn, $sr) !== false) 
+			if (ldap_count_entries($conn, $sr) !== false)
 			{
 				$entry = ldap_first_entry($conn, $sr);
 
-				while ($entry !== false) 
+				while ($entry !== false)
 				{
 					$attr = ldap_get_attributes($conn, $firstentry);
 

@@ -31,8 +31,8 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-\Hubzero\Document\Assets::addComponentScript('com_tools', 'assets/js/sessions');
-\Hubzero\Document\Assets::addSystemScript('jquery.editable.min');
+$this->js('sessions.js')
+     ->js('jquery.editable.min.js', 'system');
 
 $base = rtrim(JURI::base(true), '/');
 
@@ -60,12 +60,12 @@ $base = rtrim(JURI::base(true), '/');
 <?php 				if (!empty($this->output->show_local_cursor)) { ?>
 				<param name="ShowLocalCursor" value="<?php echo $this->output->show_local_cursor; ?>" />
 <?php 				} ?>
-				<p class="error">
-					In order to view an application, you must have Java installed and enabled. (<a href="<?php echo $base; ?>/kb/misc/java">How do I do this?</a>)
-				</p>
-			</applet>
+	<p class="error">
+		<?php echo JText::_('COM_TOOLS_ERROR_JAVA_REQUIRED'); ?>
+	</p>
+</applet>
 
-			<script type="text/javascript">
-			HUB.Mw.startAppletTimeout();
-			HUB.Mw.connectingTool();
-			</script>
+<script type="text/javascript">
+	HUB.Mw.startAppletTimeout();
+	HUB.Mw.connectingTool();
+</script>

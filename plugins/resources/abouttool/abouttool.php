@@ -31,51 +31,39 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for about tab of tools
  */
-class plgResourcesAbouttool extends JPlugin
+class plgResourcesAbouttool extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
 	public function &onResourcesAreas($model)
 	{
-		if ($model->type->params->get('plg_abouttool', 0)) 
+		$areas = array();
+
+		if ($model->type->params->get('plg_abouttool', 0))
 		{
-			$areas = array(
-				'about' => JText::_('PLG_RESOURCES_ABOUT')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['about'] = JText::_('PLG_RESOURCES_ABOUT');
 		}
+
 		return $areas;
 	}
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -85,66 +73,41 @@ class plgResourcesAbouttool extends JPlugin
 	public function onResources($model, $option, $areas, $rtrn='all')
 	{
 		$arr = array(
-			'area' => 'about',
-			'html' => '',
+			'area'     => 'about',
+			'html'     => '',
 			'metadata' => ''
 		);
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				$rtrn = 'metadata';
 			}
 		}
 
-		if ($rtrn == 'all' || $rtrn == 'html') 
+		$ar = $this->onResourcesAreas($model);
+		if (empty($ar))
 		{
-			\Hubzero\Document\Assets::addPluginStyleSheet('resources', 'abouttool');
+			$rtrn = '';
+		}
 
+		if ($rtrn == 'all' || $rtrn == 'html')
+		{
 			// Instantiate a view
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
-					'element' => 'abouttool',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'index'
 				)
 			);
-			$view->option     = $option;
-			$view->model      = $model;
-			//$view->authorized = $resource->authorized;
-			$view->database   = JFactory::getDBO();
-			$view->juser      = JFactory::getUser();
-
-			/*if (!$view->juser->get('guest')) 
-			{
-				$xgroups = \Hubzero\User\Helper::getGroups($view->juser->get('id'), 'all');
-				// Get the groups the user has access to
-				$view->usersgroups = $this->_getUsersGroups($xgroups);
-			} 
-			else 
-			{
-				$view->usersgroups = array();
-			}
-
-			$paramsClass = 'JRegistry';
-			if (version_compare(JVERSION, '1.6', 'lt'))
-			{
-				$paramsClass = 'JParameter';
-			}
-
-			$view->attribs = new $paramsClass($resource->attribs);
-			$view->config  = JComponentHelper::getParams($option);
-
-			$rparams = new $paramsClass($resource->params);
-			$params = $view->config;
-			$params->merge($rparams);
-
-			$view->params   = $params;
-			$view->plugin   = $this->params;
-			$view->helper   = new ResourcesHelper($resource->id, $view->database);*/
+			$view->option   = $option;
+			$view->model    = $model;
+			$view->database = JFactory::getDBO();
+			$view->juser    = JFactory::getUser();
 			$view->thistool = $model->thistool;
 			$view->curtool  = $model->curtool;
 			$view->alltools = $model->alltools;
@@ -155,28 +118,6 @@ class plgResourcesAbouttool extends JPlugin
 			$arr['html'] = $view->loadTemplate();
 		}
 
-		return $arr;
-	}
-
-	/**
-	 * Create an array of just group aliases
-	 * 
-	 * @param      array $groups A list of groups
-	 * @return     array
-	 */
-	private function _getUsersGroups($groups)
-	{
-		$arr = array();
-		if (!empty($groups)) 
-		{
-			foreach ($groups as $group)
-			{
-				if ($group->regconfirmed) 
-				{
-					$arr[] = $group->cn;
-				}
-			}
-		}
 		return $arr;
 	}
 }

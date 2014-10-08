@@ -34,22 +34,22 @@ defined('_JEXEC') or die( 'Restricted access' );
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tags' . DS . 'models' . DS . 'cloud.php');
 
 /**
- * Forum Tagging class
+ * Wishlist Tagging class
  */
 class WishlistModelTags extends TagsModelCloud
 {
 	/**
 	 * Object type, used for linking objects (such as resources) to tags
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'wishlist';
 
 	/**
 	 * Turn a string of tags to an array
-	 * 
-	 * @param      string $tag Tag string
-	 * @return     mixed
+	 *
+	 * @param   string $tag Tag string
+	 * @return  mixed
 	 */
 	public function parseTags($tag, $remove='')
 	{
@@ -84,11 +84,11 @@ class WishlistModelTags extends TagsModelCloud
 
 	/**
 	 * Render a tag cloud
-	 * 
-	 * @param      string  $rtrn    Format to render
-	 * @param      array   $filters Filters to apply
-	 * @param      boolean $clear   Clear cached data?
-	 * @return     string
+	 *
+	 * @param   string  $rtrn    Format to render
+	 * @param   array   $filters Filters to apply
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  string
 	 */
 	public function render($rtrn='html', $filters=array(), $clear=false)
 	{
@@ -116,24 +116,16 @@ class WishlistModelTags extends TagsModelCloud
 			default:
 				if (!isset($this->_cache['tags_cloud']) || $clear)
 				{
-					//if (isset($filters['filters']))
-					//{
-						$view = new JView(array(
-							'base_path' => JPATH_ROOT . '/components/com_wishlist',
-							'name'      => 'wishlist',
-							'layout'    => '_tags'
-						));
-						if (isset($filters['filters']))
-						{
-							$view->base  = $filters['base'];
-							$view->filters = $filters['filters'];
-						}
-					/*}
-					$view = new JView(array(
-						'base_path' => JPATH_ROOT . '/components/com_tags',
-						'name'      => 'tags',
-						'layout'    => '_cloud'
-					));*/
+					$view = new \Hubzero\Component\View(array(
+						'base_path' => JPATH_ROOT . '/components/com_wishlist',
+						'name'      => 'wishlist',
+						'layout'    => '_tags'
+					));
+					if (isset($filters['filters']))
+					{
+						$view->base    = $filters['base'];
+						$view->filters = $filters['filters'];
+					}
 					$view->config = $this->_config;
 					$view->tags   = $this->tags('list', $filters, $clear);
 

@@ -42,19 +42,27 @@ class ForumModelThread extends ForumModelPost
 {
 	/**
 	 * Container for data
-	 * 
+	 *
 	 * @var array
 	 */
-	private $_cache = array();
+	private $_cache = array(
+		'post'         => null,
+		'posts_count'  => null,
+		'posts'        => null,
+		'tree'         => null,
+		'participants' => null,
+		'attachments'  => null,
+		'last'         => null
+	);
 
 	/**
 	 * Is the thread closed?
-	 * 
-	 * @return     boolean
+	 *
+	 * @return  boolean
 	 */
 	public function isClosed()
 	{
-		if ($this->get('closed') == 1) 
+		if ($this->get('closed') == 1)
 		{
 			return true;
 		}
@@ -63,12 +71,12 @@ class ForumModelThread extends ForumModelPost
 
 	/**
 	 * Is the thread sticky?
-	 * 
-	 * @return     boolean
+	 *
+	 * @return  boolean
 	 */
 	public function isSticky()
 	{
-		if ($this->get('sticky') == 1) 
+		if ($this->get('sticky') == 1)
 		{
 			return true;
 		}
@@ -78,14 +86,14 @@ class ForumModelThread extends ForumModelPost
 	/**
 	 * Returns a reference to a forum thread model
 	 *
-	 * @param      mixed $oid ID (int) or array or object
-	 * @return     object ForumModelThread
+	 * @param   mixed  $oid ID (int) or array or object
+	 * @return  object ForumModelThread
 	 */
 	static function &getInstance($oid=0)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -103,7 +111,7 @@ class ForumModelThread extends ForumModelPost
 			$key = $oid['id'];
 		}
 
-		if (!isset($instances[$oid])) 
+		if (!isset($instances[$oid]))
 		{
 			$instances[$oid] = new ForumModelThread($oid);
 		}
@@ -113,13 +121,13 @@ class ForumModelThread extends ForumModelPost
 
 	/**
 	 * Set and get a specific post
-	 * 
-	 * @param      integer $id Post ID
-	 * @return     void
+	 *
+	 * @param   integer $id Post ID
+	 * @return  void
 	 */
 	public function post($id=null)
 	{
-		if (!isset($this->_cache['post']) 
+		if (!isset($this->_cache['post'])
 		 || ($id !== null && $this->_cache['post']->get('id') != $id && $this->_cache['post']->get('alias') != $id))
 		{
 			$this->_cache['post'] = null;
@@ -151,16 +159,16 @@ class ForumModelThread extends ForumModelPost
 
 	/**
 	 * Get a list of posts in this thread
-	 * 
-	 * @param      string  $rtrn    What data to return?
-	 * @param      array   $filters Filters to apply to data fetch
-	 * @param      boolean $clear   Clear cached data?
-	 * @return     mixed
+	 *
+	 * @param   string  $rtrn    What data to return?
+	 * @param   array   $filters Filters to apply to data fetch
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  mixed
 	 */
 	public function posts($rtrn='list', $filters=array(), $clear=false)
 	{
 		$filters['thread'] = isset($filters['thread']) ? $filters['thread'] : $this->get('thread');
-		$filters['state']  = isset($filters['state'])  ? $filters['state']  : self::APP_STATE_PUBLISHED;
+		$filters['state']  = isset($filters['state'])  ? $filters['state']  : array(self::APP_STATE_PUBLISHED, self::APP_STATE_FLAGGED);
 
 		switch (strtolower($rtrn))
 		{
@@ -177,7 +185,7 @@ class ForumModelThread extends ForumModelPost
 			break;
 
 			case 'tree':
-				if (!isset($this->_cache['tree']) || !($this->_cache['tree'] instanceof \Hubzero\Base\ItemList) || $clear)
+				if (!($this->_cache['tree'] instanceof \Hubzero\Base\ItemList) || $clear)
 				{
 					if ($rows = $this->_tbl->getTree($filters['thread']))
 					{
@@ -208,9 +216,9 @@ class ForumModelThread extends ForumModelPost
 			case 'list':
 			case 'results':
 			default:
-				if (!isset($this->_cache['posts']) || !($this->_cache['posts'] instanceof \Hubzero\Base\ItemList) || $clear)
+				if (!($this->_cache['posts'] instanceof \Hubzero\Base\ItemList) || $clear)
 				{
-					if (($results = $this->_tbl->getRecords($filters)))
+					if ($results = $this->_tbl->getRecords($filters))
 					{
 						foreach ($results as $key => $result)
 						{
@@ -230,12 +238,12 @@ class ForumModelThread extends ForumModelPost
 
 	/**
 	 * Recursive function to build tree
-	 * 
-	 * @param      array   $children Container for parent/children mapping
-	 * @param      array   $list     List of records
-	 * @param      integer $maxlevel Maximum levels to descend
-	 * @param      integer $level    Indention level
-	 * @return     void
+	 *
+	 * @param   array   $children Container for parent/children mapping
+	 * @param   array   $list     List of records
+	 * @param   integer $maxlevel Maximum levels to descend
+	 * @param   integer $level    Indention level
+	 * @return  void
 	 */
 	public function _treeRecurse($children, $list, $maxlevel=9999, $level=0)
 	{
@@ -243,14 +251,14 @@ class ForumModelThread extends ForumModelPost
 		{
 			foreach ($children as $v => $child)
 			{
+				$replies = array();
+
 				if (isset($list[$child->get('id')]))
 				{
-					$children[$v]->set('replies', new \Hubzero\Base\ItemList($this->_treeRecurse($list[$child->get('id')], $list, $maxlevel, $level+1)));
+					$replies = $this->_treeRecurse($list[$child->get('id')], $list, $maxlevel, $level+1);
 				}
-				else
-				{
-					$children[$v]->set('replies', new \Hubzero\Base\ItemList(array()));
-				}
+
+				$children[$v]->set('replies', new \Hubzero\Base\ItemList($replies));
 			}
 		}
 		return $children;
@@ -258,18 +266,17 @@ class ForumModelThread extends ForumModelPost
 
 	/**
 	 * Get a list of participants in this thread
-	 * 
-	 * @param      array   $filters Filters to build query from
-	 * @param      boolean $clear   Clear cached data?
-	 * @return     object \Hubzero\Base\ItemList
+	 *
+	 * @param   array   $filters Filters to build query from
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  object  \Hubzero\Base\ItemList
 	 */
 	public function participants($filters=array(), $clear=false)
 	{
 		$filters['thread'] = isset($filters['thread']) ? $filters['thread'] : $this->get('thread');
-		$filters['parent'] = isset($filters['parent']) ? $filters['parent'] : $this->get('id');
 		$filters['state']  = isset($filters['state'])  ? $filters['state']  : self::APP_STATE_PUBLISHED;
 
-		if (!isset($this->_cache['participants']) || !($this->_cache['participants'] instanceof \Hubzero\Base\ItemList) || $clear)
+		if (!($this->_cache['participants'] instanceof \Hubzero\Base\ItemList) || $clear)
 		{
 			if (!($results = $this->_tbl->getParticipants($filters)))
 			{
@@ -283,9 +290,9 @@ class ForumModelThread extends ForumModelPost
 
 	/**
 	 * Get a list of attachments in this thread
-	 * 
-	 * @param      array $filters Filters to build query from
-	 * @return     object \Hubzero\Base\ItemList
+	 *
+	 * @param   array  $filters Filters to build query from
+	 * @return  object \Hubzero\Base\ItemList
 	 */
 	public function attachments($rtrn='list', $clear=false)
 	{
@@ -302,7 +309,7 @@ class ForumModelThread extends ForumModelPost
 			case 'list':
 			case 'results':
 			default:
-				if (!isset($this->_cache['attachments']) || !($this->_cache['attachments'] instanceof \Hubzero\Base\ItemList) || $clear)
+				if (!($this->_cache['attachments'] instanceof \Hubzero\Base\ItemList) || $clear)
 				{
 					$tbl = new ForumTableAttachment($this->_db);
 
@@ -325,13 +332,13 @@ class ForumModelThread extends ForumModelPost
 	}
 
 	/**
-	 * Get the most recent post mad ein the forum
-	 * 
-	 * @return     ForumModelPost
+	 * Get the most recent post made in the forum
+	 *
+	 * @return  object ForumModelPost
 	 */
 	public function lastActivity()
 	{
-		if (!isset($this->_cache['last']) || !($this->_cache['last'] instanceof ForumModelPost))
+		if (!($this->_cache['last'] instanceof ForumModelPost))
 		{
 			$post = new ForumTablePost($this->_db);
 			if (!($last = $post->getLastPost($this->get('id'))))

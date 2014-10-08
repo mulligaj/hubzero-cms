@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'adapters' . DS . 'abstract.php');
+require_once(__DIR__ . DS . 'abstract.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'resource.php');
 
 /**
@@ -41,16 +41,16 @@ class WishlistModelAdapterResource extends WishlistModelAdapterAbstract
 {
 	/**
 	 * URL segments
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_segments = array(
-		'option' => 'com_resources',
+		'option' => 'com_wishlist',
 	);
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $referenceid Scope ID (group, course, etc.)
 	 * @return     void
 	 */
@@ -60,33 +60,36 @@ class WishlistModelAdapterResource extends WishlistModelAdapterAbstract
 		     ->set('category', 'resource')
 		     ->set('option', $this->_segments['option']);
 
-		$this->_item = new ResourcesResource($this->get('referenceid'));
+		//$this->_item = new ResourcesResource($this->get('referenceid'));
+		$database = JFactory::getDBO();
+		$this->_item = new ResourcesResource($database);
+		$this->_item->load($this->get('referenceid'));
 
 		if ($this->_item->standalone != 1 || $this->_item->published != 1)
 		{
 			$this->_item->id = 0;
 		}
 
-		$this->_segments['id']     = ($this->_item->alias ? $this->_item->alias : $this->_item->id);
+	//	$this->_segments['id']     = ($this->_item->alias ? $this->_item->alias : $this->_item->id);
 		$this->_segments['active'] = 'wishlist';
 	}
 
 	/**
 	 * Generate and return the title for this wishlist
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function title()
 	{
-		return ($this->_item->type == 7 && isset($this->_item->alias)) 
-				? JText::_('COM_WISHLIST_NAME_RESOURCE_TOOL') . ' ' . $this->_item->alias 
+		return ($this->_item->type == 7 && isset($this->_item->alias))
+				? JText::_('COM_WISHLIST_NAME_RESOURCE_TOOL') . ' ' . $this->_item->alias
 				: JText::_('COM_WISHLIST_NAME_RESOURCE_ID') . ' ' . $this->_item->id;
 	}
 
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type   The type of link to return
 	 * @param      mixed  $params Optional string or associative array of params to append
 	 * @return     string
@@ -116,21 +119,23 @@ class WishlistModelAdapterResource extends WishlistModelAdapterAbstract
 			case 'edit':
 				if ($this->get('wishid'))
 				{
-					$segments['task'] = 'edit';
+					$segments['task'] = 'editwish';
 					$segments['wishid'] = $this->get('wishid');
 				}
 			break;
 
 			case 'delete':
-				$segments['task'] = 'delete';
+				$segments['task'] = 'deletewish';
 				if ($this->get('wishid'))
 				{
 					$segments['wishid'] = $this->get('wishid');
 				}
 			break;
 
+			case 'add':
+			case 'addwish':
 			case 'new':
-				$segments['task'] = 'new';
+				$segments['task'] = 'addwish';
 			break;
 
 			case 'settings':
@@ -139,6 +144,107 @@ class WishlistModelAdapterResource extends WishlistModelAdapterAbstract
 
 				$segments['task'] = 'settings';
 				$segments['id'] = $this->get('wishlist');
+			break;
+
+			case 'savesettings':
+				unset($segments['category']);
+				unset($segments['rid']);
+
+				$segments['task'] = 'savesettings';
+				$segments['listid'] = $this->get('wishlist');
+			break;
+
+			case 'comments':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+					$segments['com'] = 1;
+					$anchor = '#comments';
+				}
+			break;
+
+			case 'changestatus':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+					$segments['action'] = 'changestatus';
+					$anchor = '#action';
+				}
+			break;
+
+			case 'withdraw':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+					$segments['action'] = 'delete';
+					$anchor = '#action';
+				}
+			break;
+
+			case 'addbonus':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+					$segments['action'] = 'addbonus';
+					$anchor = '#action';
+				}
+			break;
+
+			case 'privacy':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'editprivacy';
+					$segments['wishid'] = $this->get('wishid');
+				}
+			break;
+
+			case 'move':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+					$segments['action'] = 'move';
+					$anchor = '#action';
+				}
+			break;
+
+			case 'comment':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+					$segments['cat'] = 'wish';
+					$anchor = '#commentform';
+				}
+			break;
+
+			case 'editplan':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+					$segments['action'] = 'editplan';
+					$anchor = '#plan';
+				}
+			break;
+
+			case 'rank':
+				if ($this->get('wishid'))
+				{
+					$segments['task'] = 'wish';
+					$segments['wishid'] = $this->get('wishid');
+					$segments['action'] = 'rank';
+					$anchor = '#action';
+				}
+			break;
+
+			case 'report':
+			case 'reportabuse':
+				return 'index.php?option=com_support&task=reportabuse&category=wish&id=' . $this->get('wishid') . '&parent=' . $this->get('wishlist');
 			break;
 
 			case 'permalink':
@@ -174,5 +280,43 @@ class WishlistModelAdapterResource extends WishlistModelAdapterAbstract
 		$segments = array_merge($segments, (array) $params);
 
 		return $this->_base . '?' . (string) $this->_build($segments) . (string) $anchor;
+	}
+
+	/**
+	 * Append an item to the breadcrumb trail.
+	 * If no item is provided, it will build the trail up to the list
+	 *
+	 * @param      string $title Breadcrumb title
+	 * @param      string $url   Breadcrumb URL
+	 * @return     string
+	 */
+	public function pathway($title=null, $url=null)
+	{
+		$pathway = JFactory::getApplication()->getPathway();
+
+		if (!$title)
+		{
+			$pathway->addItem(
+				JText::_('Resources'),
+				'index.php?option=com_resources'
+			);
+			$pathway->addItem(
+				stripslashes($this->_item->title),
+				'index.php?option=com_resources&id=' . $this->get('referenceid')
+			);
+			$pathway->addItem(
+				JText::_('Wishlist'),
+				'index.php?option=com_resources&active=wishlist&id=' . $this->get('referenceid')
+			);
+		}
+		else
+		{
+			$pathway->addItem(
+				$title,
+				$url
+			);
+		}
+
+		return $this;
 	}
 }

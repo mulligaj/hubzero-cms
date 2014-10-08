@@ -19,9 +19,9 @@ var rootcondition = '<fieldset class="condition-set">';
 			rootcondition += '<option value="OR">any</option>';
 		rootcondition += '</select> of the following:';
 	rootcondition += '</p>';
-	rootcondition += '<div>';
-		rootcondition += '<div class="querystmts">';
-			rootcondition += '<span>';
+	rootcondition += '<div class="querycntnr">';
+		rootcondition += '<div class="querycntnr querystmts">';
+			rootcondition += '<span class="query-btns">';
 				rootcondition += '<button class="add">+</button> <button class="addroot">...</button>';
 			rootcondition += '</span>';
 		rootcondition += '</div>';
@@ -39,7 +39,7 @@ statement += '<select class="fld">';
 	statement += '<option value="group">Group</option>';
 	statement += '<option value="id">ID</option>';
 	statement += '<option value="report">Report</option>';
-	statement += '<option value="resolved">Resolution</option>';
+	statement += '<option value="status">Status</option>';
 	statement += '<option value="severity">Severity</option>';
 	statement += '<option value="tag">Tag</option>';
 	statement += '<option value="type" selected="selected">Type</option>';
@@ -66,10 +66,10 @@ if (!jq) {
 }
 
 var Conditions = {
-	jQuery: jq,
+	//jQuery: jq,
 
 	addqueryroot: function (sel, isroot) {
-		var $ = this.jQuery;
+		//var $ = this.jQuery;
 		
 		var q = $(sel).find('fieldset');
 		var l = q.length;
@@ -156,7 +156,7 @@ var Conditions = {
 					if (this.sel) {
 						val = this.val;
 					}
-				    options.append($("<option />").val(this.val).text(this.label));
+					options.append($("<option />").val(this.val).text(this.label));
 				});
 				options.val(val);
 
@@ -195,10 +195,13 @@ var Conditions = {
 	},
 
 	populate: function(val, options) {
-		var $ = this.jQuery;
-		
+		//var $ = this.jQuery;
+
 		var values = Conditions.option[val].values;
 		var select = $('<input type="text" class="val" />');
+		if (val == 'created') {
+			select.attr('placeholder', 'YYYY-MM-DD');
+		}
 
 		if (values instanceof Array) {
 			select = $('<select class="val"></select>');
@@ -206,7 +209,7 @@ var Conditions = {
 				if (this.sel) {
 					val = this.val;
 				}
-			    select.append('<option value="' + this.val + '">' + this.label + '</option>');
+				select.append('<option value="' + this.val + '">' + this.label + '</option>');
 			});
 			select.val(val);
 		}
@@ -216,7 +219,7 @@ var Conditions = {
 
 	//Recursive method to parse the condition and generate the query. Takes the selector for the root condition
 	getCondition: function (rootsel) {
-		var $ = this.jQuery;
+		//var $ = this.jQuery;
 		
 		//Get the columns from table (to find a clean way to do it later) //tbody>tr>td
 		var elem = $(rootsel).children();
@@ -260,8 +263,8 @@ var Conditions = {
 
 	// Recursive method to iterate over the condition tree and generate the query
 	getQuery: function (condition) {
-		var $ = this.jQuery;
-		
+		//var $ = this.jQuery;
+
 		var op = [' ', condition.operator, ' '].join('');
 
 		var e = [];
@@ -284,10 +287,8 @@ var Conditions = {
 		}
 
 		var q = [];
-		if (e.length > 0)
-			q.push(e.join(op));
-		if (n.length > 0)
-			q.push(n.join(op));
+		if (e.length > 0) q.push(e.join(op));
+		if (n.length > 0) q.push(n.join(op));
 
 		return ['(', q.join(op), ')'].join(' ');
 	}

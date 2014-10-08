@@ -50,39 +50,39 @@ class modRecentQuestions extends \Hubzero\Module\Module
 		$state = $this->params->get('state', 'open');
 		$limit = intval($this->params->get('limit', 5));
 
-		switch ($state) 
+		switch ($state)
 		{
 			case 'open':   $st = "a.state=0"; break;
 			case 'closed': $st = "a.state=1"; break;
 			case 'both':   $st = "a.state<2"; break;
 			default:       $st = ""; break;
 		}
-		
+
 		$this->tag = JRequest::getVar('tag', '', 'get');
 		$this->style = JRequest::getVar('style', '', 'get');
-		
-		if ($this->tag) 
+
+		if ($this->tag)
 		{
-			$query = "SELECT a.id, a.subject, a.question, a.state, a.created, a.created_by, a.anonymous, (SELECT COUNT(*) FROM #__answers_responses AS r WHERE r.question_id=a.id) AS rcount"
+			$query = "SELECT a.id, a.subject, a.question, a.state, a.created, a.created_by, a.anonymous, (SELECT COUNT(*) FROM `#__answers_responses` AS r WHERE r.question_id=a.id) AS rcount"
 				." FROM #__answers_questions AS a, #__tags_object AS t, #__tags AS tg"
-				." WHERE a.id=t.objectid AND tg.id=t.tagid AND t.tbl='answers' AND (tg.tag='" . $this->tag . "' OR tg.raw_tag='" . $this->tag . "' OR tg.alias='" . $this->tag . "')";
-			if ($st) 
+				." WHERE a.id=t.objectid AND tg.id=t.tagid AND t.tbl='answers' AND (tg.tag=" . $this->database->quote($this->tag) . " OR tg.raw_tag=" . $this->database->quote($this->tag) . ")";
+			if ($st)
 			{
 				$query .= " AND " . $st;
 			}
-		} 
-		else 
+		}
+		else
 		{
-			$query = "SELECT a.id, a.subject, a.question, a.state, a.created, a.created_by, a.anonymous, (SELECT COUNT(*) FROM #__answers_responses AS r WHERE r.question_id=a.id) AS rcount"
+			$query = "SELECT a.id, a.subject, a.question, a.state, a.created, a.created_by, a.anonymous, (SELECT COUNT(*) FROM `#__answers_responses` AS r WHERE r.question_id=a.id) AS rcount"
 				." FROM #__answers_questions AS a";
-			if ($st) 
+			if ($st)
 			{
 				$query .= " WHERE " . $st;
 			}
 		}
 		$query .= " ORDER BY a.created DESC";
 		$query .= ($limit) ? " LIMIT " . $limit : "";
-		
+
 		$this->database->setQuery($query);
 		$this->rows = $this->database->loadObjectList();
 

@@ -61,29 +61,27 @@ $assets = $asset->find(
 			'section_id'  => $this->course->offering()->section()->get('id'),
 			'offering_id' => $this->course->offering()->get('id'),
 			'graded'      => true,
-			'state'       => 1
+			'state'       => 1,
+			'asset_scope' => 'asset_group'
 		)
 	)
 );
 
 // Get gradebook auxiliary assets
-$auxiliary = $asset->find(
+$auxiliary = $asset->findByScope(
+	'offering',
+	$this->course->offering()->get('id'),
 	array(
-		'w' => array(
-			'course_id'     => $this->course->get('id'),
-			'asset_type'    => 'gradebook',
-			'asset_subtype' => 'auxiliary',
-			'graded'        => true,
-			'state'         => 1
-		),
-		'order_by'  => 'title',
-		'order_dir' => 'ASC'
+		'asset_type'    => 'gradebook',
+		'asset_subtype' => 'auxiliary',
+		'graded'        => true,
+		'state'         => 1
 	)
 );
 
 $assets = array_merge($assets, $auxiliary);
 
-foreach($assets as $asset)
+foreach ($assets as $asset)
 {
 	$increment_count_taken = false;
 	$crumb                 = false;
@@ -93,7 +91,7 @@ foreach($assets as $asset)
 	$crumb = $asset->url;
 	$title = $asset->title;
 	$url   = JRoute::_($this->base . '&asset=' . $asset->id);
-	$unit  = $this->course->offering()->unit($asset->unit_id);
+	$unit  = (isset($asset->unit_id)) ? $this->course->offering()->unit($asset->unit_id) : null;
 
 	if (!$crumb || strlen($crumb) != 20)
 	{
@@ -110,13 +108,23 @@ foreach($assets as $asset)
 			$score = '--';
 		}
 
-		if ($asset->unit_id)
+		// Get the date the grade was entered
+		if (!is_null($grades[$this->member->get('id')]['assets'][$asset->id]['date']))
 		{
-			$details['forms'][$unit->get('id')][] = array('title'=>$title, 'score'=>$score, 'date'=>'N/A', 'url'=>$url);
+			$date = JHTML::_('date', $grades[$this->member->get('id')]['assets'][$asset->id]['date'], 'r');
 		}
 		else
 		{
-			$details['aux'][] = array('title'=>$asset->title, 'score'=>$score);
+			$date = "N/A";
+		}
+
+		if (isset($asset->unit_id) && $asset->unit_id)
+		{
+			$details['forms'][$unit->get('id')][] = array('title'=>$title, 'score'=>$score, 'date'=>$date, 'url'=>$url);
+		}
+		else
+		{
+			$details['aux'][] = array('title'=>$asset->title, 'score'=>$score, 'date'=>$date);
 		}
 
 		$isValidForm = false;
@@ -138,10 +146,8 @@ foreach($assets as $asset)
 				// Get whether or not we should show scores at this point
 				$results_closed = $dep->getResultsClosed();
 
-				$resp = $dep->getRespondent($this->member->get('id'));
-
 				// Form is still active and they are allowed to see their score
-				if($results_closed == 'score' || $results_closed == 'details')
+				if ($results_closed == 'score' || $results_closed == 'details')
 				{
 					$score = $grades[$this->member->get('id')]['assets'][$asset->id]['score'];
 				}
@@ -152,9 +158,9 @@ foreach($assets as $asset)
 				}
 
 				// Get the date of the completion
-				if (!is_null($resp->getEndTime()))
+				if (!is_null($grades[$this->member->get('id')]['assets'][$asset->id]['date']))
 				{
-					$date = JHTML::_('date', $resp->getEndTime(), 'r');
+					$date = JHTML::_('date', $grades[$this->member->get('id')]['assets'][$asset->id]['date'], 'r');
 				}
 				else
 				{
@@ -169,16 +175,14 @@ foreach($assets as $asset)
 
 			// Form is still active
 			case 'active':
-				$resp = $dep->getRespondent($this->member->get('id'));
-
-				// Form is active and they have completed it!
-				if($resp->getEndTime() && $resp->getEndTime() != '')
+				// Get the date of the completion
+				if (!is_null($grades[$this->member->get('id')]['assets'][$asset->id]['date']))
 				{
 					// Get whether or not we should show scores at this point
 					$results_open = $dep->getResultsOpen();
 
 					// Form is still active and they are allowed to see their score
-					if($results_open == 'score' || $results_open == 'details')
+					if ($results_open == 'score' || $results_open == 'details')
 					{
 						$score = $grades[$this->member->get('id')]['assets'][$asset->id]['score'];
 					}
@@ -189,7 +193,7 @@ foreach($assets as $asset)
 					}
 
 					// Get the date of the completion
-					$date = JHTML::_('date', $resp->getEndTime(), 'r');
+					$date = JHTML::_('date', $grades[$this->member->get('id')]['assets'][$asset->id]['date'], 'r');
 
 					// They have completed this form, therefor set increment_count_taken equal to true
 					$increment_count_taken = true;
@@ -218,32 +222,32 @@ foreach($assets as $asset)
 	}
 
 	// Increment total count for this type
-	if($asset->grade_weight == 'quiz')
+	if ($asset->grade_weight == 'quiz')
 	{
 		++$details['quizzes_total'];
 
 		// If increment is set (i.e. they completed the from), increment the taken number as well
-		if($increment_count_taken)
+		if ($increment_count_taken)
 		{
 			++$details['quizzes_taken'];
 		}
 	}
-	elseif($asset->grade_weight == 'homework')
+	elseif ($asset->grade_weight == 'homework')
 	{
 		++$details['homeworks_total'];
 
 		// If increment is set (i.e. they completed the from), increment the taken number as well
-		if($increment_count_taken)
+		if ($increment_count_taken)
 		{
 			++$details['homeworks_submitted'];
 		}
 	}
-	elseif($asset->grade_weight == 'exam')
+	elseif ($asset->grade_weight == 'exam')
 	{
 		++$details['exams_total'];
 
 		// If increment is set (i.e. they completed the from), increment the taken number as well
-		if($increment_count_taken)
+		if ($increment_count_taken)
 		{
 			++$details['exams_taken'];
 		}
@@ -252,7 +256,7 @@ foreach($assets as $asset)
 
 // Get the status of the course (e.x. not started, in progress, completed, etc...)
 $section = $this->course->offering()->section();
-if(!$section->isAvailable() && !$section->ended())
+if (!$section->isAvailable() && !$section->ended())
 {
 	$h3 = JText::_('Course begins ') . date('M jS, Y', strtotime($section->get('start_date')));
 }
@@ -289,7 +293,7 @@ if (count($units) > 0)
 		$done     = ($complete == 100) ? ' complete' : '';
 		$current  = '';
 
-		if((!is_null($unit->get('publish_up')) && $unit->get('publish_up') != '0000-00-00 00:00:00' && $unit->isAvailable()) || $complete > 0)
+		if ((!is_null($unit->get('publish_up')) && $unit->get('publish_up') != '0000-00-00 00:00:00' && $unit->isAvailable()) || $complete > 0)
 		{
 			$current   = ' current';
 			// Set the index for the currently available unit (this will result in the latter of the available units if multiple are available)
@@ -318,7 +322,7 @@ $progress_timeline .= '</div>';
 ?>
 
 <div class="progress">
-	<?php if($this->course->access('manage')) : ?>
+	<?php if ($this->course->access('manage')) : ?>
 		<div class="extra">
 			<a href="<?php echo JRoute::_($this->base . '&active=progress') ?>" class="back btn icon-back"><?php echo JText::_('Back to all students') ?></a>
 		</div>
@@ -372,7 +376,7 @@ $progress_timeline .= '</div>';
 	</div>
 <?php endif; ?>
 
-<?php if ($this->course->config()->get('certificate', '')  // The course has a certificate
+<?php if ($this->course->certificate()->exists()  // The course has a certificate
 		&& $this->course->offering()->section()->params('certificate')  // The section is allowing certificates
 		&& $this->course->offering()->gradebook()->isEligibleForRecognition($this->member->get('id'))) :  // The user is eligible for a certificate ?>
 	<div class="recognition certificate earned">
@@ -406,8 +410,8 @@ $progress_timeline .= '</div>';
 					}
 				?>
 				<p class="score<?php echo $cls ?>">
-					<?php echo
-						(isset($grades[$this->member->get('id')]['course'][$this->course->get('id')]))
+					<?php
+						echo (isset($grades[$this->member->get('id')]['course'][$this->course->get('id')]))
 							? $grades[$this->member->get('id')]['course'][$this->course->get('id')] . '%'
 							: '--'
 					?>
@@ -447,14 +451,14 @@ $progress_timeline .= '</div>';
 	</p>
 
 	<div class="units">
-	<?php foreach($this->course->offering()->units() as $unit) : ?>
+	<?php foreach ($this->course->offering()->units() as $unit) : ?>
 
 		<div class="unit-entry">
 			<div class="unit-overview">
 				<div class="unit-title"><?php echo $unit->get('title') ?></div>
 				<div class="unit-score">
-					<?php echo 
-						(isset($grades[$this->member->get('id')]['units'][$unit->get('id')]))
+					<?php
+						echo (isset($grades[$this->member->get('id')]['units'][$unit->get('id')]))
 							? $grades[$this->member->get('id')]['units'][$unit->get('id')] . '%'
 							: '--'
 					?>
@@ -470,7 +474,7 @@ $progress_timeline .= '</div>';
 						</tr>
 					</thead>
 					<tbody>
-						<?php if (isset($details['forms'][$unit->get('id')])) : 
+						<?php if (isset($details['forms'][$unit->get('id')])) :
 								usort($details['forms'][$unit->get('id')], function ($a, $b) {
 									return strcmp($a['title'], $b['title']);
 								});
@@ -524,7 +528,7 @@ $progress_timeline .= '</div>';
 						<tr>
 							<td class="grade-details-title"><?php echo JText::_('Assignment') ?></td>
 							<td class="grade-details-score"><?php echo JText::_('Score') ?></td>
-							<td class="grade-details-date"><?php echo JText::_('Date taken') ?></td>
+							<td class="grade-details-date"><?php echo JText::_('Date recorded') ?></td>
 						</tr>
 					</thead>
 					<tbody>
@@ -555,7 +559,7 @@ $progress_timeline .= '</div>';
 							<tr class="<?php echo $class ?>">
 								<td class="grade-details-title"><?php echo $aux['title'] ?></td>
 								<td class="grade-details-score"><?php echo $aux['score'] . (is_numeric($aux['score']) ? '%' : '') ?></td>
-								<td class="grade-details-date">N/A</td>
+								<td class="grade-details-date"><?php echo $aux['date'] ?></td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -573,7 +577,7 @@ $progress_timeline .= '</div>';
 		<p>
 			Upon successful completion of this course, you will be awarded a special <?php echo $this->course->get('title') ?> badge.
 			This badge can be saved to your Purdue Passport Badges Backpack, and subsequently, your Mozilla Open Badges Backpack.
-			To learn more about Purdue's Passport initiative, please visit the 
+			To learn more about Purdue's Passport initiative, please visit the
 			<a href="https://www.openpassport.org/Login" target="_blank">Open Passport website</a>.
 		</p>
 	</div>

@@ -45,7 +45,7 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
@@ -59,7 +59,7 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a resource sub view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      integer $miniview  View style
@@ -68,8 +68,8 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 	public function onResourcesSub($resource, $option, $miniview=0)
 	{
 		$arr = array(
-			'area' => 'sponsors',
-			'html' => '',
+			'area'     => $this->_name,
+			'html'     => '',
 			'metadata' => ''
 		);
 
@@ -79,14 +79,14 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		// Instantiate a view
 		$this->view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'resources',
-				'element' => 'sponsors',
+				'folder'  => $this->_type,
+				'element' => $this->_name,
 				'name'    => 'display',
 				'layout'  => 'mini'
 			)
 		);
 
-		if ($miniview) 
+		if ($miniview)
 		{
 			$this->view->setLayout('mini');
 		}
@@ -97,7 +97,7 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		$this->view->params   = $this->params;
 		$this->view->data     = '';
 
-		require_once(JPATH_ROOT . DS . 'plugins' . DS . 'resources' . DS . 'sponsors' . DS . 'tables' . DS . 'sponsor.php');
+		require_once(JPATH_ROOT . DS . 'plugins' . DS . $this->_type . DS . $this->_name . DS . 'tables' . DS . 'sponsor.php');
 
 		$this->sponsors = array();
 
@@ -128,8 +128,8 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 				}
 			}
 		}
-		
-		if ($this->getError()) 
+
+		if ($this->getError())
 		{
 			$this->view->setError($this->getError());
 		}
@@ -162,7 +162,7 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 	{
 		$task = ($task) ?  $task : 'default';
 
-		require_once(JPATH_ROOT . DS . 'plugins' . DS . 'resources' . DS . 'sponsors' . DS . 'tables' . DS . 'sponsor.php');
+		require_once(JPATH_ROOT . DS . 'plugins' . DS . $this->_type . DS . $this->_name . DS . 'tables' . DS . 'sponsor.php');
 
 		$this->_option     = $option;
 		$this->_controller = $controller;
@@ -184,8 +184,8 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		// Instantiate a view
 		$this->view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'resources',
-				'element' => 'sponsors',
+				'folder'  => $this->_type,
+				'element' => $this->_name,
 				'name'    => 'admin',
 				'layout'  => 'default'
 			)
@@ -193,7 +193,7 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		$this->view->option = $this->_option;
 		$this->view->controller = $this->_controller;
 		$this->view->task = $this->_task;
-		
+
 		// Get configuration
 		$app = JFactory::getApplication();
 		$config = JFactory::getConfig();
@@ -201,30 +201,30 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		// Incoming
 		$this->view->filters = array();
 		$this->view->filters['limit']    = $app->getUserStateFromRequest(
-			$this->_option . '.plugins.sponsors.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.plugins.sponsors.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']    = $app->getUserStateFromRequest(
-			$this->_option . '.plugins.sponsors.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.plugins.sponsors.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
 		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.plugins.sponsors.sort', 
-			'filter_order', 
+			$this->_option . '.plugins.sponsors.sort',
+			'filter_order',
 			'title'
 		));
 		$this->view->filters['sort_Dir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.plugins.sponsors.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.plugins.sponsors.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
-		
+
 		$model = new ResourcesSponsor($this->database);
-		
+
 		// Get a record count
 		$this->view->total = $model->getCount($this->view->filters);
 
@@ -234,22 +234,22 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		// initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
-		
-		if ($this->getError()) 
+
+		if ($this->getError())
 		{
 			$this->view->setError($this->getError());
 		}
 
 		return $this->view->loadTemplate();
 	}
-	
+
 	/**
 	 * Add a new type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -259,15 +259,15 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Edit a type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($row=null)
 	{
 		$this->view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'resources',
-				'element' => 'sponsors',
+				'folder'  => $this->_type,
+				'element' => $this->_name,
 				'name'    => 'admin',
 				'layout'  => 'edit'
 			)
@@ -275,12 +275,12 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		$this->view->option = $this->_option;
 		$this->view->controller = $this->_controller;
 		$this->view->task = $this->_task;
-		
+
 		if ($row)
 		{
 			$this->view->row = $row;
 		}
-		else 
+		else
 		{
 			// Incoming (expecting an array)
 			$id = JRequest::getInt('id', 0);
@@ -289,9 +289,9 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 			$this->view->row = new ResourcesSponsor($this->database);
 			$this->view->row->load($id);
 		}
-		
+
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			$this->view->setError($this->getError());
 		}
@@ -302,7 +302,7 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Save a type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -315,21 +315,21 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		$fields = array_map('trim', $fields);
 
 		$row = new ResourcesSponsor($this->database);
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->setError($row->getError());
 			return $this->editTask($row);
 		}
 
 		// Check content
-		if (!$row->check()) 
+		if (!$row->check())
 		{
 			$this->setError($row->getError());
 			return $this->editTask($row);
 		}
 
 		// Store new content
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			$this->setError($row->getError());
 			return $this->editTask($row);
@@ -339,12 +339,12 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 
 		$t = new TagsTableTag($this->database);
 		$t->loadTag($row->alias);
-		if (!$t->id) 
+		if (!$t->id)
 		{
-			// Add new tag! 
+			// Add new tag!
 			$t->tag = $row->alias;
 			$t->raw_tag = addslashes($row->title);
-			if (!$t->store()) 
+			if (!$t->store())
 			{
 				$this->setError($t->getError());
 			}
@@ -353,13 +353,13 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=manage&plugin=sponsors',
-			JText::_('Sponsor successfully saved')
+			JText::_('PLG_RESOURCES_SPONSORS_ITEM_SAVED')
 		);
 	}
 
 	/**
 	 * Remove one or more types
-	 * 
+	 *
 	 * @return     void Redirects back to main listing
 	 */
 	public function removeTask()
@@ -371,12 +371,12 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		$ids = JRequest::getVar('id', array());
 
 		// Ensure we have an ID to work with
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			// Redirect with error message
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=manage&plugin=sponsors',
-				JText::_('No sponsor selected'),
+				JText::_('PLG_RESOURCES_SPONSORS_NO_ITEM_SELECTED'),
 				'error'
 			);
 			return;
@@ -393,13 +393,13 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=manage&plugin=sponsors',
-			JText::_('Type successfully saved')
+			JText::_('PLG_RESOURCES_SPONSORS_ITEM_REMOVED')
 		);
 	}
 
 	/**
 	 * Calls stateTask to publish entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function publishTask()
@@ -409,7 +409,7 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Calls stateTask to unpublish entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function unpublishTask()
@@ -419,11 +419,11 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Sets the state of one or more entries
-	 * 
+	 *
 	 * @param      integer The state to set entries to
 	 * @return     void
 	 */
-	public function stateTask($state=0) 
+	public function stateTask($state=0)
 	{
 		// Check for request forgeries
 		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
@@ -432,25 +432,25 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		$ids = JRequest::getVar('id', array());
 
 		// Check for an ID
-		if (count($ids) < 1) 
+		if (count($ids) < 1)
 		{
-			$action = ($state == 1) ? JText::_('unpublish') : JText::_('publish');
+			$action = ($state == 1) ? JText::_('PLG_RESOURCES_SPONSORS_UNPUBLISH') : JText::_('PLG_RESOURCES_SPONSORS_PUBLISH');
 
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=manage&plugin=sponsors',
-				JText::_('Select an entry to ' . $action),
+				JText::sprintf('PLG_RESOURCES_SPONSORS_SELECT_ITEM_TO', $action),
 				'error'
 			);
 			return;
 		}
 
-		foreach ($ids as $id) 
+		foreach ($ids as $id)
 		{
 			// Update record(s)
 			$row = new ResourcesSponsor($this->database);
 			$row->load(intval($id));
 			$row->state = $state;
-			if (!$row->store()) 
+			if (!$row->store())
 			{
 				$this->setError($row->getError());
 				return $this->defaultTask();
@@ -458,13 +458,13 @@ class plgResourcesSponsors extends \Hubzero\Plugin\Plugin
 		}
 
 		// set message
-		if ($state == 1) 
+		if ($state == 1)
 		{
-			$message = JText::_(count($ids) . ' Item(s) successfully published');
-		} 
+			$message = JText::sprintf('PLG_RESOURCES_SPONSORS_ITEMS_PUBLISHED', count($ids));
+		}
 		else
 		{
-			$message = JText::_(count($ids) . ' Item(s) successfully unpublished');
+			$message = JText::sprintf('PLG_RESOURCES_SPONSORS_ITEMS_UNPUBLISHED', count($ids));
 		}
 
 		$this->setRedirect(

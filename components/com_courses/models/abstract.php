@@ -34,55 +34,54 @@ defined('_JEXEC') or die('Restricted access');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'log.php');
 
 /**
- * Courses model class for a course
+ * Abstract class for course models
  */
 abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 {
 	/**
 	 * Draft state
-	 * 
+	 *
 	 * @var integer
 	 */
-	const APP_STATE_DRAFT     = 3;
+	const APP_STATE_DRAFT = 3;
 
 	/**
-	 * CoursesTableAsset
-	 * 
-	 * @var object
+	 * Entry scope
+	 *
+	 * @var string
 	 */
 	protected $_scope = NULL;
 
 	/**
-	 * CoursesTableInstance
-	 * 
+	 * Entry creator
+	 *
 	 * @var object
 	 */
 	protected $_creator = NULL;
 
-
 	/**
-	 * Date keys coming from 
+	 * Date keys coming from
 	 * #__courses_offering_section_dates
 	 *
 	 * @var array
 	 */
 	static $_section_keys = array(
 		//'section_id',
-		'publish_up', 
+		'publish_up',
 		'publish_down'
 	);
 
 	/**
-	 * JParameter
-	 * 
+	 * JRegistry
+	 *
 	 * @var object
 	 */
 	protected $_config = NULL;
 
 	/**
-	 * Has the offering started?
-	 * 
-	 * @return     boolean
+	 * Is the entyr in draft state?
+	 *
+	 * @return  boolean
 	 */
 	public function isDraft()
 	{
@@ -90,7 +89,7 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 		{
 			return false;
 		}
-		if ($this->get('state') == self::APP_STATE_DRAFT) 
+		if ($this->get('state') == self::APP_STATE_DRAFT)
 		{
 			return true;
 		}
@@ -98,23 +97,23 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Has the offering started?
-	 * 
-	 * @return     boolean
+	 * Has the entry started?
+	 *
+	 * @return  boolean
 	 */
 	public function started()
 	{
 		// If it doesn't exist or isn't published
-		if (!$this->exists() || !$this->isPublished()) 
+		if (!$this->exists() || !$this->isPublished())
 		{
 			return false;
 		}
 
 		$now = JFactory::getDate()->toSql();
 
-		if ($this->get('publish_up') 
-		 && $this->get('publish_up') != $this->_db->getNullDate() 
-		 && $this->get('publish_up') > $now) 
+		if ($this->get('publish_up')
+		 && $this->get('publish_up') != $this->_db->getNullDate()
+		 && $this->get('publish_up') > $now)
 		{
 			return false;
 		}
@@ -123,23 +122,23 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Has the offering ended?
-	 * 
-	 * @return     boolean
+	 * Has the entry ended?
+	 *
+	 * @return  boolean
 	 */
 	public function ended()
 	{
 		// If it doesn't exist or isn't published
-		if (!$this->exists() || !$this->isPublished()) 
+		if (!$this->exists() || !$this->isPublished())
 		{
 			return true;
 		}
 
 		$now = JFactory::getDate()->toSql();
 
-		if ($this->get('publish_down') 
-		 && $this->get('publish_down') != $this->_db->getNullDate() 
-		 && $this->get('publish_down') <= $now) 
+		if ($this->get('publish_down')
+		 && $this->get('publish_down') != $this->_db->getNullDate()
+		 && $this->get('publish_down') <= $now)
 		{
 			return true;
 		}
@@ -148,9 +147,9 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Check if the offering is available
-	 * 
-	 * @return     boolean
+	 * Check if the entry is available
+	 *
+	 * @return  boolean
 	 */
 	public function isAvailable()
 	{
@@ -161,7 +160,7 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 		}
 
 		// Make sure the item is published and within the available time range
-		if ($this->started() && !$this->ended()) 
+		if ($this->started() && !$this->ended())
 		{
 			return true;
 		}
@@ -171,14 +170,16 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
+	 * it returns the entire user object
 	 *
-	 * @return     mixed
+	 * @param   string $property Param to return
+	 * @param   mixed  $default  Value to return if property not found
+	 * @return  mixed
 	 */
-	public function creator($property=null)
+	public function creator($property=null, $default=null)
 	{
 		if (!($this->_creator instanceof JUser))
 		{
@@ -186,15 +187,15 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 		}
 		if ($property)
 		{
-			return $this->_creator->get($property);
+			return $this->_creator->get($property, $default);
 		}
 		return $this->_creator;
 	}
 
 	/**
 	 * Delete a record
-	 * 
-	 * @return     boolean True on success, false on error
+	 *
+	 * @return  boolean True on success, false on error
 	 */
 	public function delete()
 	{
@@ -239,16 +240,18 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 		$log->action    = $action;
 		$log->comments  = $log;
 		$log->actor_id  = $juser->get('id');
-		if (!$log->store()) 
+		if (!$log->store())
 		{
 			$this->setError($log->getError());
 		}
 	}
 
 	/**
-	 * Check a user's authorization
-	 * 
-	 * @return     boolean True if authorized, false if not
+	 * Get a parameter from the component config
+	 *
+	 * @param   string $property Param to return
+	 * @param   mixed  $default  Value to return if property not found
+	 * @return  mixed
 	 */
 	public function config($property=null, $default=null)
 	{
@@ -265,9 +268,10 @@ abstract class CoursesModelAbstract extends \Hubzero\Base\Model
 
 	/**
 	 * Check a user's authorization
-	 * 
-	 * @param      string $action Action to check
-	 * @return     boolean True if authorized, false if not
+	 *
+	 * @param   string  $action Action to check
+	 * @param   string  $item   Item type to check action against
+	 * @return  boolean True if authorized, false if not
 	 */
 	public function access($action='view', $item='course')
 	{

@@ -42,7 +42,7 @@ class plgCoursesProgress extends JPlugin
 {
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$subject Event observer
 	 * @param      array  $config   Optional config values
 	 * @return     void
@@ -56,7 +56,7 @@ class plgCoursesProgress extends JPlugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onCourseAreas()
@@ -73,7 +73,7 @@ class plgCoursesProgress extends JPlugin
 
 	/**
 	 * Return data on a course view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $course      Current course
 	 * @param      string  $option     Name of the component
 	 * @param      string  $authorized User's authorization level
@@ -99,9 +99,9 @@ class plgCoursesProgress extends JPlugin
 		$this_area = $this->onCourseAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
-			if (!in_array($this_area['name'], $areas)) 
+			if (!in_array($this_area['name'], $areas))
 			{
 				return $arr;
 			}
@@ -112,9 +112,18 @@ class plgCoursesProgress extends JPlugin
 		}
 
 		// Check to see if user is member and plugin access requires members
-		if (!$course->offering()->section()->access('view')) 
+		if (!$course->offering()->section()->access('view'))
 		{
-			$arr['html'] = '<p class="info">' . JText::sprintf('COURSES_PLUGIN_REQUIRES_MEMBER', ucfirst($active)) . '</p>';
+			$view = new \Hubzero\Plugin\View(array(
+				'folder'  => 'courses',
+				'element' => 'progress',
+				'name'    => 'report',
+				'layout'  => '_not_enrolled'
+			));
+			$view->set('course', $course)
+			     ->set('option', 'com_courses')
+			     ->set('message', 'You must be enrolled to utilize the progress feature.');
+			$arr['html'] = $view->__toString();
 			return $arr;
 		}
 
@@ -233,12 +242,13 @@ class plgCoursesProgress extends JPlugin
 		$start = JRequest::getInt('limitstart', 0);
 
 		// Get all section members
-		$members    = $this->course->offering()->section()->members(array('student'=>1, 'limit'=>$limit, 'start'=>$start));
-		$member_ids = array();
-		$mems       = array();
-		$grades     = null;
-		$progress   = null;
-		$passing    = null;
+		$members      = $this->course->offering()->section()->members(array('student'=>1, 'limit'=>$limit, 'start'=>$start));
+		$member_ids   = array();
+		$mems         = array();
+		$grades       = null;
+		$progress     = null;
+		$passing      = null;
+		$recognitions = null;
 
 		if (count($members) > 0)
 		{
@@ -264,17 +274,19 @@ class plgCoursesProgress extends JPlugin
 			$this->course->offering()->gradebook()->refresh($member_ids);
 
 			// Get the grades
-			$grades    = $this->course->offering()->gradebook()->grades(array('unit', 'course'));
-			$progress  = $this->course->offering()->gradebook()->progress($member_ids);
-			$passing   = $this->course->offering()->gradebook()->passing($member_ids);
+			$grades       = $this->course->offering()->gradebook()->grades(array('unit', 'course'));
+			$progress     = $this->course->offering()->gradebook()->progress($member_ids);
+			$passing      = $this->course->offering()->gradebook()->passing($member_ids);
+			$recognitions = $this->course->offering()->gradebook()->isEligibleForRecognition($member_ids);
 		}
 
 		echo json_encode(
 			array(
-				'members'     => $mems,
-				'grades'      => $grades,
-				'progress'    => $progress,
-				'passing'     => $passing
+				'members'      => $mems,
+				'grades'       => $grades,
+				'progress'     => $progress,
+				'passing'      => $passing,
+				'recognitions' => $recognitions
 			)
 		);
 
@@ -376,7 +388,8 @@ class plgCoursesProgress extends JPlugin
 					'section_id'  => $this->course->offering()->section()->get('id'),
 					'offering_id' => $this->course->offering()->get('id'),
 					'graded'      => true,
-					'state'       => 1
+					'state'       => 1,
+					'asset_scope' => 'asset_group'
 				),
 				'order_by'  => 'title',
 				'order_dir' => 'ASC'
@@ -384,17 +397,14 @@ class plgCoursesProgress extends JPlugin
 		);
 
 		// Get gradebook auxiliary assets
-		$auxiliary = $asset->find(
+		$auxiliary = $asset->findByScope(
+			'offering',
+			$this->course->offering()->get('id'),
 			array(
-				'w' => array(
-					'course_id'     => $this->course->get('id'),
-					'asset_type'    => 'gradebook',
-					'asset_subtype' => 'auxiliary',
-					'graded'        => true,
-					'state'         => 1
-				),
-				'order_by'  => 'title',
-				'order_dir' => 'ASC'
+				'asset_type'    => 'gradebook',
+				'asset_subtype' => 'auxiliary',
+				'graded'        => true,
+				'state'         => 1
 			)
 		);
 
@@ -441,7 +451,8 @@ class plgCoursesProgress extends JPlugin
 					'section_id'  => $this->course->offering()->section()->get('id'),
 					'offering_id' => $this->course->offering()->get('id'),
 					'graded'      => true,
-					'state'       => 1
+					'state'       => 1,
+					'asset_scope' => 'asset_group'
 				),
 				'order_by'  => 'title',
 				'order_dir' => 'ASC'
@@ -449,17 +460,14 @@ class plgCoursesProgress extends JPlugin
 		);
 
 		// Get gradebook auxiliary assets
-		$auxiliary = $asset->find(
+		$auxiliary = $asset->findByScope(
+			'offering',
+			$this->course->offering()->get('id'),
 			array(
-				'w' => array(
-					'course_id'     => $this->course->get('id'),
-					'asset_type'    => 'gradebook',
-					'asset_subtype' => 'auxiliary',
-					'graded'        => true,
-					'state'         => 1
-				),
-				'order_by'  => 'title',
-				'order_dir' => 'ASC'
+				'asset_type'    => 'gradebook',
+				'asset_subtype' => 'auxiliary',
+				'graded'        => true,
+				'state'         => 1
 			)
 		);
 
@@ -507,15 +515,35 @@ class plgCoursesProgress extends JPlugin
 		$assets = $asset->find(
 			array(
 				'w' => array(
-					'course_id'  => $this->course->get('id'),
-					'section_id' => $this->course->offering()->section()->get('id'),
-					'graded'     => true,
-					'state'      => 1
+					'course_id'   => $this->course->get('id'),
+					'section_id'  => $this->course->offering()->section()->get('id'),
+					'offering_id' => $this->course->offering()->get('id'),
+					'graded'      => true,
+					'state'       => 1,
+					'asset_scope' => 'asset_group'
 				),
 				'order_by'  => 'title',
 				'order_dir' => 'ASC'
 			)
 		);
+
+		// Get gradebook auxiliary assets
+		$auxiliary = $asset->findByScope(
+			'offering',
+			$this->course->offering()->get('id'),
+			array(
+				'asset_type'    => 'gradebook',
+				'asset_subtype' => 'auxiliary',
+				'graded'        => true,
+				'state'         => 1
+			)
+		);
+
+		$assets = array_merge($assets, $auxiliary);
+
+		usort($assets, function($a, $b) {
+			return strcasecmp($a->title, $b->title);
+		});
 
 		$section  = $this->course->offering()->section()->get('alias');
 		$filename = $this->course->get('alias') . '.' . $section . '.gradebook.csv';
@@ -540,7 +568,7 @@ class plgCoursesProgress extends JPlugin
 			$row   = array();
 			$row[] = JFactory::getUser($m->get('user_id'))->get('name');
 			$row[] = JFactory::getUser($m->get('user_id'))->get('email');
-			foreach($assets as $a)
+			foreach ($assets as $a)
 			{
 				$row[] = (isset($grades[$m->get('id')]['assets'][$a->id]['score'])) ? $grades[$m->get('id')]['assets'][$a->id]['score'] : '-';
 			}
@@ -691,7 +719,11 @@ class plgCoursesProgress extends JPlugin
 			exit();
 		}
 
-		$asset = new CoursesTableAsset(JFactory::getDBO());
+		$dbo = JFactory::getDBO();
+
+		$asset = new CoursesTableAsset($dbo);
+
+		$new = false;
 
 		// Get request variables
 		if ($asset_id = JRequest::getInt('asset_id', false))
@@ -716,12 +748,30 @@ class plgCoursesProgress extends JPlugin
 			$asset->set('course_id', $this->course->get('id'));
 			$asset->set('graded', 1);
 			$asset->set('grade_weight', 'exam');
+
+			$new = true;
 		}
 
 		if (!$asset->store())
 		{
 			echo json_encode(array('success'=>false));
 			exit();
+		}
+
+		if ($new)
+		{
+			// Create asset assoc object
+			$assoc = new CoursesTableAssetAssociation($dbo);
+			$assoc->set('asset_id', $asset->get('id'));
+			$assoc->set('scope', 'offering');
+			$assoc->set('scope_id', $this->course->offering()->get('id'));
+
+			// Save the asset association
+			if (!$assoc->store())
+			{
+				echo json_encode(array('success'=>false));
+				exit();
+			}
 		}
 
 		echo json_encode(array('id'=>$asset->get('id'), 'title'=>$asset->get('title')));
@@ -809,7 +859,8 @@ class plgCoursesProgress extends JPlugin
 			exit();
 		}
 
-		$grade = new CoursesTableGradeBook(JFactory::getDBO());
+		$db    = JFactory::getDBO();
+		$grade = new CoursesTableGradeBook($db);
 		$grade->loadByUserAndAssetId($member_id, $asset_id);
 
 		if (!$grade->id)
@@ -820,6 +871,7 @@ class plgCoursesProgress extends JPlugin
 		}
 
 		$grade->set('override', $grade_value);
+		$grade->set('override_recorded', \JFactory::getDate()->toSql());
 
 		if (!$grade->store())
 		{
@@ -857,7 +909,8 @@ class plgCoursesProgress extends JPlugin
 			exit();
 		}
 
-		$grade = new CoursesTableGradeBook(JFactory::getDBO());
+		$db    = JFactory::getDBO();
+		$grade = new CoursesTableGradeBook($db);
 		$grade->loadByUserAndAssetId($member_id, $asset_id);
 
 		if (!$grade->id)
@@ -867,6 +920,7 @@ class plgCoursesProgress extends JPlugin
 		}
 
 		$grade->set('override', NULL);
+		$grade->set('override_recorded', NULL);
 
 		// Store (true to update nulls)
 		if (!$grade->store(true))

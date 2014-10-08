@@ -38,7 +38,7 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Subscriptions List
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -55,27 +55,27 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 
 		// Get paging variables
 		$this->view->filters['limit']    = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.' . $this->_controller . '.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']    = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.' . $this->_controller . '.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
 
 		// Get sorting variables
 		$this->view->filters['sortby']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortby', 
-			'sortby', 
+			$this->_option . '.' . $this->_controller . '.sortby',
+			'sortby',
 			'pending'
 		));
 		$this->view->filters['filterby'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.filterby', 
-			'filterby', 
+			$this->_option . '.' . $this->_controller . '.filterby',
+			'filterby',
 			'all'
 		));
 
@@ -90,13 +90,13 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -111,7 +111,7 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 	/**
 	 * Create a new subscription
 	 * Displays the edit form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -121,7 +121,7 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit Subscription
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($row=null)
@@ -134,7 +134,7 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 		{
 			$this->view->subscription = $row;
 		}
-		else 
+		else
 		{
 			$id = JRequest::getInt('id', 0);
 
@@ -142,18 +142,18 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 			$this->view->subscription = $row->getSubscription($id);
 		}
 
-		if (!$this->view->subscription) 
+		if (!$this->view->subscription)
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Subscription not found')
+				JText::_('COM_SERVICES_SUBSCRIPTION_NOT_FOUND')
 			);
 			return;
 		}
 
 		$this->view->customer = JUser::getInstance($this->view->subscription->uid);
 
-		// check available user funds		
+		// check available user funds
 		$BTL = new \Hubzero\Bank\Teller($this->database, $this->view->subscription->uid);
 		$balance = $BTL->summary();
 		$credit  = $BTL->credit_summary();
@@ -161,7 +161,7 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 		$this->view->funds = ($funds > 0) ? $funds : '0';
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -175,7 +175,7 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save Subscription
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -186,11 +186,11 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 		$id = JRequest::getInt('id', 0);
 
 		$subscription = new Subscription($this->database);
-		if (!$subscription->load($id)) 
+		if (!$subscription->load($id))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Subscription not found'),
+				JText::_('COM_SERVICES_SUBSCRIPTION_NOT_FOUND'),
 				'error'
 			);
 			return;
@@ -198,11 +198,11 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 
 		// get service
 		$service = new Service($this->database);
-		if (!$service->loadService('', $subscription->serviceid)) 
+		if (!$service->loadService('', $subscription->serviceid))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Service not found.') . ' ' .  $subscription->serviceid,
+				JText::_('COM_SERVICES_SERVICE_NOT_FOUND') . ' ' .  $subscription->serviceid,
 				'error'
 			);
 			return;
@@ -245,8 +245,8 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 				$subscription->units 			= $subscription->units + $newunits;
 
 				$email = ($received_payment > 0 or $newunits > 0)  ? 1 : 0;
-				$statusmsg .= JText::_('Subscription has been activated');
-				if ($newunits > 0) 
+				$statusmsg .= JText::_('COM_SERVICES_SUBSCRIPTION_ACTIVATED');
+				if ($newunits > 0)
 				{
 					$statusmsg .=  ' ' . JText::_('for') . ' ' . $newunits . ' ';
 					$statusmsg .= $oldunits > 0 ? JText::_('additional') . ' ' : '';
@@ -262,33 +262,33 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 				$refund    = 0;
 				$unitsleft = $subscription->getRemaining('unit', $subscription, $service->maxunits, $service->unitsize);
 
-				// get cost per unit (to compute required refund)	
+				// get cost per unit (to compute required refund)
 				$refund = ($subscription->totalpaid > 0 && $unitsleft > 0 && ($subscription->totalpaid - $unitsleft * $unitcost) > 0) ? $unitsleft * $prevunitcost : 0;
 				$subscription->status = 2;
 				$subscription->pendingpayment = $refund;
 				$subscription->pendingunits = $refund > 0  ? $unitsleft : 0;
 				$email = 1;
-				$statusmsg .= JText::_('Subscription has been cancelled by site administrator.');
+				$statusmsg .= JText::_('COM_SERVICES_SUBSCRIPTION_CANCELLED');
 			break;
 		}
 
-		if (($action && $action != 'message') || $message) 
+		if (($action && $action != 'message') || $message)
 		{
 			$subscription->notes .= '------------------------------' . "\r\n";
-			$subscription->notes .= JText::_('Subscription status update') . ', '.JFactory::getDate() . "\r\n";
+			$subscription->notes .= JText::_('COM_SERVICES_SUBSCRIPTION_STATUS_UPDATED') . ', '.JFactory::getDate() . "\r\n";
 			$subscription->notes .= $statusmsg ? $statusmsg . "\r\n" : '';
 			$subscription->notes .= $message   ? $message . "\r\n"   : '';
 			$subscription->notes .= '------------------------------' . "\r\n";
 		}
 
-		if (!$subscription->check()) 
+		if (!$subscription->check())
 		{
 			$this->addComponentMessage($subscription->getError(), 'error');
 			$this->view->setLayout('edit');
 			$this->editTask($subscription);
 			return;
 		}
-		if (!$subscription->store()) 
+		if (!$subscription->store())
 		{
 			$this->addComponentMessage($subscription->getError(), 'error');
 			$this->view->setLayout('edit');
@@ -296,23 +296,23 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 			return;
 		}
 
-		if ($email || $message) 
+		if ($email || $message)
 		{
 			$jconfig = JFactory::getConfig();
 
 			// E-mail "from" info
 			$from = array();
 			$from['email'] = $jconfig->getValue('config.mailfrom');
-			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('Subscriptions');
+			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_SERVICES_SUBSCRIPTIONS');
 
 			// start email message
-			$subject = JText::_('Status update on your subscription #') . $subscription->code;
+			$subject = JText::sprintf('COM_SERVICES_EMAIL_SUBJECT', $subscription->code);
 			$emailbody  = $subject . ':' . "\r\n";
-			$emailbody .= JText::_('Subscription Service') . ' - ' . $service->title . "\r\n";
+			$emailbody .= JText::_('COM_SERVICES_SUBSCRIPTION_SERVICE') . ' - ' . $service->title . "\r\n";
 			$emailbody .= '----------------------------------------------------------' . "\r\n";
 
 			$emailbody .= $action != 'message' && $statusmsg ? $statusmsg : '';
-			if ($message) 
+			if ($message)
 			{
 				$emailbody .= "\r\n";
 				$emailbody .= $message;
@@ -320,18 +320,18 @@ class ServicesControllerSubscriptions extends \Hubzero\Component\AdminController
 
 			JPluginHelper::importPlugin('xmessage');
 			$dispatcher = JDispatcher::getInstance();
-			if (!$dispatcher->trigger('onSendMessage', array('subscriptions_message', $subject, $emailbody, $from, array($subscription->uid), $this->_option))) 
+			if (!$dispatcher->trigger('onSendMessage', array('subscriptions_message', $subject, $emailbody, $from, array($subscription->uid), $this->_option)))
 			{
-				$this->addComponentMessage(JText::_('Failed to message users.'), 'error');
+				$this->addComponentMessage(JText::_('COM_SERVICES_ERROR_FAILED_TO_MESSAGE'), 'error');
 			}
 		}
 
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Subscription successfully saved.') . ($statusmsg ? ' ' . $statusmsg : '')
+			JText::_('COM_SERVICES_SUBSCRIPTION_SAVED') . ($statusmsg ? ' ' . $statusmsg : '')
 		);
 	}
-	
+
 	/**
 	 * Cancel a task (redirects to default task)
 	 *

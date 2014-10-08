@@ -38,55 +38,8 @@ defined('_JEXEC') or die('Restricted access');
 class modLatestusage extends \Hubzero\Module\Module
 {
 	/**
-	 * Get the count of users currently online
-	 * 
-	 * @return     array
-	 */
-	private function _getOnlineCount()
-	{
-		$db = JFactory::getDBO();
-		$sessions = null;
-
-		// calculate number of guests and members
-		$result = array();
-		$user_array = 0;
-		$guest_array = 0;
-
-		$query = "SELECT guest, usertype, client_id FROM #__session WHERE client_id = 0";
-		$db->setQuery($query);
-		$sessions = $db->loadObjectList();
-
-		if ($db->getErrorNum()) 
-		{
-			JError::raiseWarning(500, $db->stderr());
-		}
-
-		if (count($sessions)) 
-		{
-			foreach ($sessions as $session)
-			{
-				// If guest increase guest count by 1
-				if ($session->guest == 1 && !$session->usertype) 
-				{
-					$guest_array++;
-				}
-				// If member increase member count by 1
-				if ($session->guest == 0) 
-				{
-					$user_array++;
-				}
-			}
-		}
-
-		$result['user']  = $user_array;
-		$result['guest'] = $guest_array;
-
-		return $result;
-	}
-
-	/**
 	 * Display module content
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function display()
@@ -98,15 +51,15 @@ class modLatestusage extends \Hubzero\Module\Module
 
 		$this->cls = trim($this->params->get('moduleclass_sfx'));
 
-		if ($udb) 
+		if ($udb)
 		{
 			$udb->setQuery('SELECT value FROM summary_user_vals WHERE datetime = (SELECT MAX(datetime) FROM summary_user_vals) AND period = "12" AND colid = "1" AND rowid = "1"');
 			$this->users = $udb->loadResult();
 
 			$udb->setQuery('SELECT value FROM summary_simusage_vals WHERE datetime  = (SELECT MAX(datetime) FROM summary_simusage_vals) AND period = "12" AND colid = "1" AND rowid = "2"');
 			$this->sims = $udb->loadResult();
-		} 
-		else 
+		}
+		else
 		{
 			$database->setQuery("SELECT COUNT(*) FROM #__users");
 			$this->users = $database->loadResult();

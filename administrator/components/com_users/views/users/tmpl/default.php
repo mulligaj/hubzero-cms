@@ -25,9 +25,9 @@ $loggeduser = JFactory::getUser();
 	<fieldset id="filter-bar">
 		<div class="filter-search fltlft">
 			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('COM_USERS_SEARCH_USERS'); ?></label>
-			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" title="<?php echo JText::_('COM_USERS_SEARCH_USERS'); ?>" />
+			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" placeholder="<?php echo JText::_('COM_USERS_SEARCH_USERS'); ?>" />
 			<button type="submit"><?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
-			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSEARCH_RESET'); ?></button>
+			<button type="button" onclick="$('#filter_search').val('');this.form.submit();"><?php echo JText::_('JSEARCH_RESET'); ?></button>
 		</div>
 		<div class="filter-select fltrt">
 			<label for="filter_state">
@@ -109,7 +109,7 @@ $loggeduser = JFactory::getUser();
 				$canChange	= false;
 			}
 		?>
-			<tr class="row<?php echo $i % 2; ?>">
+			<tr class="row<?php echo $i % 2; if (!$canChange) { echo ' disabled'; } ?>">
 				<td class="center">
 					<?php if ($canEdit) : ?>
 						<?php echo JHtml::_('grid.id', $i, $item->id); ?>
@@ -122,14 +122,16 @@ $loggeduser = JFactory::getUser();
 						<?php echo JHtml::_('users.addNote', $item->id); ?>
 					</div>
 					<?php if ($canEdit) : ?>
-					<a href="<?php echo JRoute::_('index.php?option=com_users&task=user.edit&id='.(int) $item->id); ?>" title="<?php echo JText::sprintf('COM_USERS_EDIT_USER', $this->escape($item->name)); ?>">
-						<?php echo $this->escape($item->name); ?></a>
+						<a href="<?php echo JRoute::_('index.php?option=com_users&task=user.edit&id='.(int) $item->id); ?>" title="<?php echo JText::sprintf('COM_USERS_EDIT_USER', $this->escape($item->name)); ?>">
+							<?php echo $this->escape($item->name); ?>
+						</a>
 					<?php else : ?>
 						<?php echo $this->escape($item->name); ?>
 					<?php endif; ?>
 					<?php if (JDEBUG) : ?>
-						<div class="fltrt"><div class="button2-left smallsub"><div class="blank"><a href="<?php echo JRoute::_('index.php?option=com_users&view=debuguser&user_id='.(int) $item->id);?>">
-						<?php echo JText::_('COM_USERS_DEBUG_USER');?></a></div></div></div>
+						<a class="permissions button" href="<?php echo JRoute::_('index.php?option=com_users&view=debuguser&user_id='.(int) $item->id);?>">
+							<?php echo JText::_('COM_USERS_DEBUG_USER');?>
+						</a>
 					<?php endif; ?>
 				</td>
 				<td class="center">
@@ -143,7 +145,7 @@ $loggeduser = JFactory::getUser();
 							<?php echo JHtml::_('grid.boolean', $i, !$item->block, 'users.block', null); ?>
 						<?php endif; ?>
 					<?php else : ?>
-						<?php echo JText::_($item->block ? 'JNO' : 'JYES'); ?>
+						<span class="state <?php echo JText::_($item->block ? 'no' : 'yes'); ?>"><span><?php echo JText::_($item->block ? 'JNO' : 'JYES'); ?></span></span>
 					<?php endif; ?>
 				</td>
 				<td class="center">
@@ -182,11 +184,9 @@ $loggeduser = JFactory::getUser();
 		<?php echo $this->loadTemplate('batch'); ?>
 	<?php endif;?>
 
-	<div>
-		<input type="hidden" name="task" value="" />
-		<input type="hidden" name="boxchecked" value="0" />
-		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
-		<?php echo JHtml::_('form.token'); ?>
-	</div>
+	<input type="hidden" name="task" value="" />
+	<input type="hidden" name="boxchecked" value="0" />
+	<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+	<?php echo JHtml::_('form.token'); ?>
 </form>

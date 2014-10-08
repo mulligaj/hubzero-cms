@@ -36,6 +36,10 @@ defined('_JEXEC') or die('Restricted access');
  */
 class SystemHtml
 {
+	//public static $MY_SELF_WO_SORT = '';
+
+	//public static $MYREQUEST = array();
+
 	/**
 	 * Sortable table header in "scripts for this host" view
 	 *
@@ -44,17 +48,17 @@ class SystemHtml
 	 * @param	string $extra Extra data to append to URL
 	 * @param	string
 	 */
-	public function sortheader($key, $name, $extra='')
+	public static function sortheader($MYREQUEST, $MY_SELF_WO_SORT, $key, $name, $extra='')
 	{
-		$MYREQUEST = $this->MYREQUEST;
-		$MY_SELF_WO_SORT = $this->MY_SELF_WO_SORT;
+		//$MYREQUEST = self::$MYREQUEST;
+		//$MY_SELF_WO_SORT = self::$MY_SELF_WO_SORT;
 
 		if ($MYREQUEST['SORT1'] == $key)
 		{
 			$MYREQUEST['SORT2'] = $MYREQUEST['SORT2']=='A' ? 'D' : 'A';
 		}
 
-		return "<a class=sortable href=\"$MY_SELF_WO_SORT$extra&SORT1=$key&SORT2=" . $MYREQUEST['SORT2'] . "\">$name</a>";
+		return "<a class=\"sortable\" href=\"$MY_SELF_WO_SORT$extra&amp;SORT1=$key&amp;SORT2=" . $MYREQUEST['SORT2'] . "\">$name</a>";
 	}
 
 	/**
@@ -63,11 +67,11 @@ class SystemHtml
 	 * @param	integer $s Byte value
 	 * @param	string
 	 */
-	public function bsize($s)
+	public static function bsize($s)
 	{
 		foreach (array('', 'K', 'M', 'G') as $i => $k)
 		{
-			if ($s < 1024) 
+			if ($s < 1024)
 			{
 				break;
 			}

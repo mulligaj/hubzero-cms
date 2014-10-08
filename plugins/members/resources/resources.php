@@ -31,37 +31,42 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Members Plugin class for resources
  */
-class plgMembersResources extends JPlugin
+class plgMembersResources extends \Hubzero\Plugin\Plugin
 {
 	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
+	 */
+	protected $_autoloadLanguage = true;
+
+	/**
 	 * Resource areas
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_areas = null;
 
 	/**
 	 * Resource categories
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_cats  = null;
 
 	/**
 	 * Record count
-	 * 
+	 *
 	 * @var integer
 	 */
 	private $_total = null;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$subject Event observer
 	 * @param      array  $config   Optional config values
 	 * @return     void
@@ -70,27 +75,25 @@ class plgMembersResources extends JPlugin
 	{
 		parent::__construct($subject, $config);
 
-		$this->loadLanguage();
-
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'type.php');
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_resources' . DS . 'tables' . DS . 'resource.php');
 	}
 
 	/**
 	 * Return a list of categories
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function onMembersContributionsAreas()
 	{
 		$areas = $this->_areas;
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			return $areas;
 		}
 
 		$categories = $this->_cats;
-		if (!is_array($categories)) 
+		if (!is_array($categories))
 		{
 			// Get categories
 			$database = JFactory::getDBO();
@@ -119,7 +122,7 @@ class plgMembersResources extends JPlugin
 
 	/**
 	 * Build SQL for returning the count of the number of contributions
-	 * 
+	 *
 	 * @param      string $user_id  Field to join on user ID
 	 * @param      string $username Field to join on username
 	 * @return     string
@@ -132,7 +135,7 @@ class plgMembersResources extends JPlugin
 
 	/**
 	 * Return either a count or an array of the member's contributions
-	 * 
+	 *
 	 * @param      object  $member     Current member
 	 * @param      string  $option     Component name
 	 * @param      string  $authorized Authorization level
@@ -146,11 +149,11 @@ class plgMembersResources extends JPlugin
 	{
 		$database = JFactory::getDBO();
 
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
 			$ars = $this->onMembersContributionsAreas();
-			if (!isset($areas[$this->_name]) 
-			 && !in_array($this->_name, $areas) 
+			if (!isset($areas[$this->_name])
+			 && !in_array($this->_name, $areas)
 			 && !array_intersect($areas, array_keys($ars['resources'])))
 
 			{
@@ -159,24 +162,24 @@ class plgMembersResources extends JPlugin
 		}
 
 		// Do we have a member ID?
-		if ($member instanceof \Hubzero\User\Profile) 
+		if ($member instanceof \Hubzero\User\Profile)
 		{
-			if (!$member->get('uidNumber')) 
+			if (!$member->get('uidNumber'))
 			{
 				return array();
-			} 
-			else 
+			}
+			else
 			{
 				$uidNumber = $member->get('uidNumber');
 			}
-		} 
-		else 
+		}
+		else
 		{
-			if (!$member->uidNumber) 
+			if (!$member->uidNumber)
 			{
 				return array();
-			} 
-			else 
+			}
+			else
 			{
 				$uidNumber = $member->uidNumber;
 			}
@@ -193,10 +196,10 @@ class plgMembersResources extends JPlugin
 
 		//$filters['usergroups'] = \Hubzero\User\Helper::getGroups($uidNumber, 'all');
 		$filters['usergroups'] = $member->getGroups('all');
-		
+
 		// Get categories
 		$categories = $this->_cats;
-		if (!is_array($categories)) 
+		if (!is_array($categories))
 		{
 			$rt = new ResourcesType($database);
 			$categories = $rt->getMajorTypes();
@@ -215,9 +218,9 @@ class plgMembersResources extends JPlugin
 			$cats[$normalized]['id'] = $categories[$i]->id;
 		}
 
-		if ($limit) 
+		if ($limit)
 		{
-			if ($this->_total != null) 
+			if ($this->_total != null)
 			{
 				$total = 0;
 				$t = $this->_total;
@@ -226,7 +229,7 @@ class plgMembersResources extends JPlugin
 					$total += $l;
 				}
 			}
-			if ($total == 0) 
+			if ($total == 0)
 			{
 				return array();
 			}
@@ -238,7 +241,7 @@ class plgMembersResources extends JPlugin
 			// Check the area of return. If we are returning results for a specific area/category
 			// we'll need to modify the query a bit
 			//if (count($areas) == 1 && key($areas[0]) != 'resources') {
-			if (count($areas) == 1 && !isset($areas['resources'])) 
+			if (count($areas) == 1 && !isset($areas['resources']))
 			{
 				$filters['type'] = (isset($cats[$areas[0]])) ? $cats[$areas[0]]['id'] : 0;
 			}
@@ -248,16 +251,16 @@ class plgMembersResources extends JPlugin
 			$rows = $database->loadObjectList();
 
 			// Did we get any results?
-			if ($rows) 
+			if ($rows)
 			{
 				// Loop through the results and set each item's HREF
 				foreach ($rows as $key => $row)
 				{
-					if ($row->alias) 
+					if ($row->alias)
 					{
 						$rows[$key]->href = JRoute::_('index.php?option=com_resources&alias=' . $row->alias);
-					} 
-					else 
+					}
+					else
 					{
 						$rows[$key]->href = JRoute::_('index.php?option=com_resources&id=' . $row->id);
 					}
@@ -266,8 +269,8 @@ class plgMembersResources extends JPlugin
 
 			// Return the results
 			return $rows;
-		} 
-		else 
+		}
+		else
 		{
 			$filters['select'] = 'count';
 
@@ -276,24 +279,24 @@ class plgMembersResources extends JPlugin
 			$ares = $this->onMembersContributionsAreas();
 			foreach ($ares as $area => $val)
 			{
-				if (is_array($val)) 
+				if (is_array($val))
 				{
 					$i = 0;
 					foreach ($val as $a => $t)
 					{
-						if ($limitstart == -1) 
+						if ($limitstart == -1)
 						{
-							if ($i == 0) 
+							if ($i == 0)
 							{
 								$database->setQuery($rr->buildPluginQuery($filters));
 								$counts[] = $database->loadResult();
-							} 
-							else 
+							}
+							else
 							{
 								$counts[] = 0;
 							}
-						} 
-						else 
+						}
+						else
 						{
 							$filters['type'] = $cats[$a]['id'];
 
@@ -314,7 +317,7 @@ class plgMembersResources extends JPlugin
 
 	/**
 	 * Static method for formatting results
-	 * 
+	 *
 	 * @param      object $row Database row
 	 * @return     string HTML
 	 */
@@ -334,26 +337,18 @@ class plgMembersResources extends JPlugin
 
 		// Get the component params and merge with resource params
 		$config = JComponentHelper::getParams('com_resources');
-		$paramClass = 'JParameter';
-		$dformat = '%d %b %Y';
-		$tz = 0;
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramClass = 'JRegistry';
-			$dformat = 'd M Y';
-			$tz = true;
-		}
-		$rparams = new $paramClass($row->params);
-		$params = $config;
-		$params->merge($rparams);
+
+		$rparams = new JRegistry($row->params);
+		//$params = $config;
+		//$params->merge($rparams);
 
 		// Set the display date
-		switch ($params->get('show_date'))
+		switch ($rparams->get('show_date', $config->get('show_date')))
 		{
 			case 0: $thedate = ''; break;
-			case 1: $thedate = JHTML::_('date', $row->created, $dformat, $tz);    break;
-			case 2: $thedate = JHTML::_('date', $row->modified, $dformat, $tz);   break;
-			case 3: $thedate = JHTML::_('date', $row->publish_up, $dformat, $tz); break;
+			case 1: $thedate = JHTML::_('date', $row->created, 'd M Y');    break;
+			case 2: $thedate = JHTML::_('date', $row->modified, 'd M Y');   break;
+			case 3: $thedate = JHTML::_('date', $row->publish_up, 'd M Y'); break;
 		}
 
 		$html  = "\t" . '<li class="';
@@ -368,7 +363,7 @@ class plgMembersResources extends JPlugin
 		}
 		$html .= ' resource">' . "\n";
 		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '">' . stripslashes($row->title) . '</a>';
-		if ($authorized || $row->created_by == $juser->get('id')) 
+		if ($authorized || $row->created_by == $juser->get('id'))
 		{
 			switch ($row->state)
 			{
@@ -382,16 +377,16 @@ class plgMembersResources extends JPlugin
 			}
 		}
 		$html .= '</p>' . "\n";
-		if ($params->get('show_ranking')) 
+		if ($params->get('show_ranking'))
 		{
 			$helper->getCitationsCount();
 			$helper->getLastCitationDate();
 
-			if ($row->category == 7) 
+			if ($row->category == 7)
 			{
 				$stats = new ToolStats($database, $row->id, $row->category, $row->rating, $helper->citationsCount, $helper->lastCitationDate);
-			} 
-			else 
+			}
+			else
 			{
 				$stats = new AndmoreStats($database, $row->id, $row->category, $row->rating, $helper->citationsCount, $helper->lastCitationDate);
 			}
@@ -402,13 +397,13 @@ class plgMembersResources extends JPlugin
 			$html .= "\t\t".'<div class="metadata">'."\n";
 
 			$r = (10*$row->ranking);
-			if (intval($r) < 10) 
+			if (intval($r) < 10)
 			{
 				$r = '0' . $r;
 			}
 
 			$html .= "\t\t\t" . '<dl class="rankinfo">' . "\n";
-			$html .= "\t\t\t\t" . '<dt class="ranking"><span class="rank-' . $r . '">' . JText::_('PLG_GROUPS_RESOURCES_THIS_HAS') . '</span> ' . number_format($row->ranking, 1) . ' ' . JText::_('PLG_MEMBERS_RESOURCES_RANKING') . '</dt>' . "\n";
+			$html .= "\t\t\t\t" . '<dt class="ranking"><span class="rank-' . $r . '">' . JText::_('PLG_MEMBERS_RESOURCES_THIS_HAS') . '</span> ' . number_format($row->ranking, 1) . ' ' . JText::_('PLG_MEMBERS_RESOURCES_RANKING') . '</dt>' . "\n";
 			$html .= "\t\t\t\t" . '<dd>' . "\n";
 			$html .= "\t\t\t\t\t" . '<p>' . JText::_('PLG_MEMBERS_RESOURCES_RANKING_EXPLANATION') . '</p>' . "\n";
 			$html .= "\t\t\t\t\t" . '<div>' . "\n";
@@ -417,8 +412,8 @@ class plgMembersResources extends JPlugin
 			$html .= "\t\t\t\t" . '</dd>' . "\n";
 			$html .= "\t\t\t" . '</dl>' . "\n";
 			$html .= "\t\t" . '</div>' . "\n";
-		} 
-		elseif ($params->get('show_rating')) 
+		}
+		elseif ($params->get('show_rating'))
 		{
 			switch ($row->rating)
 			{
@@ -441,16 +436,16 @@ class plgMembersResources extends JPlugin
 			$html .= "\t\t" . '</div>' . "\n";
 		}
 		$html .= "\t\t".'<p class="details">' . $thedate . ' <span>|</span> ' . stripslashes($row->area);
-		if ($helper->contributors) 
+		if ($helper->contributors)
 		{
 			$html .= ' <span>|</span> ' . JText::_('PLG_MEMBERS_RESOURCES_CONTRIBUTORS') . ': ' . $helper->contributors;
 		}
 		$html .= '</p>' . "\n";
-		if ($row->itext) 
+		if ($row->itext)
 		{
 			$html .= \Hubzero\Utility\String::truncate(stripslashes($row->itext))."\n";
-		} 
-		else if ($row->ftext) 
+		}
+		else if ($row->ftext)
 		{
 			$html .= \Hubzero\Utility\String::truncate(stripslashes($row->ftext))."\n";
 		}
@@ -460,7 +455,7 @@ class plgMembersResources extends JPlugin
 
 	/**
 	 * Include needed libraries and push scripts and CSS to the document
-	 * 
+	 *
 	 * @return     void
 	 */
 	public static function documents()
@@ -470,188 +465,5 @@ class plgMembersResources extends JPlugin
 
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'helper.php');
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'usage.php');
-	}
-
-	/**
-	 * Return resource categories
-	 * 
-	 * @param      unknown $authorized Parameter description (if any) ...
-	 * @return     array
-	 */
-	public function onMembersFavoritesAreas()
-	{
-		return $this->onMembersContributionsAreas();
-	}
-
-	/**
-	 * Return either a count or an array of the member's favorites
-	 * 
-	 * @param      object  $member     Current member
-	 * @param      string  $option     Component name
-	 * @param      integer $limit      Number of record to return
-	 * @param      integer $limitstart Record return start
-	 * @param      array   $areas      Areas to return data for
-	 * @return     array
-	 */
-	public function onMembersFavorites($member, $option, $limit=0, $limitstart=0, $areas=null)
-	{
-		$database = JFactory::getDBO();
-
-		if (is_array($areas) && $limit) 
-		{
-			$ars = $this->onMembersFavoritesAreas();
-			if (!isset($areas[$this->_name]) 
-			 && !in_array($this->_name, $areas) 
-			 && !array_intersect($areas, array_keys($ars['resources'])))
-			{
-				return array();
-			}
-		}
-
-		// Do we have a member ID?
-		if ($member instanceof \Hubzero\User\Profile) 
-		{
-			if (!$member->get('uidNumber')) 
-			{
-				return array();
-			} 
-			else 
-			{
-				$uidNumber = $member->get('uidNumber');
-			}
-		}
-		else 
-		{
-			if (!$member->get('id')) 
-			{
-				return array();
-			} 
-			else 
-			{
-				$uidNumber = $member->get('id');
-			}
-		}
-
-		// Instantiate some needed objects
-		$rr = new ResourcesResource($database);
-
-		// Build query
-		$filters = array();
-		$filters['favorite'] = $uidNumber;
-		$filters['sortby'] = 'date';
-
-		//$filters['usergroups'] = \Hubzero\User\Helper::getGroups($uidNumber, 'all');
-		$filters['usergroups'] = $member->getGroups('all');
-
-		// Get categories
-		$categories = $this->_cats;
-		if (!is_array($categories)) 
-		{
-			$rt = new ResourcesType($database);
-			$categories = $rt->getMajorTypes();
-		}
-
-		// Normalize the category names
-		// e.g., "Oneline Presentations" -> "onlinepresentations"
-		$cats = array();
-		for ($i = 0; $i < count($categories); $i++)
-		{
-			$normalized = preg_replace("/[^a-zA-Z0-9]/", "", $categories[$i]->type);
-			$normalized = strtolower($normalized);
-
-			$cats[$normalized] = array();
-			$cats[$normalized]['id'] = $categories[$i]->id;
-		}
-
-		if ($limit) 
-		{
-			$total = 0;
-			if ($this->_total != null) 
-			{
-				$t = $this->_total;
-				foreach ($t as $l)
-				{
-					$total += $l;
-				}
-			}
-			if ($total == 0) 
-			{
-				return array();
-			}
-
-			$filters['select'] = 'records';
-			$filters['limit'] = $limit;
-			$filters['limitstart'] = $limitstart;
-
-			if (count($areas) == 1 && !isset($areas['resources'])) 
-			{
-				$filters['type'] = (isset($cats[$areas[0]])) ? $cats[$areas[0]]['id'] : 0;
-			}
-
-			// Get results
-			$database->setQuery($rr->buildPluginQuery($filters));
-			$rows = $database->loadObjectList();
-
-			if ($rows) 
-			{
-				foreach ($rows as $key => $row)
-				{
-					if ($row->alias) 
-					{
-						$rows[$key]->href = JRoute::_('index.php?option=com_resources&alias=' . $row->alias);
-					} 
-					else 
-					{
-						$rows[$key]->href = JRoute::_('index.php?option=com_resources&id=' . $row->id);
-					}
-				}
-			}
-
-			// Return the results
-			return $rows;
-		} 
-		else 
-		{
-			$filters['select'] = 'count';
-
-			// Get a count
-			$counts = array();
-			$ares = $this->onMembersFavoritesAreas();
-			foreach ($ares as $area=>$val)
-			{
-				if (is_array($val)) 
-				{
-					$i = 0;
-					foreach ($val as $a=>$t)
-					{
-						if ($limitstart == -1) 
-						{
-							if ($i == 0) 
-							{
-								$database->setQuery($rr->buildPluginQuery($filters));
-								$counts[] = $database->loadResult();
-							} 
-							else 
-							{
-								$counts[] = 0;
-							}
-						} 
-						else 
-						{
-							$filters['type'] = $cats[$a]['id'];
-
-							// Execute a count query for each area/category
-							$database->setQuery($rr->buildPluginQuery($filters));
-							$counts[] = $database->loadResult();
-						}
-						$i++;
-					}
-				}
-			}
-
-			// Return the counts
-			$this->_total = $counts;
-			return $counts;
-		}
 	}
 }

@@ -22,8 +22,6 @@ jQuery(document).ready(function(jq){
 		pc = $('#page_container');
 
 	if (pc.length) {
-		//var top = $('#page_container').offset().top;
-		
 		$('#page_menu a.guide').fancybox({
 			type: 'ajax',
 			width: '100%',
@@ -49,13 +47,14 @@ jQuery(document).ready(function(jq){
 			},
 			afterShow: function() {
 				$('#guide-content').css('position', 'absolute');
+				$('html').removeClass('fancybox-lock');
 			},
 			onUpdate: function() {
 				$('#guide-content').css('position', 'absolute');
 			},
 			helpers: {
 				overlay: {
-					css: {position: 'absolute' }
+					css: {position: 'absolute', height: $('body').height() }
 				}
 			}
 		});
@@ -87,6 +86,7 @@ jQuery(document).ready(function(jq){
 					},
 					afterShow: function() {
 						$('#guide-content').css('position', 'absolute');
+						$('html').removeClass('fancybox-lock');
 					},
 					beforeClose: function() {
 						$.get($('#guide-overlay').attr('data-action').nohtml(), {}, function(response){
@@ -99,7 +99,7 @@ jQuery(document).ready(function(jq){
 					},
 					helpers: {
 						overlay: {
-							css: {position: 'absolute' }
+							css: {position: 'absolute', height: $('body').height() }
 						}
 					}
 				}

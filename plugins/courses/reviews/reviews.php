@@ -55,7 +55,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
@@ -69,7 +69,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -86,9 +86,9 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		$rtrn = 'html';
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($active)) 
+		if (is_array($active))
 		{
-			if (!in_array($arr['name'], $active)) 
+			if (!in_array($arr['name'], $active))
 			{
 				$rtrn = 'metadata';
 			}
@@ -106,13 +106,9 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		$this->option     = JRequest::getCmd('option', 'com_courses');
 		$this->controller = JRequest::getWord('controller', 'course');
 
-		\Hubzero\Document\Assets::addPluginStylesheet('courses', $this->_name);
-
 		// Are we returning any HTML?
-		if ($rtrn == 'all' || $rtrn == 'html') 
+		if ($rtrn == 'all' || $rtrn == 'html')
 		{
-			\Hubzero\Document\Assets::addPluginScript('courses', $this->_name);
-
 			$this->view = new \Hubzero\Plugin\View(
 				array(
 					'folder'  => 'courses',
@@ -137,7 +133,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 
 			$this->view->task     = $this->task    = JRequest::getVar('action', '');
 
-			switch ($this->task) 
+			switch ($this->task)
 			{
 				// Entries
 				case 'save':     $this->_save();   break;
@@ -150,7 +146,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 				default:         $this->_view();   break;
 			}
 
-			if ($this->getError()) 
+			if ($this->getError())
 			{
 				foreach ($this->getErrors() as $error)
 				{
@@ -163,7 +159,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		}
 
 		// Build the HTML meant for the "about" tab's metadata overview
-		if ($rtrn == 'html' || $rtrn == 'metadata') 
+		if ($rtrn == 'html' || $rtrn == 'metadata')
 		{
 			$view = new \Hubzero\Plugin\View(
 				array(
@@ -185,7 +181,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set permissions
-	 * 
+	 *
 	 * @param      string  $assetType Type of asset to set permissions for (component, section, category, thread, post)
 	 * @param      integer $assetId   Specific object to check permissions for
 	 * @return     void
@@ -200,7 +196,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		}
 
 		// Logged in?
-		if (!$this->juser->get('guest')) 
+		if (!$this->juser->get('guest'))
 		{
 			// Set comments to viewable
 			$this->params->set('access-view-' . $assetType, true);
@@ -209,21 +205,10 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 				'admin', 'manage', 'edit', 'edit-own', 'create', 'delete'
 			);
 
-			// Joomla 1.6+
-			if (version_compare(JVERSION, '1.6', 'ge'))
-			{
-				$yearFormat  = "Y";
-				$monthFormat = "m";
-				$dayFormat   = "d";
-			}
-			else 
-			{
-				// Joomla 1.5
+			$yearFormat  = "Y";
+			$monthFormat = "m";
+			$dayFormat   = "d";
 
-				$yearFormat  = "%Y";
-				$monthFormat = "%m";
-				$dayFormat   = "%d";
-			}
 			if ($this->obj->isManager())
 			{
 				foreach ($actions as $action)
@@ -236,7 +221,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 			{
 				return;
 			}
-			
+
 			$d = $this->obj->get('created');
 
 			$year  = intval(substr($d, 0, 4));
@@ -270,8 +255,8 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 			$today = JFactory::getDate();
 
 			// Can users create comments?
-			if ($this->params->get('comments_close', 'never') == 'never' 
-			 || ($this->params->get('comments_close', 'never') != 'now' && $today < $pdt)) 
+			if ($this->params->get('comments_close', 'never') == 'never'
+			 || ($this->params->get('comments_close', 'never') != 'now' && $today < $pdt))
 			{
 				$this->params->set('access-create-' . $assetType, true);
 				$this->params->set('access-review-' . $assetType, true);
@@ -292,22 +277,14 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 	/**
 	 * Method to add a message to the component message que
 	 *
-	 * @param	string	$message	The message to add
-	 * @return	void
+	 * @param   string $message The message to add
+	 * @return  void
 	 */
 	public function redirect($url, $msg='', $msgType='')
 	{
 		$url = ($url != '') ? $url : JRequest::getVar('REQUEST_URI', JRoute::_($this->obj->link() . '&active=reviews'), 'server');
-		$url = str_replace('&amp;', '&', $url);
 
-		$msg = ($msg) ? $msg : '';
-		$msgType = ($msgType) ? $msgType : 'message';
-
-		if ($url) 
-		{
-			$app = JFactory::getApplication();
-			$app->redirect($url, $msg, $msgType);
-		}
+		parent::redirect($url, $msg, $msgType);
 	}
 
 	/**
@@ -315,11 +292,13 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 	 *
 	 * @return    void
 	 */
-	protected function _login() 
+	protected function _login()
 	{
 		$return = base64_encode(JRequest::getVar('REQUEST_URI', JRoute::_($this->obj->link() . '&active=reviews', false, true), 'server'));
 		$this->redirect(
-			JRoute::_('index.php?option=com_users&view=login&return=' . $return, false)
+			JRoute::_('index.php?option=com_users&view=login&return=' . $return, false),
+			JText::_('PLG_COURSES_REVIEWS_LOGIN_NOTICE'),
+			'warning'
 		);
 	}
 
@@ -328,10 +307,10 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 	 *
 	 * @return    void
 	 */
-	protected function _vote() 
+	protected function _vote()
 	{
 		// Ensure the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->setError(JText::_('PLG_COURSES_REVIEWS_LOGIN_NOTICE'));
 			return $this->_login();
@@ -347,7 +326,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		if ($item_id = JRequest::getInt('voteup', 0))
 		{
 			$v->vote   = 1;
-		} 
+		}
 		else if ($item_id = JRequest::getInt('votedown', 0))
 		{
 			$v->vote   = -1;
@@ -355,23 +334,23 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		$v->item_id    = $item_id;
 
 		// Check content
-		if (!$v->check()) 
+		if (!$v->check())
 		{
 			$this->setError($v->getError());
 		}
-		else 
+		else
 		{
 			// Store new content
-			if (!$v->store()) 
+			if (!$v->store())
 			{
 				$this->setError($v->getError());
 			}
 		}
 
-		if ($this->getError() && !$no_html) 
+		if ($this->getError() && !$no_html)
 		{
 			$this->redirect(
-				$this->url, 
+				$this->url,
 				$this->getError(),
 				'error'
 			);
@@ -386,11 +365,11 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		{
 			$this->view->item->positive++;
 		}
-		else 
+		else
 		{
 			$this->view->item->negative++;
 		}
-		if (!$this->view->item->store()) 
+		if (!$this->view->item->store())
 		{
 			$this->setError($this->view->item->getError());
 		}
@@ -399,14 +378,14 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		if (!$no_html)
 		{
 			$this->redirect(
-				$this->url, 
+				$this->url,
 				JText::_('PLG_COURSES_REVIEWS_VOTE_SAVED'),
 				'message'
 			);
 			return;
 		}
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -425,21 +404,15 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 	 *
 	 * @return    void
 	 */
-	protected function _view() 
+	protected function _view()
 	{
 		// Get comments on this article
-		/*$this->view->comments = $this->view->tbl->getComments(
-			$this->obj_type, 
-			$this->obj->get('id'),
-			0,
-			$this->params->get('comments_limit', 25)
-		);*/
 		$comments = $this->view->tbl->find(array(
-			'item_type'   => $this->obj_type, 
-			'item_id'     => $this->obj->get('id'),
-			'parent'      => 0,
-			'state'       => 1,
-			'limit'       => $this->params->get('comments_limit', 25)
+			'item_type' => $this->obj_type,
+			'item_id'   => $this->obj->get('id'),
+			'parent'    => 0,
+			'state'     => 1,
+			'limit'     => $this->params->get('comments_limit', 25)
 		));
 		if ($comments)
 		{
@@ -450,7 +423,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		}
 		$this->view->comments = new \Hubzero\Base\ItemList($comments);
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -464,17 +437,12 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 	 *
 	 * @return    void
 	 */
-	protected function _save() 
+	protected function _save()
 	{
 		// Ensure the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
-			$this->redirect(
-				JRoute::_('index.php?option=com_login&return=' . base64_encode($this->url)), 
-				JText::_('PLG_COURSES_REVIEWS_LOGIN_NOTICE'),
-				'warning'
-			);
-			return;
+			return $this->_login();
 		}
 
 		// Check for request forgeries
@@ -485,10 +453,10 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 
 		// Instantiate a new comment object and pass it the data
 		$row = new \Hubzero\Item\Comment($this->database);
-		if (!$row->bind($comment)) 
+		if (!$row->bind($comment))
 		{
 			$this->redirect(
-				$this->url, 
+				$this->url,
 				$row->getError(),
 				'error'
 			);
@@ -496,10 +464,10 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		}
 		$row->setUploadDir($this->params->get('comments_uploadpath', '/site/comments'));
 
-		if ($row->id && !$this->params->get('access-edit-comment')) 
+		if ($row->id && !$this->params->get('access-edit-comment'))
 		{
 			$this->redirect(
-				JRoute::_('index.php?option=com_login&return=' . base64_encode($this->url)), 
+				$this->url,
 				JText::_('PLG_COURSES_REVIEWS_NOTAUTH'),
 				'warning'
 			);
@@ -507,10 +475,10 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		}
 
 		// Check content
-		if (!$row->check()) 
+		if (!$row->check())
 		{
 			$this->redirect(
-				$this->url, 
+				$this->url,
 				$row->getError(),
 				'error'
 			);
@@ -518,10 +486,10 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		}
 
 		// Store new content
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			$this->redirect(
-				$this->url, 
+				$this->url,
 				$row->getError(),
 				'error'
 			);
@@ -529,7 +497,7 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		}
 
 		$this->redirect(
-			$this->url, 
+			$this->url,
 			JText::_('PLG_COURSES_REVIEWS_SAVED'),
 			'message'
 		);
@@ -541,22 +509,17 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 	 *
 	 * @return    void
 	 */
-	protected function _delete() 
+	protected function _delete()
 	{
 		// Ensure the user is logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
-			$this->redirect(
-				JRoute::_('index.php?option=com_login&return=' . base64_encode($this->url)), 
-				JText::_('PLG_COURSES_REVIEWS_LOGIN_NOTICE'),
-				'warning'
-			);
-			return;
+			$this->_login();
 		}
 
 		// Incoming
 		$id = JRequest::getInt('comment', 0);
-		if (!$id) 
+		if (!$id)
 		{
 			return $this->_redirect();
 		}
@@ -565,21 +528,21 @@ class plgCoursesReviews extends \Hubzero\Plugin\Plugin
 		$comment = new \Hubzero\Item\Comment($this->database);
 		$comment->load($id);
 
-		if ($this->juser->get('id') != $comment->created_by 
-		 && !$this->params->get('access-delete-comment')) 
+		if ($this->juser->get('id') != $comment->created_by
+		 && !$this->params->get('access-delete-comment'))
 		{
 			$this->redirect($this->url);
 			return;
 		}
 
 		// Delete the entry itself
-		if (!$comment->setState($id, 2)) 
+		if (!$comment->setState($id, 2))
 		{
 			$this->setError($comment->getError());
 		}
 
 		$this->redirect(
-			$this->url, 
+			$this->url,
 			JText::_('PLG_COURSES_REVIEWS_REMOVED'),
 			'message'
 		);

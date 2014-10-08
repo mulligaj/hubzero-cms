@@ -38,48 +38,48 @@ if (strstr($newSession, '?'))
 {
 	$newSession .= '&amp;newinstance=1';
 }
-else 
+else
 {
 	$newSession .= '?newinstance=1';
 }
 ?>
-<div id="content-header" class="full">
-	<h2><?php echo JText::_('My Sessions'); ?></h2>
-</div><!-- / #content-header -->
+<header id="content-header">
+	<h2><?php echo JText::_('COM_TOOLS_MYSESSIONS'); ?></h2>
+</header><!-- / #content-header -->
 
-<div class="main section" id="mysessions-section">
+<section class="main section" id="mysessions-section">
 	<p class="info">
-		<?php echo JText::_('You already have an instance of this tool running. Do you wish to start a new one or view an existing session?'); ?>
+		<?php echo JText::_('COM_TOOLS_MYSESSIONS_WARNING_INSTANCE_RUNNING'); ?>
 	</p>
-	<table class="sessions" summary="<?php echo JText::_('COM_TOOLS_SESSIONS_TABLE_SUMMARY'); ?>">
+	<table class="sessions">
 		<thead>
 			<tr>
-				<th><?php echo JText::_('Session'); ?></th>
-				<th><?php echo JText::_('Started'); ?></th>
-				<th><?php echo JText::_('Last accessed'); ?></th>
-				<th><?php echo JText::_('Option'); ?></th>
+				<th><?php echo JText::_('COM_TOOLS_MYSESSIONS_COL_SESSION'); ?></th>
+				<th><?php echo JText::_('COM_TOOLS_MYSESSIONS_COL_STARTED'); ?></th>
+				<th><?php echo JText::_('COM_TOOLS_MYSESSIONS_COL_LAST_ACCESSED'); ?></th>
+				<th><?php echo JText::_('COM_TOOLS_MYSESSIONS_COL_OPTION'); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
 			<tr>
 				<td colspan="4">
 					<a href="<?php echo $newSession; ?>">
-						<?php echo JText::_('Start new session'); ?>
+						<?php echo JText::_('COM_TOOLS_MYSESSIONS_START_NEW'); ?>
 					</a>
 				</td>
 			</tr>
 		</tfoot>
 		<tbody>
-<?php
-if ($this->sessions) {
-	$cls = 'even';
-	foreach ($this->sessions as $session)
-	{
-		$cls = ($cls == 'odd') ? 'even' : 'odd';
-?>	
+		<?php
+		if ($this->sessions) {
+			$cls = 'even';
+			foreach ($this->sessions as $session)
+			{
+				$cls = ($cls == 'odd') ? 'even' : 'odd';
+		?>
 			<tr class="<?php echo $cls; ?>">
 				<td>
-					<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=session&app=' . $session->appname . '&sess='.$session->sessnum); ?>" title="<?php echo JText::_('COM_TOOLS_RESUME_TITLE'); ?>">
+					<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=session&app=' . $session->appname . '&sess=' . $session->sessnum); ?>" title="<?php echo JText::_('COM_TOOLS_RESUME_TITLE'); ?>">
 						<?php echo $session->sessname; ?>
 					</a>
 				</td>
@@ -89,25 +89,25 @@ if ($this->sessions) {
 				<td>
 					<?php echo $session->accesstime; ?>
 				</td>
-<?php if ($juser->get('username') == $session->username) { ?>
+			<?php if ($juser->get('username') == $session->username) { ?>
 				<td>
-					<a class="closetool" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=stop&app=' . $session->appname . '&sess='.$session->sessnum); ?>" title="<?php echo JText::_('COM_TOOLS_TERMINATE_TITLE'); ?>">
+					<a class="closetool" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=stop&app=' . $session->appname . '&sess=' . $session->sessnum); ?>" title="<?php echo JText::_('COM_TOOLS_TERMINATE_TITLE'); ?>">
 						<?php echo JText::_('COM_TOOLS_TERMINATE'); ?>
 					</a>
 				</td>
-<?php } else { ?>
+			<?php } else { ?>
 				<td>
-					<a class="disconnect" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=unshare&app=' . $session->appname . '&sess='.$session->sessnum); ?>" title="<?php echo JText::_('COM_TOOLS_DISCONNECT_TITLE'); ?>">
+					<a class="disconnect" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=unshare&app=' . $session->appname . '&sess=' . $session->sessnum); ?>" title="<?php echo JText::_('COM_TOOLS_DISCONNECT_TITLE'); ?>">
 						<?php echo JText::_('COM_TOOLS_DISCONNECT'); ?>
-					</a> 
+					</a>
 					<span class="owner"><?php echo JText::_('COM_TOOLS_MY_SESSIONS_OWNER').': '.$session->username; ?></span>
 				</td>
-<?php } ?>
+			<?php } ?>
 			</tr>
-<?php
-	}
-}
-?>
+		<?php
+			}
+		}
+		?>
 		</tbody>
 	</table>
-</div><!-- / .section -->
+</section><!-- / .section -->

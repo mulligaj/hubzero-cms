@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2014 Purdue University. All rights reserved.
  *
  * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
  *
@@ -24,41 +24,38 @@
  *
  * @package   hubzero-cms
  * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
+ * @copyright Copyright 2005-2014 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+namespace Modules\Members;
+
+use Hubzero\Module\Module;
 
 /**
  * Module class for com_members data
  */
-class modMembers extends \Hubzero\Module\Module
+class Helper extends Module
 {
 	/**
 	 * Display module contents
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function display()
 	{
-		$this->database = JFactory::getDBO();
+		$database = \JFactory::getDBO();
 
-		$this->database->setQuery("SELECT count(u.id) FROM #__users AS u, #__xprofiles AS m WHERE m.uidNumber=u.id AND m.emailConfirmed < -1");
-		$this->unconfirmed = $this->database->loadResult();
+		$database->setQuery("SELECT count(u.id) FROM `#__users` AS u, `#__xprofiles` AS m WHERE m.uidNumber=u.id AND m.emailConfirmed < -1");
+		$this->unconfirmed = $database->loadResult();
 
-		$this->database->setQuery("SELECT count(u.id) FROM #__users AS u, #__xprofiles AS m WHERE m.uidNumber=u.id AND m.emailConfirmed >= 1");
-		$this->confirmed = $this->database->loadResult();
+		$database->setQuery("SELECT count(u.id) FROM `#__users` AS u, `#__xprofiles` AS m WHERE m.uidNumber=u.id AND m.emailConfirmed >= 1");
+		$this->confirmed = $database->loadResult();
 
-		$lastDay = date('Y-m-d', (time() - 24*3600)) . ' 00:00:00';
-
-		$this->database->setQuery("SELECT count(*) FROM #__users WHERE registerDate >= '$lastDay'");
-		$this->pastDay = $this->database->loadResult();
-
-		$this->css();
+		$database->setQuery("SELECT count(*) FROM `#__users` WHERE registerDate >= " . $database->quote(gmdate('Y-m-d', (time() - 24*3600)) . ' 00:00:00'));
+		$this->pastDay = $database->loadResult();
 
 		// Get the view
-		require(JModuleHelper::getLayoutPath($this->module->module));
+		parent::display();
 	}
 }

@@ -43,35 +43,35 @@ class TagsModelTag extends \Hubzero\Base\Model
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'TagsTableTag';
 
 	/**
 	 * Base URL to this tag
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_base = null;
 
 	/**
 	 * Containe for cached data
-	 * 
+	 *
 	 * @var array
 	 */
 	protected $_cache = array();
 
 	/**
-	 * JUser
-	 * 
+	 * \Hubzero\User\Profile
+	 *
 	 * @var object
 	 */
 	protected $_creator = NULL;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $id Tag ID or raw tag
 	 * @return     void
 	 */
@@ -111,7 +111,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -129,7 +129,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 			$key = $oid['id'];
 		}
 
-		if (!isset($instances[$oid])) 
+		if (!isset($instances[$oid]))
 		{
 			$instances[$oid] = new TagsModelTag($oid);
 		}
@@ -139,29 +139,36 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
+	 * it returns the entire object
 	 *
+	 * @param      string $property Property to retrieve
+	 * @param      mixed  $default  Default value if property not set
 	 * @return     mixed
 	 */
-	public function creator($property=null)
+	public function creator($property=null, $default=null)
 	{
-		if (!isset($this->_creator) || !is_object($this->_creator))
+		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
-			$this->_creator = JUser::getInstance($this->get('created_by'));
+			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
+			if (!$this->_creator)
+			{
+				$this->_creator = new \Hubzero\User\Profile();
+			}
 		}
-		if ($property && $this->_creator instanceof JUser)
+		if ($property)
 		{
-			return $this->_creator->get($property);
+			$property = ($property == 'id' ? 'uidNumber' : $property);
+			return $this->_creator->get($property, $default);
 		}
 		return $this->_creator;
 	}
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What data to return
 	 * @return     string
 	 */
@@ -172,7 +179,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What data to return
 	 * @return     string
 	 */
@@ -187,7 +194,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Return a formatted timestamp
-	 * 
+	 *
 	 * @param      string $as What data to return
 	 * @return     string
 	 */
@@ -207,6 +214,20 @@ class TagsModelTag extends \Hubzero\Base\Model
 				return $this->get($key);
 			break;
 		}
+	}
+
+	/**
+	 * Determine if record was modified
+	 *
+	 * @return     boolean True if modified, false if not
+	 */
+	public function wasModified()
+	{
+		if ($this->get('modified') && $this->get('modified') != '0000-00-00 00:00:00')
+		{
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -239,7 +260,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 	public function delete()
 	{
 		// Can't delete what doesn't exist
-		if (!$this->exists()) 
+		if (!$this->exists())
 		{
 			return true;
 		}
@@ -270,7 +291,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type The type of link to return
 	 * @return     string
 	 */
@@ -299,7 +320,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Return a list or count of substitutions on this tag
-	 * 
+	 *
 	 * @param      string  $rtrn    What data to return (ex: 'list', 'count')
 	 * @param      array   $filters Filters to apply for data retrieval
 	 * @param      boolean $clear   Clear cached data?
@@ -365,7 +386,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Return a list or count of objects associated with this tag
-	 * 
+	 *
 	 * @param      string  $rtrn    What data to return (ex: 'list', 'count')
 	 * @param      array   $filters Filters to apply for data retrieval
 	 * @param      boolean $clear   Clear cached data?
@@ -423,7 +444,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Return a list or count of objects associated with this tag
-	 * 
+	 *
 	 * @param      string  $rtrn    What data to return (ex: 'list', 'count')
 	 * @param      array   $filters Filters to apply for data retrieval
 	 * @param      boolean $clear   Clear cached data?
@@ -478,9 +499,9 @@ class TagsModelTag extends \Hubzero\Base\Model
 	/**
 	 * Remove this tag from an object
 	 *
-	 * If $taggerid is provided, it will only remove the tags added to an object by 
+	 * If $taggerid is provided, it will only remove the tags added to an object by
 	 * that specific user
-	 * 
+	 *
 	 * @param      string  $scope    Object type (ex: resource, ticket)
 	 * @param      integer $scope_id Object ID (e.g., resource ID, ticket ID)
 	 * @param      integer $tagger   User ID of person to filter tag by
@@ -507,7 +528,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Add this tag to an object
-	 * 
+	 *
 	 * @param      string  $scope    Object type (ex: resource, ticket)
 	 * @param      integer $scope_id Object ID (e.g., resource ID, ticket ID)
 	 * @param      integer $tagger   User ID of person adding tag
@@ -550,7 +571,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Move all data from this tag to another, including the tag itself
-	 * 
+	 *
 	 * @param      integer $tag_id ID of tag to merge with
 	 * @return     boolean
 	 */
@@ -600,7 +621,7 @@ class TagsModelTag extends \Hubzero\Base\Model
 
 	/**
 	 * Copy associations from this tag to another
-	 * 
+	 *
 	 * @param      integer $tag_id ID of tag to copy associations to
 	 * @return     boolean
 	 */

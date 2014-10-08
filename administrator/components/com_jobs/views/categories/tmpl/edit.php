@@ -33,54 +33,53 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = JobsHelper::getActions('category');
 
-$text = ($this->task == 'edit' ? JText::_('Edit') : JText::_('New'));
-JToolBarHelper::title('<a href="index.php?option=com_jobs&controller=categories">' . JText::_('Job Categories') . '</a>: <small><small>[ ' . $text . ' ]</small></small>', 'addedit.png');
-if ($canDo->get('core.edit')) 
+$text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
+
+JToolBarHelper::title(JText::_('COM_JOBS') . ': ' . JText::_('COM_JOBS_CATEGORIES') . ': ' . $text, 'addedit.png');
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::save();
 }
 JToolBarHelper::cancel();
+JToolBarHelper::spacer();
+JToolBarHelper::help('category');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.getElementById('item-form');
-	
+
 	if (pressbutton == 'cancel') {
 		submitform(pressbutton);
 		return;
 	}
-	
+
 	// form field validation
 	if (form.category.value == '') {
-		alert('Category must have a title');
+		alert('<?php echo JText::_('COM_JOBS_ERROR_MISSING_TITLE'); ?>');
 	} else {
 		submitform(pressbutton);
 	}
 }
 </script>
-<?php if ($this->task == 'edit') { ?>
-<p class="warning">
-	<?php echo JText::_('Warning: changing the category title will affect all currently available job postings in this category.'); ?>
-</p>
-<?php } ?>
 <form action="index.php" method="post" id="item-form" name="adminForm">
+	<?php if ($this->task == 'edit') { ?>
+	<p class="warning">
+		<?php echo JText::_('COM_JOBS_WARNING_EDIT_CATEGORY'); ?>
+	</p>
+	<?php } ?>
 	<fieldset class="adminform">
-		<legend><span><?php echo JText::_('Edit category title'); ?></span></legend>
-		
-		<table class="admintable">
-			<tbody>
-				<tr>
-					<th class="key"><label for="type"><?php echo JText::_('Category Title'); ?>: <span class="required">*</span></label></th>
-					<td><input type="text" name="category" id="category" size="30" maxlength="100" value="<?php echo $this->escape(stripslashes($this->row->category)); ?>" /></td>
-				</tr>
-				<tr>
-					<th class="key"><label for="description"><?php echo JText::_('Description'); ?>: </label></th>
-					<td><input type="text" name="description" id="description"  maxlength="255" value="<?php echo $this->escape(stripslashes($this->row->description)); ?>" /></td>
-				</tr>
-			</tbody>
-		</table>
-	
+		<legend><span><?php echo JText::_('JDETAILS'); ?></span></legend>
+
+		<div class="input-wrap">
+			<label for="category"><?php echo JText::_('COM_JOBS_FIELD_TITLE'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
+			<input type="text" name="category" id="category" size="30" maxlength="100" value="<?php echo $this->escape(stripslashes($this->row->category)); ?>" />
+		</div>
+		<div class="input-wrap">
+			<label for="description"><?php echo JText::_('COM_JOBS_FIELD_DESCRIPTION'); ?>: </label>
+			<input type="text" name="description" id="description"  maxlength="255" value="<?php echo $this->escape(stripslashes($this->row->description)); ?>" />
+		</div>
+
 		<input type="hidden" name="id" value="<?php echo $this->row->id; ?>" />
 		<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 		<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />

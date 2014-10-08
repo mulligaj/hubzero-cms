@@ -5,6 +5,9 @@ use Hubzero\Content\Migration\Base;
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+/**
+ * Migration script for support ticket closed date
+ **/
 class Migration20130415000000ComSupport extends Base
 {
 	public function up()
@@ -18,9 +21,9 @@ class Migration20130415000000ComSupport extends Base
 
 			// Closed tickets
 			$sql = "SELECT c.ticket, c.created
-					FROM `#__support_comments` AS c 
+					FROM `#__support_comments` AS c
 					LEFT JOIN `#__support_tickets` AS t ON c.ticket=t.id
-					WHERE t.open=0 
+					WHERE t.open=0
 					ORDER BY c.created ASC";
 
 			$this->db->setQuery($sql);

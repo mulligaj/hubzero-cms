@@ -31,30 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for showing social sharing options
  */
-class plgResourcesShare extends JPlugin
+class plgResourcesShare extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
@@ -62,7 +53,7 @@ class plgResourcesShare extends JPlugin
 	{
 		static $area = array();
 
-		if (!$model->type->params->get('plg_share')) 
+		if (!$model->type->params->get('plg_share'))
 		{
 			return $area;
 		}
@@ -72,7 +63,7 @@ class plgResourcesShare extends JPlugin
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -81,14 +72,14 @@ class plgResourcesShare extends JPlugin
 	 */
 	public function onResources($model, $option, $areas, $rtrn='all')
 	{
-		if (!$model->type->params->get('plg_share')) 
+		if (!$model->type->params->get('plg_share'))
 		{
 			return;
 		}
 
 		$arr = array(
-			'area' => 'share',
-			'html' => '',
+			'area'     => $this->_name,
+			'html'     => '',
 			'metadata' => ''
 		);
 
@@ -98,34 +89,31 @@ class plgResourcesShare extends JPlugin
 
 		// Incoming action
 		$sharewith = JRequest::getVar('sharewith', '');
-		if ($sharewith && $sharewith != 'email') 
+		if ($sharewith && $sharewith != 'email')
 		{
 			$this->share($sharewith, $url, $model->resource);
 			return;
 		}
 
-		\Hubzero\Document\Assets::addPluginStylesheet('resources', 'share');
-		\Hubzero\Document\Assets::addPluginScript('resources', 'share');
-
 		// Email form
-		if ($sharewith == 'email') 
+		if ($sharewith == 'email')
 		{
 			// Instantiate a view
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
-					'element' => 'share',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'options',
 					'layout'  => 'email'
 				)
 			);
 
 			// Pass the view some info
-			$view->option = $option;
+			$view->option   = $option;
 			$view->resource = $model->resource;
-			$view->_params = $this->params;
-			$view->url = $url;
-			if ($this->getError()) 
+			$view->_params  = $this->params;
+			$view->url      = $url;
+			if ($this->getError())
 			{
 				foreach ($this->getErrors() as $error)
 				{
@@ -139,23 +127,23 @@ class plgResourcesShare extends JPlugin
 		}
 
 		// Build the HTML meant for the "about" tab's metadata overview
-		if ($rtrn == 'all' || $rtrn == 'metadata') 
+		if ($rtrn == 'all' || $rtrn == 'metadata')
 		{
 			// Instantiate a view
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
-					'element' => 'share',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'options'
 				)
 			);
 
 			// Pass the view some info
-			$view->option = $option;
+			$view->option   = $option;
 			$view->resource = $model->resource;
-			$view->_params = $this->params;
-			$view->url = $url;
-			if ($this->getError()) 
+			$view->_params  = $this->params;
+			$view->url      = $url;
+			if ($this->getError())
 			{
 				foreach ($this->getErrors() as $error)
 				{
@@ -172,7 +160,7 @@ class plgResourcesShare extends JPlugin
 
 	/**
 	 * Redirect to social sharer
-	 * 
+	 *
 	 * @param      string $with     Social site to share with
 	 * @param      string $url      The URL to share
 	 * @param      object $resource Resource to share
@@ -214,7 +202,7 @@ class plgResourcesShare extends JPlugin
 			break;
 		}
 
-		if ($link) 
+		if ($link)
 		{
 			$app = JFactory::getApplication();
 			$app->redirect($link, '', '');

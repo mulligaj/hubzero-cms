@@ -5,6 +5,9 @@ use Hubzero\Content\Migration\Base;
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+/**
+ * Migration script for creating courses tables
+ **/
 class Migration20130101000000ComCourses extends Base
 {
 	public function up()
@@ -25,7 +28,7 @@ class Migration20130101000000ComCourses extends Base
 				`params` text NOT NULL,
 				PRIMARY KEY (`id`),
 				FULLTEXT KEY `#__xgroups_cn_description_public_desc_ftidx` (`alias`,`title`,`blurb`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_announcements` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -42,7 +45,7 @@ class Migration20130101000000ComCourses extends Base
 				KEY `idx_created_by` (`created_by`),
 				KEY `idx_state` (`state`),
 				KEY `idx_priority` (`priority`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_asset_associations` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -54,14 +57,14 @@ class Migration20130101000000ComCourses extends Base
 				KEY `idx_asset_id` (`asset_id`),
 				KEY `idx_scope_id` (`scope_id`),
 				KEY `idx_scope` (`scope`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_asset_group_types` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 				`alias` varchar(200) NOT NULL DEFAULT '',
 				`type` varchar(255) NOT NULL DEFAULT '',
 				PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_asset_groups` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -77,7 +80,7 @@ class Migration20130101000000ComCourses extends Base
 				PRIMARY KEY (`id`),
 				KEY `idx_unit_id` (`unit_id`),
 				KEY `idx_created_by` (`created_by`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_asset_views` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -85,7 +88,7 @@ class Migration20130101000000ComCourses extends Base
 				`viewed` datetime NOT NULL,
 				`viewed_by` int(11) NOT NULL,
 				PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_assets` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -100,7 +103,7 @@ class Migration20130101000000ComCourses extends Base
 				PRIMARY KEY (`id`),
 				KEY `idx_course_id` (`course_id`),
 				KEY `idx_created_by` (`created_by`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_form_answers` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -110,7 +113,7 @@ class Migration20130101000000ComCourses extends Base
 				`question_id` int(11) NOT NULL,
 				PRIMARY KEY (`id`),
 				UNIQUE KEY `id` (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_form_deployments` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -124,7 +127,7 @@ class Migration20130101000000ComCourses extends Base
 				`user_id` int(11) NOT NULL,
 				PRIMARY KEY (`id`),
 				UNIQUE KEY `id` (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_form_questions` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -138,7 +141,7 @@ class Migration20130101000000ComCourses extends Base
 				`form_id` int(11) DEFAULT NULL,
 				PRIMARY KEY (`id`),
 				UNIQUE KEY `id` (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_form_respondent_progress` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -148,7 +151,7 @@ class Migration20130101000000ComCourses extends Base
 				PRIMARY KEY (`id`),
 				UNIQUE KEY `id` (`id`),
 				UNIQUE KEY `#__pdf_form_respondent_progress_respondent_id_question_id_uidx` (`respondent_id`,`question_id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_form_respondents` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -158,7 +161,7 @@ class Migration20130101000000ComCourses extends Base
 				`finished` timestamp NULL DEFAULT NULL,
 				PRIMARY KEY (`id`),
 				UNIQUE KEY `id` (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_form_responses` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -168,7 +171,7 @@ class Migration20130101000000ComCourses extends Base
 				PRIMARY KEY (`id`),
 				UNIQUE KEY `id` (`id`),
 				KEY `#__pdf_form_respones_respondent_id_idx` (`respondent_id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_forms` (
 				`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -177,7 +180,7 @@ class Migration20130101000000ComCourses extends Base
 				`created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 				PRIMARY KEY (`id`),
 				UNIQUE KEY `id` (`id`)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_log` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -189,7 +192,7 @@ class Migration20130101000000ComCourses extends Base
 				`comments` text NOT NULL,
 				`actor_id` int(11) NOT NULL DEFAULT '0',
 				PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_members` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -206,7 +209,7 @@ class Migration20130101000000ComCourses extends Base
 				KEY `idx_user_id` (`user_id`),
 				KEY `idx_role_id` (`role_id`),
 				KEY `idx_section_id` (`section_id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_offering_section_dates` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -218,7 +221,7 @@ class Migration20130101000000ComCourses extends Base
 				`created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 				`created_by` int(11) NOT NULL DEFAULT '0',
 				PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_offering_sections` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -236,7 +239,7 @@ class Migration20130101000000ComCourses extends Base
 				KEY `idx_offering_id` (`offering_id`),
 				KEY `idx_created_by` (`created_by`),
 				KEY `idx_state` (`state`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_offerings` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -253,7 +256,7 @@ class Migration20130101000000ComCourses extends Base
 				KEY `idx_course_id` (`course_id`),
 				KEY `idx_state` (`state`),
 				KEY `idx_created_by` (`created_by`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_page_hits` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -266,7 +269,7 @@ class Migration20130101000000ComCourses extends Base
 				KEY `idx_offering_id` (`offering_id`),
 				KEY `idx_page_id` (`page_id`),
 				KEY `idx_user_id` (`user_id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_pages` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -279,7 +282,7 @@ class Migration20130101000000ComCourses extends Base
 				`privacy` varchar(10) NOT NULL DEFAULT '',
 				PRIMARY KEY (`id`),
 				KEY `idx_offering_id` (`offering_id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE `#__courses_reviews` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -298,7 +301,7 @@ class Migration20130101000000ComCourses extends Base
 				`positive` int(11) NOT NULL DEFAULT '0',
 				`negative` int(11) NOT NULL DEFAULT '0',
 				PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_roles` (
 				`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -308,7 +311,7 @@ class Migration20130101000000ComCourses extends Base
 				`permissions` mediumtext NOT NULL,
 				PRIMARY KEY (`id`),
 				KEY `idx_offering_id` (`offering_id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_units` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -322,7 +325,7 @@ class Migration20130101000000ComCourses extends Base
 				`state` tinyint(2) NOT NULL DEFAULT '0',
 				PRIMARY KEY (`id`),
 				KEY `idx_offering_id` (`offering_id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE TABLE IF NOT EXISTS `#__courses_offering_section_codes` (
 				`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -334,7 +337,7 @@ class Migration20130101000000ComCourses extends Base
 				`redeemed` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 				`redeemed_by` int(11) NOT NULL DEFAULT '0',
 				PRIMARY KEY (`id`)
-			) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+			) ENGINE=MYISAM DEFAULT CHARSET=utf8;
 
 			CREATE OR REPLACE ALGORITHM=UNDEFINED DEFINER=CURRENT_USER SQL SECURITY DEFINER VIEW `#__courses_form_latest_responses_view`
 			AS SELECT

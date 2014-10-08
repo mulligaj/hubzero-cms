@@ -31,28 +31,14 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-jimport( 'joomla.plugin.plugin' );
-
 /**
  * Plugin for abuse reports on KB comments
  */
-class plgSupportKb extends JPlugin
+class plgSupportKb extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      unknown &$subject Parameter description (if any) ...
-	 * @param      unknown $config Parameter description (if any) ...
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-	}
-
-	/**
 	 * Get items reported as abusive
-	 * 
+	 *
 	 * @param      integer $refid    Comment ID
 	 * @param      string  $category Item type (kb)
 	 * @param      integer $parent   Parent ID
@@ -60,26 +46,26 @@ class plgSupportKb extends JPlugin
 	 */
 	public function getReportedItem($refid, $category, $parent)
 	{
-		if ($category != 'kb') 
+		if ($category != 'kb')
 		{
 			return null;
 		}
 
-		$query  = "SELECT rc.id, rc.content as text, rc.created_by as author, rc.created, NULL as subject, rc.anonymous as anon, 'kb' AS parent_category, 
-					s.alias AS section, c.alias AS category, f.alias AS article 
-					FROM #__faq_comments AS rc
-					LEFT JOIN #__faq AS f 
+		$query  = "SELECT rc.id, rc.content as text, rc.created_by as author, rc.created, NULL as subject, rc.anonymous as anon, 'kb' AS parent_category,
+					s.alias AS section, c.alias AS category, f.alias AS article
+					FROM `#__faq_comments` AS rc
+					LEFT JOIN `#__faq` AS f
 						ON f.id = rc.entry_id
-					LEFT JOIN #__faq_categories AS s 
+					LEFT JOIN `#__faq_categories` AS s
 						ON s.id = f.section
-					LEFT JOIN #__faq_categories AS c
+					LEFT JOIN `#__faq_categories` AS c
 						ON c.id = f.category
 					WHERE rc.id=" . $refid;
 
 		$database = JFactory::getDBO();
 		$database->setQuery($query);
 		$rows = $database->loadObjectList();
-		if ($rows) 
+		if ($rows)
 		{
 			foreach ($rows as $key => $row)
 			{
@@ -94,17 +80,15 @@ class plgSupportKb extends JPlugin
 	}
 
 	/**
-	 * Retrieves a row from the database
-	 * 
+	 * Mark an item as flagged
+	 *
 	 * @param      string $refid    ID of the database table row
-	 * @param      string $parent   If the element has a parent element
 	 * @param      string $category Element type (determines table to look in)
-	 * @param      string $message  If the element has a parent element
-	 * @return     array
+	 * @return     string
 	 */
-	public function deleteReportedItem($refid, $parent, $category, $message)
+	public function onReportItem($refid, $category)
 	{
-		if ($category != 'kb') 
+		if ($category != 'kb')
 		{
 			return null;
 		}
@@ -113,7 +97,55 @@ class plgSupportKb extends JPlugin
 
 		$comment = new KbModelComment($refid);
 		$comment->set('state', 3);
+		$comment->store(false);
 
+		return '';
+	}
+
+	/**
+	 * Release a reported item
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $parent   If the element has a parent element
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     array
+	 */
+	public function releaseReportedItem($refid, $parent, $category)
+	{
+		if ($category != 'kb')
+		{
+			return null;
+		}
+
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_kb' . DS . 'models' . DS . 'comment.php');
+
+		$comment = new KbModelComment($refid);
+		$comment->set('state', 1);
+		$comment->store(false);
+
+		return '';
+	}
+
+	/**
+	 * Retrieves a row from the database
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $parent   If the element has a parent element
+	 * @param      string $category Element type (determines table to look in)
+	 * @param      string $message  If the element has a parent element
+	 * @return     array
+	 */
+	public function deleteReportedItem($refid, $parent, $category, $message)
+	{
+		if ($category != 'kb')
+		{
+			return null;
+		}
+
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_kb' . DS . 'models' . DS . 'comment.php');
+
+		$comment = new KbModelComment($refid);
+		$comment->set('state', 2);
 		$comment->store(false);
 
 		return '';

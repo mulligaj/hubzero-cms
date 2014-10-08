@@ -106,7 +106,7 @@ class SupportControllerTaggroups extends \Hubzero\Component\AdminController
 	public function editTask($row=null)
 	{
 		JRequest::setVar('hidemainmenu', 1);
-		
+
 		$this->view->setLayout('edit');
 
 		if (is_object($row))
@@ -203,7 +203,7 @@ class SupportControllerTaggroups extends \Hubzero\Component\AdminController
 		// Output messsage and redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('ENTRY_SUCCESSFULLY_SAVED')
+			JText::_('COM_SUPPORT_ENTRY_SUCCESSFULLY_SAVED')
 		);
 	}
 
@@ -225,7 +225,7 @@ class SupportControllerTaggroups extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('SUPPORT_ERROR_SELECT_ENTRY_TO_DELETE'),
+				JText::_('COM_SUPPORT_ERROR_SELECT_ENTRY_TO_DELETE'),
 				'error'
 			);
 			return;
@@ -241,7 +241,7 @@ class SupportControllerTaggroups extends \Hubzero\Component\AdminController
 		// Output messsage and redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::sprintf('ENTRY_SUCCESSFULLY_DELETED', count($ids))
+			JText::sprintf('COM_SUPPORT_ENTRY_SUCCESSFULLY_DELETED', count($ids))
 		);
 	}
 
@@ -276,7 +276,7 @@ class SupportControllerTaggroups extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No entry ID found.'),
+				JText::_('COM_SUPPORT_ERROR_MISSING_ID'),
 				'error'
 			);
 			return;

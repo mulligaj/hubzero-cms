@@ -38,24 +38,26 @@ class BillboardsHtml
 {
 	/**
 	 * Build a select list of the collections available
-	 * 
+	 *
 	 * @param  $collection_id of currently selected collection
 	 * @return $clist
 	 */
-	public function buildCollectionsList($collection_id)
+	public static function buildCollectionsList($collection_id)
 	{
 		$clist    = array();
 		$filters  = array('limit'=>'100', 'start'=>'0');
 		$selected = '';
 
-		$collection  = new BillboardsCollection($this->database);
+		$database = JFactory::getDBO();
+
+		$collection  = new BillboardsCollection($database);
 		$collections = $collection->getRecords($filters);
 
 		// Go through all the collections and add a select option for each
-		foreach($collections as $collection) 
+		foreach($collections as $collection)
 		{
-			$options[] = JHTML::_('select.option', $collection->id, JText::_($collection->name), 'value', 'text');
-			if ($collection->id == $collection_id) 
+			$options[] = JHTML::_('select.option', $collection->id, $collection->name, 'value', 'text');
+			if ($collection->id == $collection_id)
 			{
 				$selected = $collection->id;
 			}
@@ -67,17 +69,18 @@ class BillboardsHtml
 
 	/**
 	 * Build the learn more locations select list
-	 * 
+	 *
 	 * @param  $currentlocation of learn more link
 	 * @return $learnmorelocation
 	 */
-	public function buildLearnMoreList($currentlocation)
+	public static function buildLearnMoreList($currentlocation)
 	{
-		$locations[] = JHTML::_('select.option', 'topleft', JText::_('BILLBOARD_LEARN_MORE_LOCATION_TOP_LEFT'), 'value', 'text');
-		$locations[] = JHTML::_('select.option', 'topright', JText::_('BILLBOARD_LEARN_MORE_LOCATION_TOP_RIGHT'), 'value', 'text');
-		$locations[] = JHTML::_('select.option', 'bottomleft', JText::_('BILLBOARD_LEARN_MORE_LOCATION_BOTTOM_LEFT'), 'value', 'text');
-		$locations[] = JHTML::_('select.option', 'bottomright', JText::_('BILLBOARD_LEARN_MORE_LOCATION_BOTTOM_RIGHT'), 'value', 'text');
-		$locations[] = JHTML::_('select.option', 'relative', JText::_('BILLBOARD_LEARN_MORE_LOCATION_RELATIVE'), 'value', 'text');
+		$locations = array();
+		$locations[] = JHTML::_('select.option', 'topleft', JText::_('COM_BILLBOARDS_FIELD_LEARN_MORE_LOCATION_TOP_LEFT'), 'value', 'text');
+		$locations[] = JHTML::_('select.option', 'topright', JText::_('COM_BILLBOARDS_FIELD_LEARN_MORE_LOCATION_TOP_RIGHT'), 'value', 'text');
+		$locations[] = JHTML::_('select.option', 'bottomleft', JText::_('COM_BILLBOARDS_FIELD_LEARN_MORE_LOCATION_BOTTOM_LEFT'), 'value', 'text');
+		$locations[] = JHTML::_('select.option', 'bottomright', JText::_('COM_BILLBOARDS_FIELD_LEARN_MORE_LOCATION_BOTTOM_RIGHT'), 'value', 'text');
+		$locations[] = JHTML::_('select.option', 'relative', JText::_('COM_BILLBOARDS_FIELD_LEARN_MORE_LOCATION_RELATIVE'), 'value', 'text');
 
 		$lselected = $currentlocation;
 

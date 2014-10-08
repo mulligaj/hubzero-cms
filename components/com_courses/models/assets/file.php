@@ -45,12 +45,12 @@ class FileAssetHandler extends AssetHandler
 	 * @var array
 	 **/
 	protected static $info = array(
-			'action_message' => 'Post notes or slides (i.e. a downloadable file)',
-			'responds_to'    => array(
-				'txt', 'pdf', 'jpg', 'jpeg', 'gif', 'png', 'ppt',
-				'pptx', 'pps', 'ppsx', 'doc', 'docx', 'xls', 'xlsx',
-				'zip', 'tgz', 'tar', 'mp3', 'm', 'cpp', 'c', 'wm2d',
-				'slx', 'srt'),
+		'action_message' => 'Post notes or slides (i.e. a downloadable file)',
+		'responds_to'    => array(
+			'txt', 'pdf', 'jpg', 'jpeg', 'gif', 'png', 'ppt',
+			'pptx', 'pps', 'ppsx', 'doc', 'docx', 'xls', 'xlsx',
+			'zip', 'tgz', 'tar', 'mp3', 'm', 'cpp', 'c', 'wm2d',
+			'slx', 'srt'),
 		);
 
 	/**
@@ -90,18 +90,14 @@ class FileAssetHandler extends AssetHandler
 
 		// Max upload size
 		$sizeLimit = (int) $config->get('upload_maxsize');
-
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$sizeLimit = $sizeLimit * 1024 * 1024;
-		}
+		$sizeLimit = $sizeLimit * 1024 * 1024;
 
 		// Check to make sure we have a file and its not too big
-		if ($size == 0) 
+		if ($size == 0)
 		{
 			return array('error' => 'File is empty');
 		}
-		if ($size > $sizeLimit) 
+		if ($size > $sizeLimit)
 		{
 			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
 			return array('error' => "File is too large. Max file upload size is $max");
@@ -173,7 +169,7 @@ class FileAssetHandler extends AssetHandler
 			return array('error' => 'File rejected because the anti-virus scan failed.');
 		}
 
-		if(!$move = move_uploaded_file($_FILES['files']['tmp_name'][0], $target_path))
+		if (!$move = move_uploaded_file($_FILES['files']['tmp_name'][0], $target_path))
 		{
 			// Move failed, delete asset and association and return an error
 			$assetObj->delete();

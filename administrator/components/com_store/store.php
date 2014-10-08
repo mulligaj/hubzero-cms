@@ -34,54 +34,37 @@ defined('_JEXEC') or die('Restricted access');
 $option = 'com_store';
 
 // Authorization check
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect('index.php', JText::_('ALERTNOTAUTH'));
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include scripts
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'store.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'order.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'orderitem.php');
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'cart.php');
-require_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'html.php');
-require_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'store.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'store.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'order.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'orderitem.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'cart.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'html.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'store.php');
 
 $controllerName = JRequest::getCmd('controller', 'orders');
-if (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))
+if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php'))
 {
 	$controllerName = 'orders';
 }
 
 JSubMenuHelper::addEntry(
-	JText::_('Orders'), 
+	JText::_('Orders'),
 	'index.php?option=' .  $option . '&controller=orders',
 	($controllerName == 'orders')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Store Items'), 
-	'index.php?option=' .  $option . '&controller=items', 
+	JText::_('Store Items'),
+	'index.php?option=' .  $option . '&controller=items',
 	($controllerName == 'items')
 );
 
-require_once(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'StoreController' . ucfirst($controllerName);
 
 // Instantiate controller

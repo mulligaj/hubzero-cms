@@ -41,17 +41,17 @@ class ForumModelAttachment extends ForumModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_tbl_name = 'ForumTableAttachment';
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      mixed   $oid ID (integer), alias (string), array or object
-	 * @param      integer $pid Post ID
-	 * @return     void
+	 *
+	 * @param   mixed   $oid ID (integer), alias (string), array or object
+	 * @param   integer $pid Post ID
+	 * @return  void
 	 */
 	public function __construct($oid=null, $pid=null)
 	{
@@ -82,7 +82,7 @@ class ForumModelAttachment extends ForumModelAbstract
 			{
 				$this->bind($oid);
 			}
-		} 
+		}
 		else if ($pid)
 		{
 			$this->_tbl->loadByPost($pid);
@@ -92,15 +92,15 @@ class ForumModelAttachment extends ForumModelAbstract
 	/**
 	 * Returns a reference to a forum post attachment model
 	 *
-	 * @param      mixed   $oid ID (int), alias (string), array, or object
-	 * @param      integer $pid Post ID
-	 * @return     object ForumModelAttachment
+	 * @param   mixed   $oid ID (int), alias (string), array, or object
+	 * @param   integer $pid Post ID
+	 * @return  object  ForumModelAttachment
 	 */
 	static function &getInstance($oid=0, $pid=null)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -118,9 +118,9 @@ class ForumModelAttachment extends ForumModelAbstract
 			$key = $pid . '_' . $oid['id'];
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
-			$instances[$key] = new ForumModelAttachment($oid, $pid);
+			$instances[$key] = new self($oid, $pid);
 		}
 
 		return $instances[$key];

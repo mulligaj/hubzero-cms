@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
@@ -31,13 +31,15 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$this->css();
+$this->css('jquery.datepicker.css', 'system')
+     ->css('jquery.timepicker.css', 'system')
+     ->css();
 $this->js('jquery.timepicker.js', 'system')
      ->js();
 
 $juser = JFactory::getUser();
 ?>
-<div class="main section">
+<section class="main section">
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo implode('<br />', $this->getErrors()); ?></p>
 <?php } ?>
@@ -57,7 +59,7 @@ $juser = JFactory::getUser();
 			<label for="field_content">
 				<?php echo JText::_('PLG_COURSES_ANNOUNCEMENTS_FIELD_CONTENT'); ?> <span class="required"><?php echo JText::_('PLG_COURSES_ANNOUNCEMENTS_REQUIRED'); ?></span>
 				<?php
-				echo \JFactory::getEditor()->display('fields[content]', $this->escape(stripslashes($this->model->content('raw'))), '', '', 35, 5, false, 'field_content', null, null, array('class' => 'minimal no-footer'));
+				echo \JFactory::getEditor()->display('fields[content]', $this->escape($this->model->content('raw')), '', '', 35, 5, false, 'field_content', null, null, array('class' => 'minimal no-footer'));
 				?>
 			</label>
 
@@ -67,14 +69,14 @@ $juser = JFactory::getUser();
 					<div class="col span-half">
 						<label for="field-publish_up" id="priority-publish_up">
 							<?php echo JText::_('PLG_COURSES_ANNOUNCEMENTS_FIELD_START'); ?>
-							<input class="datepicker" type="text" name="fields[publish_up]" id="field-publish_up" value="<?php echo ($this->model->get('publish_up') && $this->model->get('publish_up') != '0000-00-00 00:00:00' ? $this->escape(JHTML::_('date', $this->model->get('publish_up'), JFactory::getDBO()->getDateFormat())) : ''); ?>" /> 
+							<input class="datepicker" type="text" name="fields[publish_up]" id="field-publish_up" value="<?php echo ($this->model->get('publish_up') && $this->model->get('publish_up') != '0000-00-00 00:00:00' ? $this->escape(JHTML::_('date', $this->model->get('publish_up'), JFactory::getDBO()->getDateFormat())) : ''); ?>" />
 							<span class="hint"><?php echo JText::_('PLG_COURSES_ANNOUNCEMENTS_PUBLISH_HINT'); ?></span>
 						</label>
 					</div>
 					<div class="col span-half omega">
 						<label for="field-publish_down" id="priority-publish_down">
 							<?php echo JText::_('PLG_COURSES_ANNOUNCEMENTS_FIELD_END'); ?>
-							<input class="datepicker" type="text" name="fields[publish_down]" id="field-publish_down" value="<?php echo ($this->model->get('publish_down') && $this->model->get('publish_down') != '0000-00-00 00:00:00' ? $this->escape(JHTML::_('date', $this->model->get('publish_down'), JFactory::getDBO()->getDateFormat())) : ''); ?>" /> 
+							<input class="datepicker" type="text" name="fields[publish_down]" id="field-publish_down" value="<?php echo ($this->model->get('publish_down') && $this->model->get('publish_down') != '0000-00-00 00:00:00' ? $this->escape(JHTML::_('date', $this->model->get('publish_down'), JFactory::getDBO()->getDateFormat())) : ''); ?>" />
 							<span class="hint"><?php echo JText::_('PLG_COURSES_ANNOUNCEMENTS_PUBLISH_HINT'); ?></span>
 						</label>
 					</div>
@@ -82,7 +84,7 @@ $juser = JFactory::getUser();
 			</fieldset>
 
 			<label for="field-priority" id="priority-label">
-				<input class="option" type="checkbox" name="fields[priority]" id="field-priority" value="1"<?php if ($this->model->get('priority')) { echo ' checked="checked"'; } ?> /> 
+				<input class="option" type="checkbox" name="fields[priority]" id="field-priority" value="1"<?php if ($this->model->get('priority')) { echo ' checked="checked"'; } ?> />
 				<?php echo JText::_('PLG_COURSES_ANNOUNCEMENTS_FIELD_PRIORITY'); ?>
 			</label>
 		</fieldset>
@@ -108,4 +110,4 @@ $juser = JFactory::getUser();
 
 		<?php echo JHTML::_('form.token'); ?>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

@@ -34,18 +34,15 @@ JToolBarHelper::title( JText::_( 'MEMBERS' ).': Manage Points', 'user.png' );
 JToolBarHelper::preferences('com_members', '550');
 
 ?>
-<div role="navigation" class="sub-navigation">
-	<ul id="subsubmenu">
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>" class="active">Summary</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit">Look up User Balance</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=config">Configuration</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=batch">Batch Transaction</a></li>
-	</ul>
-</div>
+
+<?php
+	$this->view('_submenu')
+	     ->display();
+?>
 
 <form action="index.php" method="post" name="adminForm" id="adminForm">
 <?php if ($this->rows) { ?>
-		<table class="adminlist" summary="A list of Top 15 earners and their points">
+		<table class="adminlist">
 			<caption>Top Earners</caption>
 			<thead>
 				<tr>
@@ -91,7 +88,7 @@ for ($i=0, $n=count( $this->rows ); $i < $n; $i++)
 <?php } ?>
 
 <?php if (count($this->stats) > 0) { ?>
-		<table class="adminlist" summary="Summary of user point activity">
+		<table class="adminlist">
 			<caption>Economy Activity Stats as of <?php echo JHTML::_('date', date( "Y-m-d H:i:s" ), JText::_('DATE_FORMAT_HZ1')); ?></caption>
 			<thead>
 				<tr>
@@ -156,6 +153,6 @@ foreach ($this->stats as $stat)
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="" />
-	
+
 	<?php echo JHTML::_( 'form.token' ); ?>
 </form>

@@ -66,9 +66,9 @@ class PollController extends JController
 		$option_id = JRequest::getVar('voteid', 0, 'post', 'int');
 
 		$poll = JTable::getInstance('poll','Table');
-		if (!$poll->load($poll_id) || $poll->published != 1) 
+		if (!$poll->load($poll_id) || $poll->published != 1)
 		{
-			JError::raiseWarning(404, JText::_('ALERTNOTAUTH'));
+			JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 			return;
 		}
 
@@ -78,14 +78,14 @@ class PollController extends JController
 
 		if ($voted || !$option_id)
 		{
-			if ($voted) 
+			if ($voted)
 			{
-				$msg = JText::_('You already voted for this poll today!');
+				$msg = JText::_('COM_POLL_ALREADY_VOTED');
 			}
 
 			if (!$option_id)
 			{
-				$msg = JText::_('WARNSELECT');
+				$msg = JText::_('COM_POLL_WARNSELECT');
 			}
 		}
 		else
@@ -96,7 +96,7 @@ class PollController extends JController
 			$model = new PollModelPoll();
 			$model->vote($poll_id, $option_id);
 
-			$msg = JText::_('Thanks for your vote!');
+			$msg = JText::_('COM_POLL_THANK_YOU');
 		}
 
 		// set Itemid id for links
@@ -106,7 +106,7 @@ class PollController extends JController
 		$itemid = isset($items[0]) ? '&Itemid=' . $items[0]->id : '';
 
 		$this->setRedirect(
-			JRoute::_('index.php?option=com_poll&id=' . $poll_id . ':' . $poll->alias . $itemid, false), 
+			JRoute::_('index.php?option=com_poll&id=' . $poll_id . ':' . $poll->alias . $itemid, false),
 			$msg
 		);
 	}

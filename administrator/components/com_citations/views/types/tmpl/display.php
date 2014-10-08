@@ -32,24 +32,26 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = CitationsHelper::getActions('type');
 
-JToolBarHelper::title(JText::_('Citation Types'), 'citation.png');
-if ($canDo->get('core.create')) 
+JToolBarHelper::title(JText::_('CITATIONS') . ': ' . JText::_('CITATION_TYPES'), 'citation.png');
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editList();
 }
-if ($canDo->get('core.delete')) 
+if ($canDo->get('core.delete'))
 {
+	JToolBarHelper::spacer();
 	JToolBarHelper::deleteList();
 }
+JToolBarHelper::spacer();
+JToolBarHelper::help('types');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
-	var form = $('adminForm');
 	if (pressbutton == 'cancel') {
 		submitform(pressbutton);
 		return;
@@ -60,27 +62,31 @@ function submitbutton(pressbutton)
 </script>
 
 <form action="index.php" method="post" name="adminForm" id="adminForm">
-	<table class="adminlist" summary="<?php echo JText::_('TABLE_SUMMARY'); ?>">
+	<table class="adminlist">
 		<thead>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->types); ?>);" /></th>
-				<th scope="col"><?php echo JText::_('ID'); ?></th>
-				<th scope="col"><?php echo JText::_('Alias'); ?></th>
-				<th scope="col"><?php echo JText::_('Title'); ?></th>
+				<th scope="col"><?php echo JText::_('CITATION_TYPES_ID'); ?></th>
+				<th scope="col"><?php echo JText::_('CITATION_TYPES_ALIAS'); ?></th>
+				<th scope="col"><?php echo JText::_('CITATION_TYPES_TITLE'); ?></th>
 			</tr>
 		</thead>
 		<tbody>
 			<?php foreach ($this->types as $i => $t) : ?>
 				<tr>
-					<td><input type="checkbox" name="id[]" id="cb<?php echo $i;?>" value="<?php echo $t['id']; ?>" onclick="isChecked(this.checked);" /></td>
-					<td><?php echo $t['id']; ?></td>
 					<td>
-						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $t['id']; ?>">
+						<input type="checkbox" name="id[]" id="cb<?php echo $i;?>" value="<?php echo $t['id']; ?>" onclick="isChecked(this.checked);" />
+					</td>
+					<td>
+						<?php echo $t['id']; ?>
+					</td>
+					<td>
+						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id=<?php echo $t['id']; ?>">
 							<span><?php echo $this->escape($t['type']); ?></span>
 						</a>
 					</td>
 					<td>
-						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $t['id']; ?>">
+						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id=<?php echo $t['id']; ?>">
 							<span><?php echo $this->escape($t['type_title']); ?></span>
 						</a>
 					</td>
@@ -93,6 +99,6 @@ function submitbutton(pressbutton)
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="<?php echo $this->task; ?>" />
 	<input type="hidden" name="boxchecked" value="0" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

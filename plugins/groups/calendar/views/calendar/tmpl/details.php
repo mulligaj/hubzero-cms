@@ -35,7 +35,7 @@ $year  = date("Y", strtotime($this->event->get('publish_up')));
 $month = date("m", strtotime($this->event->get('publish_up')));
 ?>
 
-<?php if($this->getError()) { ?>
+<?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
 <?php } ?>
 
@@ -58,7 +58,7 @@ $month = date("m", strtotime($this->event->get('publish_up')));
 		<?php if (!isset($this->calendar) || !$this->calendar->get('readonly')) : ?>
 			<a class="delete" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn').'&active=calendar&action=delete&event_id='.$this->event->get('id')); ?>">
 				Delete
-			</a> 
+			</a>
 			<a class="edit" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn').'&active=calendar&action=edit&event_id='.$this->event->get('id')); ?>">
 				Edit
 			</a>
@@ -73,7 +73,7 @@ $month = date("m", strtotime($this->event->get('publish_up')));
 				<span><?php echo JText::_('Details'); ?></span>
 			</a>
 		</li>
-		
+
 		<?php if ($this->event->get('registerby') != '' && $this->event->get('registerby') != '0000-00-00 00:00:00') : ?>
 			<li>
 				<a href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn').'&active=calendar&action=register&event_id='.$this->event->get('id')); ?>">
@@ -98,6 +98,7 @@ $month = date("m", strtotime($this->event->get('publish_up')));
 			$timezone     = timezone_name_from_abbr('',$this->event->get('time_zone')*3600, NULL);
 			$publish_up   = $this->event->get('publish_up');
 			$publish_down = $this->event->get('publish_down');
+			$allday_event = $this->event->get('allday');
 
 			// show alternative event start/ends
 			// used for repeating events
@@ -109,7 +110,18 @@ $month = date("m", strtotime($this->event->get('publish_up')));
 				$publish_down = JFactory::getDate($end)->toSql();
 			}
 		?>
-		<?php if ($publish_down != '0000-00-00 00:00:00') : ?>
+		<?php if ($allday_event) : ?>
+			<tr>
+				<th class="date"></th>
+				<td width="50%">
+					<?php echo JHTML::_('date', $publish_up, 'l, F d, Y'); ?>
+				</td>
+				<th class="time"></th>
+				<td>
+					<?php echo JText::_('All Day Event'); ?>
+				</td>
+			</tr>
+		<?php elseif ($publish_down != '0000-00-00 00:00:00') : ?>
 			<tr>
 				<th class="date"></th>
 				<td colspan="3">
@@ -137,21 +149,21 @@ $month = date("m", strtotime($this->event->get('publish_up')));
 				<td colspan="3"><?php echo $this->event->humanReadableRepeatingRule(); ?></td>
 			</tr>
 		<?php endif; ?>
-		
+
 		<?php if ($this->event->get('adresse_info') != '') : ?>
 			<tr>
 				<th class="location"></th>
 				<td colspan="3"><?php echo $this->event->get('adresse_info'); ?></td>
 			</tr>
 		<?php endif; ?>
-		
+
 		<?php if ($this->event->get('contact_info') != '') : ?>
 			<tr>
 				<th class="author"></th>
 				<td colspan="3"><?php echo plgGroupsCalendarHelper::autoLinkText( $this->event->get('contact_info') ); ?></td>
 			</tr>
 		<?php endif; ?>
-		
+
 		<?php if ($this->event->get('extra_info') != '') : ?>
 			<tr>
 				<th class="url"></th>
@@ -162,14 +174,14 @@ $month = date("m", strtotime($this->event->get('publish_up')));
 				</td>
 			</tr>
 		<?php endif; ?>
-		
+
 		<?php if ($this->event->get('content') != '') : ?>
 			<tr>
 				<th class="details"></th>
 				<td colspan="3"><?php echo plgGroupsCalendarHelper::autoLinkText(nl2br($this->event->get('content'))); ?></td>
 			</tr>
 		<?php endif; ?>
-		
+
 		<tr>
 			<td colspan="4"></td>
 		</tr>

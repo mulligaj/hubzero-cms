@@ -40,7 +40,7 @@ class WikiModelAdapterSite extends WikiModelAdapterAbstract
 {
 	/**
 	 * URL segments
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_segments = array(
@@ -48,9 +48,22 @@ class WikiModelAdapterSite extends WikiModelAdapterAbstract
 	);
 
 	/**
+	 * Constructor
+	 * 
+	 * @param      integer $scope_id Scope ID (group, course, etc.)
+	 * @return     void
+	 */
+	public function __construct($pagename=null, $scope=null, $group_cn=null)
+	{
+		$this->_segments['pagename'] = $pagename;
+		$this->_segments['scope']    = $scope;
+		$this->_segments['option']   = JRequest::getCmd('option', 'com_wiki');
+	}
+
+	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type   The type of link to return
 	 * @param      mixed  $params Optional string or associative array of params to append
 	 * @return     string
@@ -69,6 +82,7 @@ class WikiModelAdapterSite extends WikiModelAdapterAbstract
 				return $this->_base . '?' . (string) $this->_build($segments);
 			break;
 
+			case 'pdf':
 			case 'new':
 			case 'rename':
 			case 'edit':

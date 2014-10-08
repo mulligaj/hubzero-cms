@@ -39,7 +39,7 @@ class modEventsCalendar extends \Hubzero\Module\Module
 {
 	/**
 	 * Display module utput
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function display()
@@ -63,7 +63,7 @@ class modEventsCalendar extends \Hubzero\Module\Module
 
 	/**
 	 * Gnerate events calendar
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function run()
@@ -75,7 +75,7 @@ class modEventsCalendar extends \Hubzero\Module\Module
 		{
 			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'html.php');
 			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'date.php');
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'repeat.php');
+			//include_once(JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'helpers' . DS . 'repeat.php');
 		} else {
 			$this->setError(JText::_('MOD_EVENTS_LATEST_COMPONENT_REQUIRED'));
 			return;
@@ -192,9 +192,9 @@ class modEventsCalendar extends \Hubzero\Module\Module
 
 	/**
 	 * Short description for '_calendar'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown $timeWithOffset Parameter description (if any) ...
 	 * @param      number $startday Parameter description (if any) ...
 	 * @param      unknown $time Parameter description (if any) ...
@@ -273,7 +273,7 @@ class modEventsCalendar extends \Hubzero\Module\Module
 			$mark_bold = '';
 			$mark_close_bold = '';
 			$class = ($selected_date == $to_day) ? 'todaynoevents' : 'daynoevents';
-			
+
 			// do we have events
 			if (count($rows) > 0)
 			{

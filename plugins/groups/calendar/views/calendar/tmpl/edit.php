@@ -37,7 +37,7 @@ $includeRegistration = JRequest::getVar('includeRegistration', 0);
 //set button and form title
 $formTitle = JText::_('Add Group Event');
 $submitBtn = JText::_('Submit New Event');
-if($this->event->get('id'))
+if ($this->event->get('id'))
 {
 	$formTitle = JText::_('Edit Group Event');
 	$submitBtn = JText::_('Update Event');
@@ -50,7 +50,7 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 }
 ?>
 
-<?php if($this->getError()) { ?>
+<?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
 <?php } ?>
 
@@ -140,17 +140,17 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 							}
 						?>
 						<input type="text" name="event[publish_down]" id="event_end_date" value="<?php echo $publish_down; ?>" placeholder="mm/dd/yyyy @ h:mm am/pm" class="no-legacy-placeholder-support" />
-					</label> 
+					</label>
 
 					<label><?php echo JText::_('Timezone:'); ?> <span class="optional">Optional</span>
 						<?php
 							$timezone = $this->event->get('time_zone');
 							$timezone = (isset($timezone)) ? $timezone: -5;
-							echo EventsHtml::buildTimeZoneSelect($timezone, ''); 
+							echo EventsHtml::buildTimeZoneSelect($timezone, '');
 						?>
 					</label>
 				</fieldset>
-				<?php 
+				<?php
 					$repeating = $this->event->parseRepeatingRule();
 					$freqs = array(
 						''        => '- None &mdash;',
@@ -165,18 +165,18 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 						<?php echo JText::_('Repeating Settings'); ?>
 					</legend>
 					<label><?php echo JText::_('Recurrence:'); ?> <span class="optional">Optional</span>
-						<select name="reccurance[freq]">
+						<select name="reccurance[freq]" class="event_recurrence_freq">
 							<?php foreach ($freqs as $k => $v) : ?>
 								<?php $sel = ($repeating['freq'] == $k) ? 'selected="selected"' : ''; ?>
-								<option <?php echo $sel; ?> value="<?php echo $k; ?>"><?php echo $v; ?></option> 
+								<option <?php echo $sel; ?> value="<?php echo $k; ?>"><?php echo $v; ?></option>
 							<?php endforeach; ?>
 						</select>
 					</label>
 
 					<div class="reccurance-options options-daily">
 						<label for=""><?php echo JText::_('Repeat Every:'); ?><br />
-							<select name="reccurance[interval][daily]" class="daily-days">
-								<?php for($i=1, $n=31; $i < $n; $i++) : ?>
+							<select name="reccurance[interval][daily]" class="daily-days event_recurrence_interval">
+								<?php for ($i=1, $n=31; $i < $n; $i++) : ?>
 									<?php $sel = ($repeating['freq'] == 'daily' && $repeating['interval'] == $i) ? 'selected="selected' : ''; ?>
 									<option <?php echo $sel; ?> value="<?php echo $i; ?>"><?php echo $i; ?></option>
 								<?php endfor; ?>
@@ -187,8 +187,8 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 
 					<div class="reccurance-options options-weekly">
 						<label for=""><?php echo JText::_('Repeat Every:'); ?><br />
-							<select name="reccurance[interval][weekly]" class="weekly-weeks">
-								<?php for($i=1, $n=31; $i < $n; $i++) : ?>
+							<select name="reccurance[interval][weekly]" class="weekly-weeks event_recurrence_interval">
+								<?php for ($i=1, $n=31; $i < $n; $i++) : ?>
 									<?php $sel = ($repeating['freq'] == 'weekly' && $repeating['interval'] == $i) ? 'selected="selected' : ''; ?>
 									<option <?php echo $sel; ?> value="<?php echo $i; ?>"><?php echo $i; ?></option>
 								<?php endfor; ?>
@@ -199,8 +199,8 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 
 					<div class="reccurance-options options-monthly">
 						<label for=""><?php echo JText::_('Repeat Every:'); ?><br />
-							<select name="reccurance[interval][monthly]" class="monthly-months">
-								<?php for($i=1, $n=31; $i < $n; $i++) : ?>
+							<select name="reccurance[interval][monthly]" class="monthly-months event_recurrence_interval">
+								<?php for ($i=1, $n=31; $i < $n; $i++) : ?>
 									<?php $sel = ($repeating['freq'] == 'monthly' && $repeating['interval'] == $i) ? 'selected="selected' : ''; ?>
 									<option <?php echo $sel; ?> value="<?php echo $i; ?>"><?php echo $i; ?></option>
 								<?php endfor; ?>
@@ -211,8 +211,8 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 
 					<div class="reccurance-options options-yearly">
 						<label for=""><?php echo JText::_('Repeat Every:'); ?><br />
-							<select name="reccurance[interval][yearly]" class="yearly-years">
-								<?php for($i=1, $n=31; $i < $n; $i++) : ?>
+							<select name="reccurance[interval][yearly]" class="yearly-years event_recurrence_interval">
+								<?php for ($i=1, $n=31; $i < $n; $i++) : ?>
 								<?php $sel = ($repeating['freq'] == 'yearly' && $repeating['interval'] == $i) ? 'selected="selected' : ''; ?>
 									<option <?php echo $sel; ?> value="<?php echo $i; ?>"><?php echo $i; ?></option>
 								<?php endfor; ?>
@@ -226,12 +226,12 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 							<input id="never" class="option" type="radio" name="reccurance[ends][when]" value="never" <?php if ($repeating['end'] == 'never') { echo 'checked="checked"'; } ?> /> Never
 						</label>
 						<label for="after">
-							<input id="after" class="option" type="radio" name="reccurance[ends][when]" value="count"  <?php if ($repeating['end'] == 'count') { echo 'checked="checked"'; } ?> /> After 
-							<input type="text" name="reccurance[ends][count]" placeholder="5" class="after-input" value="<?php echo $repeating['count']; ?>" /> times
+							<input id="after" class="option" type="radio" name="reccurance[ends][when]" value="count"  <?php if ($repeating['end'] == 'count') { echo 'checked="checked"'; } ?> /> After
+							<input type="text" name="reccurance[ends][count]" placeholder="5" class="after-input event_recurrence_end_count" value="<?php echo $repeating['count']; ?>" /> times
 						</label>
 						<label for="on">
-							<input id="on" class="option" type="radio" name="reccurance[ends][when]" value="until"  <?php if ($repeating['end'] == 'until') { echo 'checked="checked"'; } ?> /> On 
-							<input type="text" name="reccurance[ends][until]" placeholder="mm/dd/yyyy" class="on-input no-legacy-placeholder-support" value="<?php echo $repeating['until']; ?>" />
+							<input id="on" class="option" type="radio" name="reccurance[ends][when]" value="until"  <?php if ($repeating['end'] == 'until') { echo 'checked="checked"'; } ?> /> On
+							<input type="text" name="reccurance[ends][until]" placeholder="mm/dd/yyyy" class="on-input event_recurrence_end_date no-legacy-placeholder-support" value="<?php echo $repeating['until']; ?>" />
 						</label>
 					</label>
 				</fieldset>
@@ -243,11 +243,11 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 
 					<label id="include-registration-toggle">
 						<?php $ckd = (($this->event->get('registerby') != '0000-00-00 00:00:00' && $this->event->get('registerby') != '') || $includeRegistration) ? 'checked="checked"' : ''; ?>
-						<input class="option" type="checkbox" id="include-registration" name="include-registration" value="1" <?php echo $ckd; ?> /> 
+						<input class="option" type="checkbox" id="include-registration" name="include-registration" value="1" <?php echo $ckd; ?> />
 						<?php echo JText::_('Include registration for this event.'); ?>
 					</label>
 
-					<div id="registration-fields" class="<?php if($ckd == '') { echo ' hide'; } ?>">
+					<div id="registration-fields" class="<?php if ($ckd == '') { echo ' hide'; } ?>">
 						<label><?php echo JText::_('Deadline:'); ?> <span class="required">Required for Registration Tab to Appear</span>
 							<?php
 								$register_by = '';
@@ -293,22 +293,22 @@ if ($this->params->get('allow_import', 1) && !$this->event->get('id'))
 			</p>
 		</form>
 	</div><!-- /.span9 -->
-	
+
 	<?php if ($showImport) : ?>
 		<div class="col span3 omega">
 			<form name="importevent" action="index.php" method="post" id="hubForm" enctype="multipart/form-data">
 				<fieldset>
 					<legend><?php echo JText::_('Import Event'); ?></legend>
-					
+
 					<div class="upload">
 						<span class="title"><?php echo JText::_('Upload Event'); ?></span>
 						<span class="description"><?php echo JText::_('Drag &amp; Drop an Event File Here to Upload'); ?></span>
 						<span class="button-container">
 							<span class="btn"><?php echo JText::_('or, Select Event'); ?>
-								<input 
-									type="file" 
-									name="import" 
-									id="import" 
+								<input
+									type="file"
+									name="import"
+									id="import"
 									data-url="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn').'&active=calendar&action=import'); ?>" />
 							</span>
 						</span>

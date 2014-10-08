@@ -1,11 +1,11 @@
-<?php 
+<?php
 defined('_JEXEC') or die('Restricted access');
 
 	$juser = JFactory::getUser();
 
 	$cls = isset($this->cls) ? $this->cls : 'odd';
 
-	if ($this->page->get('created_by') == $this->comment->get('created_by')) 
+	if ($this->page->get('created_by') == $this->comment->get('created_by'))
 	{
 		$cls .= ' author';
 	}
@@ -17,10 +17,10 @@ defined('_JEXEC') or die('Restricted access');
 
 	$name = JText::_('COM_WIKI_ANONYMOUS');
 	$huser = new \Hubzero\User\Profile;
-	if (!$this->comment->get('anonymous')) 
+	if (!$this->comment->get('anonymous'))
 	{
 		$huser = $this->comment->creator(); //\Hubzero\User\Profile::getInstance($this->comment->get('created_by'));
-		if (is_object($huser) && $huser->get('name')) 
+		if (is_object($huser) && $huser->get('name'))
 		{
 			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $huser->get('uidNumber')) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
 		}
@@ -39,97 +39,74 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 	<li class="comment <?php echo $cls; ?>" id="c<?php echo $this->comment->get('id'); ?>">
 		<p class="comment-member-photo">
-			<a class="comment-anchor" name="c<?php echo $this->comment->get('id'); ?>"></a>
 			<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
 		</p>
 		<div class="comment-content">
-		<?php /*if (!$this->comment->isReported() && !$this->comment->get('parent')) { ?>
-			<p class="comment-voting voting" id="answers_<?php echo $this->comment->get('id'); ?>">
-				<?php
-				$view = new JView(array(
-					'name'   => 'questions', 
-					'layout' => 'rateitem'
-				));
-				$view->option = $this->option;
-				$view->item   = $this->comment;
-				$view->type   = 'question';
-				$view->vote   = '';
-				$view->id     = '';
-				if (!$juser->get('guest')) 
-				{
-					if ($this->comment->get('created_by') == $juser->get('username')) 
-					{
-						$view->vote = $this->comment->get('vote');
-						$view->id   = $this->comment->get('id');
-					}
-				}
-				$view->display();
-				?>
-			</p><!-- / .comment-voting -->
-		<?php }*/ ?>
-		<?php 
-		if ($this->comment->get('rating')) 
-		{
-			switch ($this->comment->get('rating'))
+			<?php
+			if ($this->comment->get('rating'))
 			{
-				case 0:   $rcls = ' no-stars';        break;
-				case 0.5: $rcls = ' half-stars';      break;
-				case 1:   $rcls = ' one-stars';       break;
-				case 1.5: $rcls = ' onehalf-stars';   break;
-				case 2:   $rcls = ' two-stars';       break;
-				case 2.5: $rcls = ' twohalf-stars';   break;
-				case 3:   $rcls = ' three-stars';     break;
-				case 3.5: $rcls = ' threehalf-stars'; break;
-				case 4:   $rcls = ' four-stars';      break;
-				case 4.5: $rcls = ' fourhalf-stars';  break;
-				case 5:   $rcls = ' five-stars';      break;
-				default:  $rcls = ' no-stars';        break;
+				switch ($this->comment->get('rating'))
+				{
+					case 0:   $rcls = ' no-stars';        break;
+					case 0.5: $rcls = ' half-stars';      break;
+					case 1:   $rcls = ' one-stars';       break;
+					case 1.5: $rcls = ' onehalf-stars';   break;
+					case 2:   $rcls = ' two-stars';       break;
+					case 2.5: $rcls = ' twohalf-stars';   break;
+					case 3:   $rcls = ' three-stars';     break;
+					case 3.5: $rcls = ' threehalf-stars'; break;
+					case 4:   $rcls = ' four-stars';      break;
+					case 4.5: $rcls = ' fourhalf-stars';  break;
+					case 5:   $rcls = ' five-stars';      break;
+					default:  $rcls = ' no-stars';        break;
+				}
+				?>
+				<p><span class="avgrating<?php echo $rcls; ?>"><span><?php echo JText::sprintf('COM_WIKI_COMMENT_RATING', $this->comment->get('rating')); ?></span></span></p>
+				<?php
 			}
 			?>
-			<p><span class="avgrating<?php echo $rcls; ?>"><span><?php echo JText::sprintf('COM_WIKI_COMMENT_RATING', $this->comment->get('rating')); ?></span></span></p>
-			<?php
-		}
-		?>
 
 			<p class="comment-title">
-				<strong><?php echo $name; ?></strong> 
+				<strong><?php echo $name; ?></strong>
 				<a class="permalink" href="<?php echo JRoute::_($this->page->link('comments') . '#c' . $this->comment->get('id')); ?>" title="<?php echo JText::_('COM_WIKI_PERMALINK'); ?>">
-					<span class="comment-date-at">@</span> 
-					<span class="time"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('time'); ?></time></span> 
-					<span class="comment-date-on"><?php echo JText::_('COM_WIKI_ON'); ?></span> 
+					<span class="comment-date-at">@</span>
+					<span class="time"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('time'); ?></time></span>
+					<span class="comment-date-on"><?php echo JText::_('COM_WIKI_ON'); ?></span>
 					<span class="date"><time datetime="<?php echo $this->comment->created(); ?>"><?php echo $this->comment->created('date'); ?></time></span>
 				</a>
 			</p>
 
-			<?php echo $comment; ?>
+			<div class="comment-body">
+				<?php echo $comment; ?>
+			</div>
 
 			<p class="comment-options">
 			<?php if ($this->page->access('delete', 'comment')) { // || $juser->get('id') == $this->comment->get('created_by') ?>
 				<?php if ($this->config->get('access-delete-thread')) { ?>
-					<a class="icon-delete delete" href="<?php echo JRoute::_($this->comment->link('delete')); ?>"><!-- 
-						--><?php echo JText::_('COM_WIKI_DELETE'); ?><!-- 
+					<a class="icon-delete delete" href="<?php echo JRoute::_($this->comment->link('delete')); ?>"><!--
+						--><?php echo JText::_('COM_WIKI_DELETE'); ?><!--
 					--></a>
 				<?php } ?>
 				<?php if ($this->page->access('edit', 'comment')) { ?>
-					<a class="icon-edit edit" href="<?php echo JRoute::_($this->comment->link('edit')); ?>"><!-- 
-						--><?php echo JText::_('COM_WIKI_EDIT'); ?><!-- 
+					<a class="icon-edit edit" href="<?php echo JRoute::_($this->comment->link('edit')); ?>"><!--
+						--><?php echo JText::_('COM_WIKI_EDIT'); ?><!--
 					--></a>
 				<?php } ?>
 			<?php } ?>
-			<?php if (!$this->comment->get('reports')) { ?>
+			<?php if (!$this->comment->isReported()) { ?>
 				<?php if ($this->depth < $this->config->get('comments_depth', 3)) { ?>
 					<?php if (JRequest::getInt('reply', 0) == $this->comment->get('id')) { ?>
-					<a class="icon-reply reply active" data-txt-active="<?php echo JText::_('COM_WIKI_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('COM_WIKI_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link()); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('COM_WIKI_CANCEL'); ?><!-- 
+					<a class="icon-reply reply active" data-txt-active="<?php echo JText::_('COM_WIKI_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('COM_WIKI_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link()); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!--
+					--><?php echo JText::_('COM_WIKI_CANCEL'); ?><!--
 				--></a>
 					<?php } else { ?>
-					<a class="icon-reply reply" data-txt-active="<?php echo JText::_('COM_WIKI_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('COM_WIKI_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link('reply')); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('COM_WIKI_REPLY'); ?><!-- 
+					<a class="icon-reply reply" data-txt-active="<?php echo JText::_('COM_WIKI_CANCEL'); ?>" data-txt-inactive="<?php echo JText::_('COM_WIKI_REPLY'); ?>" href="<?php echo JRoute::_($this->comment->link('reply')); ?>" data-rel="comment-form<?php echo $this->comment->get('id'); ?>"><!--
+					--><?php echo JText::_('COM_WIKI_REPLY'); ?><!--
 				--></a>
 					<?php } ?>
 				<?php } ?>
-				<a class="icon-abuse abuse" href="<?php echo JRoute::_($this->comment->link('report')); ?>" rel="comment-form<?php echo $this->comment->get('id'); ?>"><!-- 
-					--><?php echo JText::_('COM_WIKI_REPORT_ABUSE'); ?><!-- 
+				<a class="icon-abuse abuse" data-txt-flagged="<?php echo JText::_('COM_WIKI_COMMENT_REPORTED_AS_ABUSIVE'); ?>" href="<?php echo JRoute::_($this->comment->link('report')); ?>"><!--
+					--><?php echo JText::_('COM_WIKI_REPORT_ABUSE'); ?><!--
 				--></a>
 			<?php } ?>
 			</p>
@@ -152,6 +129,7 @@ defined('_JEXEC') or die('Restricted access');
 						<input type="hidden" name="comment[created]" value="" />
 						<input type="hidden" name="comment[created_by]" value="<?php echo $juser->get('id'); ?>" />
 						<input type="hidden" name="comment[version]" value="<?php echo $this->page->revision()->get('version'); ?>" />
+						<input type="hidden" name="comment[state]" value="1" />
 
 						<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 						<input type="hidden" name="controller" value="comments" />
@@ -174,7 +152,7 @@ defined('_JEXEC') or die('Restricted access');
 						<?php echo JHTML::_('form.token'); ?>
 
 						<p class="submit">
-							<input type="submit" value="<?php echo JText::_('COM_WIKI_SUBMIT'); ?>" /> 
+							<input type="submit" value="<?php echo JText::_('COM_WIKI_SUBMIT'); ?>" />
 						</p>
 					</fieldset>
 				</form>
@@ -183,7 +161,7 @@ defined('_JEXEC') or die('Restricted access');
 		<?php } ?>
 		</div><!-- / .comment-content -->
 		<?php
-		if ($this->depth < $this->config->get('comments_depth', 3)) 
+		if ($this->depth < $this->config->get('comments_depth', 3))
 		{
 			$filters = array('version' => '');
 			if ($this->version)
@@ -191,22 +169,17 @@ defined('_JEXEC') or die('Restricted access');
 				$filters['version'] = 'AND version=' . $this->version;
 			}
 
-			$view = new JView(
-				array(
-					'base_path' => JPATH_ROOT . '/components/com_wiki',
-					'name'    => 'comments',
-					'layout'  => '_list'
-				)
-			);
-			$view->parent     = $this->comment->get('id');
-			$view->page       = $this->page;
-			$view->option     = $this->option;
-			$view->comments   = $this->comment->replies('list', $filters);
-			$view->config     = $this->config;
-			$view->depth      = $this->depth;
-			$view->version    = $this->version;
-			$view->cls        = $cls;
-			$view->display();
+			$this->view('_list', 'comments')
+			     ->setBasePath(JPATH_ROOT . '/components/com_wiki')
+			     ->set('parent', $this->comment->get('id'))
+			     ->set('page', $this->page)
+			     ->set('option', $this->option)
+			     ->set('comments', $this->comment->replies('list', $filters))
+			     ->set('config', $this->config)
+			     ->set('depth', $this->depth)
+			     ->set('version', $this->version)
+			     ->set('cls', $cls)
+			     ->display();
 		}
 		?>
 	</li>

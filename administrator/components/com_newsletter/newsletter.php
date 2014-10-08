@@ -31,47 +31,44 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$option = 'com_support';
+$option = 'com_newsletter';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getacl();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 //include models
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'newsletter.php' );
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'template.php' );
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'primary.php' );
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'secondary.php' );
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'mailinglist.php' );
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'mailinglist.email.php' );
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'mailing.php' );
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'mailing.recipient.php' );
-require_once( JPATH_COMPONENT . DS . 'tables' . DS . 'mailing.recipient.action.php' );
-require_once( JPATH_COMPONENT_SITE . DS . 'helpers' . DS . 'helper.php' );
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'newsletter.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'template.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'primary.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'secondary.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'mailinglist.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'mailinglist.email.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'mailing.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'mailing.recipient.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'mailing.recipient.action.php');
+require_once(JPATH_COMPONENT_SITE . DS . 'helpers' . DS . 'helper.php');
 
 //instantiate controller
 $controllerName = JRequest::getCmd('controller', 'newsletter');
-require_once(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'NewsletterController' . ucfirst($controllerName);
 
 //menu items
 $menuItems = array(
-	'newsletter'  => 'Newsletters',
-	'mailing'     => 'Mailings',
-	'mailinglist' => 'Lists',
-	'template'    => 'Templates',
-	'tools'       => 'Tools'
+	'newsletter'  => JText::_('COM_NEWSLETTER_NEWSLETTERS'),
+	'mailing'     => JText::_('COM_NEWSLETTER_MAILINGS'),
+	'mailinglist' => JText::_('COM_NEWSLETTER_LISTS'),
+	'template'    => JText::_('COM_NEWSLETTER_TEMPLATES'),
+	'tools'       => JText::_('COM_NEWSLETTER_TOOLS')
 );
 
 //add menu items
-foreach($menuItems as $k => $v)
-{   
+foreach ($menuItems as $k => $v)
+{
 	$active = (JRequest::getCmd('controller', 'newsletter') == $k) ? true : false ;
-	JSubMenuHelper::addEntry($v, 'index.php?option=com_newsletter&controller='.$k, $active);
+	JSubMenuHelper::addEntry($v, 'index.php?option=com_newsletter&controller=' . $k, $active);
 }
 
 //execute controller

@@ -38,7 +38,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Execute a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -50,7 +50,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 	/**
 	 * List all questions
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -94,13 +94,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 		// Sorting
 		$this->view->filters['sortby']   = '';
 		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'created'
 		));
 		$this->view->filters['sort_Dir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'DESC'
 		));
 
@@ -164,10 +164,10 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 		$this->view->setLayout('edit');
 
 		// Incoming
-		$ids = JRequest::getVar('id', array(0));
-		if (is_array($ids))
+		$id = JRequest::getVar('id', array(0));
+		if (is_array($id))
 		{
-			$id = $ids[0];
+			$id = $id[0];
 		}
 
 		// Load object
@@ -175,7 +175,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 		{
 			$this->view->row = $row;
 		}
-		else 
+		else
 		{
 			$this->view->row = new AnswersModelQuestion($id);
 		}
@@ -195,7 +195,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save a question and fall back to edit form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function applyTask()
@@ -205,7 +205,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save a question
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask($redirect=true)
@@ -229,7 +229,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 		// Ensure we have at least one tag
 		if (!isset($fields['tags']) || !$fields['tags'])
 		{
-			$this->addComponentMessage(JText::_('Question must have at least 1 tag'), 'error');
+			$this->addComponentMessage(JText::_('COM_ANSWERS_ERROR_QUESTION_MUST_HAVE_TAGS'), 'error');
 			$this->editTask($row);
 			return;
 		}
@@ -253,7 +253,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 			// Redirect back to the full questions list
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Question Successfully Saved')
+				JText::_('COM_ANSWERS_QUESTION_SAVED')
 			);
 		}
 
@@ -262,7 +262,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete one or more questions and associated data
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -272,6 +272,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		if (count($ids) <= 0)
 		{
@@ -306,13 +307,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Question deleted')
+			JText::_('COM_ANSWERS_QUESTION_DELETED')
 		);
 	}
 
 	/**
 	 * Set one or more questions to open
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function openTask()
@@ -322,7 +323,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 	/**
 	 * Set one or more questions to closed
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function closeTask()
@@ -332,7 +333,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 	/**
 	 * Set the state of one or more questions
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function stateTask()
@@ -342,17 +343,18 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		$publish = ($this->_task == 'close') ? 1 : 0;
 
 		// Check for an ID
 		if (count($ids) < 1)
 		{
-			$action = ($publish == 1) ? JText::_('close') : JText::_('open');
+			$action = ($publish == 1) ? JText::_('COM_ANSWERS_SET_STATE_CLOSE') : JText::_('COM_ANSWERS_SET_STATE_OPEN');
 
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Select a question to ' . $action),
+				JText::sprintf('COM_ANSWERS_ERROR_SELECT_QUESTION_TO', $action),
 				'error'
 			);
 			return;
@@ -393,11 +395,11 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 		// set message
 		if ($publish == 1)
 		{
-			$message = JText::_(count($ids) . ' Item(s) successfully Closed');
+			$message = JText::sprintf('COM_ANSWERS_QUESTIONS_CLOSED', count($ids));
 		}
 		else if ($publish == 0)
 		{
-			$message = JText::_(count($ids) . ' Item(s) successfully Opened');
+			$message = JText::sprintf('COM_ANSWERS_QUESTIONS_OPENED', count($ids));
 		}
 
 		$this->setRedirect(
@@ -408,7 +410,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\AdminController
 
 	/**
 	 * Cancel a task and redirect to default view
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cancel()

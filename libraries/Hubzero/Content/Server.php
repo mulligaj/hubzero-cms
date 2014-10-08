@@ -39,35 +39,49 @@ class Server extends Object
 {
 	/**
 	 * File to serve up
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_filename;
 
 	/**
 	 * Generate Accept-Ranges header?
-	 * 
+	 *
 	 * @var boolean
 	 */
 	private $_acceptranges;
 
 	/**
+	 * Serve with mod_xsendfile
+	 *
+	 * @var boolean
+	 */
+	private static $_allowxsendfle = false;
+
+	/**
 	 * inline or attachment
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_disposition;
 
 	/**
 	 * Name to save file as
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_saveas;
 
 	/**
-	 * Constructor
+	 * Content Type
 	 * 
+	 * @var [type]
+	 */
+	private static $_contentType;
+
+	/**
+	 * Constructor
+	 *
 	 * @return     void
 	 */
 	public function __construct()
@@ -77,7 +91,7 @@ class Server extends Object
 
 	/**
 	 * Set the name to save file as
-	 * 
+	 *
 	 * @param      string $saveas Name to save file as
 	 * @return     mixed  String if field is set, NULL if not
 	 */
@@ -93,7 +107,7 @@ class Server extends Object
 
 	/**
 	 * Set the filename value
-	 * 
+	 *
 	 * @param      string $filename File to serve up
 	 * @return     mixed  String if field is set, NULL if not
 	 */
@@ -108,8 +122,22 @@ class Server extends Object
 	}
 
 	/**
+	 * Allow apache to serve files
+	 * @return [type] [description]
+	 */
+	public function allowXsendFile()
+	{
+		// is mod_xsendfile loaded & we have allowed xsendfile in config
+		if (in_array('mod_xsendfile', apache_get_modules())
+			&& \JFactory::getConfig()->getValue('allow_xsendfile', 0) == 1)
+		{
+			self::$_allowxsendfle = true;
+		}
+	}
+
+	/**
 	 * Set the filename value
-	 * 
+	 *
 	 * @param      string  $filename File to serve up
 	 * @return     boolean True if path is allowable, False if not
 	 */
@@ -120,26 +148,26 @@ class Server extends Object
 			return false;
 		}
 
-		if (preg_match("/^\s*http[s]{0,1}:/i", $filename)) 
+		if (preg_match("/^\s*http[s]{0,1}:/i", $filename))
 		{
 			return false;
 		}
-		if (preg_match("/^\s*[\/]{0,1}index.php\?/i", $filename)) 
+		if (preg_match("/^\s*[\/]{0,1}index.php\?/i", $filename))
 		{
 			return false;
 		}
 		// Disallow windows drive letter
-		if (preg_match("/^\s*[.]:/", $filename)) 
+		if (preg_match("/^\s*[.]:/", $filename))
 		{
 			return false;
 		}
 		// Disallow \
-		if (strpos($filename, '\\')) 
+		if (strpos($filename, '\\'))
 		{
 			return false;
 		}
 		// Disallow ..
-		if (strpos($filename, '..')) 
+		if (strpos($filename, '..'))
 		{
 			return false;
 		}
@@ -149,7 +177,7 @@ class Server extends Object
 
 	/**
 	 * Set the acceptranges value
-	 * 
+	 *
 	 * @param      unknown $acceptranges Value to set
 	 * @return     mixed Boolean if field is set, NULL if not
 	 */
@@ -165,13 +193,13 @@ class Server extends Object
 
 	/**
 	 * Set the disposition value
-	 * 
+	 *
 	 * @param      string $disposition Value to set
 	 * @return     mixed String if field is set, NULL if not
 	 */
 	public function disposition($disposition = null)
 	{
-		if (!is_null($disposition)) 
+		if (!is_null($disposition))
 		{
 			if (strcasecmp($disposition, 'inline') == 0)
 			{
@@ -193,8 +221,21 @@ class Server extends Object
 	}
 
 	/**
-	 * Read the contents of a file and display it
+	 * Set Content Type
 	 * 
+	 * @param string $contentType
+	 */
+	public function setContentType($contentType = null)
+	{
+		if ($contentType !== null)
+		{
+			self::$_contentType = $contentType;
+		}
+	}
+
+	/**
+	 * Read the contents of a file and display it
+	 *
 	 * @return     boolean
 	 */
 	public function serve()
@@ -203,9 +244,9 @@ class Server extends Object
 	}
 
 	/**
-	 * Read the contents of a file and display display as attachment 
+	 * Read the contents of a file and display display as attachment
 	 * (browser should default to saving file rather than displaying)
-	 * 
+	 *
 	 * @param      string  $filename     File to serve up
 	 * @param      string  $saveas       Name to save file as
 	 * @param      boolean $acceptranges Generate Accept-Ranges header?
@@ -217,9 +258,9 @@ class Server extends Object
 	}
 
 	/**
-	 * Read the contents of a file and display it inline 
+	 * Read the contents of a file and display it inline
 	 * (display in browser window)
-	 * 
+	 *
 	 * @param      string  $filename     File to serve up
 	 * @param      boolean $acceptranges Generate Accept-Ranges header?
 	 * @return     boolean True on success, False if error
@@ -231,7 +272,7 @@ class Server extends Object
 
 	/**
 	 * Read the contents of a file and display it
-	 * 
+	 *
 	 * @param      string  $filename     File to serve up
 	 * @param      string  $saveas       Name to save file as (used for attachment disposition)
 	 * @param      string  $disposition  inline or attachment
@@ -267,26 +308,38 @@ class Server extends Object
 		$filesize  = filesize($filename);
 
 		// Get the file's mimetype
-		$mime = new Mimetypes();
-		$type = $mime->getMimeType($filename);
+		if (!self::$_contentType)
+		{
+			$mime = new Mimetypes();
+			self::$_contentType = $mime->getMimeType($filename);
+		}
 
 		// Mimetype couldn't be determined?
-		if ($type == '##INVALID_FILE##') 
+		if (self::$_contentType == '##INVALID_FILE##')
 		{
-			$type = 'application/octet-stream';
+			self::$_contentType = 'application/octet-stream';
+		}
+
+		// send xsend file now (before any headers are sent)
+		if (self::$_allowxsendfle === true)
+		{
+			header('Content-Type: ' . self::$_contentType);
+			header('Content-Disposition: ' . $disposition . '; filename=' . $saveas);
+			header('X-Sendfile: ' . $filename);
+			exit(0);
 		}
 
 		if ($acceptranges
 		 && $_SERVER['REQUEST_METHOD'] == 'GET'
 		 && isset($_SERVER['HTTP_RANGE'])
-		 && $range = stristr(trim($_SERVER['HTTP_RANGE']), 'bytes=')) 
+		 && $range = stristr(trim($_SERVER['HTTP_RANGE']), 'bytes='))
 		{
 			$range    = substr($range, 6);
 			$boundary = 'g45d64df96bmdf4sdgh45hf5'; //set a random boundary
 			$ranges   = explode(',', $range);
 			$partial  = true;
 		}
-		else 
+		else
 		{
 			$ranges   = array('0-' . ($filesize - 1));
 			$partial  = false;
@@ -295,7 +348,7 @@ class Server extends Object
 		$multipart = (count($ranges) > 1);
 		$content_length = 0;
 
-		foreach ($ranges as $range) 
+		foreach ($ranges as $range)
 		{
 			preg_match("/^\s*(\d*)\s*-\s*(\d*)\s*$/", $range, $match);
 
@@ -330,10 +383,10 @@ class Server extends Object
 			$result[$range]['first'] = $first;
 			$result[$range]['last']  = $last;
 
-			if ($multipart) 
+			if ($multipart)
 			{
 				$content_length += strlen("\r\n--$boundary\r\n");
-				$content_length += strlen("Content-type: $type\r\n");
+				$content_length += strlen("Content-type: " . self::$_contentType . "\r\n");
 				$content_length += strlen("Content-range: bytes $first-$last/$filesize\r\n\r\n");
 			}
 
@@ -346,22 +399,26 @@ class Server extends Object
 		}
 
 		//output headers
-
 		if ($partial)
 		{
 			header('HTTP/1.1 206 Partial content');
+
+			if (!$multipart)
+			{
+				header("Content-range: bytes $first-$last/$filesize");
+			}
 		}
 
-		if (isset($_SERVER['HTTP_USER_AGENT'])) 
+		if (isset($_SERVER['HTTP_USER_AGENT']))
 		{
 			$msie = preg_match("/MSIE (\d+)\.(\d+)([^;]*);/i", $_SERVER['HTTP_USER_AGENT'], $matches); // MSIE
-		} 
-		else 
+		}
+		else
 		{
 			$msie = false;
 		}
 
-		if (!$partial && ($disposition == 'attachment')) 
+		if (!$partial && ($disposition == 'attachment'))
 		{
 			if ($msie && ($matches[1] < 6)) // untested IE 5.5 workaround
 			{
@@ -381,12 +438,12 @@ class Server extends Object
 		{
 			header("Content-Type: multipart/x-byteranges; boundary=$boundary");
 		}
-		else 
+		else
 		{
-			header("Content-Type: $type");
+			header("Content-Type: " . self::$_contentType);
 		}
 
-		// IE6 "save as" chokes on pragma no-cache or no-cache being 
+		// IE6 "save as" chokes on pragma no-cache or no-cache being
 		// first on the Cache-Control header
 		if (!$msie)
 		{
@@ -410,7 +467,8 @@ class Server extends Object
 			ob_end_clean();
 		}
 
-		foreach ($ranges as $range) 
+
+		foreach ($ranges as $range)
 		{
 			$first = $result[$range]['first'];
 			$last  = $result[$range]['last'];
@@ -418,11 +476,7 @@ class Server extends Object
 			if ($multipart)
 			{
 				echo "\r\n--$boundary\r\n";
-			}
-
-			if ($partial) 
-			{
-				echo "Content-type: $type\r\n";
+				echo "Content-type: " . self::$_contentType . "\r\n";
 				echo "Content-range: bytes $first-$last/$filesize\r\n\r\n";
 			}
 
@@ -434,11 +488,11 @@ class Server extends Object
 			{
 				fpassthru($fp);
 			}
-			else 
+			else
 			{
 				$bytes_left = $last - $first + 1;
 
-				while ($bytes_left > 0 && !feof($fp)) 
+				while ($bytes_left > 0 && !feof($fp))
 				{
 					if ($bytes_left > $buffer_size)
 					{

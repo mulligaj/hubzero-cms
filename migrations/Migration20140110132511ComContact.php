@@ -6,7 +6,7 @@ use Hubzero\Content\Migration\Base;
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Migration script for ...
+ * Migration script for deleting com_contact
  **/
 class Migration20140110132511ComContact extends Base
 {
@@ -102,7 +102,7 @@ class Migration20140110132511ComContact extends Base
 					  KEY `idx_featured_catid` (`featured`,`catid`),
 					  KEY `idx_language` (`language`),
 					  KEY `idx_xreference` (`xreference`)
-					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+					) ENGINE=MYISAM DEFAULT CHARSET=utf8;";
 				$this->db->setQuery($query);
 				$this->db->query();
 			}

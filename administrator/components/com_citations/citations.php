@@ -33,27 +33,9 @@ defined('_JEXEC') or die('Restricted access');
 
 $option = 'com_citations';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-	
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect( 'index.php', JText::_('ALERTNOTAUTH') );
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'citation.php');
@@ -74,27 +56,27 @@ if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $cont
 }
 
 JSubMenuHelper::addEntry(
-	JText::_('Citations'),
+	JText::_('CITATIONS'),
 	'index.php?option=com_citations&controller=citations',
 	($controllerName == 'citations' && JRequest::getVar('task', '') != 'stats')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Stats'),
+	JText::_('CITATION_STATS'),
 	'index.php?option=com_citations&controller=citations&task=stats',
 	($controllerName == 'citations' && JRequest::getVar('task', '') == 'stats')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Types'),
+	JText::_('CITATION_TYPES'),
 	'index.php?option=com_citations&controller=types',
 	$controllerName == 'types'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Sponsors'),
+	JText::_('CITATION_SPONSORS'),
 	'index.php?option=com_citations&controller=sponsors',
 	$controllerName == 'sponsors'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Format'),
+	JText::_('CITATION_FORMAT'),
 	'index.php?option=com_citations&controller=format',
 	$controllerName == 'format'
 );

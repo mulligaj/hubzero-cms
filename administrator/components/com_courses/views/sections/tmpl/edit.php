@@ -30,69 +30,62 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$text = ($this->task == 'edit' ? JText::_('Edit Section') : JText::_('New Section'));
+$text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 
 $canDo = CoursesHelper::getActions();
 
-JToolBarHelper::title(JText::_('COM_COURSES').': ' . $text, 'courses.png');
-if ($canDo->get('core.edit')) 
+JToolBarHelper::title(JText::_('COM_COURSES') . ': ' . JText::_('COM_COURSES_SECTIONS') . ': ' . $text, 'courses.png');
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::save();
 }
 JToolBarHelper::cancel();
 
 
-JHtml::_('behavior.switcher');
-
+JHtml::_('behavior.switcher', 'submenu');
+JHtml::_('behavior.calendar');
 
 $base = str_replace('/administrator', '', rtrim(JURI::getInstance()->base(true), '/'));
 
-$this->css()
-     ->css('classic');
+$this->css(); //->css('classic');
 
 $course_id = 0;
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
-	
+
 	if (pressbutton == 'cancel') {
 		submitform(pressbutton);
 		return;
 	}
-	
+
 	// form field validation
-	if ($('field-alias').value == '') {
-		alert('<?php echo JText::_('COM_COURSES_ERROR_MISSING_INFORMATION'); ?>');
-	} else if ($('field-title').value == '') {
-		alert('<?php echo JText::_('COM_COURSES_ERROR_MISSING_INFORMATION'); ?>');
+	if ($('#field-title').val() == '') {
+		alert('<?php echo JText::_('COM_COURSES_ERROR_MISSING_TITLE'); ?>');
 	} else {
 		submitform(pressbutton);
 	}
 }
-document.switcher = null;
-window.addEvent('domready', function(){
-	toggler = document.id('submenu');
-	element = document.id('section-document');
-	if (element) {
-		document.switcher = new JSwitcher(toggler, element, {cookieName: toggler.getProperty('class')});
-	}
+jQuery(document).ready(function($){
+	$('#section-document').tabs();
 });
 </script>
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo implode('<br />', $this->getErrors()); ?></p>
 <?php } ?>
 <form action="index.php" method="post" name="adminForm" id="item-form" enctype="multipart/form-data">
+
 	<nav role="navigation" class="sub-navigation">
 		<div id="submenu-box">
 			<div class="submenu-box">
 				<div class="submenu-pad">
 					<ul id="submenu" class="coursesection">
-						<li><a href="#" onclick="return false;" id="details" class="active">Details</a></li>
-						<li><a href="#" onclick="return false;" id="managers">Managers</a></li>
-						<li><a href="#" onclick="return false;" id="datetime">Dates/Times</a></li>
-						<li><a href="#" onclick="return false;" id="badge">Recognition/Rewards</a></li>
+						<li><a href="#" onclick="return false;" id="details" class="active"><?php echo JText::_('JDETAILS'); ?></a></li>
+						<li><a href="#" onclick="return false;" id="managers"><?php echo JText::_('COM_COURSES_FIELDSET_MANAGERS'); ?></a></li>
+						<li><a href="#" onclick="return false;" id="datetime"><?php echo JText::_('COM_COURSES_FIELDSET_DATES'); ?></a></li>
+						<li><a href="#" onclick="return false;" id="badge"><?php echo JText::_('COM_COURSES_FIELDSET_REWARDS'); ?></a></li>
 					</ul>
 					<div class="clr"></div>
 				</div>
@@ -106,7 +99,7 @@ window.addEvent('domready', function(){
 
 			<div class="col width-50 fltlft">
 				<fieldset class="adminform">
-					<legend><span><?php echo JText::_('COM_COURSES_DETAILS'); ?></span></legend>
+					<legend><span><?php echo JText::_('JDETAILS'); ?></span></legend>
 
 					<input type="hidden" name="fields[id]" value="<?php echo $this->row->get('id'); ?>" />
 					<input type="hidden" name="offering" value="<?php echo $this->row->get('offering_id'); ?>" />
@@ -114,13 +107,10 @@ window.addEvent('domready', function(){
 					<input type="hidden" name="controller" value="<?php echo $this->controller; ?>">
 					<input type="hidden" name="task" value="save" />
 
-					<table class="admintable">
-						<tbody>
-							<tr>
-								<th class="key"><label for="offering_id"><?php echo JText::_('Offering'); ?>:</label></th>
-								<td>
-									<select name="fields[offering_id]" id="offering_id">
-										<option value="-1"><?php echo JText::_('Select offering...'); ?></option>
+					<div class="input-wrap">
+						<label for="offering_id"><?php echo JText::_('COM_COURSES_OFFERING'); ?>:</label><br />
+						<select name="fields[offering_id]" id="offering_id">
+							<option value="-1"><?php echo JText::_('COM_COURSES_SELECT'); ?></option>
 							<?php
 								require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'courses.php');
 								$model = CoursesModelCourses::getInstance();
@@ -134,7 +124,7 @@ window.addEvent('domready', function(){
 										$j = 0;
 										foreach ($course->offerings() as $i => $offering)
 										{
-											if ($offering->get('id') == $this->row->get('offering_id')) 
+											if ($offering->get('id') == $this->row->get('offering_id'))
 											{
 												$course_id = $offering->get('course_id');
 											}
@@ -144,118 +134,106 @@ window.addEvent('domready', function(){
 										}
 							?>
 										</optgroup>
-							<?php 
+							<?php
 									}
 								}
 							?>
-									</select>
-								</td>
-							</tr>
-							<tr>
-								<th class="key"><label for="field-alias"><?php echo JText::_('Alias'); ?>:</label></th>
-								<td>
-									<input type="text" name="fields[alias]" id="field-alias" value="<?php echo $this->escape(stripslashes($this->row->get('alias'))); ?>" size="50" />
-								</td>
-							</tr>
-							<tr>
-								<th class="key"><label for="field-title"><?php echo JText::_('COM_COURSES_TITLE'); ?>:</label></th>
-								<td><input type="text" name="fields[title]" id="field-title" value="<?php echo $this->escape(stripslashes($this->row->get('title'))); ?>" size="50" /></td>
-							</tr>
-							<tr>
-								<th class="key"><?php echo JText::_('Default section'); ?>:</th>
-								<td>
-									<label for="field-is_default-yes"><input type="radio" name="fields[is_default]" id="field-is_default-yes" value="1" <?php if ($this->row->get('is_default', 0) == 1) { echo ' checked="checked"'; } ?> /> <?php echo JText::_('yes'); ?></label>
-									<label for="field-is_default-no"><input type="radio" name="fields[is_default]" id="field-is_default-no" value="0" <?php if ($this->row->get('is_default', 0) == 0) { echo ' checked="checked"'; } ?> /> <?php echo JText::_('no'); ?></label>
-								</td>
-							</tr>
-							<tr>
-								<th class="key"><label for="field-enrollment"><?php echo JText::_('Enrollment'); ?>:</label></th>
-								<td>
-									<select name="fields[enrollment]" id="field-enrollment">
-										<option value="0"<?php if ($this->row->get('enrollment', $this->row->config('default_enrollment', 0)) == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('Open (anyone can join)'); ?></option>
-										<option value="1"<?php if ($this->row->get('enrollment', $this->row->config('default_enrollment', 0)) == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('Restricted (coupon code is required)'); ?></option>
-										<option value="2"<?php if ($this->row->get('enrollment', $this->row->config('default_enrollment', 0)) == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('Closed (no new enrollment)'); ?></option>
-									</select>
-								</td>
-							</tr>
-							<tr>
-								<th class="key"><label for="field-state"><?php echo JText::_('State'); ?>:</label></th>
-								<td>
-									<select name="fields[state]" id="field-state">
-										<option value="0"<?php if ($this->row->get('state') == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('Unpublished'); ?></option>
-										<option value="3"<?php if ($this->row->get('state') == 3) { echo ' selected="selected"'; } ?>><?php echo JText::_('Draft'); ?></option>
-										<option value="1"<?php if ($this->row->get('state') == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('Published'); ?></option>
-										<option value="2"<?php if ($this->row->get('state') == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('Deleted'); ?></option>
-									</select>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+						</select>
+					</div>
+
+					<div class="input-wrap" data-hint="<?php echo JText::_('COM_COURSES_FIELD_ALIAS_HINT'); ?>">
+						<label for="field-alias"><?php echo JText::_('COM_COURSES_FIELD_ALIAS'); ?>:</label><br />
+						<input type="text" name="fields[alias]" id="field-alias" value="<?php echo $this->escape(stripslashes($this->row->get('alias'))); ?>" />
+						<span class="hint"><?php echo JText::_('COM_COURSES_FIELD_ALIAS_HINT'); ?></span>
+					</div>
+
+					<div class="input-wrap">
+						<label for="field-title"><?php echo JText::_('COM_COURSES_FIELD_TITLE'); ?>:</label><br />
+						<input type="text" name="fields[title]" id="field-title" value="<?php echo $this->escape(stripslashes($this->row->get('title'))); ?>" />
+					</div>
+
+					<fieldset>
+						<legend><?php echo JText::_('COM_COURSES_FIELD_DEFAULT_SECTION'); ?>:</legend>
+						<div class="input-wrap">
+							<label for="field-is_default-yes"><input type="radio" name="fields[is_default]" id="field-is_default-yes" value="1" <?php if ($this->row->get('is_default', 0) == 1) { echo ' checked="checked"'; } ?> /> <?php echo JText::_('JYES'); ?></label>
+							<label for="field-is_default-no"><input type="radio" name="fields[is_default]" id="field-is_default-no" value="0" <?php if ($this->row->get('is_default', 0) == 0) { echo ' checked="checked"'; } ?> /> <?php echo JText::_('JNO'); ?></label>
+						</div>
+					</fieldset>
+
+					<div class="input-wrap">
+						<label for="field-enrollment"><?php echo JText::_('COM_COURSES_FIELD_ENROLLMENT'); ?>:</label><br />
+						<select name="fields[enrollment]" id="field-enrollment">
+							<option value="0"<?php if ($this->row->get('enrollment', $this->row->config('default_enrollment', 0)) == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COURSES_FIELD_ENROLLMENT_OPEN'); ?></option>
+							<option value="1"<?php if ($this->row->get('enrollment', $this->row->config('default_enrollment', 0)) == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COURSES_FIELD_ENROLLMENT_RESTRICTED'); ?></option>
+							<option value="2"<?php if ($this->row->get('enrollment', $this->row->config('default_enrollment', 0)) == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COURSES_FIELD_ENROLLMENT_CLOSED'); ?></option>
+						</select>
+					</div>
+
+					<div class="input-wrap">
+						<label for="field-state"><?php echo JText::_('COM_COURSES_FIELD_STATE'); ?>:</label><br />
+						<select name="fields[state]" id="field-state">
+							<option value="0"<?php if ($this->row->get('state') == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COURSES_UNPUBLISHED'); ?></option>
+							<option value="3"<?php if ($this->row->get('state') == 3) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COURSES_DRAFT'); ?></option>
+							<option value="1"<?php if ($this->row->get('state') == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COURSES_PUBLISHED'); ?></option>
+							<option value="2"<?php if ($this->row->get('state') == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COURSES_TRASHED'); ?></option>
+						</select>
+					</div>
 				</fieldset>
 
 				<fieldset class="adminform">
-					<legend><span><?php echo JText::_('Publishing'); ?></span></legend>
-					
-					<table class="admintable">
-						<tbody>
-							<tr>
-								<th class="key"><label for="publish_up">Publish up:</label></th>
-								<td>
-									<?php echo JHTML::_('calendar', $this->row->get('publish_up'), 'fields[publish_up]', 'publish_up', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-									<span class="hint">When the section will become available for enrollment</span>
-								</td>
-							</tr>
-							<tr>
-								<th class="key"><label for="start_date">Starts:</label></th>
-								<td>
-									<?php echo JHTML::_('calendar', $this->row->get('start_date'), 'fields[start_date]', 'start_date', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-									<span class="hint">When the section starts a live offering</span>
-								</td>
-							</tr>
-							<tr>
-								<th class="key"><label for="end date">Finishes:</label></th>
-								<td>
-									<?php echo JHTML::_('calendar', $this->row->get('end_date'), 'fields[end_date]', 'end_date', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-									<span class="hint">When the live offering ends</span>
-								</td>
-							</tr>
-							<tr>
-								<th class="key"><label for="publish_down">Publish down:</label></th>
-								<td>
-									<?php echo JHTML::_('calendar', $this->row->get('publish_down'), 'fields[publish_down]', 'publish_down', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-									<span class="hint">When section will close (materials no longer accessible)</span>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+					<legend><span><?php echo JText::_('COM_COURSES_FIELDSET_PUBLISHING'); ?></span></legend>
+
+					<div class="input-wrap" data-hint="<?php echo JText::_('COM_COURSES_FIELD_PUBLISH_UP_HINT'); ?>">
+						<label for="field-publish_up"><?php echo JText::_('COM_COURSES_FIELD_PUBLISH_UP'); ?>:</label><br />
+						<?php echo JHTML::_('calendar', ($this->row->get('publish_up') != '0000-00-00 00:00:00' ? $this->row->get('publish_up') : ''), 'fields[publish_up]', 'field-publish_up'); ?>
+						<span class="hint"><?php echo JText::_('COM_COURSES_FIELD_PUBLISH_UP_HINT'); ?></span>
+					</div>
+
+					<div class="input-wrap" data-hint="<?php echo JText::_('COM_COURSES_FIELD_SECTION_STARTS_HINT'); ?>">
+						<label for="field-start_date"><?php echo JText::_('COM_COURSES_FIELD_SECTION_STARTS'); ?>:</label><br />
+						<?php echo JHTML::_('calendar', ($this->row->get('start_date') != '0000-00-00 00:00:00' ? $this->row->get('start_date') : ''), 'fields[start_date]', 'field-start_date'); ?>
+						<span class="hint"><?php echo JText::_('COM_COURSES_FIELD_SECTION_STARTS_HINT'); ?></span>
+					</div>
+
+					<div class="input-wrap" data-hint="<?php echo JText::_('COM_COURSES_FIELD_FINISHES_HINT'); ?>">
+						<label for="field-end date"><?php echo JText::_('COM_COURSES_FIELD_FINISHES'); ?>:</label><br />
+						<?php echo JHTML::_('calendar', ($this->row->get('end_date') != '0000-00-00 00:00:00' ? $this->row->get('end_date') : ''), 'fields[end_date]', 'field-end_date'); ?>
+						<span class="hint"><?php echo JText::_('COM_COURSES_FIELD_FINISHES_HINT'); ?></span>
+					</div>
+
+					<div class="input-wrap" data-hint="<?php echo JText::_('COM_COURSES_FIELD_PUBLISH_DOWN_HINT'); ?>">
+						<label for="field-publish_down"><?php echo JText::_('COM_COURSES_FIELD_PUBLISH_DOWN'); ?>:</label><br />
+						<?php echo JHTML::_('calendar', ($this->row->get('publish_down') != '0000-00-00 00:00:00' ? $this->row->get('publish_down') : ''), 'fields[publish_down]', 'field-publish_down'); ?>
+						<span class="hint"><?php echo JText::_('COM_COURSES_FIELD_PUBLISH_DOWN_HINT'); ?></span>
+					</div>
 				</fieldset>
 			</div>
 			<div class="col width-50 fltrt">
 				<table class="meta">
 					<tbody>
 						<tr>
-							<th><?php echo JText::_('Course ID'); ?></th>
+							<th><?php echo JText::_('COM_COURSES_FIELD_COURSE_ID'); ?></th>
 							<td colspan="3"><?php echo $this->escape($course_id); ?></td>
 						</tr>
 						<tr>
-							<th><?php echo JText::_('Offering ID'); ?></th>
+							<th><?php echo JText::_('COM_COURSES_FIELD_OFFERING_ID'); ?></th>
 							<td colspan="3"><?php echo $this->escape($this->row->get('offering_id')); ?></td>
 						</tr>
 						<tr>
-							<th><?php echo JText::_('Section ID'); ?></th>
+							<th><?php echo JText::_('COM_COURSES_FIELD_SECTION_ID'); ?></th>
 							<td colspan="3"><?php echo $this->escape($this->row->get('id')); ?></td>
 						</tr>
 					<?php if ($this->row->get('created')) { ?>
 						<tr>
-							<th><?php echo JText::_('Created'); ?></th>
+							<th><?php echo JText::_('COM_COURSES_FIELD_CREATED'); ?></th>
 							<td>
 								<?php echo $this->escape($this->row->get('created')); ?>
 							</td>
 						</tr>
 						<?php if ($this->row->get('created_by')) { ?>
 						<tr>
-							<th><?php echo JText::_('Creator'); ?></th>
-							<td><?php 
+							<th><?php echo JText::_('COM_COURSES_FIELD_CREATOR'); ?></th>
+							<td><?php
 								$creator = JUser::getInstance($this->row->get('created_by'));
 								echo $this->escape(stripslashes($creator->get('name'))); ?>
 							</td>
@@ -266,10 +244,10 @@ window.addEvent('domready', function(){
 				</table>
 
 				<fieldset class="adminform">
-					<legend><span><?php echo JText::_('IMAGE'); ?></span></legend>
+					<legend><span><?php echo JText::_('COM_COURSES_LOGO'); ?></span></legend>
 
 					<?php
-					if ($this->row->exists()) 
+					if ($this->row->exists())
 					{
 						$logo = $this->row->params('logo');
 						?>
@@ -280,11 +258,11 @@ window.addEvent('domready', function(){
 								</noscript>
 							</div>
 						</div>
-							<?php 
+							<?php
 							$width  = 0;
 							$height = 0;
 							$this_size = 0;
-							if ($logo) 
+							if ($logo)
 							{
 								$path = $this->row->logo('path');
 
@@ -305,34 +283,32 @@ window.addEvent('domready', function(){
 							<table class="formed">
 								<tbody>
 									<tr>
-										<th><?php echo JText::_('File'); ?>:</th>
+										<th><?php echo JText::_('COM_COURSES_FILE'); ?>:</th>
 										<td>
-											<span id="img-name"><?php echo $this->row->params('logo', '[ none ]'); ?></span>
+											<span id="img-name"><?php echo $this->row->params('logo', JText::_('COM_COURSES_NONE')); ?></span>
 										</td>
 										<td>
-											<a id="img-delete" <?php echo $logo ? '' : 'style="display: none;"'; ?> href="index.php?option=<?php echo $this->option; ?>&amp;controller=logo&amp;tmpl=component&amp;task=remove&amp;currentfile=<?php echo $logo; ?>&amp;type=section&amp;id=<?php echo $this->row->get('id'); ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo JText::_('Delete'); ?>">[ x ]</a>
+											<a id="img-delete" <?php echo $logo ? '' : 'style="display: none;"'; ?> href="index.php?option=<?php echo $this->option; ?>&amp;controller=logo&amp;tmpl=component&amp;task=remove&amp;currentfile=<?php echo $logo; ?>&amp;type=section&amp;id=<?php echo $this->row->get('id'); ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo JText::_('COM_COURSES_DELETE'); ?>">[ x ]</a>
 										</td>
 									</tr>
 									<tr>
-										<th><?php echo JText::_('Size'); ?>:</th>
+										<th><?php echo JText::_('COM_COURSES_PICTURE_SIZE'); ?>:</th>
 										<td><span id="img-size"><?php echo \Hubzero\Utility\Number::formatBytes($this_size); ?></span></td>
 										<td></td>
 									</tr>
 									<tr>
-										<th><?php echo JText::_('Width'); ?>:</th>
+										<th><?php echo JText::_('COM_COURSES_PICTURE_WIDTH'); ?>:</th>
 										<td><span id="img-width"><?php echo $width; ?></span> px</td>
 										<td></td>
 									</tr>
 									<tr>
-										<th><?php echo JText::_('Height'); ?>:</th>
+										<th><?php echo JText::_('COM_COURSES_PICTURE_HEIGHT'); ?>:</th>
 										<td><span id="img-height"><?php echo $height; ?></span> px</td>
 										<td></td>
 									</tr>
 								</tbody>
 							</table>
 
-							<script type="text/javascript" src="<?php echo $base; ?>/media/system/js/jquery.js"></script>
-							<script type="text/javascript" src="<?php echo $base; ?>/media/system/js/jquery.noconflict.js"></script>
 							<script type="text/javascript" src="<?php echo $base; ?>/media/system/js/jquery.fileuploader.js"></script>
 							<script type="text/javascript">
 							String.prototype.nohtml = function () {
@@ -342,9 +318,7 @@ window.addEvent('domready', function(){
 									return this + '&no_html=1';
 								}
 							};
-							jQuery(document).ready(function(jq){
-								var $ = jq;
-								
+							jQuery(document).ready(function($){
 								if ($("#ajax-uploader").length) {
 									var uploader = new qq.FileUploader({
 										element: $("#ajax-uploader")[0],
@@ -352,9 +326,9 @@ window.addEvent('domready', function(){
 										multiple: true,
 										debug: true,
 										template: '<div class="qq-uploader">' +
-													'<div class="qq-upload-button"><span>Click or drop file</span></div>' + 
-													'<div class="qq-upload-drop-area"><span>Click or drop file</span></div>' +
-													'<ul class="qq-upload-list"></ul>' + 
+													'<div class="qq-upload-button"><span><?php echo JText::_('COM_COURSES_UPLOAD_CLICK_OR_DROP'); ?></span></div>' +
+													'<div class="qq-upload-drop-area"><span><?php echo JText::_('COM_COURSES_UPLOAD_CLICK_OR_DROP'); ?></span></div>' +
+													'<ul class="qq-upload-list"></ul>' +
 												   '</div>',
 										onComplete: function(id, file, response) {
 											if (response.success) {
@@ -387,12 +361,34 @@ window.addEvent('domready', function(){
 							</script>
 					<?php
 					} else {
-						echo '<p class="warning">'.JText::_('COM_COURSES_PICTURE_ADDED_LATER').'</p>';
+						echo '<p class="warning">' . JText::_('COM_COURSES_UPLOAD_ADDED_LATER') . '</p>';
 					}
 					?>
 				</fieldset>
 
 				<?php $params = new JRegistry($this->row->get('params')); ?>
+
+				<fieldset class="adminform sectionparams">
+					<legend><?php echo JText::_('COM_COURSES_FIELDSET_PARAMS'); ?></legend>
+					<div class="input-wrap">
+						<label for="params-progress-calculation"><?php echo JText::_('COM_COURSES_PROGRESS_CALCULATION'); ?>:</label><br />
+						<select name="params[progress_calculation]" id="params-progress-calculation">
+							<option value=""<?php echo ($params->get('progress_calculation', '') == '') ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_PROGRESS_CALCULATION_INHERIT_FROM_OFFERING'); ?></option>
+							<option value="all"<?php echo ($params->get('progress_calculation', '') == 'all') ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_PROGRESS_CALCULATION_ALL'); ?></option>
+							<option value="graded"<?php echo ($params->get('progress_calculation', '') == 'graded') ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_PROGRESS_CALCULATION_GRADED'); ?></option>
+							<option value="videos"<?php echo ($params->get('progress_calculation', '') == 'videos') ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_PROGRESS_CALCULATION_VIDEOS'); ?></option>
+							<option value="manual"<?php echo ($params->get('progress_calculation', '') == 'manual') ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_PROGRESS_CALCULATION_MANUAL'); ?></option>
+						</select>
+					</div>
+					<div class="input-wrap">
+						<label for="params-progress-calculation"><?php echo JText::_('COM_COURSES_PREVIEW_MODE'); ?>:</label><br />
+						<select name="params[preview]" id="params-preview">
+							<option value="0"<?php echo ($params->get('preview', '') == '0') ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_PREVIEW_NO'); ?></option>
+							<option value="1"<?php echo ($params->get('preview', '') == '1') ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_PREVIEW_YES_FULL'); ?></option>
+							<option value="2"<?php echo ($params->get('preview', '') == '2') ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_PREVIEW_YES_FIRST_UNIT'); ?></option>
+						</select>
+					</div>
+				</fieldset>
 
 				<?php
 					JPluginHelper::importPlugin('courses');
@@ -400,39 +396,25 @@ window.addEvent('domready', function(){
 
 					if ($plugins = $dispatcher->trigger('onSectionEdit'))
 					{
-						$pth = false;
-						$paramsClass = 'JParameter';
-						if (version_compare(JVERSION, '1.6', 'ge'))
-						{
-							$pth = true;
-							//$paramsClass = 'JRegistry';
-						}
-
 						$data = $this->row->get('params');
 
 						foreach ($plugins as $plugin)
 						{
-							$param = new $paramsClass(
+							$param = new JParameter(
 								(is_object($data) ? $data->toString() : $data),
-								JPATH_ROOT . DS . 'plugins' . DS . 'courses' . DS . $plugin['name'] . ($pth ? DS . $plugin['name'] : '') . '.xml'
+								JPATH_ROOT . DS . 'plugins' . DS . 'courses' . DS . $plugin['name'] . DS . $plugin['name'] . '.xml'
 							);
 							$out = $param->render('params', 'onSectionEdit');
-							if (!$out) 
+							if (!$out)
 							{
 								continue;
 							}
 							?>
 							<fieldset class="adminform eventparams" id="params-<?php echo $plugin['name']; ?>">
-								<legend><?php echo JText::sprintf('%s Parameters', $plugin['title']); ?></legend>
-								<table class="admintable">
-									<tbody>
-										<tr>
-											<td>
+								<legend><?php echo JText::sprintf('COM_COURSES_FIELDSET_PARAMETERS', $plugin['title']); ?></legend>
+								<div class="input-wrap">
 									<?php echo $out; ?>
-											</td>
-										</tr>
-									</tbody>
-								</table>
+								</div>
 							</fieldset>
 							<?php
 						}
@@ -444,12 +426,12 @@ window.addEvent('domready', function(){
 
 		<div id="page-managers" class="tab">
 			<fieldset class="adminform">
-				<legend><span><?php echo JText::_('Managers'); ?></span></legend>
-			<?php if ($this->row->get('id')) { ?>
-				<iframe width="100%" height="500" name="managers" id="managers" frameborder="0" src="index.php?option=<?php echo $this->option; ?>&amp;controller=supervisors&amp;tmpl=component&amp;offering=<?php echo $this->row->get('offering_id'); ?>&amp;section=<?php echo $this->row->get('id'); ?>"></iframe>
-			<?php } else { ?>
-				<p><?php echo JText::_('Section must be saved before managers can be added.'); ?></p>
-			<?php } ?>
+				<legend><span><?php echo JText::_('COM_COURSES_FIELDSET_MANAGERS'); ?></span></legend>
+				<?php if ($this->row->get('id')) { ?>
+					<iframe width="100%" height="500" name="managers" id="managers" frameborder="0" src="index.php?option=<?php echo $this->option; ?>&amp;controller=supervisors&amp;tmpl=component&amp;offering=<?php echo $this->row->get('offering_id'); ?>&amp;section=<?php echo $this->row->get('id'); ?>"></iframe>
+				<?php } else { ?>
+					<p class="warning"><?php echo JText::_('COM_COURSES_FIELDSET_MANAGERS_WARNING'); ?></p>
+				<?php } ?>
 			</fieldset>
 		</div>
 
@@ -457,23 +439,25 @@ window.addEvent('domready', function(){
 		<?php if ($this->offering->units()->total() > 0) { ?>
 			<div class="col width-100">
 				<?php if (!$this->row->exists() && !$this->row->get('is_default')) { ?>
-				<p class="info"><?php echo JText::_('Dates and times are initially inherited from the default section for this offering.'); ?></p>
+				<p class="info"><?php echo JText::_('COM_COURSES_SECTION_DATES_HELP'); ?></p>
 				<?php } ?>
-				<script src="<?php echo $base; ?>/media/system/js/jquery.js"></script>
-				<script src="<?php echo $base; ?>/media/system/js/jquery.ui.js"></script>
-				<script src="<?php echo $base; ?>/media/system/js/jquery.noconflict.js"></script>
-				<script src="components/com_courses/assets/js/jquery-ui-timepicker-addon.js"></script>
-				<?php 
-				jimport('joomla.html.pane');
-				$tabs = JPane::getInstance('sliders');
 
-				echo $tabs->startPane("content-pane"); 
+				<?php
+				//jimport('joomla.html.pane');
+				//$tabs = JPane::getInstance('sliders');
+
+				//echo $tabs->startPane("content-pane");
+				echo JHtml::_('sliders.start', 'content-pane');
+
+				$nullDate = '0000-00-00 00:00:00';
+
 				$this->offering->section($this->row->get('alias', '__default'));
 
 					$i = 0;
-					foreach ($this->offering->units(array(), true) as $unit) 
+					foreach ($this->offering->units(array(), true) as $unit)
 					{
-						echo $tabs->startPanel(stripslashes($unit->get('title')), stripslashes($unit->get('alias')));
+						echo JHtml::_('sliders.panel', stripslashes($unit->get('title')), stripslashes($unit->get('alias')));
+						//echo $tabs->startPanel(stripslashes($unit->get('title')), stripslashes($unit->get('alias')));
 				?>
 							<input type="hidden" name="dates[<?php echo $i; ?>][id]" value="<?php echo $this->row->date('unit', $unit->get('id'))->get('id'); ?>" />
 							<input type="hidden" name="dates[<?php echo $i; ?>][scope]" value="unit" />
@@ -482,18 +466,18 @@ window.addEvent('domready', function(){
 							<table class="admintable section-dates" id="dates_<?php echo $i; ?>">
 								<tbody>
 									<tr>
-										<th class="key"><label for="dates_<?php echo $i; ?>_publish_up"><?php echo JText::_('from'); ?></label></th>
+										<th class="key"><label for="dates_<?php echo $i; ?>_publish_up"><?php echo JText::_('COM_COURSES_FROM'); ?></label></th>
 										<td>
-											<?php $tm = ($unit->get('publish_up') ? $unit->get('publish_up') : $this->row->date('unit', $unit->get('id'))->get('publish_up')); ?>
-											<input type="text" name="dates[<?php echo $i; ?>][publish_up]" id="dates_<?php echo $i; ?>_publish_up" class="datetime-field" value="<?php echo $tm == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $tm, 'Y-m-d H:i:s'); ?>" />
+											<?php $tm = ($unit->get('publish_up') && $unit->get('publish_up') != $nullDate ? $unit->get('publish_up') : $this->row->date('unit', $unit->get('id'))->get('publish_up')); ?>
+											<input type="text" name="dates[<?php echo $i; ?>][publish_up]" id="dates_<?php echo $i; ?>_publish_up" class="datetime-field" value="<?php echo (!$tm || $tm == $nullDate ? '' : JHTML::_('date', $tm, 'Y-m-d H:i:s')); ?>" />
 										</td>
-										<th class="key"><label for="dates_<?php echo $i; ?>_publish_up"><?php echo JText::_('to'); ?></label></th>
+										<th class="key"><label for="dates_<?php echo $i; ?>_publish_up"><?php echo JText::_('COM_COURSES_TO'); ?></label></th>
 										<td>
-											<?php $tm = ($unit->get('publish_down') ? $unit->get('publish_down') : $this->row->date('unit', $unit->get('id'))->get('publish_down')); ?>
-											<input type="text" name="dates[<?php echo $i; ?>][publish_down]" id="dates_<?php echo $i; ?>_publish_down" class="datetime-field" value="<?php echo $tm == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $tm, 'Y-m-d H:i:s'); ?>" />
+											<?php $tm = ($unit->get('publish_down') && $unit->get('publish_down') != $nullDate ? $unit->get('publish_down') : $this->row->date('unit', $unit->get('id'))->get('publish_down')); ?>
+											<input type="text" name="dates[<?php echo $i; ?>][publish_down]" id="dates_<?php echo $i; ?>_publish_down" class="datetime-field" value="<?php echo (!$tm || $tm == $nullDate ? '' : JHTML::_('date', $tm, 'Y-m-d H:i:s')); ?>" />
 										</td>
 										<td>
-											Unless specified below, these values will be inherited by all descendants.
+											<?php echo JText::_('COM_COURSES_SECTION_DATES_INHERITED'); ?>
 										</td>
 									</tr>
 								</tbody>
@@ -507,41 +491,41 @@ window.addEvent('domready', function(){
 							{
 								$agt->set('publish_up', $this->row->date('asset_group', $agt->get('id'))->get('publish_up'));
 								$agt->set('publish_down', $this->row->date('asset_group', $agt->get('id'))->get('publish_down'));
-								
-								if ($agt->get('publish_up') == '0000-00-00 00:00:00')
+
+								if ($agt->get('publish_up') == $nullDate)
 								{
 									$agt->set('publish_up', $unit->get('publish_up'));
 								}
-								if ($agt->get('publish_down') == '0000-00-00 00:00:00')
+								if ($agt->get('publish_down') == $nullDate)
 								{
 									$agt->set('publish_down', $unit->get('publish_down'));
 								}
 								?>
-								
+
 									<tr>
 										<th class="key">
-											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp; 
+											&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp;
 											<?php echo $this->escape(stripslashes($agt->get('title'))); ?>
 										</th>
-										<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_publish_up"><?php echo JText::_('from'); ?></label></th>
+										<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_publish_up"><?php echo JText::_('COM_COURSES_FROM'); ?></label></th>
 										<td>
 											<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][id]" value="<?php echo $this->row->date('asset_group', $agt->get('id'))->get('id'); ?>" />
 											<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][scope]" value="asset_group" />
 											<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][scope_id]" value="<?php echo $agt->get('id'); ?>" />
 											<?php //echo JHTML::_('calendar', $unit->get('publish_up'), 'dates[' . $i . '][publish_up]', 'dates_' . $i . '_publish_up', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-											<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][publish_up]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_publish_up" class="datetime-field" value="<?php echo ($agt->get('publish_up') == $unit->get('publish_up') || $agt->get('publish_up') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $agt->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
+											<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][publish_up]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_publish_up" class="datetime-field" value="<?php echo (!$agt->get('publish_up') || $agt->get('publish_up') == $unit->get('publish_up') || $agt->get('publish_up') == $nullDate ? '' : JHTML::_('date', $agt->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
 										</td>
-										<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_publish_up"><?php echo JText::_('to'); ?></label></th>
+										<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_publish_up"><?php echo JText::_('COM_COURSES_TO'); ?></label></th>
 										<td>
 											<?php //echo JHTML::_('calendar', $unit->get('publish_down'), 'dates[' . $i . '][publish_down]', 'dates_' . $i . '_publish_down', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-											<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][publish_down]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_publish_down" class="datetime-field" value="<?php echo ($agt->get('publish_down') == $unit->get('publish_down') || $agt->get('publish_down') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $agt->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
+											<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][publish_down]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_publish_down" class="datetime-field" value="<?php echo (!$agt->get('publish_down') || $agt->get('publish_down') == $unit->get('publish_down') || $agt->get('publish_down') == $nullDate ? '' : JHTML::_('date', $agt->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
 										</td>
 									</tr>
 
 								<?php
 								//$agt->set('publish_up', $unit->get('publish_up'));
 								//$agt->set('publish_down', $unit->get('publish_down'));
-								
+
 
 								$j = 0;
 								foreach ($agt->children() as $ag)
@@ -549,37 +533,35 @@ window.addEvent('domready', function(){
 									$ag->set('publish_up', $this->row->date('asset_group', $ag->get('id'))->get('publish_up'));
 									$ag->set('publish_down', $this->row->date('asset_group', $ag->get('id'))->get('publish_down'));
 
-									if ($ag->get('publish_up') == '0000-00-00 00:00:00')
+									if ($ag->get('publish_up') == $nullDate)
 									{
 										$ag->set('publish_up', $agt->get('publish_up'));
 									}
-									if ($ag->get('publish_down') == '0000-00-00 00:00:00')
+									if ($ag->get('publish_down') == $nullDate)
 									{
 										$ag->set('publish_down', $agt->get('publish_down'));
 									}
 									?>
 											<tr>
 												<th class="key">
-													&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp; 
+													&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp;
 													<?php echo $this->escape(stripslashes($ag->get('title'))); ?>
 												</th>
-												<td><label for="dates_<?php echo $i; ?>_<?php echo $j; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>_publish_up"><?php echo JText::_('from'); ?></label></th>
+												<td><label for="dates_<?php echo $i; ?>_<?php echo $j; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>_publish_up"><?php echo JText::_('COM_COURSES_FROM'); ?></label></th>
 												<td>
 													<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][id]" value="<?php echo $this->row->date('asset_group', $ag->get('id'))->get('id'); ?>" />
 													<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][scope]" value="asset_group" />
 													<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][scope_id]" value="<?php echo $ag->get('id'); ?>" />
-													<?php //echo JHTML::_('calendar', $unit->get('publish_up'), 'dates[' . $i . '][publish_up]', 'dates_' . $i . '_publish_up', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-													<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][publish_up]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>_publish_up" class="datetime-field" value="<?php echo ($ag->get('publish_up') == $agt->get('publish_up') || $ag->get('publish_up') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $ag->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
+													<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][publish_up]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>_publish_up" class="datetime-field" value="<?php echo (!$ag->get('publish_up') || $ag->get('publish_up') == $agt->get('publish_up') || $ag->get('publish_up') == $nullDate ? '' : JHTML::_('date', $ag->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
 												</td>
-												<td><label for="dates_<?php echo $i; ?>_<?php echo $j; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>_publish_up"><?php echo JText::_('to'); ?></label></th>
+												<td><label for="dates_<?php echo $i; ?>_<?php echo $j; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>_publish_up"><?php echo JText::_('COM_COURSES_TO'); ?></label></th>
 												<td>
-													<?php //echo JHTML::_('calendar', $unit->get('publish_down'), 'dates[' . $i . '][publish_down]', 'dates_' . $i . '_publish_down', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-													<input type="text" name="dates[<?php echo $i; ?>][<?php echo $z; ?>][<?php echo $j; ?>][publish_down]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>_publish_down" class="datetime-field" value="<?php echo ($ag->get('publish_down') == $agt->get('publish_down') || $ag->get('publish_down') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $ag->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
+													<input type="text" name="dates[<?php echo $i; ?>][<?php echo $z; ?>][<?php echo $j; ?>][publish_down]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>_publish_down" class="datetime-field" value="<?php echo (!$ag->get('publish_down') || $ag->get('publish_down') == $agt->get('publish_down') || $ag->get('publish_down') == $nullDate ? '' : JHTML::_('date', $ag->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
 												</td>
 											</tr>
-										
+
 									<?php
-									
+
 									if ($ag->assets()->total())
 									{
 										$k = 0;
@@ -587,33 +569,31 @@ window.addEvent('domready', function(){
 										{
 											$a->set('publish_up', $this->row->date('asset', $a->get('id'))->get('publish_up'));
 											$a->set('publish_down', $this->row->date('asset', $a->get('id'))->get('publish_down'));
-											
-											if ($a->get('publish_up') == '0000-00-00 00:00:00')
+
+											if ($a->get('publish_up') == $nullDate)
 											{
 												$a->set('publish_up', $ag->get('publish_up'));
 											}
-											if ($a->get('publish_down') == '0000-00-00 00:00:00')
+											if ($a->get('publish_down') == $nullDate)
 											{
 												$a->set('publish_down', $ag->get('publish_down'));
 											}
 											?>
 													<tr>
 														<th class="key">
-															&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp; 
+															&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp;
 															<?php echo $this->escape(stripslashes($a->get('title'))); ?>
 														</th>
-														<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('from'); ?></label></th>
+														<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('COM_COURSES_FROM'); ?></label></th>
 														<td>
 															<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][asset][<?php echo $k; ?>][id]" value="<?php echo $this->row->date('asset', $a->get('id'))->get('id'); ?>" />
 															<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][asset][<?php echo $k; ?>][scope]" value="asset" />
 															<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][asset][<?php echo $k; ?>][scope_id]" value="<?php echo $a->get('id'); ?>" />
-															<?php //echo JHTML::_('calendar', $unit->get('publish_up'), 'dates[' . $i . '][publish_up]', 'dates_' . $i . '_publish_up', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-															<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][asset][<?php echo $k; ?>][publish_up]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>asset_<?php echo $k; ?>_publish_up" class="datetime-field" value="<?php echo ($a->get('publish_up') == $ag->get('publish_up') || $a->get('publish_up') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $a->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
+															<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][asset][<?php echo $k; ?>][publish_up]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>asset_<?php echo $k; ?>_publish_up" class="datetime-field" value="<?php echo (!$a->get('publish_up') || $a->get('publish_up') == $ag->get('publish_up') || $a->get('publish_up') == $nullDate ? '' : JHTML::_('date', $a->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
 														</td>
-														<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('to'); ?></label></th>
+														<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('COM_COURSES_TO'); ?></label></th>
 														<td>
-															<?php //echo JHTML::_('calendar', $unit->get('publish_down'), 'dates[' . $i . '][publish_down]', 'dates_' . $i . '_publish_down', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-															<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][asset][<?php echo $k; ?>][publish_down]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>asset_<?php echo $k; ?>_publish_down" class="datetime-field" value="<?php echo ($a->get('publish_down') == $ag->get('publish_down') || $a->get('publish_down') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $a->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
+															<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset_group][<?php echo $j; ?>][asset][<?php echo $k; ?>][publish_down]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_assetgroup_<?php echo $j; ?>asset_<?php echo $k; ?>_publish_down" class="datetime-field" value="<?php echo (!$a->get('publish_down') || $a->get('publish_down') == $ag->get('publish_down') || $a->get('publish_down') == $nullDate ? '' : JHTML::_('date', $a->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
 														</td>
 													</tr>
 
@@ -630,33 +610,31 @@ window.addEvent('domready', function(){
 									{
 										$a->set('publish_up', $this->row->date('asset', $a->get('id'))->get('publish_up'));
 										$a->set('publish_down', $this->row->date('asset', $a->get('id'))->get('publish_down'));
-										
-										if ($a->get('publish_up') == '0000-00-00 00:00:00')
+
+										if ($a->get('publish_up') == $nullDate)
 										{
 											$a->set('publish_up', $agt->get('publish_up'));
 										}
-										if ($a->get('publish_down') == '0000-00-00 00:00:00')
+										if ($a->get('publish_down') == $nullDate)
 										{
 											$a->set('publish_down', $agt->get('publish_down'));
 										}
 										?>
 												<tr>
 													<th class="key">
-														&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp; 
+														&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp;
 														<?php echo $this->escape(stripslashes($a->get('title'))); ?>
 													</th>
-													<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('from'); ?></label></th>
+													<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('COM_COURSES_FROM'); ?></label></th>
 													<td>
 														<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset][<?php echo $k; ?>][id]" value="<?php echo $this->row->date('asset', $a->get('id'))->get('id'); ?>" />
 														<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset][<?php echo $k; ?>][scope]" value="asset" />
 														<input type="hidden" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset][<?php echo $k; ?>][scope_id]" value="<?php echo $a->get('id'); ?>" />
-														<?php //echo JHTML::_('calendar', $unit->get('publish_up'), 'dates[' . $i . '][publish_up]', 'dates_' . $i . '_publish_up', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-														<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset][<?php echo $k; ?>][publish_up]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_asset_<?php echo $k; ?>_publish_up" class="datetime-field" value="<?php echo ($a->get('publish_up') == $agt->get('publish_up') || $a->get('publish_up') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $a->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
+														<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset][<?php echo $k; ?>][publish_up]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_asset_<?php echo $k; ?>_publish_up" class="datetime-field" value="<?php echo (!$a->get('publish_up') || $a->get('publish_up') == $agt->get('publish_up') || $a->get('publish_up') == $nullDate ? '' : JHTML::_('date', $a->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
 													</td>
-													<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('to'); ?></label></th>
+													<td><label for="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('COM_COURSES_TO'); ?></label></th>
 													<td>
-														<?php //echo JHTML::_('calendar', $unit->get('publish_down'), 'dates[' . $i . '][publish_down]', 'dates_' . $i . '_publish_down', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-														<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset][<?php echo $k; ?>][publish_down]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_asset_<?php echo $k; ?>_publish_down" class="datetime-field" value="<?php echo ($a->get('publish_down') == $agt->get('publish_down') || $a->get('publish_down') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $a->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
+														<input type="text" name="dates[<?php echo $i; ?>][asset_group][<?php echo $z; ?>][asset][<?php echo $k; ?>][publish_down]" id="dates_<?php echo $i; ?>_assetgroup_<?php echo $z; ?>_asset_<?php echo $k; ?>_publish_down" class="datetime-field" value="<?php echo (!$a->get('publish_down') || $a->get('publish_down') == $agt->get('publish_down') || $a->get('publish_down') == $nullDate ? '' : JHTML::_('date', $a->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
 													</td>
 												</tr>
 
@@ -673,33 +651,31 @@ window.addEvent('domready', function(){
 								{
 									$a->set('publish_up', $this->row->date('asset', $a->get('id'))->get('publish_up'));
 									$a->set('publish_down', $this->row->date('asset', $a->get('id'))->get('publish_down'));
-									
-									if ($a->get('publish_up') == '0000-00-00 00:00:00')
+
+									if ($a->get('publish_up') == $nullDate)
 									{
 										$a->set('publish_up', $unit->get('publish_up'));
 									}
-									if ($a->get('publish_down') == '0000-00-00 00:00:00')
+									if ($a->get('publish_down') == $nullDate)
 									{
 										$a->set('publish_down', $unit->get('publish_down'));
 									}
 									?>
 											<tr>
 												<th class="key">
-													&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp; 
+													&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="treenode">&#8970;</span> &nbsp;
 													<?php echo $this->escape(stripslashes($a->get('title'))); ?>
 												</th>
-												<td><label for="dates_<?php echo $i; ?>_asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('from'); ?></label></th>
+												<td><label for="dates_<?php echo $i; ?>_asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('COM_COURSES_FROM'); ?></label></th>
 												<td>
 													<input type="hidden" name="dates[<?php echo $i; ?>][asset][<?php echo $k; ?>][id]" value="<?php echo $this->row->date('asset', $a->get('id'))->get('id'); ?>" />
 													<input type="hidden" name="dates[<?php echo $i; ?>][asset][<?php echo $k; ?>][scope]" value="asset" />
 													<input type="hidden" name="dates[<?php echo $i; ?>][asset][<?php echo $k; ?>][scope_id]" value="<?php echo $a->get('id'); ?>" />
-													<?php //echo JHTML::_('calendar', $unit->get('publish_up'), 'dates[' . $i . '][publish_up]', 'dates_' . $i . '_publish_up', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-													<input type="text" name="dates[<?php echo $i; ?>][asset][<?php echo $k; ?>][publish_up]" id="dates_<?php echo $i; ?>_asset_<?php echo $k; ?>_publish_up" class="datetime-field" value="<?php echo ($a->get('publish_up') == $unit->get('publish_up') || $a->get('publish_up') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $a->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
+													<input type="text" name="dates[<?php echo $i; ?>][asset][<?php echo $k; ?>][publish_up]" id="dates_<?php echo $i; ?>_asset_<?php echo $k; ?>_publish_up" class="datetime-field" value="<?php echo (!$a->get('publish_up') || $a->get('publish_up') == $unit->get('publish_up') || $a->get('publish_up') == $nullDate ? '' : JHTML::_('date', $a->get('publish_up'), 'Y-m-d H:i:s')); ?>" />
 												</td>
-												<td><label for="dates_<?php echo $i; ?>_asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('to'); ?></label></th>
+												<td><label for="dates_<?php echo $i; ?>_asset_<?php echo $k; ?>_publish_up"><?php echo JText::_('COM_COURSES_TO'); ?></label></th>
 												<td>
-													<?php //echo JHTML::_('calendar', $unit->get('publish_down'), 'dates[' . $i . '][publish_down]', 'dates_' . $i . '_publish_down', "%Y-%m-%d", array('class' => 'calendar-field inputbox')); ?>
-													<input type="text" name="dates[<?php echo $i; ?>][asset][<?php echo $k; ?>][publish_down]" id="dates_<?php echo $i; ?>_asset_<?php echo $k; ?>_publish_down" class="datetime-field" value="<?php echo ($a->get('publish_down') == $unit->get('publish_down') || $a->get('publish_down') == '0000-00-00 00:00:00' ? '' : JHTML::_('date', $a->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
+													<input type="text" name="dates[<?php echo $i; ?>][asset][<?php echo $k; ?>][publish_down]" id="dates_<?php echo $i; ?>_asset_<?php echo $k; ?>_publish_down" class="datetime-field" value="<?php echo (!$a->get('publish_down') || $a->get('publish_down') == $unit->get('publish_down') || $a->get('publish_down') == $nullDate ? '' : JHTML::_('date', $a->get('publish_down'), 'Y-m-d H:i:s')); ?>" />
 												</td>
 											</tr>
 
@@ -712,15 +688,15 @@ window.addEvent('domready', function(){
 							</table>
 				<?php
 						$i++;
-						echo $tabs->endPanel();
+						//echo $tabs->endPanel();
 					}
-				echo $tabs->endPane();
+				//echo $tabs->endPane();
+				echo JHtml::_('sliders.end');
 				?>
 				<!-- </fieldset> -->
 				<script type="text/javascript">
-				jQuery(document).ready(function(jq){
-					var $ = jq;
-					$('.datetime-field').datetimepicker({  
+				jQuery(document).ready(function($){
+					$('.datetime-field').datetimepicker({
 						duration: '',
 						showTime: true,
 						constrainInput: false,
@@ -736,30 +712,23 @@ window.addEvent('domready', function(){
 			</div>
 			<div class="clr"></div>
 		<?php } else { ?>
-			<p class="warning">There is currently no data associated with the offering.</p>
+			<p class="warning"><?php echo JText::_('COM_COURSES_NO_DATES_FOUND'); ?></p>
 		<?php } ?>
 		</div>
 		<div id="page-badge" class="tab">
-			<?php if ($this->course->config()->get('certificate')) { ?>
+			<?php $certificate = $this->course->certificate();
+			if ($certificate->exists() && $certificate->hasFile()) { ?>
 				<fieldset class="adminform">
 					<legend><span><?php echo JText::_('COM_COURSES_FIELDSET_CERTIFICATE'); ?></span></legend>
 
-					<table class="admintable">
-						<tbody>
-							<tr>
-								<th class="key" width="250">
-									<label for="params-certificate"><?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE'); ?>:</label>
-								</th>
-								<td>
-									<select name="params[certificate]" id="params-certificate">
-										<option value="0"<?php echo ($params->get('certificate', 0) == 0) ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE_NO'); ?></option>
-										<option value="1"<?php echo ($params->get('certificate', 0) == 1) ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE_YES'); ?></option>
-									</select>
-									<span class="hint"><?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE_EXPLANATION'); ?></span>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+					<div class="input-wrap" data-hint="<?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE_EXPLANATION'); ?>">
+						<label for="params-certificate"><?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE'); ?>:</label><br />
+						<select name="params[certificate]" id="params-certificate">
+							<option value="0"<?php echo ($params->get('certificate', 0) == 0) ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE_NO'); ?></option>
+							<option value="1"<?php echo ($params->get('certificate', 0) == 1) ? 'selected="selected"' : '' ?>><?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE_YES'); ?></option>
+						</select>
+						<span class="hint"><?php echo JText::_('COM_COURSES_CERTIFICATE_AVAILABLE_EXPLANATION'); ?></span>
+					</div>
 				</fieldset>
 			<?php } else { ?>
 				<input type="hidden" name="params[certificate]" value="0" />
@@ -778,34 +747,35 @@ window.addEvent('domready', function(){
 				});
 			</script>
 			<fieldset class="adminform">
-				<legend><span><?php echo JText::_('Badge'); ?></span></legend>
+				<legend><span><?php echo JText::_('COM_COURSES_FIELDSET_BADGE'); ?></span></legend>
 				<?php if (!$this->badge->get('id') || !$this->badge->get('provider_badge_id')) : ?>
 					<input type="hidden" name="badge[id]" value="<?php echo $this->badge->get('id'); ?>" />
 					<table class="admintable">
 						<tbody>
 							<tr>
-								<th class="key" width="250"><label for="badge-published"><?php echo JText::_('Offer a badge for this section?'); ?>:</label></th>
+								<th class="key" width="250"><label for="badge-published"><?php echo JText::_('COM_COURSES_FIELD_BADGE_ENABLED'); ?>:</label></th>
 								<td><input type="checkbox" name="badge[published]" id="badge-published" value="1" <?php echo ($this->badge->get('published')) ? 'checked="checked"' : '' ?> /></td>
 							</tr>
 							<tr class="badge-field-toggle">
-								<th class="key"><label for="badge-image"><?php echo JText::_('Badge Image'); ?>:</label></th>
+								<th class="key"><label for="badge-image"><?php echo JText::_('COM_COURSES_FIELD_BADGE_IMAGE'); ?>:</label></th>
 								<td>
 									<?php if ($this->badge->get('img_url')) : ?>
 										<?php echo $this->escape(stripslashes($this->badge->get('img_url'))); ?>
+										<input type="file" name="badge_image" id="badge-image" />
 									<?php else : ?>
 										<input type="file" name="badge_image" id="badge-image" />
 									<?php endif; ?>
 								</td>
 							</tr>
 							<tr class="badge-field-toggle">
-								<th class="key"><label for="badge-provider"><?php echo JText::_('Badge Provider'); ?>:</label></th>
+								<th class="key"><label for="badge-provider"><?php echo JText::_('COM_COURSES_FIELD_BADGE_PROVIDER'); ?>:</label></th>
 								<td>
 									<select name="badge[provider_name]" id="badge-provider">
-										<option value="passport"<?php if ($this->badge->get('provider_name', 'passport') == 'passport') { echo ' selected="selected"'; } ?>><?php echo JText::_('Passport'); ?></option>
+										<option value="passport"<?php if ($this->badge->get('provider_name', 'passport') == 'passport') { echo ' selected="selected"'; } ?>>Passport</option>
 									</select>
 								</td>
 							<tr class="badge-field-toggle">
-								<th class="key"><label for="badge-criteria"><?php echo JText::_('Badge Criteria'); ?>:</label></th>
+								<th class="key"><label for="badge-criteria"><?php echo JText::_('COM_COURSES_FIELD_BADGE_CRITERIA'); ?>:</label></th>
 								<td>
 									<textarea name="badge[criteria]" id="badge-criteria" rows="6" cols="50"><?php echo $this->escape(stripslashes($this->badge->get('criteria_text'))); ?></textarea>
 								</td>
@@ -817,25 +787,25 @@ window.addEvent('domready', function(){
 					<table class="admintable">
 						<tbody>
 							<tr>
-								<th class="key" width="250"><label for="badge-published"><?php echo JText::_('Offer a badge for this section?'); ?>:</label></th>
+								<th class="key" width="250"><label for="badge-published"><?php echo JText::_('COM_COURSES_FIELD_BADGE_ENABLED'); ?>:</label></th>
 								<td><input type="checkbox" name="badge[published]" id="badge-published" value="1" <?php echo ($this->badge->get('published')) ? 'checked="checked"' : '' ?> /></td>
 							</tr>
 							<tr class="badge-field-toggle">
-								<th class="key"><label for="badge-image"><?php echo JText::_('Badge Image'); ?>:</label></th>
+								<th class="key"><label for="badge-image"><?php echo JText::_('COM_COURSES_FIELD_BADGE_IMAGE'); ?>:</label></th>
 								<td>
 									<img src="<?php echo $this->badge->get('img_url'); ?>" width="125" />
 								</td>
 							</tr>
 							<tr class="badge-field-toggle">
-								<th class="key"><label for="badge-provider"><?php echo JText::_('Badge Provider'); ?>:</label></th>
+								<th class="key"><label for="badge-provider"><?php echo JText::_('COM_COURSES_FIELD_BADGE_PROVIDER'); ?>:</label></th>
 								<td>
 									<?php echo $this->escape(stripslashes($this->badge->get('provider_name'))); ?>
 								</td>
 							<tr class="badge-field-toggle">
-								<th class="key"><label for="badge-criteria"><?php echo JText::_('Badge Criteria'); ?>:</label></th>
+								<th class="key"><label for="badge-criteria"><?php echo JText::_('COM_COURSES_FIELD_BADGE_CRITERIA'); ?>:</label></th>
 								<td>
 									<textarea name="badge[criteria]" id="badge-criteria" rows="6" cols="50"><?php echo $this->escape(stripslashes($this->badge->get('criteria_text'))); ?></textarea>
-									<a target="_blank" href="/courses/badge/<?php echo $this->badge->get('id'); ?>/criteria">Preview badge criteria on the front end</a>
+									<a target="_blank" href="/courses/badge/<?php echo $this->badge->get('id'); ?>/criteria"><?php echo JText::_('COM_COURSES_FIELD_BADGE_CRITERIA'); ?></a>
 								</td>
 							</tr>
 						</tbody>

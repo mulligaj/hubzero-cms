@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_COMPONENT . DS . 'tables' . DS . 'license.php');
-
 /**
  * Manage publication licenses
  */
@@ -40,7 +38,7 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 {
 	/**
 	 * List resource types
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -78,11 +76,12 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 			'filter_order_Dir',
 			'ASC'
 		));
-		
+
 		// Push some styles to the template
 		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'publications.css');
-		
+		$document->addStyleSheet('components' . DS . $this->_option . DS
+			. 'assets' . DS . 'css' . DS . 'publications.css');
+
 		// Instantiate an object
 		$rt = new PublicationLicense($this->database);
 
@@ -112,7 +111,7 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 
 	/**
 	 * Add a new type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -123,7 +122,7 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($row=null)
@@ -155,50 +154,62 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 		{
 			$this->view->setError($this->getError());
 		}
-		
+
 		// Push some styles to the template
 		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . 'publications.css');
-		
+		$document->addStyleSheet('components' . DS . $this->_option
+			. DS . 'assets' . DS . 'css' . DS . 'publications.css');
+
 		// Output the HTML
 		$this->view->display();
 	}
 
 	/**
+	 * Save a publication and fall through to edit view
+	 *
+	 * @return void
+	 */
+	public function applyTask()
+	{
+		$this->saveTask(true);
+	}
+
+	/**
 	 * Save a type
-	 * 
+	 *
 	 * @return     void
 	 */
-	public function saveTask()
+	public function saveTask($redirect = false)
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		$fields = JRequest::getVar('fields', array(), 'post');
 		$fields = array_map('trim', $fields);
-		
+
+		$url = 'index.php?option=' . $this->_option . '&controller='
+			. $this->_controller . '&task=edit&id[]=' . $fields['id'];
+
 		// Initiate extended database class
 		$row = new PublicationLicense($this->database);
 		if (!$row->bind($fields))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
-			$this->setRedirect(
-				'index.php?option=' . $this->_option . '&controller=' . $this->_controller
-			);
+			$this->setRedirect($url);
 			return;
 		}
-		
+
 		$row->customizable 	= JRequest::getInt('customizable', 0, 'post');
 		$row->agreement 	= JRequest::getInt('agreement', 0, 'post');
 		$row->apps_only 	= JRequest::getInt('apps_only', 0, 'post');
 		$row->active 		= JRequest::getInt('active', 0, 'post');
 		$row->icon			= $row->icon ? $row->icon : '/components/com_publications/images/logos/license.gif';
-		
-		if (!$row->id) 
+
+		if (!$row->id)
 		{
 			$row->ordering = $row->getNextOrder();
 		}
-		
+
 		// Check content
 		if (!$row->check())
 		{
@@ -217,27 +228,38 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 			return;
 		}
 
-		// Redirect
-		$this->setRedirect(
-			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('License successfully saved')
-		);
+		// Redirect to edit view?
+		if ($redirect)
+		{
+			$this->setRedirect(
+				$url,
+				JText::_('COM_PUBLICATIONS_SUCCESS_LICENSE_SAVED')
+			);
+		}
+		else
+		{
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				JText::_('COM_PUBLICATIONS_SUCCESS_LICENSE_SAVED')
+			);
+		}
+		return;
 	}
-	
+
 	public function orderupTask()
 	{
 		$this->reorderTask(-1);
 	}
-	
+
 	public function orderdownTask()
 	{
 		$this->reorderTask(1);
 	}
-	
+
 	/**
 	 * Reorders licenses
 	 * Redirects to license listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function reorderTask($dir = 0)
@@ -251,19 +273,19 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 		// Load row
 		$row = new PublicationLicense($this->database);
 		$row->loadLicense( (int) $id[0]);
-		
+
 		// Update order
 		$row->changeOrder($dir);
-		
+
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller
 		);
 	}
-	
+
 	/**
 	 * Makes one license default
 	 * Redirects to license listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function makedefaultTask($dir = 0)
@@ -273,10 +295,10 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$id = JRequest::getVar('id', array(0), '', 'array');
-	
-		if(count($id) > 1)
+
+		if (count($id) > 1)
 		{
-			$this->addComponentMessage(JText::_('Please select only one license to make default'), 'error');
+			$this->addComponentMessage(JText::_('COM_PUBLICATIONS_LICENSE_SELECT_ONE'), 'error');
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller
 			);
@@ -285,15 +307,15 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 
 		// Initialize
 		$row = new PublicationLicense($this->database);
-		
+
 		$id = intval($id[0]);
-				
+
 		// Load row
 		$row->loadLicense( $id );
-		
+
 		// Make default
 		$row->main = 1;
-		
+
 		// Save
 		if (!$row->store())
 		{
@@ -303,21 +325,21 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 			);
 			return;
 		}
-		
+
 		// Fix up all other licenses
 		$row->undefault($id);
-		
+
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('License successfully made default')
-		);		
+			JText::_('COM_PUBLICATIONS_SUCCESS_LICENSE_MADE_DEFAULT')
+		);
 	}
-	
+
 	/**
-	 * Change license status 
+	 * Change license status
 	 * Redirects to license listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function changestatusTask($dir = 0)
@@ -327,10 +349,10 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array(0), '', 'array');
-	
+
 		// Initialize
 		$row = new PublicationLicense($this->database);
-		
+
 		foreach ($ids as $id)
 		{
 			if (intval($id))
@@ -338,7 +360,7 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 				// Load row
 				$row->loadLicense( $id );
 				$row->active = $row->active == 1 ? 0 : 1;
-				
+
 				// Save
 				if (!$row->store())
 				{
@@ -350,12 +372,12 @@ class PublicationsControllerLicenses extends \Hubzero\Component\AdminController
 				}
 			}
 		}
-				
+
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('License(s) successfully published/unpublished')
-		);		
+			JText::_('COM_PUBLICATIONS_SUCCESS_LICENSE_PUBLISHED')
+		);
 	}
 
 	/**

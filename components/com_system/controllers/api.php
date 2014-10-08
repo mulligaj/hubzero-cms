@@ -26,7 +26,7 @@
  * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2014 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
- * 
+ *
  */
 
 /**
@@ -47,9 +47,10 @@ class SystemControllerApi extends \Hubzero\Component\ApiController
 		$this->config = JComponentHelper::getParams('com_system');
 		$this->database = JFactory::getDBO();
 
-		switch ($this->segments[0]) 
+		switch ($this->segments[0])
 		{
-			case 'overview':           $this->overviewTask();           break;
+			case 'info':               $this->infoTask();               break;
+			case 'overview':           $this->infoTask();               break;
 			case 'getSessionLifetime': $this->getSessionLifetimeTask(); break;
 			default:
 				$this->serviceTask();
@@ -68,9 +69,14 @@ class SystemControllerApi extends \Hubzero\Component\ApiController
 		$response = new stdClass();
 		$response->component = 'system';
 		$response->tasks = array(
-			'overview' => array(
+			'info' => array(
 				'description' => JText::_('Get an overview of a hub\'s status.'),
-				'parameters'  => array(),
+				'parameters'  => array(
+					'values'      => JText::_('The verbosity of information returned.'),
+					'type'        => 'string',
+					'default'     => 'all',
+					'accepts'     => array('all', 'short', 'comma-separated list of keys [cms, php, dbversion, dbcollation, phpversion, server, last_commit]')
+				),
 			),
 		);
 
@@ -83,14 +89,16 @@ class SystemControllerApi extends \Hubzero\Component\ApiController
 	 *
 	 * @return    void
 	 */
-	private function overviewTask()
+	private function infoTask()
 	{
 		$this->setMessageType(JRequest::getWord('format', 'json'));
+
+		$values = JRequest::getVar('values', 'all');
 
 		$response = new stdClass;
 
 		$ip = JRequest::ip();
-		$ips = explode(',', $this->config->get('whitelist', '127.0.0.1,128.46.19.56,128.46.19.59'));
+		$ips = explode(',', $this->config->get('whitelist', '127.0.0.1'));
 		$ips = array_map('trim', $ips);
 		if (!in_array($ip, $ips))
 		{
@@ -98,11 +106,11 @@ class SystemControllerApi extends \Hubzero\Component\ApiController
 			return;
 		}
 
-		if (isset($_SERVER['SERVER_SOFTWARE'])) 
+		if (isset($_SERVER['SERVER_SOFTWARE']))
 		{
 			$sf = $_SERVER['SERVER_SOFTWARE'];
 		}
-		else 
+		else
 		{
 			$sf = getenv('SERVER_SOFTWARE');
 		}
@@ -121,9 +129,25 @@ class SystemControllerApi extends \Hubzero\Component\ApiController
 			'last_commit' => $commit
 		);
 
-		JPluginHelper::importPlugin('hubzero');
-		$dispatcher = JDispatcher::getInstance();
-		$response->overview = $dispatcher->trigger('onSystemOverview');
+		if (strstr($values, ',') || ($values != 'all' && $values != 'short'))
+		{
+			$keys = explode(',', $values);
+			$keys = array_map('trim', $keys);
+			$keys = array_map('strtolower', $keys);
+			$data = array();
+			foreach ($keys as $key)
+			{
+				$data[$key] = $response->system[$key];
+			}
+			$response->system = $data;
+		}
+
+		if ($values == 'all')
+		{
+			JPluginHelper::importPlugin('hubzero');
+			$dispatcher = JDispatcher::getInstance();
+			$response->overview = $dispatcher->trigger('onSystemOverview');
+		}
 
 		$this->setMessage($response);
 	}

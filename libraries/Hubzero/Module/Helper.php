@@ -45,14 +45,11 @@ class Helper
 	{
 		jimport('joomla.application.module.helper');
 
-		//$result = '';
-
 		$words = explode(' ', $condition);
-		for($i = 0; $i < count($words); $i+=2)
+		for ($i = 0; $i < count($words); $i+=2)
 		{
 			// odd parts (modules)
 			$name = strtolower($words[$i]);
-			//$words[$i] = ((isset($this->_buffer['modules'][$name])) && ($this->_buffer['modules'][$name] === false)) ? 0 : count(\JModuleHelper::getModules($name));
 			$words[$i] = count(\JModuleHelper::getModules($name));
 		}
 
@@ -64,7 +61,7 @@ class Helper
 	/**
 	 * Render modules for a position
 	 * Alias method for renderModules()
-	 * 
+	 *
 	 * @param      string  $position Position to render modules for
 	 * @param      integer $style    Module style (deprecated?)
 	 * @return     string HTML
@@ -77,7 +74,7 @@ class Helper
 	/**
 	 * Render a specific module
 	 * Alias method for renderModule()
-	 * 
+	 *
 	 * @param      string  $name  Module name
 	 * @param      integer $style Module style (deprecated?)
 	 * @return     void
@@ -89,7 +86,7 @@ class Helper
 
 	/**
 	 * Render a specific module
-	 * 
+	 *
 	 * @param      string  $name  Module name
 	 * @param      integer $style Module style (deprecated?)
 	 * @return     string HTML
@@ -98,14 +95,13 @@ class Helper
 	{
 		$module = \JModuleHelper::getModule($name);
 		$params = array('style' => $style);
-		$contents = \JModuleHelper::renderModule($module, $params);
 
-		return $contents;
+		return \JModuleHelper::renderModule($module, $params);
 	}
 
 	/**
 	 * Render modules for a position
-	 * 
+	 *
 	 * @param      string  $position Position to render modules for
 	 * @param      integer $style    Module style (deprecated?)
 	 * @return     string HTML
@@ -119,7 +115,7 @@ class Helper
 		$contents = '';
 		foreach (\JModuleHelper::getModules($position) as $mod)
 		{
-			if ($mod->showtitle != 0) 
+			if ($mod->showtitle != 0)
 			{
 				$contents .= '<h3>' . stripslashes($mod->title) . '</h3>';
 			}
@@ -131,7 +127,7 @@ class Helper
 
 	/**
 	 * Get the parameters for a module
-	 * 
+	 *
 	 * @param      integer $id Module ID
 	 * @return     object
 	 */
@@ -141,21 +137,11 @@ class Helper
 		$db = \JFactory::getDBO();
 
 		//select module params based on name passed in
-		$sql = "SELECT params FROM `#__modules` WHERE id='" . $id . "' AND published=1";
-		$db->setQuery($sql);
+		$db->setQuery("SELECT params FROM `#__modules` WHERE id='" . intval($id) . "' AND published=1");
 		$params = $db->loadResult();
 
-		$paramsClass = '\\JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramsClass = '\\JRegistry';
-		}
-
-		//parse params
-		$mparams = new $paramsClass($params);
-
 		//return params
-		return $mparams;
+		return new \JRegistry($params);
 	}
 }
 

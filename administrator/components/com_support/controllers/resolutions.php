@@ -106,9 +106,9 @@ class SupportControllerResolutions extends \Hubzero\Component\AdminController
 	public function editTask($row=null)
 	{
 		JRequest::setVar('hidemainmenu', 1);
-		
+
 		$this->view->setLayout('edit');
-		
+
 		if (is_object($row))
 		{
 			$this->view->row = $row;
@@ -155,7 +155,7 @@ class SupportControllerResolutions extends \Hubzero\Component\AdminController
 			$this->editTask($row);
 			return;
 		}
-		
+
 		// Check content
 		if (!$row->check())
 		{
@@ -175,7 +175,7 @@ class SupportControllerResolutions extends \Hubzero\Component\AdminController
 		// Output messsage and redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('RESOLUTION_SUCCESSFULLY_SAVED')
+			JText::_('COM_SUPPORT_RESOLUTION_SUCCESSFULLY_SAVED')
 		);
 	}
 
@@ -197,7 +197,7 @@ class SupportControllerResolutions extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('SUPPORT_ERROR_SELECT_RESOLUTION_TO_DELETE'),
+				JText::_('COM_SUPPORT_ERROR_SELECT_RESOLUTION_TO_DELETE'),
 				'error'
 			);
 			return;
@@ -213,7 +213,7 @@ class SupportControllerResolutions extends \Hubzero\Component\AdminController
 		// Output messsage and redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::sprintf('RESOLUTION_SUCCESSFULLY_DELETED', count($ids))
+			JText::sprintf('COM_SUPPORT_RESOLUTION_SUCCESSFULLY_DELETED', count($ids))
 		);
 	}
 

@@ -57,7 +57,7 @@ class Message extends \Swift_Message
 	/**
 	 * Set the priority of this message.
 	 * The value is an integer where 1 is the highest priority and 5 is the lowest.
-	 * 
+	 *
 	 * Modified version to also accept a string $message->setPriority('high');
 	 *
 	 * @param      mixed $priority integer|string
@@ -207,5 +207,21 @@ class Message extends \Swift_Message
 		}
 
 		return $this->detach($attachment);
+	}
+
+	/**
+	 * Get an embed string for an attachment
+	 *
+	 * @param   mixed  $attachment File path (string) or object (Swift_Image)
+	 * @return  object
+	 */
+	public function getEmbed($attachment)
+	{
+		if (!($attachment instanceof \Swift_Image))
+		{
+			$attachment = \Swift_Image::fromPath($attachment);
+		}
+
+		return $this->embed($attachment);
 	}
 }

@@ -29,7 +29,7 @@ HUBzero is a registered trademark of Purdue University.
 
 <extension version="1.7" type="plugin" group="resources">
 	<name>Resource - Sponsors</name>
-	<author>Shawn Rice</author>
+	<author>HUBzero</author>
 	<copyright>Copyright 2005-2011 Purdue University. All rights reserved.</copyright>
 	<license>http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3</license>
 	<description>Display sponsors for a resource</description>
@@ -42,7 +42,7 @@ HUBzero is a registered trademark of Purdue University.
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
-				<field name="format" type="text" size="20" default="{journal}@{publisher}" label="Format" description="Tag format to use to link sponsor data"/>
+				<field name="format" type="text" size="20" default="{journal}@{publisher}" label="PLG_RESOURCES_FINDTHISTEXT_FORMAT_LABEL" description="PLG_RESOURCES_FINDTHISTEXT_FORMAT_DESC"/>
 			</fieldset>
 		</fields>
 	</config>

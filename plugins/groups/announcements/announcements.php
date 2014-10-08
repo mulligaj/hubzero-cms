@@ -47,21 +47,21 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onGroupAreas()
 	{
 		$area = array(
-			'name' => $this->_name,
-			'title' => JText::_('COM_GROUPS_ANNOUNCEMENTS'),
-			'default_access' => $this->params->get('plugin_access', 'members'),
+			'name'             => $this->_name,
+			'title'            => JText::_('COM_GROUPS_ANNOUNCEMENTS'),
+			'default_access'   => $this->params->get('plugin_access', 'members'),
 			'display_menu_tab' => $this->params->get('display_tab', 1),
-			'icon' => 'f095'
+			'icon'             => 'f095'
 		);
 		return $area;
 	}
-	
+
 	/**
 	 * Return content that is to be displayed before group main area
 	 *
@@ -72,13 +72,13 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		//creat view object
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'groups',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'browse',
 				'layout'  => 'sticky'
 			)
 		);
-		
+
 		//vars for view
 		$view->authorized = $authorized;
 		$view->option     = 'com_groups';
@@ -86,10 +86,10 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		$view->name       = $this->_name;
 		$view->juser      = JFactory::getUser();
 		$view->database   = JFactory::getDBO();
-		
+
 		// get plugin access
 		$access = \Hubzero\User\Group\Helper::getPluginAccess($group, 'announcements');
-		
+
 		//if set to nobody make sure cant access
 		//check if guest and force login if plugin access is registered or members
 		//check to see if user is member and plugin access requires members
@@ -99,7 +99,7 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		{
 			return '';
 		}
-		
+
 		//build array of filters
 		$view->filters              = array();
 		$view->filters['scope']     = 'group';
@@ -107,19 +107,19 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		$view->filters['state']     = 1;
 		$view->filters['sticky']    = 1;
 		$view->filters['published'] = 1;
-		
+
 		//create new announcement Object
 		$hubzeroAnnouncement = new \Hubzero\Item\Announcement($view->database);
 		$view->total = $hubzeroAnnouncement->count($view->filters);
 		$view->rows  = $hubzeroAnnouncement->find($view->filters);
-		
+
 		//display list of announcements
 		return $view->loadTemplate();
 	}
-	
+
 	/**
 	 * Return data on a group view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $group      Current group
 	 * @param      string  $option     Name of the component
 	 * @param      string  $authorized User's authorization level
@@ -145,23 +145,23 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		$this_area = $this->onGroupAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
-			if (!in_array($this_area['name'], $areas)) 
+			if (!in_array($this_area['name'], $areas))
 			{
 				$returnhtml = false;
 			}
 		}
-		
+
 		//Create user object
 		$this->juser = JFactory::getUser();
-		
+
 		//creat database object
 		$this->database = JFactory::getDBO();
-		
+
 		//get the group members
 		$members = $group->get('members');
-		
+
 		// Set some variables so other functions have access
 		$this->authorized = $authorized;
 		$this->members    = $members;
@@ -169,41 +169,45 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		$this->option     = $option;
 		$this->action     = $action;
 		$this->access     = $access;
-		
+
 		//if we want to return content
-		if ($returnhtml) 
+		if ($returnhtml)
 		{
 			//set group members plugin access level
 			$group_plugin_acl = $access[$active];
-			
+
 			//if were not trying to subscribe
 			if ($this->action != 'subscribe')
 			{
 				//if set to nobody make sure cant access
-				if ($group_plugin_acl == 'nobody') 
+				if ($group_plugin_acl == 'nobody')
 				{
 					$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_OFF', ucfirst($active)) . '</p>';
 					return $arr;
 				}
 
 				//check if guest and force login if plugin access is registered or members
-				if ($this->juser->get('guest') 
-				 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members')) 
+				if ($this->juser->get('guest')
+				 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members'))
 				{
-					$url = JRoute::_('index.php?option=com_groups&cn='.$group->get('cn').'&active='.$active);
-					$message = JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active));
-					$this->redirect( "/login?return=".base64_encode($url), $message, 'warning' );
+					$url = JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn') . '&active=' . $active);
+
+					$this->redirect(
+						JRoute::_('index.php?option=com_users&view=login?return=' . base64_encode($url)),
+						JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active)),
+						'warning'
+					);
 					return;
 				}
 
 				//check to see if user is member and plugin access requires members
-				if (!in_array($this->juser->get('id'), $members) && $group_plugin_acl == 'members') 
+				if (!in_array($this->juser->get('id'), $members) && $group_plugin_acl == 'members')
 				{
 					$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_REQUIRES_MEMBER', ucfirst($active)) . '</p>';
 					return $arr;
 				}
 			}
-			
+
 			//run task based on action
 			switch ($this->action)
 			{
@@ -214,7 +218,7 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 				default:         $arr['html'] .= $this->_list();
 			}
 		}
-		
+
 		//filters to get announcement count
 		//get count of active
 		$filters = array(
@@ -223,22 +227,22 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 			'state'     => 1,
 			'published' => 1
 		);
-		
+
 		//instantiate announcement object and get count
 		$hubzeroAnnouncement = new \Hubzero\Item\Announcement($this->database);
 		$total = $hubzeroAnnouncement->count($filters);
-		
+
 		//set metadata for menu
 		$arr['metadata']['count'] = $total;
 		$arr['metadata']['alert'] = '';
-		
+
 		// Return the output
 		return $arr;
 	}
-	
+
 	/**
 	 * Display a list of all announcements
-	 * 
+	 *
 	 * @return     string HTML
 	 */
 	private function _list()
@@ -247,19 +251,19 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		// Note: this needs to happen *after* any potential actions ar performed above
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'groups',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'browse'
 			)
 		);
-		
+
 		//vars for view
 		$view->authorized = $this->authorized;
 		$view->option     = $this->option;
 		$view->group      = $this->group;
 		$view->name       = $this->_name;
 		$view->juser      = $this->juser;
-		
+
 		//build array of filters
 		$view->filters              = array();
 		$view->filters['search']    = JRequest::getVar('q', '');
@@ -270,34 +274,34 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		$view->filters['scope_id']  = $this->group->get('gidNumber');
 		$view->filters['state']     = 1;
 		//$view->filters['sticky']    = 0;
-		
+
 		//only get published announcements for members
 		if ($view->authorized != 'manager')
 		{
 			$view->filters['published'] = 1;
 		}
-		
+
 		//create new announcement Object
 		$hubzeroAnnouncement = new \Hubzero\Item\Announcement($this->database);
 		$view->total = $hubzeroAnnouncement->count($view->filters);
 		$view->rows  = $hubzeroAnnouncement->find($view->filters);
-		
+
 		//get any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
 				$view->setError($error);
 			}
 		}
-		
+
 		//display list of announcements
 		return $view->loadTemplate();
 	}
 
 	/**
 	 * Display a list of all announcements
-	 * 
+	 *
 	 * @return     string HTML
 	 */
 	private function _edit()
@@ -305,38 +309,38 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 		//create view object
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'groups',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'edit'
 			)
 		);
-		
+
 		//get incoming
 		$id = JRequest::getInt('id', 0);
-		
+
 		//create new announcement Object
 		$view->announcement = new \Hubzero\Item\Announcement($this->database);
-		
+
 		//if we have an id load that announcemnt
 		if (isset($id) && $id != 0)
 		{
 			$view->announcement->load( $id );
 		}
-		
+
 		//make sure its this groups announcement
 		if (!$view->announcement->belongsToObject('group', $this->group->get('gidNumber')))
 		{
 			$this->setError(JText::_('PLG_GROUPS_ANNOUNCEMENTS_PERMISSION_DENIED'));
 			return $this->_list();
 		}
-		
+
 		//pass vars to view
 		$view->option = $this->option;
 		$view->group  = $this->group;
 		$view->name   = $this->_name;
-		
+
 		//get any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -350,7 +354,7 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Save an entry
-	 * 
+	 *
 	 * @return     string HTML
 	 */
 	private function _save()
@@ -364,20 +368,20 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 			$this->setError( JText::_('PLG_GROUPS_ANNOUNCEMENTS_ONLY_MANAGERS_CAN_CREATE') );
 			return $this->_list();
 		}
-		
+
 		// Incoming
 		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
 		$fields = array_map('trim', $fields);
-		
+
 		// email announcement
 		$email = (isset($fields['email']) && $fields['email'] == 1) ? true : false;
-		
+
 		//mark as not sent if we want to email again
 		if ($email === true)
 		{
 			$fields['sent'] = 0;
 		}
-		
+
 		// are we creating the announcement?
 		if (!isset($fields['id']) || $fields['id'] == 0)
 		{
@@ -386,41 +390,41 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 			$fields['created']    = JFactory::getDate()->toSql();
 			$fields['created_by'] = $this->juser->get('id');
 		}
-		
+
 		//do we want to mark sticky?
 		$fields['sticky'] = (isset($fields['sticky']) && $fields['sticky'] == 1) ? 1 : 0;
-		
+
 		//do we want to mark as high priority
 		$fields['priority'] = (isset($fields['priority']) && $fields['priority'] == 1) ? 1 : 0;
-		
-		//format publish up 
+
+		//format publish up
 		if (isset($fields['publish_up']) && $fields['publish_up'] != '' && $fields['publish_up'] != '0000-00-00 00:00:00')
 		{
 			$fields['publish_up'] = JFactory::getDate(strtotime(str_replace('@', '', $fields['publish_up'])))->toSql();
 		}
-		
+
 		//format publish down
 		if (isset($fields['publish_down']) && $fields['publish_down'] != '' && $fields['publish_down'] != '0000-00-00 00:00:00')
 		{
 			$fields['publish_down'] = JFactory::getDate(strtotime(str_replace('@', '', $fields['publish_down'])))->toSql();
 		}
-		
+
 		//announcement model
 		$announcement = new \Hubzero\Item\Announcement($this->database);
-		
+
 		//attempt to save
 		if (!$announcement->save($fields))
 		{
-			$this->setError( $announcement->getError() );
-			return $this->_edit( $fields );
+			$this->setError($announcement->getError());
+			return $this->_edit($fields);
 		}
-		
+
 		// does user want to email and should we email yet?
 		if ($email === true && $announcement->announcementPublishedForDate())
 		{
 			// email announcement
 			$announcement->emailAnnouncement();
-			
+
 			//set that we sent it and resave
 			$announcement->sent = 1;
 			$announcement->save($announcement);
@@ -437,7 +441,7 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Mark an entry as deleted
-	 * 
+	 *
 	 * @return     string HTML
 	 */
 	private function _delete()
@@ -448,29 +452,29 @@ class plgGroupsAnnouncements extends \Hubzero\Plugin\Plugin
 			$this->setError(JText::_('PLG_GROUPS_ANNOUNCEMENTS_ONLY_MANAGERS_CAN_DELETE'));
 			return $this->_list();
 		}
-		
+
 		// Incoming
 		$id = JRequest::getInt('id', 0);
-		
+
 		//announcement model
 		$announcement = new \Hubzero\Item\Announcement($this->database);
 		$announcement->load( $id );
-		
+
 		//load created by user profile
-		$profile = \Hubzero\User\Profile::getInstance( $announcement->created_by );
-		
+		$profile = \Hubzero\User\Profile::getInstance($announcement->created_by);
+
 		//make sure we are the one who created it
 		if ($announcement->created_by != $this->juser->get('id'))
 		{
 			$this->setError(JText::sprintf('PLG_GROUPS_ANNOUNCEMENTS_ONLY_MANAGER_CAN_DELETE', $profile->get('name')));
 			return $this->_list();
 		}
-		
+
 		//set to deleted state
 		$announcement->archive();
-		
+
 		//attempt to delete announcement
-		if (!$announcement->save( $announcement ))
+		if (!$announcement->save($announcement))
 		{
 			$this->setError(JText::_('PLG_GROUPS_ANNOUNCEMENTS_UNABLE_TO_DELETE'));
 			return $this->_list();

@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
-
 /**
  * Courses controller class for generation and viewing of certificates
  */
@@ -52,7 +50,9 @@ class CoursesControllerCertificate extends \Hubzero\Component\SiteController
 		if (!$course->exists() || !$offering->exists())
 		{
 			$this->setRedirect(
-				JRoute::_('index.php?option=' . $this->_option . '&controller=courses')
+				JRoute::_('index.php?option=' . $this->_option . '&controller=courses'),
+				JText::_('COM_COURSES_ERROR_COURSE_OR_OFFERING_NOT_FOUND'),
+				'error'
 			);
 			return;
 		}
@@ -63,16 +63,27 @@ class CoursesControllerCertificate extends \Hubzero\Component\SiteController
 		if (!$student->exists())
 		{
 			$this->setRedirect(
-				JRoute::_('index.php?option=' . $this->_option . '&controller=courses')
+				JRoute::_('index.php?option=' . $this->_option . '&controller=courses'),
+				JText::_('COM_COURSES_ERROR_STUDENT_RECORD_NOT_FOUND'),
+				'error'
 			);
 			return;
 		}
 
-		//$juser = JUser::getInstance(JRequest::getInt('u', 0));
+		$certificate = $course->certificate();
+		if (!$certificate->exists() || !$certificate->hasFile())
+		{
+			$this->setRedirect(
+				JRoute::_('index.php?option=' . $this->_option . '&controller=courses'),
+				JText::_('COM_COURSES_ERROR_NO_CERTIFICATE_FOR_COURSE'),
+				'error'
+			);
+			return;
+		}
 
 		// Path and file name
 		$dir = JPATH_ROOT . DS . 'site' . DS . 'courses' . DS . 'certificates';
-		$file = $dir . DS . 'certificate_' . $course->get('id') . '_' . $offering->get('id') . '_' . $this->juser->get('id') . '.pdf'; 
+		$file = $dir . DS . 'certificate_' . $course->get('id') . '_' . $offering->get('id') . '_' . $this->juser->get('id') . '.pdf';
 
 		// If the file exists and we want to force regenerate it
 		if (is_file($file) && JRequest::getInt('regenerate', 0))
@@ -94,26 +105,12 @@ class CoursesControllerCertificate extends \Hubzero\Component\SiteController
 				jimport('joomla.filesystem.folder');
 				if (!JFolder::create($dir))
 				{
-					JError::raiseError(500, JText::_('Failed to create folder to store receipts'));
+					JError::raiseError(500, JText::_('COM_COURSES_ERROR_FAILED_TO_CREATE_DIRECTORY'));
 					return;
 				}
 			}
 
-			// Build the render URL
-			$juri = JURI::getInstance();
-			$url  = rtrim(str_replace('http:', 'https:', $juri->base()), DS) . DS;
-			$url .= 'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=render&no_html=1';
-			// Course / Offering / Student
-			$url .= '&course=' . $course->get('id') . '&offering=' . $offering->get('alias') . ':' . $offering->section()->get('alias') . '&u=' . $this->juser->get('id');
-			// Validation key (lock on a screen door)
-			$url .= '&key='. JUtility::getHash($course->get('id') . $offering->get('id') . $this->juser->get('id'));
-
-			// Script execution
-			$cmd = '/usr/bin/phantomjs ';
-			$rasterizeFile = JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'assets' . DS . 'js' . DS . 'rasterize.js';
-			$finalCommand = $cmd . ' ' . $rasterizeFile . ' "' . $url . '" ' . $file . ' 11in*8.5in'; //65
-
-			exec($finalCommand, $output);
+			$certificate->render($this->juser, $file);
 		}
 
 		// If file exists
@@ -129,48 +126,6 @@ class CoursesControllerCertificate extends \Hubzero\Component\SiteController
 		}
 
 		// Output failure message
-		$this->view->display();
-	}
-
-	/**
-	 * Cancel a task (redirects to default task)
-	 *
-	 * @return	void
-	 */
-	public function renderTask()
-	{
-		// Get the course
-		$this->view->course   = CoursesModelCourse::getInstance(JRequest::getVar('course', ''));
-		$this->view->offering = $this->view->course->offering(JRequest::getVar('offering', ''));
-
-		// Ensure the course exists
-		if (!$this->view->course->exists() || !$this->view->offering->exists())
-		{
-			JError::raiseError(404, JText::_('Course does not exist.'));
-			return;
-		}
-
-		// Ensure specified user is enrolled in the course
-		//$this->view->student = $this->view->offering->member(JRequest::getInt('u', 0));
-		$this->view->student = CoursesModelMember::getInstance(JRequest::getInt('u', 0), $this->view->course->get('id'), $this->view->offering->get('id'), null, 1);
-		if (!$this->view->student->exists())
-		{
-			JError::raiseError(404, JText::_('User is not a student of specified course.'));
-			return;
-		}
-
-		// Load the JUser object for name, etc.
-		$this->view->juser = JUser::getInstance(JRequest::getInt('u', 0));
-
-		// Check the hash
-		$hash = JUtility::getHash($this->view->course->get('id') . $this->view->offering->get('id') . $this->view->juser->get('id'));
-		if ($hash != JRequest::getVar('key'))
-		{
-			JError::raiseError(403, JText::_('Access denied.'));
-			return;
-		}
-
-		// Display
 		$this->view->display();
 	}
 }

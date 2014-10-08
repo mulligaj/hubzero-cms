@@ -31,6 +31,9 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+\Hubzero\Document\Assets::addSystemScript('jquery.ui');
+\Hubzero\Document\Assets::addSystemStylesheet('jquery.ui.css');
+
 $base = $this->course->offering()->link() . '&active=progress';
 ?>
 
@@ -80,6 +83,9 @@ $base = $this->course->offering()->link() . '&active=progress';
 				Current Score
 				<div class="details" title="{{gradepolicy.description}}"></div>
 			</div>
+			<div class="cell header-recognition">
+				Awards
+			</div>
 		</div>
 	</div>
 	<div class="students"></div>
@@ -116,6 +122,9 @@ $base = $this->course->offering()->link() . '&active=progress';
 								{{getBar ../grades ../passing ../course_id}}
 							</div>
 						</div>
+					</div>
+					<div class="student-recognitions{{hasEarned ../recognitions this.id}}">
+						<div class="student-recognition-icon student-recognitions-badge"></div>
 					</div>
 				</div>
 			</div>

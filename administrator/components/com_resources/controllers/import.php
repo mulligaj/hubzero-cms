@@ -38,15 +38,14 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display imports
-	 * 
-	 * @access    public
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
 		// set layout
 		$this->view->setLayout('display');
-		
+
 		// Set any errors
 		if ($this->getError())
 		{
@@ -55,53 +54,50 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 				$this->view->setError($error);
 			}
 		}
-		
+
 		// get all imports from archive
 		$importArchive = \Resources\Model\Import\Archive::getInstance();
 		$imports = $importArchive->imports('list', array(
 			'state'   => array(1),
-			'orderby' => 'created_at DESC' 
+			'orderby' => 'created_at DESC'
 		));
-		
+
 		// pass vars to view
 		$this->view->imports = $imports;
-		
+
 		// Output the HTML
 		$this->view->display();
 	}
-	
+
 	/**
 	 * Add an Import
-	 * 
-	 * @access    public
+	 *
 	 * @return     void
 	 */
 	public function addTask()
 	{
 		$this->editTask();
 	}
-	
+
 	/**
 	 * Edit an Import
-	 * 
-	 * @access    public
+	 *
 	 * @return     void
 	 */
 	public function editTask()
 	{
-		// set layout
-		$this->view->setLayout('edit');
-		
+		JRequest::setVar('hidemainmenu', 1);
+
 		// get request vars
 		$ids = JRequest::getVar('id', array());
 		$id  = (isset($ids[0])) ? $ids[0] : null;
-		
+
 		// get the import object
 		$this->view->import = new Resources\Model\Import( $id );
 
 		// import params
 		$this->view->params = new JParameter($this->view->import->get('params'));
-		
+
 		// get all files in import filespace
 		$this->view->files = JFolder::files($this->view->import->fileSpacePath(), '.');
 
@@ -118,7 +114,7 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 			'type'       => array(1,3),
 			'sortby'     => 'description'
 		));
-		
+
 		// Set any errors
 		if ($this->getErrors())
 		{
@@ -127,22 +123,21 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 				$this->view->setError($error);
 			}
 		}
-		
+
 		// Output the HTML
-		$this->view->display();
+		$this->view->setLayout('edit')->display();
 	}
-	
+
 	/**
 	 * Save an Import
-	 * 
-	 * @access    public
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
 	{
 		// check token
 		JSession::checkToken() or die( 'Invalid Token' );
-		
+
 		// get request vars
 		$import = JRequest::getVar('import', array());
 		$hooks  = JRequest::getVar('hooks', array());
@@ -151,7 +146,7 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 
 		// create import model object
 		$this->import = new Resources\Model\Import();
-		
+
 		// set our hooks
 		$this->import->set('hooks', json_encode($hooks));
 
@@ -163,20 +158,20 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 
 		// set params on import object
 		$this->import->set('params', $iparams->toString());
-		
+
 		// bind input to model
 		if (!$this->import->bind( $import ))
 		{
 			$this->setError($this->import->getError());
 			return $this->editTask();
 		}
-		
+
 		// is this a new import
 		$isNew = false;
 		if (!$this->import->get('id'))
 		{
 			$isNew = true;
-			
+
 			// set the created by/at
 			$this->import->set('created_by', JFactory::getUser()->get('id'));
 			$this->import->set('created_at', JFactory::getDate()->toSql());
@@ -190,14 +185,14 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 			$count = $importImporter->count($this->import);
 			$this->import->set('count', $count);
 		}
-		
+
 		// attempt to save
 		if (!$this->import->store(true))
 		{
 			$this->setError($this->import->getError());
 			return $this->editTask();
 		}
-		
+
 		// is this a new import
 		if ($isNew)
 		{
@@ -227,29 +222,28 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 			$this->setError($this->import->getError());
 			return $this->editTask();
 		}
-		
+
 		//inform user & redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=display',
-			JText::_('The imports were successfully created.'),
+			JText::_('COM_RESOURCES_IMPORT_CREATED'),
 			'passed'
 		);
 	}
-	
+
 	/**
 	 * Delete Import
-	 * 
-	 * @access    public
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
 	{
 		// check token
 		JSession::checkToken() or die( 'Invalid Token' );
-		
+
 		// get request vars
 		$ids = JRequest::getVar('id', array());
-		
+
 		// loop through all ids posted
 		foreach ($ids as $id)
 		{
@@ -258,7 +252,7 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 			{
 				continue;
 			}
-			
+
 			// attempt to delete import
 			if (!$resourceImport->delete())
 			{
@@ -270,54 +264,53 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 				return;
 			}
 		}
-		
+
 		//inform user & redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=display',
-			JText::_('The imports were successfully removed.'),
+			JText::_('COM_RESOURCES_IMPORT_REMOVED'),
 			'passed'
 		);
 	}
-	
+
 	/**
 	 * Run Import as Dry Run
-	 * 
-	 * @access    public
+	 *
 	 * @return     void
 	 */
 	public function runTestTask()
 	{
 		$this->runTask(1);
 	}
-	
+
 	/**
 	 * Run Import
-	 * 
-	 * @access    public
-	 * @return     void
+	 *
+	 * @param   integer $dryRun
+	 * @return  void
 	 */
-	public function runTask( $dryRun = 0 )
+	public function runTask($dryRun = 0)
 	{
 		// get request vars
 		$ids = JRequest::getVar('id', array());
 		$id  = (isset($ids[0])) ? $ids[0] : null;
-		
+
 		// are we test mode
 		$this->view->dryRun = $dryRun;
-		
+
 		// create import model object
 		$this->view->import = new \Resources\Model\Import($id);
 
 		//get jquery plugin & parse params
 		$jqueryPlugin = JPluginHelper::getPlugin('system', 'jquery');
 		$jqueryPluginParams = new JParameter( $jqueryPlugin->params );
- 
+
 		//add jquery if we dont have the jquery plugin enabled or not active on admin
 		if (!JPluginHelper::isEnabled('system', 'jquery') || !$jqueryPluginParams->get('activateAdmin'))
 		{
-			JError::raiseError('500', JText::_('jQuery must be enabled for the administrator side to use the resources importer.'));
+			JError::raiseError('500', JText::_('COM_RESOURCES_IMPORT_WARNING_ADMIN_REQUIREMENTS'));
 		}
-		
+
 		// Set any errors
 		if ($this->getErrors())
 		{
@@ -326,35 +319,36 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 				$this->view->setError($error);
 			}
 		}
-		
+
 		// force layout
 		$this->view->setLayout('run');
-		
+
 		// Output the HTML
 		$this->view->display();
 	}
-	
+
 	/**
 	 * Actually Run Import
-	 * @return JSON encoded records that just got inserted or would be
+	 * 
+	 * @return  string JSON encoded records that just got inserted or would be
 	 */
 	public function doRunTask()
 	{
 		// check token
 		JSession::checkToken() or die( 'Invalid Token' );
-		
+
 		// start of import
 		$start = microtime(true);
 
 		// get request vars
 		$id = JRequest::getInt('id', 0);
-		
+
 		// test mode
 		$dryRun = JRequest::getBool('dryrun', 0);
-		
+
 		// create import model object
 		$import = new Resources\Model\Import($id);
-		
+
 		// make import importer
 		$importImporter = Resources\Import\Importer::getInstance();
 
@@ -365,11 +359,11 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 			'postmap'     => $this->_hooks('postmap', $import),
 			'postconvert' => $this->_hooks('postconvert', $import)
 		), $dryRun);
-		
+
 		// calculate execution time
 		$end  = microtime(true);
 		$time = round($end - $start, 3);
-		
+
 		// outputted with html entities to allow browser json formatter
 		if (JRequest::getInt('format', 0) == 1)
 		{
@@ -381,37 +375,37 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 		echo json_encode(array('import'=>'success', 'time' => $time, 'records' => $resourceData));
 		exit();
 	}
-	
+
 	/**
 	 * Get progress of import task
-	 * @return string JSON encoded total and position
+	 * 
+	 * @return  string JSON encoded total and position
 	 */
 	public function progressTask()
 	{
 		// get request vars
 		$id = JRequest::getInt('id', 0);
-		
+
 		// create import model object
 		$import = new \Resources\Model\Import($id);
-		
+
 		// get the lastest run
 		$run = $import->runs('current');
-		
+
 		// build array of data to return
 		$data = array(
 			'processed' => $run->get('processed'),
 			'total'     => $run->get('count')
 		);
-		
+
 		// return progress update
 		echo json_encode($data);
 		exit();
 	}
-	
+
 	/**
 	 * Return Hook for Post Parsing or Post Convert
-	 * 
-	 * @access    private
+	 *
 	 * @param     $type      Hook we want
 	 * @param     $import    Resource Import Model
 	 * @return    Closure
@@ -423,7 +417,7 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 
 		// get hooks on import
 		$hooks = json_decode($import->get('hooks'));
-		
+
 		// make sure we have this type of hook
 		if (!isset($hooks->$type))
 		{
@@ -460,25 +454,24 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 		// return closures as callbacks
 		return $callbacks;
 	}
-	
+
 	/**
 	 * Method to create import filespace if needed
 	 *
-	 * @access private
-	 * @param  ResourcesModelImport Object
-	 * @return BOOL
+	 * @param   object  $import Resources\Model\Import
+	 * @return  boolean
 	 */
 	private function _createImportFilespace(Resources\Model\Import $import)
 	{
 		// upload path
 		$uploadPath = $import->fileSpacePath();
-		
+
 		// if we dont have a filespace, create it
 		if (!is_dir($uploadPath))
 		{
 			JFolder::create($uploadPath, 0775);
 		}
-		
+
 		// all set
 		return true;
 	}

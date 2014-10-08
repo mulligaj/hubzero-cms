@@ -34,7 +34,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 <div class="course-instructor">
 	<p class="course-instructor-photo">
 		<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $this->instructor->get('uidNumber')); ?>">
-			<img src="<?php echo $this->instructor->getPicture(); ?>" alt="<?php echo JText::sprintf('%s\'s photo', $this->escape(stripslashes($this->instructor->get('name')))); ?>" />
+			<img src="<?php echo $this->instructor->getPicture(); ?>" alt="<?php echo $this->escape(stripslashes($this->instructor->get('name'))); ?>" />
 		</a>
 	</p>
 
@@ -49,7 +49,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 		</p>
 	</div><!-- / .course-instructor-content cf -->
 
-	<?php 
+	<?php
 	$params = new JRegistry($this->instructor->get('params'));
 	if ($params->get('access_bio') == 0 // public
 	 || ($params->get('access_bio') == 1 && !JFactory::getUser()->get('guest')) // registered members
@@ -59,7 +59,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 		<?php if ($this->instructor->get('bio')) { ?>
 			<?php echo $this->instructor->getBio('parsed'); ?>
 		<?php } else { ?>
-			<em><?php echo JText::_('This instructor has yet to write their bio.'); ?></em>
+			<em><?php echo JText::_('COM_COURSES_INSTRUCTOR_NO_BIO'); ?></em>
 		<?php } ?>
 	</div>
 	<?php } ?>

@@ -38,7 +38,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of password rules
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -59,7 +59,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 		$this->view->total = $prObj->getCount($this->view->filters);
 
 		// If count is zero, i.e. no records, let's add some default password rules
-		if($this->view->total == 0)
+		if ($this->view->total == 0)
 		{
 			// Add default rules if we don't have any already
 			$prObj->defaultContent();
@@ -87,7 +87,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Create a new password rule
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -98,27 +98,25 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a password rule
-	 * 
+	 *
 	 * @param      integer $id ID of member to edit
 	 * @return     void
 	 */
 	public function editTask($id=0)
 	{
+		JRequest::setVar('hidemainmenu', 1);
+
 		$this->view->setLayout('edit');
 
 		if (!$id)
 		{
 			// Incoming
-			$ids = JRequest::getVar('id', array());
+			$id = JRequest::getVar('id', array());
 
 			// Get the single ID we're working with
-			if (is_array($ids))
+			if (is_array($id))
 			{
-				$id = (!empty($ids)) ? $ids[0] : 0;
-			}
-			else
-			{
-				$id = 0;
+				$id = (!empty($id)) ? $id[0] : 0;
 			}
 		}
 
@@ -140,7 +138,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Apply changes to a password rule
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function applyTask()
@@ -151,7 +149,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save password rule
-	 * 
+	 *
 	 * @param      integer $redirect - whether or not to redirect after save
 	 * @return     boolean Return description (if any) ...
 	 */
@@ -159,7 +157,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
-		
+
 		// Incoming password rule edits
 		$fields = JRequest::getVar('fields', array(), 'post');
 
@@ -182,8 +180,8 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 				JText::_('PASSWORD_RULES_SAVE_SUCCESS'),
 				'message'
 			);
-		} 
-		else 
+		}
+		else
 		{
 			$this->view->setLayout('edit');
 			$this->view->task = 'edit';
@@ -193,7 +191,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Order up
-	 * 
+	 *
 	 * @return void
 	 */
 	public function orderupTask()
@@ -212,7 +210,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Order down
-	 * 
+	 *
 	 * @return void
 	 */
 	public function orderdownTask()
@@ -231,7 +229,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Reorder rules
-	 * 
+	 *
 	 * @param      integer $up - whether order up or down
 	 * @return     void
 	 */
@@ -250,7 +248,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save order
-	 * 
+	 *
 	 * @return void
 	 */
 	public function saveorderTask()
@@ -293,16 +291,16 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Toggle a password rule between enabled and disabled
-	 * 
+	 *
 	 * @return void
 	 */
 	public function toggle_enabledTask()
 	{
 		// Incoming (we're expecting an array)
 		$ids = JRequest::getVar('id', array());
-		if (!is_array($ids)) 
+		if (!is_array($ids))
 		{
-			$ids = array(0);
+			$ids = array($ids);
 		}
 
 		// Loop through the IDs
@@ -331,7 +329,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Restore default password rules (found in password_rules table class)
-	 * 
+	 *
 	 * @return void
 	 */
 	public function restore_default_contentTask()
@@ -351,7 +349,7 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 	/**
 	 * Removes [a] password rule(s)
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -361,6 +359,10 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
+		if (!is_array($ids))
+		{
+			$ids = array($ids);
+		}
 
 		// Do we have any IDs?
 		if (!empty($ids))
@@ -400,7 +402,9 @@ class MembersControllerPasswordRules extends \Hubzero\Component\AdminController
 	 */
 	public function cancelTask()
 	{
-		$this->_redirect = 'index.php?option=' . $this->_option . '&controller=' . $this->_controller;
+		$this->setRedirect(
+			'index.php?option=' . $this->_option . '&controller=' . $this->_controller
+		);
 	}
 
 	/**

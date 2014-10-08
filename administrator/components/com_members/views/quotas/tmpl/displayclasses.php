@@ -35,18 +35,17 @@ JToolBarHelper::title(JText::_('COM_MEMBERS_QUOTA_CLASSES'), 'user.png');
 JToolBarHelper::addNew('addClass');
 JToolBarHelper::editList('editClass');
 JToolBarHelper::deleteList('Are you sure?', 'deleteClass');
+JToolBarHelper::spacer();
+JToolBarHelper::help('quotaclasses');
 ?>
 
-<div role="navigation" class="sub-navigation">
-	<ul id="subsubmenu">
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>">Members</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=displayClasses" class="active">Quota Classes</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=import">Import</a></li>
-	</ul>
-</div>
+<?php
+	$this->view('_submenu')
+	     ->display();
+?>
 
 <form action="index.php" method="post" name="adminForm" id="adminForm">
-	<table class="adminlist" summary="<?php echo JText::_('COM_MEMBERS_QUOTAS_TABLE_SUMMARY'); ?>">
+	<table class="adminlist">
 		<thead>
 		 	<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
@@ -77,12 +76,12 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 					<input type="checkbox" name="id[]" id="cb<?php echo $i;?>" value="<?php echo $row->id; ?>" onclick="isChecked(this.checked);" />
 				</td>
 				<td>
-					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=editClass&amp;id[]=<?php echo $row->id; ?>">
+					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=editClass&amp;id=<?php echo $row->id; ?>">
 						<?php echo $this->escape($row->id); ?>
 					</a>
 				</td>
 				<td>
-					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=editClass&amp;id[]=<?php echo $row->id; ?>">
+					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=editClass&amp;id=<?php echo $row->id; ?>">
 						<?php echo $this->escape($row->alias); ?>
 					</a>
 				</td>

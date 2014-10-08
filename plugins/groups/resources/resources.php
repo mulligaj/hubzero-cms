@@ -48,45 +48,45 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Resource areas
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_areas = null;
 
 	/**
 	 * Resource categories
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_cats  = null;
 
 	/**
 	 * Record count
-	 * 
+	 *
 	 * @var integer
 	 */
 	private $_total = null;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onGroupAreas()
 	{
 		$area = array(
-			'name' => 'resources',
-			'title' => JText::_('PLG_GROUPS_RESOURCES'),
-			'default_access' => $this->params->get('plugin_access', 'members'),
+			'name'             => 'resources',
+			'title'            => JText::_('PLG_GROUPS_RESOURCES'),
+			'default_access'   => $this->params->get('plugin_access', 'members'),
 			'display_menu_tab' => $this->params->get('display_tab', 1),
-			'icon' => 'f02d'
+			'icon'             => 'f02d'
 		);
 		return $area;
 	}
 
 	/**
 	 * Return data on a group view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $group      Current group
 	 * @param      string  $option     Name of the component
 	 * @param      string  $authorized User's authorization level
@@ -111,14 +111,14 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 		$this_area = $this->onGroupAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
-			if (!in_array($this_area['name'], $areas)) 
+			if (!in_array($this_area['name'], $areas))
 			{
 				$return = 'metadata';
 			}
 		}
-		
+
 		//set group members plugin access level
 		$group_plugin_acl = $access[$active];
 
@@ -127,59 +127,64 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 		//get the group members
 		$members = $group->get('members');
-		
+
 		if ($return == 'html')
 		{
 			//if set to nobody make sure cant access
-			if ($group_plugin_acl == 'nobody') 
+			if ($group_plugin_acl == 'nobody')
 			{
 				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_OFF', ucfirst($active)) . '</p>';
 				return $arr;
 			}
 
 			//check if guest and force login if plugin access is registered or members
-			if ($juser->get('guest') 
-			 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members')) 
+			if ($juser->get('guest')
+			 && ($group_plugin_acl == 'registered' || $group_plugin_acl == 'members'))
 			{
 				$area = JRequest::getWord('area', 'resource');
-				$url = JRoute::_('index.php?option=com_groups&cn='.$group->get('cn').'&active='.$active.'&area='.$area);
-				$message = JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active));
-				$this->redirect( "/login?return=".base64_encode($url), $message, 'warning' );
+				$url = JRoute::_('index.php?option=com_groups&cn=' . $group->get('cn') . '&active=' . $active . '&area=' . $area);
+
+				$this->redirect(
+					JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($url)),
+					JText::sprintf('GROUPS_PLUGIN_REGISTERED', ucfirst($active)),
+					'warning'
+				);
 				return;
 			}
 
 			//check to see if user is member and plugin access requires members
-			if (!in_array($juser->get('id'), $members) 
-			 && $group_plugin_acl == 'members' 
-			 && $authorized != 'admin') 
+			if (!in_array($juser->get('id'), $members)
+			 && $group_plugin_acl == 'members'
+			 && $authorized != 'admin')
 			{
 				$arr['html'] = '<p class="info">' . JText::sprintf('GROUPS_PLUGIN_REQUIRES_MEMBER', ucfirst($active)) . '</p>';
 				return $arr;
 			}
 
-			require_once JPATH_BASE.'/components/com_hubgraph/client.php';
+			require_once JPATH_BASE . '/components/com_hubgraph/client.php';
+
 			$hgConf = HubgraphConfiguration::instance();
-			if ($hgConf->isOptionEnabled('com_groups')) {
+			if ($hgConf->isOptionEnabled('com_groups'))
+			{
 				$view = new \Hubzero\Plugin\View(
 					array(
-						'folder'   => 'groups',
-						'element'  => 'resources',
+						'folder'   => $this->_type,
+						'element'  => $this->_name,
 						'name'     => 'results'
 					)
 				);
-
-				\Hubzero\Document\Assets::addPluginStylesheet('groups', 'resources');
-
 				// Pass the view some info
 				$view->option = $option;
-				$view->group = $group;
-			
+				$view->group  = $group;
+
 				ob_start();
 				$_GET['group'] = $group->gidNumber;
 				define('HG_INLINE', 1);
-				require JPATH_BASE.'/components/com_hubgraph/hubgraph.php';
+				require JPATH_BASE . '/components/com_hubgraph/hubgraph.php';
 				$view->hubgraphResponse = ob_get_clean();
-				return array('html' => $view->loadTemplate('hubgraph'));
+				return array(
+					'html' => $view->loadTemplate('hubgraph')
+				);
 			}
 		}
 
@@ -191,13 +196,13 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 		$access = JRequest::getVar('access', 'all');
 
 		$config = JComponentHelper::getParams('com_resources');
-		if ($return == 'metadata') 
+		if ($return == 'metadata')
 		{
-			if ($config->get('show_ranking')) 
+			if ($config->get('show_ranking'))
 			{
 				$sort = 'ranking';
-			} 
-			elseif ($config->get('show_rating')) 
+			}
+			elseif ($config->get('show_rating'))
 			{
 				$sort = 'rating';
 			}
@@ -208,21 +213,21 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 		// Get the active category
 		$area = JRequest::getWord('area', 'resources');
-		if ($area) 
+		if ($area)
 		{
 			$activeareas = array($area);
-		} 
-		else 
+		}
+		else
 		{
 			$limit = 5;
 			$activeareas = $rareas;
 		}
 
-		if ($return == 'metadata') 
+		if ($return == 'metadata')
 		{
 			$ls = -1;
-		} 
-		else 
+		}
+		else
 		{
 			$ls = $limitstart;
 		}
@@ -248,7 +253,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 			$cats[$i]['category'] = $c;
 
 			// Do sub-categories exist?
-			if (is_array($t) && !empty($t)) 
+			if (is_array($t) && !empty($t))
 			{
 				// They do - do some processing
 				$cats[$i]['title'] = ucfirst($c);
@@ -259,7 +264,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 				foreach ($t as $s=>$st)
 				{
 					// Ensure a matching array of totals exist
-					if (is_array($totals[$i]) && !empty($totals[$i]) && isset($totals[$i][$z])) 
+					if (is_array($totals[$i]) && !empty($totals[$i]) && isset($totals[$i][$z]))
 					{
 						// Add to the parent category's total
 						$cats[$i]['total'] = $cats[$i]['total'] + $totals[$i][$z];
@@ -270,8 +275,8 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 					}
 					$z++;
 				}
-			} 
-			else 
+			}
+			else
 			{
 				// No sub-categories - this should be easy
 				$cats[$i]['title'] = $t;
@@ -284,11 +289,11 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 		}
 
 		// Do we have an active area?
-		if (count($activeareas) == 1 && !is_array(current($activeareas))) 
+		if (count($activeareas) == 1 && !is_array(current($activeareas)))
 		{
 			$active = $activeareas[0];
-		} 
-		else 
+		}
+		else
 		{
 			$active = '';
 		}
@@ -312,14 +317,11 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 				// Instantiate a vew
 				$view = new \Hubzero\Plugin\View(
 					array(
-						'folder'  => 'groups',
-						'element' => 'resources',
+						'folder'  => $this->_type,
+						'element' => $this->_name,
 						'name'    => 'results'
 					)
 				);
-
-				//push the stylesheet to the view
-				\Hubzero\Document\Assets::addPluginStylesheet('groups', 'resources');
 
 				// Pass the view some info
 				$view->option = $option;
@@ -334,7 +336,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 				$view->total = $total;
 				$view->sort = $sort;
 				$view->access = $access;
-				if ($this->getError()) 
+				if ($this->getError())
 				{
 					foreach ($this->getErrors() as $error)
 					{
@@ -358,7 +360,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Remove any associated resources when group is deleted
-	 * 
+	 *
 	 * @param      object $group Group being deleted
 	 * @return     string Log of items removed
 	 */
@@ -369,7 +371,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 		// Start the log text
 		$log = JText::_('PLG_GROUPS_RESOURCES_LOG') . ': ';
-		if (count($ids) > 0) 
+		if (count($ids) > 0)
 		{
 			$database = JFactory::getDBO();
 
@@ -386,8 +388,8 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 				// Add the page ID to the log
 				$log .= $id->id . ' ' . "\n";
 			}
-		} 
-		else 
+		}
+		else
 		{
 			$log .= JText::_('PLG_GROUPS_RESOURCES_NONE') . "\n";
 		}
@@ -398,7 +400,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return a count of items that will be removed when group is deleted
-	 * 
+	 *
 	 * @param      object $group Group to delete
 	 * @return     string
 	 */
@@ -409,13 +411,13 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Get a list of resource IDs associated with this group
-	 * 
+	 *
 	 * @param      string $gid Group alias
 	 * @return     array
 	 */
 	private function getResourceIDs($gid=NULL)
 	{
-		if (!$gid) 
+		if (!$gid)
 		{
 			return array();
 		}
@@ -429,19 +431,19 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Get a list of resource categories (types)
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function getResourcesAreas()
 	{
 		$areas = $this->_areas;
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			return $areas;
 		}
 
 		$categories = $this->_cats;
-		if (!is_array($categories)) 
+		if (!is_array($categories))
 		{
 			// Get categories
 			$database = JFactory::getDBO();
@@ -471,7 +473,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Retrieve records for items associated with this group
-	 * 
+	 *
 	 * @param      object  $group      Group that owns the records
 	 * @param      unknown $authorized Authorization level
 	 * @param      mixed   $limit      SQL record limit
@@ -484,11 +486,11 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 	public function getResources($group, $authorized, $limit=0, $limitstart=0, $sort='date', $access='all', $areas=null)
 	{
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
 			$ars = $this->getResourcesAreas();
-			if (!isset($areas[$this->_name]) 
-			 && !in_array($this->_name, $areas) 
+			if (!isset($areas[$this->_name])
+			 && !in_array($this->_name, $areas)
 			 && !array_intersect($areas, array_keys($ars['resources'])))
 			{
 				return array();
@@ -496,7 +498,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 		}
 
 		// Do we have a member ID?
-		if (!$group->get('cn')) 
+		if (!$group->get('cn'))
 		{
 			return array();
 		}
@@ -515,10 +517,9 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 		$filters['authorized'] = $authorized;
 		$filters['state'] = array(1);
 
-
 		// Get categories
 		$categories = $this->_cats;
-		if (!is_array($categories)) 
+		if (!is_array($categories))
 		{
 			$rt = new ResourcesType($database);
 			$categories = $rt->getMajorTypes();
@@ -536,9 +537,9 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 			$cats[$normalized]['id'] = $categories[$i]->id;
 		}
 
-		if ($limit) 
+		if ($limit)
 		{
-			if ($this->_total != null) 
+			if ($this->_total != null)
 			{
 				$total = 0;
 				$t = $this->_total;
@@ -547,7 +548,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 					$total += $l;
 				}
 			}
-			if ($total == 0) 
+			if ($total == 0)
 			{
 				return array();
 			}
@@ -558,7 +559,7 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 			// Check the area of return. If we are returning results for a specific area/category
 			// we'll need to modify the query a bit
-			if (count($areas) == 1 && !isset($areas['resources']) && $areas[0] != 'resources') 
+			if (count($areas) == 1 && !isset($areas['resources']) && $areas[0] != 'resources')
 			{
 				$filters['type'] = $cats[$areas[0]]['id'];
 			}
@@ -568,16 +569,16 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 			$rows = $database->loadObjectList();
 
 			// Did we get any results?
-			if ($rows) 
+			if ($rows)
 			{
 				// Loop through the results and set each item's HREF
 				foreach ($rows as $key => $row)
 				{
-					if ($row->alias) 
+					if ($row->alias)
 					{
 						$rows[$key]->href = JRoute::_('index.php?option=com_resources&alias=' . $row->alias);
-					} 
-					else 
+					}
+					else
 					{
 						$rows[$key]->href = JRoute::_('index.php?option=com_resources&id=' . $row->id);
 					}
@@ -586,8 +587,8 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 
 			// Return the results
 			return $rows;
-		} 
-		else 
+		}
+		else
 		{
 			$filters['select'] = 'count';
 
@@ -596,24 +597,24 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 			$ares = $this->getResourcesAreas();
 			foreach ($ares as $area=>$val)
 			{
-				if (is_array($val)) 
+				if (is_array($val))
 				{
 					$i = 0;
 					foreach ($val as $a=>$t)
 					{
-						if ($limitstart == -1) 
+						if ($limitstart == -1)
 						{
-							if ($i == 0) 
+							if ($i == 0)
 							{
 								$database->setQuery($rr->buildPluginQuery($filters));
 								$counts[] = $database->loadResult();
-							} 
-							else 
+							}
+							else
 							{
 								$counts[] = 0;
 							}
-						} 
-						else 
+						}
+						else
 						{
 							$filters['type'] = $cats[$a]['id'];
 
@@ -630,162 +631,6 @@ class plgGroupsResources extends \Hubzero\Plugin\Plugin
 			$this->_total = $counts;
 			return $counts;
 		}
-	}
-
-	/**
-	 * Include needed libraries and push scripts and CSS to the document
-	 * 
-	 * @return     void
-	 */
-	public static function documents()
-	{
-		// Push some CSS and JS to the tmeplate that may be needed
-		$document = JFactory::getDocument();
-		$document->addScript('components' . DS . 'com_resources' . DS . 'assets' . DS . 'css' . DS . 'resources.js');
-
-		\Hubzero\Document\Assets::addComponentStylesheet('com_resources');
-
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'helper.php');
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'usage.php');
-	}
-
-	/**
-	 * Static method for formatting results
-	 * 
-	 * @param      object $row Database row
-	 * @return     string HTML
-	 */
-	public static function out($row, $authorized=false)
-	{
-		$database = JFactory::getDBO();
-
-		// Instantiate a helper object
-		$RE = new ResourcesHelper($row->id, $database);
-		$RE->getContributors();
-
-		// Get the component params and merge with resource params
-		$config = JComponentHelper::getParams('com_resources');
-		$paramClass = 'JParameter';
-		$dformat = '%d %b %Y';
-		$tz = 0;
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramClass = 'JRegistry';
-			$dformat = 'd M Y';
-			$tz = true;
-		}
-		$rparams = new $paramClass($row->params);
-		$params = $config;
-		$params->merge($rparams);
-
-		// Set the display date
-		switch ($params->get('show_date'))
-		{
-			case 0: $thedate = ''; break;
-			case 1: $thedate = JHTML::_('date', $row->created, $dformat, $tz);    break;
-			case 2: $thedate = JHTML::_('date', $row->modified, $dformat, $tz);   break;
-			case 3: $thedate = JHTML::_('date', $row->publish_up, $dformat, $tz); break;
-		}
-
-		if (strstr($row->href, 'index.php')) 
-		{
-			$row->href = JRoute::_($row->href);
-		}
-		$juri = JURI::getInstance();
-
-		$html  = "\t" . '<li class="';
-		switch ($row->access)
-		{
-			case 1: $html .= 'registered'; break;
-			case 2: $html .= 'special';    break;
-			case 3: $html .= 'protected';  break;
-			case 4: $html .= 'private';    break;
-			case 0:
-			default: $html .= 'public'; break;
-		}
-		$html .= ' resource">' . "\n";
-		$html .= "\t\t" . '<p class="';
-		/*if ($row->access == 4) {
-			$html .= 'private ';
-		} elseif ($row->access == 3) {
-			$html .= 'protected ';
-		}*/
-		$html .= 'title"><a href="' . $row->href . '">' . stripslashes($row->title) . '</a></p>' . "\n";
-
-		if ($params->get('show_ranking')) 
-		{
-			$RE->getCitationsCount();
-			$RE->getLastCitationDate();
-
-			if ($row->category == 7) 
-			{
-				$stats = new ToolStats($database, $row->id, $row->category, $row->rating, $RE->citationsCount, $RE->lastCitationDate);
-			} 
-			else 
-			{
-				$stats = new AndmoreStats($database, $row->id, $row->category, $row->rating, $RE->citationsCount, $RE->lastCitationDate);
-			}
-			$statshtml = $stats->display();
-
-			$row->ranking = round($row->ranking, 1);
-
-			$html .= "\t\t" . '<div class="metadata">' . "\n";
-			$r = (10*$row->ranking);
-			if (intval($r) < 10) 
-			{
-				$r = '0' . $r;
-			}
-			$html .= "\t\t\t" . '<dl class="rankinfo">' . "\n";
-			$html .= "\t\t\t\t" . '<dt class="ranking"><span class="rank-' . $r . '">' . JText::_('PLG_GROUPS_RESOURCES_THIS_HAS') . '</span> ' . number_format($row->ranking, 1) . ' ' . JText::_('PLG_GROUPS_RESOURCES_RANKING') . '</dt>' . "\n";
-			$html .= "\t\t\t\t" . '<dd>' . "\n";
-			$html .= "\t\t\t\t\t" . '<p>' . JText::_('PLG_GROUPS_RESOURCES_RANKING_EXPLANATION') . '</p>' . "\n";
-			$html .= "\t\t\t\t\t" . '<div>' . "\n";
-			$html .= $statshtml;
-			$html .= "\t\t\t\t\t" . '</div>' . "\n";
-			$html .= "\t\t\t\t" . '</dd>' . "\n";
-			$html .= "\t\t\t" . '</dl>' . "\n";
-			$html .= "\t\t" . '</div>' . "\n";
-		} 
-		elseif ($params->get('show_rating')) 
-		{
-			switch ($row->rating)
-			{
-				case 0.5: $class = ' half-stars';      break;
-				case 1:   $class = ' one-stars';       break;
-				case 1.5: $class = ' onehalf-stars';   break;
-				case 2:   $class = ' two-stars';       break;
-				case 2.5: $class = ' twohalf-stars';   break;
-				case 3:   $class = ' three-stars';     break;
-				case 3.5: $class = ' threehalf-stars'; break;
-				case 4:   $class = ' four-stars';      break;
-				case 4.5: $class = ' fourhalf-stars';  break;
-				case 5:   $class = ' five-stars';      break;
-				case 0:
-				default:  $class = ' no-stars';      break;
-			}
-
-			$html .= "\t\t" . '<div class="metadata">' . "\n";
-			$html .= "\t\t\t" . '<p class="rating"><span class="avgrating' . $class . '"><span>' . JText::sprintf('PLG_GROUPS_RESOURCES_OUT_OF_5_STARS', $row->rating) . '</span>&nbsp;</span></p>' . "\n";
-			$html .= "\t\t" . '</div>' . "\n";
-		}
-
-		$html .= "\t\t" . '<p class="details">' . $thedate . ' <span>|</span> ' . stripslashes($row->area);
-		if ($RE->contributors) 
-		{
-			$html .= ' <span>|</span> '.JText::_('PLG_GROUPS_RESOURCES_CONTRIBUTORS') . ': ' . $RE->contributors;
-		}
-		$html .= '</p>' . "\n";
-		if ($row->itext) 
-		{
-			$html .= "\t\t".\Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::clean(stripslashes($row->itext)), 200) . "\n";
-		} 
-		else if ($row->ftext) 
-		{
-			$html .= "\t\t".\Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::clean(stripslashes($row->ftext)), 200) . "\n";
-		}
-		$html .= "\t\t" . '<p class="href">'.$juri->base() . ltrim($row->href, DS) . '</p>' . "\n";
-		$html .= "\t" . '</li>' . "\n";
-		return $html;
 	}
 }
 

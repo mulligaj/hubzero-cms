@@ -32,14 +32,16 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = StoreHelper::getActions('component');
 
-$text = (!$this->store_enabled) ? ' <small><small style="color:red;">(store is disabled)</small></small>' : '';
+$text = (!$this->store_enabled) ? ' (store is disabled)' : '';
 
 JToolBarHelper::title(JText::_('COM_STORE_MANAGER') . $text, 'store.png');
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::save();
 }
 JToolBarHelper::cancel();
+JToolBarHelper::spacer();
+JToolBarHelper::help('item');
 
 $created = NULL;
 if (intval($this->row->created) <> 0)
@@ -50,7 +52,7 @@ if (intval($this->row->created) <> 0)
 ?>
 
 <script type="text/javascript">
-public function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 
@@ -58,9 +60,8 @@ public function submitbutton(pressbutton)
 		submitform(pressbutton);
 		return;
 	}
-	
-	submitform(pressbutton);
 
+	submitform(pressbutton);
 }
 </script>
 <form action="index.php" method="post" name="adminForm" id="item-form">
@@ -68,65 +69,58 @@ public function submitbutton(pressbutton)
 		<fieldset class="adminform">
 <?php //if (isset($this->row->id)) { ?>
 			<legend><span><?php echo isset($this->row->id) ? JText::_('COM_STORE_STORE') . ' ' . JText::_('COM_STORE_ITEM') . ' #' . $this->row->id . ' ' . JText::_('COM_STORE_DETAILS') : JText::_('COM_STORE_NEW_ITEM'); ?></span></legend>
-			<table class="admintable">
-			 <tbody>
-	         <tr>
-			  <td class="key"><label><?php echo JText::_('COM_STORE_CATEGORY'); ?>:</label></td>
-			   <td><select name="category">
-	           		<option value="service"<?php if ($this->row->category == 'service') { echo ' selected="selected"'; } ?>>Service</option>
-		 			<option value="wear"<?php if ($this->row->category == 'wear') { echo ' selected="selected"'; } ?>>Wear</option>
-	     			<option value="office"<?php if ($this->row->category == 'office') { echo ' selected="selected"'; } ?>>Office</option>
-	                <option value="fun"<?php if ($this->row->category == 'fun') { echo ' selected="selected"'; } ?>>Fun</option>
-				   </select>
-	    		</td>
-			  </tr>
-	          <tr>
-			   <td class="key"><label><?php echo JText::_('COM_STORE_PRICE'); ?>:</label></td>
-			   <td><input type="text" name="price" id="price"  size="5" value="<?php echo $this->escape(stripslashes($this->row->price)); ?>" /></td>
-			  </tr>
-			  <tr>
-			   <td class="key"><label><?php echo JText::_('COM_STORE_TITLE'); ?>:</label></td>
-			   <td><input type="text" name="title" id="title"  maxlength="100" style="width:100%" value="<?php echo $this->escape(stripslashes($this->row->title)); ?>" /></td>
-			  </tr>
-	          <tr>
-			  <td class="key"><label><?php echo JText::_('COM_STORE_DESCRIPTION'); ?>:</label></td>
-			   <td><textarea name="description" id="description"  cols="50" rows="10"><?php echo $this->escape(stripslashes($this->row->description)); ?></textarea>
-	        <br /><?php echo JText::_('COM_STORE_WARNING_DESCR'); ?></td>
-			  </tr>
-			 </tbody>
-			</table>
+
+			<div class="input-wrap">
+				<label for="field-category"><?php echo JText::_('COM_STORE_CATEGORY'); ?>:</label><br />
+				<select name="category" id="field-category">
+					<option value="service"<?php if ($this->row->category == 'service') { echo ' selected="selected"'; } ?>>Service</option>
+					<option value="wear"<?php if ($this->row->category == 'wear') { echo ' selected="selected"'; } ?>>Wear</option>
+					<option value="office"<?php if ($this->row->category == 'office') { echo ' selected="selected"'; } ?>>Office</option>
+					<option value="fun"<?php if ($this->row->category == 'fun') { echo ' selected="selected"'; } ?>>Fun</option>
+				</select>
+			</div>
+			<div class="input-wrap">
+				<label for="field-price"><?php echo JText::_('COM_STORE_PRICE'); ?>:</label>
+				<input type="text" name="price" id="field-price" value="<?php echo $this->escape(stripslashes($this->row->price)); ?>" />
+			</div>
+			<div class="input-wrap">
+				<label for="field-title"><?php echo JText::_('COM_STORE_TITLE'); ?>:</label>
+				<input type="text" name="title" id="field-title" maxlength="100" value="<?php echo $this->escape(stripslashes($this->row->title)); ?>" />
+			</div>
+			<div class="input-wrap" data-hint="<?php echo JText::_('COM_STORE_WARNING_DESCR'); ?>">
+				<label for="field-description"><?php echo JText::_('COM_STORE_DESCRIPTION'); ?>:</label>
+				<textarea name="description" id="field-description" cols="50" rows="10"><?php echo $this->escape(stripslashes($this->row->description)); ?></textarea>
+				<span class="hint"><?php echo JText::_('COM_STORE_WARNING_DESCR'); ?></span>
+			</div>
 		</fieldset>
 	</div>
-	<div class="col width-40 fltlft">
+	<div class="col width-40 fltrt">
 		<fieldset class="adminform">
 			<legend><span><?php echo JText::_('COM_STORE_OPTIONS'); ?></span></legend>
-			<table class="admintable">
-			 <tbody>
-			 <tr>
-			  <td class="key"><label><?php echo JText::_('COM_STORE_PUBLISHED'); ?>:</label></td>
-			   <td><input type="checkbox" name="published" value="1" <?php echo ($this->row->published) ? 'checked="checked"' : ''; ?> /></td>
-			  </tr>
-	          <tr>
-			   <td class="key"><label><?php echo ucfirst(JText::_('COM_STORE_INSTOCK')); ?>:</label></td>
-			   <td><input type="checkbox" name="available" value="1" <?php echo ($this->row->available) ? 'checked="checked"' : ''; ?> /></td>
-			  </tr> 
-	          <tr>
-			   <td class="key"><label><?php echo JText::_('COM_STORE_FEATURED'); ?>:</label></td>
-			   <td><input type="checkbox" name="featured" id="featured" value="1" <?php echo ($this->row->featured) ? 'checked="checked"' : ''; ?> /></td>
-			  </tr> 
-	          <tr>
-			   <td class="key"><label><?php echo JText::_('COM_STORE_AV_SIZES'); ?>:</label></td>
-			   <td><input type="text" name="sizes" size="15" value="<?php echo (isset($this->row->size)) ? $this->escape(stripslashes($this->row->size)) : '' ; ?>" /><br /><?php echo JText::_('COM_STORE_SAMPLE_SIZES'); ?>:</td>
-			  </tr>
-			 </tbody>
-			</table>
+
+			<div class="input-wrap">
+				<input type="checkbox" name="published" id="field-published" value="1" <?php echo ($this->row->published) ? 'checked="checked"' : ''; ?> />
+				<label for="field-published"><?php echo JText::_('COM_STORE_PUBLISHED'); ?></label>
+			</div>
+			<div class="input-wrap">
+				<input type="checkbox" name="available" id="field-available" value="1" <?php echo ($this->row->available) ? 'checked="checked"' : ''; ?> />
+				<label for="field-available"><?php echo ucfirst(JText::_('COM_STORE_INSTOCK')); ?></label>
+			</div>
+			<div class="input-wrap">
+				<input type="checkbox" name="featured" id="field-featured" value="1" <?php echo ($this->row->featured) ? 'checked="checked"' : ''; ?> />
+				<label for="field-featured"><?php echo JText::_('COM_STORE_FEATURED'); ?></label>
+			</div>
+			<div class="input-wrap">
+				<label for="field-sizes"><?php echo JText::_('COM_STORE_AV_SIZES'); ?>:</label><br />
+				<input type="text" name="sizes" id="field-sizes" size="15" value="<?php echo (isset($this->row->size)) ? $this->escape(stripslashes($this->row->size)) : '' ; ?>" /><br /><?php echo JText::_('COM_STORE_SAMPLE_SIZES'); ?>:
+			</div>
 		</fieldset>
 		<fieldset class="adminform">
 			<legend><span><?php echo JText::_('COM_STORE_PICTURE'); ?></span></legend>
 <?php
 	if ($this->row->id != 0) {
 ?>
-			<iframe width="100%" height="350" name="filer" id="filer" frameborder="0" src="index.php?option=<?php echo $this->option; ?>&amp;controller=media&amp;tmpl=component&amp;id=<?php echo $this->row->id; ?>"></iframe>
+			<iframe style="width: 100%" height="350" name="filer" id="filer" src="index.php?option=<?php echo $this->option; ?>&amp;controller=media&amp;tmpl=component&amp;id=<?php echo $this->row->id; ?>"></iframe>
 <?php
 	} else {
 		echo '<p class="alert">' . JText::_('COM_STORE_MUST_BE_SAVED_BEFORE_PICTURE') . '</p>';
@@ -135,7 +129,7 @@ public function submitbutton(pressbutton)
 		</fieldset>
 	</div>
 	<div class="clr"></div>
-	
+
 	<input type="hidden" name="id" value="<?php echo $this->row->id; ?>" />
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />

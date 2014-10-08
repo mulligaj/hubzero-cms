@@ -34,55 +34,55 @@ defined('_JEXEC') or die('Restricted access');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'models' . DS . 'page.php');
 
 /**
- * Courses model class for a page
+ * Wiki model for a book
  */
 class WikiModelBook extends \Hubzero\Base\Object
 {
 	/**
 	 * Wiki domain
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_scope = '__site__';
 
 	/**
 	 * WikiModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_pages = null;
 
 	/**
 	 * WikiModelPage
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_page = null;
 
 	/**
 	 * JDatabase
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_db = null;
 
 	/**
 	 * JRegistry
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_config = null;
 
 	/**
 	 * Container for properties
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_tbl = null;
 
 	/**
 	 * Container for cached data
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_cache = array(
@@ -93,9 +93,9 @@ class WikiModelBook extends \Hubzero\Base\Object
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      integer $id Course ID or alias
-	 * @return     void
+	 *
+	 * @param   string $scope
+	 * @return  void
 	 */
 	public function __construct($scope='__site__')
 	{
@@ -116,26 +116,23 @@ class WikiModelBook extends \Hubzero\Base\Object
 	}
 
 	/**
-	 * Returns a reference to a page model
+	 * Returns a reference to a book model
 	 *
-	 * This method must be invoked as:
-	 *     $offering = ForumModelCourse::getInstance($alias);
-	 *
-	 * @param      mixed $oid Course ID (int) or alias (string)
-	 * @return     object ForumModelCourse
+	 * @param   string $scope
+	 * @return  object WikiModelBook
 	 */
 	static function &getInstance($scope='__site__')
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
 		$key = (!$scope) ? '__site__' : $key;
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new self($scope);
 		}
@@ -146,17 +143,17 @@ class WikiModelBook extends \Hubzero\Base\Object
 	/**
 	 * Returns a property of the object or the default value if the property is not set.
 	 *
-	 * @param	string $property The name of the property
-	 * @param	mixed  $default The default value
-	 * @return	mixed The value of the property
+	 * @param   string $property The name of the property
+	 * @param   mixed  $default The default value
+	 * @return  mixed  The value of the property
  	 */
 	public function get($property, $default=null)
 	{
-		if (isset($this->_tbl->$property)) 
+		if (isset($this->_tbl->$property))
 		{
 			return $this->_tbl->$property;
 		}
-		else if (isset($this->_tbl->{'__' . $property})) 
+		else if (isset($this->_tbl->{'__' . $property}))
 		{
 			return $this->_tbl->{'__' . $property};
 		}
@@ -166,9 +163,9 @@ class WikiModelBook extends \Hubzero\Base\Object
 	/**
 	 * Modifies a property of the object, creating it if it does not already exist.
 	 *
-	 * @param	string $property The name of the property
-	 * @param	mixed  $value The value of the property to set
-	 * @return	mixed Previous value of the property
+	 * @param   string $property The name of the property
+	 * @param   mixed  $value The value of the property to set
+	 * @return  mixed  Previous value of the property
 	 */
 	public function set($property, $value = null)
 	{
@@ -184,15 +181,15 @@ class WikiModelBook extends \Hubzero\Base\Object
 	/**
 	 * Load a wiki with default content
 	 * This is largely Help pages
-	 * 
-	 * @param      string $option Component name
-	 * @return     string 
+	 *
+	 * @param   string $option Component name
+	 * @return  string
 	 */
 	public function scribe($option)
 	{
 		$pages = $this->_defaultPages();
 
-		if (count($pages) <= 0) 
+		if (count($pages) <= 0)
 		{
 			return JText::_('No default pages found');
 		}
@@ -215,27 +212,27 @@ class WikiModelBook extends \Hubzero\Base\Object
 			if ($this->_scope == '__site__' && $page->pagename == 'MainPage')
 			{
 				$page->params = 'mode=static' . "\n";
-			} 
-			else 
+			}
+			else
 			{
 				$page->params = 'mode=wiki' . "\n";
 			}
 
 			// Check content
-			if (!$page->check()) 
+			if (!$page->check())
 			{
 				JError::raiseWarning(500, $page->getError());
 				return;
 			}
 
 			// Store content
-			if (!$page->store()) 
+			if (!$page->store())
 			{
 				JError::raiseWarning(500, $page->getError());
 				return;
 			}
 			// Ensure we have a page ID
-			if (!$page->id) 
+			if (!$page->id)
 			{
 				$page->id = $this->_db->insertid();
 			}
@@ -264,13 +261,13 @@ class WikiModelBook extends \Hubzero\Base\Object
 			}
 
 			// Check content
-			if (!$revision->check()) 
+			if (!$revision->check())
 			{
 				JError::raiseWarning(500, $revision->getError());
 				return;
 			}
 			// Store content
-			if (!$revision->store()) 
+			if (!$revision->store())
 			{
 				JError::raiseWarning(500, $revision->getError());
 				return;
@@ -278,7 +275,7 @@ class WikiModelBook extends \Hubzero\Base\Object
 
 			$page->version_id = $revision->id;
 			$page->modified   = $revision->created;
-			if (!$page->store()) 
+			if (!$page->store())
 			{
 				// This really shouldn't happen.
 				JError::raiseWarning(500, $page->getError());
@@ -291,8 +288,8 @@ class WikiModelBook extends \Hubzero\Base\Object
 
 	/**
 	 * Get an associative list of default pages and their content
-	 * 
-	 * @return     array
+	 *
+	 * @return  array
 	 */
 	private function _defaultPages()
 	{
@@ -319,7 +316,7 @@ class WikiModelBook extends \Hubzero\Base\Object
 				if ($file->isFile())
 				{
 					$fl = $file->getFilename();
-					if (strtolower(JFile::getExt($fl)) == 'txt') 
+					if (strtolower(JFile::getExt($fl)) == 'txt')
 					{
 						$name = JFile::stripExt($fl);
 						$pages[$name] = JFile::read($path . DS . $fl);
@@ -332,10 +329,10 @@ class WikiModelBook extends \Hubzero\Base\Object
 	}
 
 	/**
-	 * Get a configuration value
-	 * 
-	 * @param	   string $key Property to return
-	 * @return     mixed
+	 * Get or set scope
+	 *
+	 * @param   string $scope Scope to set
+	 * @return  string
 	 */
 	public function scope($scope=null)
 	{
@@ -348,9 +345,10 @@ class WikiModelBook extends \Hubzero\Base\Object
 
 	/**
 	 * Get a configuration value
-	 * 
-	 * @param	   string $key Property to return
-	 * @return     mixed
+	 *
+	 * @param   string $key     Property to return
+	 * @param   mixed  $default Value to return if property not found
+	 * @return  mixed
 	 */
 	public function config($key=null, $default=null)
 	{
@@ -366,21 +364,21 @@ class WikiModelBook extends \Hubzero\Base\Object
 	}
 
 	/**
-	 * Set and get a specific offering
-	 * 
-	 * @param      mixed $id Integer or string of tag to look up
-	 * @return     object TagsModelTag
+	 * Set and get a specific page
+	 *
+	 * @param   mixed  $id Integer or string of tag to look up
+	 * @return  object WikiModelPage
 	 */
 	public function page($id=null)
 	{
 		if (!isset($this->_cache['page']) && $id === null)
 		{
 			$pagename = trim(JRequest::getVar('pagename', '', 'default', 'none', 2));
-			if (substr(strtolower($pagename), 0, strlen('image:')) != 'image:' 
+			if (substr(strtolower($pagename), 0, strlen('image:')) != 'image:'
 			 && substr(strtolower($pagename), 0, strlen('file:')) != 'file:')
 			{
 				$pagename = $this->_tbl->normalize($pagename);
-			} 
+			}
 			JRequest::setVar('pagename', $pagename);
 
 			$scope = JRequest::getVar('scope', '');
@@ -408,7 +406,7 @@ class WikiModelBook extends \Hubzero\Base\Object
 			// Load the page
 			$this->_cache['page'] = new WikiModelPage($pagename, $scope);
 
-			if (!$this->_cache['page']->exists() && $this->_cache['page']->get('namespace') == 'help') 
+			if (!$this->_cache['page']->exists() && $this->_cache['page']->get('namespace') == 'help')
 			{
 				$this->_cache['page'] = new WikiModelPage($pagename, '');
 				$this->_cache['page']->set('scope', $scope);
@@ -419,10 +417,10 @@ class WikiModelBook extends \Hubzero\Base\Object
 			}
 		}
 
-		if (!isset($this->_cache['page']) 
+		if (!isset($this->_cache['page'])
 		 || (
-				$id !== null 
-			 && (int) $this->_cache['page']->get('id') != $id 
+				$id !== null
+			 && (int) $this->_cache['page']->get('id') != $id
 			 && (string) $this->_cache['page']->get('pagename') != $this->_tbl->normalize($id)
 			)
 		 )
@@ -451,10 +449,9 @@ class WikiModelBook extends \Hubzero\Base\Object
 	}
 
 	/**
-	 * Set and get a specific offering
-	 * 
-	 * @param      mixed $id Integer or string of tag to look up
-	 * @return     object TagsModelTag
+	 * Get the main page
+	 *
+	 * @return  object WikiModelPage
 	 */
 	public function main()
 	{
@@ -481,12 +478,12 @@ class WikiModelBook extends \Hubzero\Base\Object
 	}
 
 	/**
-	 * Get a list of tags
-	 * 
-	 * @param      string  $rtrn    Format of data to return
-	 * @param      array   $filters Filters to apply
-	 * @param      boolean $clear   Clear cached data?
-	 * @return     mixed
+	 * Get a count or list of pages
+	 *
+	 * @param   string  $rtrn    Format of data to return
+	 * @param   array   $filters Filters to apply
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  mixed
 	 */
 	public function pages($rtrn='list', $filters=array(), $clear=false)
 	{
@@ -533,24 +530,26 @@ class WikiModelBook extends \Hubzero\Base\Object
 	}
 
 	/**
-	 * Get a revisions for a wiki page
-	 * 
-	 * @param      mixed $idx Index value
-	 * @return     array
+	 * Get a count or list of page templates
+	 *
+	 * @param   string  $what    What to return
+	 * @param   array   $filters Filters to apply
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  array
 	 */
 	public function templates($what='list', $filters=array(), $clear=false)
 	{
 		$filters['namespace'] = 'Template';
-		$filters['sortby'] = 'title ASC';
-		$filters['scope'] = JRequest::getVar('scope', '');
+		$filters['sortby']    = 'title ASC';
+		$filters['scope']     = JRequest::getVar('scope', '');
 
 		return $this->pages($what, $filters, $clear);
 	}
 
 	/**
 	 * Get a list of special pages
-	 * 
-	 * @return     array
+	 *
+	 * @return  array
 	 */
 	public function special()
 	{
@@ -597,9 +596,9 @@ class WikiModelBook extends \Hubzero\Base\Object
 	}
 
 	/**
-	 * Get a list of special pages
-	 * 
-	 * @return     array
+	 * Get a list of groups
+	 *
+	 * @return  array
 	 */
 	public function groups()
 	{

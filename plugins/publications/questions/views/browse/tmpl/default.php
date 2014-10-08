@@ -39,9 +39,9 @@ defined('_JEXEC') or die('Restricted access');
 	<p class="section-options">
 		<a class="icon-add add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->publication->id . '&active=questions&action=new'); ?>"><?php echo JText::_('PLG_PUBLICATION_QUESTIONS_ASK_A_QUESTION'); ?></a>
 	</p>
-	<table class="questions entries" summary="Questions submitted by the community">
+	<table class="questions entries">
 		<caption>
-			<?php echo JText::_('PLG_PUBLICATION_QUESTIONS_RECENT_QUESTIONS'); ?> 
+			<?php echo JText::_('PLG_PUBLICATION_QUESTIONS_RECENT_QUESTIONS'); ?>
 			<span>(<?php echo ($this->rows) ? count($this->rows) : '0'; ?>)</span>
 		</caption>
 		<tbody>
@@ -53,7 +53,7 @@ defined('_JEXEC') or die('Restricted access');
 
 		foreach ($this->rows as $row)
 		{
-			if ($i > $this->limit) 
+			if ($i > $this->limit)
 			{
 				break;
 			}
@@ -64,14 +64,14 @@ defined('_JEXEC') or die('Restricted access');
 
 			// author name
 			$name = JText::_('PLG_PUBLICATION_QUESTIONS_ANONYMOUS');
-			if (!$row->get('anonymous')) 
+			if (!$row->get('anonymous'))
 			{
 				$user = JUser::getInstance($row->get('created_by'));
-				if (is_object($user)) 
+				if (is_object($user))
 				{
 					$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $user->get('id')) . '">' . $this->escape(stripslashes($user->get('name'))) . '</a>';
-				} 
-				else 
+				}
+				else
 				{
 					$name = JText::_('PLG_PUBLICATION_QUESTIONS_UNKNOWN');
 				}
@@ -92,8 +92,8 @@ defined('_JEXEC') or die('Restricted access');
 					<span class="entry-title"><?php echo JText::_('PLG_PUBLICATION_QUESTIONS_QUESTION_UNDER_REVIEW'); ?></span><br />
 				<?php } ?>
 					<span class="entry-details">
-						<?php echo JText::sprintf('PLG_PUBLICATION_QUESTIONS_ASKED_BY', $name); ?> <span class="entry-date-at">@</span> 
-						<span class="entry-time"><time datetime="<?php echo $row->created(); ?>"><?php echo $row->created('time'); ?></time></span> <span class="entry-date-on">on</span> 
+						<?php echo JText::sprintf('PLG_PUBLICATION_QUESTIONS_ASKED_BY', $name); ?> <span class="entry-date-at">@</span>
+						<span class="entry-time"><time datetime="<?php echo $row->created(); ?>"><?php echo $row->created('time'); ?></time></span> <span class="entry-date-on">on</span>
 						<span class="entry-date"><time datetime="<?php echo $row->created(); ?>"><?php echo $row->created('date'); ?></time></span>
 						<span class="entry-details-divider">&bull;</span>
 						<span class="entry-state">
@@ -131,7 +131,7 @@ defined('_JEXEC') or die('Restricted access');
 	<?php } ?>
 <?php } else { ?>
 			<tr class="noresults">
-				<td colspan="<?php echo ($this->banking) ? '4' : '3'; ?>">
+				<td>
 					<?php echo JText::_('PLG_PUBLICATION_QUESTIONS_NO_QUESTIONS_FOUND'); ?>
 				</td>
 			</tr>

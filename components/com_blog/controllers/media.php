@@ -38,7 +38,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -54,7 +54,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Download a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function downloadTask()
@@ -73,11 +73,11 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 			$filename = array_pop(explode('/', $_SERVER['REQUEST_URI']));
 
 			//get the file name
-			if (substr(strtolower($filename), 0, strlen('image:')) == 'image:') 
+			if (substr(strtolower($filename), 0, strlen('image:')) == 'image:')
 			{
 				$file = substr($filename, strlen('image:'));
-			} 
-			elseif (substr(strtolower($filename), 0, strlen('file:')) == 'file:') 
+			}
+			elseif (substr(strtolower($filename), 0, strlen('file:')) == 'file:')
 			{
 				$file = substr($filename, strlen('file:'));
 			}
@@ -90,7 +90,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 		$file_path = $this->_getUploadPath('site', 0) . DS . $file;
 
 		// Ensure the file exist
-		if (!file_exists($file_path)) 
+		if (!file_exists($file_path))
 		{
 			JError::raiseError(404, JText::_('The requested file could not be found: %s', $file));
 			return;
@@ -103,12 +103,12 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 		$xserver->acceptranges(false); // @TODO fix byte range support
 
 		//serve up file
-		if (!$xserver->serve()) 
+		if (!$xserver->serve())
 		{
 			// Should only get here on error
 			JError::raiseError(404, JText::_('An error occurred while trying to output the file'));
-		} 
-		else 
+		}
+		else
 		{
 			exit;
 		}
@@ -116,13 +116,13 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Upload a file or create a new folder
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function uploadTask()
 	{
 		// Check if they're logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->displayTask();
 			return;
@@ -130,7 +130,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 		// Incoming file
 		$file = JRequest::getVar('upload', '', 'files', 'array');
-		if (!$file['name']) 
+		if (!$file['name'])
 		{
 			$this->setError(JText::_('COM_BLOG_NO_FILE'));
 			$this->displayTask();
@@ -151,10 +151,10 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 			return;
 		}
 
-		if (!is_dir($path)) 
+		if (!is_dir($path))
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path)) 
+			if (!JFolder::create($path))
 			{
 				$this->setError(JText::_('COM_BLOG_UNABLE_TO_CREATE_UPLOAD_PATH'));
 				$this->displayTask();
@@ -175,7 +175,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 		}
 
 		// Perform the upload
-		if (!JFile::upload($file['tmp_name'], $path . DS . $file['name'])) 
+		if (!JFile::upload($file['tmp_name'], $path . DS . $file['name']))
 		{
 			$this->setError(JText::_('COM_BLOG_ERROR_UPLOADING'));
 		}
@@ -186,13 +186,13 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Deletes a folder
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deletefolderTask()
 	{
 		// Check if they're logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->displayTask();
 			return;
@@ -200,7 +200,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 		// Incoming file
 		$file = trim(JRequest::getVar('folder', '', 'get'));
-		if (!$file) 
+		if (!$file)
 		{
 			$this->setError(JText::_('COM_BLOG_NO_DIRECTORY'));
 			$this->displayTask();
@@ -224,11 +224,11 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 		$folder = $path . DS . $file;
 
 		// Delete the folder
-		if (is_dir($folder)) 
+		if (is_dir($folder))
 		{
 			// Attempt to delete the file
 			jimport('joomla.filesystem.file');
-			if (!JFolder::delete($folder)) 
+			if (!JFolder::delete($folder))
 			{
 				$this->setError(JText::_('COM_BLOG_UNABLE_TO_DELETE_DIRECTORY'));
 			}
@@ -240,13 +240,13 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Deletes a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deletefileTask()
 	{
 		// Check if they're logged in
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->displayTask();
 			return;
@@ -254,7 +254,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 		// Incoming file
 		$file = trim(JRequest::getVar('file', '', 'get'));
-		if (!$file) 
+		if (!$file)
 		{
 			$this->setError(JText::_('COM_BLOG_NO_FILE'));
 			$this->displayTask();
@@ -275,7 +275,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 			return;
 		}
 
-		if (!file_exists($path . DS . $file) or !$file) 
+		if (!file_exists($path . DS . $file) or !$file)
 		{
 			$this->setError(JText::_('COM_BLOG_FILE_NOT_FOUND'));
 			$this->displayTask();
@@ -284,7 +284,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 		// Attempt to delete the file
 		jimport('joomla.filesystem.file');
-		if (!JFile::delete($path . DS . $file)) 
+		if (!JFile::delete($path . DS . $file))
 		{
 			$this->setError(JText::_('COM_BLOG_UNABLE_TO_DELETE_FILE'));
 		}
@@ -295,21 +295,19 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display an upload form and file listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
 		$this->view->setLayout('display');
 
-		$this->_getStyles();
-
 		// Output HTML
 		$this->view->config = $this->config;
 		$this->view->id = JRequest::getInt('id', 0);
 		$this->view->scope = JRequest::getVar('scope', 'site');
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -321,39 +319,29 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 	}
 
 	/**
-	 * Short description for '_getUploadPath'
-	 * 
-	 * Long description (if any) ...
-	 * 
-	 * @param      unknown $scope Parameter description (if any) ...
-	 * @param      unknown $id Parameter description (if any) ...
-	 * @return     string Return description (if any) ...
+	 * Build an upload path
+	 *
+	 * @param      string  $scope
+	 * @param      integer $id
+	 * @return     string
 	 */
 	protected function _getUploadPath($scope, $id)
 	{
-		$paramClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$paramClass = 'JRegistry';
-		}
-
 		$path = JPATH_ROOT;
 		switch ($scope)
 		{
 			case 'member':
 				jimport('joomla.plugin.plugin');
 				$plugin = JPluginHelper::getPlugin('members', 'blog');
-				$params = new $paramClass($plugin->params);
+				$params = new JRegistry($plugin->params);
 				$p = $params->get('uploadpath');
 				$p = str_replace('{{uid}}', \Hubzero\Utility\String::pad($id), $p);
 			break;
 
 			case 'group':
-				jimport('joomla.plugin.plugin');
-				$plugin = JPluginHelper::getPlugin('groups', 'blog');
-				$params = new $paramClass($plugin->params);
-				$p = $params->get('uploadpath');
-				$p = str_replace('{{gid}}', $id, $p);
+				$groupParams = JComponentHelper::getParams('com_groups');
+				$uploadpath = $groupParams->get('uploadpath', '/site/groups');
+				$p = rtrim($uploadpath, DS) . DS . $id . DS . 'uploads' . DS  . 'blog';
 			break;
 
 			case 'site':
@@ -372,7 +360,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Lists all files and folders for a given directory
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function listTask()
@@ -421,8 +409,6 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 			ksort($docs);
 		}
 
-		$this->_getStyles();
-
 		$this->view->docs    = $docs;
 		$this->view->folders = $folders;
 
@@ -430,7 +416,7 @@ class BlogControllerMedia extends \Hubzero\Component\SiteController
 		$this->view->id      = $id;
 		$this->view->scope   = $scope;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{

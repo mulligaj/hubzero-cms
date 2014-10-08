@@ -35,48 +35,48 @@ defined('_JEXEC') or die('Restricted access');
 require_once JPATH_ROOT . DS . 'components' . DS . 'com_events' . DS . 'tables' . DS . 'calendar.php';
 
 //include icalendar file reader
-require_once JPATH_ROOT . DS . 'plugins' . DS . 'groups' . DS . 'calendar' . DS . 'ical.reader.php';
+require_once JPATH_ROOT . DS . 'plugins' . DS . 'groups' . DS . 'calendar' . DS . 'icalparser.php';
 
 class EventsModelCalendar extends \Hubzero\Base\Model
 {
 	/**
 	 * JTable
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl = null;
-	
+
 	/**
 	 * Table name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'EventsCalendar';
-	
+
 	/**
 	 * \Hubzero\Base\ItemList
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_events = null;
 
 	/**
 	 * \Hubzero\Base\ItemList
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_events_repeating = null;
 
 	/**
 	 * Events Count
-	 * 
+	 *
 	 * @var int
 	 */
 	private $_events_count = null;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      mixed     Object Id
 	 * @return     void
 	 */
@@ -84,16 +84,16 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 	{
 		// create needed objects
 		$this->_db = JFactory::getDBO();
-		
+
 		// load page jtable
 		$this->_tbl = new $this->_tbl_name($this->_db);
-		
-		// load object 
+
+		// load object
 		if (is_numeric($oid))
 		{
 			$this->_tbl->load( $oid );
 		}
-		else if(is_object($oid) || is_array($oid))
+		else if (is_object($oid) || is_array($oid))
 		{
 			$this->bind( $oid );
 		}
@@ -108,16 +108,16 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new self($key);
 		}
-		
+
 		return $instances[$key];
 	}
 
@@ -150,22 +150,22 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 					// add repeating filters
 					$filters['repeating'] = true;
 
-					// capture publish up/down 
+					// capture publish up/down
 					// remove for now as we want all events that have a repeating rule
 					$start = JFactory::getDate($filters['publish_up']);
 					$end   = JFactory::getDate($filters['publish_down']);
 					unset($filters['publish_up']);
 					unset($filters['publish_down']);
-					
+
 					// find any events that match our filters
 					$tbl = new EventsEvent($this->_db);
 					if ($results = $tbl->find( $filters ))
 					{
 						foreach ($results as $key => $result)
-						{	
+						{
 							// get repeating occurrences
 							// wrap in try/catch to prevent 500 error
-							$r = new When\When(); 
+							$r = new When\When();
 							try
 							{
 								$r->startDate(JFactory::getDate($result->publish_up))
@@ -191,7 +191,7 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 								{
 									continue;
 								}
-								
+
 								$event               = clone($result);
 								$event->publish_up   = $occurrence->format('Y-m-d H:i:s');
 								$event->publish_down = $occurrence->add($diff)->format('Y-m-d H:i:s');
@@ -224,7 +224,7 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 
 	/**
 	 * Is Calendar a subscription
-	 * 
+	 *
 	 * @return bool
 	 */
 	public function isSubscription()
@@ -249,7 +249,7 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 		// get refresh interval
 		$params = \Hubzero\Plugin\Plugin::getParams('calendar','groups');
 		$interval = $params->get('import_subscription_interval', 60);
-		
+
 		// get datetimes needed to refresh
 		$now             = JFactory::getDate();
 		$lastRefreshed   = JFactory::getDate($this->get('last_fetched_attempt'));
@@ -257,7 +257,7 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 
 		// add refresh interval to last refreshed
 		$lastRefreshed->add($refreshInterval);
-		
+
 		// if we havent passed our need to refresh date stop
 		if ($now < $lastRefreshed && !$force)
 		{
@@ -271,14 +271,14 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 			'calendar_id' => $this->get('id'),
 			'state'       => array(1)
 		));
-		
+
 		//build calendar url
 		$calendarUrl = str_replace('webcal', 'http', $this->get('url'));
-		
+
 		//test to see if this calendar is valid
 		$calendarHeaders = get_headers($calendarUrl, 1);
 		$statusCode      = (isset($calendarHeaders[0])) ? $calendarHeaders[0] : '';
-		
+
 		// if we got a 301, lets update the location
 		if (stristr($statusCode, '301 Moved Permanently'))
 		{
@@ -289,7 +289,7 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 				$this->refresh();
 			}
 		}
-		
+
 		//make sure the calendar url is valid
 		if (!strstr($statusCode, '200 OK'))
 		{
@@ -299,10 +299,10 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 			$this->setError($this->get('title'));
 			return false;
 		}
-		
+
 		//read calendar file
-		$iCalReader = new iCalReader( $calendarUrl );
-		$incomingEvents = $iCalReader->events();
+		$icalparser = new icalparser( $calendarUrl );
+		$incomingEvents = $icalparser->getEvents();
 
 		// check to make sure we have events
 		if (count($incomingEvents) < 1)
@@ -313,12 +313,12 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 
 		//make uid keys for array
 		//makes it easier to diff later on
-		foreach($incomingEvents as $k => $incomingEvent)
+		foreach ($incomingEvents as $k => $incomingEvent)
 		{
 			//get old and new key
 			$oldKey = $k;
 			$newKey = (isset($incomingEvent['UID'])) ? $incomingEvent['UID'] : '';
-			
+
 			//set keys to be the uid
 			if ($newKey != '')
 			{
@@ -326,43 +326,33 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 				unset($incomingEvents[$oldKey]);
 			}
 		}
-		
+
 		//get events we need to delete
 		$eventsToDelete = array_diff($currentEvents->lists('ical_uid'), array_keys($incomingEvents));
-		
+
 		//delete each event we dont have in the incoming events
 		foreach ($eventsToDelete as $eventDelete)
 		{
 			$e = $currentEvents->fetch('ical_uid', $eventDelete);
 			$e->delete();
 		}
-		
+
 		//create new events for each event we pull
-		foreach($incomingEvents as $uid => $incomingEvent)
+		foreach ($incomingEvents as $uid => $incomingEvent)
 		{
 			// fetch event from our current events by uid
 			$event = $currentEvents->fetch('ical_uid', $uid);
-			
+
 			// create blank event if we dont have one
 			if (!$event)
 			{
 				$event = new EventsModelEvent();
 			}
 
-			// make sure we handle all day events from Google
-			if (strlen($incomingEvent['DTSTART']) == 8)
-			{
-				$incomingEvent['DTSTART'] .= 'T05000Z';
-			}
-			if (strlen($incomingEvent['DTEND']) == 8)
-			{
-				$incomingEvent['DTEND'] .= 'T050000Z';
-			}
+			// start & end are already datetime objects
+			$start = $incomingEvent['DTSTART'];
+			$end   = $incomingEvent['DTEND'];
 
-			//get the start and end dates and parse to unix timestamp
-			$start = JFactory::getDate($incomingEvent['DTSTART']);
-			$end   = JFactory::getDate($incomingEvent['DTEND']);
-			
 			// set the timezone
 			$tz = new DateTimezone(JFactory::getConfig()->get('offset'));
 			$start->setTimezone($tz);
@@ -371,6 +361,39 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 			// set publish up/down
 			$publish_up   = $start->toSql();
 			$publish_down = $end->toSql();
+			$allday       = (isset($incomingEvent['ALLDAY']) && $incomingEvent['ALLDAY'] == 1) ? 1 : 0;
+			$rrule        = null;
+
+			// handle rrule
+			if (isset($incomingEvent['RRULE']))
+			{
+				// add frequency
+				$rrule = 'FREQ=' . $incomingEvent['RRULE']['FREQ'];
+
+				// add interval
+				if (!isset($incomingEvent['RRULE']['INTERVAL']))
+				{
+					$incomingEvent['RRULE']['INTERVAL'] = 1;
+				}
+				$rrule .= ';INTERVAL=' . $incomingEvent['RRULE']['INTERVAL'];
+
+				// count
+				if (isset($incomingEvent['RRULE']['COUNT']))
+				{
+					$rrule .= ';COUNT=' . $incomingEvent['RRULE']['COUNT'];
+				}
+
+				// until
+				if (isset($incomingEvent['RRULE']['UNTIL']))
+				{
+					if (strlen($incomingEvent['RRULE']['UNTIL']) == 8)
+					{
+						$incomingEvent['RRULE']['UNTIL'] .= 'T000000Z';
+					}
+					$until = JFactory::getDate($incomingEvent['RRULE']['UNTIL']);
+					$rrule .= ';UNTIL=' . $until->format('Ymd\THis\Z');
+				}
+			}
 
 			// handle all day events
 			if ($start->add(new DateInterval('P1D')) == $end)
@@ -383,11 +406,13 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 			$event->set('content', isset($incomingEvent['DESCRIPTION']) ? $incomingEvent['DESCRIPTION'] : '');
 			$event->set('content', stripslashes(str_replace('\n', "\n", $event->get('content'))));
 			$event->set('adresse_info', isset($incomingEvent['LOCATION']) ? $incomingEvent['LOCATION'] : '');
-			$event->set('extra_info', isset($incomingEvent['URL;VALUE=URI']) ? $incomingEvent['URL;VALUE=URI'] : '');
+			$event->set('extra_info', isset($incomingEvent['URL']) ? $incomingEvent['URL'] : '');
 			$event->set('modified', JFactory::getDate()->toSql());
 			$event->set('modified_by', JFactory::getUser()->get('id'));
 			$event->set('publish_up', $publish_up);
 			$event->set('publish_down', $publish_down);
+			$event->set('allday', $allday);
+			$event->set('repeating_rule', $rrule);
 
 			// new event
 			if (!$event->get('id'))
@@ -408,7 +433,7 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 			// save event
 			$event->store(true);
 		}
-		
+
 		// mark as fetched
 		// clear failed attempts
 		$this->set('last_fetched', JFactory::getDate()->toSql());
@@ -420,16 +445,23 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 
 	/**
 	 * Delete Calendar
-	 * 
+	 *
 	 * @return [type] [description]
 	 */
-	public function delete()
+	public function delete($deleteEvents = false)
 	{
 		// if subscription delete events
-		if ($this->isSubscription())
+		if ($this->isSubscription() || $deleteEvents)
 		{
 			// delete events
 			$sql = "DELETE FROM `#__events` WHERE `calendar_id`=" . $this->_db->quote($this->get('id'));
+			$this->_db->setQuery($sql);
+			$this->_db->query();
+		}
+		else
+		{
+			// update all events, resetting their calendar
+			$sql = "UPDATE `#__events` SET `calendar_id`=0 WHERE `calendar_id`=" . $this->_db->quote($this->get('id'));
 			$this->_db->setQuery($sql);
 			$this->_db->query();
 		}
@@ -440,7 +472,7 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 
 	/**
 	 * Delete a calendars events
-	 * 
+	 *
 	 * @param  boolean $force Force delete events (event if not subscription)
 	 * @return void
 	 */

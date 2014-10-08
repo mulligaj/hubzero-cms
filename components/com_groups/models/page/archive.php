@@ -35,69 +35,73 @@ defined('_JEXEC') or die('Restricted access');
 require_once JPATH_ROOT . DS . 'components' . DS . 'com_groups' . DS . 'models' . DS . 'page.php';
 require_once JPATH_ROOT . DS . 'components' . DS . 'com_groups' . DS . 'models' . DS . 'page' . DS . 'category' . DS . 'archive.php';
 
+/**
+ * Group page archive model class
+ */
 class GroupsModelPageArchive extends JObject
 {
 	/**
 	 * \Hubzero\Base\Model
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_pages = null;
 
 	/**
-	 * Modules count
-	 * 
+	 * Page count
+	 *
 	 * @var integer
 	 */
 	private $_pages_count = null;
-	
+
 	/**
 	 * JDatabase
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_db = NULL;
-	
+
 	/**
 	 * \Hubzero\User\Group
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_group = NULL;
-	
+
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function __construct()
 	{
 		$this->_db    = JFactory::getDBO();
-		$this->_group = \Hubzero\User\Group::getInstance( JRequest::getVar('cn', '') );
+		$this->_group = \Hubzero\User\Group::getInstance(JRequest::getVar('cn', ''));
 	}
-	
+
 	/**
 	 * Get Instance of Page Archive
 	 *
-	 * @param   $key   Instance Key
+	 * @param   string $key Instance Key
+	 * @return  object GroupsModelPageArchive
 	 */
 	static function &getInstance($key=null)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
-			$instances[$key] = new GroupsModelPageArchive();
+			$instances[$key] = new self();
 		}
-		
+
 		return $instances[$key];
 	}
-	
+
 	/**
 	 * Get a list of group pages
 	 *
@@ -106,13 +110,13 @@ class GroupsModelPageArchive extends JObject
 	 * @param      boolean $boolean Clear cached data?
 	 * @return     mixed
 	 */
-	public function pages( $rtrn = 'list', $filters = array(), $clear = false )
+	public function pages($rtrn = 'list', $filters = array(), $clear = false)
 	{
 		switch (strtolower($rtrn))
 		{
 			case 'alias':
 				$aliases = array();
-				if($results = $this->pages('list', $filters, true))
+				if ($results = $this->pages('list', $filters, true))
 				{
 					foreach ($results as $result)
 					{
@@ -123,13 +127,13 @@ class GroupsModelPageArchive extends JObject
 			break;
 			case 'unapproved':
 				$unapproved = array();
-				if($results = $this->pages('list', $filters, true))
+				if ($results = $this->pages('list', $filters, true))
 				{
 					foreach ($results as $k => $result)
 					{
 						// get current version
 						$version = $result->versions()->first();
-						
+
 						// if current version is unapproved return it
 						if ($version->get('approved') == 0)
 						{
@@ -144,7 +148,7 @@ class GroupsModelPageArchive extends JObject
 				if (!($this->_pages instanceof \Hubzero\Base\Model\ItemList) || $clear)
 				{
 					$tbl = new GroupsTablePage($this->_db);
-					if ($results = $tbl->find( $filters ))
+					if ($results = $tbl->find($filters))
 					{
 						foreach ($results as $key => $result)
 						{
@@ -157,7 +161,7 @@ class GroupsModelPageArchive extends JObject
 			break;
 		}
 	}
-	
+
 	/**
 	 * Reset all pages with new value for key
 	 *
@@ -166,12 +170,12 @@ class GroupsModelPageArchive extends JObject
 	 * @param      array   $filters     Filters passed to pages() method
 	 * @return     mixed
 	 */
-	public function reset( $key = 'home', $value = 0, $filters = array() )
+	public function reset($key = 'home', $value = 0, $filters = array())
 	{
 		// get list of pages
 		$pages = $this->pages('list', $filters);
-		
-		// reset each page 
+
+		// reset each page
 		foreach ($pages as $page)
 		{
 			$page->set($key, $value);

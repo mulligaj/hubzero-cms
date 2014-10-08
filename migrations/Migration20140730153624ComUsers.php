@@ -15,7 +15,7 @@ class Migration20140730153624ComUsers extends Base
 	 **/
 	public function up()
 	{
-		$params    = \JComponentHelper::getParams('com_users');
+		$params    = $this->getParams('com_users');
 		$user_type = $params->get('new_usertype');
 
 		if (is_string($user_type) && strlen($user_type) > 2)
@@ -25,17 +25,15 @@ class Migration20140730153624ComUsers extends Base
 			if ($id = $this->db->loadResult())
 			{
 				$params->set('new_usertype', $id);
-				$query = "UPDATE `#__extensions` SET `params` = " . $this->db->quote((string)$params) . " WHERE `element` = 'com_users'";
-				$this->db->setQuery($query);
-				$this->db->query();
+				$component = new \JTableExtension($this->db);
+				$component->load(array('element'=>'com_users'));
+				$component->set('params', (string) $params);
+				$component->store();
 			}
 			else
 			{
-				$return = new \stdClass();
-				$return->error = new \stdClass();
-				$return->error->type = 'warning';
-				$return->error->message = 'Failed to convert new user type paramter of "' . $user_type . '" to an ID.';
-				return $return;
+				$this->setError('Failed to convert new user type paramter of "' . $user_type . '" to an ID.', 'warning');
+				return false;
 			}
 		}
 	}

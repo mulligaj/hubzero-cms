@@ -30,9 +30,14 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-JToolBarHelper::title(JText::_('Publications') . ': [' . JText::_('Master Types') . ']', 'addedit.png');
+JToolBarHelper::title(JText::_('COM_PUBLICATIONS_PUBLICATIONS') . ': [' . JText::_('COM_PUBLICATIONS_MASTER_TYPES') . ']', 'addedit.png');
 JToolBarHelper::addNew();
 JToolBarHelper::editList();
+JToolBarHelper::spacer();
+JToolBarHelper::deleteList();
+
+// Use new curation flow?
+$useBlocks  = $this->config->get('curation', 0);
 
 ?>
 <form action="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>" method="post" name="adminForm" id="adminForm">
@@ -40,18 +45,22 @@ JToolBarHelper::editList();
 		<thead>
 			<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count( $this->rows );?>);" /></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('ID'), 'id', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('Name'), 'type', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
-				<th><?php echo JText::_('Alias'); ?></th>
-				<th><?php echo JText::_('Active'); ?></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('Contributable'), 'contributable', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('Supporting'), 'supporting', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
-				<th><?php echo JHTML::_('grid.sort', JText::_('Order'), 'ordering', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_ID'), 'id', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_NAME'), 'type', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<th><?php echo JText::_('COM_PUBLICATIONS_FIELD_ALIAS'); ?></th>
+				<?php if (!$useBlocks) { ?>
+				<th><?php echo JText::_('COM_PUBLICATIONS_STATUS_ACTIVE'); ?></th>
+				<?php } ?>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_CONTRIBUTABLE'), 'contributable', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<?php if (!$useBlocks) { ?>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_SUPPORTING'), 'supporting', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
+				<?php } ?>
+				<th><?php echo JHTML::_('grid.sort', JText::_('COM_PUBLICATIONS_FIELD_ORDER'), 'ordering', @$this->filters['sort_Dir'], @$this->filters['sort'] ); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
 			<tr>
-				<td colspan="5"><?php echo $this->pageNav->getListFooter(); ?></td>
+				<td colspan="8"><?php echo $this->pageNav->getListFooter(); ?></td>
 			</tr>
 		</tfoot>
 		<tbody>
@@ -60,17 +69,17 @@ $k = 0;
 for ($i=0, $n=count( $this->rows ); $i < $n; $i++)
 {
 	$row = &$this->rows[$i];
-	$sClass  = $row->supporting == 1 ? 'item_on' : 'item_off';
-	$cClass  = $row->contributable == 1 ? 'item_on' : 'item_off';
-	
+	$sClass  = $row->supporting == 1 ? 'on' : 'off';
+	$cClass  = $row->contributable == 1 ? 'on' : 'off';
+
 	// Determine whether master type is supported in current version of hub code
-	$aClass  = 'item_off';
+	$aClass  = 'off';
 	$active  = 'off';
-	
+
 	// If we got a plugin - type is supported
 	if (JPluginHelper::isEnabled('projects', $row->alias))
 	{
-		$aClass  = 'item_on';
+		$aClass  = 'on';
 		$active  = 'on';
 	}
 ?>
@@ -83,18 +92,29 @@ for ($i=0, $n=count( $this->rows ); $i < $n; $i++)
 				</td>
 				<td>
 					<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->id; ?>">
-						<span><?php echo $this->escape($row->type); ?></span></a>
+						<span><?php echo $this->escape($row->type); ?></span>
+					</a>
 				</td>
 				<td><span class="block faded"><?php echo $this->escape($row->alias); ?></span></td>
+				<?php if (!$useBlocks) { ?>
 				<td class="centeralign narrow">
-					<span class="<?php echo $aClass; ?>"><?php echo $active; ?></span>
+					<span class="state <?php echo $aClass; ?>">
+						<span><?php echo $active; ?></span>
+					</span>
 				</td>
+				<?php } ?>
 				<td class="centeralign narrow">
-					<span class="<?php echo $cClass; ?>">&nbsp;</span>
+					<span class="state <?php echo $cClass; ?>">
+						<span><?php echo JText::_($cClass); ?></span>
+					</span>
 				</td>
+				<?php if (!$useBlocks) { ?>
 				<td class="centeralign narrow">
-					<span class="<?php echo $sClass; ?>">&nbsp;</span>
+					<span class="state <?php echo $sClass; ?>">
+						<span><?php echo JText::_($sClass); ?></span>
+					</span>
 				</td>
+				<?php } ?>
 				<td class="order">
 					<span>
 						<?php echo $this->pageNav->orderUpIcon( $i, (isset($this->rows[$i-1]->ordering)) ); ?>
@@ -117,6 +137,6 @@ for ($i=0, $n=count( $this->rows ); $i < $n; $i++)
 	<input type="hidden" name="task" value="" />
 	<input type="hidden" name="boxchecked" value="0" />
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sort']; ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />	
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
 	<?php echo JHTML::_('form.token'); ?>
 </form>

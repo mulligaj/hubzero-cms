@@ -36,10 +36,10 @@ defined('_JEXEC') or die('Restricted access');
  */
 class plgPublicationsSupportingDocs extends JPlugin
 {
-	
+
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$subject Event observer
 	 * @param      array  $config   Optional config values
 	 * @return     void
@@ -47,7 +47,7 @@ class plgPublicationsSupportingDocs extends JPlugin
 	public function __construct(&$subject, $config)
 	{
 		parent::__construct($subject, $config);
-		
+
 		// Load plugin parameters
 		$this->_plugin = JPluginHelper::getPlugin( 'publications', 'supportingdocs' );
 		$this->_params = new JParameter( $this->_plugin->params );
@@ -57,31 +57,31 @@ class plgPublicationsSupportingDocs extends JPlugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $publication 	Current publication
 	 * @param      string $version 		Version name
 	 * @param      boolean $extended 	Whether or not to show panel
 	 * @return     array
-	 */	
-	public function &onPublicationAreas( $publication, $version = 'default', $extended = true ) 
+	 */
+	public function &onPublicationAreas( $publication, $version = 'default', $extended = true )
 	{
-		if ($publication->_category->_params->get('plg_supportingdocs')) 
+		if ($publication->_category->_params->get('plg_supportingdocs'))
 		{
 			$areas = array(
 				'supportingdocs' => JText::_('PLG_PUBLICATION_SUPPORTINGDOCS')
 			);
-		} 
-		else 
+		}
+		else
 		{
 			$areas = array();
 		}
-		
+
 		return $areas;
 	}
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  	$publication 	Current publication
 	 * @param      string  	$option    		Name of the component
 	 * @param      array   	$areas     		Active area(s)
@@ -89,21 +89,22 @@ class plgPublicationsSupportingDocs extends JPlugin
 	 * @param      string 	$version 		Version name
 	 * @param      boolean 	$extended 		Whether or not to show panel
 	 * @return     array
-	 */	
-	public function onPublication( $publication, $option, $areas, $rtrn='all', $version = 'default', $extended = true )
+	 */
+	public function onPublication( $publication, $option, $areas, $rtrn='all',
+		$version = 'default', $extended = true, $authorized = true )
 	{
 		$arr = array(
 			'html'=>'',
 			'metadata'=>''
 		);
-		
+
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array( $areas )) 
+		if (is_array( $areas ))
 		{
-			if (!array_intersect( $areas, $this->onPublicationAreas( $publication ) ) 
-			&& !array_intersect( $areas, array_keys( $this->onPublicationAreas( $publication ) ) )) 
+			if (!array_intersect( $areas, $this->onPublicationAreas( $publication ) )
+			&& !array_intersect( $areas, array_keys( $this->onPublicationAreas( $publication ) ) ))
 			{
-				if ($publication->_category->_params->get('plg_supportingdocs')) 
+				if ($publication->_category->_params->get('plg_supportingdocs'))
 				{
 					$rtrn == 'metadata';
 				}
@@ -113,51 +114,50 @@ class plgPublicationsSupportingDocs extends JPlugin
 				}
 			}
 		}
-		
-		// Only applicable to latest published version
-		/*if (!$extended) 
-		{
-			return $arr;
-		}*/
-				
-		\Hubzero\Document\Assets::addPluginStylesheet('publications', 'supportingdocs');
-		
+
 		$database = JFactory::getDBO();
-		
+
 		// Initiate a publication helper class
 		$helper = new PublicationHelper($database, $publication->id, $publication->version_id);
-			
+
 		$config = JComponentHelper::getParams( $option );
 		$jconfig = JFactory::getConfig();
-				
+
 		// Instantiate a view
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'=>'publications',
-				'element'=>'supportingdocs',
-				'name'=>'browse'
+				'folder'	=>'publications',
+				'element'	=>'supportingdocs',
+				'name'		=>'browse'
 			)
 		);
-		
+
 		// Get docs
 		$pContent = new PublicationAttachment( $database );
-		$view->docs = $pContent->getAttachments( $publication->version_id, $filters = array('role' => '0'));
-		
+		$view->docs = $pContent->getAttachments( $publication->version_id, $filters = array('role' => 4));
+
 		// Get projects html helper
 		require_once( JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS . 'helpers' . DS . 'html.php' );
-		
-		// Build publication path 
-		$base_path = $config->get('webpath');
-		$view->path = $helper->buildPath($publication->id, $publication->version_id, $base_path, $publication->secret, $root = 1);
+
+		// Build publication path
+		$base_path 	= $config->get('webpath');
+		$view->path = $helper->buildPath(
+			$publication->id,
+			$publication->version_id,
+			$base_path,
+			$publication->secret,
+			$root = 1
+		);
 
 		// Pass the view some info
-		$view->option = $option;
-		$view->publication = $publication;
-		$view->helper = $helper;
-		$view->config = $config;
-		$view->version = $version;
-		$view->live_site = $jconfig->getValue('config.live_site') . DS;
-		if ($this->getError()) 
+		$view->option 		= $option;
+		$view->publication 	= $publication;
+		$view->helper 		= $helper;
+		$view->config 		= $config;
+		$view->version 		= $version;
+		$view->live_site 	= $jconfig->getValue('config.live_site') . DS;
+		$view->authorized	= $authorized;
+		if ($this->getError())
 		{
 			$view->setError( $this->getError() );
 		}

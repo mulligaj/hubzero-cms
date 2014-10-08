@@ -1,7 +1,7 @@
-<?php 
+<?php
 /**
  * @copyright	Copyright 2005-2009 by Purdue Research Foundation, West Lafayette, IN 47906.
- * @license	GNU General Public License, version 2 (GPLv2) 
+ * @license	GNU General Public License, version 2 (GPLv2)
  *
  * Copyright 2005-2009 by Purdue Research Foundation, West Lafayette, IN 47906.
  * All rights reserved.
@@ -23,7 +23,7 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
-	
+
 	/* Resume List */
 	$seekers 	= $this->seekers;
 	$filters 	= $this->filters;
@@ -32,47 +32,107 @@ defined('_JEXEC') or die( 'Restricted access' );
 	$pageNav 	= $this->pageNav;
 	$cats 		= $this->cats;
 	$types 		= $this->types;
-	
+
 	$jobsHtml = new JobsHtml();
 
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
-<?php if ($this->emp or $this->admin) {  ?>
-<div id="content-header-extra">
-	<ul id="useroptions">
-	<?php if ($this->emp) {  ?>
-		<li><a class="myjobs btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=dashboard'); ?>"><?php echo JText::_('Employer Dashboard'); ?></a></li>
-		<?php if ($filters['filterby'] == 'shortlisted') { ?>
-		<li><a class="complete btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=resumes'); ?>"><?php echo JText::_('All Candidates'); ?></a></li>
-		<?php } else { ?>
-		<li><a class="shortlist btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=resumes').'?filterby=shortlisted'; ?>"><?php echo JText::_('Candidate Shortlist'); ?></a></li>
-		<?php } ?>
-	<?php } else {  ?>
-		<li>
-			<!-- <?php echo JText::_('You are logged in as a site administrator.'); ?> -->
-			<a class="myjobs btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=dashboard'); ?>"><?php echo JText::_('Administrator Dashboard'); ?></a>
-		</li>
-	<?php } ?>
-	</ul>
-</div><!-- / #content-header-extra -->
-<?php } ?>
 
-<div class="main section">
-	<form method="post" action="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=resumes'); ?>">
+	<?php if ($this->emp or $this->admin) {  ?>
+	<div id="content-header-extra">
+		<ul id="useroptions">
+		<?php if ($this->emp) {  ?>
+			<li><a class="icon-dashboard myjobs btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=dashboard'); ?>"><?php echo JText::_('Employer Dashboard'); ?></a></li>
+			<?php if ($filters['filterby'] == 'shortlisted') { ?>
+			<li><a class="complete btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=resumes'); ?>"><?php echo JText::_('All Candidates'); ?></a></li>
+			<?php } else { ?>
+			<li><a class="icon-list shortlist btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=resumes').'?filterby=shortlisted'; ?>"><?php echo JText::_('Candidate Shortlist'); ?></a></li>
+			<?php } ?>
+		<?php } else {  ?>
+			<li>
+				<!-- <?php echo JText::_('You are logged in as a site administrator.'); ?> -->
+				<a class="icon-dashboard myjobs btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=dashboard'); ?>"><?php echo JText::_('Administrator Dashboard'); ?></a>
+			</li>
+		<?php } ?>
+		</ul>
+	</div><!-- / #content-header-extra -->
+	<?php } ?>
+</header><!-- / #content-header -->
+
+<form method="post" action="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=resumes'); ?>">
+	<section class="main section">
+		<div class="subject">
+		<?php if ($filters['filterby']== 'shortlisted') { ?>
+			<h4><?php echo JText::_('Candidate Shortlist '); ?></h4>
+		<?php } ?>
+		<?php if (count($seekers) > 0) { // show how many ?>
+			<p class="note_total">
+				<?php echo JText::_('Displaying '); ?>
+				<?php
+				$html = '';
+				if ($filters['start'] == 0) {
+					$html .= $pageNav->total > count($seekers) ? ' top ' . count($seekers) . ' out of ' . $pageNav->total : strtolower(JText::_('all')) . ' ' . count($seekers);
+				} else {
+					$html .= ($filters['start'] + 1);
+					$html .= ' - ' . ($filters['start'] + count($seekers)) . ' out of ' . $pageNav->total;
+				}
+				$html .= ' ';
+				$html .= $filters['filterby']=='shortlisted' ? JText::_('shortlisted').' ' : '';
+				$html .= strtolower(JText::_('candidates'));
+				echo $html;
+				?>
+			</p>
+
+			<ul id="candidates">
+			<?php
+			JPluginHelper::importPlugin( 'members','resume' );
+			$dispatcher = JDispatcher::getInstance();
+			foreach ($seekers as $seeker)
+			{
+				?>
+				<li>
+				<?php
+				$out = $dispatcher->trigger( 'showSeeker', array($seeker, $emp, $admin, 'com_members', $list=1) );  // show seeker info
+				if (count($out) > 0)
+				{
+					echo $out[0];
+				}
+				?>
+				</li>
+				<?php
+			}
+			?>
+			</ul>
+		<?php } else { // no candidates found ?>
+			<p>
+				<?php echo $filters['filterby']=='shortlisted' ? JText::_('You haven\'t yet included any candidates on your shortlist. Keep searching!') : JText::_('Sorry, no resumes found at the moment.'); ?>
+			</p>
+		<?php } ?>
+
+		<?php
+		// Insert page navigation
+		$pageNav->setAdditionalUrlParam('task', 'resumes');
+		$pageNav->setAdditionalUrlParam('sortby', $this->filters['sortby']);
+		$pageNav->setAdditionalUrlParam('filterby', $this->filters['filterby']);
+		$pageNav->setAdditionalUrlParam('category', $this->filters['category']);
+		$pageNav->setAdditionalUrlParam('type', $this->filters['type']);
+		$pageNav->setAdditionalUrlParam('q', $this->filters['search']);
+		echo $this->pageNav->getListFooter();
+		?>
+		</div><!-- / .subject -->
 		<div class="aside">
 		<?php if ($filters['filterby'] != 'shortlisted') { ?>
 			<fieldset id="matchsearch">
 				<label>
-					<?php echo JText::_('Sort by'); ?>: 
+					<?php echo JText::_('Sort by'); ?>:
 					<div class="together">
-						<input class="option" type="radio" name="sortby" value="lastupdate"<?php if ($filters['sortby']!='bestmatch') { echo ' checked="checked"'; } ?> /> <?php echo JText::_('last update'); ?> &nbsp; 
+						<input class="option" type="radio" name="sortby" value="lastupdate"<?php if ($filters['sortby']!='bestmatch') { echo ' checked="checked"'; } ?> /> <?php echo JText::_('last update'); ?> &nbsp;
 						<input class="option" type="radio" name="sortby" value="bestmatch"<?php if ($filters['sortby']=='bestmatch') { echo ' checked="checked"'; } else if (!$filters['match']) { echo ' disabled="disabled"'; } ?> /> <?php echo JText::_('best match'); ?>
 					</div>
 				</label>
 				<label>
-					<?php echo JText::_('Keywords'); ?>: 
+					<?php echo JText::_('Keywords'); ?>:
 					<span class="questionmark tooltips" title="Keywords Search :: Use skill and action keywords separated by commas, e.g. XML, web, MBA etc."></span>
 					<input name="q" maxlength="250" type="text" value="<?php echo $this->escape($filters['search']); ?>" />
 				</label>
@@ -85,7 +145,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 					<?php echo $jobsHtml->formSelect('type', $types, $filters['type'], '', ''); ?>
 				</label>
 				<label>
-					<input class="option" type="checkbox" name="saveprefs" value="1" checked="checked" /> 
+					<input class="option" type="checkbox" name="saveprefs" value="1" checked="checked" />
 					<?php echo JText::_('Save my search preferences'); ?>
 				</label>
 				<input type="hidden" name="performsearch" value="1" />
@@ -99,66 +159,5 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</p>
 		<?php } ?>
 		</div><!-- / .aside -->
-		<div class="subject">
-		<?php if ($filters['filterby']== 'shortlisted') { ?>
-			<h4><?php echo JText::_('Candidate Shortlist '); ?></h4>
-		<?php } ?>
-		<?php if (count($seekers) > 0) { // show how many ?>
-			<p class="note_total">
-				<?php echo JText::_('Displaying '); ?>
-				<?php 
-				$html = '';
-				if ($filters['start'] == 0) {
-					$html .= $pageNav->total > count($seekers) ? ' top ' . count($seekers) . ' out of ' . $pageNav->total : strtolower(JText::_('all')) . ' ' . count($seekers);
-				} else {
-					$html .= ($filters['start'] + 1);
-					$html .= ' - ' . ($filters['start'] + count($seekers)) . ' out of ' . $pageNav->total;
-				} 
-				$html .= ' ';
-				$html .= $filters['filterby']=='shortlisted' ? JText::_('shortlisted').' ' : '';
-				$html .= strtolower(JText::_('candidates'));
-				echo $html;
-				?>
-			</p>
-			
-			<ul id="candidates">
-			<?php 
-			JPluginHelper::importPlugin( 'members','resume' );
-			$dispatcher = JDispatcher::getInstance();	
-			foreach ($seekers as $seeker) 
-			{
-				?>
-				<li>
-				<?php
-				$out = $dispatcher->trigger( 'showSeeker', array($seeker, $emp, $admin, 'com_members', $list=1) );  // show seeker info
-				if (count($out) > 0) 
-				{
-					echo $out[0];
-				}
-				?>
-				</li>
-				<?php 
-			}
-			?>
-			</ul>
-		<?php } else { // no candidates found ?>
-			<p>
-				<?php echo $filters['filterby']=='shortlisted' ? JText::_('You haven\'t yet included any candidates on your shortlist. Keep searching!') : JText::_('Sorry, no resumes found at the moment.'); ?>
-			</p>
-		<?php } ?>
-		
-		<?php 
-		// Insert page navigation
-		$pageNav->setAdditionalUrlParam('task', 'resumes');
-		$pageNav->setAdditionalUrlParam('sortby', $this->filters['sortby']);
-		$pageNav->setAdditionalUrlParam('filterby', $this->filters['filterby']);
-		$pageNav->setAdditionalUrlParam('category', $this->filters['category']);
-		$pageNav->setAdditionalUrlParam('type', $this->filters['type']);
-		$pageNav->setAdditionalUrlParam('q', $this->filters['search']);
-		echo $this->pageNav->getListFooter();
-		?>
-		</div><!-- / .subject -->
-		<div class="clear"></div>
-	</form>
-</div>
- 
+	</section>
+</form>

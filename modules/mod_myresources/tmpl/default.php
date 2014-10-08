@@ -33,30 +33,16 @@ defined('_JEXEC') or die('Restricted access');
 
 $juser = JFactory::getUser();
 
-if (!$this->no_html) { 
+if (!$this->no_html) {
 ?>
+	<ul class="module-nav">
+		<li>
+			<a class="icon-browse" href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=contributions&area=resources'); ?>">
+				<?php echo JText::_('MOD_MYRESOURCES_ALL_PUBLICATIONS'); ?>
+			</a>
+		</li>
+	</ul>
 	<form method="get" action="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=dashboard'); ?>" data-module="<?php echo $this->module->id; ?>" id="myresources-form" enctype="multipart/form-data">
-		<fieldset>
-			<label for="myresources-sort">
-				<?php echo JText::_('MOD_MYRESOURCES_SORT_BY'); ?>
-				<select name="params[sort]" id="myresources-sort">
-					<option value="publish_up"<?php if ($this->sort == 'publish_up') { echo ' selected="selected"'; } ?>><?php echo JText::_('MOD_MYRESOURCES_DATE'); ?></option>
-					<option value="title"<?php if ($this->sort == 'title') { echo ' selected="selected"'; } ?>><?php echo JText::_('MOD_MYRESOURCES_TITLE'); ?></option>
-					<option value="usage"<?php if ($this->sort == 'usage') { echo ' selected="selected"'; } ?>><?php echo JText::_('MOD_MYRESOURCES_USAGE'); ?></option>
-				</select>
-			</label>
-			<label for="myresources-limit">
-				<?php echo JText::_('MOD_MYRESOURCES_SHOW'); ?>
-				<select name="params[limit]" id="myresources-limit">
-					<option value="5"<?php if ($this->limit == 5) { echo ' selected="selected"'; } ?>>5</option>
-					<option value="10"<?php if ($this->limit == 10) { echo ' selected="selected"'; } ?>>10</option>
-					<option value="20"<?php if ($this->limit == 20) { echo ' selected="selected"'; } ?>>20</option>
-					<option value="50"<?php if ($this->limit == 50) { echo ' selected="selected"'; } ?>>50</option>
-					<option value="100"<?php if ($this->limit == 100) { echo ' selected="selected"'; } ?>>100</option>
-					<option value="all"<?php if ($this->limit == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('MOD_MYRESOURCES_ALL'); ?></option>
-				</select>
-			</label>
-		</fieldset>
 <?php } ?>
 		<div id="myresources-content">
 		<?php if (!$this->contributions) { ?>
@@ -85,19 +71,12 @@ if (!$this->no_html) {
 						<?php echo $thedate . ' &nbsp; ' . $this->escape(stripslashes($this->contributions[$i]->typetitle)); ?>
 					</span>
 				</li>
-			<?php 
+			<?php
 				}
 			?>
 			</ul>
 		<?php } ?>
 		</div>
 <?php if (!$this->no_html) { ?>
-		<ul class="module-nav">
-			<li>
-				<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=contributions&area=resources'); ?>">
-					<?php echo JText::_('MOD_MYRESOURCES_ALL_PUBLICATIONS'); ?>
-				</a>
-			</li>
-		</ul>
 	</form>
 <?php } ?>

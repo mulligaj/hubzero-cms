@@ -34,83 +34,60 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Publications Plugin class for wishes
  */
-class plgPublicationsWishlist extends JPlugin
+class plgPublicationsWishlist extends \Hubzero\Plugin\Plugin
 {
-	
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-		
-		// Load plugin parameters
-		$this->_plugin = JPluginHelper::getPlugin( 'publications', 'wishlist' );
-		$this->_params = new JParameter( $this->_plugin->params );
-		
-		// Get the component parameters
-		$wconfig =  JComponentHelper::getParams( 'com_wishlist' );
-		$this->config = $wconfig;
-
-		$this->loadLanguage();
-
-		$lang = JFactory::getLanguage();
-		$lang->load('com_wishlist');
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $publication 	Current publication
 	 * @param      string $version 		Version name
 	 * @param      boolean $extended 	Whether or not to show panel
 	 * @return     array
-	 */	
-	function &onPublicationAreas( $publication, $version = 'default', $extended = true ) 
+	 */
+	public function &onPublicationAreas($publication, $version = 'default', $extended = true)
 	{
-		if ($publication->_category->_params->get('plg_wishlist') && $extended) 
+		$areas = array();
+
+		if ($publication->_category->_params->get('plg_wishlist') && $extended)
 		{
-			$areas = array(
-				'wishlist' => JText::_('Wishlist')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['wishlist'] = JText::_('Wishlist');
 		}
-		
+
 		return $areas;
 	}
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  	$publication 	Current publication
 	 * @param      string  	$option    		Name of the component
 	 * @param      array   	$areas     		Active area(s)
 	 * @param      string  	$rtrn      		Data to be returned
 	 * @param      string 	$version 		Version name
-	 * @param      boolean 	$extended 		Whether or not to show panel	
+	 * @param      boolean 	$extended 		Whether or not to show panel
 	 * @return     array
-	 */	
-	function onPublication( $publication, $option, $areas, $rtrn='all', $version = 'default', $extended = true )
+	 */
+	public function onPublication($publication, $option, $areas, $rtrn='all', $version = 'default', $extended = true)
 	{
 		$arr = array(
 			'html'=>'',
 			'metadata'=>''
 		);
-		
+
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array( $areas )) 
+		if (is_array($areas))
 		{
-			if (!array_intersect( $areas, $this->onPublicationAreas( $publication ) ) 
-			&& !array_intersect( $areas, array_keys( $this->onPublicationAreas( $publication ) ) )) 
+			if (!array_intersect($areas, $this->onPublicationAreas($publication))
+			&& !array_intersect($areas, array_keys($this->onPublicationAreas($publication))))
 			{
-				if ($publication->_category->_params->get('plg_wishlist')) 
+				if ($publication->_category->_params->get('plg_wishlist'))
 				{
 					$rtrn == 'metadata';
 				}
@@ -120,132 +97,127 @@ class plgPublicationsWishlist extends JPlugin
 				}
 			}
 		}
-				
+
 		$database = JFactory::getDBO();
-		$juser 	  = JFactory::getUser();
-		
+		$juser    = JFactory::getUser();
+
 		$option = 'com_wishlist';
-		$cat 	= 'publication';
+		$cat    = 'publication';
 		$refid  = $publication->id;
 		$items  = 0;
 		$admin  = 0;
-		$html	= '';		
-		
+		$html   = '';
+
 		// Include some classes & scripts
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.php' );
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.plan.php' );
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.owner.php' );
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.owner.group.php' );
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.php' );
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.rank.php' );
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.attachment.php' );
-		require_once( JPATH_ROOT . DS . 'components' . DS . $option . DS . 'controllers' . DS . 'wishlist.php' );
-		
+		require_once(JPATH_ROOT . DS . 'components' . DS . $option . DS . 'models' . DS . 'wishlist.php');
+		require_once(JPATH_ROOT . DS . 'components' . DS . $option . DS . 'controllers' . DS . 'wishlist.php');
+
+		$lang = JFactory::getLanguage();
+		$lang->load('com_wishlist');
+
 		// Configure controller
-		$controller = new WishlistController();
-		$controller->setVar('_option', $option);
-		$controller->setVar('banking', $this->config->get('banking'));
-		
+		$controller = new WishlistControllerWishlist();
+
 		// Get filters
-		$filters = WishlistController::getFilters(0);
-		$filters['limit'] = $this->_params->get('limit');
-		
+		$filters = $controller->getFilters(0);
+		$filters['limit'] = $this->params->get('limit');
+
 		// Load some objects
-		$obj = new Wishlist( $database );
-		$objWish = new Wish( $database );
-		$objOwner = new WishlistOwner( $database );
-		
+		$obj = new Wishlist($database);
+		$objWish = new Wish($database);
+		$objOwner = new WishlistOwner($database);
+
 		// Get wishlist id
 		$id = $obj->get_wishlistID($refid, $cat);
-		
+
 		// Create a new list if necessary
-		if (!$id) 
+		if (!$id)
 		{
-			if ($publication->title && $publication->state == 1) 
+			if ($publication->title && $publication->state == 1)
 			{
 				$rtitle = isset($publication->alias) && $publication->alias
-				? JText::_('COM_WISHLIST_NAME_RESOURCE').' '.$publication->alias 
-				: JText::_('COM_WISHLIST_NAME_PUB_ID').' '.$publication->id;
+				? JText::_('COM_WISHLIST_NAME_RESOURCE') . ' ' . $publication->alias
+				: JText::_('COM_WISHLIST_NAME_PUB_ID') . ' ' . $publication->id;
 				$id = $obj->createlist($cat, $refid, 1, $rtitle, $publication->title);
-			}				
+			}
 		}
-		
+
 		// get wishlist data
 		$wishlist = $obj->get_wishlist($id, $refid, $cat);
-		
-		if (!$wishlist) 
+
+		if (!$wishlist)
 		{
 			$html = '<p class="error">' . JText::_('COM_WISHLIST_ERROR_LIST_NOT_FOUND') . '</p>';
-		} 
-		else 
+		}
+		else
 		{
+			// Get the component parameters
+			$this->config = JComponentHelper::getParams('com_wishlist');
+
 			// Get list owners
 			$owners = $objOwner->get_owners($id, $this->config->get('group') , $wishlist);
-			
+
 			// Authorize admins & list owners
-			if (!$juser->get('guest')) 
+			if (!$juser->get('guest'))
 			{
-				if ($juser->authorize($option, 'manage')) 
+				if ($juser->authorize($option, 'manage'))
 				{
 					$admin = 1;
 				}
-				if (in_array($juser->get('id'), $owners['individuals'])) 
+				if (in_array($juser->get('id'), $owners['individuals']))
 				{
 					$admin = 2;
-				} 
-				elseif (in_array($juser->get('id'), $owners['advisory'])) 
+				}
+				elseif (in_array($juser->get('id'), $owners['advisory']))
 				{
 					$admin = 3;
 				}
-			} 
-			elseif (!$wishlist->public && $rtrn != 'metadata') 
+			}
+			elseif (!$wishlist->public && $rtrn != 'metadata')
 			{
 				// not authorized
-				JError::raiseError( 403, JText::_('COM_WISHLIST_ERROR_ALERTNOTAUTH') );
+				JError::raiseError(403, JText::_('COM_WISHLIST_ERROR_ALERTNOTAUTH'));
 				return;
 			}
-			
-			$items = $objWish->get_count ($id, $filters, $admin);
-			
-			if ($rtrn != 'metadata') 
+
+			$items = $objWish->get_count($id, $filters, $admin);
+
+			if ($rtrn != 'metadata')
 			{
-				// Add the CSS to the template
-				\Hubzero\Document\Assets::addPluginStylesheet('groups', 'wishlist');
-				
 				// Get wishes
 				$wishlist->items = $objWish->get_wishes($wishlist->id, $filters, $admin, $juser);
-				
+
 				$title = ($admin) ?  JText::_('COM_WISHLIST_TITLE_PRIORITIZED') : JText::_('COM_WISHLIST_TITLE_RECENT_WISHES');
-				if (count($wishlist->items) > 0 && $items > $filters['limit']) 
+				if (count($wishlist->items) > 0 && $items > $filters['limit'])
 				{
-					$title.= ' (<a href="'.JRoute::_('index.php?option='.$option.'&task=wishlist&category='. $wishlist->category.'&rid='.$wishlist->referenceid).'">'.JText::_('view all') .' '.$items.'</a>)';
-				} 
-				else 
+					$title.= ' (<a href="' . JRoute::_('index.php?option=' . $option . '&task=wishlist&category=' . $wishlist->category.'&rid='.$wishlist->referenceid) . '">' . JText::_('view all') . ' ' . $items . '</a>)';
+				}
+				else
 				{
-					$title .= ' ('.$items.')';
+					$title .= ' (' . $items . ')';
 				}
 
 				// HTML output
 				// Instantiate a view
 				$view = new \Hubzero\Plugin\View(
 					array(
-						'folder'=>'publications',
-						'element'=>'wishlist',
-						'name'=>'browse'
+						'folder'  => 'publications',
+						'element' => 'wishlist',
+						'name'    => 'browse'
 					)
 				);
 
 				// Pass the view some info
-				$view->option = $option;
+				$view->option      = $option;
 				$view->publication = $publication;
-				$view->title = $title;
-				$view->wishlist = $wishlist;
-				$view->filters = $filters;
-				$view->admin = $admin;
-				$view->config = $this->config;
-				if ($this->getError()) 
+				$view->title       = $title;
+				$view->wishlist    = $wishlist;
+				$view->filters     = $filters;
+				$view->admin       = $admin;
+				$view->config      = $this->config;
+				if ($this->getError())
 				{
-					$view->setError( $this->getError() );
+					$view->setError($this->getError());
 				}
 
 				// Return the output
@@ -256,7 +228,7 @@ class plgPublicationsWishlist extends JPlugin
 		// Build the HTML meant for the "about" tab's metadata overview
 		$metadata = '';
 
-		if ($rtrn == 'all' || $rtrn == 'metadata') 
+		if ($rtrn == 'all' || $rtrn == 'metadata')
 		{
 			$view = new \Hubzero\Plugin\View(
 				array(
@@ -265,9 +237,9 @@ class plgPublicationsWishlist extends JPlugin
 					'name'    => 'metadata'
 				)
 			);
-			$view->publication   = $publication;
-			$view->items      	 = $items;
-			$view->wishlistid 	 = $id;
+			$view->publication = $publication;
+			$view->items       = $items;
+			$view->wishlistid  = $id;
 
 			$metadata = $view->loadTemplate();
 		}
@@ -276,6 +248,12 @@ class plgPublicationsWishlist extends JPlugin
 			'html'=>$html,
 			'metadata'=>$metadata
 		);
+
+		if ($publication->state == 1)
+		{
+			$arr['count'] = $items;
+			$arr['name']  = 'wishlist';
+		}
 
 		return $arr;
 	}

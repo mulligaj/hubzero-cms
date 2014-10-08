@@ -46,59 +46,59 @@ class CoursesModelUnit extends CoursesModelAbstract
 {
 	/**
 	 * JTable class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CoursesTableUnit';
 
 	/**
 	 * Object scope
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'unit';
 
 	/**
 	 * CoursesModelAssetgroup
-	 * 
+	 *
 	 * @var object
 	 */
 	public $group = NULL;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	public $assetgroups = NULL;
 
 	/**
 	 * CoursesModelAsset
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_asset = NULL;
 
 	/**
 	 * CoursesModelIterator
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_assets = NULL;
 
 	/**
-	 * JDatabase
-	 * 
+	 * CoursesModelIterator
+	 *
 	 * @var object
 	 */
 	private $_siblings = NULL;
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      integer $id  Resource ID or alias
-	 * @param      object  &$db JDatabase
-	 * @return     void
+	 *
+	 * @param   mixed   $oid         Integer, string, array, or object
+	 * @param   integer $offering_id Offering the unit is linked to
+	 * @return  void
 	 */
 	public function __construct($oid=null, $offering_id=null)
 	{
@@ -124,25 +124,22 @@ class CoursesModelUnit extends CoursesModelAbstract
 	}
 
 	/**
-	 * Returns a reference to a wiki page object
+	 * Returns a reference to a unit model
 	 *
-	 * This method must be invoked as:
-	 *     $inst = CoursesInstance::getInstance($alias);
-	 *
-	 * @param      string $pagename The page to load
-	 * @param      string $scope    The page scope
-	 * @return     object CoursesModelUnit
+	 * @param   mixed   $oid         Integer, string, array, or object
+	 * @param   integer $offering_id Offering the unit is linked to
+	 * @return  object  CoursesModelUnit
 	 */
 	static function &getInstance($oid=null, $offering_id=null)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$oid . '_' . $offering_id])) 
+		if (!isset($instances[$oid . '_' . $offering_id]))
 		{
 			$instances[$oid . '_' . $offering_id] = new self($oid, $offering_id);
 		}
@@ -154,16 +151,16 @@ class CoursesModelUnit extends CoursesModelAbstract
 	 * Returns a property of the object or the default value if the property is not set.
 	 *
 	 * @param     string $property The name of the property
-	 * @param     mixed  $default The default value
-	 * @return    mixed The value of the property
+	 * @param     mixed  $default  The default value
+	 * @return    mixed  The value of the property
  	 */
 	public function get($property, $default=null)
 	{
-		if (isset($this->_tbl->$property)) 
+		if (isset($this->_tbl->$property))
 		{
 			return $this->_tbl->$property;
 		}
-		else if (isset($this->_tbl->{'__' . $property})) 
+		else if (isset($this->_tbl->{'__' . $property}))
 		{
 			return $this->_tbl->{'__' . $property};
 		}
@@ -172,22 +169,29 @@ class CoursesModelUnit extends CoursesModelAbstract
 			$tbl = new CoursesTableSectionDate($this->_db);
 			$tbl->load($this->get('id'), 'unit', $this->get('section_id'));
 
-			$this->set('publish_up', $tbl->get('publish_up', ''));
-			$this->set('publish_down', $tbl->get('publish_down', ''));
+			if (!$this->_tbl->{'__publish_up'})
+			{
+				$this->set('publish_up', $tbl->get('publish_up', ''));
+			}
+			if (!$this->_tbl->{'__publish_down'})
+			{
+				$this->set('publish_down', $tbl->get('publish_down', ''));
+			}
 
-			return $tbl->get($property, $default);
+			return $this->_tbl->{'__' . $property};
 		}
 		return $default;
 	}
 
 	/**
-	 * Method to set the article id
+	 * Get a specific asset group
 	 *
-	 * @param	int	Article ID number
+	 * @param   integer $id Asset group ID
+	 * @return  object
 	 */
 	public function assetgroup($id=null)
 	{
-		if (!isset($this->group) 
+		if (!isset($this->group)
 		 || ($id !== null && (int) $this->group->get('id') != $id && (string) $this->group->get('alias') != $id))
 		{
 			$this->group = null;
@@ -221,8 +225,10 @@ class CoursesModelUnit extends CoursesModelAbstract
 
 	/**
 	 * Reset the asset groups to top level
-	 * 
-	 * @return     void
+	 *
+	 * @param   mixed $idx     Index value
+	 * @param   array $filters Filters to apply to results query
+	 * @return  void
 	 */
 	public function resetAssetgroups($idx=null, $filters=array())
 	{
@@ -231,13 +237,14 @@ class CoursesModelUnit extends CoursesModelAbstract
 	}
 
 	/**
-	 * Get a list of assetgroups for an offering
+	 * Get a list of assetgroups for this entry
 	 *   Accepts either a numeric array index or a string [id, name]
 	 *   If index, it'll return the entry matching that index in the list
 	 *   If string, it'll return either a list of IDs or names
-	 * 
-	 * @param      mixed $idx Index value
-	 * @return     array
+	 *
+	 * @param   mixed $idx     Index value
+	 * @param   array $filters Filters to apply to results query
+	 * @return  array
 	 */
 	public function assetgroups($idx=null, $filters=array())
 	{
@@ -332,9 +339,10 @@ class CoursesModelUnit extends CoursesModelAbstract
 	/**
 	 * Set seblings
 	 *
-	 * @return     boolean
+	 * @param   mixed $siblings Array or Iterator object
+	 * @return  void
 	 */
-	public function siblings(&$siblings) 
+	public function siblings(&$siblings)
 	{
 		if ($siblings instanceof CoursesModelIterator)
 		{
@@ -349,23 +357,23 @@ class CoursesModelUnit extends CoursesModelAbstract
 	/**
 	 * Is the current position the first one?
 	 *
-	 * @return     boolean
+	 * @return  boolean
 	 */
-	public function isFirst() 
+	public function isFirst()
 	{
 		if (!$this->_siblings)
 		{
 			return true;
 		}
 		return $this->_siblings->isFirst();
-	} 
+	}
 
 	/**
 	 * Is the current position the last one?
 	 *
-	 * @return     boolean
+	 * @return  boolean
 	 */
-	public function isLast() 
+	public function isLast()
 	{
 		if (!$this->_siblings)
 		{
@@ -377,9 +385,9 @@ class CoursesModelUnit extends CoursesModelAbstract
 	/**
 	 * Return the key for the current cursor position
 	 *
-	 * @return     mixed
+	 * @return  integer
 	 */
-	public function key() 
+	public function key()
 	{
 		return $this->_siblings->key();
 	}
@@ -387,9 +395,10 @@ class CoursesModelUnit extends CoursesModelAbstract
 	/**
 	 * Set cursor position to previous position and return array value
 	 *
-	 * @return     mixed
+	 * @param   string $dir
+	 * @return  mixed
 	 */
-	public function sibling($dir='next') 
+	public function sibling($dir='next')
 	{
 		$dir = strtolower(trim($dir));
 		switch ($dir)
@@ -400,7 +409,7 @@ class CoursesModelUnit extends CoursesModelAbstract
 			break;
 
 			default:
-				
+
 			break;
 		}
 		return null;
@@ -409,12 +418,12 @@ class CoursesModelUnit extends CoursesModelAbstract
 	/**
 	 * Get a specific asset
 	 *
-	 * @param     integer $id Asset ID
-	 * @return    object CoursesModelAsset
+	 * @param   integer $id Asset ID
+	 * @return  object  CoursesModelAsset
 	 */
 	public function asset($id=null)
 	{
-		if (!isset($this->_asset) 
+		if (!isset($this->_asset)
 		 || ($id !== null && (int) $this->_asset->get('id') != (int) $id))
 		{
 			$this->_asset = null;
@@ -434,9 +443,9 @@ class CoursesModelUnit extends CoursesModelAbstract
 	/**
 	 * Get a list of assets for a unit
 	 *   Accepts an array of filters to apply to the list of assets
-	 * 
-	 * @param      array $filters Filters to apply
-	 * @return     object CoursesModelIterator
+	 *
+	 * @param   array $filters Filters to apply
+	 * @return  object CoursesModelIterator
 	 */
 	public function assets($filters=array())
 	{
@@ -476,10 +485,10 @@ class CoursesModelUnit extends CoursesModelAbstract
 	}
 
 	/**
-	 * Store changes to this offering
+	 * Store changes to this entry
 	 *
-	 * @param     boolean $check Perform data validation check?
-	 * @return    boolean False if error, True on success
+	 * @param   boolean $check Perform data validation check?
+	 * @return  boolean False if error, True on success
 	 */
 	public function store($check=true)
 	{
@@ -519,8 +528,8 @@ class CoursesModelUnit extends CoursesModelAbstract
 
 	/**
 	 * Delete an entry and associated data
-	 * 
-	 * @return     boolean True on success, false on error
+	 *
+	 * @return  boolean True on success, false on error
 	 */
 	public function delete()
 	{
@@ -558,6 +567,70 @@ class CoursesModelUnit extends CoursesModelAbstract
 
 		// Remove this record from the database and log the event
 		return parent::delete();
+	}
+
+	/**
+	 * Copy an entry and associated data
+	 *
+	 * @param   integer $offering_id New offering to copy to
+	 * @param   boolean $deep        Copy associated data?
+	 * @return  boolean True on success, false on error
+	 */
+	public function copy($offering_id=null, $deep=true)
+	{
+		// Get some old info we may need
+		//  - Unit ID
+		//  - Offering ID
+		$u_id = $this->get('id');
+		$o_id = $this->get('offering_id');
+
+		// Reset the ID. This will force store() to create a new record.
+		$this->set('id', 0);
+		// Are we copying to a new offering?
+		if ($offering_id)
+		{
+			$this->set('offering_id', $offering_id);
+		}
+		else
+		{
+			// Copying to the same offering so we want to distinguish
+			// this unit from the one we copied from
+			$this->set('title', $this->get('title') . ' (copy)');
+			$this->set('alias', $this->get('alias') . '_copy');
+		}
+		if (!$this->store())
+		{
+			return false;
+		}
+
+		if ($deep)
+		{
+			// Copy assets
+			$tbl = new CoursesTableAssetAssociation($this->_db);
+			//foreach ($this->assets(array('asset_scope_id' => $u_id)) as $asset)
+			foreach ($tbl->find(array('scope_id' => $u_id, 'scope' => 'unit')) as $asset)
+			{
+				$tbl->bind($asset);
+				$tbl->id = 0;
+				$tbl->scope_id = $this->get('id');
+				//if (!$asset->copy($this->get('id')))
+				if (!$tbl->store())
+				{
+					$this->setError($tbl->getError());
+				}
+			}
+
+			// Copy asset groups
+			foreach ($this->assetgroups(null, array('unit_id' => $u_id, 'parent' => 0)) as $assetgroup)
+			{
+				if (!$assetgroup->copy($this->get('id'), $deep))
+				{
+					$this->setError($assetgroup->getError());
+				}
+			}
+		}
+
+		return true;
 	}
 }
 

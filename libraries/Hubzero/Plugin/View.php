@@ -80,8 +80,8 @@ class View extends AbstractView
 			if (array_key_exists('folder', $config))
 			{
 				$this->_folder = $config['folder'];
-			} 
-			else 
+			}
+			else
 			{
 				$this->_folder = $this->getFolder();
 			}
@@ -93,8 +93,8 @@ class View extends AbstractView
 			if (array_key_exists('element', $config))
 			{
 				$this->_element = $config['element'];
-			} 
-			else 
+			}
+			else
 			{
 				$this->_element = $this->getElement();
 			}
@@ -126,11 +126,11 @@ class View extends AbstractView
 		}
 
 		// Set a base path for use by the view
-		if (array_key_exists('base_path', $config)) 
+		if (array_key_exists('base_path', $config))
 		{
 			$this->_basePath = $config['base_path'];
-		} 
-		else 
+		}
+		else
 		{
 			$this->_basePath = JPATH_PLUGINS . DS . $this->_folder . DS . $this->_element;
 		}
@@ -269,7 +269,7 @@ class View extends AbstractView
 				if (isset($app))
 				{
 					$this->_addPath(
-						'template', 
+						'template',
 						JPATH_BASE . DS . 'templates' . DS . $app->getTemplate() . DS . 'html' . DS . $option . DS . $this->getName()
 					);
 				}
@@ -278,16 +278,40 @@ class View extends AbstractView
 	}
 
 	/**
+	 * Determine the asset directory
+	 *
+	 * @param   string $path    File path
+	 * @param   string $default Default directory
+	 * @return  string
+	 */
+	private function _assetDir(&$path, $default='')
+	{
+		if (substr($path, 0, 2) == './')
+		{
+			$path = substr($path, 2);
+
+			return '';
+		}
+
+		if (substr($path, 0, 1) == '/')
+		{
+			$path = substr($path, 1);
+
+			return '/';
+		}
+
+		return $default;
+	}
+
+	/**
 	 * Push CSS to the document
-	 * 
+	 *
 	 * @param   string  $stylesheet Stylesheet name (optional, uses component name if left blank)
-	 * @param   string  $component  Component name
-	 * @param   string  $type       Mime encoding type
-	 * @param   string  $media      Media type that this stylesheet applies to
-	 * @param   string  $attribs    Attributes to add to the link
+	 * @param   string  $folder     Plugin type
+	 * @param   string  $element    Plugin name
 	 * @return  void
 	 */
-	public function css($stylesheet = '', $folder = null, $element = null, $type = 'text/css', $media = null, $attribs = array())
+	public function css($stylesheet = '', $folder = null, $element = null)
 	{
 		if (!$folder)
 		{
@@ -309,13 +333,25 @@ class View extends AbstractView
 			$stylesheet .= '.css';
 		}
 
-		if ($folder == 'system')
+		$dir = $this->_assetDir($stylesheet, 'css');
+		if ($dir == '/')
 		{
-			Assets::addSystemStylesheet($stylesheet);
+			Assets::addStylesheet($dir . $stylesheet);
 			return $this;
 		}
 
-		Assets::addPluginStylesheet($folder, $element, $stylesheet, $type, $media, $attribs);
+		if ($folder == 'system')
+		{
+			Assets::addSystemStylesheet($stylesheet, $dir);
+			return $this;
+		}
+
+		if (substr($folder, 0, strlen('com_')) == 'com_')
+		{
+			Assets::addComponentStylesheet($folder, $stylesheet, $dir);
+		}
+
+		Assets::addPluginStylesheet($folder, $element, $stylesheet, $dir);
 		return $this;
 	}
 
@@ -323,13 +359,11 @@ class View extends AbstractView
 	 * Push javascript to the document
 	 *
 	 * @param   string  $stylesheet Stylesheet name (optional, uses component name if left blank)
-	 * @param   string  $component  Component name
-	 * @param   string  $type       Mime encoding type
-	 * @param   string  $media      Media type that this stylesheet applies to
-	 * @param   string  $attribs    Attributes to add to the link
+	 * @param   string  $folder     Plugin type
+	 * @param   string  $element    Plugin name
 	 * @return  void
 	 */
-	public function js($script = '', $folder = null, $element = null, $type = 'text/javascript', $defer = false, $async = false)
+	public function js($script = '', $folder = null, $element = null)
 	{
 		if (!$folder)
 		{
@@ -340,20 +374,70 @@ class View extends AbstractView
 			$element = $this->_element;
 		}
 
-		if ($folder == 'system')
-		{
-			Assets::addSystemScript($script);
-			return $this;
-		}
-
 		if ($folder === true || strstr($script, '(') || strstr($script, ';'))
 		{
 			\JFactory::getDocument()->addScriptDeclaration($script);
 			return $this;
 		}
 
-		Assets::addPluginScript($folder, $element, $script, $type, $defer, $async);
+		$dir = $this->_assetDir($script, 'js');
+		if ($dir == '/')
+		{
+			Assets::addScript($dir . $script);
+			return $this;
+		}
+
+		if ($folder == 'system')
+		{
+			Assets::addSystemScript($script, $dir);
+			return $this;
+		}
+
+		if (substr($folder, 0, strlen('com_')) == 'com_')
+		{
+			Assets::addComponentScript($folder, $script, $dir);
+		}
+
+		Assets::addPluginScript($folder, $element, $script, $dir);
 		return $this;
+	}
+
+	/**
+	 * Get the path to an image
+	 *
+	 * @param   string  $image      Image name
+	 * @param   string  $folder     Plugin type
+	 * @param   string  $element    Plugin name
+	 * @return  string
+	 */
+	public function img($image, $folder = null, $element = null)
+	{
+		if (!$folder)
+		{
+			$folder = $this->_folder;
+		}
+		if (!$element)
+		{
+			$element = $this->_element;
+		}
+
+		$dir = $this->_assetDir($image, 'img');
+		if ($dir == '/')
+		{
+			return rtrim(\JURI::base(true), '/') . $dir . $image;
+		}
+
+		if ($folder == 'system')
+		{
+			return Assets::getSystemImage($image);
+		}
+
+		if (substr($folder, 0, strlen('com_')) == 'com_')
+		{
+			return Assets::getComponentImage($folder, $image, $dir);
+		}
+
+		return Assets::getPluginImage($folder, $element, $image, $dir);
 	}
 
 	/**
@@ -366,7 +450,7 @@ class View extends AbstractView
 	public function view($layout, $name=null)
 	{
 		// If we were passed only a view model, just render it.
-		if ($layout instanceof AbstractView) 
+		if ($layout instanceof AbstractView)
 		{
 			return $layout;
 		}

@@ -40,7 +40,7 @@ JToolBarHelper::deleteList();
 ?>
 
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 	if (pressbutton == 'cancel') {
@@ -54,11 +54,10 @@ function submitbutton(pressbutton)
 
 <form action="index.php?option=com_resources&amp;controller=import" method="post" name="adminForm" id="adminForm">
 	<fieldset class="adminform">
-		
 		<table class="admintable">
 			<thead>
 				<tr>
-					<th scope="col" width="20px"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->hooks->count(); ?>);" /></th>
+					<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->hooks->count(); ?>);" /></th>
 					<th scope="col"><?php echo JText::_('COM_RESOURCES_IMPORTHOOK_DISPLAY_FIELD_NAME'); ?></th>
 					<th scope="col"><?php echo JText::_('COM_RESOURCES_IMPORTHOOK_DISPLAY_FIELD_TYPE'); ?></th>
 					<th scope="col"><?php echo JText::_('COM_RESOURCES_IMPORTHOOK_DISPLAY_FIELD_FILE'); ?></th>
@@ -89,8 +88,8 @@ function submitbutton(pressbutton)
 								?>
 							</td>
 							<td>
-								<?php echo $hook->get('file'); ?> &mdash; 
-								<a target="_blank" href="<?php echo JRoute::_('index.php?option=com_resources&controller=importhooks&task=raw&id[]='.$hook->get('id')); ?>">
+								<?php echo $hook->get('file'); ?> &mdash;
+								<a target="_blank" href="<?php echo JRoute::_('index.php?option=com_resources&controller=importhooks&task=raw&id=' . $hook->get('id')); ?>">
 									<?php echo JText::_('COM_RESOURCES_IMPORTHOOK_DISPLAY_FILE_VIEWRAW'); ?>
 								</a>
 							</td>

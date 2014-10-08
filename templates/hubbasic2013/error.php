@@ -10,65 +10,55 @@ $lang = JFactory::getLanguage();
 $lang->load('tpl_' . $this->template);
 
 $browser = new \Hubzero\Browser\Detector();
-$b = $browser->name();
-$v = $browser->major();
+$cls = array(
+	$browser->name(),
+	$browser->name() . $browser->major()
+);
 ?>
 <!DOCTYPE html>
-<!--[if lt IE 7 ]> <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie6"> <![endif]-->
-<!--[if IE 7 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie7"> <![endif]-->
-<!--[if IE 8 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie8"> <![endif]-->
-<!--[if IE 9 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie9"> <![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
+<!--[if lt IE 7 ]> <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo implode(' ', $cls); ?> ie ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo implode(' ', $cls); ?> ie ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo implode(' ', $cls); ?> ie ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo implode(' ', $cls); ?> ie ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo implode(' ', $cls); ?>"> <!--<![endif]-->
 	<head>
-		<!-- <meta http-equiv="X-UA-Compatible" content="IE=edge" /> Doesn't validate... -->
-
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<!-- <meta http-equiv="X-UA-Compatible" content="IE=edge" /> Doesn't validate... -->
 
 		<title><?php echo $config->getValue('config.sitename') . ' - ' . (in_array($this->error->getCode(), array(404, 403, 500)) ? $this->error->getCode() : 500); ?></title>
 
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications')); /* reset MUST come before all others except fontcons */ ?>" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/main.css" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/error.css" />
-<?php if (JDEBUG) { ?>
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/media/cms/css/debug.css" />
-<?php } ?>
-<?php if ($config->getValue('config.application_env', 'production') != 'production') { ?>
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/modules/mod_application_env/mod_application_env.css" />
-<?php } ?>
+		<?php if (JDEBUG) { ?>
+			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/media/cms/css/debug.css" />
+		<?php } ?>
+		<?php if ($config->getValue('config.application_env', 'production') != 'production') { ?>
+			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/modules/mod_application_env/mod_application_env.css" />
+		<?php } ?>
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/html/mod_reportproblems/mod_reportproblems.css" />
 		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/print.css" />
 
-<?php if (JPluginHelper::isEnabled('system', 'jquery')) { ?>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/jquery.js"></script>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/jquery.ui.js"></script>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/jquery.fancybox.js"></script>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/jquery.tools.js"></script>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/hub.jquery.js"></script>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/modules/mod_reportproblems/mod_reportproblems.jquery.js"></script>
-<?php } else { ?>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/media/system/js/mootools.js"></script>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/hub.js"></script>
 		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/modules/mod_reportproblems/mod_reportproblems.js"></script>
-<?php } ?>
-		<!--[if IE 10]>
-			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie10.css" />
-		<![endif]-->
-		<!--[if IE 9]>
-			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie9.css" />
-		<![endif]-->
-		<!--[if IE 8]>
-			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie8.css" />
-		<![endif]-->
-		<!--[if IE 7]>
-			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie7.css" />
-		<![endif]-->
+
+		<!--[if lt IE 9]><script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/html5.js"></script><![endif]-->
+
+		<!--[if IE 10]><link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie10.css" /><![endif]-->
+		<!--[if IE 9]><link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie9.css" /><![endif]-->
+		<!--[if IE 8]><link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie8.css" /><![endif]-->
+		<!--[if IE 7]><link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/browser/ie7.css" /><![endif]-->
 	</head>
 	<body>
 		<?php \Hubzero\Module\Helper::displayModules('notices'); ?>
 		<?php \Hubzero\Module\Helper::displayModules('helppane'); ?>
 
 		<div id="top">
-			<div id="masthead">
+			<header id="masthead">
 				<div class="inner">
 					<h1>
 						<a href="<?php echo empty($this->baseurl) ? "/" : $this->baseurl; ?>" title="<?php echo $config->getValue('config.sitename'); ?>">
@@ -77,12 +67,13 @@ $v = $browser->major();
 					</h1>
 
 					<div id="account" role="navigation">
-					<?php if (!$juser->get('guest')) { 
-							$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
-					?>
+					<?php if (!$juser->get('guest')) { ?>
 						<ul class="menu <?php echo (!$juser->get('guest')) ? 'loggedin' : 'loggedout'; ?>">
 							<li>
 								<div id="account-info">
+									<?php
+									$profile = \Hubzero\User\Profile::getInstance($juser->get('id'));
+									?>
 									<img src="<?php echo $profile->getPicture(); ?>" alt="<?php echo $juser->get('name'); ?>" width="30" height="30" />
 									<a class="account-details" href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id')); ?>">
 										<?php echo stripslashes($juser->get('name')); ?> 
@@ -100,7 +91,7 @@ $v = $browser->major();
 										<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=messages'); ?>"><span><?php echo JText::_('TPL_HUBBASIC_ACCOUNT_MESSAGES'); ?></span></a>
 									</li>
 									<li id="account-logout">
-										<a href="<?php echo JRoute::_('index.php?option=com_logout'); ?>"><span><?php echo JText::_('TPL_HUBBASIC_LOGOUT'); ?></span></a>
+										<a href="<?php echo JRoute::_('index.php?option=com_users&view=logout'); ?>"><span><?php echo JText::_('TPL_HUBBASIC_LOGOUT'); ?></span></a>
 									</li>
 								</ul>
 							</li>
@@ -108,14 +99,12 @@ $v = $browser->major();
 					<?php } else { ?>
 						<ul class="menu <?php echo (!$juser->get('guest')) ? 'loggedin' : 'loggedout'; ?>">
 							<li id="account-login">
-								<?php $login_route = (version_compare(JVERSION, '2.5', 'ge')) ? 'index.php?option=com_users&view=login' : 'index.php?option=com_user&view=login'; ?>
-								<a href="<?php echo JRoute::_($login_route); ?>" title="<?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?>"><?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?></a>
+								<a href="<?php echo JRoute::_('index.php?option=com_users&view=login'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?>"><?php echo JText::_('TPL_HUBBASIC_LOGIN'); ?></a>
 							</li>
 							<li id="account-register">
-								<a href="<?php echo JRoute::_('index.php?option=com_register'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_SIGN_UP'); ?>"><?php echo JText::_('TPL_HUBBASIC_REGISTER'); ?></a>
+								<a href="<?php echo JRoute::_('index.php?option=com_members&controller=register'); ?>" title="<?php echo JText::_('TPL_HUBBASIC_SIGN_UP'); ?>"><?php echo JText::_('TPL_HUBBASIC_REGISTER'); ?></a>
 							</li>
 						</ul>
-						<?php /* <jdoc:include type="modules" name="account" /> */ ?>
 					<?php } ?>
 					</div><!-- / #account -->
 
@@ -123,7 +112,7 @@ $v = $browser->major();
 						<?php \Hubzero\Module\Helper::displayModules('user3'); ?>
 					</div><!-- / #nav -->
 				</div><!-- / .inner -->
-			</div><!-- / #masthead -->
+			</header><!-- / #masthead -->
 
 			<div id="sub-masthead">
 				<div class="inner">
@@ -152,10 +141,10 @@ $v = $browser->major();
 		</div><!-- / #top -->
 
 		<div id="wrap">
-			<div id="content" class="<?php echo JRequest::getCmd('option', ''); ?> <?php echo 'code' . $this->error->getCode(); ?>" role="main">
+			<main id="content" class="<?php echo JRequest::getCmd('option', ''); ?> <?php echo 'code' . $this->error->getCode(); ?>" role="main">
 				<div class="inner">
 
-					<div class="main section">
+					<section class="main section">
 						<div class="grid">
 							<div class="col span-half">
 								<div id="errormessage">
@@ -190,7 +179,7 @@ $v = $browser->major();
 										<p class="signature">&mdash;Cpt. Showa, Security</p>
 										<?php 
 										break;
-										case 500: 
+										case 500:
 										default: ?>
 										<h3><?php echo JText::_('Will Hubzilla\'s reign of terror never cease?!'); ?></h3>
 										<blockquote>
@@ -211,19 +200,19 @@ $v = $browser->major();
 							<?php echo $this->error->getMessage(); ?>
 						</p>
 					<?php } ?>
-					</div><!-- / .main section -->
+					</section><!-- / .main section -->
 
 				<?php if ($this->debug) { ?>
-					<div id="techinfo">
+					<section id="techinfo">
 						<?php echo $this->renderBacktrace(); ?>
-					</div><!-- / #techinfo -->
+					</section><!-- / #techinfo -->
 				<?php } ?>
 				</div><!-- / .inner -->
-			</div><!-- / #content -->
+			</main><!-- / #content -->
 
-			<div id="footer">
+			<footer id="footer">
 				<?php \Hubzero\Module\Helper::displayModules('footer'); ?>
-			</div><!-- / #footer -->
+			</footer><!-- / #footer -->
 		</div><!-- / #wrap -->
 
 		<?php \Hubzero\Module\Helper::displayModules('endpage'); ?>

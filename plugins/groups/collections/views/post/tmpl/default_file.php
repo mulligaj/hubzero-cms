@@ -70,7 +70,7 @@ if ($assets->total() > 0)
 		$ratio = $originalWidth / $originalHeight;
 		?>
 			<div class="holder">
-				<a rel="post<?php echo $this->row->get('id'); ?>" href="<?php echo JRoute::_($href . $this->row->get('id') . '&file=' . ltrim($first->get('filename'), DS)); ?>" class="img-link">
+				<a data-rel="post<?php echo $this->row->get('id'); ?>" href="<?php echo JRoute::_($href . $this->row->get('id') . '&file=' . ltrim($first->get('filename'), DS)); ?>" class="img-link">
 					<img src="<?php echo JRoute::_($href . $this->row->get('id') . '&file=' . ltrim($first->get('filename'), DS)); ?>" alt="<?php echo ($first->get('description')) ? $this->escape(stripslashes($first->get('description'))) : ''; ?>" class="img" style="height: <?php echo (!isset($this->actual) || !$this->actual) ? round($this->params->get('maxWidth', 290) / $ratio, 0, PHP_ROUND_HALF_UP) : $originalHeight; ?>px;" />
 				</a>
 			</div>
@@ -83,7 +83,7 @@ if ($assets->total() > 0)
 			foreach ($images as $asset)
 			{
 				?>
-				<a rel="post<?php echo $this->row->get('id'); ?>" href="<?php echo JRoute::_($href . $this->row->get('id') . '&file=' . ltrim($asset->get('filename'), DS)); ?>" class="img-link">
+				<a data-rel="post<?php echo $this->row->get('id'); ?>" href="<?php echo JRoute::_($href . $this->row->get('id') . '&file=' . ltrim($asset->get('filename'), DS)); ?>" class="img-link">
 					<img src="<?php echo JRoute::_($href . $this->row->get('id') . '&file=' . ltrim($asset->get('filename'), DS)); ?>" alt="<?php echo ($asset->get('description')) ? $this->escape(stripslashes($asset->get('description'))) : ''; ?>" class="img" />
 				</a>
 				<?php
@@ -112,11 +112,11 @@ if ($assets->total() > 0)
 				<?php if ($asset->get('type') != 'link') { ?>
 							<?php echo \Hubzero\Utility\Number::formatBytes(filesize(JPATH_ROOT . $path . DS . ltrim($asset->get('filename'), DS))); ?>
 				<?php } else { ?>
-							<?php 
+							<?php
 							$UrlPtn  = "(?:https?:|mailto:|ftp:|gopher:|news:|file:)" .
 							           "(?:[^ |\\/\"\']*\\/)*[^ |\\t\\n\\/\"\']*[A-Za-z0-9\\/?=&~_]";
 
-							if (preg_match("/$UrlPtn/", $asset->get('filename'))) 
+							if (preg_match("/$UrlPtn/", $asset->get('filename')))
 							{
 								echo JText::_('external link');
 							}

@@ -36,7 +36,7 @@ class TemplatesViewStyles extends JViewLegacy
 		}
 
 			// Check if there are no matching items
-		if(!count($this->items)) {
+		if (!count($this->items)) {
 			JFactory::getApplication()->enqueueMessage(
 				JText::_('COM_TEMPLATES_MSG_MANAGE_NO_STYLES')
 				, 'warning'
@@ -82,6 +82,6 @@ class TemplatesViewStyles extends JViewLegacy
 			JToolBarHelper::preferences('com_templates');
 			JToolBarHelper::divider();
 		}
-		JToolBarHelper::help('JHELP_EXTENSIONS_TEMPLATE_MANAGER_STYLES');
+		JToolBarHelper::help('styles');
 	}
 }

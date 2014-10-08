@@ -45,7 +45,7 @@ class plgResourcesGroups extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
@@ -59,7 +59,7 @@ class plgResourcesGroups extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a resource sub view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      integer $miniview  View style
@@ -68,8 +68,8 @@ class plgResourcesGroups extends \Hubzero\Plugin\Plugin
 	public function onResourcesSub($resource, $option, $miniview=0)
 	{
 		$arr = array(
-			'area' => $this->_name,
-			'html' => '',
+			'area'     => $this->_name,
+			'html'     => '',
 			'metadata' => ''
 		);
 
@@ -78,27 +78,23 @@ class plgResourcesGroups extends \Hubzero\Plugin\Plugin
 			return $arr;
 		}
 
-		// Get recommendations
-		$this->database = JFactory::getDBO();
-
-		// Instantiate a view
-		$this->view = new \Hubzero\Plugin\View(
-			array(
-				'folder'  => 'resources',
-				'element' => $this->_name,
-				'name'    => 'display'
-			)
-		);
-
 		$group = \Hubzero\User\Group::getInstance($resource->group_owner);
 		if (!$group || !$group->get('gidNumber'))
 		{
 			return $arr;
 		}
 
-		\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
+		// Get recommendations
+		$this->database = JFactory::getDBO();
 
-		if ($miniview) 
+		// Instantiate a view
+		$this->view = new \Hubzero\Plugin\View(array(
+			'folder'  => $this->_type,
+			'element' => $this->_name,
+			'name'    => 'display'
+		));
+
+		if ($miniview)
 		{
 			$this->view->setLayout('mini');
 		}
@@ -109,7 +105,7 @@ class plgResourcesGroups extends \Hubzero\Plugin\Plugin
 		$this->view->params   = $this->params;
 		$this->view->group    = $group;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			$this->view->setError($this->getError());
 		}

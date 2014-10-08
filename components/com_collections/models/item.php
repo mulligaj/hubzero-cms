@@ -33,67 +33,65 @@ defined('_JEXEC') or die('Restricted access');
 
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tables' . DS . 'item.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'asset.php');
+require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'helpers' . DS . 'tags.php');
 
 /**
- * Courses model class for a course
+ * Collections model for an item
  */
-class CollectionsModelItem extends \Hubzero\Base\Model
+class CollectionsModelItem extends CollectionsModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var strong
 	 */
 	protected $_tbl_name = 'CollectionsTableItem';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_collections.item.description';
 
 	/**
 	 * CoursesTableInstance
-	 * 
-	 * @var object
-	 */
-	private $_creator = NULL;
-
-	/**
-	 * CoursesTableInstance
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_modifier = NULL;
 
 	/**
 	 * Container for properties
-	 * 
+	 *
 	 * @var array
 	 */
 	private $_assets = null;
 
 	/**
-	 * Container for properties
-	 * 
-	 * @var array
+	 * Tag Cloud model
+	 *
+	 * @var object
 	 */
 	private $_tags = null;
 
 	/**
 	 * Container for properties
-	 * 
+	 *
 	 * @var array
 	 */
-	private $_comments = null;
+	private $_cache = array(
+		'comments.count'    => null,
+		'comments.list'     => null,
+		'collections.count' => null,
+		'collections.list'  => null
+	);
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      integer $id  Resource ID or alias
-	 * @param      object  &$db JDatabase
-	 * @return     void
+	 *
+	 * @param   mixed $oid Integer, object, or array
+	 * @return  void
 	 */
 	public function __construct($oid=null)
 	{
@@ -124,14 +122,14 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 	/**
 	 * Returns a reference to a collections item instance
 	 *
-	 * @param      mixed $oid Integer or string
-	 * @return     object CollectionsModelItem
+	 * @param   mixed $oid Integer or string
+	 * @return  object CollectionsModelItem
 	 */
 	static function &getInstance($oid=null)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -149,7 +147,7 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 			$key = $oid['id'];
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new self($oid);
 		}
@@ -160,33 +158,30 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 	/**
 	 * Returns a property of the object or the default value if the property is not set.
 	 *
-	 * @access	public
-	 * @param	string $property The name of the property
-	 * @param	mixed  $default The default value
-	 * @return	mixed The value of the property
-	 * @see		getProperties()
-	 * @since	1.5
+	 * @param   string $property The name of the property
+	 * @param   mixed  $default The default value
+	 * @return  mixed  The value of the property
  	 */
 	public function get($property, $default=null)
 	{
 		switch (strtolower($property))
 		{
 			case 'reposts':
-				if (!isset($this->_tbl->$property)) 
+				if (!isset($this->_tbl->{'__' . $property}))
 				{
 					$this->set($property, $this->_tbl->getReposts());
 				}
 			break;
 			case 'voted':
-				if (!isset($this->_tbl->$property)) 
+				if (!isset($this->_tbl->{'__' . $property}))
 				{
 					$this->set($property, $this->_tbl->getVote());
 				}
 			break;
 			case 'comments':
-				if (!isset($this->_tbl->$property)) 
+				if (!isset($this->_tbl->{'__' . $property}))
 				{
-					$this->comments();
+					$this->set($property, $this->comments('count'));
 				}
 			break;
 			default:
@@ -197,123 +192,115 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 
 	/**
 	 * Return a formatted timestamp
-	 * 
-	 * @param      string $as What format to return
-	 * @return     boolean
+	 *
+	 * @param   string $as What format to return
+	 * @return  string
 	 */
-	public function created($as='')
+	public function modified($as='')
 	{
 		switch (strtolower($as))
 		{
 			case 'date':
-				return JHTML::_('date', $this->get('created'), JText::_('DATE_FORMAT_HZ1'));
+				return JHTML::_('date', $this->get('modified'), JText::_('DATE_FORMAT_HZ1'));
 			break;
 
 			case 'time':
-				return JHTML::_('date', $this->get('created'), JText::_('TIME_FORMAT_HZ1'));
+				return JHTML::_('date', $this->get('modified'), JText::_('TIME_FORMAT_HZ1'));
 			break;
 
 			default:
-				return $this->get('created');
+				return $this->get('modified');
 			break;
 		}
-	}
-
-	/**
-	 * Get the creator of this entry
-	 * 
-	 * Accepts an optional property name. If provided
-	 * it will return that property value. Otherwise,
-	 * it returns the entire user object
-	 *
-	 * @param   string $property
-	 * @return  mixed
-	 */
-	public function creator($property=null)
-	{
-		if (!($this->_creator instanceof \Hubzero\User\Profile))
-		{
-			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
-		}
-		if ($property)
-		{
-			$property = ($property == 'id' ? 'uidNumber' : $property);
-			return $this->_creator->get($property);
-		}
-		return $this->_creator;
 	}
 
 	/**
 	 * Get the modifier of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
 	 * it returns the entire user object
 	 *
-	 * @param   string $property
+	 * @param   string $property Property to retrieve
+	 * @param   mixed  $default  Default value if property not set
 	 * @return  mixed
 	 */
-	public function modifier($property=null)
+	public function modifier($property=null, $default=null)
 	{
 		if (!($this->_modifier instanceof \Hubzero\User\Profile))
 		{
 			$this->_modifier = \Hubzero\User\Profile::getInstance($this->get('modified_by'));
+			if (!$this->_modifier)
+			{
+				$this->_modifier = new \Hubzero\User\Profile();
+			}
 		}
 		if ($property)
 		{
 			$property = ($property == 'id' ? 'uidNumber' : $property);
-			return $this->_modifier->get($property);
+			return $this->_modifier->get($property, $default);
 		}
 		return $this->_modifier;
 	}
 
 	/**
-	 * Get the comments on an item
-	 * 
-	 * @return     array
+	 * Get a count or list of the comments on an item
+	 *
+	 * @param   string  $rtrn    Data format to return
+	 * @param   array   $filters Filters to apply to data fetch
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  mixed
 	 */
-	public function comments()
+	public function comments($what='list', $filters=array(), $clear=false)
 	{
-		if (!isset($this->_comments) || !is_array($this->_comments))
+		if (!isset($filters['item_id']))
 		{
-			$total = 0;
-
-			$bc = new \Hubzero\Item\Comment($this->_db);
-
-			if (($results = $bc->getComments('collection', $this->get('id'))))
-			{
-				foreach ($results as $com)
-				{
-					$total++;
-					if ($com->replies) 
-					{
-						foreach ($com->replies as $rep)
-						{
-							$total++;
-							if ($rep->replies) 
-							{
-								$total += count($rep->replies);
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				$results = array();
-			}
-
-			$this->set('comments', $total);
-			$this->_comments = $results;
+			$filters['item_id'] = $this->get('id');
 		}
-		return $this->_comments;
+		if (!isset($filters['item_type']))
+		{
+			$filters['item_type'] = 'collection';
+		}
+		if (!isset($filters['state']))
+		{
+			$filters['state'] = array(1, 3);
+		}
+
+		switch (strtolower(trim($what)))
+		{
+			case 'count':
+				if ($this->_cache['comments.count'] === null)
+				{
+					$tbl = new \Hubzero\Item\Comment($this->_db);
+					$this->_cache['comments.count'] = $tbl->count($filters);
+				}
+				return $this->_cache['comments.count'];
+			break;
+
+			case 'list':
+			case 'results':
+			default:
+				if (!is_array($this->_cache['comments.list']))
+				{
+					$tbl = new \Hubzero\Item\Comment($this->_db);
+
+					if (!($results = $tbl->getComments('collection', $this->get('id'))))
+					{
+						$results = array();
+					}
+
+					$this->_cache['comments.list'] = $results;
+				}
+				return $this->_cache['comments.list'];
+			break;
+		}
 	}
 
 	/**
-	 * Check if the resource exists
-	 * 
-	 * @param      mixed $idx Index value
-	 * @return     array
+	 * Get a count or a list of the assets on this entry
+	 *
+	 * @param   array $filters Filters to apply to data fetch
+	 * @return  mixed
 	 */
 	public function assets($filters=array())
 	{
@@ -345,7 +332,7 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 
 	/**
 	 * Add an asset to the list
-	 * 
+	 *
 	 * @param      object $asset
 	 * @return     void
 	 */
@@ -366,10 +353,10 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Remove an asset from the list
-	 * 
-	 * @param      integer $asset
-	 * @return     void
+	 * Remove an asset
+	 *
+	 * @param   integer $asset
+	 * @return  boolean
 	 */
 	public function removeAsset($asset)
 	{
@@ -392,7 +379,7 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 			}
 		}
 
-		// Reset the asset list so the next time assets 
+		// Reset the asset list so the next time assets
 		// are called, the list if fresh
 		$this->_assets = null;
 
@@ -401,16 +388,14 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 
 	/**
 	 * Get tags on an item
-	 * 
-	 * @param      string $as How to return data
-	 * @return     mixed Returns an array of tags by default
+	 *
+	 * @param   string $as How to return data
+	 * @return  mixed Returns an array of tags by default
 	 */
 	public function tags($as='array')
 	{
 		if (!isset($this->_tags) || !is_array($this->_tags))
 		{
-			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'helpers' . DS . 'tags.php');
-
 			$ids = array(
 				$this->get('id')
 			);
@@ -439,7 +424,6 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 
 			case 'html':
 			case 'render':
-				require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'helpers' . DS . 'tags.php');
 				$bt = new CollectionsTags($this->_db);
 				return $bt->buildCloud($this->_tags);
 			break;
@@ -452,10 +436,10 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Add an asset to the list
-	 * 
-	 * @param      object $asset
-	 * @return     void
+	 * Add a tag to the list
+	 *
+	 * @param   object $tag
+	 * @return  void
 	 */
 	public function addTag($tag=null)
 	{
@@ -478,8 +462,8 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 
 	/**
 	 * Vote for this item
-	 * 
-	 * @return     boolean True on success, false on error
+	 *
+	 * @return  boolean True on success, false on error
 	 */
 	public function vote()
 	{
@@ -541,8 +525,8 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 	 * Store content
 	 * Can be passed a boolean to turn off check() method
 	 *
-	 * @param     boolean $check Call check() method?
-	 * @return    boolean True on success, false if errors
+	 * @param   boolean $check Call check() method?
+	 * @return  boolean True on success, false if errors
 	 */
 	public function store($check=true)
 	{
@@ -595,10 +579,10 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 			// Build the upload path if it doesn't exist
 			$path = JPATH_ROOT . DS . trim($config->get('filepath', '/site/collections'), DS) . DS . $this->get('id');
 
-			if (!is_dir($path)) 
+			if (!is_dir($path))
 			{
 				jimport('joomla.filesystem.folder');
-				if (!JFolder::create($path)) 
+				if (!JFolder::create($path))
 				{
 					$this->setError(JText::_('Error uploading. Unable to create path.'));
 					return false;
@@ -618,12 +602,12 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 					$files['name'][$i] = str_replace(' ', '_', $files['name'][$i]);
 
 					// Upload new files
-					if (!JFile::upload($files['tmp_name'][$i], $path . DS . $files['name'][$i])) 
+					if (!JFile::upload($files['tmp_name'][$i], $path . DS . $files['name'][$i]))
 					{
 						$this->setError(JText::_('ERROR_UPLOADING') . ': ' . $files['name'][$i]);
 					}
-					// File was uploaded 
-					else 
+					// File was uploaded
+					else
 					{
 						$asset = new CollectionsModelAsset();
 						//$asset->set('_file', $file);
@@ -644,7 +628,7 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 			}
 		}
 
-		$trashed = $this->assets(array('state' => 2));
+		$trashed = $this->assets(array('state' => self::APP_STATE_DELETED));
 		if ($trashed->total() > 0)
 		{
 			foreach ($trashed as $trash)
@@ -667,10 +651,10 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 
 	/**
 	 * Get the content of the entry
-	 * 
-	 * @param      string  $as      Format to return state in [text, number]
-	 * @param      integer $shorten Number of characters to shorten text to
-	 * @return     string
+	 *
+	 * @param   string  $as      Format to return state in [text, number]
+	 * @param   integer $shorten Number of characters to shorten text to
+	 * @return  string
 	 */
 	public function description($as='parsed', $shorten=0)
 	{
@@ -727,8 +711,8 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 
 	/**
 	 * Get the item type
-	 * 
-	 * @return     string
+	 *
+	 * @return  string
 	 */
 	public function type()
 	{
@@ -743,6 +727,65 @@ class CollectionsModelItem extends \Hubzero\Base\Model
 			$type = 'link';
 		}
 		return $type;
+	}
+
+	/**
+	 * Get a counr or list of collections this item can be found in
+	 *
+	 * @param   string  $what    What to return?
+	 * @param   array   $filters Filters to apply
+	 * @param   boolean $clear   Clear cached results?
+	 * @return  mixed
+	 */
+	public function collections($what='list', $filters=array(), $clear=false)
+	{
+		if (!isset($filters['item_id']))
+		{
+			$filters['item_id'] = $this->get('id');
+		}
+		if (!isset($filters['state']))
+		{
+			$filters['state'] = self::APP_STATE_PUBLISHED;
+		}
+		if (!isset($filters['access']))
+		{
+			$filters['access'] = (!JFactory::getUser()->get('guest') ? array(0, 1) : 0);
+		}
+
+		switch (strtolower($what))
+		{
+			case 'count':
+				if (!isset($this->_cache['collections.count']) || $clear)
+				{
+					$tbl = new CollectionsTableCollection($this->_db);
+					$this->_cache['collections.count'] = $tbl->getCount($filters);
+				}
+				return $this->_cache['collections.count'];
+			break;
+
+			case 'list':
+			case 'results':
+			default:
+				if (!($this->_cache['collections.list'] instanceof \Hubzero\Base\ItemList) || $clear)
+				{
+					$tbl = new CollectionsTableCollection($this->_db);
+
+					if ($results = $tbl->getRecords($filters))
+					{
+						foreach ($results as $key => $result)
+						{
+							$results[$key] = new CollectionsModelCollection($result);
+						}
+					}
+					else
+					{
+						$results = array();
+					}
+					$this->_cache['collections.list'] = new \Hubzero\Base\ItemList($results);
+				}
+				return $this->_cache['collections.list'];
+			break;
+		}
 	}
 }
 

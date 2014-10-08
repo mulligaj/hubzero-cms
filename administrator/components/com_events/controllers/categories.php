@@ -38,7 +38,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Determines task and attempts to execute it
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -51,7 +51,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display a list of entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -63,96 +63,70 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$limit = $app->getUserStateFromRequest(
-			$this->_option . '.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$limitstart = JRequest::getVar('limitstart', 0, '', 'int');
 
 		$this->view->section_name = '';
-		if (intval($this->view->section) > 0) 
+		if (intval($this->view->section) > 0)
 		{
 			$table = 'content';
 
-			$this->database->setQuery("SELECT name FROM #__sections WHERE id='" . $this->view->section . "'");
+			$this->database->setQuery("SELECT name FROM `#__sections` WHERE id='" . $this->view->section . "'");
 			$this->view->section_name = $this->database->loadResult();
-			if ($this->database->getErrorNum()) 
+			if ($this->database->getErrorNum())
 			{
 				JError::raiseError(500, $this->database->getErrorMsg());
 				return;
 			}
 			$this->view->section_name .= ' Section';
-		} 
-		else if (strpos($this->view->section, 'com_') === 0) 
+		}
+		else if (strpos($this->view->section, 'com_') === 0)
 		{
 			$table = substr($this->view->section, 4);
 
-			$this->database->setQuery("SELECT name FROM #__extensions WHERE type='component' AND element='" . $this->view->section . "'");
+			$this->database->setQuery("SELECT name FROM `#__extensions` WHERE type='component' AND element='" . $this->view->section . "'");
 			$this->view->section_name = $this->database->loadResult();
-			if ($this->database->getErrorNum()) 
+			if ($this->database->getErrorNum())
 			{
 				JError::raiseError(500, $this->database->getErrorMsg());
 				return;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			$table = $this->view->section;
 		}
 
 		// Get the total number of records
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			$this->database->setQuery("SELECT count(*) FROM #__categories WHERE section='" . $this->view->section . "'");
-		}
-		else
-		{
-			$this->database->setQuery("SELECT count(*) FROM #__categories WHERE extension='" . $this->view->section . "'");
-		}
+		$this->database->setQuery("SELECT count(*) FROM `#__categories` WHERE extension='" . $this->view->section . "'");
 		$this->view->total = $this->database->loadResult();
-		if ($this->database->getErrorNum()) 
+		if ($this->database->getErrorNum())
 		{
 			JError::raiseError(500, $this->database->stderr());
 			return;
 		}
 
 		// dmcd may 22/04  added #__events_categories table to fetch category color property
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			$this->database->setQuery("SELECT  c.*, g.name AS groupname, u.name AS editor, cc.color AS color, "
-				. "COUNT(DISTINCT s2.checked_out) AS checked_out, COUNT(DISTINCT s1.id) AS num"
-				. "\nFROM #__categories AS c"
-				. "\nLEFT JOIN #__users AS u ON u.id = c.checked_out"
-				. "\nLEFT JOIN #__groups AS g ON g.id = c.access"
-				. "\nLEFT JOIN #__$table AS s1 ON s1.catid = c.id"
-				. "\nLEFT JOIN #__$table AS s2 ON s2.catid = c.id AND s2.checked_out > 0"
-				. "\nLEFT JOIN #__${table}_categories AS cc ON cc.id = c.id"
-				. "\nWHERE section='" . $this->view->section . "'"
-				. "\nGROUP BY c.id"
-				. "\nORDER BY c.ordering, c.name"
-				. "\nLIMIT $limitstart,$limit"
-			);
-		}
-		else
-		{
-			$this->database->setQuery("SELECT  c.*, c.alias AS name, 'Public' AS groupname, u.name AS editor, cc.color AS color, "
-				. "COUNT(DISTINCT s2.checked_out) AS checked_out, COUNT(DISTINCT s1.id) AS num"
-				. "\nFROM #__categories AS c"
-				. "\nLEFT JOIN #__users AS u ON u.id = c.checked_out"
-				. "\nLEFT JOIN #__$table AS s1 ON s1.catid = c.id"
-				. "\nLEFT JOIN #__$table AS s2 ON s2.catid = c.id AND s2.checked_out > 0"
-				. "\nLEFT JOIN #__${table}_categories AS cc ON cc.id = c.id"
-				. "\nWHERE extension='" . $this->view->section . "'"
-				. "\nGROUP BY c.id"
-				. "\nORDER BY c.title"
-				. "\nLIMIT $limitstart,$limit"
-			);
-		}
+		$this->database->setQuery("SELECT  c.*, c.alias AS name, 'Public' AS groupname, u.name AS editor, cc.color AS color, "
+			. "COUNT(DISTINCT s2.checked_out) AS checked_out, COUNT(DISTINCT s1.id) AS num"
+			. "\nFROM #__categories AS c"
+			. "\nLEFT JOIN #__users AS u ON u.id = c.checked_out"
+			. "\nLEFT JOIN #__$table AS s1 ON s1.catid = c.id"
+			. "\nLEFT JOIN #__$table AS s2 ON s2.catid = c.id AND s2.checked_out > 0"
+			. "\nLEFT JOIN #__${table}_categories AS cc ON cc.id = c.id"
+			. "\nWHERE extension='" . $this->view->section . "'"
+			. "\nGROUP BY c.id"
+			. "\nORDER BY c.title"
+			. "\nLIMIT $limitstart,$limit"
+		);
 
 		// Execute query
 		$this->view->rows = $this->database->loadObjectList();
-		if ($this->database->getErrorNum()) 
+		if ($this->database->getErrorNum())
 		{
 			JError::raiseError(500, $this->database->stderr());
 			return;
@@ -161,13 +135,13 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$limitstart, 
+			$this->view->total,
+			$limitstart,
 			$limit
 		);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -181,7 +155,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Show a form for adding an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -191,7 +165,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Show a form for editing an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask()
@@ -208,7 +182,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 		$this->view->row->load($id);
 
 		// Fail if checked out not by 'me'
-		if ($this->view->row->checked_out && $this->view->row->checked_out <> $this->juser->get('id')) 
+		if ($this->view->row->checked_out && $this->view->row->checked_out <> $this->juser->get('id'))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
@@ -217,12 +191,12 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 			return;
 		}
 
-		if ($this->view->row->id) 
+		if ($this->view->row->id)
 		{
 			// Existing record
 			$this->view->row->checkout($this->juser->get('id'));
-		} 
-		else 
+		}
+		else
 		{
 			// New record
 			$this->view->row->section = $this->_option;
@@ -242,14 +216,14 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 		$ipos[] = JHTML::_('select.option', 'right', JText::_('right'), 'value', 'text');
 
 		$this->view->iposlist = JHTML::_(
-			'select.genericlist', 
-			$ipos, 
-			'image_position', 
+			'select.genericlist',
+			$ipos,
+			'image_position',
 			'class="inputbox" size="1"',
-			'value', 
-			'text', 
-			($this->view->row->image_position ? $this->view->row->image_position : 'left'), 
-			false, 
+			'value',
+			'text',
+			($this->view->row->image_position ? $this->view->row->image_position : 'left'),
+			false,
 			false
 		);
 
@@ -257,47 +231,38 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 		$images = array(JHTML::_('select.option', '', JText::_('Select Image'), 'value', 'text'));
 		foreach ($imgFiles as $file)
 		{
-			if (preg_match("/bmp|gif|jpg|jpe|jpeg|png/", $file)) 
+			if (preg_match("/bmp|gif|jpg|jpe|jpeg|png/", $file))
 			{
 				$images[] = JHTML::_('select.option', $file, $file, 'value', 'text');
 			}
 		}
 
 		$this->view->imagelist = JHTML::_(
-			'select.genericlist', 
-			$images, 
-			'image', 
+			'select.genericlist',
+			$images,
+			'image',
 			'class="inputbox" size="1"' . " onchange=\"javascript:if (document.forms[0].image.options[selectedIndex].value!='') {document.imagelib.src='../images/stories/' + document.forms[0].image.options[selectedIndex].value} else {document.imagelib.src='../images/M_images/blank.png'}\"",
-			'value', 
-			'text', 
-			$this->view->row->image, 
-			false, 
+			'value',
+			'text',
+			$this->view->row->image,
+			false,
 			false
 		);
 
 		$this->view->orderlist = JHTML::_(
-			'select.genericlist', 
-			$order, 
-			'ordering', 
+			'select.genericlist',
+			$order,
+			'ordering',
 			'class="inputbox" size="1"',
-			'value', 
-			'text', 
-			$this->view->row->ordering, 
-			false, 
+			'value',
+			'text',
+			$this->view->row->ordering,
+			false,
 			false
 		);
 
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			// Get list of groups
-			$this->database->setQuery("SELECT id AS value, name AS text FROM #__groups ORDER BY id");
-			$this->view->groups = $this->database->loadObjectList();
-
-			$this->view->glist = JHTML::_('select.genericlist', $this->view->groups, 'access', 'class="inputbox" size="1"','value', 'text', intval($this->view->row->access), false, false);
-		}
-
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -311,12 +276,12 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Read the contents of a directory
-	 * 
+	 *
 	 * @param      string  $path     Path to read
 	 * @param      string  $filter   Filters to apply
 	 * @param      boolean $recurse  Recursive?
 	 * @param      boolean $fullpath Full path?
-	 * @return     array 
+	 * @return     array
 	 */
 	private function readDirectory($path, $filter='.', $recurse=false, $fullpath=false)
 	{
@@ -338,36 +303,36 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
-		
+
 		//get category info
 		$category = JRequest::getVar('category', array());
-		
+
 		//set path
 		$category['parent_id'] = 21; // root
 		$category['level']     = 1;
 		$category['path']      = (isset($category['alias'])) ? $category['alias'] : '';
 		$category['published'] = 1;
 		$category['access']    = 1;
-		
+
 		$row = new EventsCategory($this->database);
 
-		if (!$row->save($category)) 
+		if (!$row->save($category))
 		{
 			JError::raiseError(500, $row->getError());
 			return;
 		}
 		//$row->updateOrder("section='$row->section'");
 
-		//if ($oldtitle = JRequest::getVar('oldtitle', null, 'post')) 
+		//if ($oldtitle = JRequest::getVar('oldtitle', null, 'post'))
 		//{
-		//	if ($oldtitle != $row->title) 
+		//	if ($oldtitle != $row->title)
 		//	{
 		//		$this->database->setQuery("UPDATE #__menu SET name='$row->title' WHERE name='$oldtitle' AND type='content_category'");
 		//		$this->database->query();
@@ -375,12 +340,12 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 		//}
 
 		//// Update Section Count
-		//if ($row->section != 'com_weblinks') 
+		//if ($row->section != 'com_weblinks')
 		//{
 		//	$this->database->setQuery("UPDATE #__sections SET count=count+1 WHERE id = '$row->section'");
 		//}
 
-		//if (!$this->database->query()) 
+		//if (!$this->database->query())
 		//{
 		//	JError::raiseError(500, $this->database->getErrorMsg());
 		//	return;
@@ -394,7 +359,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Publish one or more entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function publishTask()
@@ -404,13 +369,13 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
-		if (!is_array($ids)) 
+		if (!is_array($ids))
 		{
 			$ids = array();
 		}
 
 		// Make sure we have an ID
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller
@@ -436,7 +401,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Unpublish one or more entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function unpublishTask()
@@ -446,13 +411,13 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
-		if (!is_array($ids)) 
+		if (!is_array($ids))
 		{
 			$ids = array();
 		}
 
 		// Make sure we have an ID
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller
@@ -478,7 +443,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Move an item up one in the ordering
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function orderupTask()
@@ -503,7 +468,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Move an item down one in the ordering
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function orderdownTask()
@@ -528,7 +493,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Remove one or more categories
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -538,13 +503,13 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
-		if (!is_array($ids)) 
+		if (!is_array($ids))
 		{
 			$ids = array();
 		}
 
 		// Make sure we have an ID
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller
@@ -553,7 +518,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 		}
 
 		$cids = array();
-		if (count($ids) > 0) 
+		if (count($ids) > 0)
 		{
 			// Loop through each category ID
 			foreach ($ids as $id)
@@ -562,12 +527,12 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 				$cat = new EventsCategory($this->database);
 				$cat->load($id);
 				// Check its count of items in it
-				if ($cat->count > 0) 
+				if ($cat->count > 0)
 				{
 					// Category is NOT empty
 					$cids[] = $cat->name;
-				} 
-				else 
+				}
+				else
 				{
 					// Empty category, go ahead and delete
 					$cat->delete($id);
@@ -575,7 +540,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 			}
 		}
 
-		if (count($cids)) 
+		if (count($cids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
@@ -594,7 +559,7 @@ class EventsControllerCategories extends \Hubzero\Component\AdminController
 
 	/**
 	 * Cancel a task by redirecting to main page
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cancelTask()

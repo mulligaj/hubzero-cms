@@ -39,33 +39,8 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Migration class
  **/
-class Migration implements CommandInterface
+class Migration extends Base implements CommandInterface
 {
-	/**
-	 * Output object, implements the Output interface
-	 *
-	 * @var object
-	 **/
-	private $output;
-
-	/**
-	 * Arguments object, implements the Argument interface
-	 *
-	 * @var object
-	 **/
-	private $arguments;
-
-	/**
-	 * Constructor - sets output mechanism and arguments for use by command
-	 *
-	 * @return void
-	 **/
-	public function __construct(Output $output, Arguments $arguments)
-	{
-		$this->output    = $output;
-		$this->arguments = $arguments;
-	}
-
 	/**
 	 * Default (required) command - just executes run
 	 *
@@ -108,6 +83,36 @@ class Migration implements CommandInterface
 			else
 			{
 				$this->output->error('Error: Provided directory is not valid');
+			}
+		}
+
+		// Migrating a super group
+		$alternativeDatabase = null;
+		if ($this->arguments->getOpt('group'))
+		{
+			$cname = $this->arguments->getOpt('group');
+			$group = \Hubzero\User\Group::getInstance($cname);
+			if ($group && $group->isSuperGroup())
+			{
+				// Get group config
+				$groupsConfig = \JComponentHelper::getParams('com_groups');
+
+				// Path to group folder
+				$directory  = JPATH_ROOT . DS . trim($groupsConfig->get('uploadpath', '/site/groups'), DS);
+				$directory .= DS . $group->get('gidNumber');
+
+				// Get group database
+				$alternativeDatabase = \Hubzero\User\Group\Helper::getDBO(array(), $group->get('cn'));
+
+				// make sure we have a group db
+				if ($alternativeDatabase->getErrorNum() > 0)
+				{
+					$this->output->error('Error: Could not connect to Group Database.');
+				}
+			}
+			else
+			{
+				$this->output->error('Error: Provided group is not valid');
 			}
 		}
 
@@ -188,7 +193,7 @@ class Migration implements CommandInterface
 		$email = false;
 		if ($this->arguments->getOpt('email'))
 		{
-			if(!preg_match('/^[a-zA-Z0-9\.\_\-]+@[a-zA-Z0-9\.]+\.[a-zA-Z]{2,4}$/', $this->arguments->getOpt('email')))
+			if (!preg_match('/^[a-zA-Z0-9\.\_\-]+@[a-zA-Z0-9\.]+\.[a-zA-Z]{2,4}$/', $this->arguments->getOpt('email')))
 			{
 				$this->output->error('Error: ' . $this->arguments->getOpt('email') . ' does not appear to be a valid email address');
 			}
@@ -199,7 +204,7 @@ class Migration implements CommandInterface
 		}
 
 		// Create migration object
-		$migration = new \Hubzero\Content\Migration($directory);
+		$migration = new \Hubzero\Content\Migration($directory, $alternativeDatabase);
 
 		// Make sure we got a migration object
 		if ($migration === false)
@@ -252,7 +257,8 @@ class Migration implements CommandInterface
 								{
 									$pending[] = $matches[1];
 								}
-								if (preg_match('/completed up\(\) in (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
+								if (preg_match('/completed up\(\) in (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches)
+									|| preg_match('/would ignore up\(\) (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
 								{
 									$complete[] = $matches[1];
 								}
@@ -305,7 +311,7 @@ class Migration implements CommandInterface
 			}
 
 			// Send the message
-			if(!mail($email, $subject, $message, $headers))
+			if (!mail($email, $subject, $message, $headers))
 			{
 				$this->output->addLine("Error: failed to send message!", 'warning');
 			}
@@ -313,6 +319,60 @@ class Migration implements CommandInterface
 		elseif ($email)
 		{
 			$this->output->addLine('Ignoring email as no files were affected in this run.', 'info');
+		}
+	}
+
+	/**
+	 * Report migration run info
+	 *
+	 * @return void
+	 **/
+	public function history()
+	{
+		$migration = new \Hubzero\Content\Migration();
+		$history   = $migration->history();
+		$output    = array();
+		$maxFile   = 0;
+		$maxUser   = 0;
+		$maxScope  = 0;
+
+		if ($history && count($history) > 0)
+		{
+			foreach ($history as $entry)
+			{
+				if (strlen($entry->file) > $maxFile)
+				{
+					$maxFile = strlen($entry->file);
+				}
+				if (strlen($entry->action_by) > $maxUser)
+				{
+					$maxUser = strlen($entry->action_by);
+				}
+				if (strlen($entry->scope) > $maxScope)
+				{
+					$maxScope = strlen($entry->scope);
+				}
+			}
+
+			$width = $maxScope + $maxFile + $maxUser + 35;
+
+			$this->output->addLine(' ' . str_repeat('-', ($width)));
+
+			foreach ($history as $entry)
+			{
+				$padding1 = $maxFile - strlen($entry->file);
+				$padding2 = $maxUser - strlen($entry->action_by);
+				$this->output->addString('| ' . $entry->scope . DS . $entry->file . ' ' . str_repeat(' ', $padding1));
+				$this->output->addString('| ' . $entry->action_by . ' ' . str_repeat(' ', $padding2));
+				$this->output->addString('| ' . $entry->direction . ' ' . (($entry->direction == 'up') ? '  ': ''));
+				$this->output->addLine('| ' . $entry->date . ' |');
+			}
+
+			$this->output->addLine(' ' . str_repeat('-', ($width)));
+		}
+		else
+		{
+			$this->addLine('No history to display.');
 		}
 	}
 

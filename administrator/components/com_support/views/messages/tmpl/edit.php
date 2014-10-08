@@ -30,33 +30,33 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$text = ( $this->task == 'edit' ? JText::_( 'Edit' ) : JText::_( 'New' ) );
-JToolBarHelper::title( JText::_( 'Support' ).': '. $text, 'support.png' );
+$text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
+
+JToolBarHelper::title(JText::_('COM_SUPPORT_TICKETS') . ': ' . JText::_('COM_SUPPORT_MESSAGES') . ': ' . $text, 'support.png');
+JToolBarHelper::apply();
 JToolBarHelper::save();
+JToolBarHelper::spacer();
 JToolBarHelper::cancel();
 JToolBarHelper::spacer();
-JToolBarHelper::help('messages.html', true);
+JToolBarHelper::help('messages');
 
 $jconfig = JFactory::getConfig();
-
-jimport('joomla.html.editor');
-$editor = JEditor::getInstance();
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
-	
+
 	if (pressbutton == 'cancelmsg') {
 		submitform( pressbutton );
 		return;
 	}
-	
+
 	// form field validation
 	if ($('msg[message]').value == '') {
-		alert( '<?php echo JText::_('MESSAGE_ERROR_NO_TEXT'); ?>' );
+		alert('<?php echo JText::_('COM_SUPPORT_MESSAGE_ERROR_NO_TEXT'); ?>');
 	} else {
-		submitform( pressbutton );
+		submitform(pressbutton);
 	}
 }
 </script>
@@ -64,31 +64,28 @@ function submitbutton(pressbutton)
 <form action="index.php" method="post" name="adminForm" id="item-form">
 	<div class="col width-60 fltlft">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('MESSAGE_LEGEND'); ?></span></legend>
-			
-			<table class="admintable">
-				<tbody>
-					<tr>
-						<td class="key"><label for="title"><?php echo JText::_('MESSAGE_SUMMARY'); ?>: <span class="required">*</span></label></td>
-						<td><input type="text" name="msg[title]" id="title" value="<?php echo $this->escape(stripslashes($this->row->title)); ?>" size="50" /></td>
-					</tr>
-		 			<tr>
-						<td class="key" style="vertical-align: top;"><label for="message"><?php echo JText::_('MESSAGE_TEXT'); ?>: <span class="required">*</span></label></th>
-						<td><?php echo $editor->display('msg[message]', $this->escape(stripslashes($this->row->message)), '', '', '50', '10'); ?></td>
-					</tr>
-				</tbody>
-			</table>
+			<legend><span><?php echo JText::_('COM_SUPPORT_MESSAGE_LEGEND'); ?></span></legend>
+
+			<div class="input-wrap">
+				<label for="field-title"><?php echo JText::_('COM_SUPPORT_MESSAGE_SUMMARY'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label><br />
+				<input type="text" name="msg[title]" id="field-title" value="<?php echo $this->escape(stripslashes($this->row->title)); ?>" />
+			</div>
+
+			<div class="input-wrap">
+				<label for="field-message"><?php echo JText::_('COM_SUPPORT_MESSAGE_TEXT'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label><br />
+				<textarea name="msg[message]" id="field-message" cols="35" rows="10"><?php echo $this->escape(stripslashes($this->row->message)); ?></textarea>
+			</div>
 		</fieldset>
 	</div>
 	<div class="col width-40 fltrt">
-		<p><?php echo JText::_('MESSAGE_TEXT_EXPLANATION'); ?></p>
+		<p><?php echo JText::_('COM_SUPPORT_MESSAGE_TEXT_EXPLANATION'); ?></p>
 		<dl>
 			<dt>{ticket#}</dt>
-			<dd><?php echo JText::_('MESSAGE_TICKET_NUM_EXPLANATION'); ?></dd>
-			
+			<dd><?php echo JText::_('COM_SUPPORT_MESSAGE_TICKET_NUM_EXPLANATION'); ?></dd>
+
 			<dt>{sitename}</dt>
 			<dd><?php echo $jconfig->getValue('config.sitename'); ?></dd>
-			
+
 			<dt>{siteemail}</dt>
 			<dd><?php echo $jconfig->getValue('config.mailfrom'); ?></dd>
 		</dl>

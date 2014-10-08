@@ -30,23 +30,19 @@
 
 defined('_JEXEC') or die('Restricted access');
 
+$this->css()
+     ->js();
+
 $base = $this->offering->link() . '&active=pages';
 
-$view = new \Hubzero\Plugin\View(
-	array(
-		'folder'  => 'courses',
-		'element' => 'pages',
-		'name'    => 'pages',
-		'layout'  => 'default_menu'
-	)
-);
-$view->option     = $this->option;
-$view->controller = $this->controller;
-$view->course     = $this->course;
-$view->offering   = $this->offering;
-$view->page       = $this->page;
-$view->pages      = $this->pages;
-$view->display();
+$this->view('default_menu')
+     ->set('option', $this->option)
+     ->set('controller', $this->controller)
+     ->set('course', $this->course)
+     ->set('offering', $this->offering)
+     ->set('page', $this->page)
+     ->set('pages', $this->pages)
+     ->display();
 ?>
 <div class="pages-wrap">
 	<div class="pages-content">
@@ -66,7 +62,7 @@ else
 	//$layout = 'page';
 	$pathway = JFactory::getApplication()->getPathway();
 	$pathway->addItem(
-		stripslashes($this->page->get('title')), 
+		stripslashes($this->page->get('title')),
 		$base . '&unit=' . $this->page->get('url')
 	);
 

@@ -6,7 +6,7 @@ use Hubzero\Content\Migration\Base;
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Migration script for ...
+ * Migration script for tracking group pages checkouts
  **/
 class Migration20140109024336ComGroups extends Base
 {
@@ -42,7 +42,7 @@ class Migration20140109024336ComGroups extends Base
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
-		
+
 		if (!empty($query))
 		{
 			$this->db->setQuery($query);

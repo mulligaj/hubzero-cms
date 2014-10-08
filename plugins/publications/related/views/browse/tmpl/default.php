@@ -25,14 +25,11 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$dateFormat = '%d %b, %Y';
-$tz = null;
+// Add stylesheet
+$document = JFactory::getDocument();
+$document->addStyleSheet('plugins' . DS . 'publications' . DS . 'related' . DS . 'assets' . DS . 'css' . DS . 'related.css');
 
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'd M, Y';
-	$tz = false;
-}
+$dateFormat = 'd M, Y';
 
 $juser = JFactory::getUser();
 $database = JFactory::getDBO();
@@ -50,7 +47,7 @@ $authorlist = '';
 <?php
 foreach ($this->related as $line)
 {
-	if($line->section == 'Topic') {
+	if ($line->section == 'Topic') {
 		if ($line->group != '' && $line->scope != '') {
 			$sef = JRoute::_('index.php?option=com_groups&scope='.$line->scope.'&pagename='.$line->alias);
 		} else {
@@ -59,7 +56,7 @@ foreach ($this->related as $line)
 	}
 	else {
 		$class = PublicationsHtml::getRatingClass( $line->rating );
-		
+
 		// Get version authors
 		$authors = $pa->getAuthors($line->version);
 		$authorlist = $helper->showContributors( $authors, false, true );
@@ -97,12 +94,12 @@ foreach ($this->related as $line)
 ?>
 		<tr>
 			<td>
-<?php  if($line->section == 'Topic') { ?>
+<?php if ($line->section == 'Topic') { ?>
 		<a href="<?php echo $sef; ?>"><?php echo stripslashes($line->title); ?></a>
 <?php }
-		
+
 else { ?>
-	<?php if($line->section == 'Series') { echo JText::_('PLG_PUBLICATION_RELATED_PART_OF'); } ?>
+	<?php if ($line->section == 'Series') { echo JText::_('PLG_PUBLICATION_RELATED_PART_OF'); } ?>
 				<a href="<?php echo $sef; ?>" class="fixedResourceTip" title="DOM:rsrce<?php echo $line->id; ?>"><?php echo stripslashes($line->title); ?></a>
 				<div style="display:none;" id="rsrce<?php echo $line->id; ?>">
 					<h4><?php echo stripslashes($line->title); ?></h4>
@@ -121,7 +118,7 @@ else { ?>
 <?php } ?>
 								<tr>
 									<th><?php echo JText::_('PLG_PUBLICATION_RELATED_DATE'); ?></th>
-									<td><?php echo JHTML::_('date',$line->published_up, $dateFormat, $tz); ?></td>
+									<td><?php echo JHTML::_('date',$line->published_up, $dateFormat); ?></td>
 								</tr>
 								<tr>
 									<th><?php echo JText::_('PLG_PUBLICATION_RELATED_AVG_RATING'); ?></th>

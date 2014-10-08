@@ -28,10 +28,12 @@ $menu->addChild(
 
 $menu->addSeparator();
 
+/*
 $menu->addChild(
 	new JMenuNode(JText::_('MOD_HUBMENU_USER_PROFILE'), 'index.php?option=com_admin&task=profile.edit&id='.$user->id, 'class:profile')
 );
 $menu->addSeparator();
+*/
 
 if ($user->authorise('core.admin'))
 {
@@ -60,11 +62,16 @@ if ($chm || $cam)
 		$menu->addSeparator();
 	}
 
-	$menu->addChild(new JMenuNode(JText::_('LDAP'), 'index.php?option=com_system&controller=ldap', 'class:ldap'));
-	$menu->addChild(new JMenuNode(JText::_('Geo DB'), 'index.php?option=com_system&controller=geodb', 'class:geo'));
-	$menu->addChild(new JMenuNode(JText::_('APC'), 'index.php?option=com_system&controller=apc', 'class:apc'));
-	$menu->addChild(new JMenuNode(JText::_('Scripts'), 'index.php?option=com_system&controller=scripts', 'class:scripts'));
-	$menu->addChild(new JMenuNode(JText::_('Routes'), 'index.php?option=com_system&controller=routes', 'class:routes'));
+	if ($user->authorise('core.admin'))
+	{
+		$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_UPDATE'), 'index.php?option=com_update', 'class:update'));
+	}
+
+	$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_LDAP'), 'index.php?option=com_system&controller=ldap', 'class:ldap'));
+	$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_GEO'), 'index.php?option=com_system&controller=geodb', 'class:geo'));
+	$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_APC'), 'index.php?option=com_system&controller=apc', 'class:apc'));
+	//$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_SCRIPTS'), 'index.php?option=com_system&controller=scripts', 'class:scripts'));
+	$menu->addChild(new JMenuNode(JText::_('MOD_HUBMENU_SYS_ROUTES'), 'index.php?option=com_system&controller=routes', 'class:routes'));
 
 	$menu->getParent();
 }
@@ -207,22 +214,26 @@ if ($user->authorise('core.manage', 'com_menus'))
 		}
 		elseif ($menuType->home == 1 && $menuType->language == '*')
 		{
-			$titleicon = ' <span>'.JHtml::_('image', 'menu/icon-16-default.png', '*', array('title' => JText::_('MOD_HUBMENU_HOME_DEFAULT')), true).'</span>';
+			//$titleicon = ' <span>'.JHtml::_('image', 'menu/icon-16-default.png', '*', array('title' => JText::_('MOD_HUBMENU_HOME_DEFAULT')), true).'</span>';
+			$titleicon = ' <span class="home" title="' . JText::_('MOD_HUBMENU_HOME_DEFAULT') . '">' . '*' . '</span>';
 		}
 		elseif ($menuType->home > 1)
 		{
-			$titleicon = ' <span>'.JHtml::_('image', 'menu/icon-16-language.png', $menuType->home, array('title' => JText::_('MOD_HUBMENU_HOME_MULTIPLE')), true).'</span>';
+			//$titleicon = ' <span>'.JHtml::_('image', 'menu/icon-16-language.png', $menuType->home, array('title' => JText::_('MOD_HUBMENU_HOME_MULTIPLE')), true).'</span>';
+			$titleicon = ' <span class="home multiple" title="' . JText::_('MOD_HUBMENU_HOME_MULTIPLE') . '">' . $menuType->home . '</span>';
 		}
 		else
 		{
 			$image = JHtml::_('image', 'mod_languages/'.$menuType->image.'.gif', NULL, NULL, true, true);
 			if (!$image)
 			{
-				$titleicon = ' <span>'.JHtml::_('image', 'menu/icon-16-language.png', $alt, array('title' => $menuType->title_native), true).'</span>';
+				//$titleicon = ' <span>'.JHtml::_('image', 'menu/icon-16-language.png', $alt, array('title' => $menuType->title_native), true).'</span>';
+				$titleicon = ' <span title="' . $menuType->title_native . '">' . $alt . '</span>';
 			}
 			else
 			{
-				$titleicon = ' <span>'.JHtml::_('image', 'mod_languages/'.$menuType->image.'.gif', $alt, array('title'=>$menuType->title_native), true).'</span>';
+				//$titleicon = ' <span>'.JHtml::_('image', 'mod_languages/'.$menuType->image.'.gif', $alt, array('title'=>$menuType->title_native), true).'</span>';
+				$titleicon = ' <span title="' . $menuType->title_native . '">' . $alt . '</span>';
 			}
 		}
 		$menu->addChild(
@@ -369,12 +380,12 @@ if ($showhelp == 1)
 		new JMenuNode(JText::_('MOD_HUBMENU_HELP'), '#'), true
 	);
 	$menu->addChild(
-		new JMenuNode(JText::_('MOD_HUBMENU_HELP_JOOMLA'), 'index.php?option=com_admin&view=help', 'class:help')
+		new JMenuNode(JText::_('MOD_HUBMENU_HELP_DOCUMENTATION'), 'http://hubzero.org/documentation', 'class:help', false, '_blank')
 	);
 	$menu->addSeparator();
 
 	$menu->addChild(
-		new JMenuNode(JText::_('MOD_HUBMENU_HELP_SUPPORT_OFFICIAL_FORUM'), 'http://forum.joomla.org', 'class:help-forum', false, '_blank')
+		new JMenuNode(JText::_('MOD_HUBMENU_HELP_SUPPORT_OFFICIAL_FORUM'), 'http://hubzero.org/answers', 'class:help-forum', false, '_blank')
 	);
 	if ($forum_url = $params->get('forum_url'))
 	{
@@ -382,7 +393,7 @@ if ($showhelp == 1)
 			new JMenuNode(JText::_('MOD_HUBMENU_HELP_SUPPORT_CUSTOM_FORUM'), $forum_url, 'class:help-forum', false, '_blank')
 		);
 	}
-	$debug = $lang->setDebug(false);
+	/*$debug = $lang->setDebug(false);
 	if ($lang->hasKey('MOD_HUBMENU_HELP_SUPPORT_OFFICIAL_LANGUAGE_FORUM_VALUE') && JText::_('MOD_HUBMENU_HELP_SUPPORT_OFFICIAL_LANGUAGE_FORUM_VALUE') != '')
 	{
 		$forum_url = 'http://forum.joomla.org/viewforum.php?f=' . (int) JText::_('MOD_HUBMENU_HELP_SUPPORT_OFFICIAL_LANGUAGE_FORUM_VALUE');
@@ -391,11 +402,11 @@ if ($showhelp == 1)
 			new JMenuNode(JText::_('MOD_HUBMENU_HELP_SUPPORT_OFFICIAL_LANGUAGE_FORUM'), $forum_url, 'class:help-forum', false, '_blank')
 		);
 	}
-	$lang->setDebug($debug);
+	$lang->setDebug($debug);*/
 	$menu->addChild(
-		new JMenuNode(JText::_('MOD_HUBMENU_HELP_DOCUMENTATION'), 'http://docs.joomla.org', 'class:help-docs', false, '_blank')
+		new JMenuNode(JText::_('MOD_HUBMENU_HELP_HUBZERO'), 'http://hubzero.org/support', 'class:help-docs', false, '_blank')
 	);
-	$menu->addSeparator();
+	/*$menu->addSeparator();
 	$menu->addChild(
 		new JMenuNode(JText::_('MOD_HUBMENU_HELP_LINKS'), '#', 'class:weblinks'), true
 	);
@@ -420,6 +431,6 @@ if ($showhelp == 1)
 	$menu->addChild(
 		new JMenuNode(JText::_('MOD_HUBMENU_HELP_SHOP'), 'http://shop.joomla.org', 'class:help-shop', false, '_blank')
 	);
-	$menu->getParent();
+	$menu->getParent();*/
 	$menu->getParent();
 }

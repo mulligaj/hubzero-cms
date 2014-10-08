@@ -37,7 +37,7 @@ if ($item->get('title')) { ?>
 		<h4>
 			<?php echo $this->escape(stripslashes($item->get('title'))); ?>
 		</h4>
-<?php } 
+<?php }
 
 $path = DS . trim($this->params->get('filepath', '/site/collections'), DS) . DS . $item->get('id');
 $href = 'index.php?option=com_collections&controller=media&post=';
@@ -68,10 +68,12 @@ if ($assets->total() > 0)
 
 		list($originalWidth, $originalHeight) = getimagesize(JPATH_ROOT . $path . DS . ltrim($first->get('filename'), DS));
 		$ratio = $originalWidth / $originalHeight;
+
+		$height = (!isset($this->actual) || !$this->actual) ? round($this->params->get('maxWidth', 260) / $ratio, 0, PHP_ROUND_HALF_UP) : ($originalHeight > 500 ? 500 : $originalHeight);
 		?>
 			<div class="holder">
-				<a rel="post<?php echo $this->row->get('id'); ?>" href="<?php echo JRoute::_($href . $this->row->get('id') . '&task=download&file=' . ltrim($first->get('filename'), DS)); ?>" class="img-link">
-					<img src="<?php echo JRoute::_($href . $this->row->get('id') . '&task=download&file=' . ltrim($first->get('filename'), DS)); ?>" alt="<?php echo ($first->get('description')) ? $this->escape(stripslashes($first->get('description'))) : ''; ?>" class="img" style="height: <?php echo (!isset($this->actual) || !$this->actual) ? round($this->params->get('maxWidth', 260) / $ratio, 0, PHP_ROUND_HALF_UP) : $originalHeight; ?>px;" />
+				<a data-rel="post<?php echo $this->row->get('id'); ?>" href="<?php echo JRoute::_($href . $this->row->get('id') . '&task=download&file=' . ltrim($first->get('filename'), DS)); ?>" class="img-link">
+					<img src="<?php echo JRoute::_($href . $this->row->get('id') . '&task=download&file=' . ltrim($first->get('filename'), DS)); ?>" alt="<?php echo ($first->get('description')) ? $this->escape(stripslashes($first->get('description'))) : ''; ?>" class="img" style="height: <?php echo $height; ?>px;" />
 				</a>
 			</div>
 		<?php
@@ -83,8 +85,8 @@ if ($assets->total() > 0)
 			foreach ($images as $asset)
 			{
 				?>
-				<a rel="post<?php echo $this->row->get('id'); ?>" href="<?php echo JRoute::_($href . $this->row->get('id') . '&task=download&file=' . ltrim($asset->get('filename'), DS)); ?>" class="img-link">
-					<img src="<?php echo JRoute::_($href . $this->row->get('id') . '&task=download&file=' . ltrim($asset->get('filename'), DS)); ?>" alt="<?php echo ($asset->get('description')) ? $this->escape(stripslashes($asset->get('description'))) : ''; ?>" class="img" />
+				<a data-rel="post<?php echo $this->row->get('id'); ?>" href="<?php echo JRoute::_($href . $this->row->get('id') . '&task=download&file=' . ltrim($asset->get('filename'), DS)); ?>" class="img-link">
+					<img src="<?php echo JRoute::_($href . $this->row->get('id') . '&task=download&file=' . ltrim($asset->get('filename'), DS)); ?>" alt="<?php echo ($asset->get('description')) ? $this->escape(stripslashes($asset->get('description'))) : ''; ?>" width="50" height="50" class="img" />
 				</a>
 				<?php
 			}

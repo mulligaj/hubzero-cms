@@ -14,6 +14,7 @@ $user = JFactory::getUser();
 var image_base_path = '<?php $params = JComponentHelper::getParams('com_media');
 echo $params->get('image_path', 'images');?>/';
 </script>
+<h2 class="modal-title"><?php echo JText::_('COM_MEDIA'); ?></h2>
 <form action="index.php?option=com_media&amp;asset=<?php echo JRequest::getCmd('asset');?>&amp;author=<?php echo JRequest::getCmd('author');?>" id="imageForm" method="post" enctype="multipart/form-data">
 	<div id="messages" style="display: none;">
 		<span id="message"></span><?php echo JHtml::_('image', 'media/dots.gif', '...', array('width' =>22, 'height' => 12), true)?>
@@ -25,8 +26,8 @@ echo $params->get('image_path', 'images');?>/';
 			<button type="button" id="upbutton" title="<?php echo JText::_('COM_MEDIA_DIRECTORY_UP') ?>"><?php echo JText::_('COM_MEDIA_UP') ?></button>
 		</div>
 		<div class="fltrt">
-			<button type="button" onclick="<?php if ($this->state->get('field.id')):?>window.parent.jInsertFieldValue(document.id('f_url').value,'<?php echo $this->state->get('field.id');?>');<?php else:?>ImageManager.onok();<?php endif;?>window.parent.SqueezeBox.close();"><?php echo JText::_('COM_MEDIA_INSERT') ?></button>
-			<button type="button" onclick="window.parent.SqueezeBox.close();"><?php echo JText::_('JCANCEL') ?></button>
+			<button type="button" onclick="<?php if ($this->state->get('field.id')):?>window.parent.jInsertFieldValue($('#f_url').val(),'<?php echo $this->state->get('field.id');?>');<?php else:?>ImageManager.onok();<?php endif;?>window.parent.$.fancybox.close();"><?php echo JText::_('COM_MEDIA_INSERT') ?></button>
+			<button type="button" onclick="window.parent.$.fancybox.close();"><?php echo JText::_('JCANCEL') ?></button>
 		</div>
 	</fieldset>
 

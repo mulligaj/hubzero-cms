@@ -1,7 +1,7 @@
 /**
  * @package     hubzero-cms
- * @file        administrator/components/com_resources/resources.css
- * @copyright   Copyright 2005-2011 Purdue University. All rights reserved.
+ * @file        administrator/components/com_resources/assets/css/resources.css
+ * @copyright   Copyright 2005-2014 Purdue University. All rights reserved.
  * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
@@ -10,130 +10,54 @@
     com_resources
     - - - - - - - - -
 */
-	.yes,
-	.enabled,
-	.writeable,
-	.public, a.public {
-		color: green;
-	}
-	.no,
-	.disabled,
-	.unwriteable,
-	.registered, 
-	a.registered {
-		color: red;
-	}
-	.special, 
-	a.special { 
-		color: black; 
-	}
-	.enabled,
-	.writeable,
-	.disabled,
-	.unwriteable {
-		font-weight: bold;
-	}
+
 	.clear {
 		clear: both;
 		margin: 0;
 		padding: 0;
 	}
-	.draft,
-	.draftinternal,
-	.draftexternal,
-	.submitted,
-	.check,
-	.published,
-	.pending,
-	.expired,
-	.unpublished,
-	.deleted,
-	.upload { 
-		padding: 0; 
-		display: block; 
-		width: 12px; 
-		height: 12px; 
+
+	.state.pending:before {
+		content: "\f05d";
+		color: #a3ca60;
 	}
-	.draft span,
-	.draftinternal span,
-	.draftexternal span,
-	.submitted span,
-	.hasassoc span,
-	.noassoc span,
-	.published span,
-	.pending span,
-	.expired span,
-	.unpublished span,
-	.deleted span,
-	.upload span { 
-		display: none; 
-	}	
-	.check,
-	.published { background: url("../img/check.gif") 0 0 no-repeat; }
-	.pending { background: url("../img/check_circle.gif") 0 0 no-repeat; }
-	.expired { background: url("../img/check_star.gif") 0 0 no-repeat; }
-	.unpublished { background: url("../img/minus.gif") 0 0 no-repeat; }
-	.upload { background: url("../img/upload.gif") 0 0 no-repeat; }
-	.submitted { background: url("../img/pending.gif") 0 0 no-repeat; }
-	.draftexternal, 
-	.draft { background: url("../img/draft_external.gif") 0 0 no-repeat; }
-	.draftinternal { background: url("../img/draft_internal.gif") 0 0 no-repeat; }
-	.deleted { background: url("../img/deleted.gif") 0 0 no-repeat; }
-	.hasassoc,
-	.noassoc { 
-		padding: 0;
-		margin: 0;
-		display: block;
-		width: 12px;
-		height: 12px;
-		border: none;
+	.state.expired:before {
+		content: "\f058";
+		color: #333;
 	}
-	.hasassoc { 
-		background: url("../img/tags.gif") 0 0 no-repeat; 
+	.state.submitted:before {
+		content: "\22EF";
+		color: orange;
 	}
-	.noassoc { 
-		background: url("../img/tags.gif") 0 -12px no-repeat; 
+	.state.draftexternal:before {
+		content: "\26AA";
+		color: orange;
 	}
-	.hasassoc:hover,
-	.noassoc:hover { 
-		border: none; 
+	.state.draftinternal:before {
+		content: "\26AA";
+		color: blue;
 	}
-	ul.key {
-		margin: 0;
-		padding: 0;
-		list-style: none;
+	.state.deleted:before,
+	.state.trashed:before {
+		content: "\f014";
+		color: #bbb;
 	}
-	ul.key li.draft,
-	ul.key li.draftinternal,
-	ul.key li.draftexternal,
-	ul.key li.submitted,
-	ul.key li.published,
-	ul.key li.pending,
-	ul.key li.expired,
-	ul.key li.deleted,
-	ul.key li.new,
-	ul.key li.unpublished { 
-		margin: 0;
-		padding-left: 18px;
-		width: auto;
-		height: auto;
-	}
-	.draft:hover,
-	.draftinternal:hover,
-	.draftexternal:hover,
-	.new:hover,
-	.published:hover,
-	.pending:hover,
-	.expired:hover,
-	.unpublished:hover,
-	.deleted:hover,
-	.upload:hover { 
-		border: none;
-	}
+
 	.check { 
 		text-indent: 50px; 
 		overflow: hidden;
 	}
+
+	.toolbar-box #toolbar-delete .icon-32-delete:before {
+		content: "\f03a";
+	}
+	.toolbar-box #toolbar-delete .icon-32-delete:after {
+		content: "\f094";
+		top: auto;
+		bottom: -0.2em;
+		right: 0;
+	}
+
 	#author-list { 
 		list-style: none;
 		margin: 0.5em;
@@ -152,6 +76,7 @@
 		font-weight: bold;
 		color: #999;
 	}
+
 	#resource-custom-fields label {
 		display: block;
 	}
@@ -174,6 +99,15 @@
 		max-width: 10em;
 		margin-bottom: 0em;
 	}
+
+	#toolbar-addchild .icon-32-new:before {
+		content: "\f03a"; /*\f16a";*/
+	}
+	#toolbar-addchild .icon-32-new:after {
+		content: "\271A";
+		top: 25%;
+	}
+
 	.handle {
 		display: block;
 		overflow: hidden;

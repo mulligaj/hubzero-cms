@@ -30,41 +30,40 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+if (!$this->sub)
+{
+	$this->css();
+}
+$this->js();
 ?>
-<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>" class="full">
+<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 	<h2><?php echo $this->escape($this->title); ?></h2>
 	<?php
-	if (!$this->page->isStatic()) 
+	if (!$this->page->isStatic())
 	{
-		$view = new JView(array(
-			'base_path' => $this->base_path, 
-			'name'      => 'page',
-			'layout'    => 'authors'
-		));
-		$view->page   = $this->page;
-		$view->display();
+		$this->view('authors', 'page')
+		     ->setBasePath($this->base_path)
+		     ->set('page', $this->page)
+		     ->display();
 	}
 	?>
-</div><!-- /#content-header -->
+</header><!-- /#content-header -->
 
 <?php
-if ($this->page->exists()) 
+if ($this->page->exists())
 {
-	$view = new JView(array(
-		'base_path' => $this->base_path, 
-		'name'      => 'page',
-		'layout'    => 'submenu'
-	));
-	$view->option = $this->option;
-	$view->controller = $this->controller;
-	$view->page   = $this->page;
-	$view->task   = $this->task;
-	$view->config = $this->config;
-	$view->sub    = $this->sub;
-	$view->display();
+	$this->view('submenu', 'page')
+	     ->setBasePath($this->base_path)
+	     ->set('option', $this->option)
+	     ->set('controller', $this->controller)
+	     ->set('page', $this->page)
+	     ->set('task', $this->task)
+	     ->set('sub', $this->sub)
+	     ->display();
 }
 ?>
 
-<div class="main section">
-	<p class="warning"><?php echo JText::sprintf('A page could not be found matching the version number "%s".', $this->version); ?></p>
-</div><!-- / .main section -->
+<section class="main section">
+	<p class="warning"><?php echo JText::sprintf('COM_WIKI_WARNING_NO_REVISION_FOUND', $this->version); ?></p>
+</section><!-- / .main section -->

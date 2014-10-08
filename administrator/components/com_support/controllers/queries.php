@@ -62,13 +62,13 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 			'int'
 		);
 		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'id'
 		));
 		$this->view->filters['sort_Dir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 		$this->view->filters['iscore']   = array(4, 2, 1);
@@ -90,7 +90,7 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 		);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getError() as $error)
 			{
@@ -132,7 +132,10 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 		$this->view->lists['severities'] = SupportUtilities::getSeverities($this->config->get('severities'));
 
 		$id = JRequest::getVar('id', array(0));
-		$id = intval($id[0]);
+		if (is_array($id))
+		{
+			$id = (!empty($id) ? $id[0] : 0);
+		}
 
 		$this->view->row = new SupportQuery($this->database);
 		$this->view->row->load($id);
@@ -150,7 +153,7 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 		$this->view->conditions = $con->getConditions();
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getError() as $error)
 			{
@@ -185,7 +188,7 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 				$this->addComponentMessage($row->getError(), 'error');
 				$this->editTask($row);
 			}
-			else 
+			else
 			{
 				echo $row->getError();
 			}
@@ -200,7 +203,7 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 				$this->addComponentMessage($row->getError(), 'error');
 				$this->editTask($row);
 			}
-			else 
+			else
 			{
 				echo $row->getError();
 			}
@@ -215,7 +218,7 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 				$this->addComponentMessage($row->getError(), 'error');
 				$this->editTask($row);
 			}
-			else 
+			else
 			{
 				echo $row->getError();
 			}
@@ -227,86 +230,7 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 			// Output messsage and redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('QUERY_SUCCESSFULLY_SAVED')
-			);
-		}
-		else 
-		{
-			$this->view->setLayout('list');
-
-			$obj = new SupportTicket($this->database);
-
-			$queries = $row->getCustom($this->juser->get('id'));
-			if ($queries)
-			{
-				foreach ($queries as $k => $query)
-				{
-					if (!$query->query)
-					{
-						$query->query = $row->getQuery($query->conditions);
-					}
-					$queries[$k]->count = $obj->getCount($query->query);
-				}
-			}
-
-			$this->view->queries = $queries;
-			$this->view->show = 0;
-			// Set any errors
-			if ($this->getError()) 
-			{
-				foreach ($this->getError() as $error)
-				{
-					$this->view->setError($error);
-				}
-			}
-
-			// Output the HTML
-			$this->view->display();
-		}
-	}
-
-	/**
-	 * Delete one or more records
-	 *
-	 * @return	void
-	 */
-	public function removeTask()
-	{
-		// Check for request forgeries
-		JRequest::checkToken() or JRequest::checkToken('get') or jexit('Invalid Token');
-
-		// Incoming
-		$ids     = JRequest::getVar('id', array());
-		$no_html = JRequest::getInt('no_html', 0);
-		$tmpl    = JRequest::getVar('component', '');
-
-		// Check for an ID
-		if (count($ids) < 1)
-		{
-			if (!$no_html && $tmpl != 'component')
-			{
-				$this->setRedirect(
-					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::_('SUPPORT_ERROR_SELECT_QUERY_TO_DELETE'),
-					'error'
-				);
-			}
-			return;
-		}
-
-		$row = new SupportQuery($this->database);
-		foreach ($ids as $id)
-		{
-			// Delete message
-			$row->delete(intval($id));
-		}
-
-		if (!$no_html && $tmpl != 'component')
-		{
-			// Output messsage and redirect
-			$this->setRedirect(
-				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::sprintf('QUERY_SUCCESSFULLY_DELETED', count($ids))
+				JText::_('COM_SUPPORT_QUERY_SUCCESSFULLY_SAVED')
 			);
 		}
 		else
@@ -331,7 +255,88 @@ class SupportControllerQueries extends \Hubzero\Component\AdminController
 			$this->view->queries = $queries;
 			$this->view->show = 0;
 			// Set any errors
-			if ($this->getError()) 
+			if ($this->getError())
+			{
+				foreach ($this->getError() as $error)
+				{
+					$this->view->setError($error);
+				}
+			}
+
+			// Output the HTML
+			$this->view->display();
+		}
+	}
+
+	/**
+	 * Delete one or more records
+	 *
+	 * @return	void
+	 */
+	public function removeTask()
+	{
+		// Check for request forgeries
+		JRequest::checkToken() or JRequest::checkToken('get') or jexit('Invalid Token');
+
+		// Incoming
+		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
+
+		$no_html = JRequest::getInt('no_html', 0);
+		$tmpl    = JRequest::getVar('component', '');
+
+		// Check for an ID
+		if (count($ids) < 1)
+		{
+			if (!$no_html && $tmpl != 'component')
+			{
+				$this->setRedirect(
+					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+					JText::_('COM_SUPPORT_ERROR_SELECT_QUERY_TO_DELETE'),
+					'error'
+				);
+			}
+			return;
+		}
+
+		$row = new SupportQuery($this->database);
+		foreach ($ids as $id)
+		{
+			// Delete message
+			$row->delete(intval($id));
+		}
+
+		if (!$no_html && $tmpl != 'component')
+		{
+			// Output messsage and redirect
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				JText::sprintf('COM_SUPPORT_QUERY_SUCCESSFULLY_DELETED', count($ids))
+			);
+		}
+		else
+		{
+			$this->view->setLayout('list');
+
+			$obj = new SupportTicket($this->database);
+
+			$queries = $row->getCustom($this->juser->get('id'));
+			if ($queries)
+			{
+				foreach ($queries as $k => $query)
+				{
+					if (!$query->query)
+					{
+						$query->query = $row->getQuery($query->conditions);
+					}
+					$queries[$k]->count = $obj->getCount($query->query);
+				}
+			}
+
+			$this->view->queries = $queries;
+			$this->view->show = 0;
+			// Set any errors
+			if ($this->getError())
 			{
 				foreach ($this->getError() as $error)
 				{

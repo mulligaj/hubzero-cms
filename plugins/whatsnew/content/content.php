@@ -31,43 +31,33 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * What's New Plugin class for com_content articles
  */
-class plgWhatsnewContent extends JPlugin
+class plgWhatsnewContent extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function onWhatsnewAreas()
 	{
-		$areas = array(
+		return array(
 			'content' => JText::_('PLG_WHATSNEW_CONTENT')
 		);
-		return $areas;
 	}
 
 	/**
 	 * Pull a list of records that were created within the time frame ($period)
-	 * 
+	 *
 	 * @param      object  $period     Time period to pull results for
 	 * @param      mixed   $limit      Number of records to pull
 	 * @param      integer $limitstart Start of records to pull
@@ -77,17 +67,17 @@ class plgWhatsnewContent extends JPlugin
 	 */
 	public function onWhatsnew($period, $limit=0, $limitstart=0, $areas=null, $tagids=array())
 	{
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
 			if (!isset($areas[$this->_name])
-			 && !in_array($this->_name, $areas)) 
+			 && !in_array($this->_name, $areas))
 			{
 				return array();
 			}
 		}
 
 		// Do we have a search term?
-		if (!is_object($period)) 
+		if (!is_object($period))
 		{
 			return array();
 		}
@@ -96,99 +86,80 @@ class plgWhatsnewContent extends JPlugin
 
 		// Build the query
 		$c_count = " SELECT count(DISTINCT c.id)";
-		if (version_compare(JVERSION, '1.6', 'lt'))
-		{
-			$c_fields = " SELECT "
-				. " c.id,"
-				. " c.title, c.alias, c.created, "
-				. " CONCAT(c.introtext, c.fulltext) AS text,"
-				. " CONCAT('index.php?option=com_content&task=view&id=', c.id) AS href, u.alias AS fsection, b.alias AS category,"
-				. " 'content' AS section, NULL AS subsection";
-			$c_from = " FROM #__content AS c"
-				. " INNER JOIN #__categories AS b ON b.id=c.catid"
-				. " INNER JOIN #__sections AS u ON u.id=c.sectionid";
-		}
-		else 
-		{
-			$c_fields = " SELECT "
-				. " c.id,"
-				. " c.title, c.alias, c.created, "
-				. " CONCAT(c.introtext, c.fulltext) AS text,"
-				. " CONCAT('index.php?option=com_content&task=view&id=', c.id) AS href, NULL AS fsection, b.alias AS category,"
-				. " 'content' AS section, NULL AS subsection";
-			$c_from = " FROM #__content AS c"
-				. " INNER JOIN #__categories AS b ON b.id=c.catid";
-		}
+		$c_fields = " SELECT "
+			. " c.id,"
+			. " c.title, c.alias, c.created, "
+			. " CONCAT(c.introtext, c.fulltext) AS text,"
+			. " CONCAT('index.php?option=com_content&task=view&id=', c.id) AS href, NULL AS fsection, b.alias AS category,"
+			. " 'content' AS section, NULL AS subsection";
+		$c_from = " FROM #__content AS c"
+			. " INNER JOIN #__categories AS b ON b.id=c.catid";
 
 		$c_where = "c.publish_up > " . $database->quote($period->cStartDate) . " AND c.publish_up < " . $database->quote($period->cEndDate) . " AND c.state='1'";
 
 		$order_by  = " ORDER BY publish_up DESC, title";
 		$order_by .= ($limit != 'all') ? " LIMIT $limitstart,$limit" : "";
 
-		if ($limit) 
+		if ($limit)
 		{
 			// Get results
 			$database->setQuery($c_fields . $c_from . " WHERE " . $c_where . $order_by);
 			$rows = $database->loadObjectList();
 
-			if ($rows) 
+			if ($rows)
 			{
 				foreach ($rows as $key => $row)
 				{
-					if (version_compare(JVERSION, '1.6', 'lt'))
+					/*$database->setQuery("SELECT alias, parent FROM `#__menu` WHERE link='index.php?option=com_content&view=article&id=" . $database->quote($row->id) . "' AND published=1 LIMIT 1");
+					$menuitem = $database->loadRow();
+					if ($menuitem[1])
 					{
-						$database->setQuery("SELECT alias, parent FROM #__menu WHERE link='index.php?option=com_content&view=article&id=" . $database->quote($row->id) . "' AND published=1 LIMIT 1");
-						$menuitem = $database->loadRow();
-						if ($menuitem[1]) 
+						$p = $this->_recursiveMenuLookup($menuitem[1]);
+						$path = implode(DS, $p);
+						if ($menuitem[0])
 						{
-							$p = $this->_recursiveMenuLookup($menuitem[1]);
-							$path = implode(DS, $p);
-							if ($menuitem[0]) 
-							{
-								$path .= DS . $menuitem[0];
-							} 
-							else if ($row->alias) 
-							{
-								$path .= DS . $row->alias;
-							}
-						} 
-						else if ($menuitem[0]) 
+							$path .= DS . $menuitem[0];
+						}
+						else if ($row->alias)
 						{
-							$path = DS . $menuitem[0];
-						} 
-						else 
-						{
-							$path = '';
-							if ($row->fsection) 
-							{
-								$path .= DS . $row->fsection;
-							}
-							if ($row->category && $row->category != $row->fsection) 
-							{
-								$path .= DS . $row->category;
-							}
-							if ($row->alias) 
-							{
-								$path .= DS . $row->alias;
-							}
-							if (!$path) 
-							{
-								$path = '/content/article/' . $row->id;
-							}
+							$path .= DS . $row->alias;
 						}
 					}
-					else 
+					else if ($menuitem[0])
 					{
-						$path = JRoute::_($row->href);
+						$path = DS . $menuitem[0];
 					}
+					else
+					{
+						$path = '';
+						if ($row->fsection)
+						{
+							$path .= DS . $row->fsection;
+						}
+						if ($row->category && $row->category != $row->fsection)
+						{
+							$path .= DS . $row->category;
+						}
+						if ($row->alias)
+						{
+							$path .= DS . $row->alias;
+						}
+						if (!$path)
+						{
+							$path = '/content/article/' . $row->id;
+						}
+					}*/
+
+					$path = JRoute::_($row->href);
+
 					$rows[$key]->text = strip_tags($row->text);
 					$rows[$key]->href = $path;
 				}
 			}
 
 			return $rows;
-		} 
-		else 
+		}
+		else
 		{
 			// Get a count
 			$database->setQuery($c_count . $c_from . " WHERE " . $c_where);
@@ -198,26 +169,26 @@ class plgWhatsnewContent extends JPlugin
 
 	/**
 	 * Find the menu item alias for a page
-	 * 
+	 *
 	 * @param      integer $id       Menu item ID
-	 * @param      boolean $startnew Parameter description (if any) ...
+	 * @param      boolean $startnew Reset the array?
 	 * @return     array
 	 */
 	private function _recursiveMenuLookup($id, $startnew=true)
 	{
 		static $aliases = array();
 
-		if ($startnew) 
+		if ($startnew)
 		{
 			unset($aliases);
 		}
 
 		$database = JFactory::getDBO();
-		$database->setQuery("SELECT alias, parent FROM #__menu WHERE id=" . $database->quote($id) . " LIMIT 1");
+		$database->setQuery("SELECT alias, parent FROM `#__menu` WHERE id=" . $database->quote($id) . " LIMIT 1");
 		$level = $database->loadRow();
 
 		$aliases[] = $level[0];
-		if ($level[1]) 
+		if ($level[1])
 		{
 			$a = $this->_recursiveMenuLookup($level[1], false);
 		}

@@ -31,57 +31,40 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for wishlist items
  */
-class plgResourcesWishlist extends JPlugin
+class plgResourcesWishlist extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-
-		$this->config = JComponentHelper::getParams('com_wishlist');
-
-		$lang = JFactory::getLanguage();
-		$lang->load('com_wishlist');
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
 	public function &onResourcesAreas($model)
 	{
+		$areas = array();
+
 		if ($model->type->params->get('plg_' . $this->_name)
-			&& $model->access('view-all')) 
+			&& $model->access('view-all'))
 		{
-			$areas = array(
-				'wishlist' => JText::_('Wishlist')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['wishlist'] = JText::_('PLG_RESOURCES_WISHLIST');
 		}
+
 		return $areas;
 	}
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -97,18 +80,23 @@ class plgResourcesWishlist extends JPlugin
 		);
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				$rtrn = 'metadata';
 			}
 		}
-		if (!$model->type->params->get('plg_' . $this->_name)) 
+		if (!$model->type->params->get('plg_' . $this->_name))
 		{
 			return $arr;
 		}
+
+		$this->config = JComponentHelper::getParams('com_wishlist');
+
+		$lang = JFactory::getLanguage();
+		$lang->load('com_wishlist');
 
 		$database = JFactory::getDBO();
 		$juser    = JFactory::getUser();
@@ -121,19 +109,11 @@ class plgResourcesWishlist extends JPlugin
 		$html   = '';
 
 		// Include some classes & scripts
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.plan.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.owner.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wishlist.owner.group.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.rank.php');
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $option . DS . 'tables' . DS . 'wish.attachment.php');
+		require_once(JPATH_ROOT . DS . 'components' . DS . $option . DS . 'models' . DS . 'wishlist.php');
 		require_once(JPATH_ROOT . DS . 'components' . DS . $option . DS . 'controllers' . DS . 'wishlist.php');
 
 		// Configure controller
-		$controller = new WishlistController();
-		$controller->setVar('_option', $option);
-		$controller->setVar('banking', $this->config->get('banking'));
+		$controller = new WishlistControllerWishlist();
 
 		// Get filters
 		$filters = $controller->getFilters(0);
@@ -148,11 +128,11 @@ class plgResourcesWishlist extends JPlugin
 		$id = $obj->get_wishlistID($refid, $cat);
 
 		// Create a new list if necessary
-		if (!$id) 
+		if (!$id)
 		{
-			if ($model->resource->title 
-			 && $model->resource->standalone == 1 
-			 && $model->resource->published == 1) 
+			if ($model->resource->title
+			 && $model->resource->standalone == 1
+			 && $model->resource->published == 1)
 			{
 				$rtitle = ($model->istool()) ? JText::_('COM_WISHLIST_NAME_RESOURCE_TOOL') . ' ' . $model->resource->alias : JText::_('COM_WISHLIST_NAME_RESOURCE_ID') . ' ' . $model->resource->id;
 				$id = $obj->createlist($cat, $refid, 1, $rtitle, $model->resource->title);
@@ -162,67 +142,64 @@ class plgResourcesWishlist extends JPlugin
 		// get wishlist data
 		$wishlist = $obj->get_wishlist($id, $refid, $cat);
 
-		if (!$wishlist) 
+		if (!$wishlist)
 		{
 			$html = '<p class="error">' . JText::_('ERROR_WISHLIST_NOT_FOUND') . '</p>';
-		} 
-		else 
+		}
+		else
 		{
 			// Get list owners
 			$owners = $objOwner->get_owners($id, $this->config->get('group'), $wishlist);
 
 			// Authorize admins & list owners
-			if (!$juser->get('guest')) 
+			if (!$juser->get('guest'))
 			{
-				if ($juser->authorize($option, 'manage')) 
+				if ($juser->authorize($option, 'manage'))
 				{
 					$admin = 1;
 				}
-				if (isset($owners['individuals']) && in_array($juser->get('id'), $owners['individuals'])) 
+				if (isset($owners['individuals']) && in_array($juser->get('id'), $owners['individuals']))
 				{
 					$admin = 2;
-				} 
-				else if (isset($owners['advisory']) && in_array($juser->get('id'), $owners['advisory'])) 
+				}
+				else if (isset($owners['advisory']) && in_array($juser->get('id'), $owners['advisory']))
 				{
 					$admin = 3;
 				}
-			} 
-			else if (!$wishlist->public && $rtrn != 'metadata') 
+			}
+			else if (!$wishlist->public && $rtrn != 'metadata')
 			{
-				// not authorized
+				// not authorizedå
 				JError::raiseError(403, JText::_('ALERTNOTAUTH'));
 				return;
 			}
 
 			$items = $objWish->get_count($id, $filters, $admin);
 
-			if ($rtrn != 'metadata') 
+			if ($rtrn != 'metadata')
 			{
-				// Add the CSS to the template
-				\Hubzero\Document\Assets::addPluginStylesheet('groups', 'wishlist');
-
 				// Get wishes
 				$wishlist->items = $objWish->get_wishes($wishlist->id, $filters, $admin, $juser);
 
 				$title = ($admin) ?  JText::_('COM_WISHLIST_TITLE_PRIORITIZED') : JText::_('COM_WISHLIST_TITLE_RECENT_WISHES');
-				if (count($wishlist->items) > 0 && $items > $filters['limit']) 
+				if (count($wishlist->items) > 0 && $items > $filters['limit'])
 				{
-					$title.= ' (<a href="' . JRoute::_('index.php?option=' . $option . '&task=wishlist&category=' . $wishlist->category . '&rid=' . $wishlist->referenceid) . '">' . JText::_('view all') . ' ' . $items . '</a>)';
-				} 
-				else 
+					$title.= ' (<a href="' . JRoute::_('index.php?option=' . $option . '&task=wishlist&category=' . $wishlist->category . '&rid=' . $wishlist->referenceid) . '">' . JText::_('PLG_RESOURCES_WISHLIST_VIEW_ALL') . ' ' . $items . '</a>)';
+				}
+				else
 				{
 					$title .= ' (' . $items . ')';
 				}
+
 				// HTML output
 				// Instantiate a view
 				$view = new \Hubzero\Plugin\View(
 					array(
-						'folder'  => 'resources',
-						'element' => 'wishlist',
+						'folder'  => $this->_type,
+						'element' => $this->_name,
 						'name'    => 'browse'
 					)
 				);
-
 				// Pass the view some info
 				$view->option   = $option;
 				$view->resource = $model->resource;
@@ -231,7 +208,7 @@ class plgResourcesWishlist extends JPlugin
 				$view->filters  = $filters;
 				$view->admin    = $admin;
 				$view->config   = $this->config;
-				if ($this->getError()) 
+				if ($this->getError())
 				{
 					foreach ($this->getErrors() as $error)
 					{
@@ -245,12 +222,12 @@ class plgResourcesWishlist extends JPlugin
 		}
 
 		// Build the HTML meant for the "about" tab's metadata overview
-		if ($rtrn == 'all' || $rtrn == 'metadata') 
+		if ($rtrn == 'all' || $rtrn == 'metadata')
 		{
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'resources',
-					'element' => 'wishlist',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'metadata'
 				)
 			);

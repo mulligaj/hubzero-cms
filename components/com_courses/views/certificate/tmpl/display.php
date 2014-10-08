@@ -30,10 +30,12 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 ?>
-<div id="content-header">
-	<h2><?php echo JText::_('Course Completion Certificate'); ?></h2>
-</div>
+<header id="content-header">
+	<h2><?php echo JText::_('COM_COURSES_COMPLETION_CERTIFICATE'); ?></h2>
+</header>
 
-<div class="main section">
-	<p class="warning"><?php echo JText::_('No certificate available.'); ?></p>
-</div>
+<section class="main section">
+	<div class="section-inner">
+		<p class="warning"><?php echo JText::_('COM_COURSES_COMPLETION_CERTIFICATE_NONE'); ?></p>
+	</div>
+</section>

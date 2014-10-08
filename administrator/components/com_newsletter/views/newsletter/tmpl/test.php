@@ -32,15 +32,15 @@
 defined('_JEXEC') or die('Restricted access');
 
 //set title
-JToolBarHelper::title(JText::_('Newsletter Test Sending') . ': ' . $this->newsletter->name, 'newsletter.png');
+JToolBarHelper::title(JText::_('COM_NEWSLETTER_TEST_SENDING') . ': ' . $this->newsletter->name, 'newsletter.png');
 
 //add buttons to toolbar
-JToolBarHelper::custom('dosendtest', 'send','', 'Send Test', false);
+JToolBarHelper::custom('dosendtest', 'send','', 'COM_NEWSLETTER_TOOLBAR_SEND_TEST', false);
 JToolBarHelper::cancel();
 ?>
 
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	// do field validation
 	submitform( pressbutton );
@@ -56,25 +56,25 @@ function submitbutton(pressbutton)
 
 <form action="index.php" method="post" name="adminForm">
 	<div class="col width-100">
-		<?php if($this->newsletter->id != null) : ?>
+		<?php if ($this->newsletter->id != null) : ?>
 			<a name="distribution"></a>
 			<fieldset class="adminform">
-				<legend><?php echo JText::_('Newsletter Test Sending'); ?></legend>
+				<legend><?php echo JText::_('COM_NEWSLETTER_TEST_SENDING'); ?></legend>
 				<table class="admintable">
 					<tbody>
 						<tr>
-							<th><?php echo JText::_('Newsletter:'); ?></th>
+							<th><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER'); ?>:</th>
 							<td>
 								<?php echo $this->newsletter->name; ?>
 							</td>
 						</tr>
 						<tr>
 							<th width="200px">
-								<?php echo JText::_('Emails:'); ?><br />
-								<span class="hint"><?php echo JText::_('Limit 5 emails, comma separated'); ?></span>
+								<?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_TEST_EMAILS'); ?>:<br />
+								<span class="hint"><?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_TEST_EMAILS_HINT'); ?></span>
 							</th>
 							<td>
-								<input type="text" name="emails" placeholder="Enter emails here..." autocomplete="off" />
+								<input type="text" name="emails" placeholder="<?php echo JText::_('COM_NEWSLETTER_NEWSLETTER_TEST_EMAILS_PLACEHOLDER'); ?>" autocomplete="off" />
 							</td>
 						</tr>
 					</tbody>
@@ -82,7 +82,7 @@ function submitbutton(pressbutton)
 			</fieldset>
 		<?php endif; ?>
 	</div>
-	
+
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="dosendtest" />

@@ -26,7 +26,7 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 // Get publication properties
-if ($this->pub->id) 
+if ($this->pub->id)
 {
 	// Are we allowed to edit?
 	$canedit = ($this->pub->state == 1 || $this->pub->state == 0 || $this->pub->state == 6 ) ? 0 : 1;
@@ -42,24 +42,24 @@ $multi  		 = $this->_pubTypeHelper->_multiSelect;
 
 // Determine pane title
 $ptitle = '';
-if ($this->version == 'dev') 
-{	
-	$ptitle .= $this->last_idx > $this->current_idx  
-		? ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_TITLE_EDIT_'.strtoupper($this->base))).' ' 
-		: ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_TITLE_SELECT_'.strtoupper($this->base))).' ' ;	
+if ($this->version == 'dev')
+{
+	$ptitle .= $this->last_idx > $this->current_idx
+		? ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_TITLE_EDIT_'.strtoupper($this->_pubTypeHelper->_base))).' '
+		: ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_TITLE_SELECT_'.strtoupper($this->_pubTypeHelper->_base))).' ' ;
 }
 else
 {
 	$ptitle = ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PRIMARY_CONTENT'));
 }
-	
+
 ?>
 
-<?php if($this->pub->id && $this->row->title) { ?>
-	<?php echo $this->project->provisioned == 1 
+<?php if ($this->pub->id && $this->row->title) { ?>
+	<?php echo $this->project->provisioned == 1
 				? $this->helper->showPubTitleProvisioned( $this->pub, $this->route)
 				: $this->helper->showPubTitle( $this->pub, $this->route, $this->title); ?>
-<?php } else if($this->project->provisioned == 1 ) { ?>
+<?php } else if ($this->project->provisioned == 1 ) { ?>
 	<h3 class="prov-header"><a href="<?php echo $this->route; ?>"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_MY_SUBMISSIONS')); ?></a> &raquo; <?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_START_PUBLICATION')); ?></h3>
 <?php } else { ?>
 	<div id="plg-header">
@@ -68,12 +68,12 @@ else
 <?php } ?>
 
 <?php
-	
+
 	// Draw status bar
 	$this->contribHelper->drawStatusBar($this, 'primary');
-	
+
 	// Information text
-	$infotext = JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_INFO_PRIMARY_CONTENT_MORE_'. strtoupper($this->base));
+	$infotext = JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_INFO_PRIMARY_CONTENT_MORE_'. strtoupper($this->_pubTypeHelper->_base));
 
 	// Section body starts:
 ?>
@@ -87,9 +87,9 @@ else
 		<div class="two columns first" id="c-selector">
 			<div class="c-inner" id="c-item-picker">
 				<h4><?php echo $ptitle; ?></h4>
-				<?php if ($canedit) { ?>	
-				<p><?php echo $selOff ? JText::_('PLG_PROJECTS_PUBLICATIONS_CONTENT_CHOICE_FROM_'.strtoupper($this->base)) : JText::_('PLG_PROJECTS_PUBLICATIONS_CONTENT_SELECT_FROM_'.strtoupper($this->base)); ?></p>	
-				<!-- Load content selection browser //-->			
+				<?php if ($canedit) { ?>
+				<p><?php echo $selOff ? JText::_('PLG_PROJECTS_PUBLICATIONS_CONTENT_CHOICE_FROM_'.strtoupper($this->_pubTypeHelper->_base)) : JText::_('PLG_PROJECTS_PUBLICATIONS_CONTENT_SELECT_FROM_'.strtoupper($this->_pubTypeHelper->_base)); ?></p>
+				<!-- Load content selection browser //-->
 				<div id="c-show">
 					<noscript>
 						<p class="nojs"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_TAGS_NO_JS_MESSAGE'); ?></p>
@@ -101,28 +101,28 @@ else
 					<?php echo $infotext; ?>
 				</p>
 				<?php } ?>
-				<?php if($this->project->provisioned == 1 && !$this->pub->id) { echo '<p class="notice">'.JText::_('PLG_PROJECTS_PUBLICATIONS_LOOKING_FOR_PROJECT_' . strtoupper($this->base)).'</p>'; } ?>
+				<?php if ($this->project->provisioned == 1 && !$this->pub->id) { echo '<p class="notice">'.JText::_('PLG_PROJECTS_PUBLICATIONS_LOOKING_FOR_PROJECT_' . strtoupper($this->_pubTypeHelper->_base)).'</p>'; } ?>
 				<?php } else { ?>
 					<p class="notice"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_ADVANCED_CANT_CHANGE').' <a href="'.$this->url.'/?action=newversion">'.ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_NEW_VERSION')).'</a>'; ?></p>
 				<?php } ?>
-				
+
 			</div>
 		</div>
 		<div class="two columns second" id="c-output">
 		<?php } ?>
 			<form action="<?php echo JRoute::_($this->route); ?>" method="post" id="plg-form" enctype="multipart/form-data">
-			<fieldset>	
+			<fieldset>
 				<input type="hidden" name="id" value="<?php echo $this->project->id; ?>" id="projectid" />
 				<input type="hidden" name="sel" value="<?php echo count($this->attachments); ?>" id="sel" />
 				<input type="hidden" name="version" value="<?php echo $this->version; ?>" />
-				<input type="hidden" name="active" value="publications" />					
+				<input type="hidden" name="active" value="publications" />
 				<input type="hidden" name="action" value="save" />
-				<input type="hidden" name="base" id="base" value="<?php echo $this->base; ?>" />
+				<input type="hidden" name="base" id="base" value="<?php echo $this->_pubTypeHelper->_base; ?>" />
 				<input type="hidden" name="primary" id="primary" value="1" />
 				<input type="hidden" name="section" id="section" value="<?php echo $this->active; ?>" />
 				<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 				<input type="hidden" name="provisioned" id="provisioned" value="<?php echo $this->project->provisioned == 1 ? 1 : 0; ?>" />
-				<?php if($this->project->provisioned == 1 ) { ?>
+				<?php if ($this->project->provisioned == 1 ) { ?>
 				<input type="hidden" name="task" value="submit" />
 				<?php } ?>
 				<input type="hidden" name="move" id="move" value="<?php echo $this->move; ?>" />
@@ -134,36 +134,36 @@ else
 
 			<div class="c-inner">
 			<?php if ($canedit) { ?>
-				<span class="c-submit"><input type="submit" class="btn" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" <?php if(count($this->attachments) == 0) { echo 'class="disabled"'; } ?> id="c-continue" /></span>
-			<?php } ?>			
+				<span class="c-submit"><input type="submit" class="btn" value="<?php if ($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" <?php if (count($this->attachments) == 0) { echo 'class="disabled"'; } ?> id="c-continue" /></span>
+			<?php } ?>
 				<h5><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION')).' '.JText::_('PLG_PROJECTS_PUBLICATIONS_PRIMARY_CONTENT'); ?>: </h5>
-				<ul id="c-filelist" class="c-list <?php if(!$canedit || !$this->pub->id) { ?>noedit<?php } ?>">
-					<li id="nosel" <?php if($this->pub->id) { echo 'class="hidden"'; } ?> ><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_NO_CONTENT_SELECTED_CLICK'); ?></li>
-					<?php 
+				<ul id="c-filelist" class="c-list <?php if (!$canedit || !$this->pub->id) { ?>noedit<?php } ?>">
+					<li id="nosel" <?php if ($this->pub->id) { echo 'class="hidden"'; } ?> ><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_NO_CONTENT_SELECTED_CLICK'); ?></li>
+					<?php
 					// If we have content items selected
-					if(count($this->attachments) > 0) 
+					if (count($this->attachments) > 0)
 					{
 						$i = 1;
 
-						foreach ($this->attachments as $att) 
-						{ 
+						foreach ($this->attachments as $att)
+						{
 							// Check if item is missing
-							$gone = $this->_typeHelper->dispatchByType($att->type, 'checkMissing', 
+							$gone = $this->_typeHelper->dispatchByType($att->type, 'checkMissing',
 									$data = array('item' => $att, 'fpath' => $this->prefix . $this->fpath,
 									'config' => $this->config ));
-									
+
 							$prop = $this->_typeHelper->dispatchByType($att->type, 'getMainProperty');
-																							
+
 							?>
-							<li id="clone-<?php echo $att->type ?>::<?php echo urlencode($att->$prop); ?>" class="<?php echo 'attached-' . $i; ?> c-drag <?php if($gone) { echo ' i-missing'; } ?>">
-							
-							<?php 
+							<li id="clone-<?php echo $att->type ?>::<?php echo urlencode($att->$prop); ?>" class="<?php echo 'attached-' . $i; ?> c-drag <?php if ($gone) { echo ' i-missing'; } ?>">
+
+							<?php
 									// Draw item
-									$itemHtml = $this->_typeHelper->dispatchByType($att->type, 'drawItem', 
+									$itemHtml = $this->_typeHelper->dispatchByType($att->type, 'drawItem',
 									$data = array(
-											'att' 		=> $att, 
+											'att' 		=> $att,
 											'item'		=> NULL,
-											'canedit' 	=> $canedit, 
+											'canedit' 	=> $canedit,
 											'pid' 		=> $this->row->publication_id,
 											'vid'		=> $this->row->id,
 											'url'		=> $this->url,
@@ -173,19 +173,19 @@ else
 											'path'		=> $this->prefix . $this->fpath
 									));
 									echo $itemHtml;
-							?>								
-						</li>	
-					<?php 					
+							?>
+						</li>
+					<?php
 							$i++;
-						} 
+						}
 					}  ?>
 				</ul>
-					
+
 				<?php if ($canedit) { ?>
 				<div id="pub-options"></div>
 				<?php } ?>
 				</div>
 			</form>
-		 </div> 
+		 </div>
 	</div>
 

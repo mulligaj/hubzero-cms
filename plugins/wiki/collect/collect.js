@@ -1,61 +1,74 @@
 /**
  * @package     hubzero-cms
- * @file        plugins/resources/favorite/favorite.js
- * @copyright   Copyright 2005-2011 Purdue University. All rights reserved.
+ * @file        plugins/wiki/collect/collect.js
+ * @copyright   Copyright 2005-2014 Purdue University. All rights reserved.
  * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-//-----------------------------------------------------------
-//  Ensure we have our namespace
-//-----------------------------------------------------------
-if (!HUB) {
-	var HUB = {};
-}
-if (!HUB.Plugins) {
-	HUB.Plugins = {};
-}
+String.prototype.nohtml = function () {
+	if (this.indexOf('?') == -1) {
+		return this + '?no_html=1';
+	} else {
+		return this + '&no_html=1';
+	}
+};
 
-//----------------------------------------------------------
-// Resource Ranking pop-ups
-//----------------------------------------------------------
-HUB.Plugins.WikiCollect = {
-	initialize: function() {
-		// Add to favorites
-		var fav = $('fav-this');
-		if (fav) {
-			// Init Growl
-			Growl.Bezel = new Gr0wl.Bezel('/media/system/images/overlay/bezel.png');
-			Growl.Smoke = new Gr0wl.Smoke('/media/system/images/overlay/smoke.png');
-
-			fav.addEvent('click', function(e) {
-				new Event(e).stop();
-				
-				var rid = $('rid').value;
-				new Ajax('index.php?option=com_resources&task=plugin&trigger=onResourcesFavorite&no_html=1&rid='+rid,{
-					method : 'get',
-					update : $('fav-this'),
-					onSuccess : function(){
-						if (fav.hasClass('faved')) {
-						fav.removeClass('faved');
-							var img = '/components/com_resources/images/broken-heart.gif';
-							var txt = 'Favorite removed.';
-						} else {
-							fav.addClass('faved');
-							var img = '/components/com_resources/images/heart.gif';
-							var txt = 'Favorite saved.';
-						}
-						if (typeof(Growl) != "undefined") {
-							Growl.Bezel({
-								image: img,
-								title: txt,
-								text: ''
-							});
-						}
-					}
-				}).request();
-			});
-		}
-	} // end initialize
+if (!jq) {
+	var jq = $;
 }
 
-window.addEvent('domready', HUB.Plugins.WikiCollect.initialize);
+var scrp = null;
+
+jQuery(document).ready(function(jq){
+	var $ = jq;
+
+	if ($('#fav-this').length) {
+		$('#fav-this').fancybox({
+			type: 'ajax',
+			width: 500,
+			height: 'auto',
+			autoSize: false,
+			fitToView: false,
+			titleShow: false,
+			tpl: {
+				wrap:'<div class="fancybox-wrap"><div class="fancybox-skin"><div class="fancybox-outer"><div id="sbox-content" class="fancybox-inner"></div></div></div></div>'
+			},
+			beforeLoad: function() {
+				var href = $(this).attr('href').nohtml();
+				$(this).attr('href', href);
+			},
+			afterLoad: function(current, previous) {
+				scrp = current.content.match(/<script type=\"text\/javascript\">(.*)<\/script>/ig);
+				current.content = current.content.replace(/<script(.*)<\/script>/ig, '');
+			},
+			beforeShow: function() {
+				if (scrp && scrp.length) {
+					scrp = scrp[0].replace(/<script type=\"text\/javascript\">/ig, '').replace(/<\/script>/ig, '');
+					eval(scrp);
+				}
+			},
+			afterShow: function() {
+				var el = this.element;
+				if ($('#hubForm')) {
+					$('#hubForm').on('submit', function(e) {
+						e.preventDefault();
+
+						$.post($(this).attr('action'), $(this).serialize(), function(data) {
+							var response = jQuery.parseJSON(data);
+
+							if (!data.success) {
+								$('#sbox-content').html('<p class="error" style="margin-left: 1em; margin-right: 1em;">' + response.message + '</p>')
+							} else {
+								$('#sbox-content').html('<p class="passed" style="margin-left: 1em; margin-right: 1em;">' + response.message + '</p>');
+							}
+							setTimeout(function(){
+								$.fancybox.close();
+							}, 2 * 1000);
+						});
+					});
+				}
+			}
+		});
+	}
+});
+

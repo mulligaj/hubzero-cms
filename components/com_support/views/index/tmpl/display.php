@@ -31,38 +31,42 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+$this->css('introduction.css', 'system')
+     ->css();
 ?>
 
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
+</header>
 
-<div id="introduction" class="section">
-	<div class="aside">
-		<h3>Quick Links</h3>
-		<ul>
-			<li><a class="ticket-help popup" href="<?php echo JRoute::_('index.php?option=com_help&component=support&page=faqs'); ?>">Support FAQ's</a></li>
-			<li><a class="com-kb" href="<?php echo JRoute::_('index.php?option=com_kb'); ?>">Knowledge Base</a></li>
-			<li><a class="ticket-report" href="<?php echo JRoute::_('index.php?option=com_support&task=new'); ?>">Report Problems</a></li>
-			<li><a class="ticket-track" href="<?php echo JRoute::_('index.php?option=com_support&task=tickets'); ?>">Track Tickets</a></li>
-		</ul>
-	</div><!-- / .aside -->
-	<div class="subject">
-		<div class="grid">
-			<div class="col span-half">
-				<h3>Getting Help</h3>
-				<p>We offer several ways of finding content and encourage exploring our knowledge base and engaging the community for support.</p>
-			</div><!-- / .col span-half -->
-			<div class="col span-half omega">
-				<h3>When All Else Fails</h3>
-				<p>Report problems to us directly and track their progress. We will try our best to answer your questions and work with you to resolve any issues you may have.</p>
-			</div><!-- / .col span-half -->
+<section id="introduction" class="section">
+	<div class="grid">
+		<div class="col span9">
+			<div class="grid">
+				<div class="col span-half">
+					<h3>Getting Help</h3>
+					<p>We offer several ways of finding content and encourage exploring our knowledge base and engaging the community for support.</p>
+				</div><!-- / .col span-half -->
+				<div class="col span-half omega">
+					<h3>When All Else Fails</h3>
+					<p>Report problems to us directly and track their progress. We will try our best to answer your questions and work with you to resolve any issues you may have.</p>
+				</div><!-- / .col span-half -->
+			</div>
 		</div>
-	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / #introduction.section -->
+		<div class="col span3 omega">
+			<h3>Quick Links</h3>
+			<ul>
+				<li><a class="ticket-help popup" href="<?php echo JRoute::_('index.php?option=com_help&component=support&page=faqs'); ?>">Support FAQ's</a></li>
+				<li><a class="com-kb" href="<?php echo JRoute::_('index.php?option=com_kb'); ?>">Knowledge Base</a></li>
+				<li><a class="ticket-report" href="<?php echo JRoute::_('index.php?option=com_support&task=new'); ?>">Report Problems</a></li>
+				<li><a class="ticket-track" href="<?php echo JRoute::_('index.php?option=com_support&task=tickets'); ?>">Track Tickets</a></li>
+			</ul>
+		</div>
+	</div>
+</section><!-- / #introduction.section -->
 
-<div class="section">
+<section class="section">
 	<div class="grid">
 		<div class="col span3">
 			<h2>Finding Content</h2>
@@ -86,7 +90,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</div><!-- / .search -->
 		</div><!-- / .col span3 -->
 	</div><!-- / .grid -->
-	
+
 	<div class="grid">
 		<div class="col span3">
 			<h2>Community Help</h2>
@@ -110,7 +114,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</div><!-- / .wiki -->
 		</div><!-- / .col span3 -->
 	</div><!-- / .grid -->
-	
+
 	<div class="grid">
 		<div class="col span3">
 			<h2>Getting Support</h2>
@@ -134,4 +138,4 @@ defined('_JEXEC') or die( 'Restricted access' );
 			</div><!-- / .ticket -->
 		</div><!-- / .col span3 -->
 	</div><!-- / .grid -->
-</div><!-- / .section -->
+</section><!-- / .section -->

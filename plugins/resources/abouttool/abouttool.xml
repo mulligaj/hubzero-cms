@@ -29,7 +29,7 @@ HUBzero is a registered trademark of Purdue University.
 
 <extension version="1.7" type="plugin" group="resources">
 	<name>Resource - About (tool)</name>
-	<author>Shawn Rice</author>
+	<author>HUBzero</author>
 	<copyright>Copyright 2005-2011 Purdue University. All rights reserved.</copyright>
 	<license>http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3</license>
 	<description>Displays about information for a tool resource</description>
@@ -41,9 +41,9 @@ HUBzero is a registered trademark of Purdue University.
 	</languages>
 	<config>
 		<fields name="params">
-			<field name="badges" type="radio" default="0" label="Show User Badges" description="Show User Badges">
-				<option value="0">No</option>
-				<option value="1">Yes</option>
+			<field name="badges" type="radio" default="0" label="PLG_RESOURCES_ABOUT_SHOW_BADGES_LABEL" description="PLG_RESOURCES_ABOUT_SHOW_BADGES_DESC">
+				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 		</fields>
 	</config>

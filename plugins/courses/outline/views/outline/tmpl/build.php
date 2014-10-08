@@ -48,7 +48,7 @@ $base = $this->course->offering()->link();
 	<p class="error-message">There was an error</p>
 </div>
 
-<div class="outline-main">
+<div id="outline-main" class="outline-main">
 	<div class="delete-tray">
 		<h4>Deleted Assets</h4>
 		<ul class="assets-deleted">
@@ -90,20 +90,31 @@ $base = $this->course->offering()->link();
 				</div>
 				<div class="clear"></div>
 				<div class="unit-edit">
-					<form action="<?php echo JURI::base(true); ?>/api/courses/unit/save" class="unit-edit-form">
-						<label for="title">Title:</label>
-						<input class="unit-edit-text" name="title" type="text" value="<?php echo $unit->get('title'); ?>" placeholder="title" />
-						<label for="publish_up">Publish start date:</label>
-						<input class="unit-edit-publish-up datepicker" name="publish_up" type="text" value="<?= ($unit->get('publish_up') != '0000-00-00 00:00:00') ? JHTML::_('date', $unit->get('publish_up'), "Y-m-d H:i:s") : '' ?>" placeholder="Publish start date" />
-						<label for="publish_down">Publish end date:</label>
-						<input class="unit-edit-publish-down datepicker" name="publish_down" type="text" value="<?= ($unit->get('publish_down') != '0000-00-00 00:00:00') ? JHTML::_('date', $unit->get('publish_down'), "Y-m-d H:i:s") : '' ?>" placeholder="Publish end date" />
-						<input class="unit-edit-save" type="submit" value="Save" />
-						<input class="unit-edit-reset" type="reset" value="Cancel" />
-						<input type="hidden" name="course_id" value="<?php echo $this->course->get('id'); ?>" />
-						<input type="hidden" name="offering" value="<?php echo $this->course->offering()->alias(); ?>" />
-						<input type="hidden" name="section_id" value="<?= $this->course->offering()->section()->get('id') ?>" />
-						<input type="hidden" name="id" value="<?php echo $unit->get('id'); ?>" />
-					</form>
+					<div class="unit-edit-wrap">
+						<form action="<?php echo JURI::base(true); ?>/api/courses/unit/save" class="unit-edit-form">
+							<label for="title">Title:</label>
+							<input class="unit-edit-text" name="title" type="text" value="<?php echo $unit->get('title'); ?>" placeholder="title" />
+							<label for="publish_up">Publish start date:</label>
+							<input class="unit-edit-publish-up datepicker" name="publish_up" type="text" value="<?= ($unit->get('publish_up') != '0000-00-00 00:00:00') ? JHTML::_('date', $unit->get('publish_up'), "Y-m-d H:i:s") : '' ?>" placeholder="Publish start date" />
+							<label for="publish_down">Publish end date:</label>
+							<input class="unit-edit-publish-down datepicker" name="publish_down" type="text" value="<?= ($unit->get('publish_down') != '0000-00-00 00:00:00') ? JHTML::_('date', $unit->get('publish_down'), "Y-m-d H:i:s") : '' ?>" placeholder="Publish end date" />
+							<input class="unit-edit-save" type="submit" value="Save" />
+							<input class="unit-edit-reset" type="reset" value="Cancel" />
+							<input type="hidden" name="course_id" value="<?php echo $this->course->get('id'); ?>" />
+							<input type="hidden" name="offering" value="<?php echo $this->course->offering()->alias(); ?>" />
+							<input type="hidden" name="section_id" value="<?= $this->course->offering()->section()->get('id') ?>" />
+							<input type="hidden" name="id" value="<?php echo $unit->get('id'); ?>" />
+						</form>
+					</div>
+					<div class="unit-prerequisites">
+						<?php
+							$this->view('_prerequisites')
+							     ->set('scope', 'unit')
+							     ->set('scope_id', $unit->get('id'))
+							     ->set('section_id', $this->course->offering()->section()->get('id'))
+							     ->set('items', clone($this->course->offering()->units()))->display();
+						?>
+					</div>
 				</div>
 			</div>
 			<div class="progress-container">
@@ -223,4 +234,10 @@ $base = $this->course->offering()->link();
 			</form>
 		</li>
 	</ul>
+</div>
+
+<div class="session-expired">
+	<h3>Session Expired</h3>
+	<p>Sorry. Your session has expired. You must login again to proceed.</p>
+	<p><a href="<?php echo JRoute::_('index.php?option=com_users&view=login&return='.base64_encode($_SERVER['REQUEST_URI'])); ?>" class="btn btn-warning">Login</a>
 </div>

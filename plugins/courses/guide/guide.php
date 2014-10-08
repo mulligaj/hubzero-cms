@@ -45,7 +45,7 @@ class plgCoursesGuide extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Event call after course outline
-	 * 
+	 *
 	 * @param      object $course   Current course
 	 * @param      object $offering Current offering
 	 * @return     void
@@ -54,6 +54,12 @@ class plgCoursesGuide extends \Hubzero\Plugin\Plugin
 	{
 		$member = $offering->member(JFactory::getUser()->get('id'));
 		if ($member->get('first_visit') && $member->get('first_visit') != '0000-00-00 00:00:00')
+		{
+			return;
+		}
+		elseif (!$member->get('id')
+			&& is_object(\Hubzero\Utility\Cookie::eat('plugin.courses.guide'))
+			&& isset(\Hubzero\Utility\Cookie::eat('plugin.courses.guide')->first_visit))
 		{
 			return;
 		}
@@ -78,7 +84,7 @@ class plgCoursesGuide extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onCourseAreas()
@@ -103,7 +109,7 @@ class plgCoursesGuide extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a course view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $course      Current course
 	 * @param      string  $option     Name of the component
 	 * @param      string  $authorized User's authorization level
@@ -130,16 +136,16 @@ class plgCoursesGuide extends \Hubzero\Plugin\Plugin
 		$this_area = $this->onCourseAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
-			if (!in_array($this_area['name'], $areas)) 
+			if (!in_array($this_area['name'], $areas))
 			{
 				$return = 'metadata';
 			}
 		}
 
 		// Determine if we need to return any HTML (meaning this is the active plugin)
-		if ($return == 'html') 
+		if ($return == 'html')
 		{
 			$active = strtolower(JRequest::getWord('unit', ''));
 
@@ -190,7 +196,7 @@ class plgCoursesGuide extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @param      object $url  URL to redirect to
 	 * @return     string
 	 */
@@ -201,7 +207,7 @@ class plgCoursesGuide extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @param      object $url  URL to redirect to
 	 * @return     string
 	 */
@@ -213,6 +219,19 @@ class plgCoursesGuide extends \Hubzero\Plugin\Plugin
 		if ($member->get('first_visit') && $member->get('first_visit') != '0000-00-00 00:00:00')
 		{
 			return;
+		}
+		elseif (!$member->get('id'))
+		{
+			$cookie = \Hubzero\Utility\Cookie::eat('plugin.courses.guide');
+			if (!is_object($cookie) || !isset($cookie->first_visit))
+			{
+				// Drop cookie
+				$prefs                = array();
+				$prefs['first_visit'] = JFactory::getDate()->toSql();
+				$lifetime             = time() + 365*24*60*60;
+
+				\Hubzero\Utility\Cookie::bake('plugin.courses.guide', $lifetime, $prefs);
+			}
 		}
 		$member->set('first_visit', JFactory::getDate()->toSql());
 		$member->store();

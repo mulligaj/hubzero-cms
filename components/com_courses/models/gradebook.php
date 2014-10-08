@@ -35,6 +35,7 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_c
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'asset.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'asset.views.php');
 require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'member.php');
+require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'progress.factors.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'abstract.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'gradepolicies.php');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'memberBadge.php');
@@ -50,28 +51,28 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 {
 	/**
 	 * JTable class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CoursesTableGradeBook';
 
 	/**
 	 * Object scope
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'gradebook';
 
 	/**
 	 * Course object
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $course = null;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $id  Resource ID or alias
 	 * @param      object  $course
 	 * @return     void
@@ -87,10 +88,10 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 	/**
 	 * Get student grades
 	 *
-	 * Retrieve single or group of student grades from the grade book.  You could also 
+	 * Retrieve single or group of student grades from the grade book.  You could also
 	 * provide a scope, limiting the grades to an array of items, such as unit, course, or asset.
 	 * The results will be returned as an array with student id as the uppermost key.
-	 * 
+	 *
 	 * @param      int or array $scope, scope for which to pull grades (unit, course, asset)
 	 * @param      int or array $member_id, user id for which to pull grades
 	 * @return     array $grades
@@ -98,7 +99,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 	public function grades($scope=null, $member_id=null)
 	{
 		// If no user provided, assume section
-		if(is_null($member_id))
+		if (is_null($member_id))
 		{
 			$members = $this->course->offering()->section()->members();
 
@@ -112,7 +113,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 
 		// Get the grades themselves
 		$filters = array('member_id'=>$member_id, 'scope'=>$scope);
-		$results = $this->_tbl->find($filters);
+		$results = $this->_grades($filters);
 
 		$grades = array();
 
@@ -131,11 +132,19 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 			{
 				if ($grade->override)
 				{
-					$grades[$grade->member_id]['assets'][$grade->scope_id] = array('score'=>$grade->override, 'override'=>true);
+					$grades[$grade->member_id]['assets'][$grade->scope_id] = array(
+						'score'    => $grade->override,
+						'date'     => $grade->override_recorded,
+						'override' => true
+					);
 				}
 				else
 				{
-					$grades[$grade->member_id]['assets'][$grade->scope_id] = array('score'=>$grade->score, 'override'=>false);
+					$grades[$grade->member_id]['assets'][$grade->scope_id] = array(
+						'score'    => $grade->score,
+						'date'     => $grade->score_recorded,
+						'override' => false
+					);
 				}
 			}
 		}
@@ -145,7 +154,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 
 	/**
 	 * Generate summary statistics
-	 * 
+	 *
 	 * @param      bool  $section - section only?
 	 * @return     array $stats
 	 */
@@ -159,7 +168,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 			$filters['section_id'] = $this->course->offering()->section()->get('id');
 		}
 
-		$results = $this->_tbl->find($filters);
+		$results = $this->_grades($filters);
 		$grades  = array();
 
 		// Restructure data
@@ -176,6 +185,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 		}
 
 		// Compute stats
+		$stats = array();
 		foreach ($grades as $asset_id => $grade)
 		{
 			$stats[$asset_id]['responses'] = count($grade);
@@ -191,38 +201,84 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 	 * Get current progress
 	 *
 	 * At this point, this method only takes into account what students have viewed.
-	 * This makes sense on a PDF download, for example, but not on a quiz.  This 
+	 * This makes sense on a PDF download, for example, but not on a quiz.  This
 	 * should be expanded to account for views on simpler asset types, and more complex
 	 * criteria on assets where it can be tracked (ex: videos, where we can track an
 	 * entire view, or an exam, where we know when they've actually finished it).
-	 * 
-	 * @param      int $member_id 
+	 *
+	 * @param      int $member_id
 	 * @return     array $progress
 	 */
 	public function progress($member_id=null)
 	{
+		static $instances;
+
+		$key = (!is_null($member_id)) ? serialize($member_id) : 'all';
+
+		if (isset($instances[$key]))
+		{
+			return $instances[$key];
+		}
+
+		$offeringParams = new JRegistry($this->course->offering()->get('params'));
+		$sectionParams  = new JRegistry($this->course->offering()->section()->get('params'));
+
 		$progress_calculation = $this->course->config()->get('progress_calculation', 'all');
+		$progress_calculation = ($offeringParams->get('progress_calculation', false)) ? $offeringParams->get('progress_calculation') : $progress_calculation;
+		$progress_calculation = ($sectionParams->get('progress_calculation', false)) ? $sectionParams->get('progress_calculation') : $progress_calculation;
 
 		$filters = array(
 			'section_id' => $this->course->offering()->section()->get('id'),
 			'member_id'  => $member_id
 		);
 
+		$dbo = JFactory::getDBO();
+
 		switch ($progress_calculation)
 		{
 			// Support legacy label of 'forms', as well as new, more accurate label of 'graded'
 			case 'forms':
 			case 'graded':
-				$views = $this->_tbl->getGradedItemCompletions($this->course->get('id'), $member_id);
+				// Get count of graded items taken
+				$filters = array('member_id'=>$member_id, 'scope'=>'asset', 'graded'=>true);
+				$grades  = $this->_grades($filters);
+
+				$views = array();
+				foreach ($grades as $g)
+				{
+					if (!is_null($g->score) || !is_null($g->override))
+					{
+						$views[] = (object)array(
+							'member_id'    => $g->member_id,
+							'grade_weight' => $g->grade_weight,
+							'unit_id'      => $g->unit_id,
+							'asset_id'     => $g->scope_id
+						);
+					}
+				}
+			break;
+
+			case 'manual':
+				$filters['progress_calculation'] = true;
+
+				// Get the asset views
+				$assetViews = new CoursesTableAssetViews($dbo);
+				$views      = $assetViews->find($filters);
 			break;
 
 			case 'videos':
 				// Add another filter
 				$filters['asset_type'] = 'video';
+
+				// Get the asset views
+				$assetViews = new CoursesTableAssetViews($dbo);
+				$views      = $assetViews->find($filters);
+			break;
+
+			case 'all':
 			default:
 				// Get the asset views
-				$database = JFactory::getDBO();
-				$assetViews = new CoursesTableAssetViews($database);
+				$assetViews = new CoursesTableAssetViews($dbo);
 				$views      = $assetViews->find($filters);
 			break;
 		}
@@ -246,12 +302,13 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 				if (!isset($counts[$unit_id]))
 				{
 					// Get the assets
-					$asset = new CoursesTableAsset(JFactory::getDBO());
+					$asset = new CoursesTableAsset($dbo);
 					$filters = array(
 						'w' => array(
-							'course_id'  => $this->course->get('id'),
-							'unit_id'    => $unit_id,
-							'state'      => 1
+							'course_id'   => $this->course->get('id'),
+							'unit_id'     => $unit_id,
+							'state'       => 1,
+							'asset_scope' => 'asset_group'
 						)
 					);
 
@@ -261,6 +318,11 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 						case 'forms':
 						case 'graded':
 							$filters['w']['graded'] = true;
+						break;
+
+						case 'manual':
+							$filters['w']['section_id'] = $this->course->offering()->section()->get('id');
+							$filters['w']['progress_calculation'] = true;
 						break;
 
 						case 'videos':
@@ -275,12 +337,45 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 			}
 		}
 
+		$instances[$key] = $progress;
+
 		return $progress;
 	}
 
 	/**
+	 * Get asset views/completions
+	 *
+	 * @param  (int) $member_id
+	 * @return (array)
+	 **/
+	public function views($member_id)
+	{
+		$filters = array(
+			'section_id' => $this->course->offering()->section()->get('id'),
+			'member_id'  => $member_id
+		);
+
+		// Get the asset views
+		$database   = JFactory::getDBO();
+		$assetViews = new CoursesTableAssetViews($database);
+		$results    = $assetViews->find($filters);
+
+		$views = array();
+
+		if ($results && count($results) > 0)
+		{
+			foreach ($results as $result)
+			{
+				$views[$result->member_id][] = $result->asset_id;
+			}
+		}
+
+		return $views;
+	}
+
+	/**
 	 * Calculate scores for each unit and the course as a whole
-	 * 
+	 *
 	 * @param      int $member_id
 	 * @param      int $asset_id
 	 * @return     boolean true on success, false otherwise
@@ -315,12 +410,41 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 			return false;
 		}
 
+		if (!is_null($member_id) && !empty($member_id))
+		{
+			if (!is_array($member_id))
+			{
+				$member_id = (array) $member_id;
+			}
+		}
+		else
+		{
+			// Pull all offering members
+			$members = $course->offering()->students();
+			$member_id = array();
+
+			// Get member id's for refresh filter
+			foreach ($members as $member)
+			{
+				$member_id[] = $member->get('id');
+			}
+		}
+
+		// Get our units and track which units have grades that might need to be cleared
+		$unit_ids = array();
+		$units    = $course->offering()->units();
+
+		foreach ($units as $unit)
+		{
+			$unit_ids[$unit->get('id')] = $member_id;
+		}
+
 		// Get a grade policy object
 		$gradePolicy = new CoursesModelGradePolicies($course->offering()->section()->get('grade_policy_id'), $course->offering()->section()->get('id'));
 
 		// Calculate course grades, start by getting all grades
-		$filters = array('scope'=>'asset', 'member_id'=>$member_id, 'course_id'=>$course_id);
-		$results = $this->_tbl->find($filters);
+		$filters = array('member_id'=>$member_id, 'scope'=>'asset', 'graded'=>true);
+		$results = $this->_grades($filters);
 		$grades  = array();
 		$scores  = array();
 
@@ -356,6 +480,12 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 				// Loop through units and compute scores
 				foreach ($values as $unit_id=>$val)
 				{
+					// We're processing this unit/member, thus it doesn't need to be cleared - so remove it from the list of potentials
+					if (isset($unit_ids[$unit_id]) && ($key = array_search($member_id, $unit_ids[$unit_id])) !== false)
+					{
+						unset($unit_ids[$unit_id][$key]);
+					}
+
 					$scores[$member_id]['units'][$unit_id]['exam_count']     = 0;
 					$scores[$member_id]['units'][$unit_id]['quiz_count']     = 0;
 					$scores[$member_id]['units'][$unit_id]['homework_count'] = 0;
@@ -514,6 +644,7 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 		}
 
 		$this->_tbl->saveGrades($scores, $course_id);
+		$this->_tbl->clearUnits($unit_ids);
 
 		// Success
 		return true;
@@ -646,16 +777,79 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 	 **/
 	public function isEligibleForRecognition($member_id=null)
 	{
+		static $assets = null;
+		static $grades = null;
+
 		// Get a grade policy object
 		$gradePolicy = new CoursesModelGradePolicies($this->course->offering()->section()->get('grade_policy_id'), $this->course->offering()->section()->get('id'));
 
-		// Get count of graded items taken
-		$results = $this->_tbl->getGradedItemsCompletionCount($this->course, $member_id);
+		if (!isset($assets))
+		{
+			// Get the graded assets
+			$asset  = new CoursesTableAsset(JFactory::getDBO());
+			$assets = $asset->find(
+				array(
+					'w' => array(
+						'course_id'   => $this->course->get('id'),
+						'section_id'  => $this->course->offering()->section()->get('id'),
+						'offering_id' => $this->course->offering()->get('id'),
+						'graded'      => true,
+						'state'       => 1,
+						'asset_scope' => 'asset_group'
+					),
+					'order_by'  => 'title',
+					'order_dir' => 'ASC'
+				)
+			);
+
+			// Get gradebook auxiliary assets
+			$auxiliary = $asset->findByScope(
+				'offering',
+				$this->course->offering()->get('id'),
+				array(
+					'asset_type'    => 'gradebook',
+					'asset_subtype' => 'auxiliary',
+					'graded'        => true,
+					'state'         => 1
+				)
+			);
+
+			$assets = array_merge($assets, $auxiliary);
+		}
+
+		// Get totals by type
+		$totals = array('exam'=>0, 'quiz'=>0, 'homework'=>0);
+		$counts = array();
+
+		if ($assets && count($assets) > 0)
+		{
+			foreach ($assets as $asset)
+			{
+				++$totals[$asset->grade_weight];
+			}
+		}
+
+		if (!isset($grades))
+		{
+			// Get count of graded items taken
+			$filters = array('member_id'=>$member_id, 'scope'=>'asset', 'graded'=>true);
+			$grades = $this->_grades($filters);
+		}
 
 		// Restructure data
-		foreach ($results as $r)
+		foreach ($grades as $g)
 		{
-			$counts[$r->member_id][$r->grade_weight] = $r->count;
+			if (!is_null($g->score) || !is_null($g->override))
+			{
+				if (isset($counts[$g->member_id][$g->grade_weight]))
+				{
+					++$counts[$g->member_id][$g->grade_weight];
+				}
+				else
+				{
+					$counts[$g->member_id][$g->grade_weight] = 1;
+				}
+			}
 		}
 
 		// Get weights to determine what counts toward the final grade
@@ -663,8 +857,6 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 		$quiz_weight     = $gradePolicy->get('quiz_weight');
 		$homework_weight = $gradePolicy->get('homework_weight');
 
-		// Get count of total graded items
-		$totals = $this->_tbl->getGradedItemsCount($this->course);
 		$return = false;
 
 		if (isset($counts))
@@ -689,9 +881,9 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 
 				// Now make sure they've taken all required exams/quizzes/homeworks, and that they passed
 				if (
-					($exam_weight     == 0 || ($exam_weight     > 0 && $totals['exam']->count     == $counts[$m]['exam']))     &&
-					($quiz_weight     == 0 || ($quiz_weight     > 0 && $totals['quiz']->count     == $counts[$m]['quiz']))     &&
-					($homework_weight == 0 || ($homework_weight > 0 && $totals['homework']->count == $counts[$m]['homework'])) &&
+					($exam_weight     == 0 || ($exam_weight     > 0 && isset($counts[$m]['exam'])     && $totals['exam']     == $counts[$m]['exam']))     &&
+					($quiz_weight     == 0 || ($quiz_weight     > 0 && isset($counts[$m]['quiz'])     && $totals['quiz']     == $counts[$m]['quiz']))     &&
+					($homework_weight == 0 || ($homework_weight > 0 && isset($counts[$m]['homework']) && $totals['homework'] == $counts[$m]['homework'])) &&
 					$passing[$m]
 					)
 				{
@@ -768,5 +960,66 @@ class CoursesModelGradeBook extends CoursesModelAbstract
 		{
 			return false;
 		}
+	}
+
+	/**
+	 * Get grades for this course
+	 *
+	 * @return array
+	 **/
+	private function _grades($filters=array())
+	{
+		static $grades;
+		$key = serialize($filters);
+
+		if (!isset($grades[$key]))
+		{
+			$asset_ids = array();
+			$units_map = array();
+
+			if ($this->course->offering()->assets() && count($this->course->offering()->assets()) > 0)
+			{
+				foreach ($this->course->offering()->assets() as $a)
+				{
+					$asset_ids[] = $a->get('id');
+				}
+			}
+
+			// Get asset ids
+			if ($this->course->offering()->units())
+			{
+				foreach ($this->course->offering()->units() as $unit)
+				{
+					foreach ($unit->assetgroups() as $agt)
+					{
+						foreach ($agt->children() as $ag)
+						{
+							foreach ($ag->assets() as $a)
+							{
+								if ($a->isPublished())
+								{
+									$units_map[$a->get('id')] = $unit->get('id');
+									$asset_ids[] = $a->get('id');
+								}
+							}
+						}
+					}
+				}
+			}
+
+			$results = $this->_tbl->find($filters);
+
+			if ($results && count($results) > 0)
+			{
+				foreach ($results as $grade)
+				{
+					$grade->unit_id = isset($units_map[$grade->scope_id]) ? $units_map[$grade->scope_id] : 0;
+				}
+			}
+
+			$grades[$key] = $results;
+		}
+
+		return $grades[$key];
 	}
 }

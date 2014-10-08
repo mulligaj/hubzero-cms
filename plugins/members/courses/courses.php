@@ -31,30 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Members Plugin class for courses
  */
-class plgMembersCourses extends JPlugin
+class plgMembersCourses extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Event call to determine if this plugin should return data
-	 * 
+	 *
 	 * @param      object  $user   JUser
 	 * @param      object  $member MembersProfile
 	 * @return     array   Plugin name
@@ -73,7 +64,7 @@ class plgMembersCourses extends JPlugin
 
 	/**
 	 * Event call to return data for a specific member
-	 * 
+	 *
 	 * @param      object  $user   JUser
 	 * @param      object  $member MembersProfile
 	 * @param      string  $option Component name
@@ -85,10 +76,10 @@ class plgMembersCourses extends JPlugin
 		$returnhtml = true;
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onMembersAreas($user, $member))
-			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member)))) 
+			 && !array_intersect($areas, array_keys($this->onMembersAreas($user, $member))))
 			{
 				$returnhtml = false;
 			}
@@ -123,17 +114,15 @@ class plgMembersCourses extends JPlugin
 		}
 
 		// Build the HTML
-		if ($returnhtml) 
+		if ($returnhtml)
 		{
 			$this->app = JFactory::getApplication();
 			$this->jconfig = JFactory::getConfig();
 
-			\Hubzero\Document\Assets::addPluginStylesheet('members', $this->_name);
-
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  => 'members',
-					'element' => 'courses',
+					'folder'  => $this->_type,
+					'element' => $this->_name,
 					'name'    => 'display'
 				)
 			);
@@ -208,12 +197,12 @@ class plgMembersCourses extends JPlugin
 
 			jimport('joomla.html.pagination');
 			$view->pageNav = new JPagination(
-				$view->total, 
-				$view->filters['start'], 
+				$view->total,
+				$view->filters['start'],
 				$view->filters['limit']
 			);
 
-			if ($this->getError()) 
+			if ($this->getError())
 			{
 				foreach ($this->getError() as $error)
 				{
@@ -229,22 +218,22 @@ class plgMembersCourses extends JPlugin
 
 	/**
 	 * Event call to return data for a specific member
-	 * 
+	 *
 	 * @param      object  $user   JUser
 	 * @param      object  $member MembersProfile
 	 * @return     array   Return array of html
 	 */
 	private function _getData($what='count', $who=null, $filters=array())
 	{
-		if (!isset($filters['start'])) 
+		if (!isset($filters['start']))
 		{
 			$filters['start'] = 0;
 		}
-		if (!isset($filters['limit'])) 
+		if (!isset($filters['limit']))
 		{
 			$filters['limit'] = 25;
 		}
-		if (!isset($filters['sort']) || !$filters['sort']) 
+		if (!isset($filters['sort']) || !$filters['sort'])
 		{
 			$filters['sort'] = 'enrolled';
 		}
@@ -259,71 +248,55 @@ class plgMembersCourses extends JPlugin
 				$now = JFactory::getDate()->toSql();
 				if ($what == 'count')
 				{
-					$this->database->setQuery("SELECT COUNT(*)  
-						FROM #__courses AS c 
-						JOIN #__courses_members AS m ON m.course_id=c.id
-						LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-						LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-						LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
-						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=1
-						AND (s.publish_down='0000-00-00 00:00:00' OR s.publish_down < " . $this->database->quote($now) .")");
+					$this->database->setQuery("SELECT COUNT(*)
+						FROM `#__courses` AS c
+							JOIN `#__courses_members` AS m ON m.course_id=c.id
+							LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+							LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+							LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
+						WHERE c.state=1 AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=1
+							AND (s.publish_down='0000-00-00 00:00:00' OR s.publish_down < " . $this->database->quote($now) .") AND s.state=1 AND o.state=1");
 					$results = $this->database->loadResult();
 				}
 				else
 				{
-					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default, 
+					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default,
 						m.enrolled, s.publish_up AS starts, s.publish_down AS ends
-							FROM #__courses AS c 
-							JOIN #__courses_members AS m ON m.course_id=c.id
-							LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-							LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-							LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
-						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=1 AND o.state!=2
-						AND (s.publish_down='0000-00-00 00:00:00' OR s.publish_down < " . $this->database->quote($now) .")
+						FROM `#__courses` AS c
+							JOIN `#__courses_members` AS m ON m.course_id=c.id
+							LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+							LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+							LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
+						WHERE c.state=1 AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=1
+							AND (s.publish_down='0000-00-00 00:00:00' OR s.publish_down < " . $this->database->quote($now) .") AND s.state=1 AND o.state=1
 						ORDER BY " . $filters['sort'] . " ASC LIMIT " . $filters['start'] . "," . $filters['limit']);
 					$results = $this->database->loadObjectList();
 				}
 			break;
-			
+
 			case 'manager':
 				if ($what == 'count')
 				{
 					$this->database->setQuery("SELECT COUNT(*)
-							FROM #__courses AS c 
-							JOIN #__courses_members AS m ON m.course_id=c.id
-							LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-							LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-							LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
+							FROM `#__courses` AS c
+							JOIN `#__courses_members` AS m ON m.course_id=c.id
+							LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+							LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+							LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
 							WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=0 AND r.alias='manager'");
 					$results = $this->database->loadResult();
 				}
 				else
 				{
-					$this->database->setQuery("
-						SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default, 
-							m.enrolled, r.alias AS role_alias, r.title AS role_title, s.publish_up AS starts, s.publish_down AS ends  
-							FROM #__courses AS c 
-							JOIN #__courses_members AS m ON m.course_id=c.id
-							LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-							LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-							LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
-						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=0 AND r.alias='manager' 
+					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default,
+							m.enrolled, r.alias AS role_alias, r.title AS role_title, s.publish_up AS starts, s.publish_down AS ends
+							FROM `#__courses` AS c
+							JOIN `#__courses_members` AS m ON m.course_id=c.id
+							LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+							LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+							LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
+						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=0 AND r.alias='manager'
 						ORDER BY " . $filters['sort'] . " ASC LIMIT " . $filters['start'] . "," . $filters['limit']);
-					/*$this->database->setQuery("
-						(
-							SELECT c.id, c.alias, c.title, c.created AS enrolled, NULL AS starts, NULL AS ends
-							FROM #__courses AS c 
-							JOIN #__courses_managers AS m ON m.course_id=c.id
-							WHERE m.user_id=" . $this->member->get('uidNumber') . "
-						) UNION (
-							SELECT c.id, c.alias, c.title, m.enrolled, s.publish_up AS starts, s.publish_down AS ends
-								FROM #__courses AS c 
-								JOIN #__courses_offerings AS o ON o.course_id=c.id
-								JOIN #__courses_offering_sections AS s on s.offering_id=o.id
-								JOIN #__courses_members AS m ON m.section_id=s.id
-								JOIN #__courses_roles AS r ON r.id=m.role_id
-								WHERE m.user_id=" . $this->member->get('uidNumber') . " AND s.id=m.section_id AND r.alias='manager'
-						) ORDER BY " . $filters['sort'] . " DESC LIMIT " . $filters['start'] . "," . $filters['limit']);*/
 					$results = $this->database->loadObjectList();
 				}
 			break;
@@ -331,24 +304,24 @@ class plgMembersCourses extends JPlugin
 			case 'instructor':
 				if ($what == 'count')
 				{
-					$this->database->setQuery("SELECT COUNT(*)  
-						FROM #__courses AS c 
-						JOIN #__courses_members AS m ON m.course_id=c.id
-						LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-						LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-						LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
+					$this->database->setQuery("SELECT COUNT(*)
+						FROM `#__courses` AS c
+						JOIN `#__courses_members` AS m ON m.course_id=c.id
+						LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+						LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+						LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
 						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=0 AND r.alias=" . $this->database->Quote('instructor'));
 					$results = $this->database->loadResult();
 				}
 				else
 				{
-					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default, 
-						m.enrolled, r.alias AS role_alias, r.title AS role_title, s.publish_up AS starts, s.publish_down AS ends  
-						FROM #__courses AS c 
-						JOIN #__courses_members AS m ON m.course_id=c.id
-						LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-						LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-						LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
+					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default,
+						m.enrolled, r.alias AS role_alias, r.title AS role_title, s.publish_up AS starts, s.publish_down AS ends
+						FROM `#__courses` AS c
+						JOIN `#__courses_members` AS m ON m.course_id=c.id
+						LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+						LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+						LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
 						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=0 AND r.alias=" . $this->database->Quote('instructor') . "
 						ORDER BY " . $filters['sort'] . " ASC LIMIT " . $filters['start'] . "," . $filters['limit']);
 					$results = $this->database->loadObjectList();
@@ -358,24 +331,24 @@ class plgMembersCourses extends JPlugin
 			case 'ta':
 				if ($what == 'count')
 				{
-					$this->database->setQuery("SELECT COUNT(*)  
-						FROM #__courses AS c 
-						JOIN #__courses_members AS m ON m.course_id=c.id
-						LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-						LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-						LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
+					$this->database->setQuery("SELECT COUNT(*)
+						FROM `#__courses` AS c
+						JOIN `#__courses_members` AS m ON m.course_id=c.id
+						LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+						LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+						LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
 						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=0 AND r.alias=" . $this->database->Quote('ta'));
 					$results = $this->database->loadResult();
 				}
 				else
 				{
-					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default, 
-						m.enrolled, r.alias AS role_alias, r.title AS role_title, s.publish_up AS starts, s.publish_down AS ends  
-						FROM #__courses AS c 
-						JOIN #__courses_members AS m ON m.course_id=c.id
-						LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-						LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-						LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
+					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default,
+						m.enrolled, r.alias AS role_alias, r.title AS role_title, s.publish_up AS starts, s.publish_down AS ends
+						FROM `#__courses` AS c
+						JOIN `#__courses_members` AS m ON m.course_id=c.id
+						LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+						LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+						LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
 						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=0 AND r.alias=" . $this->database->Quote('ta') . "
 						ORDER BY " . $filters['sort'] . " ASC LIMIT " . $filters['start'] . "," . $filters['limit']);
 					$results = $this->database->loadObjectList();
@@ -385,24 +358,24 @@ class plgMembersCourses extends JPlugin
 			default:
 				if ($what == 'count')
 				{
-					$this->database->setQuery("SELECT COUNT(*)  
-						FROM #__courses AS c 
-						JOIN #__courses_members AS m ON m.course_id=c.id
-						LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-						LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-						LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
+					$this->database->setQuery("SELECT COUNT(*)
+						FROM `#__courses` AS c
+						JOIN `#__courses_members` AS m ON m.course_id=c.id
+						LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+						LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+						LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
 						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND m.student=0 AND r.alias=" . $this->database->Quote($who));
 					$results = $this->database->loadResult();
 				}
 				else
 				{
-					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default, 
-						m.enrolled, r.alias AS role_alias, r.title AS role_title, s.publish_up AS starts, s.publish_down AS ends  
-						FROM #__courses AS c 
-						JOIN #__courses_members AS m ON m.course_id=c.id
-						LEFT JOIN #__courses_offerings AS o ON o.id=m.offering_id
-						LEFT JOIN #__courses_offering_sections AS s on s.id=m.section_id
-						LEFT JOIN #__courses_roles AS r ON r.id=m.role_id
+					$this->database->setQuery("SELECT c.id, c.state, c.alias, c.title, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default,
+						m.enrolled, r.alias AS role_alias, r.title AS role_title, s.publish_up AS starts, s.publish_down AS ends
+						FROM `#__courses` AS c
+						JOIN `#__courses_members` AS m ON m.course_id=c.id
+						LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
+						LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
+						LEFT JOIN `#__courses_roles` AS r ON r.id=m.role_id
 						WHERE c.state IN (1, 3) AND m.user_id=" . (int) $this->member->get('uidNumber') . " AND r.alias=" . $this->database->Quote($who) . "
 						ORDER BY " . $filters['sort'] . " ASC LIMIT " . $filters['start'] . "," . $filters['limit']);
 					$results = $this->database->loadObjectList();
@@ -414,7 +387,7 @@ class plgMembersCourses extends JPlugin
 
 	/**
 	 * Return a list of categories
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function onMembersContributionsAreas()
@@ -426,15 +399,15 @@ class plgMembersCourses extends JPlugin
 
 	/**
 	 * Build SQL for returning the count of the number of contributions
-	 * 
+	 *
 	 * @param      string $user_id  Field to join on user ID
 	 * @param      string $username Field to join on username
 	 * @return     string
 	 */
 	public function onMembersContributionsCount($user_id='m.uidNumber', $username='m.username')
 	{
-		$query = "SELECT COUNT(*)  
-				FROM `#__courses` AS c 
+		$query = "SELECT COUNT(*)
+				FROM `#__courses` AS c
 				JOIN `#__courses_members` AS m ON m.course_id=c.id
 				LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
 				LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
@@ -446,7 +419,7 @@ class plgMembersCourses extends JPlugin
 
 	/**
 	 * Return either a count or an array of the member's contributions
-	 * 
+	 *
 	 * @param      object  $member     Current member
 	 * @param      string  $option     Component name
 	 * @param      string  $authorized Authorization level
@@ -460,10 +433,10 @@ class plgMembersCourses extends JPlugin
 	{
 		$database = JFactory::getDBO();
 
-		if (is_array($areas) && $limit) 
+		if (is_array($areas) && $limit)
 		{
-			if (!isset($areas[$this->_name]) 
-			  && !in_array($this->_name, $areas) 
+			if (!isset($areas[$this->_name])
+			  && !in_array($this->_name, $areas)
 			  && !array_intersect($areas, array_keys($this->onMembersContributionsAreas())))
 			{
 				return array();
@@ -471,25 +444,25 @@ class plgMembersCourses extends JPlugin
 		}
 
 		// Do we have a member ID?
-		if ($member instanceof \Hubzero\User\Profile) 
+		if ($member instanceof \Hubzero\User\Profile)
 		{
-			if (!$member->get('uidNumber')) 
+			if (!$member->get('uidNumber'))
 			{
 				return array();
-			} 
-			else 
+			}
+			else
 			{
 				$uidNumber = $member->get('uidNumber');
 				$username  = $member->get('username');
 			}
-		} 
-		else 
+		}
+		else
 		{
-			if (!$member->uidNumber) 
+			if (!$member->uidNumber)
 			{
 				return array();
-			} 
-			else 
+			}
+			else
 			{
 				$uidNumber = $member->uidNumber;
 				$username  = $member->username;
@@ -502,16 +475,16 @@ class plgMembersCourses extends JPlugin
 		$tbl = new CoursesTableCourse($database);
 
 		// Build query
-		if (!$limit) 
+		if (!$limit)
 		{
 			$database->setQuery($this->onMembersContributionsCount($uidNumber));
 			return $database->loadResult();
-		} 
-		else 
+		}
+		else
 		{
 			//$rows = $tbl->getUserCourses($uidNumber, $type='instructor', $limit, $limitstart);
-			$query = "SELECT c.id, c.alias, c.title, c.blurb, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default 
-					FROM `#__courses` AS c 
+			$query = "SELECT c.id, c.alias, c.title, c.blurb, m.enrolled, s.publish_up AS starts, s.publish_down AS ends, r.alias AS role, o.alias AS offering_alias, o.title AS offering_title, s.alias AS section_alias, s.title AS section_title, s.is_default
+					FROM `#__courses` AS c
 					JOIN `#__courses_members` AS m ON m.course_id=c.id
 					LEFT JOIN `#__courses_offerings` AS o ON o.id=m.offering_id
 					LEFT JOIN `#__courses_offering_sections` AS s on s.id=m.section_id
@@ -520,7 +493,7 @@ class plgMembersCourses extends JPlugin
 			$database->setQuery($query);
 			$rows = $database->loadObjectList();
 
-			if ($rows) 
+			if ($rows)
 			{
 				foreach ($rows as $key => $row)
 				{

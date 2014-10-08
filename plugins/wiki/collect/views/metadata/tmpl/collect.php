@@ -39,6 +39,17 @@ defined('_JEXEC') or die( 'Restricted access' );
 	<fieldset>
 		<legend><?php echo JText::_('PLG_WIKI_COLLECT'); ?></legend>
 
+		<?php if ($this->collections) { ?>
+			<div class="grid in-collections">
+				<p><?php echo JText::_('PLG_WIKI_COLLECT_ALREADY_COLLECTED'); ?></p>
+				<ul>
+				<?php foreach ($this->collections as $collection) { ?>
+					<li><a href="<?php echo JRoute::_($collection->link()); ?>"><?php echo $this->escape(stripslashes($collection->get('title'))); ?></a></li>
+				<?php } ?>
+				</ul>
+			</div>
+		<?php } ?>
+
 		<div class="grid">
 			<div class="col span-half">
 				<label for="field-collection">
@@ -46,42 +57,42 @@ defined('_JEXEC') or die( 'Restricted access' );
 					<select name="collection" id="field-collection">
 						<option value="0"><?php echo JText::_('PLG_WIKI_COLLECT_SELECT'); ?></option>
 						<optgroup label="<?php echo JText::_('PLG_WIKI_COLLECT_MY_COLLECTIONS'); ?>">
-<?php 
-$i = 0;
-if ($this->myboards)
-{
-	foreach ($this->myboards as $board)
-	{
-?>
+						<?php
+						$i = 0;
+						if ($this->myboards)
+						{
+							foreach ($this->myboards as $board)
+							{
+						?>
 							<option<?php if ($i == 0) { echo ' selected="selected"'; } ?> value="<?php echo $this->escape($board->id); ?>"><?php echo $this->escape(stripslashes($board->title)); ?></option>
-<?php
-		$i++;
-	}
-}
-?>
+						<?php
+								$i++;
+							}
+						}
+						?>
 						</optgroup>
-<?php 
-if ($this->groupboards)
-{
-	foreach ($this->groupboards as $optgroup => $boards)
-	{
-		if (count($boards) <= 0) continue;
-?>
-						<optgroup label="<?php echo $this->escape(stripslashes($optgroup)); ?>">
-<?php
-		foreach ($boards as $board)
-		{
-?>
-							<option<?php if ($i == 0) { echo ' selected="selected"'; } ?> value="<?php echo $this->escape($board->id); ?>"><?php echo $this->escape(stripslashes($board->title)); ?></option>
-<?php
-			$i++;
-		}
-?>
+						<?php
+						if ($this->groupboards)
+						{
+							foreach ($this->groupboards as $optgroup => $boards)
+							{
+								if (count($boards) <= 0) continue;
+								?>
+								<optgroup label="<?php echo $this->escape(stripslashes($optgroup)); ?>">
+									<?php
+									foreach ($boards as $board)
+									{
+										?>
+										<option<?php if ($i == 0) { echo ' selected="selected"'; } ?> value="<?php echo $this->escape($board->id); ?>"><?php echo $this->escape(stripslashes($board->title)); ?></option>
+										<?php
+										$i++;
+									}
+									?>
 						</optgroup>
-<?php
-	}
-}
-?>
+						<?php
+							}
+						}
+						?>
 					</select>
 				</label>
 			</div>

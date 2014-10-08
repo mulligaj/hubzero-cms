@@ -31,22 +31,19 @@
 defined('_JEXEC') or die('Restricted access');
 
 // Menu items
-JToolBarHelper::title(JText::_('APC Directory Entries'), 'config.png');
+JToolBarHelper::title(JText::_('COM_SYSTEM_APC_DIR'), 'config.png');
 
-$this->MYREQUEST = $this->MYREQUEST;
-$MY_SELF   = $this->MY_SELF;
+//$this->MYREQUEST = $this->MYREQUEST;
+$this->MY_SELF_WO_SORT = str_replace('&amp;', '&', $this->MY_SELF_WO_SORT);
+$this->MY_SELF_WO_SORT = str_replace('&', '&amp;', $this->MY_SELF_WO_SORT);
+$MY_SELF   = str_replace('&amp;', '&', $this->MY_SELF);
+$MY_SELF   = str_replace('&', '&amp;', $MY_SELF);
 
 ?>
 
-<div role="navigation" class="sub-navigation">
-	<ul id="subsubmenu">
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>">Host</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=system">System</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=user">User</a></li> 
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=dircache" class="active">Directory</a></li>
-		<li><a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=version">Version</a></li>
-	</ul>
-</div>
+<?php
+	$this->view('_submenu')->display();
+?>
 
 <form action="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
@@ -55,67 +52,67 @@ $MY_SELF   = $this->MY_SELF;
 		<input type="hidden" name="task" value="<?php echo $this->task; ?>" />
 		<input type="hidden" name="OB" value="<?php echo $this->MYREQUEST['OB']; ?>" />
 		<div class="col width-60 fltlft">
-		<label for="filter-scope">Scope:</label>
-		<select name="SCOPE" id="filter-scope">
-			<option value="A"<?php echo $this->MYREQUEST['SCOPE']=='A' ? ' selected="selected"' : ''; ?>>Active</option>
-			<option value="D"<?php echo $this->MYREQUEST['SCOPE']=='D' ? ' selected="selected"' : ''; ?>>Deleted</option>
-		</select>
+			<label for="filter-scope">Scope:</label>
+			<select name="SCOPE" id="filter-scope">
+				<option value="A"<?php echo $this->MYREQUEST['SCOPE']=='A' ? ' selected="selected"' : ''; ?>>Active</option>
+				<option value="D"<?php echo $this->MYREQUEST['SCOPE']=='D' ? ' selected="selected"' : ''; ?>>Deleted</option>
+			</select>
 
-		<label for="filter-sort1">Sorting:</label>
-		<select name="SORT1" id="filter-sort1">
-			<option value="H"<?php echo $this->MYREQUEST['SORT1']=='H' ? ' selected="selected"' : ''; ?>>Total Hits</option>
-			<option value="Z"<?php echo $this->MYREQUEST['SORT1']=='Z' ? ' selected="selected"' : ''; ?>>Total Size</option>
-			<option value="T"<?php echo $this->MYREQUEST['SORT1']=='T' ? ' selected="selected"' : ''; ?>>Number of Files</option>
-			<option value="S"<?php echo $this->MYREQUEST['SORT1']=='S' ? ' selected="selected"' : ''; ?>>Directory Name</option>
-			<option value="A"<?php echo $this->MYREQUEST['SORT1']=='A' ? ' selected="selected"' : ''; ?>>Avg. Size</option>
-			<option value="C"<?php echo $this->MYREQUEST['SORT1']=='C' ? ' selected="selected"' : ''; ?>>Avg. Hits</option>
-		</select>
-		
-		<select name="SORT2">
-			<option value="D"<?php echo $this->MYREQUEST['SORT2']=='D' ? ' selected="selected"' : ''; ?>>DESC</option>
-			<option value="A"<?php echo $this->MYREQUEST['SORT2']=='A' ? ' selected="selected"' : ''; ?>>ASC</option>
-		</select>
-		
-		<select name="COUNT" onChange="form.submit()">
-			<option value="10" <?php echo $this->MYREQUEST['COUNT']=='10' ? ' selected="selected"' : ''; ?>>Top 10</option>
-			<option value="20" <?php echo $this->MYREQUEST['COUNT']=='20' ? ' selected="selected"' : ''; ?>>Top 20</option>
-			<option value="50" <?php echo $this->MYREQUEST['COUNT']=='50' ? ' selected="selected"' : ''; ?>>Top 50</option>
-			<option value="100"<?php echo $this->MYREQUEST['COUNT']=='100'? ' selected="selected"' : ''; ?>>Top 100</option>
-			<option value="150"<?php echo $this->MYREQUEST['COUNT']=='150'? ' selected="selected"' : ''; ?>>Top 150</option>
-			<option value="200"<?php echo $this->MYREQUEST['COUNT']=='200'? ' selected="selected"' : ''; ?>>Top 200</option>
-			<option value="500"<?php echo $this->MYREQUEST['COUNT']=='500'? ' selected="selected"' : ''; ?>>Top 500</option>
-			<option value="0"  <?php echo $this->MYREQUEST['COUNT']=='0'  ? ' selected="selected"' : ''; ?>>All</option>
-		</select>
+			<label for="filter-sort1">Sorting:</label>
+			<select name="SORT1" id="filter-sort1">
+				<option value="H"<?php echo $this->MYREQUEST['SORT1']=='H' ? ' selected="selected"' : ''; ?>>Total Hits</option>
+				<option value="Z"<?php echo $this->MYREQUEST['SORT1']=='Z' ? ' selected="selected"' : ''; ?>>Total Size</option>
+				<option value="T"<?php echo $this->MYREQUEST['SORT1']=='T' ? ' selected="selected"' : ''; ?>>Number of Files</option>
+				<option value="S"<?php echo $this->MYREQUEST['SORT1']=='S' ? ' selected="selected"' : ''; ?>>Directory Name</option>
+				<option value="A"<?php echo $this->MYREQUEST['SORT1']=='A' ? ' selected="selected"' : ''; ?>>Avg. Size</option>
+				<option value="C"<?php echo $this->MYREQUEST['SORT1']=='C' ? ' selected="selected"' : ''; ?>>Avg. Hits</option>
+			</select>
+
+			<select name="SORT2">
+				<option value="D"<?php echo $this->MYREQUEST['SORT2']=='D' ? ' selected="selected"' : ''; ?>>DESC</option>
+				<option value="A"<?php echo $this->MYREQUEST['SORT2']=='A' ? ' selected="selected"' : ''; ?>>ASC</option>
+			</select>
+
+			<select name="COUNT" onChange="form.submit()">
+				<option value="10" <?php echo $this->MYREQUEST['COUNT']=='10' ? ' selected="selected"' : ''; ?>>Top 10</option>
+				<option value="20" <?php echo $this->MYREQUEST['COUNT']=='20' ? ' selected="selected"' : ''; ?>>Top 20</option>
+				<option value="50" <?php echo $this->MYREQUEST['COUNT']=='50' ? ' selected="selected"' : ''; ?>>Top 50</option>
+				<option value="100"<?php echo $this->MYREQUEST['COUNT']=='100'? ' selected="selected"' : ''; ?>>Top 100</option>
+				<option value="150"<?php echo $this->MYREQUEST['COUNT']=='150'? ' selected="selected"' : ''; ?>>Top 150</option>
+				<option value="200"<?php echo $this->MYREQUEST['COUNT']=='200'? ' selected="selected"' : ''; ?>>Top 200</option>
+				<option value="500"<?php echo $this->MYREQUEST['COUNT']=='500'? ' selected="selected"' : ''; ?>>Top 500</option>
+				<option value="0"  <?php echo $this->MYREQUEST['COUNT']=='0'  ? ' selected="selected"' : ''; ?>>All</option>
+			</select>
 		</div>
 		<div class="col width-40 fltrt">
-		<label for="AGGR">Group By Dir Level:</label> 
-		<select name="AGGR" id="AGGR">
-			<option value="" selected="selected">None</option>
-		<?php for ($i = 1; $i < 10; $i++) { ?>
-			<option value="<?php echo $i; ?>"<?php echo $this->MYREQUEST['AGGR']==$i ? ' selected="selected"' : ''; ?>><?php echo $i; ?></option>
-		<?php } ?>
-		</select>
-		&nbsp;<input type="submit" value="GO!" />
+			<label for="AGGR">Group By Dir Level:</label>
+			<select name="AGGR" id="AGGR">
+				<option value="" selected="selected">None</option>
+			<?php for ($i = 1; $i < 10; $i++) { ?>
+				<option value="<?php echo $i; ?>"<?php echo $this->MYREQUEST['AGGR']==$i ? ' selected="selected"' : ''; ?>><?php echo $i; ?></option>
+			<?php } ?>
+			</select>
+			&nbsp;<input type="submit" value="GO!" />
 		</div>
 	</fieldset>
 	<div class="clr"></div>
-	
+
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th><?php echo SystemHtml::sortheader('S','Directory Name',  "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('T','Number of Files', "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('H','Total Hits',      "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('Z','Total Size',      "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('C','Avg. Hits',       "&OB=" . $this->MYREQUEST['OB']); ?></th>
-				<th><?php echo SystemHtml::sortheader('A','Avg. Size',       "&OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'S','Directory Name',  "&amp;OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'T','Number of Files', "&amp;OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'H','Total Hits',      "&amp;OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'Z','Total Size',      "&amp;OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'C','Avg. Hits',       "&amp;OB=" . $this->MYREQUEST['OB']); ?></th>
+				<th><?php echo SystemHtml::sortheader($this->MYREQUEST, $this->MY_SELF_WO_SORT, 'A','Avg. Size',       "&amp;OB=" . $this->MYREQUEST['OB']); ?></th>
 			</tr>
 		</thead>
 		<tbody>
-<?php 
+<?php
 	// builds list with alpha numeric sortable keys
 	$tmp = $list = array();
-	foreach($this->cache[$this->scope_list[$this->MYREQUEST['SCOPE']]] as $entry)
+	foreach ($this->cache[$this->scope_list[$this->MYREQUEST['SCOPE']]] as $entry)
 	{
 		$n = dirname($entry['filename']);
 		if ($this->MYREQUEST['AGGR'] > 0)
@@ -145,7 +142,7 @@ $MY_SELF   = $this->MY_SELF;
 		$list[$kn . $k] = array($k, $v['ents'], $v['hits'], $v['size']);
 	}
 
-	if ($list) 
+	if ($list)
 	{
 		// sort list
 		switch ($this->MYREQUEST['SORT2'])
@@ -155,11 +152,11 @@ $MY_SELF   = $this->MY_SELF;
 		}
 		// output list
 		$i = 0;
-		foreach ($list as $entry) 
+		foreach ($list as $entry)
 		{
 			echo
 				'<tr class="row' . $i%2 . '">' .
-				'<td class="td-0">' . $entry[0] . '</a></td>' .
+				'<td class="td-0">' . $entry[0] . '</td>' .
 				'<td class="td-n center">' . $entry[1] . '</td>' .
 				'<td class="td-n center">' . $entry[2] . '</td>' .
 				'<td class="td-n center">' . $entry[3] . '</td>' .
@@ -167,7 +164,7 @@ $MY_SELF   = $this->MY_SELF;
 				'<td class="td-n center">' . round($entry[3] / $entry[1]) . '</td>' .
 				'</tr>';
 
-			if (++$i == $this->MYREQUEST['COUNT']) 
+			if (++$i == $this->MYREQUEST['COUNT'])
 			{
 				break;
 			}
@@ -182,7 +179,7 @@ $MY_SELF   = $this->MY_SELF;
 
 	if ($list && $i < count($list))
 	{
-		echo "<a href=\"$MY_SELF&OB=",$this->MYREQUEST['OB'],"&COUNT=0\"><i>",count($list)-$i,' more available...</i></a>';
+		echo "<a href=\"$MY_SELF&amp;OB=",$this->MYREQUEST['OB'],"&amp;COUNT=0\"><i>",count($list)-$i,' more available...</i></a>';
 	}
 ?>
 </form>

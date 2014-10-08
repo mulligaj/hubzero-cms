@@ -36,30 +36,35 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'models' .
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_forum' . DS . 'models' . DS . 'thread.php');
 
 /**
- * Courses model class for a forum
+ * Forum model class for a forum category
  */
 class ForumModelCategory extends ForumModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_tbl_name = 'ForumTableCategory';
 
 	/**
 	 * Container for properties
-	 * 
+	 *
 	 * @var array
 	 */
-	private $_cache = array();
+	private $_cache = array(
+		'thread'        => null,
+		'threads_count' => null,
+		'threads'       => null,
+		'last'          => null
+	);
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      mixed   $oid        ID (integer), alias (string), array or object
-	 * @param      integer $section_id Section ID
-	 * @return     void
+	 *
+	 * @param   mixed   $oid        ID (integer), alias (string), array or object
+	 * @param   integer $section_id Section ID
+	 * @return  void
 	 */
 	public function __construct($oid, $section_id=0)
 	{
@@ -99,34 +104,34 @@ class ForumModelCategory extends ForumModelAbstract
 	/**
 	 * Returns a reference to a forum category model
 	 *
-	 * @param      mixed $oid Course ID (int) or alias (string)
-	 * @return     object ForumModelCategory
+	 * @param   mixed  $oid ID (int) or alias (string)
+	 * @return  object ForumModelCategory
 	 */
-	static function &getInstance($oid=null, $section_id=0) //, $scope='site', $scope_id=0)
+	static function &getInstance($oid=null, $section_id=0)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
 		if (is_numeric($oid) || is_string($oid))
 		{
-			$key = $section_id . '_' . $oid; //$scope . '_' . $scope_id . '_' . $oid;
+			$key = $section_id . '_' . $oid;
 		}
 		else if (is_object($oid))
 		{
-			$key = $section_id . '_' . $oid->id; //$scope . '_' . $scope_id . '_' . $oid->id;
+			$key = $section_id . '_' . $oid->id;
 		}
 		else if (is_array($oid))
 		{
-			$key = $section_id . '_' . $oid['id']; //$scope . '_' . $scope_id . '_' . $oid['id'];
+			$key = $section_id . '_' . $oid['id'];
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
-			$instances[$key] = new ForumModelCategory($oid, $section_id); //, $scope, $scope_id);
+			$instances[$key] = new self($oid, $section_id);
 		}
 
 		return $instances[$key];
@@ -134,12 +139,12 @@ class ForumModelCategory extends ForumModelAbstract
 
 	/**
 	 * Is the category closed?
-	 * 
-	 * @return     boolean
+	 *
+	 * @return  boolean
 	 */
 	public function isClosed()
 	{
-		if ($this->get('closed', 0) == 1) 
+		if ($this->get('closed', 0) == 1)
 		{
 			return true;
 		}
@@ -148,13 +153,13 @@ class ForumModelCategory extends ForumModelAbstract
 
 	/**
 	 * Set and get a specific thread
-	 * 
-	 * @param      mixed $id ID (integer) or alias (string)
-	 * @return     object ForumModelThread
+	 *
+	 * @param   mixed  $id ID (integer) or alias (string)
+	 * @return  object ForumModelThread
 	 */
 	public function thread($id=null)
 	{
-		if (!isset($this->_cache['thread']) 
+		if (!isset($this->_cache['thread'])
 		 || ($id !== null && (int) $this->_cache['thread']->get('id') != $id))
 		{
 			$this->_cache['thread'] = null;
@@ -185,18 +190,17 @@ class ForumModelCategory extends ForumModelAbstract
 	}
 
 	/**
-	 * Get a list of threads for a forum
-	 *   Accepts either a numeric array index or a string [id, name]
-	 *   If index, it'll return the entry matching that index in the list
-	 *   If string, it'll return either a list of IDs or names
-	 * 
-	 * @param      mixed $idx Index value
-	 * @return     array
+	 * Get a list of threads for a forum category
+	 *
+	 * @param   string  $rtrn    What data to return?
+	 * @param   array   $filters Filters to apply to data fetch
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  mixed
 	 */
 	public function threads($rtrn='list', $filters=array(), $clear=false)
 	{
 		$filters['category_id'] = isset($filters['category_id']) ? $filters['category_id'] : $this->get('id');
-		$filters['state']       = isset($filters['state'])       ? $filters['state']       : self::APP_STATE_PUBLISHED;
+		$filters['state']       = isset($filters['state'])       ? $filters['state']       : array(self::APP_STATE_PUBLISHED, self::APP_STATE_FLAGGED);
 		$filters['parent']      = isset($filters['parent'])      ? $filters['parent']      : 0;
 
 		switch (strtolower($rtrn))
@@ -217,7 +221,7 @@ class ForumModelCategory extends ForumModelAbstract
 			case 'list':
 			case 'results':
 			default:
-				if (!isset($this->_cache['threads']) || !($this->_cache['threads'] instanceof \Hubzero\Base\ItemList) || $clear)
+				if (!($this->_cache['threads'] instanceof \Hubzero\Base\ItemList) || $clear)
 				{
 					$tbl = new ForumTablePost($this->_db);
 
@@ -243,9 +247,9 @@ class ForumModelCategory extends ForumModelAbstract
 
 	/**
 	 * Return a count for the type of data specified
-	 * 
-	 * @param      string $what What to count
-	 * @return     integer
+	 *
+	 * @param   string $what What to count
+	 * @return  integer
 	 */
 	public function count($what='threads')
 	{
@@ -296,10 +300,10 @@ class ForumModelCategory extends ForumModelAbstract
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
-	 * @param      string $type   The type of link to return
-	 * @param      mixed  $params Optional string or associative array of params to append
-	 * @return     string
+	 *
+	 * @param   string $type   The type of link to return
+	 * @param   mixed  $params Optional string or associative array of params to append
+	 * @return  string
 	 */
 	public function link($type='', $params=null)
 	{
@@ -307,13 +311,13 @@ class ForumModelCategory extends ForumModelAbstract
 	}
 
 	/**
-	 * Get the most recent post mad ein the forum
-	 * 
-	 * @return     ForumModelPost
+	 * Get the most recent post
+	 *
+	 * @return  object ForumModelPost
 	 */
 	public function lastActivity()
 	{
-		if (!isset($this->_cache['last']) || !($this->_cache['last'] instanceof ForumModelPost))
+		if (!($this->_cache['last'] instanceof ForumModelPost))
 		{
 			$post = new ForumTablePost($this->_db);
 			if (!($last = $post->getLastActivity($this->get('scope_id'), $this->get('scope'), $this->get('id'))))
@@ -327,7 +331,7 @@ class ForumModelCategory extends ForumModelAbstract
 
 	/**
 	 * Get the adapter
-	 * 
+	 *
 	 * @return  object
 	 */
 	public function adapter()

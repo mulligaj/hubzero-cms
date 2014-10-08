@@ -33,11 +33,19 @@
 defined('_JEXEC') or die( 'Restricted access' );
 ?>
 
-<div id="content-header">
-	<h2><?= $this->asset->title ?></h2>
-</div>
+<header id="content-header">
+	<h2><?php echo $this->asset->title ?></h2>
 
-<object type="application/x-shockwave-flash" width="100%" height="100%"> 
-	<param name="movie" value="<?php echo JRoute::_($this->model->path($this->course->get('id'))); ?>"></param> 
-	<param name="wmode" value="opaque"></param> 
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-prev back btn" href="<?php echo JRoute::_($this->course->offering()->link() . '&active=outline'); ?>">
+				<?php echo JText::_('Back to course'); ?>
+			</a>
+		</p>
+	</div>
+</header>
+
+<object type="application/x-shockwave-flash" width="100%" height="100%">
+	<param name="movie" value="<?php echo JRoute::_($this->model->path($this->course->get('id'))); ?>"></param>
+	<param name="wmode" value="opaque"></param>
 </object>

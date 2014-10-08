@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'adapters' . DS . 'abstract.php');
+require_once(__DIR__ . DS . 'abstract.php');
 
 /**
  * Adapter class for a forum post link for the site-wide forum
@@ -40,7 +40,7 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 {
 	/**
 	 * URL segments
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_segments = array(
@@ -49,7 +49,7 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      integer $referenceid Scope ID (group, course, etc.)
 	 * @return     void
 	 */
@@ -62,11 +62,11 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 
 	/**
 	 * Retrieve a property from the internal item object
-	 * 
+	 *
 	 * @param      string $key Property to retrieve
 	 * @return     string
 	 */
-	public function item($key)
+	public function item($key='')
 	{
 		switch (strtolower($key))
 		{
@@ -82,12 +82,12 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 			break;
 		}
 
-		return '';
+		return $this->_item;
 	}
 
 	/**
 	 * Does the item exists?
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function exists()
@@ -97,7 +97,7 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 
 	/**
 	 * Generate and return the title for this wishlist
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function title()
@@ -108,7 +108,7 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
+	 *
 	 * @param      string $type   The type of link to return
 	 * @param      mixed  $params Optional string or associative array of params to append
 	 * @return     string
@@ -144,15 +144,17 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 			break;
 
 			case 'delete':
-				$segments['task'] = 'delete';
+				$segments['task'] = 'deletewish';
 				if ($this->get('wishid'))
 				{
 					$segments['wishid'] = $this->get('wishid');
 				}
 			break;
 
+			case 'add':
+			case 'addwish':
 			case 'new':
-				$segments['task'] = 'new';
+				$segments['task'] = 'addwish';
 			break;
 
 			case 'settings':
@@ -232,9 +234,9 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 			case 'comment':
 				if ($this->get('wishid'))
 				{
-					$segments['task'] = 'reply';
+					$segments['task'] = 'wish';
 					$segments['wishid'] = $this->get('wishid');
-					$segments['cat'] = 'wish';
+					//$segments['cat'] = 'wish';
 					$anchor = '#commentform';
 				}
 			break;
@@ -297,5 +299,35 @@ class WishlistModelAdapterGeneral extends WishlistModelAdapterAbstract
 		$segments = array_merge($segments, (array) $params);
 
 		return $this->_base . '?' . (string) $this->_build($segments) . (string) $anchor;
+	}
+
+	/**
+	 * Append an item to the breadcrumb trail.
+	 * If no item is provided, it will build the trail up to the list
+	 *
+	 * @param      string $title Breadcrumb title
+	 * @param      string $url   Breadcrumb URL
+	 * @return     string
+	 */
+	public function pathway($title=null, $url=null)
+	{
+		$pathway = JFactory::getApplication()->getPathway();
+
+		if (!$title)
+		{
+			$pathway->addItem(
+				JText::_(strtoupper($this->get('option'))),
+				'index.php?option=' . $this->get('option')
+			);
+		}
+		else
+		{
+			$pathway->addItem(
+				$title,
+				$url
+			);
+		}
+
+		return $this;
 	}
 }

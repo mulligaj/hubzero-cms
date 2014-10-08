@@ -30,22 +30,24 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+if (!$this->sub)
+{
+	$this->css();
+}
 ?>
-	<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
+	<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 		<h2><?php echo $this->title; ?></h2>
 		<?php
-		if (!$this->page->isStatic()) 
+		if (!$this->page->isStatic())
 		{
-			$view = new JView(array(
-				'base_path' => $this->base_path, 
-				'name'      => 'page',
-				'layout'    => 'authors'
-			));
-			$view->page   = $this->page;
-			$view->display();
+			$this->view('authors', 'page')
+			     ->setBasePath($this->base_path)
+			     ->set('page', $this->page)
+			     ->display();
 		}
 		?>
-	</div><!-- /#content-header -->
+	</header><!-- /#content-header -->
 
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
@@ -55,21 +57,17 @@ defined('_JEXEC') or die( 'Restricted access' );
 <?php } ?>
 
 <?php
-	$view = new JView(array(
-		'base_path' => $this->base_path, 
-		'name'      => 'page',
-		'layout'    => 'submenu'
-	));
-	$view->option     = $this->option;
-	$view->controller = $this->controller;
-	$view->page       = $this->page;
-	$view->task       = $this->task;
-	$view->config     = $this->config;
-	$view->sub        = $this->sub;
-	$view->display();
+	$this->view('submenu', 'page')
+	     ->setBasePath($this->base_path)
+	     ->set('option', $this->option)
+	     ->set('controller', $this->controller)
+	     ->set('page', $this->page)
+	     ->set('task', $this->task)
+	     ->set('sub', $this->sub)
+	     ->display();
 ?>
 
-<div class="main section">
+<section class="main section">
 <?php if ($this->page->isLocked() && !$this->page->access('manage')) { ?>
 
 	<p class="warning"><?php echo JText::_('COM_WIKI_WARNING_NOT_AUTH_EDITOR'); ?></p>
@@ -107,10 +105,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 		</fieldset><div class="clear"></div>
 
 		<p class="submit">
-			<input type="submit" value="<?php echo JText::_('SUBMIT'); ?>" />
+			<input type="submit" class="btn btn-danger" value="<?php echo JText::_('COM_WIKI_SUBMIT'); ?>" />
 		</p>
 	</form>
 
 <?php } ?>
-</div><!-- / .main section -->
-<div class="clear"></div>
+</section><!-- / .main section -->

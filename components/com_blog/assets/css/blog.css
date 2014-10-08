@@ -12,40 +12,7 @@
 	-- -- -- -- -- -- --
 
 */
-	.com_blog .container h3 {
-		font-size: 115%;
-		background-color: #f8f8f8;
-		background-image: url("/media/system/images/light-stripes.png");
-		background-image: -webkit-gradient(linear, 0 0, 100% 100%,
-											color-stop(.25, rgba(255, 255, 255, .5)), color-stop(.25, transparent),
-											color-stop(.5, transparent), color-stop(.5, rgba(255, 255, 255, .5)),
-											color-stop(.75, rgba(255, 255, 255, .5)), color-stop(.75, transparent),
-											to(transparent));
-		background-image: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, .5) 25%, transparent 25%,
-										transparent 50%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, .5) 75%,
-										transparent 75%, transparent);
-		background-image: -moz-linear-gradient(-45deg, rgba(255, 255, 255, .5) 25%, transparent 25%,
-										transparent 50%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, .5) 75%,
-										transparent 75%, transparent);
-		background-image: -ms-linear-gradient(-45deg, rgba(255, 255, 255, .5) 25%, transparent 25%,
-										transparent 50%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, .5) 75%,
-										transparent 75%, transparent);
-		background-image: -o-linear-gradient(-45deg, rgba(255, 255, 255, .5) 25%, transparent 25%,
-										transparent 50%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, .5) 75%,
-										transparent 75%, transparent);
-		background-image: linear-gradient(-45deg, rgba(255, 255, 255, .5) 25%, transparent 25%,
-										transparent 50%, rgba(255, 255, 255, .5) 50%, rgba(255, 255, 255, .5) 75%,
-										transparent 75%, transparent);
-		-webkit-background-size: 30px 30px;
-		   -moz-background-size: 30px 30px;
-		    -ms-background-size: 30px 30px;
-		     -o-background-size: 30px 30px;
-		        background-size: 30px 30px; /* Controls the size of the stripes */
-		border: 2px solid #e9e9e9;
-		border-bottom: 1px solid #e9e9e9;
-		padding: 0.5em 0.7em;
-		margin: 0;
-	}
+
 /* Entries listing */
 	ol.blog-entries {
 		list-style-type: none !important;
@@ -310,6 +277,12 @@
 		padding: 0.2em 0.5em;
 		border: 1px solid #aaa;
 	}
+	#attachments .delete {
+		width: 1em; 
+		overflow: hidden;
+		display: block;
+		white-space: nowrap;
+	}
 	#files-header {
 		margin: 0;
 		padding: 1em 1em 0.4em 1em;
@@ -325,86 +298,7 @@
 	#hubForm .submit a {
 		margin-left: 2em;
 	}
-	/*
-	#hubForm .submit input,
-	#hubForm .submit a {
-		display: inline-block;
-		zoom: 1;
-		*display: inline;
-		vertical-align: baseline;
-		margin: 0;
-		outline: none;
-		cursor: pointer;
-		text-align: center;
-		text-decoration: none;
-		padding: 0 1em;
-		text-shadow: 0px -1px 1px rgba(0, 0, 0, 0.7);
-		-webkit-border-radius: 0.25em;
-		   -moz-border-radius: 0.25em;
-		    -ms-border-radius: 0.25em;
-		        border-radius: 0.25em;
-		-webkit-box-shadow: inset 0 0 1px #fff;
-		   -moz-box-shadow: inset 0 0 1px #fff;
-		    -ms-box-shadow: inset 0 0 1px #fff;
-		        box-shadow: inset 0 0 1px #fff;
-		color: #fff;
-	}
-	/* Button 
-	#hubForm .submit input {
-		font-size: 1.1em;
-		padding: 0.4em 1.5em 0.42em;
-		border: solid 1px #538312;
-		background: #64991e;
-		background: -webkit-gradient(linear, left top, left bottom, from(#7db72f), to(#4e7d0e));
-		background: -moz-linear-gradient(top,  #7db72f,  #4e7d0e);
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#7db72f', endColorstr='#4e7d0e');
-	}
-	#hubForm .submit input:hover {
-		background: #538018;
-		background: -webkit-gradient(linear, left top, left bottom, from(#6b9d28), to(#436b0c));
-		background: -moz-linear-gradient(top,  #6b9d28,  #436b0c);
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#6b9d28', endColorstr='#436b0c');
-		-webkit-box-shadow: inset 0 0 1px #fff, 0 0 2px rgba(0, 0, 0, 0.35);
-		   -moz-box-shadow: inset 0 0 1px #fff, 0 0 2px rgba(0, 0, 0, 0.35);
-		    -ms-box-shadow: inset 0 0 1px #fff, 0 0 2px rgba(0, 0, 0, 0.35);
-		        box-shadow: inset 0 0 1px #fff, 0 0 2px rgba(0, 0, 0, 0.35);
-	}
-	#hubForm .submit input:active {
-		color: #a9c08c;
-		background: -webkit-gradient(linear, left top, left bottom, from(#4e7d0e), to(#7db72f));
-		background: -moz-linear-gradient(top,  #4e7d0e,  #7db72f);
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4e7d0e', endColorstr='#7db72f');
-		-webkit-box-shadow: inset 0 0 1px #fff, 0 0 2px rgba(0, 0, 0, 0.35);
-		   -moz-box-shadow: inset 0 0 1px #fff, 0 0 2px rgba(0, 0, 0, 0.35);
-		    -ms-box-shadow: inset 0 0 1px #fff, 0 0 2px rgba(0, 0, 0, 0.35);
-		        box-shadow: inset 0 0 1px #fff, 0 0 2px rgba(0, 0, 0, 0.35);
-	}
-	/* Link 
-	#hubForm .submit a {
-		font-size: 85%;
-		margin: 0 0 0 2em;
-		border: solid 1px #b73948;
-		background: #da5867;
-		background: -webkit-gradient(linear, left top, left bottom, from(#f16c7c), to(#bf404f));
-		background: -moz-linear-gradient(top,  #f16c7c,  #bf404f);
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f16c7c', endColorstr='#bf404f');
-	}
-	#hubForm .submit a:hover {
-		border: solid 1px #b73948;
-		text-decoration: none;
-		background: #ba4b58;
-		background: -webkit-gradient(linear, left top, left bottom, from(#cf5d6a), to(#a53845));
-		background: -moz-linear-gradient(top,  #cf5d6a,  #a53845);
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#cf5d6a', endColorstr='#a53845');
-	}
-	#hubForm .submit a:active {
-		position: relative;
-		top: 1px;
-		color: #dca4ab;
-		background: -webkit-gradient(linear, left top, left bottom, from(#bf404f), to(#f16c7c));
-		background: -moz-linear-gradient(top,  #bf404f,  #f16c7c);
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#bf404f', endColorstr='#f16c7c');
-	}*/
+
 	.entry-content ul,
 	.entry-content ol {
 		padding: 0;
@@ -443,34 +337,6 @@
 	.entry-content blockquote:before {
 		display: none;
 	}
-	.entry-content pre {
-		font-family: "Bitstream Vera Sans Mono", Courier, Monaco, ProFont, "American Typewriter", "Andale Mono", monospace;
-		color: #555;
-		background-color: #f7f7f7;
-		border: 1px solid #d7d7d7;
-		margin: 1em 1.75em;
-		padding: .25em;
-		overflow: auto;
-		font-size: 0.85em;
-		line-height: 1.95em;
-		white-space: pre;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-		white-space: -moz-pre-wrap;
-		white-space: -pre-wrap;
-		white-space: -o-pre-wrap;
-	}
-	.entry-content .pre {
-		font-family: "Bitstream Vera Sans Mono", Courier, Monaco, ProFont, "American Typewriter", "Andale Mono", monospace;
-		color: #555;
-		background-color: #f7f7f7;
-		border: 1px solid #d7d7d7;
-		margin: 1em 1.35em;
-		padding: .25em;
-		overflow: auto;
-		font-size: 1.15em;
-		line-height: 1.35em;
-	}
 	.entry-content tt,
 	.entry-content code {
 		display: inline-block;
@@ -484,11 +350,6 @@
 		padding: 0 0.3em;
 		background: #fafafa;
 	}
-
-	.com_wiki .wiki .modified-date {
-		color: #aaa;
-		font-size: 90%;
-	}
 	.entry-content hr {
 		border-top: 1px solid #ccc;
 		background-image: none;
@@ -499,13 +360,16 @@
 	}
 
 	/* Links */
-	.entry-content a.ext-link {
-		background: url("/components/com_wiki/assets/img/extlink.gif") 0 0.4em no-repeat;
-		padding-left: 15px;
+	.entry-content a.ext-link:before {
+		font-family: "Fontcons";
+		content: "\f08e";
+		color: #ccc;
+		margin-right: 0.2em;
 	}
-	.entry-content a.missing {
-		background: url("/components/com_wiki/assets/img/missinglink.gif") 0 0.4em no-repeat;
-		padding-left: 7px;
+	.entry-content a.missing:before {
+		content: "?";
+		color: #ccc;
+		margin-right: 0.2em;
 	}
 
 	.entry-content .mbox-content {
@@ -562,77 +426,22 @@
 		padding: 0 1em;
 	}
 
-	ol.comments .comment-options a {
-		visibility: hidden;
+	ol.comments .edit,
+	ol.comments .delete {
+		float: right;
 	}
-	ol.comments .comment-options,
-	ol.comments .comment-options:hover a,
-	ol.comments .comment-options a.reply {
-		visibility: visible;
-	}
-	ol.comments .comment-options a {
-		color: #ccc;
-		border: none;
-	}
-	ol.comments .comment-options:hover a {
-		color: #999;
-	}
-	ol.comments .comment-options a.active,
-	ol.comments .comment-options a:hover {
-		color: #333;
-	}
-	ol.comments .comment-options a.abuse:hover,
-	ol.comments .comment-options a.delete:hover {
-		color: #c00;
-	}
-	ol.comments .comment-options a:before {
-		margin-right: 0.4em;
-	}
-	ol.comments .comment-options a.active:before {
-		content: "\2716";
-	}
-/* Add comment */
-	.comment-add {
-		margin: 0 -1.61803399em -0.61803399em -1.61803399em;
-		padding: 1.61803399em;
-		border: 1px solid #ddd;
-		background-color: #f1f1f1;
-		border: none;
-		border-top: 1px solid #ddd;
-	}
-	.comment-add legend {
+	ol.comments form legend,
+	ol.comments span.label-text {
 		display: none;
 	}
-	.comment-add label {
-		display: block;
-	}
-	.comment-add label span.label-text {
-		display: none;
-	}
-	.comment-add .cancelreply {
-		margin-left: 2em;
-	}
-	.comment-add .submit {
+	ol.comments form .submit {
 		clear: both;
 		margin: -1.5em 0 0 0;
 		padding: 0;
 		text-align: right;
 	}
-	.comment-add input, 
-	.comment-add select, 
-	.comment-add textarea {
-		margin: 0.25em 0 0.5em 0;
-		width: 100%;
-	}	
-	.comment-add .submit input,
-	.comment-add .option {
-		width: auto;
-	}
-	.comment-add .upload-label {
-		margin-bottom: 0.5em;
-	}
-	.comment-add .reply-anonymous-label {
-		width: 50%;
+	ol.comments .comment-anonymous {
+		padding-top: 1em;
 	}
 
 /* Figures */
@@ -643,7 +452,7 @@
 		padding: 4px;
 	}
 	.entry-content .figure img {
-		margin: 0; /*.5em;*/
+		margin: 0;
 		padding: 0;
 		background: transparent;
 		text-align: center;
@@ -660,9 +469,9 @@
 		font-size: 0.85em;
 	}
 
-	#attachments .delete {
-		width: 1em; 
-		overflow: hidden;
-		display: block;
-		white-space: nowrap;
+	#sbox-content fieldset p.multiple-option {
+		margin: 0;
+	}
+	#sbox-content fieldset input[type=radio] {
+		width: auto;
 	}

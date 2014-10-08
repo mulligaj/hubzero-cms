@@ -38,7 +38,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -53,7 +53,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Build the document pathway (breadcrumbs)
-	 * 
+	 *
 	 * @param      object $question AnswersTableQuestion
 	 * @return     void
 	 */
@@ -61,21 +61,21 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 	{
 		$pathway = JFactory::getApplication()->getPathway();
 
-		if (count($pathway->getPathWay()) <= 0) 
+		if (count($pathway->getPathWay()) <= 0)
 		{
 			$pathway->addItem(
 				JText::_(strtoupper($this->_option)),
 				'index.php?option=' . $this->_option
 			);
 		}
-		if ($this->_task && in_array($this->_task, array('new', 'myquestions', 'search'))) 
+		if ($this->_task && in_array($this->_task, array('new', 'myquestions', 'search')))
 		{
 			$pathway->addItem(
 				JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task)),
 				'index.php?option=' . $this->_option . '&task=' . $this->_task
 			);
 		}
-		if (is_object($question) && $question->get('subject')) 
+		if (is_object($question) && $question->get('subject'))
 		{
 			$pathway->addItem(
 				\Hubzero\Utility\String::truncate($question->subject('clean'), 50),
@@ -86,18 +86,18 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Build the document title
-	 * 
+	 *
 	 * @param      object $question AnswersTableQuestion
 	 * @return     void
 	 */
 	protected function _buildTitle($question=null)
 	{
 		$this->view->title = JText::_(strtoupper($this->_option));
-		if ($this->_task && $this->_task != 'view') 
+		if ($this->_task && $this->_task != 'view')
 		{
 			$this->view->title .= ': ' . JText::_(strtoupper($this->_option) . '_' . strtoupper($this->_task));
 		}
-		if (is_object($question) && $question->get('subject')) 
+		if (is_object($question) && $question->get('subject'))
 		{
 			$this->view->title .= ': ' . \Hubzero\Utility\String::truncate($question->subject('clean'), 50);
 		}
@@ -107,7 +107,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display the latest entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -118,7 +118,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Redirect to login form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function loginTask()
@@ -132,7 +132,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Save a reply
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function savereplyTask()
@@ -141,7 +141,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Is the user logged in?
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->setError(JText::_('COM_ANSWERS_LOGIN_TO_COMMENT'));
 			$this->loginTask();
@@ -151,16 +151,16 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		// Incoming
 		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
 
-		if (!$comment['item_id']) 
+		if (!$comment['item_id'])
 		{
 			JError::raiseError(500, JText::_('COM_ANSWERS_ERROR_QUESTION_ID_NOT_FOUND'));
 			return;
 		}
 
-		if ($comment['item_type']) 
+		if ($comment['item_type'])
 		{
 			$row = new AnswersModelComment(0);
-			if (!$row->bind($comment)) 
+			if (!$row->bind($comment))
 			{
 				JError::raiseError(500, $row->getError());
 				return;
@@ -174,7 +174,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			$row->set('created_by', $this->juser->get('id'));
 
 			// Save the data
-			if (!$row->store(true)) 
+			if (!$row->store(true))
 			{
 				JError::raiseError(500, $row->getError());
 				return;
@@ -188,13 +188,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Reply to an answer
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function replyTask()
 	{
 		// Is the user logged in?
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->setError(JText::_('COM_ANSWERS_LOGIN_TO_COMMENT'));
 			$this->loginTask();
@@ -207,7 +207,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$cat   = JRequest::getVar('category', '');
 
 		// Do we have an ID?
-		if (!$id) 
+		if (!$id)
 		{
 			// Cannot proceed
 			$this->setRedirect(
@@ -217,7 +217,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// Do we have a category?
-		if (!$cat) 
+		if (!$cat)
 		{
 			// Cannot proceed
 			$this->setRedirect(
@@ -235,7 +235,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Rate an item
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function rateitemTask()
@@ -243,9 +243,9 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$no_html = JRequest::getInt('no_html', 0);
 
 		// Is the user logged in?
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
-			if (!$no_html) 
+			if (!$no_html)
 			{
 				$this->addComponentMessage(JText::_('COM_ANSWERS_PLEASE_LOGIN_TO_VOTE'));
 				$this->loginTask();
@@ -260,7 +260,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$ip      = JRequest::ip();
 
 		// Check for reference ID
-		if (!$id) 
+		if (!$id)
 		{
 			// cannot proceed
 			if (!$no_html)
@@ -311,11 +311,11 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$al = new AnswersTableLog($this->database);
 		$al->loadByIp($id, $ip);
 
-		if (!$al->id) 
+		if (!$al->id)
 		{
 			// new vote;
 			// record if it was helpful or not
-			switch ($vote) 
+			switch ($vote)
 			{
 				case 'yes':
 				case 'like':
@@ -330,13 +330,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 				case -1:
 					$row->set('nothelpful', $row->get('nothelpful') + 1);
 				break;
-			} 
+			}
 		}
 		else if ($al->helpful != $vote)
 		{
 			// changing vote;
 			// Adjust values to reflect vote change
-			switch ($vote) 
+			switch ($vote)
 			{
 				case 'yes':
 				case 'like':
@@ -353,14 +353,14 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 					$row->set('helpful', $row->get('helpful') - 1);
 					$row->set('nothelpful', $row->get('nothelpful') + 1);
 				break;
-			} 
+			}
 		}
 		else
 		{
 			// no vote change;
 		}
 
-		if (!$row->store(false)) 
+		if (!$row->store(false))
 		{
 			$this->setError($row->getError());
 			return;
@@ -370,13 +370,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$al->response_id = $row->get('id');
 		$al->ip      = $ip;
 		$al->helpful = $vote;
-		if (!$al->check()) 
+		if (!$al->check())
 		{
 			echo $al->getError();
 			$this->setError($al->getError());
 			return;
 		}
-		if (!$al->store()) 
+		if (!$al->store())
 		{
 			echo $al->getError();
 			$this->setError($al->getError());
@@ -384,9 +384,9 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// Record user's vote (new way)
-		if ($cat) 
+		if ($cat)
 		{
-			require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $this->_option . DS . 'vote.class.php');
+			require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . $this->_option . DS  . 'tables' . DS . 'vote.php');
 
 			$v = new Vote($this->database);
 			$v->referenceid = $row->get('id');
@@ -395,13 +395,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			$v->ip          = $ip;
 			$v->voted       = JFactory::getDate()->toSql();
 			$v->helpful     = $vote;
-			if (!$v->check()) 
+			if (!$v->check())
 			{
 				echo $v->getError();
 				$this->setError($v->getError());
 				return;
 			}
-			if (!$v->store()) 
+			if (!$v->store())
 			{
 				echo $v->getError();
 				$this->setError($v->getError());
@@ -410,14 +410,14 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// update display
-		if ($no_html) 
+		if ($no_html)
 		{
 			//$response = $row->getResponse($id, $ip);
 			$row->set('vote', $vote);
 
 			$this->view->option = $this->_option;
 			$this->view->item   = $row; //new AnswersModelResponse($response[0]);
-			if ($this->getError()) 
+			if ($this->getError())
 			{
 				foreach ($this->getErrors() as $error)
 				{
@@ -425,8 +425,8 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 				}
 			}
 			$this->view->display();
-		} 
-		else 
+		}
+		else
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option . '&task=question&id=' . $qid)
@@ -436,7 +436,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Search entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function searchTask()
@@ -456,27 +456,29 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$this->view->filters['q']        = JRequest::getVar('q', '');
 
 		$this->view->filters['filterby'] = JRequest::getWord('filterby', '');
-		if ($this->view->filters['filterby'] 
+		if ($this->view->filters['filterby']
 		 && !in_array($this->view->filters['filterby'], array('open', 'closed')))
 		{
 			$this->view->filters['filterby'] = '';
 		}
 
 		$this->view->filters['sortby']   = JRequest::getWord('sortby', 'date');
-		if (!in_array($this->view->filters['sortby'], array('date', 'votes')))
+		if (!in_array($this->view->filters['sortby'], array('date', 'votes', 'rewards')))
 		{
 			$this->view->filters['sortby'] = 'date';
 		}
 
+		$this->view->filters['sort_Dir']   = JRequest::getWord('sortdir', 'DESC');
+
 		$this->view->filters['area']     = JRequest::getVar('area', '');
-		if ($this->view->filters['area'] 
+		if ($this->view->filters['area']
 		 && !in_array($this->view->filters['area'], array('mine', 'assigned', 'interest')))
 		{
 			$this->view->filters['area'] = '';
 		}
 
 		// Get questions of interest
-		if ($this->view->filters['area'] == 'interest') 
+		if ($this->view->filters['area'] == 'interest')
 		{
 			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'helpers' . DS . 'tags.php');
 
@@ -489,7 +491,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// Get assigned questions
-		if ($this->view->filters['area'] == 'assigned') 
+		if ($this->view->filters['area'] == 'assigned')
 		{
 			require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'author.php');
 
@@ -497,7 +499,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			$TA = new ToolAuthor($this->database);
 			$tools = $TA->getToolContributions($this->juser->get('id'));
 			$mytooltags = array();
-			if ($tools) 
+			if ($tools)
 			{
 				foreach ($tools as $tool)
 				{
@@ -510,7 +512,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			$this->view->filters['mine'] = 0;
 		}
 
-		if ($this->view->filters['area'] == 'mine') 
+		if ($this->view->filters['area'] == 'mine')
 		{
 			$this->view->filters['mine'] = 1;
 		}
@@ -518,7 +520,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		// Instantiate a Questions object
 		$aq = new AnswersTableQuestion($this->database);
 
-		if (($this->view->filters['area'] == 'interest' || $this->view->filters['area'] == 'assigned') && !$this->view->filters['tag']) 
+		if (($this->view->filters['area'] == 'interest' || $this->view->filters['area'] == 'assigned') && !$this->view->filters['tag'])
 		{
 			// Get a record count
 			$this->view->total = 0;
@@ -526,7 +528,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			// Get records
 			$this->view->results = array();
 		}
-		else 
+		else
 		{
 			// Get a record count
 			$this->view->total = $aq->getCount($this->view->filters);
@@ -536,7 +538,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// Did we get any results?
-		if (count($this->view->results) > 0) 
+		if (count($this->view->results) > 0)
 		{
 			// Do some processing on the results
 			foreach ($this->view->results as $i => $result)
@@ -548,16 +550,10 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
-
-		// Add the CSS to the template
-		$this->_getStyles();
-
-		// Add the Javascript to the template
-		$this->_getScripts('assets/js/vote');
 
 		// Set the page title
 		$this->_buildTitle();
@@ -566,7 +562,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$this->_buildPathway();
 
 		// Output HTML
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -578,7 +574,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display a question
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function questionTask()
@@ -592,7 +588,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$this->view->question = AnswersModelQuestion::getInstance($this->view->id);
 
 		// Ensure we have an ID to work with
-		if (!$this->view->id) 
+		if (!$this->view->id)
 		{
 			JError::raiseError(404, JText::_('COM_ANSWERS_ERROR_QUESTION_ID_NOT_FOUND'));
 			return;
@@ -600,18 +596,10 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 		// Check if person voted
 		$this->view->voted = 0;
-		if (!$this->juser->get('guest')) 
+		if (!$this->juser->get('guest'))
 		{
 			$this->view->voted = $this->view->question->voted();
 		}
-
-		// Add the CSS to the template
-		$this->_getStyles();
-		$this->_getStyles($this->_option, 'assets/css/vote.css');
-
-		// Add the Javascript to the template
-		$this->_getScripts('assets/js/answers');
-		$this->_getScripts('assets/js/vote');
 
 		// Set the page title
 		$this->_buildTitle($this->view->question);
@@ -630,7 +618,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 		$this->view->notifications = ($this->getComponentMessage()) ? $this->getComponentMessage() : array();
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -643,7 +631,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Show a form for answering a question
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function answerTask()
@@ -654,7 +642,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Show a confirmation form for deleting a question
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deleteTask()
@@ -665,13 +653,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Create a new question
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function newTask($question = null)
 	{
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->addComponentMessage(JText::_('COM_ANSWERS_PLEASE_LOGIN'), 'warning');
 			$this->loginTask();
@@ -698,15 +686,12 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 		// Is banking turned on?
 		$this->view->funds = 0;
-		if ($this->config->get('banking')) 
+		if ($this->config->get('banking'))
 		{
 			$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 			$funds = $BTL->summary() - $BTL->credit_summary();
 			$this->view->funds = ($funds > 0) ? $funds : 0;
 		}
-
-		// Add the CSS to the template
-		$this->_getStyles();
 
 		// Set the page title
 		$this->_buildTitle();
@@ -721,7 +706,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Save a question
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveqTask()
@@ -730,7 +715,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->addComponentMessage(JText::_('COM_ANSWERS_PLEASE_LOGIN'), 'warning');
 			$this->loginTask();
@@ -746,37 +731,44 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// If offering a reward, do some checks
-		if ($fields['reward']) 
+		if ($fields['reward'])
 		{
 			// Is it an actual number?
-			if (!is_numeric($fields['reward'])) 
+			if (!is_numeric($fields['reward']))
 			{
 				JError::raiseError(500, JText::_('COM_ANSWERS_REWARD_MUST_BE_NUMERIC'));
 				return;
 			}
 			// Are they offering more than they can afford?
-			if ($fields['reward'] > $fields['funds']) 
+			if ($fields['reward'] > $fields['funds'])
 			{
 				JError::raiseError(500, JText::_('COM_ANSWERS_INSUFFICIENT_FUNDS'));
 				return;
 			}
 		}
 
+		// clean input
+		array_walk($fields, function($field, $key)
+		{
+			$fields[$key] = \Hubzero\Utility\Sanitize::stripScripts($field);
+			$fields[$key] = \Hubzero\Utility\Sanitize::clean($field);
+		});
+
 		// Initiate class and bind posted items to database fields
 		$row = new AnswersModelQuestion($fields['id']);
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			JError::raiseError(500, $row->getError());
 			return;
 		}
 
-		if ($fields['reward'] && $this->config->get('banking')) 
+		if ($fields['reward'] && $this->config->get('banking'))
 		{
 			$row->set('reward', 1);
 		}
 
 		// Ensure the user added a tag
-		if (!$tags) 
+		if (!$tags)
 		{
 			$this->addComponentMessage(JText::_('COM_ANSWERS_QUESTION_MUST_HAVE_TAG'), 'error');
 			$this->newTask($row);
@@ -784,7 +776,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// Store new content
-		if (!$row->store(true)) 
+		if (!$row->store(true))
 		{
 			JRequest::setVar('tag', $tags);
 
@@ -794,13 +786,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// Hold the reward for this question if we're banking
-		if ($fields['reward'] && $this->config->get('banking')) 
+		if ($fields['reward'] && $this->config->get('banking'))
 		{
 			$BTL = new \Hubzero\Bank\Teller($this->database, $this->juser->get('id'));
 			$BTL->hold(
-				$fields['reward'], 
-				JText::_('COM_ANSWERS_HOLD_REWARD_FOR_BEST_ANSWER'), 
-				'answers', 
+				$fields['reward'],
+				JText::_('COM_ANSWERS_HOLD_REWARD_FOR_BEST_ANSWER'),
+				'answers',
 				$row->get('id')
 			);
 		}
@@ -816,10 +808,10 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$receivers = array();
 
 		// Get tool contributors if question is about a tool
-		if ($tags) 
+		if ($tags)
 		{
 			$tags = explode(',', $tags);
-			if (count($tags) > 0) 
+			if (count($tags) > 0)
 			{
 				require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'author.php');
 				require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_tools' . DS . 'tables' . DS . 'version.php');
@@ -827,22 +819,22 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 				$TA = new ToolAuthor($this->database);
 				$objV = new ToolVersion($this->database);
 
-				foreach ($tags as $tag) 
+				foreach ($tags as $tag)
 				{
-					if ($tag == '') 
-					{ 
+					if ($tag == '')
+					{
 						continue;
 					}
-					if (preg_match('/tool:/', $tag)) 
+					if (preg_match('/tool:/', $tag))
 					{
 						$toolname = preg_replace('/tool:/', '', $tag);
-						if (trim($toolname)) 
+						if (trim($toolname))
 						{
 							$rev = $objV->getCurrentVersionProperty ($toolname, 'revision');
 							$authors = $TA->getToolAuthors('', 0, $toolname, $rev);
-							if (count($authors) > 0) 
+							if (count($authors) > 0)
 							{
-								foreach ($authors as $author) 
+								foreach ($authors as $author)
 								{
 									$receivers[] = $author->uidNumber;
 								}
@@ -853,12 +845,12 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			}
 		}
 
-		if (!empty($apu)) 
+		if (!empty($apu))
 		{
 			foreach ($apu as $u)
 			{
 				$user = JUser::getInstance($u);
-				if ($user) 
+				if ($user)
 				{
 					$receivers[] = $user->get('id');
 				}
@@ -867,7 +859,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$receivers = array_unique($receivers);
 
 		// Send the message
-		if (!empty($receivers)) 
+		if (!empty($receivers))
 		{
 			// Send a message about the new question to authorized users (specified admins or related content authors)
 			$jconfig = JFactory::getConfig();
@@ -883,7 +875,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			$message = array();
 
 			// Plain text message
-			$eview = new JView(array(
+			$eview = new \Hubzero\Component\View(array(
 				'name'   => 'emails',
 				'layout' => 'question_plaintext'
 			));
@@ -906,7 +898,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 			JPluginHelper::importPlugin('xmessage');
 			$dispatcher = JDispatcher::getInstance();
-			if (!$dispatcher->trigger('onSendMessage', array('new_question_admin', $subject, $message, $from, $receivers, $this->_option))) 
+			if (!$dispatcher->trigger('onSendMessage', array('new_question_admin', $subject, $message, $from, $receivers, $this->_option)))
 			{
 				$this->setError(JText::_('COM_ANSWERS_MESSAGE_FAILED'));
 			}
@@ -921,13 +913,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Delete a question
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deleteqTask()
 	{
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->addComponentMessage(JText::_('COM_ANSWERS_PLEASE_LOGIN'), 'warning');
 			$this->loginTask();
@@ -939,7 +931,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$ip = (!$this->juser->get('guest')) ? JRequest::ip() : '';
 
 		$reward = 0;
-		if ($this->config->get('banking')) 
+		if ($this->config->get('banking'))
 		{
 			$BT = new \Hubzero\Bank\Transaction($this->database);
 			$reward = $BT->getAmount('answers', 'hold', $id);
@@ -950,14 +942,14 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$question->load($id);
 
 		// Check if user is authorized to delete
-		if ($question->created_by != $this->juser->get('id')) 
+		if ($question->created_by != $this->juser->get('id'))
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option . '&task=question&id=' . $id . '&note=3')
 			);
 			return;
-		} 
-		else if ($question->state == 1) 
+		}
+		else if ($question->state == 1)
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option . '&task=question&id=' . $id . '&note=2')
@@ -969,7 +961,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$question->reward = 0;
 
 		// Store new content
-		if (!$question->store()) 
+		if (!$question->store())
 		{
 			JError::raiseError(500, $question->getError());
 			return;
@@ -982,9 +974,9 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			'question_id' => $id
 		));
 
-		if ($reward && $this->config->get('banking')) 
+		if ($reward && $this->config->get('banking'))
 		{
-			if ($responses) 
+			if ($responses)
 			{
 				$jconfig = JFactory::getConfig();
 
@@ -992,7 +984,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 				foreach ($responses as $r)
 				{
 					$user = JUser::getInstance($r->created_by);
-					if (!is_object($user)) 
+					if (!is_object($user))
 					{
 						continue;
 					}
@@ -1012,7 +1004,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 				$message = array();
 
 				// Plain text message
-				$eview = new JView(array(
+				$eview = new \Hubzero\Component\View(array(
 					'name'   => 'emails',
 					'layout' => 'removed_plaintext'
 				));
@@ -1036,7 +1028,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 				// Send the message
 				JPluginHelper::importPlugin('xmessage');
 				$dispatcher = JDispatcher::getInstance();
-				if (!$dispatcher->trigger('onSendMessage', array('answers_question_deleted', $subject, $message, $from, $users, $this->_option))) 
+				if (!$dispatcher->trigger('onSendMessage', array('answers_question_deleted', $subject, $message, $from, $users, $this->_option)))
 				{
 					$this->setError(JText::_('COM_ANSWERS_MESSAGE_FAILED'));
 				}
@@ -1051,12 +1043,12 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 			$BTL_Q->credit_adjustment($adjusted);
 		}
 
-		// Delete all tag associations	
+		// Delete all tag associations
 		/*$tagging = new AnswersModelTags($this->database);
 		$tagging->remove_all_tags($id);
 
 		// Get all the answers for this question
-		if ($responses) 
+		if ($responses)
 		{
 			$al = new AnswersTableLog($this->database);
 			foreach ($responses as $answer)
@@ -1077,7 +1069,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Save an answer (reply to question)
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveaTask()
@@ -1086,7 +1078,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->addComponentMessage(JText::_('COM_ANSWERS_PLEASE_LOGIN'), 'warning');
 			$this->loginTask();
@@ -1098,14 +1090,14 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 		// Initiate class and bind posted items to database fields
 		$row = new AnswersModelResponse($response['id']);
-		if (!$row->bind($response)) 
+		if (!$row->bind($response))
 		{
 			JError::raiseError(500, $row->getError());
 			return;
 		}
 
 		// Store new content
-		if (!$row->store(true)) 
+		if (!$row->store(true))
 		{
 			JError::raiseError(500, $row->getError());
 			return;
@@ -1131,7 +1123,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$message = array();
 
 		// Plain text message
-		$eview = new JView(array(
+		$eview = new \Hubzero\Component\View(array(
 			'name'   => 'emails',
 			'layout' => 'response_plaintext'
 		));
@@ -1163,12 +1155,12 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 		$receivers = array();
 
-		if (!empty($apu)) 
+		if (!empty($apu))
 		{
 			foreach ($apu as $u)
 			{
 				$user = JUser::getInstance($u);
-				if ($user) 
+				if ($user)
 				{
 					$receivers[] = $user->get('id');
 				}
@@ -1180,17 +1172,17 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		JPluginHelper::importPlugin('xmessage');
 		$dispatcher = JDispatcher::getInstance();
 
-		if (!in_array($authorid, $receivers)) 
+		if (!in_array($authorid, $receivers))
 		{
-			if (!$dispatcher->trigger('onSendMessage', array('answers_reply_submitted', $subject, $message, $from, array($authorid), $this->_option))) 
+			if (!$dispatcher->trigger('onSendMessage', array('answers_reply_submitted', $subject, $message, $from, array($authorid), $this->_option)))
 			{
 				$this->setError(JText::_('COM_ANSWERS_MESSAGE_FAILED'));
 			}
 		}
 
-		if (!empty($receivers)) 
+		if (!empty($receivers))
 		{
-			if (!$dispatcher->trigger('onSendMessage', array('new_answer_admin', $subject, $message, $from, $receivers, $this->_option))) 
+			if (!$dispatcher->trigger('onSendMessage', array('new_answer_admin', $subject, $message, $from, $receivers, $this->_option)))
 			{
 				$this->setError(JText::_('COM_ANSWERS_MESSAGE_FAILED'));
 			}
@@ -1199,20 +1191,20 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		// Redirect to the question
 		$this->setRedirect(
 			JRoute::_($question->link()),
-			JText::_('COM_ANSWERS_NOTICE_POSTED_THANKS'), 
+			JText::_('COM_ANSWERS_NOTICE_POSTED_THANKS'),
 			'success'
 		);
 	}
 
 	/**
 	 * Mark an answer as accepted
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function acceptTask()
 	{
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->addComponentMessage(JText::_('COM_ANSWERS_PLEASE_LOGIN'), 'warning');
 			$this->loginTask();
@@ -1226,7 +1218,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$question = new AnswersModelQuestion($id);
 
 		// Check changes
-		if (!$question->accept($rid)) 
+		if (!$question->accept($rid))
 		{
 			$this->setError($question->getError());
 		}
@@ -1236,7 +1228,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$dispatcher = JDispatcher::getInstance();
 
 		// Call the plugin
-		if (!$dispatcher->trigger('onTakeAction', array('answers_reply_submitted', array($this->juser->get('id')), $this->_option, $rid))) 
+		if (!$dispatcher->trigger('onTakeAction', array('answers_reply_submitted', array($this->juser->get('id')), $this->_option, $rid)))
 		{
 			$this->setError(JText::_('COM_ANSWERS_ACTION_FAILED'));
 		}
@@ -1251,7 +1243,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Vote for an item
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function voteTask()
@@ -1261,7 +1253,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		$vote = JRequest::getInt('vote', 0);
 
 		// Login required
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			if (!$no_html)
 			{
@@ -1297,13 +1289,13 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		// Update display
-		if ($no_html) 
+		if ($no_html)
 		{
 			$this->qid = $id;
 
 			$this->view->question = $row;
 			$this->view->voted    = $vote;
-			if ($this->getError()) 
+			if ($this->getError())
 			{
 				foreach ($this->getErrors() as $error)
 				{
@@ -1311,8 +1303,8 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 				}
 			}
 			$this->view->display();
-		} 
-		else 
+		}
+		else
 		{
 			$this->setRedirect(
 				JRoute::_($row->link())
@@ -1322,7 +1314,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Authorization check
-	 * 
+	 *
 	 * @param      string  $assetType Asset type to authorize
 	 * @param      integer $assetId   ID of asset to authorize
 	 * @return     void
@@ -1330,55 +1322,39 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 	protected function _authorize($assetType='component', $assetId=null)
 	{
 		$this->config->set('access-view-' . $assetType, true);
-		if (!$this->juser->get('guest')) 
+		if (!$this->juser->get('guest'))
 		{
-			if (version_compare(JVERSION, '1.6', 'ge'))
+			$asset  = $this->_option;
+			if ($assetId)
 			{
-				$asset  = $this->_option;
-				if ($assetId)
-				{
-					$asset .= ($assetType != 'component') ? '.' . $assetType : '';
-					$asset .= ($assetId) ? '.' . $assetId : '';
-				}
-
-				$at = '';
-				if ($assetType != 'component')
-				{
-					$at .= '.' . $assetType;
-				}
-
-				// Admin
-				$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
-				$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
-				// Permissions
-				$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
-				$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
-				$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
-				$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
-				$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
+				$asset .= ($assetType != 'component') ? '.' . $assetType : '';
+				$asset .= ($assetId) ? '.' . $assetId : '';
 			}
-			else 
+
+			$at = '';
+			if ($assetType != 'component')
 			{
-				$this->config->set('access-create-' . $assetType, true);
-				$this->config->set('access-edit-own-' . $assetType, true);
-				if ($this->juser->authorize($this->_option, 'manage'))
-				{
-					$this->config->set('access-manage-' . $assetType, true);
-					$this->config->set('access-admin-' . $assetType, true);
-					$this->config->set('access-delete-' . $assetType, true);
-					$this->config->set('access-edit-' . $assetType, true);
-					$this->config->set('access-edit-state-' . $assetType, true);
-				}
+				$at .= '.' . $assetType;
 			}
+
+			// Admin
+			$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
+			$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
+			// Permissions
+			$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
+			$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
+			$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
+			$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
+			$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
 		}
 	}
 
 	/**
 	 * Get a message
-	 * 
+	 *
 	 * @param      integer $type Note ID
 	 * @param      array   $note Array to populate
-	 * @return     array 
+	 * @return     array
 	 */
 	private function _note($type, $note=array('msg'=>'','class'=>'warning'))
 	{
@@ -1423,7 +1399,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 	/**
 	 * Latest Questions Feed
-	 * 
+	 *
 	 * @return     string XML
 	 */
 	public function latestTask()
@@ -1464,7 +1440,7 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 
 		//open, closed, or both
 		$state = $params->get('state', 'both');
-		switch ($state) 
+		switch ($state)
 		{
 			case 'open': 	$st = "a.state=0"; 		break;
 			case 'closed': 	$st = "a.state=1"; 		break;
@@ -1472,18 +1448,18 @@ class AnswersControllerQuestions extends \Hubzero\Component\SiteController
 		}
 
 		//get questions based on params
-		$sql = "SELECT 
-					a.id, a.subject, a.question, a.state, a.created, a.created_by, a.anonymous, 
+		$sql = "SELECT
+					a.id, a.subject, a.question, a.state, a.created, a.created_by, a.anonymous,
 					(SELECT COUNT(*) FROM #__answers_responses AS r WHERE r.question_id=a.id) AS rcount
 				FROM #__answers_questions AS a
-				WHERE {$st} 
+				WHERE {$st}
 				ORDER BY a.created DESC
 				LIMIT {$limit}";
-		$database->setQuery($sql);	
+		$database->setQuery($sql);
 		$questions = $database->loadAssocList();
 
 		//add each question to the feed
-		foreach($questions as $question)
+		foreach ($questions as $question)
 		{
 			//get the authors name
 			$a = JFactory::getUser($question['created_by']);

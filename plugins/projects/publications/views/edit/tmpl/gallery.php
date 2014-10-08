@@ -26,17 +26,17 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 // Determine pane title
-if ($this->version == 'dev') 
+if ($this->version == 'dev')
 {
-	$ptitle = $this->last_idx > $this->current_idx  ? 
+	$ptitle = $this->last_idx > $this->current_idx  ?
 	ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_EDIT_GALLERY')) : ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_ADD_GALLERY_IMAGES')) ;
 }
-else 
+else
 {
-	$ptitle = ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PANEL_GALLERY'));	
+	$ptitle = ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PANEL_GALLERY'));
 }
 ?>
-<?php echo $this->project->provisioned == 1 
+<?php echo $this->project->provisioned == 1
 			? $this->helper->showPubTitleProvisioned( $this->pub, $this->route)
 			: $this->helper->showPubTitle( $this->pub, $this->route, $this->title); ?>
 
@@ -45,10 +45,10 @@ else
 	$this->contribHelper->drawStatusBar($this);
 
 	$canedit = (
-		$this->pub->state == 3 
-		|| $this->pub->state == 4 
-		|| $this->pub->state == 5 
-		|| in_array($this->active, $this->mayupdate)) 
+		$this->pub->state == 3
+		|| $this->pub->state == 4
+		|| $this->pub->state == 5
+		|| in_array($this->active, $this->mayupdate))
 		? 1 : 0;
 
 // Section body starts:
@@ -58,10 +58,10 @@ else
 		<div class="two columns first" id="c-selector">
 		 <div class="c-inner" id="c-item-picker">
 			<h4><?php echo $ptitle; ?> <?php if (in_array($this->active, $this->required)) { ?><span class="required"><?php echo JText::_('REQUIRED'); ?></span><?php } ?></h4>
-			
+
 			<?php if ($canedit) { ?>
 			<p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_GALLERY_SELECT'); ?></p>
-			<!-- Load content selection browser //-->				
+			<!-- Load content selection browser //-->
 			<div id="c-show">
 				<noscript>
 					<p class="nojs"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_TAGS_NO_JS_MESSAGE'); ?></p>
@@ -71,15 +71,15 @@ else
 			<p class="pub-info"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_INFO_GALLERY'); ?></p>
 			<?php } else { ?>
 				<p class="notice"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_ADVANCED_CANT_CHANGE').' <a href="'.$this->url.'/?action=newversion">'.ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_NEW_VERSION')).'</a>'; ?></p>
-			<?php } ?>				
+			<?php } ?>
 		 </div>
 		</div>
 		<div class="two columns second" id="c-output">
 			<form action="<?php echo $this->url; ?>" method="post" id="plg-form" enctype="multipart/form-data">
-			<fieldset>	
+			<fieldset>
 				<input type="hidden" name="id" value="<?php echo $this->project->id; ?>" id="projectid" />
 				<input type="hidden" name="version" value="<?php echo $this->version; ?>" />
-				<input type="hidden" name="active" value="publications" />					
+				<input type="hidden" name="active" value="publications" />
 				<input type="hidden" name="action" value="save" />
 				<input type="hidden" name="base" id="base" value="files" />
 				<input type="hidden" name="section" id="section" value="<?php echo $this->active; ?>" />
@@ -94,21 +94,21 @@ else
 				<?php if($this->project->provisioned == 1 ) { ?>
 				<input type="hidden" name="task" value="submit" />
 				<?php } ?>
-			</fieldset>	
+			</fieldset>
 		 		<div class="c-inner">
 			<?php if($canedit) { ?>
 					<span class="c-submit"><input type="submit" class="btn" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" id="c-continue" /></span>
 			<?php } ?>
 					<h5><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_GALLERY'); ?>: </h5>
-						
+
 						<ul id="c-filelist" class="c-list">
 							<li id="nosel" <?php if(count($this->shots) > 0) { echo 'class="hidden"'; } ?> ><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_NO_SHOTS_SELECTED_CLICK'); ?></li>
-							<?php 
+							<?php
 							// If we have files selected
 							if(count($this->shots) > 0) {
 								$ih = new ProjectsImgHandler();
 								$i = 1;
-								foreach ($this->shots as $shot) { 
+								foreach ($this->shots as $shot) {
 									$thumb = $ih->createThumbName($shot->srcfile, '_tn', $extension = 'png');
 									$src = $this->gallery_path.DS.$thumb;
 									if(!is_file(JPATH_ROOT.$src)) {
@@ -118,26 +118,20 @@ else
 									$gone = is_file($this->prefix.$this->fpath.DS.$shot->filename) ? 0 : 1;
 									?>
 								<li class="<?php echo 'attached-' . $i; ?> c-drag <?php if($gone) { echo 'i-missing'; } ?>" id="clone-file::<?php echo urlencode($shot->filename); ?>">
-									<?php								
+									<?php
 										// Screenshot HTML
-										$view = new \Hubzero\Plugin\View(
-											array(
-												'folder'=>'projects',
-												'element'=>'publications',
-												'name'=>'screenshot'
-											)
-										);
-										$view->url = $this->url;
-										$view->project = $this->project;
-										$view->option = $this->option;
-										$view->pid = $this->row->publication_id;
-										$view->vid = $this->row->id;
-										$view->ima = $shot->filename;
-										$view->title = $shot->title;
-										$view->src = $src;
-										$view->move = $this->move;
-										$view->canedit = $canedit;
-										$view->display();
+										$this->view('default', 'screenshot')
+										     ->set('url', $this->url)
+										     ->set('project', $this->project)
+										     ->set('option', $this->option)
+										     ->set('pid', $this->row->publication_id)
+										     ->set('vid', $this->row->id)
+										     ->set('ima', $shot->filename)
+										     ->set('title', $shot->title)
+										     ->set('src', $src)
+										     ->set('move', $this->move)
+										     ->set('canedit', $canedit)
+										     ->display();
 									?>
 								</li>
 							<?php $i++; } }  ?>
@@ -146,6 +140,6 @@ else
 		 		</div>
 			</form>
 		</div>
-			<iframe id="upload_target" name="upload_target" src="<?php echo JRoute::_('index.php?option='.$this->option.'&id='.$this->project->id.'&active=files').'/?action=blank'.a.'no_html=1'.a.'ajax=1'; ?>" class="iframe"></iframe> 
+			<iframe id="upload_target" name="upload_target" src="<?php echo JRoute::_('index.php?option='.$this->option.'&id='.$this->project->id.'&active=files').'/?action=blank'.a.'no_html=1'.a.'ajax=1'; ?>" class="iframe"></iframe>
 	</div>
 </div>

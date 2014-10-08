@@ -43,6 +43,14 @@ class Simple extends AbstractAdapter
 	 */
 	public function __construct($properties = null)
 	{
+		$this->set('linkFrequency', 5);
+		$this->set('badwords', 'viagra, pharmacy, xanax, phentermine, dating, ringtones, tramadol, hydrocodone, levitra, '
+				. 'ambien, vicodin, fioricet, diazepam, cash advance, free online, online gambling, online prescriptions, '
+				. 'debt consolidation, baccarat, loan, slots, credit, mortgage, casino, slot, texas holdem, teen nude, '
+				. 'orgasm, gay, fuck, crap, shit, asshole, cunt, fucker, fuckers, motherfucker, fucking, milf, cocksucker, '
+				. 'porno, videosex, sperm, hentai, internet gambling, kasino, kasinos, poker, lottery, texas hold em, '
+				. 'texas holdem, fisting');
+
 		if ($properties !== null)
 		{
 			$this->setProperties($properties);
@@ -51,11 +59,11 @@ class Simple extends AbstractAdapter
 
 	/**
 	 *	Tests for spam.
-	 * 
+	 *
 	 * @param    string $value Content to test
 	 * @return   bool True if the comment is spam, false if not
 	 */
-	public function isSpam($value = null) 
+	public function isSpam($value = null)
 	{
 		if ($value)
 		{
@@ -67,35 +75,22 @@ class Simple extends AbstractAdapter
 			return false;
 		}
 
-		$config = \JComponentHelper::getParams('com_support');
-
 		// Spammer IPs (banned)
-		$ips = $config->get('blacklist');
-		if ($ips) 
+		$bl = array();
+		if ($ips = $this->get('blacklist'))
 		{
 			$bl = explode(',', $ips);
 			array_map('trim', $bl);
-		} 
-		else 
-		{
-			$bl = array();
 		}
 
-		$defaults = 'viagra, pharmacy, xanax, phentermine, dating, ringtones, tramadol, hydrocodone, levitra, '
-				. 'ambien, vicodin, fioricet, diazepam, cash advance, free online, online gambling, online prescriptions, '
-				. 'debt consolidation, baccarat, loan, slots, credit, mortgage, casino, slot, texas holdem, teen nude, '
-				. 'orgasm, gay, fuck, crap, shit, asshole, cunt, fucker, fuckers, motherfucker, fucking, milf, cocksucker, '
-				. 'porno, videosex, sperm, hentai, internet gambling, kasino, kasinos, poker, lottery, texas hold em, '
-				. 'texas holdem, fisting';
-
 		// Bad words
-		$words = $config->get('badwords', $defaults);
-		if ($words) 
+		$words = $this->get('badwords');
+		if ($words)
 		{
 			$badwords = explode(',', $words);
 			array_map('trim', $badwords);
-		} 
-		else 
+		}
+		else
 		{
 			$badwords = array();
 		}
@@ -104,7 +99,7 @@ class Simple extends AbstractAdapter
 		$patterns = array('/\[url=(.*?)\](.*?)\[\/url\]/s', '/\[url=(.*?)\[\/url\]/s');
 		foreach ($badwords as $badword)
 		{
-			if (!empty($badword)) 
+			if (!empty($badword))
 			{
 				$patterns[] = '/(.*?)' . trim($badword) . '(.*?)/s';
 			}
@@ -117,7 +112,7 @@ class Simple extends AbstractAdapter
 		foreach ($patterns as $pattern)
 		{
 			preg_match_all($pattern, $this->getValue(), $matches);
-			if (count($matches[0]) >=1) 
+			if (count($matches[0]) >= 1)
 			{
 				$spam = true;
 			}
@@ -125,18 +120,18 @@ class Simple extends AbstractAdapter
 
 		// Check the number of links in the text
 		// Very unusual to have 5 or more - usually only spammers
-		if (!$spam) 
+		if (!$spam)
 		{
 			$num = substr_count($this->getValue(), 'http://');
-			if ($num >= 5) // too many links
-			{ 
+			if ($num >= intval($this->get('linkFrequency'))) // too many links
+			{
 				$spam = true;
 			}
 		}
 
 		// Check the user's IP against the blacklist
 		$ip = \JRequest::ip();
-		if (in_array($ip, $bl)) 
+		if (in_array($ip, $bl))
 		{
 			$spam = true;
 		}

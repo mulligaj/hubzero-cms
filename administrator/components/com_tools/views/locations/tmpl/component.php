@@ -33,7 +33,7 @@ defined('_JEXEC') or die('Restricted access');
 JHTML::_('behavior.modal');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.getElementById('adminForm');
 	if (pressbutton == 'cancel') {
@@ -45,16 +45,13 @@ function submitbutton(pressbutton)
 }
 function setTask(task)
 {
-	$('task').value = task;
+	$('#task').value = task;
 }
-window.addEvent('domready', function() {
-	//window.top.document.updateUploader && window.top.document.updateUploader();
-	$$('a.edit-asset').each(function(el) {
-		el.addEvent('click', function(e) {
-			new Event(e).stop();
-			//window.top.document.assetform.fromElement(el);
-			window.top.document.assetform.open($(this).get('href'), {handler: 'iframe', size: {x: 570, y: 550}});
-		});
+jQuery(document).ready(function($){
+	$('a.edit-asset').on('click', function(e) {
+		e.preventDefault();
+
+		window.parent.$.fancybox.open($(this).attr('href'), {type: 'iframe', size: {x: 570, y: 550}});
 	});
 });
 
@@ -66,20 +63,20 @@ window.addEvent('domready', function() {
 		<thead>
 			<tr>
 				<th colspan="<?php echo (!$this->filters['zone'] ? 9 : 8); ?>" style="text-align:right;">
-					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=add&amp;zone=<?php echo $this->filters['zone']; ?>&amp;tmpl=<?php echo $this->filters['tmpl']; ?>" class="edit-asset" rel="{handler: 'iframe', size: {x: 570, y: 550}}">Add location</a>
+					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=add&amp;zone=<?php echo $this->filters['zone']; ?>&amp;tmpl=<?php echo $this->filters['tmpl']; ?>" class="button edit-asset" rel="{type: 'iframe', size: {x: 570, y: 550}}"><?php echo JText::_('COM_TOOLS_ADD_LOCATION'); ?></a>
 				</th>
 			</tr>
 			<tr>
-				<th scope="col"><?php echo JText::_('ID'); ?></th>
+				<th scope="col"><?php echo JText::_('COM_TOOLS_COL_ID'); ?></th>
 			<?php if (!$this->filters['zone']) { ?>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Zone', 'zone', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_TOOLS_COL_ZONE', 'zone', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			<?php } ?>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'IP from', 'ipFROM', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'IP to', 'ipTO', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Continent', 'continent', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Country', 'countrySHORT', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Region', 'ipREGION', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'City', 'ipCITY', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_TOOLS_COL_IP_FROM', 'ipFROM', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_TOOLS_COL_IP_TO', 'ipTO', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_TOOLS_COL_CONTINENT', 'continent', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_TOOLS_COL_COUNTRY', 'countrySHORT', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_TOOLS_COL_REGION', 'ipREGION', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_TOOLS_COL_CITY', 'ipCITY', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col">X</th>
 			</tr>
 		</thead>

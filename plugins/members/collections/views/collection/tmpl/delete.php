@@ -32,6 +32,8 @@
 defined('_JEXEC') or die('Restricted access');
 
 $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=' . $this->name;
+
+$this->css();
 ?>
 
 <?php if ($this->getError()) { ?>
@@ -46,7 +48,7 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 			</p>
 
 			<label>
-				<input type="checkbox" class="option" name="confirmdel" value="1" /> 
+				<input type="checkbox" class="option" name="confirmdel" value="1" />
 				<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_DELETE_COLLECTION_CONFIRM'); ?>
 			</label>
 		</fieldset>
@@ -63,9 +65,10 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 		<?php echo JHTML::_('form.token'); ?>
 
 		<p class="submit">
-			<input type="submit" value="<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_DELETE'); ?>" />
-<?php if (!$this->no_html) { ?>
-			<a href="<?php echo JRoute::_($base); ?>"><?php echo JText::_('Cancel'); ?></a>
-<?php } ?>
+			<input class="btn btn-danger" type="submit" value="<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_DELETE'); ?>" />
+
+			<?php if (!$this->no_html) { ?>
+				<a class="btn btn-secondary" href="<?php echo JRoute::_($base); ?>"><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_CANCEL'); ?></a>
+			<?php } ?>
 		</p>
 	</form>

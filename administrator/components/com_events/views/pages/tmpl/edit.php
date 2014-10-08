@@ -28,90 +28,77 @@
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
-$text = ( $this->task == 'editpage' ? JText::_( 'COM_EVENTS_EDIT' ) : JText::_( 'COM_EVENTS_NEW' ) );
+defined('_JEXEC') or die('Restricted access');
 
-JToolBarHelper::title(JText::_( 'COM_EVENTS_PAGE' ).': '. $text, 'event.png' );
+$text = ($this->task == 'edit' ? JText::_('COM_EVENTS_EDIT') : JText::_('COM_EVENTS_NEW'));
+
+JToolBarHelper::title(JText::_('COM_EVENTS_PAGE' ) . ': ' . $text, 'event.png');
 JToolBarHelper::save();
 JToolBarHelper::cancel();
 
 jimport('joomla.html.editor');
-$editor = JEditor::getInstance();
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
-	var form = document.adminForm;
-	
 	if (pressbutton == 'cancel') {
-		submitform( pressbutton );
+		submitform(pressbutton);
 		return;
 	}
-	
-	submitform( pressbutton );
+
+	submitform(pressbutton);
 }
 </script>
 
-<form action="index.php" method="post" name="adminForm">
-	<h2>
-		<a href="index.php?option=com_events&amp;task=edit&amp;id=<?php echo $this->event->id; ?>">
-			<?php echo $this->escape(stripslashes($this->event->title)); ?>
-		</a>
-	</h2>
+<form action="index.php" method="post" name="adminForm" id="item-form">
 	<div class="col width-60 fltlft">
 		<fieldset class="adminform">
 			<legend><span><?php echo JText::_('COM_EVENTS_PAGE'); ?></span></legend>
-			
-			<input type="hidden" name="event" value="<?php echo $this->event->id; ?>" />
-			<input type="hidden" name="id" value="<?php echo $this->page->id; ?>" />
-			<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
-			<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
-			<input type="hidden" name="task" value="save" />
-			
-			<table class="admintable">
-				<tbody>
-					<tr>
-						<td class="key"><label for="title"><?php echo JText::_('COM_EVENTS_TITLE'); ?>:</label></td>
-						<td><input type="text" name="title" id="title" value="<?php echo $this->escape(stripslashes($this->page->title)); ?>" size="50" /></td>
-					</tr>
-					<tr>
-						<td class="key"><label for="alias"><?php echo JText::_('COM_EVENTS_ALIAS'); ?>:</label></td>
-						<td>
-							<input type="text" name="alias" id="alias" value="<?php echo $this->escape(stripslashes($this->page->alias)); ?>" size="50" />
-							<br /><span>A short identifier for this page. Ex: "agenda". Alpha-numeric characters only. No spaces.</span>
-						</td>
-					</tr>
-					<tr>
-						<td colspan="2">
-							<label for="pagetext"><?php echo JText::_('COM_EVENTS_PAGE_TEXT'); ?>:</label><br />
-							<?php echo $editor->display('pagetext', $this->escape(stripslashes($this->page->pagetext)), '100%', '350px', '40', '10'); ?>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+
+			<div class="input-wrap">
+				<a href="index.php?option=com_events&amp;task=edit&amp;id=<?php echo $this->event->id; ?>">
+					<?php echo $this->escape(stripslashes($this->event->title)); ?>
+				</a>
+			</div>
+
+			<div class="input-wrap">
+				<label for="title"><?php echo JText::_('COM_EVENTS_TITLE'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
+				<input type="text" name="title" id="title" value="<?php echo $this->escape(stripslashes($this->page->title)); ?>" />
+			</div>
+
+			<div class="input-wrap" data-hint="<?php echo JText::_('COM_EVENTS_ALIAS_HINT'); ?>">
+				<label for="alias"><?php echo JText::_('COM_EVENTS_ALIAS'); ?>:</label>
+				<input type="text" name="alias" id="alias" value="<?php echo $this->escape(stripslashes($this->page->alias)); ?>" />
+				<span class="hint"><?php echo JText::_('COM_EVENTS_ALIAS_HINT'); ?></span>
+			</div>
+
+			<div class="input-wrap">
+				<label for="pagetext"><?php echo JText::_('COM_EVENTS_PAGE_TEXT'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
+				<?php echo JEditor::getInstance()->display('pagetext', $this->escape(stripslashes($this->page->pagetext)), '', '', 40, 20); ?>
+			</div>
 		</fieldset>
 	</div>
 	<div class="col width-40 fltrt">
 		<table class="meta">
 			<tbody>
 				<tr>
-					<th>Ordering</th>
+					<th><?php echo JText::_('COM_EVENTS_PAGE_ORDERING'); ?></th>
 					<td><?php echo $this->page->ordering; ?></td>
 				</tr>
 				<tr>
-					<th>Created</th>
+					<th><?php echo JText::_('COM_EVENTS_PAGE_CREATED'); ?></th>
 					<td><?php echo $this->page->created; ?></td>
 				</tr>
 				<tr>
-					<th>Created by</th>
+					<th><?php echo JText::_('COM_EVENTS_PAGE_CREATED_BY'); ?></th>
 					<td><?php echo $this->page->created_by; ?></td>
 				</tr>
 				<tr>
-					<th>Last Modified</th>
+					<th><?php echo JText::_('COM_EVENTS_PAGE_LAST_MODIFIED'); ?></th>
 					<td><?php echo $this->page->modified; ?></td>
 				</tr>
 				<tr>
-					<th>Modified by</th>
+					<th><?php echo JText::_('COM_EVENTS_PAGE_LAST_MODIFIED_BY'); ?></th>
 					<td><?php echo $this->page->modified_by; ?></td>
 				</tr>
 			</tbody>
@@ -119,5 +106,11 @@ function submitbutton(pressbutton)
 	</div>
 	<div class="clr"></div>
 
-	<?php echo JHTML::_( 'form.token' ); ?>
+	<input type="hidden" name="event" value="<?php echo $this->event->id; ?>" />
+	<input type="hidden" name="id" value="<?php echo $this->page->id; ?>" />
+	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
+	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
+	<input type="hidden" name="task" value="save" />
+
+	<?php echo JHTML::_('form.token'); ?>
 </form>

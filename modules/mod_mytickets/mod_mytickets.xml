@@ -27,9 +27,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 HUBzero is a registered trademark of Purdue University.
 -->
 
-<install type="module" version="1.5">
+<extension type="module" version="1.5">
 	<name>My Tickets</name>
-	<author>Shawn Rice</author>
+	<author>HUBzero</author>
 	<copyright>Copyright 2005-2011 Purdue University. All rights reserved.</copyright>
 	<license>http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3</license>
 	<description>This module will display a list of active support tickets submitted by the user</description>
@@ -41,20 +41,15 @@ HUBzero is a registered trademark of Purdue University.
 		<filename>mod_mytickets.css</filename>
 		<filename>images/page_white_text.png</filename>
 	</files>
-	<params>
-		<param name="moduleclass" type="text" default="" label="Module class" description="A CSS class to be applied to the module, this allows individual module styling" />
-		<param name="limit" type="text" default="5" label="# to display" description="The number of items to display." />
-	</params>
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
-				<field name="moduleclass" type="text" default="" label="Module class" description="A CSS class to be applied to the module, this allows individual module styling" />
-				<field name="limit" type="text" default="5" label="# to display" description="The number of items to display." />
+				<field name="moduleclass_sfx" type="text" default="" label="Module class" description="A CSS class to be applied to the module, this allows individual module styling" />
+				<field name="limit" type="text" default="5" label="# to display" description="The number of items to display." member_dashboard="1" />
 			</fieldset>
 		</fields>
 	</config>
 	<languages>
 		<language tag="en-GB">en-GB.mod_mytickets.ini</language>
 	</languages>
-</install>
-
+</extension>

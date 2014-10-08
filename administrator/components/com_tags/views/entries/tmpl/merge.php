@@ -32,16 +32,17 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = TagsHelper::getActions();
 
-JToolBarHelper::title(JText::_('TAGS') . ': ' . JText::_('MERGE'), 'tags.png');
-if ($canDo->get('core.edit')) 
+JToolBarHelper::title(JText::_('COM_TAGS') . ': ' . JText::_('COM_TAGS_MERGE'), 'tags.png');
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::save('merge');
 }
 JToolBarHelper::cancel();
-
+JToolBarHelper::spacer();
+JToolBarHelper::help('merge');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 
@@ -55,34 +56,42 @@ function submitbutton(pressbutton)
 </script>
 
 <form action="index.php" method="post" name="adminForm" class="editform" id="item-form">
-	<p><?php echo JText::_('MERGED_EXPLANATION'); ?></p>
-	
+	<p class="warning"><?php echo JText::_('COM_TAGS_MERGED_EXPLANATION'); ?></p>
+
 	<div class="col width-50 fltlft">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('MERGING'); ?></span></legend>
-			
-			<ul>
-			<?php
-			foreach ($this->tags as $tag)
-			{
-				echo '<li>' . $this->escape(stripslashes($tag->get('raw_tag'))) . ' (' . $this->escape($tag->get('tag')) . ' - ' . $tag->objects('count') . ')</li>' . "\n";
-			}
-			?>
-			</ul>
+			<legend><span><?php echo JText::_('COM_TAGS_MERGING'); ?></span></legend>
+
+			<div class="input-wrap">
+				<ul>
+					<?php
+					foreach ($this->tags as $tag)
+					{
+						echo '<li>' . $this->escape(stripslashes($tag->get('raw_tag'))) . ' (' . $this->escape($tag->get('tag')) . ' - ' . $tag->objects('count') . ')</li>' . "\n";
+					}
+					?>
+				</ul>
+			</div>
 		</fieldset>
 	</div>
 	<div class="col width-50 fltrt">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('MERGE_TO'); ?></span></legend>
-			
-			<table class="admintable">
-				<tbody>
-					<tr>
-						<td class="key"><label for="newtag"><?php echo JText::_('Tag'); ?>:</label></td>
-						<td><input type="text" name="newtag" id="newtag" size="25" value="" /></td>
-					</tr>
-				</tbody>
-			</table>
+			<legend><span><?php echo JText::_('COM_TAGS_MERGE_TO'); ?></span></legend>
+
+			<div class="input-wrap">
+				<label for="newtag"><?php echo JText::_('COM_TAGS_TAG'); ?>:</label><br />
+				<?php
+				JPluginHelper::importPlugin('hubzero');
+				$tf = JDispatcher::getInstance()->trigger(
+					'onGetMultiEntry',
+					array(
+						array('tags', 'newtag', 'newtag')
+					)
+				);
+				echo (count($tf) ? implode("\n", $tf) : '<input type="text" name="newtag" id="newtag" size="25" value="" />');
+				?>
+			</div>
+			<p><?php echo JText::_('COM_TAGS_SELECT_TAG'); ?></p>
 		</fieldset>
 	</div>
 	<div class="clr"></div>
@@ -92,6 +101,6 @@ function submitbutton(pressbutton)
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="step" value="<?php echo $this->step; ?>" />
 	<input type="hidden" name="task" value="merge" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

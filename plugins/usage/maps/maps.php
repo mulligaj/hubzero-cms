@@ -31,56 +31,46 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Usage plugin class for overview
  */
-class plgUsageMaps extends JPlugin
+class plgUsageMaps extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the name of the area this plugin retrieves records for
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function onUsageAreas()
 	{
-		$areas = array(
+		return array(
 			'maps' => JText::_('PLG_USAGE_MAPS')
 		);
-		return $areas;
 	}
 
 	/**
 	 * Get hosts data
-	 * 
+	 *
 	 * @param      object &$db      JDatabase
 	 * @param      array  $location Longitude/latitude
 	 * @return     string
 	 */
 	private function get_hosts(&$db, $location)
 	{
-		$query = "SELECT DISTINCT(domain) FROM #__xsession WHERE ipLATITUDE = '" . $location['lat'] . "' AND ipLONGITUDE = '" . $location['lng'] . "'";
+		$query = "SELECT DISTINCT(domain) FROM `#__xsession` WHERE ipLATITUDE = '" . $location['lat'] . "' AND ipLONGITUDE = '" . $location['lng'] . "'";
 
 		$db->setQuery($query);
 		$rows = $db->loadObjectList();
 
 		$info = '';
-		if ($rows) 
+		if ($rows)
 		{
 			foreach ($rows as $row)
 			{
@@ -92,7 +82,7 @@ class plgUsageMaps extends JPlugin
 
 	/**
 	 * Get a record count
-	 * 
+	 *
 	 * @param      object &$db      JDatabase
 	 * @param      string $domain   Domain
 	 * @param      array  $location Longitude/latitude
@@ -106,7 +96,7 @@ class plgUsageMaps extends JPlugin
 		$users = $db->loadResult();
 
 		$info = '';
-		if ($users) 
+		if ($users)
 		{
 			$info .= '_br_ - Users: ' . $users;
 		}
@@ -116,7 +106,7 @@ class plgUsageMaps extends JPlugin
 		$db->setQuery($query);
 		$guests = $db->loadResult();
 
-		if ($guests) 
+		if ($guests)
 		{
 			$info .= '_br_ - Guests: ' . $guests;
 		}
@@ -126,17 +116,17 @@ class plgUsageMaps extends JPlugin
 		$db->setQuery($query);
 		$bots = $db->loadResult();
 
-		if ($bots) 
+		if ($bots)
 		{
 			$info .= '_br_ - Bots: ' . $bots;
 		}
 
-		if ($info) 
+		if ($info)
 		{
 			$info = $info . '_br_';
 			return $info;
-		} 
-		else 
+		}
+		else
 		{
 			return '_br_';
 		}
@@ -144,7 +134,7 @@ class plgUsageMaps extends JPlugin
 
 	/**
 	 * Check if the location is from a bot
-	 * 
+	 *
 	 * @param      object &$db      JDatabase
 	 * @param      array  $location Longitude/latitude
 	 * @return     integer
@@ -161,7 +151,7 @@ class plgUsageMaps extends JPlugin
 
 	/**
 	 * Get data for a type
-	 * 
+	 *
 	 * @param      string $type Data type
 	 * @return     void
 	 */
@@ -179,7 +169,7 @@ class plgUsageMaps extends JPlugin
 				$rows = $db->loadObjectList();
 
 				$html .= '<locations>' . "\n";
-				if ($rows) 
+				if ($rows)
 				{
 					foreach ($rows as $row)
 					{
@@ -193,13 +183,13 @@ class plgUsageMaps extends JPlugin
 				$date = JRequest::getVar('period', '2008-03-00');
 				$local = JRequest::getVar('local', '');
 
-				if ($local == 'us') 
+				if ($local == 'us')
 				{
 					$query = "SELECT DISTINCT ipLAT, ipLONG, type FROM location WHERE datetime < '" . $date . "' GROUP BY ipLAT, ipLONG ORDER BY datetime";
 					//$query = "SELECT DISTINCT ipLAT, ipLONG, type FROM location WHERE datetime < '".$date."' GROUP BY ipLAT, ipLONG ORDER BY datetime";
 					$query = 'SELECT DISTINCT ipLAT, ipLONG, count(*) as ips FROM location WHERE datetime < "' . $date . '" AND (countrySHORT = "US" OR countrySHORT = "PR") GROUP BY ipLAT, ipLONG ORDER BY ips';
-				} 
-				else 
+				}
+				else
 				{
 					$query = "SELECT DISTINCT ipLAT, ipLONG, type FROM location WHERE datetime < '" . $date . "' GROUP BY ipLAT, ipLONG ORDER BY datetime";
 					#$sql = "SELECT DISTINCT ipLAT, ipLONG, type FROM location WHERE datetime < '".$date."' GROUP BY ipLAT, ipLONG ORDER BY datetime";
@@ -210,7 +200,7 @@ class plgUsageMaps extends JPlugin
 				$rows = $db->loadObjectList();
 
 				$html .= '<markers>' . "\n";
-				if ($rows) 
+				if ($rows)
 				{
 					foreach ($rows as $row)
 					{
@@ -227,7 +217,7 @@ class plgUsageMaps extends JPlugin
 				$db->setQuery($query);
 				$rows = $db->loadObjectList();
 
-				if ($rows) 
+				if ($rows)
 				{
 					foreach ($rows as $row)
 					{
@@ -267,7 +257,7 @@ class plgUsageMaps extends JPlugin
 
 	/**
 	 * Event call for displaying usage data
-	 * 
+	 *
 	 * @param      string $option        Component name
 	 * @param      string $task          Component task
 	 * @param      object $db            JDatabase
@@ -279,10 +269,10 @@ class plgUsageMaps extends JPlugin
 	public function onUsageDisplay($option, $task, $db, $months, $monthsReverse, $enddate)
 	{
 		// Check if our task is the area we want to return results for
-		if ($task) 
+		if ($task)
 		{
 			if (!in_array($task, $this->onUsageAreas())
-			 && !in_array($task, array_keys($this->onUsageAreas()))) 
+			 && !in_array($task, array_keys($this->onUsageAreas())))
 			{
 				return '';
 			}
@@ -292,11 +282,11 @@ class plgUsageMaps extends JPlugin
 		$lat  = JRequest::getVar('lat', '35');
 		$long = JRequest::getVar('long', '-90');
 		$zoom = JRequest::getVar('zoom', '');
-		if ($lat != '35' && $long != '-90') 
+		if ($lat != '35' && $long != '-90')
 		{
 			$zoom = '14';
-		} 
-		else 
+		}
+		else
 		{
 			$zoom = '4';
 		}
@@ -306,15 +296,15 @@ class plgUsageMaps extends JPlugin
 
 		$type = str_replace(':', '-', $type);
 
-		if ($no_html) 
+		if ($no_html)
 		{
 			$data = JRequest::getVar('data','');
 
-			if ($data) 
+			if ($data)
 			{
 				$this->getData($data);
-			} 
-			else 
+			}
+			else
 			{
 				$config = JComponentHelper::getParams($option);
 
@@ -327,7 +317,7 @@ class plgUsageMaps extends JPlugin
 				}
 				else
 				{
-					JError::raiseError(500, JText::sprintf('Type "%s" does nto exist.', $type));
+					JError::raiseError(500, JText::sprintf('PLG_USAGE_MAPS_TYPE_NOT_FOUND', $type));
 					return;
 				}
 
@@ -340,7 +330,7 @@ class plgUsageMaps extends JPlugin
 		$pathway->addItem(JText::_('PLG_USAGE_MAPS_' . strtoupper($type)), 'index.php?option=' . $option . '&task=' . $task . '&type=' . $type);
 
 		$html  = '<h3>' . JText::_('PLG_USAGE_MAPS_' . strtoupper($type)) . '</h3>' . "\n";
-		$html .= '<p><a class="map" href="' . JRoute::_('index.php?option=' . $option . '&task=maps&type=' . $type) . '">' . JText::_('Reset map') . '</a></p>';
+		$html .= '<p><a class="map" href="' . JRoute::_('index.php?option=' . $option . '&task=maps&type=' . $type) . '">' . JText::_('PLG_USAGE_MAPS_RESET') . '</a></p>';
 		$html .= '<iframe src="' . JRoute::_('index.php?option=' . $option . '&task=' . $task . '&type=' . $type . '&no_html=1&lat=' . $lat . '&long=' . $long . '&zoom=' . $zoom) . '" width="100%" height="600px" scrolling="no" frameborder="0"></iframe>' . "\n";
 
 		return $html;

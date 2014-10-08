@@ -44,10 +44,10 @@ class JButtonStandard extends JButton
 		$class = $this->fetchIconClass($name);
 		$doTask = $this->_getCommand($text, $task, $list);
 
-		$html = "<a href=\"#\" onclick=\"$doTask\" class=\"toolbar\">\n";
+		$html  = "<a href=\"#\" onclick=\"$doTask\" class=\"toolbar\" data-title=\"$i18n_text\">\n";
 		$html .= "<span class=\"$class\">\n";
-		$html .= "</span>\n";
 		$html .= "$i18n_text\n";
+		$html .= "</span>\n";
 		$html .= "</a>\n";
 
 		return $html;
@@ -69,7 +69,7 @@ class JButtonStandard extends JButton
 	 */
 	public function fetchId($type = 'Standard', $name = '', $text = '', $task = '', $list = true, $hideMenu = false)
 	{
-		return $this->_parent->getName() . '-' . $name;
+		return $this->_parent->getName() . '-' . $task; //$name;
 	}
 
 	/**

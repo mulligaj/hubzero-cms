@@ -32,7 +32,6 @@
 defined('_JEXEC') or die('Restricted access');
 
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'courses.php');
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
 
 /**
  * Courses controller class for managing membership and course info
@@ -73,13 +72,13 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 		);
 		// Get sorting variables
 		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'title'
 		));
 		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 
@@ -139,21 +138,17 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 		$this->view->setLayout('edit');
 
 		// Incoming
-		$ids = JRequest::getVar('id', array());
-
-		// Incoming
-		$ids = JRequest::getVar('id', array());
-		$id = 0;
-		if (is_array($ids) && !empty($ids)) 
+		$id = JRequest::getVar('id', array(0));
+		if (is_array($id) && !empty($id))
 		{
-			$id = $ids[0];
+			$id = $id[0];
 		}
 
 		if (is_object($row))
 		{
 			$this->view->row = $row;
 		}
-		else 
+		else
 		{
 			$this->view->row = CoursesModelCourse::getInstance($id);
 		}
@@ -203,7 +198,7 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 
 		// Initiate extended database class
 		$row = new CoursesModelCourse(0);
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -211,7 +206,7 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 		}
 
 		// Store content
-		if (!$row->store(true)) 
+		if (!$row->store(true))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -227,7 +222,7 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 			// Output messsage and redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('COM_COURSES_SAVED')
+				JText::_('COM_COURSES_ITEM_SAVED')
 			);
 			return;
 		}
@@ -236,23 +231,63 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 	}
 
 	/**
+	 * Copy an entry and all associated data
+	 *
+	 * @return	void
+	 */
+	public function copyTask()
+	{
+		// Incoming
+		$id = JRequest::getVar('id', 0);
+
+		// Get the single ID we're working with
+		if (is_array($id))
+		{
+			$id = (!empty($id)) ? $id[0] : 0;
+		}
+
+		if (!$id)
+		{
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				JText::_('COM_COURSES_ERROR_NO_ID'),
+				'error'
+			);
+			return;
+		}
+
+		$course = CoursesModelCourse::getInstance($id);
+		if (!$course->copy())
+		{
+			// Redirect back to the courses page
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				JText::_('COM_COURSES_ERROR_COPY_FAILED') . ': ' . $course->getError(),
+				'error'
+			);
+			return;
+		}
+
+		// Redirect back to the courses page
+		$this->setRedirect(
+			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+			JText::_('COM_COURSES_ITEM_COPIED')
+		);
+	}
+
+	/**
 	 * Removes a course and all associated information
 	 *
 	 * @return	void
 	 */
-	public function deleteTask()
+	public function removeTask()
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
-
-		// Get the single ID we're working with
-		if (!is_array($ids))
-		{
-			$ids = array();
-		}
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		$num = 0;
 
@@ -277,7 +312,7 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 				// Delete course
 				if (!$course->delete())
 				{
-					JError::raiseError(500, JText::_('Unable to delete course'));
+					JError::raiseError(500, JText::_('COM_COURSES_ERROR_UNABLE_TO_REMOVE_ENTRY'));
 					return;
 				}
 
@@ -288,7 +323,7 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 		// Redirect back to the courses page
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('COM_COURSES_REMOVED')
+			JText::_('COM_COURSES_ITEM_REMOVED')
 		);
 	}
 
@@ -336,12 +371,7 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
-
-		// Get the single ID we're working with
-		if (!is_array($ids))
-		{
-			$ids = array();
-		}
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		// Do we have any IDs?
 		$num = 0;
@@ -363,7 +393,7 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 				$course->set('state', $state);
 				if (!$course->store())
 				{
-					$this->setError(JText::_('Unable to set state for course #' . $id . '.'));
+					$this->setError(JText::sprintf('COM_COURSES_ERROR_UNABLE_TO_SET_STATE', $id));
 					continue;
 				}
 
@@ -387,7 +417,7 @@ class CoursesControllerCourses extends \Hubzero\Component\AdminController
 			// Output messsage and redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				($state ? JText::sprintf('%s item(s) published', $num) : JText::sprintf('%s item(s) unpublished', $num))
+				($state ? JText::sprintf('COM_COURSES_ITEMS_PUBLISHED', $num) : JText::sprintf('COM_COURSES_ITEMS_UNPUBLISHED', $num))
 			);
 		}
 	}

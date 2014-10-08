@@ -31,16 +31,29 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Support plugin class for com_blog entries
  */
-class plgSupportBlog extends JPlugin
+class plgSupportBlog extends \Hubzero\Plugin\Plugin
 {
 	/**
+	 * Is the category one this plugin handles?
+	 *
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     boolean
+	 */
+	private function _canHandle($category)
+	{
+		if (in_array($category, array('blog', 'blogcomment')))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Retrieves a row from the database
-	 * 
+	 *
 	 * @param      string $refid    ID of the database table row
 	 * @param      string $category Element type (determines table to look in)
 	 * @param      string $parent   If the element has a parent element
@@ -48,22 +61,22 @@ class plgSupportBlog extends JPlugin
 	 */
 	public function getReportedItem($refid, $category, $parent)
 	{
-		if ($category != 'blog' && $category != 'blogcomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
 
 		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'entry.php');
 
-		$query  = "SELECT rc.id, rc.entry_id, rc.content as `text`, rc.created_by as author, rc.created, NULL as subject, rc.anonymous as anon, 'blog' AS parent_category 
-					FROM #__blog_comments AS rc 
+		$query  = "SELECT rc.id, rc.entry_id, rc.content as `text`, rc.created_by as author, rc.created, NULL as subject, rc.anonymous as anon, 'blog' AS parent_category
+					FROM `#__blog_comments` AS rc
 					WHERE rc.id=" . $refid;
 
 		$database = JFactory::getDBO();
 		$database->setQuery($query);
 
 		$rows = $database->loadObjectList();
-		if ($rows) 
+		if ($rows)
 		{
 			foreach ($rows as $key => $row)
 			{
@@ -82,17 +95,15 @@ class plgSupportBlog extends JPlugin
 	}
 
 	/**
-	 * Retrieves a row from the database
-	 * 
+	 * Mark an item as flagged
+	 *
 	 * @param      string $refid    ID of the database table row
-	 * @param      string $parent   If the element has a parent element
 	 * @param      string $category Element type (determines table to look in)
-	 * @param      string $message  If the element has a parent element
-	 * @return     array
+	 * @return     string
 	 */
-	public function deleteReportedItem($refid, $parent, $category, $message)
+	public function onReportItem($refid, $category)
 	{
-		if ($category != 'blog' && $category != 'blogcomment') 
+		if (!$this->_canHandle($category))
 		{
 			return null;
 		}
@@ -101,30 +112,64 @@ class plgSupportBlog extends JPlugin
 
 		$database = JFactory::getDBO();
 
-		$msg = 'This comment was found to contain objectionable material and was removed by the administrator.';
+		$comment = new BlogTableComment($database);
+		$comment->load($refid);
+		$comment->state = 3;
+		$comment->store();
+
+		return '';
+	}
+
+	/**
+	 * Release a reported item
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $parent   If the element has a parent element
+	 * @param      string $category Element type (determines table to look in)
+	 * @return     array
+	 */
+	public function releaseReportedItem($refid, $parent, $category)
+	{
+		if (!$this->_canHandle($category))
+		{
+			return null;
+		}
+
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'tables' . DS . 'comment.php');
+
+		$database = JFactory::getDBO();
 
 		$comment = new BlogTableComment($database);
 		$comment->load($refid);
-		$comment->anonymous = 1;
-		if (preg_match('/^<!-- \{FORMAT:(.*)\} -->/i', $comment->content, $matches))
-		{
-			$format = strtolower(trim($matches[1]));
-			switch ($format)
-			{
-				case 'html':
-					$comment->content = '<!-- {FORMAT:HTML} --><span class="warning">' . $msg . '</span>';
-				break;
+		$comment->state = 1;
+		$comment->store();
 
-				case 'wiki':
-				default:
-					$comment->content = '<!-- {FORMAT:WIKI} -->[[Span(' . $msg . ', class="warning")]]';
-				break;
-			}
-		}
-		else
+		return '';
+	}
+
+	/**
+	 * Mark an item as deleted
+	 *
+	 * @param      string $refid    ID of the database table row
+	 * @param      string $parent   If the element has a parent element
+	 * @param      string $category Element type (determines table to look in)
+	 * @param      string $message  If the element has a parent element
+	 * @return     string
+	 */
+	public function deleteReportedItem($refid, $parent, $category, $message)
+	{
+		if (!$this->_canHandle($category))
 		{
-			$comment->content = '[[Span(' . $msg . ', class="warning")]]';
+			return null;
 		}
+
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'tables' . DS . 'comment.php');
+
+		$database = JFactory::getDBO();
+
+		$comment = new BlogTableComment($database);
+		$comment->load($refid);
+		$comment->state = 2;
 		$comment->store();
 
 		return '';

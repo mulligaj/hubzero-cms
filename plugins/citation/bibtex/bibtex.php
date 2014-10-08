@@ -31,43 +31,35 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
 jimport('joomla.filesystem.file');
 
 /**
  * Citations plugin class for bibtex
  */
-class plgCitationBibtex extends JPlugin
+class plgCitationBibtex extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return file type
-	 * 
+	 *
 	 * @return     string HTML
 	 */
 	public function onImportAcceptedFiles()
 	{
-		return '.bib <small>(BibTex File)</small>';
+		return '.bib <small>(' . JText::_('PLG_CITATION_BIBTEX_FILE') . ')</small>';
 	}
 
 	/**
 	 * Short description for 'onImport'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      array $file Parameter description (if any) ...
 	 * @return     array Return description (if any) ...
 	 */
@@ -80,12 +72,12 @@ class plgCitationBibtex extends JPlugin
 		$file_info = pathinfo($file['name']);
 
 		//make sure we have a .bib file
-		if ($active != $file_info['extension']) 
+		if ($active != $file_info['extension'])
 		{
 			return;
 		}
 
-		//include bibtex file 
+		//include bibtex file
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_citations' . DS . 'helpers' . DS . 'BibTex.php');
 
 		//create bibtex object
@@ -101,10 +93,10 @@ class plgCitationBibtex extends JPlugin
 		$citations = $bibtex->data;
 
 		//fix authors
-		for ($i=0;$i<count($citations); $i++) 
+		for ($i=0;$i<count($citations); $i++)
 		{
 			$auths = $citations[$i]['author'];
-			foreach ($auths as $a) 
+			foreach ($auths as $a)
 			{
 				$authors[] = $a['last'] . ' ' . $a['jr'] . ', ' . $a['first'];
 			}
@@ -116,16 +108,16 @@ class plgCitationBibtex extends JPlugin
 		$final = array();
 
 		//check for duplicates
-		for ($i = 0; $i < count($citations); $i++) 
+		for ($i = 0; $i < count($citations); $i++)
 		{
 			$duplicate = $this->checkDuplicateCitation($citations[$i]);
 
-			if ($duplicate) 
+			if ($duplicate)
 			{
 				$citations[$i]['duplicate'] = $duplicate;
 				$final['attention'][] = $citations[$i];
-			} 
-			else 
+			}
+			else
 			{
 				$citations[$i]['duplicate'] = 0;
 				$final['no_attention'][] = $citations[$i];
@@ -137,18 +129,18 @@ class plgCitationBibtex extends JPlugin
 
 	/**
 	 * Short description for 'checkDuplicateCitation'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      array $citation Parameter description (if any) ...
 	 * @return     integer Return description (if any) ...
 	 */
 	protected function checkDuplicateCitation($citation)
 	{
 		//vars
-		$title = ''; 
-		$doi   = ''; 
-		$isbn  = ''; 
+		$title = '';
+		$doi   = '';
+		$isbn  = '';
 		$match = 0;
 
 		//default percentage to match title
@@ -167,7 +159,7 @@ class plgCitationBibtex extends JPlugin
 		$db = JFactory::getDBO();
 
 		//query
-		$sql = "SELECT id, title, doi, isbn FROM #__citations";
+		$sql = "SELECT id, title, doi, isbn FROM `#__citations`";
 
 		//set the query
 		$db->setQuery($sql);
@@ -176,7 +168,7 @@ class plgCitationBibtex extends JPlugin
 		$result = $db->loadObjectList();
 
 		//loop through all current citations
-		foreach ($result as $r) 
+		foreach ($result as $r)
 		{
 			$id    = $r->id;
 			$title = $r->title;
@@ -184,14 +176,14 @@ class plgCitationBibtex extends JPlugin
 			$isbn  = $r->isbn;
 
 			//direct matches on doi
-			if ($doi == $citation['doi'] && $doi != '') 
+			if ($doi == $citation['doi'] && $doi != '')
 			{
 				$match = $id;
 				break;
 			}
 
 			//direct matches on isbn
-			if ($isbn == $citation['isbn'] && $isbn != '') 
+			if ($isbn == $citation['isbn'] && $isbn != '')
 			{
 				$match = $id;
 				break;
@@ -199,7 +191,7 @@ class plgCitationBibtex extends JPlugin
 
 			//match titles based on percect param
 			similar_text($title, $citation['title'], $similar);
-			if ($similar >= $title_match) 
+			if ($similar >= $title_match)
 			{
 				$match = $id;
 				break;

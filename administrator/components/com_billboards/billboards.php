@@ -33,50 +33,37 @@ defined('_JEXEC') or die('Restricted access');
 
 $option = 'com_billboards';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	// Set access levels
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect( 'index.php', JText::_('ALERTNOTAUTH') );
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include needed tables and controller
-require_once(JPATH_ROOT.DS.'administrator'.DS.'components'.DS.$option.DS.'tables'.DS.'billboard.php');
-require_once(JPATH_ROOT.DS.'administrator'.DS.'components'.DS.$option.DS.'tables'.DS.'collection.php');
-require_once(JPATH_ROOT.DS.'administrator'.DS.'components'.DS.$option.DS.'helpers'.DS.'html.php');
-require_once(JPATH_ROOT.DS.'administrator'.DS.'components'.DS.$option.DS.'controller.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'billboard.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'collection.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'html.php');
 
-$task = 'billboards';
+$controllerName = JRequest::getCmd('controller', 'billboards');
+if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php'))
+{
+	$controllerName = 'billboards';
+}
 
 JSubMenuHelper::addEntry(
-	JText::_('Billboards'),
-	'index.php?option=com_billboards&task=billboards',
-	$task == 'billboards'
+	JText::_('COM_BILLBOARDS'),
+	'index.php?option=com_billboards&controller=billboards',
+	$controllerName == 'billboards'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Collections'),
-	'index.php?option=com_billboards&task=collections',
-	$task == 'collections'
+	JText::_('COM_BILLBOARDS_COLLECTIONS'),
+	'index.php?option=com_billboards&controller=collections',
+	$controllerName == 'collections'
 );
+
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
+$controllerName = 'BillboardsController' . ucfirst($controllerName);
 
 // Initiate controller
-$controller = new BillboardsController();
+$controller = new $controllerName();
 $controller->execute();
 $controller->redirect();

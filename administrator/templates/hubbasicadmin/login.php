@@ -28,42 +28,35 @@
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-
 // no direct access
 defined('_JEXEC') or die;
-
-jimport('joomla.filesystem.file');
 
 $app = JFactory::getApplication();
 $doc = JFactory::getDocument();
 
 // Load CSS
-$doc->addStyleSheet('templates/'.$this->template.'/css/login.css');
-if ($this->params->get('theme') && $this->params->get('theme') != 'gray') {
+$doc->addStyleSheet('templates/' . $this->template . '/css/login.css');
+if ($this->params->get('theme') && $this->params->get('theme') != 'gray')
+{
 	$doc->addStyleSheet('templates/' . $this->template . '/css/themes/' . $this->params->get('theme') . '.css');
 }
 
 // Load language direction CSS
-if ($this->direction == 'rtl') {
-	$doc->addStyleSheet('templates/'.$this->template.'/css/common/rtl.css');
+if ($this->direction == 'rtl')
+{
+	$doc->addStyleSheet('templates/' . $this->template . '/css/common/rtl.css');
 }
 
 $browser = new \Hubzero\Browser\Detector();
 $b = $browser->name();
 $v = $browser->major();
-
-$jv = 'j15';
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$jv = 'j25';
-}
 ?>
 <!DOCTYPE html>
 <!--[if lt IE 7 ]> <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie6"> <![endif]-->
 <!--[if IE 7 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie7"> <![endif]-->
 <!--[if IE 8 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie8"> <![endif]-->
 <!--[if IE 9 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie9"> <![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="<?php echo $jv . ' ' . $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="j25 <?php echo $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
 	<head>
 		<jdoc:include type="head" />
 <?php if ($b == 'firefox' && intval($v) < 4) { ?>
@@ -78,15 +71,15 @@ if (version_compare(JVERSION, '1.6', 'ge'))
 			<script src="templates/<?php echo $this->template; ?>/js/html5.js" type="text/javascript"></script>
 		<![endif]-->
 		<script type="text/javascript">
-			function keepAlive() {
-				if (MooTools.version == '1.11') {
-					var myAjax = new Ajax('index.php', {method: 'get'}).request();
-				} else {
-					var myAjax = new Request({method: "get", url: "index.php"}).send();
-				}
-			}
-			window.addEvent('domready', function () {
-				keepAlive.periodical(3540000);
+			jQuery(document).ready(function($){
+				(function worker() {
+					$.ajax({
+						url: 'index.php',
+						complete: function() {
+							setTimeout(worker, 3540000);
+						}
+					});
+				})();
 				document.getElementById('form-login').username.select();
 				document.getElementById('form-login').username.focus();
 			});
@@ -98,7 +91,7 @@ if (version_compare(JVERSION, '1.6', 'ge'))
 			<h1><a href="<?php echo JURI::root(); ?>"><?php echo $app->getCfg('sitename'); ?></a></h1>
 			<div class="clr"></div>
 		</header><!-- / header -->
-		
+
 		<div id="wrap">
 			<section id="component-content">
 				<div id="toolbar-box">

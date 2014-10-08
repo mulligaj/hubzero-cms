@@ -33,45 +33,41 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 switch ($this->count)
 {
-	case 0: $cls = 'first';  break;
-	case 1: $cls = 'second'; break;
-	case 2: $cls = 'third';  break;
-	case 3: $cls = 'fourth'; break;
-}
-
-//how many columns are we showing
-switch ($this->columns)
-{
-	case 2: $columns = 'two';   break;
-	case 3: $columns = 'three'; break;
-	case 4: $columns = 'four';  break;
+	case 0: $cls = 'span4';  break;
+	case 1: $cls = 'span4'; break;
+	case 2: $cls = 'span4 omega'; break;
 }
 ?>
-<div class="<?php echo $columns; ?> columns <?php echo $cls; ?>">
-	<div class="course-list">
-		<div class="details">
-			<h3>
-				<a href="<?php echo JRoute::_($this->course->link()); ?>">
-					<?php echo $this->escape(stripslashes($this->course->get('title'))); ?>
-				</a>
-			</h3>
-		<?php if ($this->course->get('blurb')) { ?>
-			<p>
-				<?php echo \Hubzero\Utility\String::truncate($this->escape(stripslashes($this->course->get('blurb'))), 150); ?>
-			</p>
-		<?php } ?>
-		<?php if ($this->course->isManager()) { ?>
-			<span class="status manager">Manager</span>
-		<?php } ?>
-		<?php if ($this->course->get('matches')) { ?>
-			<ol class="tags">
-			<?php foreach ($this->course->get('matches') as $t) { ?>
-				<li>
-					<a rel="tag" href="<?php echo JRoute::_('index.php?option=com_tags&tag=' . $gt->normalize($t)); ?>"><?php echo $this->escape(stripslashes($t)); ?></a>
-				</li>
+<div class="col <?php echo $cls; ?>">
+	<div class="course">
+		<a href="<?php echo JRoute::_($this->course->link()); ?>">
+			<div class="course-details">
+				<div class="course-identity">
+					<?php if ($logo = $this->course->logo()) { ?>
+						<img src="<?php echo $logo; ?>" alt="<?php echo $this->escape($this->course->get('title')); ?>" />
+					<?php } else { ?>
+						<span></span>
+					<?php } ?>
+
+					<?php if ($this->course->get('rating', 0) > 4) { ?>
+					<div>
+						<strong><?php echo JText::_('COM_COURSES_TOP_RATED_COURSE'); ?></strong> <span class="rating">&#x272D;&#x272D;&#x272D;&#x272D;&#x272D;</span>
+					</div>
+					<?php } else if ($this->course->get('popularity', 0) > 7) { ?>
+					<div>
+						<strong><?php echo JText::_('COM_COURSES_POPULAR_COURSE'); ?></strong> <span class="popularity">&#xf091;</span>
+					</div>
+					<?php } ?>
+				</div>
+				<h3 class="course-title">
+					<?php echo $this->escape($this->course->get('title')); ?>
+				</h3>
+			<?php if ($this->course->get('blurb')) { ?>
+				<p class="course-description">
+					<?php echo \Hubzero\Utility\String::truncate($this->escape($this->course->get('blurb')), 130); ?>
+				</p>
 			<?php } ?>
-			</ol>
-		<?php } ?>
-		</div>
+			</div>
+		</a>
 	</div>
 </div>

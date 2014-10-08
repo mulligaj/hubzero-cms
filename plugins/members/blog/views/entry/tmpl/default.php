@@ -35,6 +35,9 @@ $entry_year  = substr($this->row->get('publish_up'), 0, 4);
 $entry_month = substr($this->row->get('publish_up'), 5, 2);
 
 $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=blog';
+
+$this->css()
+     ->js();
 ?>
 
 <ul id="page_options">
@@ -52,56 +55,28 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 	</li>
 </ul>
 
-<div class="entry-container">
-	<div class="aside">
-		<?php 
-		$limit = $this->filters['limit']; 
-		$this->filters['limit'] = 5;
-		?>
-		<div class="container blog-popular-entries">
-			<h4><?php echo JText::_('PLG_MEMBERS_BLOG_POPULAR_ENTRIES'); ?></h4>
-		<?php if ($popular = $this->model->entries('popular', $this->filters)) { ?>
-			<ol>
-			<?php foreach ($popular as $row) { ?>
-				<li>
-					<a href="<?php echo JRoute::_($row->link()); ?>">
-						<?php echo $this->escape(stripslashes($row->get('title'))); ?>
-					</a>
-				</li>
-			<?php } ?>
-			</ol>
-		<?php } else { ?>
-			<p><?php echo JText::_('PLG_MEMBERS_BLOG_NO_ENTRIES_FOUND'); ?></p>
-		<?php } ?>
-		</div><!-- / .blog-popular-entries -->
-
-		<div class="container blog-recent-entries">
-			<h4><?php echo JText::_('PLG_MEMBERS_BLOG_RECENT_ENTRIES'); ?></h4>
-		<?php if ($recent = $this->model->entries('recent', $this->filters)) { ?>
-			<ol>
-			<?php foreach ($recent as $row) { ?>
-				<li>
-					<a href="<?php echo JRoute::_($row->link()); ?>">
-						<?php echo $this->escape(stripslashes($row->get('title'))); ?>
-					</a>
-				</li>
-			<?php } ?>
-			</ol>
-		<?php } else { ?>
-			<p><?php echo JText::_('PLG_MEMBERS_BLOG_NO_ENTRIES_FOUND'); ?></p>
-		<?php } ?>
-		</div><!-- / .blog-recent-entries -->
-		<?php
-		$this->filters['limit'] = $limit; 
-		?>
-	</div><!-- /.aside -->
-
+<section class="main section entry-container">
 	<div class="subject">
 		<?php if ($this->getError()) : ?>
 			<p class="error"><?php echo $this->getError(); ?></p>
 		<?php endif; ?>
-	
-		<div class="entry">
+		<?php
+			$cls = '';
+
+			if (!$this->row->isAvailable())
+			{
+				$cls = ' pending';
+			}
+			if ($this->row->ended())
+			{
+				$cls = ' expired';
+			}
+			if ($this->row->get('state') == 0)
+			{
+				$cls = ' private';
+			}
+		?>
+		<div class="entry<?php echo $cls; ?>">
 			<h2 class="entry-title">
 				<?php echo $this->escape(stripslashes($this->row->get('title'))); ?>
 			</h2>
@@ -143,37 +118,71 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 					<a class="edit" href="<?php echo JRoute::_($this->row->link('edit')); ?>" title="<?php echo JText::_('PLG_MEMBERS_BLOG_EDIT'); ?>">
 						<span><?php echo JText::_('PLG_MEMBERS_BLOG_EDIT'); ?></span>
 					</a>
-					<a class="delete" href="<?php echo JRoute::_($this->row->link('delete')); ?>" title="<?php echo JText::_('PLG_MEMBERS_BLOG_DELETE'); ?>">
+					<a class="delete" data-confirm="<?php echo JText::_('PLG_MEMBERS_BLOG_CONFIRM_DELETE'); ?>" href="<?php echo JRoute::_($this->row->link('delete')); ?>" title="<?php echo JText::_('PLG_MEMBERS_BLOG_DELETE'); ?>">
 						<span><?php echo JText::_('PLG_MEMBERS_BLOG_DELETE'); ?></span>
 					</a>
 				</dd>
 			<?php } ?>
 			</dl>
-		
+
 			<div class="entry-content">
 				<?php echo $this->row->content('parsed'); ?>
 				<?php echo $this->row->tags('cloud'); ?>
 			</div>
 		</div>
 	</div><!-- /.subject -->
-	<div class="clear"></div>
+	<aside class="aside">
+		<?php
+		$limit = $this->filters['limit'];
+		$this->filters['limit'] = 5;
+		?>
+		<div class="container blog-popular-entries">
+			<h4><?php echo JText::_('PLG_MEMBERS_BLOG_POPULAR_ENTRIES'); ?></h4>
+		<?php if ($popular = $this->model->entries('popular', $this->filters)) { ?>
+			<ol>
+			<?php foreach ($popular as $row) { ?>
+				<li>
+					<a href="<?php echo JRoute::_($row->link()); ?>">
+						<?php echo $this->escape(stripslashes($row->get('title'))); ?>
+					</a>
+				</li>
+			<?php } ?>
+			</ol>
+		<?php } else { ?>
+			<p><?php echo JText::_('PLG_MEMBERS_BLOG_NO_ENTRIES_FOUND'); ?></p>
+		<?php } ?>
+		</div><!-- / .blog-popular-entries -->
 
-	<?php if ($this->row->get('allow_comments')) { ?>
-		<div class="aside aside-below">
-			<p>
-				<a class="add btn" href="#post-comment">
-					<?php echo JText::_('PLG_MEMBERS_BLOG_ADD_A_COMMENT'); ?>
-				</a>
-			</p>
-		</div><!-- / .aside -->
-	
-		<div class="subject below">
+		<div class="container blog-recent-entries">
+			<h4><?php echo JText::_('PLG_MEMBERS_BLOG_RECENT_ENTRIES'); ?></h4>
+		<?php if ($recent = $this->model->entries('recent', $this->filters)) { ?>
+			<ol>
+			<?php foreach ($recent as $row) { ?>
+				<li>
+					<a href="<?php echo JRoute::_($row->link()); ?>">
+						<?php echo $this->escape(stripslashes($row->get('title'))); ?>
+					</a>
+				</li>
+			<?php } ?>
+			</ol>
+		<?php } else { ?>
+			<p><?php echo JText::_('PLG_MEMBERS_BLOG_NO_ENTRIES_FOUND'); ?></p>
+		<?php } ?>
+		</div><!-- / .blog-recent-entries -->
+		<?php
+		$this->filters['limit'] = $limit;
+		?>
+	</aside><!-- /.aside -->
+</section>
+
+<?php if ($this->row->get('allow_comments')) { ?>
+	<section class="section below">
+		<div class="subject">
 			<h3>
-				<a name="comments"></a>
 				<?php echo JText::_('PLG_MEMBERS_BLOG_COMMENTS_HEADER'); ?>
 			</h3>
 			<?php if ($this->row->comments('count') > 0) { ?>
-				<?php 
+				<?php
 					$this->view('_list', 'comments')
 					     ->set('parent', 0)
 					     ->set('cls', 'odd')
@@ -192,7 +201,6 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 			<?php } ?>
 
 			<h3>
-				<a name="post-comment"></a>
 				<?php echo JText::_('Post a comment'); ?>
 			</h3>
 			<form method="post" action="<?php echo JRoute::_($this->row->link()); ?>" id="commentform">
@@ -200,7 +208,7 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 					<?php
 					$jxuser = \Hubzero\User\Profile::getInstance($juser->get('id'));
 					$anon = 1;
-					if (!$juser->get('guest')) 
+					if (!$juser->get('guest'))
 					{
 						$anon = 0;
 					}
@@ -210,13 +218,13 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 				<fieldset>
 					<?php
 						$replyto = $this->row->comment(JRequest::getInt('reply', 0));
-						if ($replyto->exists()) 
+						if ($replyto->exists())
 						{
 							$name = JText::_('PLG_MEMBERS_BLOG_ANONYMOUS');
-							if (!$replyto->get('anonymous')) 
+							if (!$replyto->get('anonymous'))
 							{
 								$xuser = \Hubzero\User\Profile::getInstance($replyto->get('created_by'));
-								if (is_object($xuser) && $xuser->get('name')) 
+								if (is_object($xuser) && $xuser->get('name'))
 								{
 									$name = '<a href="'.JRoute::_('index.php?option=com_members&id=' . $replyto->get('created_by')) . '">' . $this->escape(stripslashes($xuser->get('name'))) . '</a>';
 								}
@@ -224,10 +232,10 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 					?>
 					<blockquote cite="c<?php echo $replyto->get('id'); ?>">
 						<p>
-							<strong><?php echo $name; ?></strong> 
-							<span class="comment-date-at"><?php echo JText::_('PLG_MEMBERS_BLOG_AT'); ?></span> 
-							<span class="time"><time datetime="<?php echo $replyto->get('created'); ?>"><?php echo $replyto->created('time'); ?></time></span> 
-							<span class="comment-date-on"><?php echo JText::_('PLG_MEMBERS_BLOG_ON'); ?></span> 
+							<strong><?php echo $name; ?></strong>
+							<span class="comment-date-at"><?php echo JText::_('PLG_MEMBERS_BLOG_AT'); ?></span>
+							<span class="time"><time datetime="<?php echo $replyto->get('created'); ?>"><?php echo $replyto->created('time'); ?></time></span>
+							<span class="comment-date-on"><?php echo JText::_('PLG_MEMBERS_BLOG_ON'); ?></span>
 							<span class="date"><time datetime="<?php echo $replyto->get('created'); ?>"><?php echo $replyto->created('date'); ?></time></span>
 						</p>
 						<p><?php echo \Hubzero\Utility\String::truncate(stripslashes($replyto->get('content')), 300); ?></p>
@@ -239,11 +247,11 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 						Your <?php echo ($replyto->exists()) ? 'reply' : 'comments'; ?>: <span class="required"><?php echo JText::_('PLG_MEMBERS_BLOG_REQUIRED'); ?></span>
 						<?php
 						if (!$juser->get('guest')) {
-							echo JFactory::getEditor()->display('comment[content]', '', '', '', 40, 15, false, 'commentcontent');
-						} else { 
+							echo JFactory::getEditor()->display('comment[content]', '', '', '', 40, 15, false, 'commentcontent', null, null, array('class' => 'minimal no-footer'));
+						} else {
 						?>
 						<p class="warning">
-							<?php echo JText::sprintf('PLG_MEMBERS_BLOG_MUST_LOG_IN', '<a href="/login?return=' . base64_encode(JRoute::_($this->row->link() . '#post-comment', false, true)) . '">' . JText::_('PLG_MEMBERS_BLOG_LOG_IN') . '</a>'); ?>
+							<?php echo JText::sprintf('PLG_MEMBERS_BLOG_MUST_LOG_IN', '<a href="' . JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode(JRoute::_($this->row->link() . '#post-comment', false, true))) . '">' . JText::_('PLG_MEMBERS_BLOG_LOG_IN') . '</a>'); ?>
 						</p>
 						<?php } ?>
 					</label>
@@ -264,6 +272,7 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 					<input type="hidden" name="comment[parent]" value="<?php echo $replyto->get('id'); ?>" />
 					<input type="hidden" name="comment[created]" value="" />
 					<input type="hidden" name="comment[created_by]" value="<?php echo $juser->get('id'); ?>" />
+					<input type="hidden" name="comment[state]" value="1" />
 					<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 					<input type="hidden" name="active" value="blog" />
 					<input type="hidden" name="task" value="view" />
@@ -280,5 +289,12 @@ $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNu
 				</fieldset>
 			</form>
 		</div><!-- /.subject -->
-	<?php } ?>
-</div><!-- /.entry-container -->
+		<aside class="aside aside-below">
+			<p>
+				<a class="add btn" href="#post-comment">
+					<?php echo JText::_('PLG_MEMBERS_BLOG_ADD_A_COMMENT'); ?>
+				</a>
+			</p>
+		</aside><!-- / .aside -->
+	</section>
+<?php } ?>

@@ -32,16 +32,17 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = CitationsHelper::getActions('sponsor');
 
-JToolBarHelper::title(JText::_('Citation Sponsors'), 'citation.png');
-if ($canDo->get('core.create')) 
+JToolBarHelper::title(JText::_('CITATIONS') . ': ' . JText::_('CITATION_SPONSORS'), 'citation.png');
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
+JToolBarHelper::spacer();
+JToolBarHelper::help('sponsors');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
-	var form = $('adminForm');
 	if (pressbutton == 'cancel') {
 		submitform(pressbutton);
 		return;
@@ -51,15 +52,15 @@ function submitbutton(pressbutton)
 }
 </script>
 
-<form action="index.php" method="post" name="adminForm">
-	<table class="adminlist" summary="<?php echo JText::_('TABLE_SUMMARY'); ?>">
+<form action="index.php" method="post" name="adminForm" id="adminForm">
+	<table class="adminlist">
 		<thead>
 			<tr>
-				<th width="5%"><?php echo JText::_('ID'); ?></th>
-				<th><?php echo JText::_('Sponsor'); ?></th>
-				<th><?php echo JText::_('Link'); ?></th>
-				<th><?php echo JText::_('Image'); ?></th>
-				<th><?php echo JText::_('Actions'); ?></th>
+				<th><?php echo JText::_('CITATION_ID'); ?></th>
+				<th><?php echo JText::_('CITATION_SPONSORS'); ?></th>
+				<th><?php echo JText::_('CITATION_SPONSORS_LINK'); ?></th>
+				<th><?php echo JText::_('CITATION_SPONSORS_IMAGE'); ?></th>
+				<th><?php echo JText::_('CITATION_SPONSORS_ACTIONS'); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -71,18 +72,18 @@ function submitbutton(pressbutton)
 						<td><?php echo $sponsor['link']; ?></td>
 						<td><?php echo $sponsor['image']; ?></td>
 						<td>
-<?php if ($canDo->get('core.edit')) { ?>
-							<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=edit&id[]=' . $sponsor['id']); ?>">Edit</a> | 
-<?php } ?>
-<?php if ($canDo->get('core.delete')) { ?>
-							<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=remove&id[]=' . $sponsor['id']); ?>">Delete</a>
-<?php } ?>
+							<?php if ($canDo->get('core.edit')) { ?>
+								<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=edit&id=' . $sponsor['id']); ?>"><?php echo JText::_('JACTION_EDIT'); ?></a> |
+							<?php } ?>
+							<?php if ($canDo->get('core.delete')) { ?>
+								<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=remove&id=' . $sponsor['id']); ?>"><?php echo JText::_('JACTION_DELETE'); ?></a>
+							<?php } ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>
 			<?php else: ?>
 				<tr>
-					<td colspan="5">There are currently no citation sponsors</td>
+					<td colspan="5"><?php echo JText::_('COM_CITATIONS_SPONSORS_NO_RESULTS'); ?></td>
 				</tr>
 			<?php endif; ?>
 		</tbody>

@@ -31,46 +31,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Tags plugin class for questions and answers
  */
-class plgTagsAnswers extends JPlugin
+class plgTagsAnswers extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Record count
-	 * 
-	 * @var integer
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	private $_total = null;
-
-	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
-
-	/**
-	 * Return the name of the area this plugin retrieves records for
-	 * 
-	 * @return     array
-	 */
-	public function onTagAreas()
-	{
-		$areas = array(
-			'answers' => JText::_('PLG_TAGS_ANSWERS')
-		);
-		return $areas;
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Retrieve records for items tagged with specific tags
@@ -84,19 +55,17 @@ class plgTagsAnswers extends JPlugin
 	 */
 	public function onTagView($tags, $limit=0, $limitstart=0, $sort='', $areas=null)
 	{
-		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas) && $limit) 
-		{
-			if (!isset($areas['answers']) && !in_array('answers', $areas)) 
-			{
-				return array();
-			}
-		}
+		$response = array(
+			'name'    => $this->_name,
+			'title'   => JText::_('PLG_TAGS_ANSWERS'),
+			'total'   => 0,
+			'results' => null,
+			'sql'     => ''
+		);
 
-		// Do we have a member ID?
-		if (empty($tags)) 
+		if (empty($tags))
 		{
-			return array();
+			return $response;
 		}
 
 		$database = JFactory::getDBO();
@@ -129,44 +98,20 @@ class plgTagsAnswers extends JPlugin
 		}
 		$order_by .= ($limit != 'all') ? " LIMIT $limitstart,$limit" : "";
 
-		// Execute the query
-		if (!$limit) 
-		{
-			$database->setQuery($f_count . $f_from . ") AS f");
-			$this->_total = $database->loadResult();
-			return $this->_total;
-		} 
-		else 
-		{
-			if (count($areas) > 1) 
-			{
-				return $f_fields . $f_from;
-			}
+		$database->setQuery($f_count . $f_from . ") AS f");
+		$response['total'] = $database->loadResult();
 
-			if ($this->_total != null) 
-			{
-				if ($this->_total == 0) 
-				{
-					return array();
-				}
-			}
-
+		if ($areas && $areas == $response['name'])
+		{
 			$database->setQuery($f_fields . $f_from .  $order_by);
-			$rows = $database->loadObjectList();
-
-			// Did we get any results?
-			if ($rows) 
-			{
-				// Loop through the results and set each item's HREF
-				foreach ($rows as $key => $row)
-				{
-					$rows[$key]->href = JRoute::_('index.php?option=com_answers&task=question&id=' . $row->id);
-				}
-			}
-
-			// Return the results
-			return $rows;
+			$response['results'] = $database->loadObjectList();
 		}
+		else
+		{
+			$response['sql'] = $f_fields . $f_from;
+		}
+
+		return $response;
 	}
 
 	/**
@@ -177,25 +122,26 @@ class plgTagsAnswers extends JPlugin
 	 */
 	public static function out($row)
 	{
-		if (strstr($row->href, 'index.php')) 
+		$row->href = JRoute::_('index.php?option=com_answers&task=question&id=' . $row->id);
+		if (strstr($row->href, 'index.php'))
 		{
 			$row->href = JRoute::_($row->href);
 		}
 		$juri = JURI::getInstance();
 
-		$html  = "\t" . '<li class="resource">' . "\n";
-		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '">' . stripslashes($row->title) . '</a></p>' . "\n";
+		$html  = "\t" . '<li class="answer">' . "\n";
+		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '">' . strip_tags(stripslashes($row->title)) . '</a></p>' . "\n";
 		$html .= "\t\t" . '<p class="details">';
-		if ($row->state == 1) 
+		if ($row->state == 1)
 		{
 			$html .= JText::_('PLG_TAGS_ANSWERS_OPEN');
-		} 
-		else 
+		}
+		else
 		{
 			$html .= JText::_('PLG_TAGS_ANSWERS_CLOSED');
 		}
 		$html .= ' <span>|</span> ' . JText::_('PLG_TAGS_ANSWERS_RESPONSES') . ' ' . $row->rcount . '</p>' . "\n";
-		if ($row->ftext) 
+		if ($row->ftext)
 		{
 			$html .= "\t\t" . \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::clean(stripslashes($row->ftext)), 200) . "\n";
 		}

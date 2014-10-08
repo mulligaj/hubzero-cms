@@ -5,97 +5,180 @@
  * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-//-----------------------------------------------------------
-//  Ensure we have our namespace
-//-----------------------------------------------------------
+//----------------------------------------------------------
+// Establish the namespace if it doesn't exist
+//----------------------------------------------------------
 if (!HUB) {
-	var HUB = {};
+	var HUB = {
+		Modules: {}
+	};
+} else if (!HUB.Modules) {
+	HUB.Modules = {};
 }
 
-//-------------------------------------------------------------
-// My sessions module
-//-------------------------------------------------------------
+if (!jq) {
+	var jq = $;
+}
 
-var MySessionsTabs = new Class({
+//----------------------------------------------------------
+// My Sessions Module
+//----------------------------------------------------------
+HUB.Modules.MySessions = {
+	jQuery: jq,
 	
-	initialize: function(element, options) {
-		this.options = Object.extend({
-			changeTransition:	Fx.Transitions.Bounce.easeOut,
-			duration:			1000,
-			mouseOverClass:		'active',
-			activateOnLoad:		'first'
-		}, options || {});
-		
-		this.el = $(element);
-		this.elid = element;
-		
-		this.titles = $$('#' + this.elid + ' ul.session_tab_titles li');
-		this.panels = $$('#' + this.elid + ' .session_tab_panel');
-		
-		this.titles.each(function(item) {
-			item.addEvent('click', function(){
-					item.removeClass(this.options.mouseOverClass);
-					this.activate(item);
-				}.bind(this)
-			);
-			
-			item.addEvent('mouseover', function() {
-				if (item != this.activeTitle) {
-					item.addClass(this.options.mouseOverClass);
-				}
-			}.bind(this));
-			
-			item.addEvent('mouseout', function() {
-				if (item != this.activeTitle) {
-					item.removeClass(this.options.mouseOverClass);
-				}
-			}.bind(this));
-		}.bind(this));
-	},
-	
-	activate: function(tab) {
-		if ($type(tab) == 'string') {
-			myTab = $$('#' + this.elid + ' ul li').filterByAttribute('title', '=', tab)[0];
-			tab = myTab;
-		}
-		
-		if ($type(tab) == 'element') {
-			var newTab = tab.getProperty('title');
-			this.panels.removeClass('active');
-			this.activePanel = this.panels.filterById(newTab)[0];
-			this.activePanel.addClass('active');
-			this.titles.removeClass('active');
-			
-			tab.addClass('active');
-			
-			this.activeTitle = tab;
-		}
-	}
-});
-
-HUB.Mod_MySessions = {
 	initialize: function() {
-		HUB.Mod_MySessions.diskMonitor();
-		MTT = new MySessionsTabs('mySessionsTabs', {changeTransition: 'none', mouseOverClass: 'over'});
+		//session snapshots
+		HUB.Modules.MySessions.sessionSnapshots();
+		
+		//terminate confirm?
+		HUB.Modules.MySessions.confirmTerminate();
+			
+		//collapsable sessions
+		HUB.Modules.MySessions.collapsableSessions();
+	},
+	
+	sessionSnapshots: function() {
+		var $ = this.jQuery;
+
+		this.sessionSnapshotImages(false);
+		
+		//show session snapshots in lightbox
+		$('.session-snapshot a').on('click',function(event) {
+			
+			//get buttons
+			var buttons = $(this).parents('.session-details').find('.session-buttons').html();
+			
+			event.preventDefault();
+			$.fancybox({
+				width: 800,
+				height: 600,
+				autoSize: false,
+				scrolling: 'no',
+				title: $(this).attr("title"),
+				content:'<div id="screenshot-popup"> \
+							<img style="display:block;" src="' + $(this).attr("href") + '" /> \
+							<div id="launchbar"> \
+								<div class="session-title">' + $(this).attr("title") + '</div> \
+								<div class="session-buttons">' + buttons + '</div> \
+							</div> \
+						</div>'
+			});
+		});
 	},
 
-	diskMonitor: function() {
-		if ($('diskusage')) {
-			function fetch() {			
-				new Ajax('index.php?option=com_tools&task=diskusage&no_html=1&msgs=1',{
-					'method' : 'get',
-					'update' : $('diskusage')
-				}).request();
+	sessionSnapshotImages: function(retry)
+	{
+		var $      = this.jQuery
+			module = this;
+
+		$('.session').each(function(index, el) {
+			var session  = $(this),
+				snapshot = session.find('img.snapshot-main'),
+				source   = snapshot.attr('data-src');
+
+			if (snapshot.length && source != '')
+			{
+				$.ajax({
+					type: 'get',
+					url: source,
+					success: function()
+					{
+						session
+							.find('img.snapshot')
+							.removeAttr('data-src')
+							.addClass('refreshable')
+							.attr('src', source)
+							.parent().addClass('loaded');
+					},
+					error: function(jqXHR, status, error)
+					{
+						setTimeout(function(){
+							module.sessionSnapshotImages(true);
+						}, 5000);
+					}
+				});
 			}
+		});
 
-			fetch.periodical(60000);
+		// refresh snapshots
+		if (!retry)
+		{
+			setInterval(function() {
+				module.refreshSessionSnapshotImages();
+			}, 60000);
 		}
+	},
+
+	refreshSessionSnapshotImages: function()
+	{
+		var $ = this.jQuery,
+			d = new Date();
+
+		// retake screenshots
+		$.ajax({
+			type: 'post',
+			url: '/api/tools/screenshots',
+			success: function()
+			{
+				$('.session').each(function(index, el) {
+					var session  = $(this),
+						snapshot = session.find('img.snapshot-main'),
+						source   = snapshot.attr('src');
+
+					if (snapshot.hasClass('refreshable'))
+					{
+						// remove old version
+							source = source.replace(/&v=\d{13}/g,'');
+
+						// set new source
+						session
+							.find('img.snapshot')
+							.attr('src', source + '&v=' + d.getTime());
+					}					
+				});
+			}
+		});
+	},
+	
+	confirmTerminate: function() {
+		var $ = this.jQuery;
+		
+		//double check terminate
+		$('.session-list').on('click', '.terminate-confirm', function(event){
+			var message = $(this).attr('title') + '?';
+			if (!confirm(message))
+			{
+				event.preventDefault();
+				return;
+			}
+		});
+	},
+	
+	collapsableSessions: function() {
+		var $ = this.jQuery;
+		
+		//collapsible session list
+		$(".session-list").on('click', '.session-title-bar', function(event) {
+			//get the clicked element
+			var element = (event.srcElement) ? event.srcElement : event.target,
+				elementClass = $(element).parent().attr('class');
+			
+			//if we didnt click the quick launch button
+			if (element.tagName != 'IMG' || (element.tagName == 'IMG' && elementClass.match(/session-title-icon/gi)))
+			{
+				//stop event
+				event.preventDefault();
+				
+				//toggle class
+				$(this).parent().toggleClass('active');
+
+				//toggle session
+				$(this).next().slideToggle('medium');
+			}
+		});
 	}
-}
+};
 
-//-------------------------------------------------------------
-// Add functions to load event
-//-------------------------------------------------------------
-
-window.addEvent('domready', HUB.Mod_MySessions.initialize);
-
+jQuery(document).ready(function($){
+	HUB.Modules.MySessions.initialize();
+});

@@ -28,7 +28,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 $default = DS . trim($this->config->get('defaultpic'), DS);
 $file = '';
 
-if ($this->row->picture) 
+if ($this->row->picture)
 {
 	// Build upload path
 	$file  = DS . trim($this->config->get('uploadpath', '/site/quotes'), DS) . DS . \Hubzero\Utility\String::pad($this->user->get('id'));
@@ -52,35 +52,37 @@ else if ($default && file_exists(JPATH_ROOT . $default))
 
 //scale if image is bigger than 120w x120h
 $num = max($ow/120, $oh/120);
-if ($num > 1) 
+if ($num > 1)
 {
 	$mw = round($ow/$num);
 	$mh = round($oh/$num);
-} 
-else 
+}
+else
 {
 	$mw = $ow;
 	$mh = $oh;
 }
+
+$this->css();
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<ul>
-		<li>
-			<a class="main-page btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
-				<?php echo JText::_('COM_FEEDBACK_MAIN'); ?>
-			</a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+	<div id="content-header-extra">
+		<ul>
+			<li>
+				<a class="main-page btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
+					<?php echo JText::_('COM_FEEDBACK_MAIN'); ?>
+				</a>
+			</li>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header><!-- / #content-header -->
 
-<div class="main section">
+<section class="main section">
 	<p class="passed"><?php echo JText::_('COM_FEEDBACK_STORY_THANKS'); ?></p>
-	
-	<table class="storybox" summary="<?php echo JText::_('COM_FEEDBACK_SUCCESS_STORY_OVERVIEW'); ?>">
+
+	<table class="storybox">
 		<tbody>
 			<tr>
 				<td><img src="<?php echo $img; ?>" width="<?php echo $mw; ?>" height="<?php echo $mh; ?>" alt="" /></td>
@@ -96,4 +98,4 @@ else
 			</tr>
 		</tbody>
 	</table>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

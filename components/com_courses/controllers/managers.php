@@ -38,7 +38,7 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Execute a task
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -50,8 +50,8 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 	}
 
 	/**
-	 * Short description for 'addmanager'
-	 * 
+	 * Add a user as a manager of a course
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -61,9 +61,9 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 
 		// Incoming member ID
 		$id = JRequest::getInt('id', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			$this->setError(JText::_('COURSES_NO_ID'));
+			$this->setError(JText::_('COM_COURSES_ERROR_MISSING_COURSE'));
 			$this->displayTask();
 			return;
 		}
@@ -105,7 +105,7 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 				// Loop through existing members and make sure the user isn't already a member
 				if (isset($managers[$uid]))
 				{
-					$this->setError(JText::sprintf('ALREADY_A_MEMBER_OF_TABLE', $mbr));
+					$this->setError(JText::sprintf('COM_COURSES_ERROR_ALREADY_A_MANAGER', $mbr));
 					continue;
 				}
 
@@ -114,7 +114,7 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 			}
 			else
 			{
-				$this->setError(JText::_('COM_COURSES_USER_NOTFOUND') . ' ' . $mbr);
+				$this->setError(JText::_('COM_COURSES_ERROR_USER_NOT_FOUND') . ' ' . $mbr);
 			}
 		}
 
@@ -127,7 +127,7 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 
 	/**
 	 * Remove one or more users from the course manager list
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -137,9 +137,9 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 
 		// Incoming member ID
 		$id = JRequest::getInt('id', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			$this->setError(JText::_('COURSES_NO_ID'));
+			$this->setError(JText::_('COM_COURSES_ERROR_MISSING_COURSE'));
 			$this->displayTask();
 			return;
 		}
@@ -171,13 +171,13 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 			}
 			else
 			{
-				$this->setError(JText::_('COM_COURSES_USER_NOTFOUND') . ' ' . $mbr);
+				$this->setError(JText::_('COM_COURSES_ERROR_USER_NOT_FOUND') . ' ' . $mbr);
 			}
 		}
 
 		if (count($users) >= count($managers))
 		{
-			$this->setError(JText::_('COM_COURSES_LAST_MANAGER'));
+			$this->setError(JText::_('COM_COURSES_ERROR_LAST_MANAGER'));
 		}
 		else
 		{
@@ -191,7 +191,7 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 
 	/**
 	 * Remove one or more users from the course manager list
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function updateTask()
@@ -201,9 +201,9 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 
 		// Incoming member ID
 		$id = JRequest::getInt('id', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			$this->setError(JText::_('COURSES_NO_ID'));
+			$this->setError(JText::_('COM_COURSES_ERROR_MISSING_COURSE'));
 			$this->displayTask();
 			return;
 		}
@@ -236,7 +236,7 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display a list of 'manager' for a specific course
-	 * 
+	 *
 	 * @param      object $profile \Hubzero\User\Profile
 	 * @return     void
 	 */
@@ -247,7 +247,7 @@ class CoursesControllerManagers extends \Hubzero\Component\SiteController
 		$this->view->course = $this->course;
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{

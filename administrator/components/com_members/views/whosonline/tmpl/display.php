@@ -52,7 +52,7 @@ foreach ($this->rows as $row)
 <table class="adminlist whosonline-summary">
 	<thead>
 		<tr>
-			<th width="50%" scope="col"><?php echo JText::_( 'Site' ); ?></th>
+			<th scope="col"><?php echo JText::_( 'Site' ); ?></th>
 			<th scope="col"><?php echo JText::_( 'Administrator' ); ?></th>
 		</tr>
 	</thead>
@@ -68,11 +68,14 @@ foreach ($this->rows as $row)
 <table class="adminlist whosonline-list">
 	<thead>
 		<tr>
+<<<<<<< HEAD
+			<th><?php echo JText::_( 'User' ); ?></th>
+			<th><?php echo JText::_( 'User Type' ); ?></th>
+			<th><?php echo JText::_( 'Location' ); ?></th>
+			<th><?php echo JText::_( 'Last Activity' ); ?></th>
+=======
 			<td class="title">
 				<strong><?php echo JText::_( 'User' ); ?></strong>
-			</td>
-			<td class="title">
-				<strong><?php echo JText::_( 'User Type' ); ?></strong>
 			</td>
 			<td class="title">
 				<strong><?php echo JText::_( 'Location' ); ?></strong>
@@ -80,24 +83,25 @@ foreach ($this->rows as $row)
 			<td class="title">
 				<strong><?php echo JText::_( 'Last Activity' ); ?></strong>
 			</td>
+>>>>>>> [COM_*][MOD_*] Audting code to use new session helper class for accessing session data which might not be stored in db.
 		</tr>
 	</thead>
 	<tbody>
-		<?php if(count($this->rows) > 0) : ?>
+		<?php if (count($this->rows) > 0) : ?>
 			<?php foreach ($this->rows as $k => $row) : ?>
 				<tr>
 					<td>
 						<?php
 							//are we authorized to edit users
 							$editAuthorized = $this->juser->authorize( 'com_users', 'manage' );
-						
+
 							//get user object
 							$juser = JUser::getInstance( $row->username );
-						
+
 							//display link if we are authorized
 							if ($editAuthorized)
 							{
-								$editLink = 'index.php?option=com_users&amp;task=edit&amp;cid[]='. $row->userid;
+								$editLink = 'index.php?option=com_members&amp;controller=members&amp;task=edit&amp;id='. $row->userid;
 								echo '<a href="' . $editLink . '" title="' . JText::_( 'Edit User' ) . '">' . $juser->get('name') . ' [' . $juser->get('username') . ']' . '</a>';
 							}
 							else
@@ -106,15 +110,18 @@ foreach ($this->rows as $row)
 							}
 						?>
 					</td>
-					<td><?php echo $row->usertype;?></td>
+<<<<<<< HEAD
+					<td><?php echo $row->usertype; ?></td>
+=======
+>>>>>>> [COM_*][MOD_*] Audting code to use new session helper class for accessing session data which might not be stored in db.
 					<td>
 						<?php
-							$clientInfo = JApplicationHelper::getClientInfo( $row->client_id );
-							echo ucfirst( $clientInfo->name );
+							$clientInfo = JApplicationHelper::getClientInfo($row->client_id);
+							echo ucfirst($clientInfo->name);
 						?>
 					</td>
 					<td>
-						<?php echo JText::sprintf( '%.1f hours ago', (time() - $row->time)/3600.0 ); ?>
+						<?php echo JText::sprintf('%.1f hours ago', (time() - $row->time)/3600.0); ?>
 					</td>
 				</tr>
 			<?php endforeach; ?>

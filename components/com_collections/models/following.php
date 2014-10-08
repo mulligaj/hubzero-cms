@@ -34,39 +34,39 @@ defined('_JEXEC') or die('Restricted access');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tables' . DS . 'following.php');
 
 /**
- * Table class for forum posts
+ * Collections model class for following something/one
  */
 class CollectionsModelFollowing extends \Hubzero\Base\Model
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CollectionsTableFollowing';
 
 	/**
 	 * CollectionsModelFollowingAbstract
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_following = null;
 
 	/**
 	 * CollectionsModelFollowingAbstract
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_follower = null;
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      mixed   $oid            Following ID, array, or object
-	 * @param      string  $following_type Type being followed [collection, member, group]
-	 * @param      integer $follower_id    Follower ID [member, group]
-	 * @param      string  $follower_type  [member, group]
-	 * @return     void
+	 *
+	 * @param   mixed   $oid            Following ID, array, or object
+	 * @param   string  $following_type Type being followed [collection, member, group]
+	 * @param   integer $follower_id    Follower ID [member, group]
+	 * @param   string  $follower_type  [member, group]
+	 * @return  void
 	 */
 	public function __construct($oid=null, $following_type=null, $follower_id=0, $follower_type='member')
 	{
@@ -90,26 +90,26 @@ class CollectionsModelFollowing extends \Hubzero\Base\Model
 	/**
 	 * Returns a reference to a CollectionsModelFollowing object
 	 *
-	 * @param      mixed   $oid            Following ID, array, or object
-	 * @param      string  $following_type Type being followed [collection, member, group]
-	 * @param      integer $follower_id    Follower ID [member, group]
-	 * @param      string  $follower_type  [member, group]
-	 * @return     object CollectionsModelFollowing
+	 * @param   mixed   $oid            Following ID, array, or object
+	 * @param   string  $following_type Type being followed [collection, member, group]
+	 * @param   integer $follower_id    Follower ID [member, group]
+	 * @param   string  $follower_type  [member, group]
+	 * @return  object  CollectionsModelFollowing
 	 */
 	static function &getInstance($oid=null, $following_type=null, $follower_id=0, $follower_type='member')
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
 		$key = $oid . '_' . $following_type . '_' . $follower_id . '_' . $follower_type;
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
-			$instances[$key] = new CollectionsModelFollowing($oid, $following_type, $follower_id, $follower_type);
+			$instances[$key] = new self($oid, $following_type, $follower_id, $follower_type);
 		}
 
 		return $instances[$key];
@@ -118,8 +118,8 @@ class CollectionsModelFollowing extends \Hubzero\Base\Model
 	/**
 	 * Return the adapter for this entry's follower,
 	 * instantiating it if it doesn't already exist
-	 * 
-	 * @return    object
+	 *
+	 * @return  object
 	 */
 	public function follower()
 	{
@@ -133,8 +133,8 @@ class CollectionsModelFollowing extends \Hubzero\Base\Model
 	/**
 	 * Return the adapter for this entry's following,
 	 * instantiating it if it doesn't already exist
-	 * 
-	 * @return    object
+	 *
+	 * @return  object
 	 */
 	public function following()
 	{
@@ -147,9 +147,9 @@ class CollectionsModelFollowing extends \Hubzero\Base\Model
 
 	/**
 	 * Get an adapter
-	 * 
-	 * @param     string $what Key name [following, follower]
-	 * @return    object
+	 *
+	 * @param   string $what Key name [following, follower]
+	 * @return  object
 	 */
 	private function _adapter($key='following')
 	{
@@ -172,8 +172,8 @@ class CollectionsModelFollowing extends \Hubzero\Base\Model
 	/**
 	 * Get a count for the specified key
 	 *
-	 * @param     string $what Key name [following, followers, collectios, posts]
-	 * @return    integer
+	 * @param   string $what Key name [following, followers, collectios, posts]
+	 * @return  integer
 	 */
 	public function count($what='following')
 	{
@@ -243,9 +243,9 @@ class CollectionsModelFollowing extends \Hubzero\Base\Model
 
 	/**
 	 * Stop following an object
-	 * 
-	 * @param      integer $id ID of record to unfollow
-	 * @return     boolean
+	 *
+	 * @param   integer $id ID of record to unfollow
+	 * @return  boolean
 	 */
 	public function unfollow($id=null)
 	{

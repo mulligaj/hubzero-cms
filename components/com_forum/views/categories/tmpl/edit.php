@@ -1,4 +1,4 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
@@ -30,15 +30,21 @@
 
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css();
+
 $juser = JFactory::getUser();
 ?>
-	<div id="content-header">
+	<header id="content-header">
 		<h2><?php echo JText::_('COM_FORUM'); ?></h2>
-	</div>
-	<div id="content-header-extra">
-		<p><a class="icon-folder categories btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>"><?php echo JText::_('All categories'); ?></a></p>
-	</div>
-	<div class="clear"></div>
+
+		<div id="content-header-extra">
+			<p>
+				<a class="icon-folder categories btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
+					<?php echo JText::_('COM_FORUM_ALL_CATEGORIES'); ?>
+				</a>
+			</p>
+		</div>
+	</header>
 
 <?php foreach ($this->notifications as $notification) { ?>
 	<p class="<?php echo $notification['type']; ?>">
@@ -46,7 +52,7 @@ $juser = JFactory::getUser();
 	</p>
 <?php } ?>
 
-	<div class="main section">
+	<section class="main section">
 		<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="post" id="hubForm">
 			<div class="explaination">
 				<p><strong><?php echo JText::_('COM_FORUM_WHAT_IS_LOCKING'); ?></strong><br />
@@ -62,7 +68,7 @@ $juser = JFactory::getUser();
 				</legend>
 
 				<label for="field-closed" id="comment-anonymous-label">
-					<input class="option" type="checkbox" name="fields[closed]" id="field-closed" value="3"<?php if ($this->category->get('closed')) { echo ' checked="checked"'; } ?> /> 
+					<input class="option" type="checkbox" name="fields[closed]" id="field-closed" value="3"<?php if ($this->category->get('closed')) { echo ' checked="checked"'; } ?> />
 					<?php echo JText::_('COM_FORUM_FIELD_CLOSED'); ?>
 				</label>
 
@@ -108,4 +114,4 @@ $juser = JFactory::getUser();
 
 			<?php echo JHTML::_('form.token'); ?>
 		</form>
-	</div><!-- / .below section -->
+	</section><!-- / .below section -->

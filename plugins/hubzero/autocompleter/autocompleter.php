@@ -31,44 +31,28 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * HUBzero plugin class for autocompletion
  */
-class plgHubzeroAutocompleter extends JPlugin
+class plgHubzeroAutocompleter extends \Hubzero\Plugin\Plugin
 {
 	/**
 	 * Flag for if scripts need to be pushed to the document or not
-	 * 
+	 *
 	 * @var boolean
 	 */
 	private $_pushscripts = true;
 
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
-
-	/**
 	 * Display the autocompleter. Defaults to multi-entry for tags
-	 * 
+	 *
 	 * @param      array $atts Attributes for setting up the autocomplete
 	 * @return     string HTML
 	 */
 	public function onGetAutocompleter($atts)
 	{
 		// Ensure we have an array
-		if (!is_array($atts)) 
+		if (!is_array($atts))
 		{
 			$atts = array();
 		}
@@ -89,81 +73,46 @@ class plgHubzeroAutocompleter extends JPlugin
 
 		$base = rtrim(JURI::getInstance()->base(true), '/');
 		$datascript = $base . '/index.php';
-		// Push some needed scripts and stylings to the template but ensure we do it only once
-		if ($this->_pushscripts) 
-		{
-			$jq = false;
-			// Is jQuery enabled?
-			if (JPluginHelper::isEnabled('system', 'jquery'))
-			{
-				// Are we on the admin side?
-				if (JFactory::getApplication()->isAdmin())
-				{
-					$datascript = $base . '/administrator/index.php';
-					// Check if jquery is enabled for the admin side
-					$plg = JPluginHelper::getPlugin('system', 'jquery');
-					if ($plg->params)
-					{
-						$paramsClass = 'JRegistry';
-						if (version_compare(JVERSION, '1.6', 'lt'))
-						{
-							$paramsClass = 'JParameter';
-						}
-						$plg->params = new JParameter($plg->params);
-						if ($plg->params->get('noconflictAdmin', 0))
-						{
-							$js = true;
-						}
-					}
-				}
-				else 
-				{
-					$jq = true;
-				}
-			}
-			$document = JFactory::getDocument();
-			//if (JPluginHelper::isEnabled('system', 'jquery'))
-			if ($jq)
-			{
-				$scripts .= '<script type="text/javascript" src="' . $base . DS . 'plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'autocompleter.jquery.js"></script>' . "\n";
-			}
-			else 
-			{
-				$scripts .= '<script type="text/javascript" src="' . $base . DS . 'plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'textboxlist.js"></script>' . "\n";
-				$scripts .= '<script type="text/javascript" src="' . $base . DS . 'plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'observer.js"></script>' . "\n";
-				$scripts .= '<script type="text/javascript" src="' . $base . DS . 'plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'autocompleter.js"></script>' . "\n";
-			}
 
+		$base = str_replace('/administrator', '', $base);
+
+		if ($opt != 'members')
+		{
+			$datascript = str_replace('/administrator', '', $datascript);
+		}
+
+		// Push some needed scripts and stylings to the template but ensure we do it only once
+		if ($this->_pushscripts)
+		{
 			$scripts .= '<script type="text/javascript">var plgAutocompleterCss = "';
-			//$scripts .= '<input type="hidden" name="plgAutocompleterCss" id="plgAutocompleterCss" value="';
 
 			$app = JFactory::getApplication();
 			$templatecss = DS . 'templates' . DS . $app->getTemplate() . DS . 'html' . DS . 'plg_hubzero_autocompleter' . DS . 'autocompleter.css';
 			$plugincss = DS . 'plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'autocompleter.css';
-			if (file_exists(JPATH_SITE . $templatecss)) 
+			if (file_exists(JPATH_SITE . $templatecss))
 			{
 				$scripts .= $base . $templatecss . '?v=' . filemtime(JPATH_SITE . $templatecss);
-			} 
-			else 
+			}
+			else
 			{
 				$scripts .= $base . $plugincss . '?v=' . filemtime(JPATH_SITE . $plugincss);
 			}
 
 			$scripts .= '";</script>' . "\n";
-			//$scripts .= '" />';
+			$scripts .= '<script type="text/javascript" src="' . $base . DS . 'plugins' . DS . $this->_type . DS . $this->_name . DS . $this->_name . '.js"></script>' . "\n";
 
 			$this->_pushscripts = false;
 		}
 
 		// Build the input tag
-		$html  = '<input type="text" name="' . $name . '" rel="' . $opt . ',' . $type . ',' . $wsel . '"';
+		$html  = '<input type="text" name="' . $name . '" data-options="' . $opt . ',' . $type . ',' . $wsel . '"';
 		$html .= ($id)    ? ' id="' . $id . '"'             : '';
 		$html .= ($class) ? ' class="' . trim($class) . '"' : '';
 		$html .= ($size)  ? ' size="' . $size . '"'         : '';
 		$html .= ($dsabl) ? ' readonly="readonly"'          : '';
 		$html .= ' value="' . htmlentities($value, ENT_COMPAT, 'UTF-8') . '" autocomplete="off" data-css="" data-script="' . $datascript . '" />' . "\n";
 		$html .= $scripts;
-		
+
 		/*$json = '';
 		if ($value)
 		{
@@ -174,10 +123,10 @@ class plgHubzeroAutocompleter extends JPlugin
 			{
 				if ($type != 'tags')
 				{
-					if (preg_match('/(.*)\((.*)\)/U', $item, $matched)) { 
+					if (preg_match('/(.*)\((.*)\)/U', $item, $matched)) {
 						$itemId = htmlentities(stripslashes($matched[2]), ENT_COMPAT, 'UTF-8');
 						$itemName = htmlentities(stripslashes($matched[1]), ENT_COMPAT, 'UTF-8');
-					} else { 
+					} else {
 						$itemId = htmlentities(stripslashes($item), ENT_COMPAT, 'UTF-8');
 						$itemName = $itemId;
 					}
@@ -186,7 +135,7 @@ class plgHubzeroAutocompleter extends JPlugin
 			}
 			$json = '['.implode(',',$items).']';
 		}
-		
+
 		$html .= '<input type="hidden" name="pre-'.$name.'" rel="'.$id.'"';
 		$html .= ($id)    ? ' id="pre-'.$id.'"'       : '';
 		$html .= ($class) ? ' class="pre-'.trim($class).'"' : '';
@@ -198,13 +147,13 @@ class plgHubzeroAutocompleter extends JPlugin
 
 	/**
 	 * Display the autocompleter for a multi-entry field
-	 * 
+	 *
 	 * @param      array $atts Attributes for setting up the autocomplete
 	 * @return     string HTML
 	 */
 	public function onGetMultiEntry($atts)
 	{
-		if (!is_array($atts)) 
+		if (!is_array($atts))
 		{
 			$atts = array();
 		}
@@ -224,13 +173,13 @@ class plgHubzeroAutocompleter extends JPlugin
 
 	/**
 	 * Display the autocompleter for a single entry field
-	 * 
+	 *
 	 * @param      array $atts Attributes for setting up the autocomplete
 	 * @return     string HTML
 	 */
 	public function onGetSingleEntry($atts)
 	{
-		if (!is_array($atts)) 
+		if (!is_array($atts))
 		{
 			$atts = array();
 		}
@@ -250,13 +199,13 @@ class plgHubzeroAutocompleter extends JPlugin
 
 	/**
 	 * Display the autocompleter for a single entry field with accompanying select
-	 * 
+	 *
 	 * @param      array $atts Attributes for setting up the autocomplete
 	 * @return     string HTML
 	 */
 	public function onGetSingleEntryWithSelect($atts)
 	{
-		if (!is_array($atts)) 
+		if (!is_array($atts))
 		{
 			$atts = array();
 		}

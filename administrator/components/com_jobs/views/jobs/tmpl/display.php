@@ -33,31 +33,33 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = JobsHelper::getActions('job');
 
-JToolBarHelper::title(JText::_('Jobs Manager'), 'addedit.png');
-if ($canDo->get('core.admin')) 
+JToolBarHelper::title(JText::_('COM_JOBS'), 'addedit.png');
+if ($canDo->get('core.admin'))
 {
 	JToolBarHelper::preferences('com_jobs', '550');
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.create')) 
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.edit')) 
+if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editList();
 }
-if ($canDo->get('core.delete')) 
+if ($canDo->get('core.delete'))
 {
 	JToolBarHelper::deleteList();
 }
+JToolBarHelper::spacer();
+JToolBarHelper::help('jobs');
+
+$this->css();
 
 JHTML::_('behavior.tooltip');
-//jimport('joomla.html.html.grid');
-include_once(JPATH_ROOT . DS . 'libraries' . DS . 'joomla' . DS . 'html' . DS . 'html' . DS . 'grid.php');
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 	if (pressbutton == 'cancel') {
@@ -71,24 +73,24 @@ function submitbutton(pressbutton)
 
 <form action="index.php" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
-		<label for="filter_search"><?php echo JText::_('Search'); ?>:</label> 
-		<input type="text" name="search" id="filter_search" value="<?php echo $this->filters['search']; ?>" />
-	
-		<input type="submit" name="filter_submit" id="filter_submit" value="<?php echo JText::_('Go'); ?>" />
+		<label for="filter_search"><?php echo JText::_('JSEARCH_FILTER'); ?>:</label>
+		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('COM_JOBS_SEARCH_PLACEHOLDER'); ?>" />
+
+		<input type="submit" name="filter_submit" id="filter_submit" value="<?php echo JText::_('COM_JOBS_GO'); ?>" />
 	</fieldset>
 	<div class="clr"></div>
 
-	<table class="adminlist" summary="<?php echo JText::_('A list of jobs and their relevant data'); ?>">
+	<table class="adminlist">
 		<thead>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
-				<th scope="col"><?php echo JText::_('Code'); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Title', 'title', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Company & Location', 'location', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
-                <th scope="col"><?php echo JHTML::_('grid.sort', 'Status', 'status', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Owner', 'adminposting', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Added', 'added', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
-				<th scope="col"><?php echo JText::_('Applications'); ?></th>
+				<th scope="col"><?php echo JText::_('COM_JOBS_COL_CODE'); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_JOBS_COL_TITLE', 'title', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_JOBS_COL_COMPANY', 'location', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_JOBS_COL_STATUS', 'status', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_JOBS_COL_OWNER', 'adminposting', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_JOBS_COL_ADDED', 'added', @$this->filters['sortdir'], @$this->filters['sortby']); ?></th>
+				<th scope="col"><?php echo JText::_('COM_JOBS_COL_APPLICATIONS'); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -118,38 +120,38 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 	$curcat  = $row->cid > 0  ? $jc->getCat($row->cid)   : '';
 
 	// Build some publishing info
-	$info  = JText::_('Created') . ': ' . JHTML::_('date', $row->added, JText::_('DATE_FORMAT_HZ1')) . '<br />';
-	$info .= JText::_('Created by') . ': ' . $row->addedBy;
-	$info .= $admin ? ' ' . JText::_('(admin)') : '';
+	$info  = JText::_('COM_JOBS_FIELD_CREATED') . ': ' . JHTML::_('date', $row->added, JText::_('DATE_FORMAT_HZ1')) . '<br />';
+	$info .= JText::_('COM_JOBS_FIELD_CREATOR') . ': ' . $row->addedBy;
+	$info .= $admin ? ' ' . JText::_('COM_JOBS_ADMIN') : '';
 	$info .= '<br />';
-	$info .= JText::_('Category') . ': ' . $curcat . '<br />';
-	$info .= JText::_('Type') . ': ' . $curtype . '<br />';
+	$info .= JText::_('COM_JOBS_FIELD_CATEGORY') . ': ' . $curcat . '<br />';
+	$info .= JText::_('COM_JOBS_FIELD_TYPE') . ': ' . $curtype . '<br />';
 
 	// Get the published status
 	switch ($row->status)
 	{
 		case 0:
-			$alt   = 'Pending approval';
+			$alt   = JText::_('COM_JOBS_STATUS_PENDING');
 			$class = 'post_pending';
 		break;
 		case 1:
 			$alt =  $row->inactive && $row->inactive < $now
-				 ? JText::_('Expired/Invalid Subscription')
-				 : JText::_('Active');
+				 ? JText::_('COM_JOBS_STATUS_EXPIRED')
+				 : JText::_('COM_JOBS_STATUS_ACTIVE');
 			$class = $row->inactive && $row->inactive < $now
 				   ? 'post_invalidsub'
 				   : 'post_active';
 		break;
 		case 2:
-			$alt   = 'Deleted';
+			$alt   = JText::_('COM_JOBS_STATUS_DELETED');
 			$class = 'post_deleted';
 		break;
 		case 3:
-			$alt   = 'Inactive';
+			$alt   = JText::_('COM_JOBS_STATUS_INACTIVE');
 			$class = 'post_inactive';
 		break;
 		case 4:
-			$alt   = 'Draft';
+			$alt   = JText::_('COM_JOBS_STATUS_DRAFT');
 			$class = 'post_draft';
 		break;
 		default:
@@ -166,15 +168,15 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 					<?php echo $this->escape($row->code); ?>
 				</td>
 				<td>
-<?php if ($canDo->get('core.edit')) { ?>
-					<a class="editlinktip hasTip" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->id; ?>" title="<?php echo JText::_('Publish Information');?>::<?php echo $info; ?>">
-						<span><?php echo $this->escape(stripslashes($row->title)); ?></span>
-					</a>
-<?php } else { ?>
-					<span class="editlinktip hasTip" title="<?php echo JText::_('Publish Information');?>::<?php echo $info; ?>">
-						<span><?php echo $this->escape(stripslashes($row->title)); ?></span>
-					</span>
-<?php } ?>
+					<?php if ($canDo->get('core.edit')) { ?>
+						<a class="editlinktip hasTip" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id=<?php echo $row->id; ?>" title="<?php echo JText::_('COM_JOBS_PUBLISH_INFO'); ?>::<?php echo $info; ?>">
+							<span><?php echo $this->escape(stripslashes($row->title)); ?></span>
+						</a>
+					<?php } else { ?>
+						<span class="editlinktip hasTip" title="<?php echo JText::_('COM_JOBS_PUBLISH_INFO'); ?>::<?php echo $info; ?>">
+							<span><?php echo $this->escape(stripslashes($row->title)); ?></span>
+						</span>
+					<?php } ?>
 				</td>
 				<td>
 					<span class="glyph company"><?php echo $this->escape($row->companyName); ?></span>, <br />
@@ -187,7 +189,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 				</td>
 				<td>
 					<span <?php echo $adminclass; ?>>
-						<span>&nbsp;</span>
+						<span><?php echo ($admin ? JText::_('COM_JOBS_ADMIN') : ''); ?></span>
 					</span>
 				</td>
 				<td>
@@ -210,6 +212,6 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 	<input type="hidden" name="boxchecked" value="0" />
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sortby']; ?>" />
 	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sortdir']; ?>" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

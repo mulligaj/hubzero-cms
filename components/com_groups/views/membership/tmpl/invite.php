@@ -31,26 +31,29 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+// push css
+$this->css();
+
 JPluginHelper::importPlugin( 'hubzero' );
 $dispatcher = JDispatcher::getInstance();
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
 
-<div id="content-header-extra">
-	<ul id="useroptions">
-		<li class="last">
-			<a class="group btn" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn')); ?>">
-				<?php echo JText::_('Back to Group'); ?>
-			</a>
-		</li>
-	</ul>
-</div><!-- / #content-header-extra -->
+	<div id="content-header-extra">
+		<ul id="useroptions">
+			<li class="last">
+				<a class="icon-group btn" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->get('cn')); ?>">
+					<?php echo JText::_('COM_GROUPS_ACTION_BACK_TO_GROUP'); ?>
+				</a>
+			</li>
+		</ul>
+	</div><!-- / #content-header-extra -->
+</header>
 
-<div class="main section">
+<section class="main section">
 	<?php
-		foreach($this->notifications as $notification) 
+		foreach ($this->notifications as $notification)
 		{
 			echo "<p class=\"{$notification['type']}\">{$notification['message']}</p>";
 		}
@@ -59,15 +62,16 @@ $dispatcher = JDispatcher::getInstance();
 		<div class="explaination">
 			<h3><?php echo JText::_('COM_GROUPS_INVITE_SIDEBAR_HELP_TITLE'); ?></h3>
 			<p><?php echo JText::_('COM_GROUPS_INVITE_SIDEBAR_HELP_DESC'); ?></p>
-			<p><img src="/components/com_groups/assets/img/invite_example.jpg" alt="Example Auto-Completer" width="100%" style="border:3px solid #aaa;" />
+			<p><img src="<?php echo JURI::base(true); ?>/components/com_groups/assets/img/invite_example.jpg" alt="Example Auto-Completer" width="100%" style="border:3px solid #aaa;" />
 		</div>
 		<fieldset>
 			<legend><?php echo JText::_('COM_GROUPS_INVITE_SECTION_TITLE'); ?></legend>
+
 	 		<p><?php echo JText::sprintf('COM_GROUPS_INVITE_SECTION_DESC',$this->group->get('description')); ?></p>
 
 			<label>
 				<?php echo JText::_('COM_GROUPS_INVITE_LOGINS'); ?> <span class="required"><?php echo JText::_('COM_GROUPS_REQUIRED'); ?></span>
-				<?php 
+				<?php
 					$mc = $dispatcher->trigger( 'onGetMultiEntry', array(array('members', 'logins', 'acmembers')) );
 					if (count($mc) > 0) {
 						echo $mc[0];
@@ -88,7 +92,7 @@ $dispatcher = JDispatcher::getInstance();
 		<input type="hidden" name="cn" value="<?php echo $this->group->get('cn'); ?>" />
 		<input type="hidden" name="return" value="<?php echo $this->return; ?>" />
 		<p class="submit">
-			<input type="submit" value="<?php echo JText::_('COM_GROUPS_INVITE_BTN_TEXT'); ?>" />
+			<input class="btn btn-success" type="submit" value="<?php echo JText::_('COM_GROUPS_INVITE_BTN_TEXT'); ?>" />
 		</p>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

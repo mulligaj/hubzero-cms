@@ -31,6 +31,8 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css();
+
 $surname = stripslashes($this->profile->get('surname'));
 $givenName = stripslashes($this->profile->get('givenName'));
 $middleName = stripslashes($this->profile->get('middleName'));
@@ -46,17 +48,16 @@ if (!$surname) {
 	}
 }
 
-$html  = '<div id="content-header">'."\n";
+$html  = '<header id="content-header">'."\n";
 $html .= "\t".'<h2>'.$this->title.'</h2>'."\n";
-$html .= '</div><!-- / #content-header-extra -->'."\n";
-
-
 $html .= '<div id="content-header-extra">'."\n";
 $html .= "\t".'<ul id="useroptions">'."\n";
 $html .= "\t\t".'<li class="last"><a href="'.JRoute::_('index.php?option='.$this->option.'&task=cancel&id='. $this->profile->get('uidNumber')) .'">'.JText::_('CANCEL').'</a></li>'."\n";
 $html .= "\t".'</ul>'."\n";
 $html .= '</div><!-- / #content-header-extra -->'."\n";
-$html .= '<div class="main section">'."\n"; 
+$html .= '</header><!-- / #content-header-extra -->'."\n";
+
+$html .= '<section class="main section">'."\n";
 
 
 $html .= "\t".'<form id="hubForm" class="edit-profile" method="post" action="index.php" enctype="multipart/form-data">'."\n";
@@ -175,6 +176,26 @@ if ($this->registration->Email != REG_HIDE
 	}
 }
 
+if ($this->registration->ORCID != REG_HIDE) {
+	$required = ($this->registration->ORCID == REG_REQUIRED) ? '<span class="required">'.JText::_('REQUIRED').'</span>' : '';
+	$message = (!empty($this->xregistration->_invalid['orcid'])) ? '<p class="error">' . $this->xregistration->_invalid['orcid'] . '</p>' : '';
+	$fieldclass = ($message) ? ' class="fieldWithErrors"' : '';
+
+	$html .= '<div class="grid">
+				<div class="col span9">
+					<label'.$fieldclass.'>' .
+						JText::_('ORCID').': '.$required. '
+						<input type="text" name="orcid" value="'. $this->escape(stripslashes($this->profile->get('orcid'))) .'" />
+						' . $message . '
+					</label>
+				</div>
+				<div class="col span3 omega">
+					<a class="btn icon-search" id="orcid-fetch" href="' . JRoute::_('index.php?option=' . $this->option . '&controller=orcid') . '">' . JText::_('Find your ID') . '</a>
+				</div>
+			</div>
+			<p>ORCID provides a persistent digital identifier that distinguishes you from every other researcher and supports automated linkages between you and your professional activities ensuring that your work is recognized. <a rel="external" href="http://orcid.org">Find out more.</a></p>'."\n";
+}
+
 if ($this->registration->URL != REG_HIDE) {
 	$required = ($this->registration->URL == REG_REQUIRED) ? '<span class="required">'.JText::_('REQUIRED').'</span>' : '';
 	$message = (!empty($this->xregistration->_invalid['web'])) ? '<p class="error">' . $this->xregistration->_invalid['web'] . '</p>' : '';
@@ -182,7 +203,7 @@ if ($this->registration->URL != REG_HIDE) {
 
 	$html .= "\t\t".'<label'.$fieldclass.'>'."\n";
 	$html .= "\t\t\t".JText::_('WEBSITE').': '.$required."\n";
-	$html .= "\t\t\t".'<input type="text" name="web" value="'. stripslashes($this->profile->get('url')) .'" /></td>'."\n";
+	$html .= "\t\t\t".'<input type="text" name="web" value="'. $this->escape(stripslashes($this->profile->get('url'))) .'" />'."\n";
 	$html .= $message;
 	$html .= "\t\t".'</label>'."\n";
 }
@@ -194,7 +215,7 @@ if ($this->registration->Phone != REG_HIDE) {
 
 	$html .= "\t\t".'<label'.$fieldclass.'>'."\n";
 	$html .= "\t\t\t".JText::_('Phone').': '.$required."\n";
-	$html .= "\t\t\t".'<input type="text" name="phone" value="'. stripslashes($this->profile->get('phone')) .'" /></td>'."\n";
+	$html .= "\t\t\t".'<input type="text" name="phone" value="'. $this->escape(stripslashes($this->profile->get('phone'))) .'" />'."\n";
 	$html .= $message;
 	$html .= "\t\t".'</label>'."\n";
 }
@@ -285,11 +306,10 @@ if ($this->registration->Organization != REG_HIDE) {
 	$org_known = 0;
 
 	//$orgs = array();
-	//include_once( JPATH_ROOT.DS.'administrator'.DS.'components'.DS.'com_hub'.DS.'xorganization.php' );
-	include_once( JPATH_ROOT.DS.'components'.DS.'com_register'.DS.'tables'.DS.'organization.php' );
+	include_once( JPATH_ROOT.DS.'administrator' . DS .'components'.DS.'com_members'.DS.'tables'.DS.'organization.php' );
 	$database = JFactory::getDBO();
-	//$xo = new XOrganization( $database );
-	$xo = new RegisterOrganization( $database );
+
+	$xo = new MembersTableOrganization( $database );
 	$orgs = $xo->getOrgs();
 
 	if (count($orgs) <= 0) {
@@ -705,8 +725,8 @@ $html .= "\t\t".'<legend>'.JText::_('MEMBER_PICTURE').'</legend>'."\n";
 $html .= "\t\t".'<iframe width="100%" height="350" border="0" name="filer" id="filer" src="index.php?option='.$this->option.'&amp;controller=media&amp;tmpl=component&amp;file='.stripslashes($this->profile->get('picture')).'&amp;id='.$this->profile->get('uidNumber').'"></iframe>'."\n";
 $html .= "\t".'</fieldset><div class="clear"></div>'."\n";
 
-$html .= "\t".'<p class="submit"><input type="submit" name="submit" value="'.JText::_('SAVE').'" /></p>'."\n";
+$html .= "\t".'<p class="submit"><input class="btn btn-success" type="submit" name="submit" value="'.JText::_('SAVE').'" /></p>'."\n";
 $html .= '</form>'."\n";
-$html .= '</div>'."\n";
+$html .= '</section>'."\n";
 
 echo $html;

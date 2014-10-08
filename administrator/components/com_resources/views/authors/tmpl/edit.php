@@ -30,10 +30,10 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = ResourcesHelperPermissions::getActions('contributor');
 
-$text = ($this->task == 'edit' ? JText::_('Edit') : JText::_('New'));
+$text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 
-JToolBarHelper::title(JText::_('Resources') . ': ' . JText::_('Authors') . ': ' . $text, 'forum.png');
-JToolBarHelper::spacer();	
+JToolBarHelper::title(JText::_('COM_RESOURCES') . ': ' . JText::_('COM_RESOURCES_AUTHORS') . ': ' . $text, 'forum.png');
+JToolBarHelper::spacer();
 if ($canDo->get('core.edit')) {
 	JToolBarHelper::save();
 }
@@ -41,30 +41,29 @@ JToolBarHelper::cancel();
 
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
-	var form = document.adminForm;
-
 	if (pressbutton == 'cancel') {
-		submitform( pressbutton );
+		submitform(pressbutton);
 		return;
 	}
 
-	submitform( pressbutton );
+	submitform(pressbutton);
 }
 </script>
 
-<form action="index.php" method="post" name="adminForm" id="adminForm">
+<form action="index.php" method="post" name="adminForm" id="item-form">
 	<div class="col width-70 fltlft">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('Details'); ?></span></legend>
+			<legend><span><?php echo JText::_('JDETAILS'); ?></span></legend>
+
 			<table class="admintable">
 				<thead>
 					<tr>
-						<th scope="col"><?php echo JText::_('Resource'); ?></th>
-						<th scope="col"><?php echo JText::_('Name'); ?></th>
-						<th scope="col"><?php echo JText::_('Organization'); ?></th>
-						<th scope="col"><?php echo JText::_('Role'); ?></th>
+						<th scope="col"><?php echo JText::_('COM_RESOURCES_COL_RESOURCE'); ?></th>
+						<th scope="col"><?php echo JText::_('COM_RESOURCES_COL_NAME'); ?></th>
+						<th scope="col"><?php echo JText::_('COM_RESOURCES_COL_ORGANIZATION'); ?></th>
+						<th scope="col"><?php echo JText::_('COM_RESOURCES_COL_ROLE'); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -75,29 +74,29 @@ function submitbutton(pressbutton)
 ?>
 					<tr>
 						<td>
-							<input type="text" name="fields[<?php echo $i; ?>][subid]" size="30" maxlength="250" value="<?php echo $this->escape(stripslashes($row->subid)); ?>" />
+							<input type="text" name="fields[<?php echo $i; ?>][subid]" maxlength="250" size="4" value="<?php echo $this->escape(stripslashes($row->subid)); ?>" />
 							<input type="hidden" name="fields[<?php echo $i; ?>][ordering]" value="<?php echo $this->escape(stripslashes($row->ordering)); ?>" />
 						</td>
 						<td>
-							<input type="text" name="fields[<?php echo $i; ?>][name]" size="30" maxlength="250" value="<?php echo $this->escape(stripslashes($row->name)); ?>" />
+							<input type="text" name="fields[<?php echo $i; ?>][name]" maxlength="250" value="<?php echo $this->escape(stripslashes($row->name)); ?>" />
 						</td>
 						<td>
-							<input type="text" name="fields[<?php echo $i; ?>][organization]" size="30" maxlength="250" value="<?php echo $this->escape(stripslashes($row->organization)); ?>" />
+							<input type="text" name="fields[<?php echo $i; ?>][organization]" maxlength="250" value="<?php echo $this->escape(stripslashes($row->organization)); ?>" />
 						</td>
 						<td>
 							<select name="fields[<?php echo $i; ?>][role]">
-								<option value=""<?php if ($row->role == '') { echo ' selected="selected"'; }?>><?php echo JText::_('Author'); ?></option>
-<?php 
-						if ($this->roles)
-						{
-							foreach ($this->roles as $role)
-							{
-?>
-								<option value="<?php echo $this->escape($role->alias); ?>"<?php if ($row->role == $role->alias) { echo ' selected="selected"'; }?>><?php echo $this->escape(stripslashes($role->title)); ?></option>
-<?php
-							}
-						}
-?>
+								<option value=""<?php if ($row->role == '') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_RESOURCES_ROLE_AUTHOR'); ?></option>
+								<?php
+								if ($this->roles)
+								{
+									foreach ($this->roles as $role)
+									{
+										?>
+										<option value="<?php echo $this->escape($role->alias); ?>"<?php if ($row->role == $role->alias) { echo ' selected="selected"'; }?>><?php echo $this->escape(stripslashes($role->title)); ?></option>
+										<?php
+									}
+								}
+								?>
 							</select>
 						</td>
 					</tr>
@@ -111,17 +110,12 @@ function submitbutton(pressbutton)
 	</div>
 	<div class="col width-30 fltrt">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('Author'); ?></span></legend>
-			<table>
-				<tbody>
-					<tr>
-						<th class="key"><?php echo JText::_('ID'); ?>:</th>
-						<td>
-							<input type="text" name="authorid" value="<?php echo $this->authorid; ?>" />
-						</td>
-					</tr>
-				</tbody>
-			</table>
+			<legend><span><?php echo JText::_('COM_RESOURCES_FIELDSET_AUTHOR'); ?></span></legend>
+
+			<div class="input-wrap">
+				<label for="field-authorid"><?php echo JText::_('COM_RESOURCES_FIELD_ID'); ?>:</label><br />
+				<input type="text" name="authorid" id="field-authorid" value="<?php echo $this->escape($this->authorid); ?>" />
+			</div>
 		</fieldset>
 	</div>
 	<div class="clr"></div>
@@ -130,6 +124,6 @@ function submitbutton(pressbutton)
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="save" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>

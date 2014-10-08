@@ -113,7 +113,7 @@ class FormAssetHandler extends ContentAssetHandler
 		$return = parent::create();
 
 		// Check for errors in response
-		if(array_key_exists('error', $return))
+		if (array_key_exists('error', $return))
 		{
 			return array('error' => $return['error']);
 		}
@@ -126,7 +126,7 @@ class FormAssetHandler extends ContentAssetHandler
 			$oid = JRequest::getVar('offering');
 
 			// Build our JavaScript to return to the view to be executed
-			$js = 
+			$js =
 				"// Open up forms in a lightbox
 				$.fancybox({
 					fitToView: false,
@@ -171,85 +171,27 @@ class FormAssetHandler extends ContentAssetHandler
 						});
 
 						// Listen for savesuccessful call from iframe
-						$('body').on('savesuccessful', function() {
+						$('body').on('savesuccessful', function( e, title ) {
 							$.fancybox.close();
 
-							HUB.CoursesOutline.asset.insert(" .
+							var data = " .
 								json_encode(
 									array(
 										'assets'=>array(
 											$return['assets']
 										)
 									)
-								) .
-								", assetslist, {'progressBarId':progressBarId});
+								) . ";
+
+							data.assets[0].asset_title = title;
+
+							HUB.CoursesOutline.asset.insert(data, assetslist, {'progressBarId':progressBarId});
 						});
 					}
 				});";
 		}
 
 		return array('js'=>$js);
-	}
-
-	/**
-	 * Edit method for this handler
-	 *
-	 * @param  object $asset - asset
-	 * @return array((string) type, (string) text)
-	 **/
-	public function edit($asset)
-	{
-		// Get form object
-		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'form.php');
-		$form = PdfForm::loadByAssetId($asset->get('id'));
-
-		// Make sure we got a proper object
-		if (!is_object($form))
-		{
-			return array('error' => "Asset " . $asset->get('id') . " is not associated with a valid form.");
-		}
-
-		$gid = JRequest::getVar('course_id');
-		$oid = JRequest::getVar('offering');
-
-		// Compile our return var
-		$js =
-			"// Open up forms in a lightbox
-			$.fancybox({
-				fitToView: false,
-				autoResize: false,
-				autoSize: false,
-				height: ($(window).height())*2/3,
-				closeBtn: false,
-				modal: true,
-				type: 'iframe',
-				iframe: {
-					preload : false
-				},
-				href: '/courses/".$gid."/".$oid."/form.layout?formId=" . $form->getId() . "&tmpl=component',
-				afterLoad: function() {
-					// Highjack the 'done' button to close the iframe
-					var iframe = $('.fancybox-iframe');
-					iframe.load(function() {
-						var frameContents = $('.fancybox-iframe').contents();
-						frameContents.find('#done').bind('click', function(e) {
-							e.preventDefault();
-
-							$.fancybox.close();
-						});
-
-						var navHeight = frameContents.find('.navbar').height();
-						frameContents.find('.main.section.courses-form').css('margin-bottom', navHeight);
-					});
-
-					// Listen for savesuccessful call from iframe
-					$('body').on('savesuccessful', function() {
-						$.fancybox.close();
-					});
-				}
-			});";
-
-		return array('type'=>'js', 'value'=>$js);
 	}
 
 	/**

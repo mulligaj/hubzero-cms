@@ -38,15 +38,11 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Jobs List
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
-		// Push some styles to the template
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'jobs.css');
-
 		// Get configuration
 		$app = JFactory::getApplication();
 		$config = JFactory::getConfig();
@@ -55,40 +51,40 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 
 		// Get paging variables
 		$this->view->filters['limit']    = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.' . $this->_controller . '.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']    = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.' . $this->_controller . '.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
-		
+
 		// Get sorting variables
 		$this->view->filters['sortby']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortby', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sortby',
+			'filter_order',
 			'added'
 		));
 		$this->view->filters['sortdir'] = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'DESC'
 		));
 
 		// Filters
 		$this->view->filters['category'] = trim($app->getUserStateFromRequest(
 			$this->_option . '.' . $this->_controller . 'category',
-			'category', 
+			'category',
 			'all'
 		));
 		$this->view->filters['filterby'] = '';
 		$this->view->filters['search']   = urldecode(trim($app->getUserStateFromRequest(
 			$this->_option . '.' . $this->_controller . 'search',
-			'search', 
+			'search',
 			''
 		)));
 
@@ -97,19 +93,19 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		$this->view->rows = $obj->get_openings($this->view->filters, $this->juser->get('id'), 1);
 
 		$this->view->total = $obj->get_openings($this->view->filters, $this->juser->get('id'), 1, '', 1);
-		
+
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
 
 		$this->view->config = $this->config;
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -120,11 +116,11 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		// Output the HTML
 		$this->view->display();
 	}
-	
+
 	/**
 	 * Create a job posting
 	 * Displays the edit form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -134,7 +130,7 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit Job Posting
-	 * 
+	 *
 	 * @param      integer $isnew Parameter description (if any) ...
 	 * @return     void
 	 */
@@ -146,7 +142,7 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 
 		$jconfig = JFactory::getConfig();
 		$live_site = rtrim(JURI::base(),'/');
-		
+
 		// Push some styles to the template
 		$document = JFactory::getDocument();
 		$document->addStyleSheet('components' . DS . $this->_option . DS . 'jobs.css');
@@ -166,7 +162,7 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_services' . DS . 'tables' . DS . 'subscription.php');
 
 		// Is this a new job?
-		if (!$id) 
+		if (!$id)
 		{
 			$this->view->row->created      = JFactory::getDate()->toSql();
 			$this->view->row->created_by   = $this->juser->get('id');
@@ -174,12 +170,12 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 			$this->view->row->modified_by  = 0;
 			$this->view->row->publish_up   = JFactory::getDate()->toSql();
 			$this->view->row->employerid   = 1; // admin
-		} 
-		else if (!$this->view->row->load($id)) 
+		}
+		else if (!$this->view->row->load($id))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('Error: job not found.'),
+				JText::_('COM_JOBS_ERROR_MISSING_JOB'),
 				'error'
 			);
 			return;
@@ -188,19 +184,19 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		$this->view->job = $this->view->row->get_opening($id, $this->juser->get('id'), 1);
 
 		// Get employer information
-		if ($this->view->row->employerid != 1) 
+		if ($this->view->row->employerid != 1)
 		{
-			if (!$this->view->employer->loadEmployer($this->view->row->employerid)) 
+			if (!$this->view->employer->loadEmployer($this->view->row->employerid))
 			{
 				$this->setRedirect(
 					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::_('Employer information not found.'),
+					JText::_('COM_JOBS_ERROR_MISSING_EMPLOYER_INFO'),
 					'error'
 				);
 				return;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			// site admin
 			$this->view->employer->uid = 1;
@@ -218,19 +214,19 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		$jt = new JobType($this->database);
 		$jc = new JobCategory($this->database);
 
-		// get job types			
+		// get job types
 		$this->view->types = $jt->getTypes();
-		$this->view->types[0] = JText::_('Any type');
+		$this->view->types[0] = JText::_('COM_JOBS_TYPE_ANY');
 
 		// get job categories
 		$this->view->cats = $jc->getCats();
-		$this->view->cats[0] = JText::_('No specific category');
+		$this->view->cats[0] = JText::_('COM_JOBS_CATEGORY_UNSPECIFIED');
 
 		$this->view->config = $this->config;
 		$this->view->isnew = $isnew;
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -241,10 +237,10 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		// Output the HTML
 		$this->view->display();
 	}
-	
+
 	/**
 	 * Save Job Posting
-	 * 
+	 *
 	 * @return     unknown Return description (if any) ...
 	 */
 	public function saveTask()
@@ -264,19 +260,19 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		$job = new Job($this->database);
 		$employer = new Employer($this->database);
 
-		if ($id) 
+		if ($id)
 		{
-			if (!$job->load($id)) 
+			if (!$job->load($id))
 			{
 				$this->setRedirect(
 					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::_('Error: job not found.'),
+					JText::_('COM_JOBS_ERROR_MISSING_JOB'),
 					'error'
 				);
 				return;
 			}
-		} 
-		else 
+		}
+		else
 		{ // saving new job
 			include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_services' . DS . 'tables' . DS . 'subscription.php');
 			$subscription = new Subscription($this->database);
@@ -287,7 +283,7 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 			$job->addedBy = $this->juser->get('id');
 		}
 
-		$subject = $id ? JText::_('Status update on your job ad #') . $job->code : '';
+		$subject = $id ? JText::sprintf('COM_JOBS_MESSAGE_SUBJECT', $job->code) : '';
 
 		// save any new info
 		$job->bind($_POST);
@@ -299,36 +295,39 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		$job->companyLocation = rtrim(stripslashes($job->companyLocation));
 
 		// admin actions
-		if ($id) 
+		if ($id)
 		{
 			switch ($action)
 			{
 				case 'publish':
-					// make sure we aren't over quota			
+					// make sure we aren't over quota
 					$allowed_ads = $employerid==1 ? 1 : $this->_checkQuota($job, $employerid, $this->database);
 
-					if ($allowed_ads <= 0) {
-						$statusmsg .= JobsHtml::error(JText::_('Failed to publish this ad because user is over the limit according to the terms of his/her subscription.'));
+					if ($allowed_ads <= 0)
+					{
+						$statusmsg .= JobsHtml::error(JText::_('COM_JOBS_ERROR_OVER_LIMIT'));
 						$action = '';
-					} else {
-						$job->status 	= 1;
-						$job->opendate	= JFactory::getDate()->toSql();
-						$statusmsg .= JText::_('The job ad has been approved and published by site administrators.');
+					}
+					else
+					{
+						$job->status   = 1;
+						$job->opendate = JFactory::getDate()->toSql();
+						$statusmsg .= JText::_('COM_JOBS_MESSAGE_JOB_APPROVED');
 					}
 				break;
 
 				case 'unpublish':
 					$job->status 	= 3;
-					$statusmsg .= JText::_('The job ad has been unpublished by site administrators.');
+					$statusmsg .= JText::_('COM_JOBS_MESSAGE_JOB_UNPUBLISHED');
 				break;
 
 				case 'message':
-					//$statusmsg = $message ? JText::_('Site administrators sent a new message.') : ''; 
+
 				break;
 
 				case 'delete':
 					$job->status 	= 2;
-					$statusmsg .= JText::_('The job ad has been permanently deleted by site administrators.');
+					$statusmsg .= JText::_('COM_JOBS_MESSAGE_JOB_DELETED');
 				break;
 			}
 
@@ -341,12 +340,12 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 			exit();
 		}
 
-		if (!$job->id) 
+		if (!$job->id)
 		{
 			$job->checkin();
 		}
 
-		if (($message && $action == 'message' && $id) || ($action && $action != 'message')) 
+		if (($message && $action == 'message' && $id) || ($action && $action != 'message'))
 		{
 			// Email all the contributors
 			$jconfig = JFactory::getConfig();
@@ -354,50 +353,50 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 			// E-mail "from" info
 			$from = array();
 			$from['email'] = $jconfig->getValue('config.mailfrom');
-			$from['name']  = $jconfig->getValue('config.sitename').' '.JText::_('Jobs');
+			$from['name']  = $jconfig->getValue('config.sitename') . ' ' . JText::_('COM_JOBS_JOBS');
 
-			$juri 	 = JURI::getInstance();
+			$juri    = JURI::getInstance();
 			$jconfig = JFactory::getConfig();
-			
+
 			$base 	 = rtrim($juri->base(), DS);
 			if (substr($base, -13) == 'administrator')
 			{
-				$base 		= substr($base, 0, strlen($base)-13);
+				$base = substr($base, 0, strlen($base)-13);
 			}
-			$sef 		= 'jobs/job/' . $job->code;
-			$link 		= rtrim($base, DS) . DS . trim($sef, DS);
+			$sef  = 'jobs/job/' . $job->code;
+			$link = rtrim($base, DS) . DS . trim($sef, DS);
 
 			// start email message
-			$emailbody .= $subject.':'."\r\n";
-			$emailbody .= $statusmsg."\r\n";
-			$emailbody  .= JText::_('Job Ad:') . ' ' . $link."\r\n";
-			if ($message) 
+			$emailbody .= $subject . ':' . "\r\n";
+			$emailbody .= $statusmsg . "\r\n";
+			$emailbody  .= JText::_('COM_JOBS_MESSAGE_JOB') . ': ' . $link . "\r\n";
+			if ($message)
 			{
 				$emailbody .= "\n";
-				$emailbody .= '----------------------------------------------------------'."\r\n";
-				$emailbody .= "\n" . JText::_('Message from Administrator:') . "\n";
+				$emailbody .= '----------------------------------------------------------' . "\r\n";
+				$emailbody .= "\n" . JText::_('COM_JOBS_MESSAGE_FROM_ADMIN:') . "\n";
 				$emailbody .= $message;
 			}
 
 			JPluginHelper::importPlugin('xmessage');
 			$dispatcher = JDispatcher::getInstance();
-			if (!$dispatcher->trigger('onSendMessage', array('jobs_ad_status_changed', $subject, 
-				$emailbody, $from, array($job->addedBy), $this->_option))) 
+			if (!$dispatcher->trigger('onSendMessage', array('jobs_ad_status_changed', $subject,
+				$emailbody, $from, array($job->addedBy), $this->_option)))
 			{
-				$this->setError(JText::_('Failed to message users.'));
+				$this->setError(JText::_('COM_JOBS_ERROR_FAILED_TO_MESSAGE_USERS'));
 			}
 		}
 
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Job successfully saved.') . ($statusmsg ? ' '.$statusmsg : '')
+			JText::_('COM_JOBS_ITEM_SAVED') . ($statusmsg ? ' ' . $statusmsg : '')
 		);
 	}
-	
+
 	/**
 	 * Check job ad quota depending on subscription
-	 * 
+	 *
 	 * @param      object $job Parameter description (if any) ...
 	 * @param      unknown $uid Parameter description (if any) ...
 	 * @param      unknown $database Parameter description (if any) ...
@@ -415,10 +414,10 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 
 		return $allowed_ads;
 	}
-	
+
 	/**
 	 * Remove Job Posting
-	 * 
+	 *
 	 * @return     unknown Return description (if any) ...
 	 */
 	public function removeTask()
@@ -428,13 +427,14 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 
 		// Incoming (expecting an array)
 		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		// Ensure we have an ID to work with
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No job selected'),
+				JText::_('COM_JOBS_ERROR_NO_ITEM_SELECTED'),
 				'error'
 			);
 			return;
@@ -451,10 +451,10 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Job(s) successfully removed')
+			JText::sprintf('COM_JOBS_ITEMS_REMOVED', count($ids))
 		);
 	}
-	
+
 	/**
 	 * Cancel a task (redirects to default task)
 	 *
@@ -468,4 +468,3 @@ class JobsControllerJobs extends \Hubzero\Component\AdminController
 		);
 	}
 }
-

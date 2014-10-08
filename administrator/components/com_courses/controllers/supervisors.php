@@ -40,7 +40,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Add a user to the manager list
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -50,7 +50,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 
 		// Incoming member ID
 		$id = JRequest::getInt('offering', 0);
-		if (!$id) 
+		if (!$id)
 		{
 			$this->setError(JText::_('COURSES_NO_ID'));
 			$this->displayTask();
@@ -68,7 +68,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 		}
 
 		$managers = $model->managers(array(
-			'student'     => 0, 
+			'student'     => 0,
 			'section_id'  => array(0, $section),
 			'offering_id' => array(0, $id)
 		));
@@ -92,7 +92,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 				// Loop through existing members and make sure the user isn't already a member
 				if (isset($managers[$uid]))
 				{
-					$this->setError(JText::sprintf('The user "%s" is already a manager of this section or course.', $mbr));
+					$this->setError(JText::sprintf('COM_COURSES_ERROR_ALREADY_MANAGER', $mbr));
 					continue;
 				}
 
@@ -101,7 +101,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 			}
 			else
 			{
-				$this->setError(JText::_('COM_COURSES_USER_NOTFOUND') . ' ' . $mbr);
+				$this->setError(JText::_('COM_COURSES_ERROR_USER_NOTFOUND') . ' ' . $mbr);
 			}
 		}
 
@@ -116,7 +116,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 
 	/**
 	 * Remove one or more users from the course manager list
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -126,9 +126,9 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 
 		// Incoming member ID
 		$id = JRequest::getInt('offering', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			$this->setError(JText::_('COURSES_NO_ID'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_ID'));
 			$this->displayTask();
 			return;
 		}
@@ -162,7 +162,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 
 	/**
 	 * Remove one or more users from the course manager list
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function updateTask()
@@ -172,9 +172,9 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 
 		// Incoming member ID
 		$id = JRequest::getInt('offering', 0);
-		if (!$id) 
+		if (!$id)
 		{
-			$this->setError(JText::_('COURSES_NO_ID'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_ID'));
 			$this->displayTask();
 			return;
 		}
@@ -209,7 +209,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display a list of 'manager' for a specific section
-	 * 
+	 *
 	 * @param      object $model CoursesModelOffering
 	 * @return     void
 	 */
@@ -218,7 +218,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 		$this->view->setLayout('display');
 
 		// Incoming
-		if (!is_a($model, 'CoursesModelOffering')) 
+		if (!is_a($model, 'CoursesModelOffering'))
 		{
 			$model = CoursesModelOffering::getInstance(JRequest::getInt('offering', 0, 'get'));
 			if (($section = JRequest::getInt('section', 0)))
@@ -230,7 +230,7 @@ class CoursesControllerSupervisors extends \Hubzero\Component\AdminController
 		$this->view->model = $model;
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{

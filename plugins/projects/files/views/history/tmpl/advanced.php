@@ -31,9 +31,9 @@ $desect_path = explode(DS, $this->subdir);
 $path_bc = '';
 $url = '';
 $parent = '';
-if ($this->subdir && count($desect_path) > 0) 
+if ($this->subdir && count($desect_path) > 0)
 {
-	for ($p = 0; $p < count($desect_path); $p++) 
+	for ($p = 0; $p < count($desect_path); $p++)
 	{
 		$parent .= count($desect_path) > 1 && $p != count($desect_path)  ? $url  : '';
 		$url 	.= DS . $desect_path[$p];
@@ -49,7 +49,7 @@ $locals  = 0;
 $sLocals = 0;
 
 $candiff = count($this->versions);
-foreach ($this->versions as $version) { 
+foreach ($this->versions as $version) {
 	if ($version['hide'] == 1 || $version['commitStatus'] == 'D' || $version['remote'])
 	{
 		$candiff--;
@@ -68,12 +68,12 @@ $ext = count($ext) > 1 ? end($ext) : '';
 $allowDiff = ($this->binary || ($this->remote && $this->remote['converted'] == 1) || $candiff <= 1 ) ? 0 : 1;
 
 ?>
-<?php if($this->ajax) { ?>
+<?php if ($this->ajax) { ?>
 <div id="abox-content">
 <h3><?php echo JText::_('COM_PROJECTS_FILES_SHOW_HISTORY'); ?></h3>
 <?php
 // Display error
-if ($this->getError()) { 
+if ($this->getError()) {
 	echo ('<p class="witherror">'.$this->getError().'</p>');
 }
 ?>
@@ -83,15 +83,15 @@ if ($this->getError()) {
 	<?php if (!$this->ajax && $this->case == 'files') { ?>
 		<div id="plg-header">
 			<h3 class="files">
-				<a href="<?php echo $this->url; ?>"><?php echo $this->title; ?></a><?php if($this->subdir) { ?> <?php echo $path_bc; ?><?php } ?>
+				<a href="<?php echo $this->url; ?>"><?php echo $this->title; ?></a><?php if ($this->subdir) { ?> <?php echo $path_bc; ?><?php } ?>
 			<?php echo $endPath; ?>
 			</h3>
 		</div>
 	<?php } ?>
-	<?php if ($this->tool && $this->tool->name && !$this->ajax) 
-	{ 
+	<?php if ($this->tool && $this->tool->name && !$this->ajax)
+	{
 		echo ProjectsHtml::toolDevHeader( $this->option, $this->config, $this->project, $this->tool, 'source', $path_bc);
-		
+
 	 } ?>
 	<fieldset >
 		<input type="hidden" name="subdir" value="<?php echo $this->subdir; ?>" />
@@ -100,13 +100,7 @@ if ($this->getError()) {
 			<ul class="sample">
 				<?php
 					// Display list item with file data
-					$view = new \Hubzero\Plugin\View(
-						array(
-							'folder'=>'projects',
-							'element'=>'files',
-							'name'=>'selected'
-						)
-					);
+					$view = $this->view('default', 'selected');
 					$view->skip 		= false;
 					$view->item 		= $this->file;
 					$view->subdir 		= $this->subdir;
@@ -114,15 +108,15 @@ if ($this->getError()) {
 					$view->type			= 'file';
 					$view->action		= 'history';
 					$view->multi		= '';
-					
-					if ($allowDiff && !$this->getError()) 
+
+					if ($allowDiff && !$this->getError())
 					{
 						$view->extras = '<input type="submit" id="rundiff" value="Diff Revisions" class="btn rightfloat" />';
 					}
 					echo $view->loadTemplate();
 				?>
 			</ul>
-			
+
 			<?php if (!$this->getError()) { ?>
 			<table class="revisions">
 				<thead>
@@ -139,15 +133,15 @@ if ($this->getError()) {
 					</tr>
 				</thead>
 				<tbody>
-			<?php foreach ($this->versions as $version) { 
-								
+			<?php foreach ($this->versions as $version) {
+
 				if ($version['hide'] == 1)
 				{
 					$skipped++;
 					continue;
-				}				
+				}
 				$last 		= $i == 0 ? true : false;
-				
+
 				$origin		= $version['remote']
 					? JText::_('COM_PROJECTS_FILE_STATUS_REMOTE')
 					: JText::_('COM_PROJECTS_FILE_STATUS_LOCAL');
@@ -157,71 +151,71 @@ if ($this->getError()) {
 				}
 				$status = '<span class="commit-type">[' . $origin . ']</span> ';
 				$name		= $version['remote'] && $this->remote ? $this->remote['title'] : $version['name'];
-				
+
 				// Get url, name and status
-				if ($version['remote']) 
+				if ($version['remote'])
 				{
 					$url = $this->url
-						. '/?action=open' . a . 'subdir='.urlencode($this->subdir) 
+						. '/?action=open' . a . 'subdir='.urlencode($this->subdir)
 						. a . 'file='.urlencode($version['file']);
-					
+
 					if ($this->connected && $last == true)
 					{
-						$action  = '<a href="' . $url .'" class="open_file" title="' 
-							. JText::_('COM_PROJECTS_FILES_REMOTE_OPEN') .'" target="_blank">&nbsp;</a>';	
+						$action  = '<a href="' . $url .'" class="open_file" title="'
+							. JText::_('COM_PROJECTS_FILES_REMOTE_OPEN') .'" target="_blank">&nbsp;</a>';
 					}
 					else
 					{
-						$action  = '';	
-					}								
+						$action  = '';
+					}
 				}
 				else
 				{
 					$url = $this->url
-						.'/?file='.urlencode($version['name']) 
+						.'/?file='.urlencode($version['name'])
 						. '&amp;' . $this->do . '=download&amp;hash='.$version['hash'];
-					$action = (in_array($version['commitStatus'], array('A', 'M', 'R', 'W'))) 
-						? '<a href="' . $url .'" class="download_file" title="' . JText::_('COM_PROJECTS_DOWNLOAD') . '" >&nbsp;</a>' 
+					$action = (in_array($version['commitStatus'], array('A', 'M', 'R', 'W')))
+						? '<a href="' . $url .'" class="download_file" title="' . JText::_('COM_PROJECTS_DOWNLOAD') . '" >&nbsp;</a>'
 						: '';
 				}
-								
+
 				if ($version['change'])
 				{
 					// Other type of change
 					$status .= ' ' . $version['change'];
 				}
-				
+
 				if ($last)
 				{
-					$status .= ' <span class="crev">' . JText::_('COM_PROJECTS_FILE_STATUS_CURRENT') . '</span>';					
+					$status .= ' <span class="crev">' . JText::_('COM_PROJECTS_FILE_STATUS_CURRENT') . '</span>';
 				}
-				
+
 				$charLimit = $last == true ? 400 : 400;
-				
+
 				$trclass = $last ? 'current-revision' : '';
 				$trclass = $version['commitStatus'] == 'D' ? 'deleted-revision' : $trclass;
-				
+
 				$v--;
-				
+
 				if ($version['commitStatus'] == 'D')
 				{
 					$skipped++;
 					continue;
 				}
-				
+
 				$shown++;
-				
+
 				if (!$version['remote'])
 				{
 					$sLocals++;
 				}
-				
+
 				// Oldest local shown?
-				$oldest = (!$version['remote'] && ((($skipped + $shown) == count($this->versions)) 
+				$oldest = (!$version['remote'] && ((($skipped + $shown) == count($this->versions))
 							|| $sLocals == $locals)) ? true : false;
-				
+
 				?>
-				<tr <?php if($trclass) { echo 'class="' . $trclass . '"'; } ?>>
+				<tr <?php if ($trclass) { echo 'class="' . $trclass . '"'; } ?>>
 					<?php if ($allowDiff) { ?>
 					<td><?php echo '@'.$v; ?></td>
 					<?php } ?>
@@ -242,11 +236,11 @@ if ($this->getError()) {
 							<?php } ?>
 						<span class="commitstatus"><?php echo $status; ?></span>
 						<span class="block italic faded"><?php echo $version['name']; echo $version['size'] ? ', ' . $version['size'] : '';  ?></span>
-						<div class="commitcontent"><?php if ($version['content'] && in_array($version['commitStatus'], array('A', 'M'))) 
-						{	
+						<div class="commitcontent"><?php if ($version['content'] && in_array($version['commitStatus'], array('A', 'M')))
+						{
 							$over = strlen($version['content']) >= $charLimit ? 1 : 0;
 							$content = $over ? \Hubzero\Utility\String::truncate($version['content'], $charLimit) : $version['content'];
-							
+
 							echo '<div class="short-txt" id="short-' . $i . '"><pre>' . $content . '</pre>';
 							if ($over)
 							{
@@ -258,8 +252,8 @@ if ($this->getError()) {
 								echo '<div class="long-txt hidden" id="long-' . $i . '"><pre>' . $version['content'] . '</pre>';
 								echo '<p class="showaslink showless">' . JText::_('COM_PROJECTS_FILES_SHOW_LESS') . '</p>';
 								echo '</div>';
-							} 												
-						} 
+							}
+						}
 						?>
 						<?php if ($version['preview'] && is_file(JPATH_ROOT . $version['preview']) && $version['commitStatus'] != 'D') { ?>
 							<div id="preview-image">
@@ -276,13 +270,13 @@ if ($this->getError()) {
 				</tbody>
 			</table>
 			<?php } ?>
-			
-			<?php if ($this->getError()) { 
+
+			<?php if ($this->getError()) {
 				echo ('<p class="witherror">'.$this->getError().'</p>');
 			} ?>
 		</fieldset>
 </form>
 
-<?php if($this->ajax) { ?>
+<?php if ($this->ajax) { ?>
 </div>
 <?php } ?>

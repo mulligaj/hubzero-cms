@@ -31,49 +31,42 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Wiki plugin class for loading the default parser
  */
-class plgWikiParserdefault extends JPlugin
+class plgWikiParserdefault extends \Hubzero\Plugin\Plugin
 {
 	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
+	 */
+	protected $_autoloadLanguage = true;
+
+	/**
 	 * Holds the parser for re-use
-	 * 
+	 *
 	 * @var object
 	 */
 	public $parser;
 
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-	}
-
-	/**
 	 * Get the wiki parser, creating a new one if not already existing or $getnew is set
-	 * 
+	 *
 	 * @param      array   $config Options for initializing a parser
 	 * @param      boolean $getnew Init a new parser?
 	 * @return     object
 	 */
 	public function onGetWikiParser($config, $getnew=false)
 	{
-		if (!is_object($this->parser) || $getnew) 
+		if (!is_object($this->parser) || $getnew)
 		{
 			$path = dirname(__FILE__);
-			if (is_file($path . DS . 'parser.php')) 
+			if (is_file($path . DS . 'parser.php'))
 			{
 				include_once($path . DS . 'parser.php');
-			} 
-			else 
+			}
+			else
 			{
 				return null;
 			}
@@ -93,7 +86,7 @@ class plgWikiParserdefault extends JPlugin
 
 	/**
 	 * Turns wiki markup to HTML
-	 * 
+	 *
 	 * @param      string  $text      Text to convert
 	 * @param      array   $config    Options for initializing a parser
 	 * @param      boolean $fullparse Do a full parse or ignore some things like macros?
@@ -104,7 +97,7 @@ class plgWikiParserdefault extends JPlugin
 	{
 		$parser = $this->onGetWikiParser($config, $getnew);
 		$config['camelcase'] = (isset($config['camelcase']) ? $config['camelcase'] : 1);
-		//return is_object($parser) ? $parser->parse("\n".stripslashes($text), $fullparse) : $text;
+
 		return is_object($parser) ? $parser->parse("\n" . $text, $fullparse, 0, $config['camelcase']) : $text;
 	}
 }

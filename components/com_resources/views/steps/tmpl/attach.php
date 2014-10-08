@@ -32,32 +32,32 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 $base = rtrim(JURI::getInstance()->base(true), '/');
+
+$this->css('create.css')
+     ->js('create.js');
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<p>
-		<a class="icon-add add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft'); ?>">
-			<?php echo JText::_('COM_CONTRIBUTE_NEW_SUBMISSION'); ?>
-		</a>
-	</p>
-</div><!-- / #content-header -->
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-add add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft'); ?>">
+				<?php echo JText::_('COM_CONTRIBUTE_NEW_SUBMISSION'); ?>
+			</a>
+		</p>
+	</div><!-- / #content-header -->
+</header><!-- / #content-header -->
 
-<div class="main section">
+<section class="main section">
 	<?php
-		$view = new JView(array(
-			'name'   => 'steps',
-			'layout' => 'steps'
-		));
-		$view->option   = $this->option;
-		$view->step     = $this->step;
-		$view->steps    = $this->steps;
-		$view->id       = $this->id;
-		$view->resource = $this->row;
-		$view->progress = $this->progress;
-		$view->display();
+		$this->view('steps')
+		     ->set('option', $this->option)
+		     ->set('step', $this->step)
+		     ->set('steps', $this->steps)
+		     ->set('id', $this->id)
+		     ->set('resource', $this->row)
+		     ->set('progress', $this->progress)
+		     ->display();
 	?>
 <?php if ($this->getError()) { ?>
 	<p class="warning"><?php echo $this->getError(); ?></p>
@@ -78,7 +78,7 @@ $base = rtrim(JURI::getInstance()->base(true), '/');
 							<div id="ajax-uploader" data-action="index.php?option=com_resources&amp;no_html=1&amp;controller=attachments&amp;task=save&amp;pid=<?php echo $this->id; ?>" data-list="index.php?option=com_resources&amp;no_html=1&amp;controller=attachments&amp;pid=<?php echo $this->id; ?>">
 							</div>
 							<script src="<?php echo $base; ?>/media/system/js/jquery.fileuploader.js"></script>
-							<script src="<?php echo $base; ?>/components/com_resources/assets/js/fileupload.jquery.js"></script>
+							<script src="<?php echo $base; ?>/components/com_resources/assets/js/fileupload.js"></script>
 						</div><!-- / .col span-half -->
 						<div class="col span-half omega">
 							<div id="link-adder" data-action="index.php?option=com_resources&amp;controller=attachments&amp;no_html=1&amp;task=create&amp;pid=<?php echo $this->id; ?>&amp;url=" data-list="index.php?option=com_resources&amp;controller=attachments&amp;no_html=1&amp;pid=<?php echo $this->id; ?>">
@@ -97,7 +97,7 @@ $base = rtrim(JURI::getInstance()->base(true), '/');
 			<input type="hidden" name="id" value="<?php echo $this->id; ?>" />
 		</fieldset><div class="clear"></div>
 		<div class="submit">
-			<input type="submit" value="<?php echo JText::_('COM_CONTRIBUTE_NEXT'); ?>" />
+			<input class="btn btn-success" type="submit" value="<?php echo JText::_('COM_CONTRIBUTE_NEXT'); ?>" />
 		</div>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

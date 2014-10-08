@@ -40,7 +40,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 {
 	/**
 	 * Execute!
-	 * 
+	 *
 	 * @return void
 	 */
 	function execute()
@@ -56,11 +56,11 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$this->db = JFactory::getDBO();
 
 		// Switch based on entity type and action
-		switch($this->segments[0])
+		switch ($this->segments[0])
 		{
 			// Units
 			case 'unit':
-				switch($this->segments[1])
+				switch ($this->segments[1])
 				{
 					case 'save': $this->unitSave();         break;
 					default:     $this->method_not_found(); break;
@@ -69,7 +69,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 			// Asset groups
 			case 'assetgroup':
-				switch($this->segments[1])
+				switch ($this->segments[1])
 				{
 					case 'save':    $this->assetGroupSave();    break;
 					case 'reorder': $this->assetGroupReorder(); break;
@@ -79,7 +79,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 			// Assets
 			case 'asset':
-				switch($this->segments[1])
+				switch ($this->segments[1])
 				{
 					case 'handlers':        $this->assetHandlers();        break;
 					case 'new':             $this->assetNew();             break;
@@ -87,6 +87,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 					case 'preview':         $this->assetPreview();         break;
 					case 'save':            $this->assetSave();            break;
 					case 'delete':          $this->assetDelete();          break;
+					case 'deletefile':      $this->assetDeleteFile();      break;
 					case 'reorder':         $this->assetReorder();         break;
 					case 'togglepublished': $this->assetTogglePublished(); break;
 					case 'getformid':       $this->assetGetFormId();       break;
@@ -101,6 +102,16 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 				{
 					case 'image': $this->formImage();        break;
 					default:      $this->method_not_found(); break;
+				}
+			break;
+
+			// Forms
+			case 'prerequisite':
+				switch ($this->segments[1])
+				{
+					case 'new':    $this->prerequisiteNew();    break;
+					case 'delete': $this->prerequisiteDelete(); break;
+					default:       $this->method_not_found();   break;
 				}
 			break;
 
@@ -120,7 +131,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Save a course unit
-	 * 
+	 *
 	 * @return '201 Created' on new, '200 OK' otherwise
 	 */
 	private function unitSave()
@@ -130,7 +141,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		// Require authorization
 		$authorized = $this->authorize();
-		if(!$authorized['manage'])
+		if (!$authorized['manage'])
 		{
 			$this->setMessage('You don\'t have permission to do this', 401, 'Not Authorized');
 			return;
@@ -169,17 +180,17 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$offset = $config->offset;
 
 		// If we have dates coming in, save those
-		if($publish_up = JRequest::getVar('publish_up', false))
+		if ($publish_up = JRequest::getVar('publish_up', false))
 		{
 			$unit->set('publish_up', JFactory::getDate($publish_up, $offset)->toSql());
 		}
-		if($publish_down = JRequest::getVar('publish_down', false))
+		if ($publish_down = JRequest::getVar('publish_down', false))
 		{
 			$unit->set('publish_down', JFactory::getDate($publish_down, $offset)->toSql());
 		}
 
 		// When creating a new unit
-		if(!$id)
+		if (!$id)
 		{
 			$unit->set('offering_id', JRequest::getInt('offering_id', 0));
 			$unit->set('created', JFactory::getDate()->toSql());
@@ -198,7 +209,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		// If this is a new unit, give it some default asset groups
 		// Create a top level asset group for each of lectures, homework, and exam
-		if(!$id)
+		if (!$id)
 		{
 			// Included needed classes
 			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'assetgroup.php');
@@ -240,6 +251,24 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		// Set the status code
 		$status = ($id) ? array('code'=>200, 'text'=>'OK') : array('code'=>201, 'text'=>'Created');
 
+		// Need to return the content of the prerequisites view (not sure of a better way to do this at the moment)
+		$view = new \Hubzero\Plugin\View(array(
+			'folder'  => 'courses',
+			'element' => 'outline',
+			'name'    => 'outline',
+			'layout'  => '_prerequisites'
+		));
+
+		$view->set('scope', 'unit')
+		     ->set('scope_id', $unit->get('id'))
+		     ->set('section_id', $this->course->offering()->section()->get('id'))
+		     ->set('items', clone($this->course->offering()->units()));
+
+		ob_start();
+		$view->display();
+		$prerequisites = ob_get_contents();
+		ob_end_clean();
+
 		// Return message
 		$this->setMessage(
 			array(
@@ -249,7 +278,8 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 				'assetgroups'    => $assetGroups,
 				'course_alias'   => $this->course->get('alias'),
 				'offering_alias' => $this->offering_alias,
-				'section_id'     => (isset($section_id) ? $section_id : $this->course->offering()->section()->get('id'))
+				'section_id'     => (isset($section_id) ? $section_id : $this->course->offering()->section()->get('id')),
+				'prerequisites'  => $prerequisites
 			),
 			$status['code'],
 			$status['text']);
@@ -261,7 +291,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Save an asset group
-	 * 
+	 *
 	 * @return '201 Created' on new, '200 OK' otherwise
 	 */
 	private function assetGroupSave()
@@ -271,7 +301,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		// Require authorization
 		$authorized = $this->authorize();
-		if(!$authorized['manage'])
+		if (!$authorized['manage'])
 		{
 			$this->setMessage('You don\'t have permission to do this', 401, 'Not Aauthorized');
 			return;
@@ -320,15 +350,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		if (($params = JRequest::getVar('params', false, 'post')) || !$id)
 		{
-			$paramsClass = 'JParameter';
-			$mthd        = 'bind';
-			if (version_compare(JVERSION, '1.6', 'ge'))
-			{
-				$paramsClass = 'JRegistry';
-				$mthd        = 'loadArray';
-			}
-
-			$p = new $paramsClass('');
+			$p = new JRegistry('');
 
 			$db = JFactory::getDbo();
 			$query = $db->getQuery(true);
@@ -344,7 +366,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 			{
 				foreach ($plugins as $plugin)
 				{
-					$default = new $paramsClass($plugin->params);
+					$default = new JRegistry($plugin->params);
 					foreach ($default->toArray() as $k => $v)
 					{
 						if (substr($k, 0, strlen('default_')) == 'default_')
@@ -357,7 +379,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 			if ($params)
 			{
-				$p->$mthd($params);
+				$p->loadArray($params);
 			}
 
 			$assetGroup->set('params', $p->toString());
@@ -390,7 +412,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Reorder assets
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function assetGroupReorder()
@@ -437,7 +459,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Get the asset handlers for a given extension
-	 * 
+	 *
 	 * @return 200 ok
 	 */
 	private function assetHandlers()
@@ -467,7 +489,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Create a new asset
-	 * 
+	 *
 	 * @return 201 created on success
 	 */
 	private function assetNew()
@@ -477,14 +499,14 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		// Require authorization
 		$authorized = $this->authorize();
-		if(!$authorized['manage'])
+		if (!$authorized['manage'])
 		{
 			$this->setMessage('You don\'t have permission to do this', 401, 'Not Authorized');
 			return;
 		}
 
 		// Grab the incoming file (incoming type overrides files)
-		if(isset($_FILES['files']) && !JRequest::getWord('type', false))
+		if (isset($_FILES['files']) && !JRequest::getWord('type', false))
 		{
 			$file_name = $_FILES['files']['name'][0];
 			$file_size = (int) $_FILES['files']['size'];
@@ -493,7 +515,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 			$pathinfo = pathinfo($file_name);
 			$ext      = $pathinfo['extension'];
 		}
-		elseif($contentType = JRequest::getWord('type', false))
+		elseif ($contentType = JRequest::getWord('type', false))
 		{
 			// @FIXME: having this here breaks the responder model idea
 			// The content type handlers could respond to a function that assesses the incoming data?
@@ -524,7 +546,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$return = $assetHandler->create(JRequest::getWord('handler', null));
 
 		// Check for errors in response
-		if(array_key_exists('error', $return))
+		if (array_key_exists('error', $return))
 		{
 			$this->setMessage($return['error'], 500, 'Internal server error');
 			return;
@@ -536,7 +558,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Retrieve the asset edit page
-	 * 
+	 *
 	 * @return 200 OK
 	 */
 	private function assetEdit()
@@ -579,7 +601,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Preview an asset
-	 * 
+	 *
 	 * @return 200 OK
 	 */
 	private function assetPreview()
@@ -622,7 +644,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Save an asset
-	 * 
+	 *
 	 * @return '201 Created' on new, '200 OK' otherwise
 	 */
 	private function assetSave()
@@ -632,7 +654,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		// Require authorization
 		$authorized = $this->authorize();
-		if(!$authorized['manage'])
+		if (!$authorized['manage'])
 		{
 			$this->setMessage('You don\'t have permission to do this', 401, 'Unauthorized');
 			return;
@@ -667,26 +689,26 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$asset->set('alias', strtolower(str_replace(' ', '', $asset->get('title'))));
 
 		// If we have an incoming url, update the url, otherwise, leave it alone
-		if($url = JRequest::getVar('url', false))
+		if ($url = JRequest::getVar('url', false))
 		{
 			$asset->set('url', urldecode($url));
 		}
 
 		// If we have a state coming in as a word
-		if($published = JRequest::getWord('published', false))
+		if ($published = JRequest::getWord('published', false))
 		{
 			$published = ($published == 'on') ? 1 : $asset->get('state');
 			$asset->set('state', $published);
 		}
 
 		// If we have a state coming in as an int
-		if($published = JRequest::getInt('published', false))
+		if ($published = JRequest::getInt('published', false))
 		{
 			$asset->set('state', $published);
 		}
 
 		// If we have a state coming in as an int
-		if($state = JRequest::getInt('state', false))
+		if ($state = JRequest::getInt('state', false))
 		{
 			$asset->set('state', $state);
 		}
@@ -707,8 +729,19 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 			$asset->set('graded', 0);
 		}
 
+		// If we're saving progress calculation var
+		if ($progress = JRequest::getInt('progress_factors', false))
+		{
+			$asset->set('progress_factors', array('asset_id'=>$asset->get('id'), 'section_id'=>$this->course->offering()->section()->get('id')));
+		}
+		elseif (JRequest::getInt('edit_progress_factors', false))
+		{
+			$asset->set('section_id', $this->course->offering()->section()->get('id'));
+			$asset->set('progress_factors', 'delete');
+		}
+
 		// If we have content
-		if($content = JRequest::getVar('content', false, 'default', 'none', 2))
+		if ($content = JRequest::getVar('content', false, 'default', 'none', 2))
 		{
 			$asset->set('content', $content);
 		}
@@ -744,7 +777,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		}
 
 		// Check to see if the asset should be a link to a tool
-		if($tool_param = JRequest::getInt('tool_param', false))
+		if ($tool_param = JRequest::getInt('tool_param', false))
 		{
 			$config = JComponentHelper::getParams('com_courses');
 
@@ -801,7 +834,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		}
 
 		// When creating a new asset (which probably won't happen via this method, but rather the assetNew method above)
-		if(!$id)
+		if (!$id)
 		{
 			$asset->set('type', JRequest::getWord('type', 'file'));
 			$asset->set('subtype', JRequest::getWord('subtype', 'file'));
@@ -821,7 +854,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$files = array();
 
 		// If we're creating a new asset, we should also create a new asset association
-		if(!$id)
+		if (!$id)
 		{
 			// Create asset assoc object
 			$assocObj = new CoursesTableAssetAssociation($this->db);
@@ -900,7 +933,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Delete an asset
-	 * 
+	 *
 	 * @return 200 ok on success
 	 */
 	private function assetDelete()
@@ -910,7 +943,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		// Require authorization
 		$authorized = $this->authorize();
-		if(!$authorized['manage'])
+		if (!$authorized['manage'])
 		{
 			$this->setMessage('You don\'t have permission to do this', 401, 'Unauthorized');
 			return;
@@ -929,7 +962,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$scope_id  = JRequest::getInt('scope_id', 0);
 
 		// Make sure we're not missing anything
-		if(!$asset_id || !$scope || !$scope_id)
+		if (!$asset_id || !$scope || !$scope_id)
 		{
 			// Missing needed variables to identify asset association
 			$this->setMessage("Missing one of asset id, scope, or scope id", 422, 'Unprocessable Entity');
@@ -980,7 +1013,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$path    = DS . trim($params->get('uploadpath', '/site/courses'), DS) . DS . $this->course_id . DS . $assetObj->id;
 
 		// If the path exists, delete it!
-		if(JFolder::exists($path))
+		if (JFolder::exists($path))
 		{
 			$deleted = JFolder::listFolderTree($path);
 			JFolder::delete($path);
@@ -1004,8 +1037,59 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 	}
 
 	/**
+	 * Delete an asset file
+	 *
+	 * @return 200 ok on success
+	 */
+	private function assetDeleteFile()
+	{
+		// Set the responce type
+		$this->setMessageType($this->format);
+
+		// Require authorization
+		$authorized = $this->authorize();
+		if (!$authorized['manage'])
+		{
+			$this->setMessage('You don\'t have permission to do this', 401, 'Unauthorized');
+			return;
+		}
+
+		// Include needed file(s)
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'asset.php');
+
+		// Grab incoming id, if applicable
+		$id       = JRequest::getInt('id', null);
+		$filename = JRequest::getVar('filename', null);
+
+		// Create our object
+		$asset = new CoursesModelAsset($id);
+
+		if ($asset->get('course_id') != $this->course->get('id'))
+		{
+			$this->setMessage('Asset is not a part of this course.', 500, 'Internal server error');
+			return;
+		}
+
+		$basePath = $asset->path($this->course->get('id'));
+		$path     = $basePath . $filename;
+		$dirname  = dirname($path);
+
+		if (!is_file(JPATH_ROOT . $path) || $dirname != rtrim($basePath, DS))
+		{
+			$this->setMessage('Illegal file path', 500, 'Internal server error');
+			return;
+		}
+
+		unlink(JPATH_ROOT . $path);
+
+		// Return message
+		$this->setMessage('File deleted', 200, 'OK');
+		return;
+	}
+
+	/**
 	 * Reorder assets
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function assetReorder()
@@ -1048,7 +1132,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Toggle the published state of an asset
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function assetTogglePublished()
@@ -1060,14 +1144,14 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		// Require authorization
 		$authorized = $this->authorize();
-		if(!$authorized['manage'])
+		if (!$authorized['manage'])
 		{
 			$this->setMessage('You don\'t have permission to do this', 401, 'Not Authorized');
 			return;
 		}
 
 		// Get the asset id
-		if(!$id = JRequest::getInt('id', false))
+		if (!$id = JRequest::getInt('id', false))
 		{
 			$this->setMessage("No ID provided", 422, 'Unprocessable entity');
 			return;
@@ -1106,7 +1190,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Look up the form id based on the asset id
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function assetGetFormId()
@@ -1115,7 +1199,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Get the asset id
-		if(!$id = JRequest::getInt('id', false))
+		if (!$id = JRequest::getInt('id', false))
 		{
 			$this->setMessage("No ID provided", 422, 'Unprocessable entity');
 			return;
@@ -1152,7 +1236,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Get form image
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function formImage()
@@ -1160,13 +1244,14 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		require_once JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'form.php';
 
 		$id = JRequest::getInt('id', 0);
+		$version = JRequest::getInt('version', false);
 
 		$filename = JRequest::getVar('file', '');
 		$filename = urldecode($filename);
-		$filename = JPATH_ROOT . DS . 'site' . DS . 'courses' . DS . 'forms' . DS . $id . DS . ltrim($filename, DS);
+		$filename = JPATH_ROOT . DS . 'site' . DS . 'courses' . DS . 'forms' . DS . $id . DS . (($version) ? $version . DS : '') . ltrim($filename, DS);
 
 		// Ensure the file exist
-		if (!file_exists($filename)) 
+		if (!file_exists($filename))
 		{
 			// Return message
 			$this->setMessage('Image not found', 404, 'Not Found');
@@ -1201,8 +1286,63 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 	}
 
 	/**
+	 * Add a new prerequisite
+	 *
+	 * @return 201 Created
+	 **/
+	private function prerequisiteNew()
+	{
+		$this->setMessageType($this->format);
+
+		require_once JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'prerequisite.php';
+
+		$tbl = new CoursesTablePrerequisites($this->db);
+		$tbl->set('item_scope', JRequest::getWord('item_scope', 'asset'));
+		$tbl->set('item_id', JRequest::getInt('item_id', 0));
+		$tbl->set('requisite_scope', JRequest::getWord('requisite_scope', 'asset'));
+		$tbl->set('requisite_id', JRequest::getInt('requisite_id', 0));
+		$tbl->set('section_id', JRequest::getInt('section_id', 0));
+
+		if (!$tbl->store())
+		{
+			$this->setMessage('Failed to save new prerequisite', 500, 'Server Error');
+			return;
+		}
+		else
+		{
+			$this->setMessage(array('success'=>true, 'id'=>$tbl->get('id')), 201, 'Created');
+			return;
+		}
+	}
+
+	/**
+	 * Delete a prerequisite
+	 *
+	 * @return 200 Ok
+	 **/
+	private function prerequisiteDelete()
+	{
+		$this->setMessageType($this->format);
+
+		require_once JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_courses' . DS . 'tables' . DS . 'prerequisite.php';
+
+		if (!$id = JRequest::getInt('id', false))
+		{
+			$this->setMessage("No ID provided", 422, 'Unprocessable entity');
+			return;
+		}
+
+		$tbl = new CoursesTablePrerequisites($this->db);
+		$tbl->load($id);
+		$tbl->delete();
+
+		$this->setMessage('Item successfully deleted', 200, 'Ok');
+		return;
+	}
+
+	/**
 	 * Passport badges. Placeholder for now.
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function passport()
@@ -1307,7 +1447,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 	/**
 	 * Look up the form id and deployment id based on the asset id
 	 * @FIXME: combine this with method above
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function assetGetFormAndDepId()
@@ -1316,7 +1456,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$this->setMessageType($this->format);
 
 		// Get the asset id
-		if(!$id = JRequest::getInt('id', false))
+		if (!$id = JRequest::getInt('id', false))
 		{
 			$this->setMessage("No ID provided", 422, 'Unprocessable entity');
 			return;
@@ -1341,11 +1481,11 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$depId = $this->db->loadResult();
 
 		// Check
-		if (!is_numeric($depId))
+		/*if (!is_numeric($depId))
 		{
 			$this->setMessage("Failed to retrieve the deployment ID", 500, 'Internal server error');
 			return;
-		}
+		}*/
 
 		// Return message
 		$this->setMessage(array('form_id' => $formId, 'deployment_id' => $depId), 200, 'OK');
@@ -1353,7 +1493,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Process grade save from unity app
-	 * 
+	 *
 	 * @return 200 OK on success
 	 */
 	private function unityScoreSave()
@@ -1461,6 +1601,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 			if ($score > $gradebook->get('score'))
 			{
 				$gradebook->set('score', $score);
+				$gradebook->set('score_recorded', \JFactory::getDate()->toSql());
 				if (!$gradebook->store())
 				{
 					$this->setMessage($gradebook->getError(), 500, 'Internal error');
@@ -1474,6 +1615,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 			$gradebook->set('score', $score);
 			$gradebook->set('scope', 'asset');
 			$gradebook->set('scope_id', $asset_id);
+			$gradebook->set('score_recorded', \JFactory::getDate()->toSql());
 			if (!$gradebook->store())
 			{
 				$this->setMessage($gradebook->getError(), 500, 'Internal error');
@@ -1491,7 +1633,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Default method - not found
-	 * 
+	 *
 	 * @return 404, method not found error
 	 */
 	private function method_not_found()
@@ -1506,7 +1648,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Helper function to check whether or not someone is using oauth and authorized to use this call
-	 * 
+	 *
 	 * @return bool - true if in group, false otherwise
 	 */
 	private function authorize_call()
@@ -1558,7 +1700,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		}
 
 		// Next see if the user is allowed to make this call
-		$sql = 'SELECT `user_id`, `group_id` FROM `#__api_permissions` WHERE `path` = ' . $this->db->quote($permissions_path) . ' AND 
+		$sql = 'SELECT `user_id`, `group_id` FROM `#__api_permissions` WHERE `path` = ' . $this->db->quote($permissions_path) . ' AND
 				(`user_id` = ' . $this->db->quote($userid) . ' OR `consumer_key` = ' . $this->db->quote($consumerKey) . ' OR 0';
 
 		foreach ($user_groups as $group)
@@ -1583,7 +1725,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 	/**
 	 * Helper function to check whether or not someone is using oauth and authorized
-	 * 
+	 *
 	 * @return bool - true if in group, false otherwise
 	 */
 	private function authorize()
@@ -1598,7 +1740,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$authorized['admin']  = false;
 
 		// Not logged in and/or not using OAuth
-		if(!is_numeric($user_id))
+		if (!is_numeric($user_id))
 		{
 			return $authorized;
 		}
@@ -1610,11 +1752,13 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		// Get the course id
 		$this->course_id      = JRequest::getInt('course_id', 0);
 		$this->offering_alias = JRequest::getCmd('offering', '');
+		$this->section_id     = JRequest::getInt('section_id', '');
 
 		// Load the course page
 		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'course.php');
 		$course = CoursesModelCourse::getInstance($this->course_id);
 		$offering = $course->offering($this->offering_alias);
+		$course->offering()->section($this->section_id);
 		$this->course = $course;
 
 		if ($course->access('manage'))
@@ -1626,7 +1770,7 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 
 		return $authorized;
 	}
-	
+
 	/**
 	 * Method to report errors. creates error node for response body as well
 	 *
@@ -1642,11 +1786,11 @@ class CoursesControllerApi extends \Hubzero\Component\ApiController
 		$object = new stdClass();
 		$object->error->code = $code;
 		$object->error->message = $message;
-				
+
 		//set http status code and reason
 		$response = $this->getResponse();
 		$response->setErrorMessage($object->error->code, $object->error->message, $object->error->message);
-		
+
 		//add error to message body
 		$this->setMessage($object);
 	}

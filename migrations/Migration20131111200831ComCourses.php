@@ -6,7 +6,7 @@ use Hubzero\Content\Migration\Base;
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Migration script for ...
+ * Migration script for courses badges cleanup
  **/
 class Migration20131111200831ComCourses extends Base
 {
@@ -18,6 +18,12 @@ class Migration20131111200831ComCourses extends Base
 		if ($this->db->tableExists('#__courses_offering_badges') && !$this->db->tableExists('#__courses_offering_section_badges'))
 		{
 			$query = "RENAME TABLE `#__courses_offering_badges` TO `#__courses_offering_section_badges`";
+			$this->db->setQuery($query);
+			$this->db->query();
+		}
+		else if ($this->db->tableExists('#__courses_offering_badges') && $this->db->tableExists('#__courses_offering_section_badges'))
+		{
+			$query = "DROP TABLE `#__courses_offering_badges`";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}

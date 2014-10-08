@@ -30,6 +30,9 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
+
+$this->css('create.css')
+     ->js('create.js');
 ?>
 	<div id="small-page">
 		<?php if (!JRequest::getInt('hideform', 0)) { ?>
@@ -57,7 +60,7 @@ defined('_JEXEC') or die('Restricted access');
 		<?php
 		$out = '';
 		// loop through children and build list
-		if ($this->children) 
+		if ($this->children)
 		{
 			$base = $this->config->get('uploadpath');
 
@@ -78,12 +81,12 @@ defined('_JEXEC') or die('Restricted access');
 				switch ($child->type)
 				{
 					case 12:
-						if ($child->path) 
+						if ($child->path)
 						{
 							// internal link, not a resource
 							$url = $child->path;
-						} 
-						else 
+						}
+						else
 						{
 							// internal link but a resource
 							$url = '/index.php?option=com_resources&id=' . $child->id;
@@ -96,14 +99,14 @@ defined('_JEXEC') or die('Restricted access');
 
 				// figure out the file type so we can give it the appropriate CSS class
 				$type = JFile::getExt($url);
-				if (!$child->type != 12 && $child->type != 11) 
+				if (!$child->type != 12 && $child->type != 11)
 				{
 					$type = ($type) ? $type : 'html';
 				}
 
 				$isFile = true;
-				if (($child->type == 12 || $child->type == 11) 
-				 || in_array($type, array('html', 'htm', 'php', 'asp', 'shtml')) 
+				if (($child->type == 12 || $child->type == 11)
+				 || in_array($type, array('html', 'htm', 'php', 'asp', 'shtml'))
 				 || strstr($url, '?'))
 				{
 					$isFile = false;
@@ -113,7 +116,7 @@ defined('_JEXEC') or die('Restricted access');
 					<td width="100%">
 						<span class="ftitle item:name id:<?php echo $child->id; ?>" data-id="<?php echo $child->id; ?>">
 							<?php echo $this->escape($child->title); ?>
-						</span> 
+						</span>
 						<?php echo ($isFile) ? ResourcesHtml::getFileAttribs($url, $base) : '<span class="caption">' . $url . '</span>'; ?>
 					</td>
 					<td class="u">

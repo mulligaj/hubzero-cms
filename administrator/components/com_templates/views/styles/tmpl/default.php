@@ -22,9 +22,10 @@ $listDirn	= $this->escape($this->state->get('list.direction'));
 	<fieldset id="filter-bar">
 		<div class="filter-search fltlft">
 			<label class="filter-search-lbl" for="filter_search"><?php echo JText::_('JSEARCH_FILTER_LABEL'); ?></label>
-			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" title="<?php echo JText::_('COM_TEMPLATES_STYLES_FILTER_SEARCH_DESC'); ?>" />
+			<input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" placeholder="<?php echo JText::_('COM_TEMPLATES_STYLES_FILTER_SEARCH_DESC'); ?>" />
+
 			<button type="submit"><?php echo JText::_('JSEARCH_FILTER_SUBMIT'); ?></button>
-			<button type="button" onclick="document.id('filter_search').value='';this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
+			<button type="button" onclick="$('#filter_search').val('');this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
 		</div>
 		<div class="filter-select fltrt">
 			<select name="filter_template" class="inputbox" onchange="this.form.submit()">
@@ -43,25 +44,25 @@ $listDirn	= $this->escape($this->state->get('list.direction'));
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th width="5">
+				<th>
 					&#160;
 				</th>
-				<th>
+				<th scope="col">
 					<?php echo JHtml::_('grid.sort', 'COM_TEMPLATES_HEADING_STYLE', 'a.title', $listDirn, $listOrder); ?>
 				</th>
-				<th width="10%">
+				<th scope="col">
 					<?php echo JHtml::_('grid.sort', 'JCLIENT', 'a.client_id', $listDirn, $listOrder); ?>
 				</th>
-				<th>
+				<th scope="col">
 					<?php echo JHtml::_('grid.sort', 'COM_TEMPLATES_HEADING_TEMPLATE', 'a.template', $listDirn, $listOrder); ?>
 				</th>
-				<th width="5%">
+				<th scope="col">
 					<?php echo JHtml::_('grid.sort', 'COM_TEMPLATES_HEADING_DEFAULT', 'a.home', $listDirn, $listOrder); ?>
 				</th>
-				<th width="5%">
+				<th scope="col">
 					<?php echo JText::_('COM_TEMPLATES_HEADING_ASSIGNED'); ?>
 				</th>
-				<th width="1%" class="nowrap">
+				<th scope="col">
 					<?php echo JHtml::_('grid.sort', 'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
 				</th>
 			</tr>
@@ -80,7 +81,7 @@ $listDirn	= $this->escape($this->state->get('list.direction'));
 				$canChange	= $user->authorise('core.edit.state',	'com_templates');
 			?>
 			<tr class="row<?php echo $i % 2; ?>">
-				<td width="1%" class="center">
+				<td class="center">
 					<?php echo JHtml::_('grid.id', $i, $item->id); ?>
 				</td>
 
@@ -122,7 +123,9 @@ $listDirn	= $this->escape($this->state->get('list.direction'));
 				</td>
 				<td class="center">
 					<?php if ($item->assigned > 0) : ?>
-							<?php echo JHtml::_('image', 'admin/tick.png', JText::plural('COM_TEMPLATES_ASSIGNED', $item->assigned), array('title'=>JText::plural('COM_TEMPLATES_ASSIGNED', $item->assigned)), true); ?>
+							<span class="state yes" title="<?php echo JText::plural('COM_TEMPLATES_ASSIGNED', $item->assigned); ?>">
+								<span class="text"><?php echo JText::plural('COM_TEMPLATES_ASSIGNED', $item->assigned); ?></span>
+							</span>
 					<?php else : ?>
 							&#160;
 					<?php endif; ?>
@@ -135,11 +138,9 @@ $listDirn	= $this->escape($this->state->get('list.direction'));
 		</tbody>
 	</table>
 
-	<div>
-		<input type="hidden" name="task" value="" />
-		<input type="hidden" name="boxchecked" value="0" />
-		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
-		<?php echo JHtml::_('form.token'); ?>
-	</div>
+	<input type="hidden" name="task" value="" />
+	<input type="hidden" name="boxchecked" value="0" />
+	<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+	<?php echo JHtml::_('form.token'); ?>
 </form>

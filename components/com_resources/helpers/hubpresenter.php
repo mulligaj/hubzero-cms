@@ -29,148 +29,131 @@
  */
 
 // Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_JEXEC') or die('Restricted access');
 
 /**
- * Short description for 'PresenterHelper'
- * 
- * Long description (if any) ...
+ * Helper class for HUB Presenter
  */
 class HUBpresenterHelper extends JObject
 {
 	/**
-	 * Displays Error Messages to the User
-	 * 
-	 * @param 	array 	Array of error messages
-	 * @return 	string	Html data for errors
-	 */
-	public static function errorMessage( $errors = array() )
-	{
-		//if we have errors
-		if(!empty($errors)) {
-			//HUBpresenter Error Messages
-			$html  = "<div id=\"hubpresenter-error\">";
-			$html .= "<div id=\"title\">Oops, We Encountered an Error.</div>";
-			$html .= "<p>Use the error messages below to try and resolve the issue. If you are still unable to fix the problem report your problem to the system administrator by entering a <a href=\"/feedback/report_problems\">support ticket.</a></p>";
-			$html .= "<ol>";
-			foreach($errors as $e) {
-				$html .= "<li>{$e}</li>";
-			}
-			$html .= "</ol>";
-			$html .= "</div>";
-
-			//echo out content;
-			return $html;
-		}
-	}
-
-	/**
 	 * Generates JSON Manifest from XML doc uploaded
-	 * 
+	 *
 	 * @param 	string 	Path to resources files
 	 * @param 	string 	Path to XML doc
 	 * @return 	string	Check to make sure manifest is created successfully
 	 */
-	public function createJsonManifest( $resource_path, $xml_path )
+	public function createJsonManifest($resource_path, $xml_path)
 	{
-		//verify once again the file exists
-		if (file_exists( $xml_path )) {
-		    $manifest = simplexml_load_file( $xml_path );
+		// Verify once again the file exists
+		if (file_exists($xml_path))
+		{
+			$manifest = simplexml_load_file($xml_path);
 		}
 
-		//set the media
+		// Set the media
 		$old_media = $manifest->media;
-		foreach($old_media->source as $source) {
+		foreach ($old_media->source as $source)
+		{
 			$old_media_parts = explode('\\', $source);
-			$source = array_pop($old_media_parts);
-			$ext = array_pop(explode(".", $source));
-
-			$new_media[] = array("source" => $source, "type" => $ext);
+			$source          = array_pop($old_media_parts);
+			$ext             = array_pop(explode('.', $source));
+			$new_media[]     = array(
+				'source' => $source,
+				'type'   => $ext
+			);
 		}
 
-		//set the title
+		// Set the title
 		$new_title = (string)$manifest->webtitle;
 
-		//set the type
-		$new_type = (in_array( $ext, array("webm","mp4","ogv") )) ? "Video" : "Audio";
+		// Set the type
+		$new_type = (in_array($ext, array('webm','mp4','ogv'))) ? 'Video' : 'Audio';
 
 		$new_slides = array();
-		for($i=0;$i<count($manifest->event);$i++) {
+		for ($i=0;$i<count($manifest->event);$i++)
+		{
 			$title = (string)$manifest->event[$i]->title;
-			$type = (string)$manifest->event[$i]->type;
-			$media = "slides" . DS . (string)$manifest->event[$i]->path;
-			$time = (string)$manifest->event[$i]->start;
+			$type  = (string)$manifest->event[$i]->type;
+			$media = 'slides' . DS . (string)$manifest->event[$i]->path;
+			$time  = (string)$manifest->event[$i]->start;
 			$slide = (string)$manifest->event[$i]->slide;
 
-			if(strtolower($type) == "video") {
+			if (strtolower($type) == 'video')
+			{
 				$orig_media = $media;
 
 				$media = array();
 
-				$media[0]["source"] = $orig_media;
-				$media[0]["type"] = PresenterHelper::getExt($orig_media);
+				$media[0]['source'] = $orig_media;
+				$media[0]['type']   = PresenterHelper::getExt($orig_media);
 
 				$name = PresenterHelper::getName($orig_media);
 
-				if(file_exists( JPATH_ROOT . DS . $resource_path . DS . 'content' . DS . $name . '.webm' )) {
-					$media[1]["source"] = $name.".webm";
-					$media[1]["type"] = "webm";
+				if (file_exists(JPATH_ROOT . DS . $resource_path . DS . 'content' . DS . $name . '.webm'))
+				{
+					$media[1]['source'] = $name . '.webm';
+					$media[1]['type']   = 'webm';
 				}
 
-				if(file_exists( JPATH_ROOT . DS . $resource_path . DS . 'content' . DS . $name . '.ogv' )) {
-					$media[2]["source"] = $name.".ogv";
-					$media[2]["type"] = "ogg";
+				if (file_exists(JPATH_ROOT . DS . $resource_path . DS . 'content' . DS . $name . '.ogv'))
+				{
+					$media[2]['source'] = $name . '.ogv';
+					$media[2]['type']   = 'ogg';
 				}
 
-				if(file_exists( JPATH_ROOT . DS . $resource_path . DS . 'content' . DS . $name . '.png' )) {
-					$media[3]["source"] = $name.".png";
-					$media[3]["type"] = "imagereplacement";
+				if (file_exists(JPATH_ROOT . DS . $resource_path . DS . 'content' . DS . $name . '.png'))
+				{
+					$media[3]['source'] = $name . '.png';
+					$media[3]['type']   = 'imagereplacement';
 				}
 			}
 
 			$new_slides[] = array(
-								"title" => $title,
-								"type"	=> $type,
-								"media" => $media,
-								"time"	=> $time,
-								"slide" => $slide
-								);
+				'title' => $title,
+				'type'  => $type,
+				'media' => $media,
+				'time'  => $time,
+				'slide' => $slide
+			);
 		}
 
-		$data = array();
-		$data['presentation']['title'] = $new_title;
-		$data['presentation']['type'] = $new_type;
-		$data['presentation']['media'] = $new_media;
+		$data = array(
+			'presentation' => array()
+		);
+		$data['presentation']['title']  = $new_title;
+		$data['presentation']['type']   = $new_type;
+		$data['presentation']['media']  = $new_media;
 		$data['presentation']['slides'] = $new_slides;
 
-		$json = json_encode( $data );
+		$json = json_encode($data);
 
-		$new_file = JPATH_ROOT . DS . $resource_path . DS . "presentation.json";
-		$file_handle = fopen( $new_file, 'w') or die("An Error Occured While Trying to Create the Presentation Manifest.");
-		fwrite( $file_handle, $json );
+		$new_file    = JPATH_ROOT . DS . $resource_path . DS . 'presentation.json';
+		$file_handle = fopen($new_file, 'w') or die("An Error Occured While Trying to Create the Presentation Manifest.");
+		fwrite($file_handle, $json);
 	}
 
 	/**
 	 * Gets the file extension from filename
-	 * 
+	 *
 	 * @param 	string	Name of file
 	 * @return 	string	File Extension
 	 */
-	protected function getExt( $filename ) {
-		$parts = explode(".",$filename);
+	protected function getExt($filename)
+	{
+		$parts = explode('.', $filename);
 		return array_pop($parts);
 	}
 
 	/**
 	 * Gets just the name of file from filename
-	 * 
+	 *
 	 * @param 	string	Name of file
 	 * @return 	string	File name
 	 */
-	protected function getName( $filename ) {
-		$parts = explode(".", $filename);
+	protected function getName($filename)
+	{
+		$parts = explode('.', $filename);
 		return $parts[0];
 	}
 }
-
-?>

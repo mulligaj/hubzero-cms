@@ -43,53 +43,46 @@ class AnswersModelResponse extends AnswersModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'AnswersTableResponse';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_answers.response.answer';
 
 	/**
-	 * Class scope
-	 * 
-	 * @var string
-	 */
-	protected $_scope = 'answer';
-
-	/**
 	 * \Hubzero\Base\ItemList
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_comments = null;
 
 	/**
 	 * Comment count
-	 * 
+	 *
 	 * @var integer
 	 */
 	private $_comments_count = null;
 
 	/**
 	 * URL to this entry
-	 * 
+	 *
 	 * @var string
 	 */
 	private $_base = null;
 
 	/**
 	 * Get a list or count of comments
-	 * 
-	 * @param      string  $rtrn    Data format to return
-	 * @param      array   $filters Filters to apply to data fetch
-	 * @param      boolean $clear   Clear cached data?
-	 * @return     mixed
+	 *
+	 * @param   string  $rtrn    Data format to return
+	 * @param   array   $filters Filters to apply to data fetch
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  mixed
 	 */
 	public function replies($rtrn='list', $filters=array(), $clear=false)
 	{
@@ -105,6 +98,10 @@ class AnswersModelResponse extends AnswersModelAbstract
 		{
 			$filters['parent'] = 0;
 		}
+		if (!isset($filters['state']))
+		{
+			$filters['state'] = array(self::APP_STATE_PUBLISHED, self::APP_STATE_FLAGGED);
+		}
 
 		switch (strtolower($rtrn))
 		{
@@ -113,19 +110,19 @@ class AnswersModelResponse extends AnswersModelAbstract
 				{
 					$this->_comments_count = 0;
 
-					if (!$this->_comments) 
+					if (!$this->_comments)
 					{
 						$c = $this->comments('list', $filters);
 					}
 					foreach ($this->_comments as $com)
 					{
 						$this->_comments_count++;
-						if ($com->replies()) 
+						if ($com->replies())
 						{
 							foreach ($com->replies() as $rep)
 							{
 								$this->_comments_count++;
-								if ($rep->replies()) 
+								if ($rep->replies())
 								{
 									$this->_comments_count += $rep->replies()->total();
 								}
@@ -173,10 +170,10 @@ class AnswersModelResponse extends AnswersModelAbstract
 
 	/**
 	 * Get the contents of this entry in various formats
-	 * 
-	 * @param      string  $as      Format to return state in [raw, parsed]
-	 * @param      integer $shorten Number of characters to shorten text to
-	 * @return     string
+	 *
+	 * @param   string  $as      Format to return state in [raw, parsed]
+	 * @param   integer $shorten Number of characters to shorten text to
+	 * @return  string
 	 */
 	public function content($as='parsed', $shorten=0)
 	{
@@ -199,7 +196,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 						'domain'   => ''
 					);
 
-					$content = (string) stripslashes($this->get('answer', ''));
+					$content = str_replace(array('\"', "\'"), array('"', "'"), (string) $this->get('answer', ''));
 					$this->importPlugin('content')->trigger('onContentPrepare', array(
 						$this->_context,
 						&$this,
@@ -221,7 +218,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 
 			case 'raw':
 			default:
-				$content = $this->get('answer');
+				$content = str_replace(array('\"', "\'"), array('"', "'"), $this->get('answer'));
 				$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 			break;
 		}
@@ -237,9 +234,9 @@ class AnswersModelResponse extends AnswersModelAbstract
 	/**
 	 * Generate and return various links to the entry
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
-	 * 
-	 * @param      string $type The type of link to return
-	 * @return     boolean
+	 *
+	 * @param   string $type The type of link to return
+	 * @return  string
 	 */
 	public function link($type='')
 	{
@@ -285,12 +282,12 @@ class AnswersModelResponse extends AnswersModelAbstract
 	/**
 	 * Reset the vote count and log
 	 *
-	 * @return    boolean False if error, True on success
+	 * @return  boolean False if error, True on success
 	 */
 	public function reset()
 	{
 		// Can't manipulate what doesn't exist
-		if (!$this->exists()) 
+		if (!$this->exists())
 		{
 			return true;
 		}
@@ -318,7 +315,8 @@ class AnswersModelResponse extends AnswersModelAbstract
 	/**
 	 * Mark a response as "Accepted"
 	 *
-	 * @return    boolean False if error, True on success
+	 * @param   integer $question_id Question ID
+	 * @return  boolean False if error, True on success
 	 */
 	public function accept($question_id)
 	{
@@ -330,7 +328,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 		}
 		// Mark it at the chosen one
 		$question->set('state', 1);
-		if (!$question->store(true)) 
+		if (!$question->store(true))
 		{
 			$this->setError($question->getError());
 			return false;
@@ -348,7 +346,8 @@ class AnswersModelResponse extends AnswersModelAbstract
 	/**
 	 * Mark a response as "Rejected"
 	 *
-	 * @return    boolean False if error, True on success
+	 * @param   integer $question_id Question ID
+	 * @return  boolean False if error, True on success
 	 */
 	public function reject($question_id)
 	{
@@ -360,7 +359,7 @@ class AnswersModelResponse extends AnswersModelAbstract
 		}
 		// Mark it at the chosen one
 		$question->set('state', 0);
-		if (!$question->store(true)) 
+		if (!$question->store(true))
 		{
 			$this->setError($question->getError());
 			return false;
@@ -378,8 +377,8 @@ class AnswersModelResponse extends AnswersModelAbstract
 	/**
 	 * Store changes to this offering
 	 *
-	 * @param     boolean $check Perform data validation check?
-	 * @return    boolean False if error, True on success
+	 * @param   boolean $check Perform data validation check?
+	 * @return  boolean False if error, True on success
 	 */
 	public function store($check=true)
 	{
@@ -410,9 +409,9 @@ class AnswersModelResponse extends AnswersModelAbstract
 					// Call the plugin
 					if (
 						!$dispatcher->trigger('onTakeAction', array(
-							'answers_reply_submitted', 
-							array($aq->creator('id')), 
-							'com_answers', 
+							'answers_reply_submitted',
+							array($aq->creator('id')),
+							'com_answers',
 							$this->get('question_id')
 						))
 					)
@@ -436,12 +435,12 @@ class AnswersModelResponse extends AnswersModelAbstract
 	/**
 	 * Delete the record and all associated data
 	 *
-	 * @return    boolean False if error, True on success
+	 * @return  boolean False if error, True on success
 	 */
 	public function delete()
 	{
 		// Can't delete what doesn't exist
-		if (!$this->exists()) 
+		if (!$this->exists())
 		{
 			return true;
 		}

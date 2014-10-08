@@ -35,60 +35,49 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tab
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'item.php');
 
 /**
- * Courses model class for a course
+ * Collections model for a post
  */
-class CollectionsModelPost extends \Hubzero\Base\Model
+class CollectionsModelPost extends CollectionsModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CollectionsTablePost';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_collections.post.description';
 
 	/**
-	 * \Hubzero\User\Profile
-	 * 
-	 * @var object
-	 */
-	private $_creator = NULL;
-
-	/**
 	 * CollectionsModelAdapterAbstract
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_adapter = NULL;
 
 	/**
 	 * CollectionsModelPost
-	 * 
+	 *
 	 * @var object
 	 */
 	private $_data = null;
 
 	/**
-	 * Returns a reference to a wiki page object
+	 * Returns a reference to this model
 	 *
-	 * This method must be invoked as:
-	 *     $inst = CoursesInstance::getInstance($alias);
-	 *
-	 * @param      string $pagename The page to load
-	 * @param      string $scope    The page scope
-	 * @return     object CollectionsModelPost
+	 * @param   mixed  $oid Integer, string, object or array
+	 * @return  object CollectionsModelPost
 	 */
 	static function &getInstance($oid=null)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -106,7 +95,7 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 			$key = $oid['id'];
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new self($oid);
 		}
@@ -116,9 +105,9 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 
 	/**
 	 * Bind data to the model
-	 * 
-	 * @param      mixed $data Object or array
-	 * @return     boolean True on success, False on error
+	 *
+	 * @param   mixed   $data Object or array
+	 * @return  boolean True on success, False on error
 	 */
 	public function bind($data=null)
 	{
@@ -182,10 +171,10 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Check if the resource exists
-	 * 
-	 * @param      mixed $idx Index value
-	 * @return     array
+	 * Get the item for this post
+	 *
+	 * @param   integer $oid
+	 * @return  object
 	 */
 	public function item($oid=null)
 	{
@@ -208,12 +197,12 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 
 	/**
 	 * Check if the post is the original (first) post
-	 * 
-	 * @return     boolean True if original, false if not
+	 *
+	 * @return  boolean True if original, false if not
 	 */
 	public function original()
 	{
-		if ((int) $this->get('original') > 0) 
+		if ((int) $this->get('original') > 0)
 		{
 			return true;
 		}
@@ -222,18 +211,18 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 
 	/**
 	 * Remove a post
-	 * 
-	 * @return     boolean True on success, false on error
+	 *
+	 * @return  boolean True on success, false on error
 	 */
 	public function remove()
 	{
-		if ($this->original()) 
+		if ($this->original())
 		{
 			$this->setError(JText::_('Original posts must be deleted or moved.'));
 			return false;
 		}
 
-		if (!$this->_tbl->delete($this->get('id'))) 
+		if (!$this->_tbl->delete($this->get('id')))
 		{
 			$this->setError($this->_tbl->getError());
 			return false;
@@ -244,8 +233,8 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 
 	/**
 	 * Move a post
-	 * 
-	 * @return     boolean True on success, false on error
+	 *
+	 * @return  boolean True on success, false on error
 	 */
 	public function move($collection_id)
 	{
@@ -259,7 +248,7 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 
 		$this->set('collection_id', $collection_id);
 
-		if (!$this->_tbl->store()) 
+		if (!$this->_tbl->store())
 		{
 			$this->setError($this->_tbl->getError());
 			return false;
@@ -269,59 +258,11 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Return a formatted timestamp
-	 * 
-	 * @param      string $as What format to return
-	 * @return     boolean
-	 */
-	public function created($as='')
-	{
-		switch (strtolower($as))
-		{
-			case 'date':
-				return JHTML::_('date', $this->get('created'), JText::_('DATE_FORMAT_HZ1'));
-			break;
-
-			case 'time':
-				return JHTML::_('date', $this->get('created'), JText::_('TIME_FORMAT_HZ1'));
-			break;
-
-			default:
-				return $this->get('created');
-			break;
-		}
-	}
-
-	/**
-	 * Get the creator of this entry
-	 * 
-	 * Accepts an optional property name. If provided
-	 * it will return that property value. Otherwise,
-	 * it returns the entire user object
+	 * Get the URL for this post
 	 *
-	 * @param   string $property
-	 * @return  mixed
-	 */
-	public function creator($property=null)
-	{
-		if (!($this->_creator instanceof \Hubzero\User\Profile))
-		{
-			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
-		}
-		if ($property)
-		{
-			$property = ($property == 'id' ? 'uidNumber' : $property);
-			return $this->_creator->get($property);
-		}
-		return $this->_creator;
-	}
-
-	/**
-	 * Get the URL for this group
-	 *
-	 * @param      string $type   The type of link to return
-	 * @param      mixed  $params Optional string or associative array of params to append
-	 * @return     string
+	 * @param   string $type   The type of link to return
+	 * @param   mixed  $params Optional string or associative array of params to append
+	 * @return  string
 	 */
 	public function link($type='', $params=null)
 	{
@@ -331,8 +272,8 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 	/**
 	 * Return the adapter for this entry's scope,
 	 * instantiating it if it doesn't already exist
-	 * 
-	 * @return    object
+	 *
+	 * @return  object
 	 */
 	private function _adapter()
 	{
@@ -360,10 +301,10 @@ class CollectionsModelPost extends \Hubzero\Base\Model
 
 	/**
 	 * Get the content of the entry
-	 * 
-	 * @param      string  $as      Format to return state in [text, number]
-	 * @param      integer $shorten Number of characters to shorten text to
-	 * @return     string
+	 *
+	 * @param   string  $as      Format to return state in [text, number]
+	 * @param   integer $shorten Number of characters to shorten text to
+	 * @return  string
 	 */
 	public function description($as='parsed', $shorten=0)
 	{

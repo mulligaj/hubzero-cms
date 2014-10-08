@@ -137,16 +137,16 @@ class plgSystemDebug extends JPlugin
 		/* [!] HUBZERO - Add ability to show deubg output to specified users
 		 * zooley (2012-08-29)
 		 */
-		else 
+		else
 		{
 			$filterUsers = $this->params->get('filter_users', null);
 
-			if (!empty($filterUsers)) 
+			if (!empty($filterUsers))
 			{
 				$filterUsers = explode(',', $filterUsers);
 				$filterUsers = array_map('trim', $filterUsers);
 
-				if (!in_array(\JFactory::getUser()->get('username'), $filterUsers)) 
+				if (!in_array(\JFactory::getUser()->get('username'), $filterUsers))
 				{
 					echo $contents;
 					return;
@@ -176,8 +176,17 @@ class plgSystemDebug extends JPlugin
 			}
 			if (\JError::getErrors())
 			{
-				$html .= '<a href="javascript:" class="debug-tab" onclick="Debugger.toggleContainer(this, \'debug-errors\');"><span class="text">' . JText::_('PLG_DEBUG_ERRORS') . '</span></a>';
+				$html .= '<a href="javascript:" class="debug-tab" onclick="Debugger.toggleContainer(this, \'debug-errors\');"><span class="text">' . JText::_('PLG_DEBUG_ERRORS') . '</span><span class="badge">' . count(\JError::getErrors()) . '</span></a>';
 			}
+
+			$dumper = \Hubzero\Utility\Debug::getInstance();
+			if ($dumper->hasMessages())
+			{
+				$html .= '<a href="javascript:" class="debug-tab" onclick="Debugger.toggleContainer(this, \'debug-debug\');"><span class="text">' . JText::_('PLG_DEBUG_CONSOLE') . '</span>';
+				$html .= '<span class="badge">' . count($dumper->messages()) . '</span>';
+				$html .= '</a>';
+			}
+
 			$html .= '<a href="javascript:" class="debug-tab" onclick="Debugger.toggleContainer(this, \'debug-request\');"><span class="text">' . JText::_('PLG_DEBUG_REQUEST_DATA') . '</span></a>';
 			$html .= '<a href="javascript:" class="debug-tab" onclick="Debugger.toggleContainer(this, \'debug-session\');"><span class="text">' . JText::_('PLG_DEBUG_SESSION') . '</span></a>';
 			if ($this->params->get('profile', 1))
@@ -227,6 +236,11 @@ class plgSystemDebug extends JPlugin
 				$html .= $this->display('errors');
 			}
 
+			if ($dumper->hasMessages())
+			{
+				$html .= $this->display('debug');
+			}
+
 			$html .= $this->display('request');
 			$html .= $this->display('session');
 
@@ -269,6 +283,25 @@ class plgSystemDebug extends JPlugin
 		$html .= '</div>';
 
 		$html .= "<script type=\"text/javascript\">
+		if (!document.getElementsByClassName) {
+			document.getElementsByClassName = (function(){
+				function traverse (node, callback) {
+					callback(node);
+					for (var i=0;i < node.childNodes.length; i++) {
+						traverse(node.childNodes[i],callback);
+					}
+				}
+				return function (name) {
+					var result = [];
+					traverse(document.body,function(node){
+						if (node.className && (' ' + node.className + ' ').indexOf(' ' + name + ' ') > -1) {
+							result.push(node);
+						}
+					});
+					return result;
+				}
+			})();
+		}
 		Debugger = {
 			toggleShortFull: function(id) {
 				var d = document.getElementById('debug-' + id + '-short');
@@ -311,23 +344,23 @@ class plgSystemDebug extends JPlugin
 				}
 			},
 			toggleContainer: function(el, name) {
-				var d = document.getElementById('system-debug');
-				if (!Debugger.hasClass(d, 'open')) {
-					Debugger.addClass(d, 'open');
-				}
-
-				Debugger.deactivate();
-
 				if (!Debugger.hasClass(el, 'active')) {
-					Debugger.addClass(el, 'active');
-				}
+					var d = document.getElementById('system-debug');
+					if (!Debugger.hasClass(d, 'open')) {
+						Debugger.addClass(d, 'open');
+					}
 
-				var e = document.getElementById(name);
-				if (e) {
-					Debugger.toggleClass(e, 'open');
+					Debugger.deactivate();
+					Debugger.addClass(el, 'active');
+
+					var e = document.getElementById(name);
+					if (e) {
+						Debugger.toggleClass(e, 'open');
+					}
+				} else {
+					Debugger.close();
 				}
 			},
-
 			hasClass: function(elem, className) {
 				return new RegExp(' ' + className + ' ').test(' ' + elem.className + ' ');
 			},
@@ -388,7 +421,7 @@ class plgSystemDebug extends JPlugin
 			this.id = 'id';
 			this.direction = 'y';
 		}
-		debugDrag.prototype = { 
+		debugDrag.prototype = {
 			init: function(settings) {
 				for (var i in settings)
 				{
@@ -396,7 +429,7 @@ class plgSystemDebug extends JPlugin
 
 					for (var j in settings[i])
 					{
-						this[i][j] = settings[i][j]; 
+						this[i][j] = settings[i][j];
 					}
 				}
 
@@ -455,7 +488,7 @@ class plgSystemDebug extends JPlugin
 				Debugger.removeEvent(document, 'mouseup', this._event_docMouseUp);
 			},
 
-			setValuesClick: function(e) { 
+			setValuesClick: function(e) {
 				if (!Debugger.hasClass(this.container, 'open')) {
 					return;
 				}
@@ -551,6 +584,18 @@ class plgSystemDebug extends JPlugin
 		</dl>';
 
 		return $html;
+	}
+
+	/**
+	 * Display super global data
+	 *
+	 * @return  string
+	 */
+	protected function displayDebug()
+	{
+		$dumper = \Hubzero\Utility\Debug::getInstance();
+
+		return $dumper->render();
 	}
 
 	/**
@@ -671,13 +716,13 @@ class plgSystemDebug extends JPlugin
 	 */
 	protected function displayErrors()
 	{
-		$html  = '<div class="debug-container" id="debug-errors">';
+		//$html  = '<div class="debug-container" id="debug-errors">';
 
-		$html .= '<ol>';
+		$html  = '<ol>';
 
 		while ($error = \JError::getError(true))
 		{
-			$col = (E_WARNING == $error->get('level')) ? 'error' : 'warning';
+			$col = (E_WARNING == $error->get('level')) ? 'dbg-error' : 'dbg-warning';
 
 			$html .= '<li>';
 			$html .= '<strong class="' . $col . '">' . $error->getMessage() . '</strong><br />';
@@ -695,7 +740,7 @@ class plgSystemDebug extends JPlugin
 
 		$html .= '</ol>';
 
-		$html .= '</div>';
+		//$html .= '</div>';
 
 		return $html;
 	}

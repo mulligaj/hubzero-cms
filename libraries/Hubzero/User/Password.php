@@ -43,63 +43,63 @@ class Password
 	 * @var mixed
 	 */
 	private $user_id = null;
-	
+
 	/**
 	 * Description for 'passhash'
 	 *
 	 * @var unknown
 	 */
 	private $passhash = null;
-	
+
 	/**
 	 * Description for 'shadowLastChange'
 	 *
 	 * @var unknown
 	 */
 	private $shadowLastChange = null;
-	
+
 	/**
 	 * Description for 'shadowMin'
 	 *
 	 * @var array
 	 */
 	private $shadowMin = array();
-	
+
 	/**
 	 * Description for 'shadowMax'
 	 *
 	 * @var unknown
 	 */
 	private $shadowMax = null;
-	
+
 	/**
 	 * Description for 'shadowWarning'
 	 *
 	 * @var unknown
 	 */
 	private $shadowWarning = null;
-	
+
 	/**
 	 * Description for 'shadowInactive'
 	 *
 	 * @var unknown
 	 */
 	private $shadowInactive = null;
-	
+
 	/**
 	 * Description for 'shadowExpire'
 	 *
 	 * @var unknown
 	 */
 	private $shadowExpire = null;
-	
+
 	/**
 	 * Description for 'shadowFlag'
 	 *
 	 * @var unknown
 	 */
 	private $shadowFlag = null;
-	
+
 	/**
 	 * Description for '_updatedkeys'
 	 *
@@ -124,19 +124,19 @@ class Password
 	public function clear()
 	{
 		$cvars = get_class_vars(__CLASS__);
-		
+
 		$this->_updatedkeys = array();
-		
+
 		foreach ($cvars as $key=>$value)
 		{
 			if ($key{0} != '_')
 			{
 				unset($this->$key);
-				
+
 				$this->$key = null;
 			}
 		}
-		
+
 		$this->_updatedkeys = array();
 	}
 
@@ -150,12 +150,12 @@ class Password
 	public static function getInstance($instance, $storage = null)
 	{
 		$hzup = new self();
-		
+
 		if ($hzup->read($instance) === false)
 		{
 			return false;
 		}
-		
+
 		return $hzup;
 	}
 
@@ -167,31 +167,31 @@ class Password
 	public function create()
 	{
 		$db =  \JFactory::getDBO();
-		
+
 		if (empty($db))
 		{
 			return false;
 		}
-		
+
 		// @FIXME: this should fail if id doesn't exist in #__users
-		
+
 
 		if ($this->user_id > 0)
 		{
 			$query = "INSERT INTO #__users_password (user_id) VALUES ( " . $db->Quote($this->user_id) . ");";
-			
+
 			$db->setQuery($query);
-			
+
 			$result = $db->query();
-			
+
 			if ($result !== false || $db->getErrorNum() == 1062)
 			{
 				return true;
 			}
-			
+
 			$this->update();
 		}
-		
+
 		return false;
 	}
 
@@ -208,54 +208,54 @@ class Password
 		{
 			$instance = $this->user_id;
 		}
-		
+
 		if (empty($instance))
 		{
 			return false;
 		}
-		
+
 		$this->clear();
-		
+
 		$db = \JFactory::getDBO();
-		
+
 		if (empty($db))
 		{
 			return false;
 		}
-		
+
 		$result = true;
-		
+
 		if (is_numeric($instance))
 		{
 			if ($instance <= 0)
 			{
 				return false;
 			}
-			
+
 			$query = "SELECT user_id,passhash,shadowLastChange,shadowMin," . "shadowMax,shadowWarning,shadowInactive,shadowExpire," . "shadowFlag FROM #__users_password WHERE user_id=" . $db->Quote($instance) . ";";
 		}
 		else
 		{
 			$query = "SELECT user_id,passhash,shadowLastChange,shadowMin," . "shadowMax,shadowWarning,shadowInactive,shadowExpire," . "shadowFlag FROM #__users_password,#__users WHERE user_id=id" . " AND username=" . $db->Quote($instance) . ";";
 		}
-		
+
 		$db->setQuery($query);
-		
+
 		$result = $db->loadAssoc();
-		
+
 		if (!empty($result))
 		{
 			foreach ($result as $key=>$value)
 			{
 				$this->__set($key, $value);
 			}
-			
+
 			$this->_updatedkeys = array();
 		}
 		else
 		{
 			$hzp = Profile::getInstance($instance);
-			
+
 			if (is_object($hzp))
 			{
 				$this->__set('user_id', $hzp->get('uidNumber'));
@@ -267,7 +267,7 @@ class Password
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -280,30 +280,30 @@ class Password
 	public function update()
 	{
 		$db = \JFactory::getDBO();
-		
+
 		if (!$this->__get('user_id'))
 		{
 			return false;
 		}
 
 		$query = "UPDATE #__users_password SET ";
-		
+
 		$classvars = get_class_vars(__CLASS__);
-		
+
 		$first = true;
-		
+
 		foreach ($classvars as $property=>$value)
 		{
 			if (($property{0} == '_'))
 			{
 				continue;
 			}
-			
+
 			if (!in_array($property, $this->_updatedkeys))
 			{
 				continue;
 			}
-			
+
 			if (!$first)
 			{
 				$query .= ',';
@@ -312,9 +312,9 @@ class Password
 			{
 				$first = false;
 			}
-			
+
 			$value = $this->__get($property);
-			
+
 			if ($value === null)
 			{
 				$query .= "`$property`=NULL";
@@ -324,33 +324,33 @@ class Password
 				$query .= "`$property`=" . $db->Quote($value);
 			}
 		}
-		
+
 		$query .= " WHERE `user_id`=" . $db->Quote($this->__get('user_id'));
-		
+
 		if ($first == true)
 		{
 			$query = '';
 		}
-		
+
 		$affected = 0;
 		if (!empty($query))
 		{
 			$db->setQuery($query);
-			
+
 			$result = $db->query();
-			
+
 			if ($result)
 			{
 				$affected = $db->getAffectedRows();
 			}
 		}
-		
+
 		if ($affected > 0)
 		{
 			\JPluginHelper::importPlugin('user');
 			\JDispatcher::getInstance()->trigger('onAfterStorePassword', array($this));
 		}
-		
+
 		return true;
 	}
 
@@ -365,41 +365,41 @@ class Password
 		{
 			return false;
 		}
-		
+
 		$db = \JFactory::getDBO();
-		
+
 		if (empty($db))
 		{
 			return false;
 		}
-		
+
 		if (!isset($this->user_id))
 		{
 			$db->setQuery("SELECT user_id FROM #__users_password WHERE user_id" . $db->Quote($this->user_id) . ";");
-			
+
 			$this->__set('user_id', $db->loadResult());
 		}
-		
+
 		if (empty($this->user_id))
 		{
 			return false;
 		}
-		
+
 		$db->setQuery("DELETE FROM #__users_password WHERE user_id= " . $db->Quote($this->user_id) . ";");
-		
+
 		$affected = 0;
-		
+
 		if ($db->query())
 		{
 			$affected = $db->getAffectedRows();
 		}
-		
+
 		if ($affected > 0)
 		{
 			\JPluginHelper::importPlugin('user');
 			\JDispatcher::getInstance()->trigger('onAfterDeletePassword', array($this));
 		}
-		
+
 		return true;
 	}
 
@@ -417,23 +417,23 @@ class Password
 			{
 				$property = '(null)';
 			}
-			
+
 			$this->_error("Cannot access property " . __CLASS__ . "::$" . $property, E_USER_ERROR);
 			die();
 		}
-		
+
 		if (isset($this->$property))
 		{
 			return $this->$property;
 		}
-		
+
 		if (array_key_exists($property, get_object_vars($this)))
 		{
 			return null;
 		}
-		
+
 		$this->_error("Undefined property " . __CLASS__ . "::$" . $property, E_USER_NOTICE);
-		
+
 		return null;
 	}
 
@@ -452,13 +452,13 @@ class Password
 			{
 				$property = '(null)';
 			}
-			
+
 			$this->_error("Cannot access property " . __CLASS__ . "::$" . $property, E_USER_ERROR);
 			die();
 		}
-		
+
 		$this->$property = $value;
-		
+
 		if (!in_array($property, $this->_updatedkeys))
 		{
 			$this->_updatedkeys[] = $property;
@@ -479,11 +479,11 @@ class Password
 			{
 				$property = '(null)';
 			}
-			
+
 			$this->_error("Cannot access property " . __CLASS__ . "::$" . $property, E_USER_ERROR);
 			die();
 		}
-		
+
 		return isset($this->$property);
 	}
 
@@ -501,13 +501,13 @@ class Password
 			{
 				$property = '(null)';
 			}
-			
+
 			$this->_error("Cannot access property " . __CLASS__ . "::$" . $property, E_USER_ERROR);
 			die();
 		}
-		
+
 		$this->_updatedkeys = array_diff($this->_updatedkeys, array($property));
-		
+
 		unset($this->$property);
 	}
 
@@ -521,7 +521,7 @@ class Password
 	private function _error($message, $level = E_USER_NOTICE)
 	{
 		$caller = next(debug_backtrace());
-		
+
 		switch ($level)
 		{
 			case E_USER_NOTICE:
@@ -534,7 +534,7 @@ class Password
 				echo "Unknown error: ";
 				break;
 		}
-		
+
 		echo $message . ' in ' . $caller['file'] . ' on line ' . $caller['line'] . "\n";
 	}
 
@@ -564,35 +564,35 @@ class Password
 	public static function isPasswordExpired($user = null)
 	{
 		$hzup = self::getInstance($user);
-		
+
 		if (!is_object($hzup))
 		{
 			return false;
 		}
-		
+
 		if (empty($hzup->shadowLastChange))
 		{
 			return false;
 		}
-		
+
 		if ($hzup->shadowMax === '0')
 		{
 			return true;
 		}
-		
+
 		if (empty($hzup->shadowMax))
 		{
 			return false;
 		}
-		
+
 		$chgtime = time();
 		$chgtime = intval($chgtime / 86400);
-		
+
 		if (($hzup->shadowLastChange + $hzup->shadowMax) >= $chgtime)
 		{
 			return false;
 		}
-		
+
 		return true;
 	}
 

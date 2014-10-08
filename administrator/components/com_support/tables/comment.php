@@ -38,56 +38,56 @@ class SupportComment extends JTable
 {
 	/**
 	 * int(11) Primary key
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $id         = NULL;
 
 	/**
 	 * int(11)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $ticket     = NULL;
 
 	/**
 	 * text
-	 * 
+	 *
 	 * @var string
 	 */
 	var $comment    = NULL;
 
 	/**
 	 * datetime
-	 * 
+	 *
 	 * @var string
 	 */
 	var $created    = NULL;
 
 	/**
-	 * var(50)
-	 * 
-	 * @var string
+	 * int(11)
+	 *
+	 * @var integer
 	 */
 	var $created_by = NULL;
 
 	/**
 	 * text
-	 * 
+	 *
 	 * @var string
 	 */
 	var $changelog  = NULL;
 
 	/**
 	 * int(3)
-	 * 
+	 *
 	 * @var integer
 	 */
 	var $access     = NULL;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$db JDatabase
 	 * @return     void
 	 */
@@ -98,15 +98,42 @@ class SupportComment extends JTable
 
 	/**
 	 * Validate data
-	 * 
+	 *
 	 * @return     boolean True if data is valid
 	 */
 	public function check()
 	{
-		if (trim($this->comment) == '' && trim($this->changelog) == '') 
+		$this->comment = trim($this->comment);
+		if (!$this->comment && trim($this->changelog) == '')
 		{
-			$this->setError(JText::_('SUPPORT_ERROR_BLANK_COMMENT'));
+			$this->setError(JText::_('COM_SUPPORT_ERROR_BLANK_COMMENT'));
 			return false;
+		}
+
+		$this->ticket = intval($this->ticket);
+		if (!$this->ticket)
+		{
+			$this->setError(JText::_('COM_SUPPORT_ERROR_BLANK_TICKET'));
+			return false;
+		}
+
+		if (!$this->created_by)
+		{
+			$this->created_by = JFactory::getUser()->get('id');
+		}
+
+		if ($this->created_by && is_string($this->created_by))
+		{
+			$owner = JUser::getInstance($this->created_by);
+			if ($owner && $owner->get('id'))
+			{
+				$this->created_by = (int) $owner->get('id');
+			}
+		}
+
+		if (!$this->created)
+		{
+			$this->created = JFactory::getDate()->toSql();
 		}
 
 		return true;
@@ -114,22 +141,22 @@ class SupportComment extends JTable
 
 	/**
 	 * Get comments on a ticket
-	 * 
+	 *
 	 * @param      integer $authorized Administrator access?
 	 * @param      integer $ticket     Ticket ID
 	 * @return     array
 	 */
 	public function getComments($authorized, $ticket=NULL)
 	{
-		if (!$ticket) 
+		if (!$ticket)
 		{
 			$ticket = $this->_ticket;
 		}
-		if ($authorized) 
+		if ($authorized)
 		{
 			$sqladmin = "";
-		} 
-		else 
+		}
+		else
 		{
 			$sqladmin = "AND access=0";
 		}
@@ -141,22 +168,22 @@ class SupportComment extends JTable
 
 	/**
 	 * Get a count of comments on a ticket
-	 * 
+	 *
 	 * @param      integer $authorized Administrator access?
 	 * @param      integer $ticket     Ticket ID
 	 * @return     integer
 	 */
 	public function countComments($authorized, $ticket=NULL)
 	{
-		if (!$ticket) 
+		if (!$ticket)
 		{
 			$ticket = $this->_ticket;
 		}
-		if ($authorized) 
+		if ($authorized)
 		{
 			$sqladmin = "";
-		} 
-		else 
+		}
+		else
 		{
 			$sqladmin = "AND access=0";
 		}
@@ -166,22 +193,22 @@ class SupportComment extends JTable
 
 	/**
 	 * Get the newest comment on a ticket
-	 * 
+	 *
 	 * @param      integer $authorized Administrator access?
 	 * @param      integer $ticket     Ticket ID
 	 * @return     object
 	 */
 	public function newestComment($authorized, $ticket=NULL)
 	{
-		if (!$ticket) 
+		if (!$ticket)
 		{
 			$ticket = $this->_ticket;
 		}
-		if ($authorized) 
+		if ($authorized)
 		{
 			$sqladmin = "";
-		} 
-		else 
+		}
+		else
 		{
 			$sqladmin = "AND access=0";
 		}
@@ -191,14 +218,14 @@ class SupportComment extends JTable
 
 	/**
 	 * Get the newest comment on a ticket
-	 * 
+	 *
 	 * @param      integer $authorized Administrator access?
 	 * @param      integer $ticket     Ticket ID
 	 * @return     object
 	 */
 	public function newestCommentsForTickets($authorized, $ticket=NULL)
 	{
-		if (!$ticket) 
+		if (!$ticket)
 		{
 			$ticket = $this->_ticket;
 		}
@@ -207,11 +234,11 @@ class SupportComment extends JTable
 			$ticket = array_map('intval', $ticket);
 			$ticket = implode(',', $ticket);
 		}
-		if ($authorized) 
+		if ($authorized)
 		{
 			$sqladmin = "";
-		} 
-		else 
+		}
+		else
 		{
 			$sqladmin = "AND access=0";
 		}
@@ -221,18 +248,18 @@ class SupportComment extends JTable
 
 	/**
 	 * Delete comments based on parent ticket ID
-	 * 
+	 *
 	 * @param      integer $ticket Ticket ID
 	 * @return     boolean True on success
 	 */
 	public function deleteComments($ticket=NULL)
 	{
-		if ($ticket === NULL) 
+		if ($ticket === NULL)
 		{
 			$ticket = $this->ticket;
 		}
 		$this->_db->setQuery("DELETE FROM $this->_tbl WHERE ticket=" . $this->_db->Quote($ticket));
-		if (!$this->_db->query()) 
+		if (!$this->_db->query())
 		{
 			$this->setError($database->getErrorMsg());
 			return false;

@@ -30,6 +30,10 @@
 
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css()
+     ->js('jquery.fileuploader', 'system')
+     ->js();
+
 $this->view('default_menu')
      ->set('option', $this->option)
      ->set('controller', $this->controller)
@@ -85,7 +89,7 @@ $base = $this->offering->link() . '&active=pages';
 				<label for="fields_content">
 					<?php echo JText::_('PLG_COURSES_PAGES_FIELD_CONTENT'); ?> <span class="required"><?php echo JText::_('PLG_COURSES_PAGES_REQUIRED'); ?></span>
 					<?php
-						echo \JFactory::getEditor()->display('fields[content]', $this->escape(stripslashes($this->model->get('content'))), '', '', 35, 50, false, 'field_content');
+						echo \JFactory::getEditor()->display('fields[content]', $this->escape($this->model->content('raw')), '', '', 35, 50, false, 'field_content');
 					?>
 				</label>
 
@@ -129,5 +133,5 @@ $base = $this->offering->link() . '&active=pages';
 		</form>
 
 		<div class="clear"></div>
-	</div><!-- / .below section -->
+	</div>
 </div>

@@ -6,7 +6,7 @@ use Hubzero\Content\Migration\Base;
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Migration script for ...
+ * Migration script for normalizing citations tables
  **/
 class Migration20140818160255ComCitations extends Base
 {

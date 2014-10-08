@@ -34,23 +34,25 @@ defined('_JEXEC') or die('Restricted access');
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_courses' . DS . 'models' . DS . 'member.php');
 
 /**
- * Courses model class for a course
+ * Manager model class for a course
  */
 class CoursesModelManager extends CoursesModelMember
 {
 	/**
 	 * Object scope
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_scope = 'manager';
 
 	/**
 	 * Constructor
-	 * 
-	 * @param      integer $id  Resource ID or alias
-	 * @param      object  &$db JDatabase
-	 * @return     void
+	 *
+	 * @param   string $uid User ID
+	 * @param   string $cid Course ID
+	 * @param   string $oid Offering ID
+	 * @param   string $sid Section ID
+	 * @return  void
 	 */
 	public function __construct($uid, $cid=0, $oid=0, $sid=0)
 	{
@@ -81,25 +83,24 @@ class CoursesModelManager extends CoursesModelMember
 	}
 
 	/**
-	 * Returns a reference to a wiki page object
+	 * Returns a reference to a manager object
 	 *
-	 * This method must be invoked as:
-	 *     $inst = CoursesInstance::getInstance($alias);
-	 *
-	 * @param      string $pagename The page to load
-	 * @param      string $scope    The page scope
-	 * @return     object CoursesModelMember
+	 * @param   string $uid User ID
+	 * @param   string $cid Course ID
+	 * @param   string $oid Offering ID
+	 * @param   string $sid Section ID
+	 * @return  object CoursesModelMember
 	 */
 	static function &getInstance($uid=null, $cid=0, $oid=0, $sid=0)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
-		if (!isset($instances[$oid . '_' . $uid])) 
+		if (!isset($instances[$oid . '_' . $uid]))
 		{
 			$instances[$oid . '_' . $uid] = new self($uid, $cid, $oid, $sid);
 		}

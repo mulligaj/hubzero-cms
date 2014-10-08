@@ -60,6 +60,13 @@ class Git
 	private $baseCmd;
 
 	/**
+	 * Get upstream branch name (when needing to compare master with upstream branch)
+	 *
+	 * @var string
+	 **/
+	private $upstream = null;
+
+	/**
 	 * Constructor
 	 *
 	 * @param  (string) $root - git root directory (not including .git suffix)
@@ -70,6 +77,10 @@ class Git
 		$this->dir      = $root . DS . '.git';
 		$this->workTree = $root;
 		$this->baseCmd  = "git --git-dir={$this->dir} --work-tree={$this->workTree}";
+
+		// Save upstream branch name
+		$this->upstream = $this->call('rev-parse', array('--abbrev-ref', '--symbolic-full-name', '@{u}'));
+		$this->upstream = trim($this->upstream);
 	}
 
 	/**
@@ -80,6 +91,29 @@ class Git
 	public function getName()
 	{
 		return 'GIT';
+	}
+
+	/**
+	 * Return the base path of the repository
+	 *
+	 * @return (string) - path
+	 **/
+	public function getBasePath()
+	{
+		return $this->workTree;
+	}
+
+	/**
+	 * Get the mechanisms version identifier
+	 *
+	 * @return (string) - version name
+	 **/
+	public function getMechanismVersionName()
+	{
+		$name = $this->call('rev-parse', array('--abbrev-ref', 'HEAD'));
+		$name = trim($name);
+
+		return $name;
 	}
 
 	/**
@@ -100,17 +134,27 @@ class Git
 			$lines  = explode("\n", $status);
 
 			$response = array(
+				'added'     => array(),
 				'modified'  => array(),
 				'deleted'   => array(),
-				'untracked' => array()
+				'untracked' => array(),
+				'merged'    => array()
 			);
 			foreach ($lines as $line)
 			{
 				$line  = trim($line);
-				preg_match('/([D|M|?]{1,2})[ ]{1,2}([[:alnum:]_\.\/]*)/', $line, $parts);
+				preg_match('/([A|D|M|?]{1,2})[ ]{1,2}([[:alnum:]_\.\/]*)/', $line, $parts);
+
+				if (strlen($parts[1]) == 2 && $parts[1] != '??')
+				{
+					$parts[1] = 'merged';
+				}
 
 				switch ($parts[1])
 				{
+					case 'A':
+						$response['added'][] = $parts[2];
+						break;
 					case 'D':
 						$response['deleted'][] = $parts[2];
 						break;
@@ -120,11 +164,142 @@ class Git
 					case '??':
 						$response['untracked'][] = $parts[2];
 						break;
+					case 'merged':
+						$response['merged'][] = $parts[2];
+						break;
 				}
 			}
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Get the log
+	 *
+	 * @param  (int)    $length    - number of entires to return
+	 * @param  (int)    $start     - commit number to start at
+	 * @param  (bool)   $upcoming  - whether or not to include upcoming commits in response
+	 * @param  (bool)   $installed - whether or not to include installed commits in response
+	 * @param  (string) $search    - filter by search string
+	 * @param  (string) $format    - format of response
+	 * @param  (bool)   $count     - return count of entires
+	 * @return (array)  $response
+	 **/
+	public function log($length=null, $start=null, $upcoming=false, $installed=true, $search=null, $format='%an: %s', $count=false)
+	{
+		$args = array();
+
+		// Count trumps all, just compute and return
+		if ($count)
+		{
+			return $this->countLogs($installed, $upcoming, $search);
+		}
+
+		if ($upcoming)
+		{
+			$args['upcoming'] = "HEAD..{$this->upstream}";
+		}
+		if (isset($length))
+		{
+			$args['length'] = '-'.(int)$length;
+		}
+		if (isset($start))
+		{
+			$args['skip'] = '--skip='.(int)$start;
+		}
+		if (isset($format))
+		{
+			$args['format'] = '--pretty=format:"'.$format.'"';
+		}
+		if (isset($search))
+		{
+			$args['case-insensitive'] = '-i';
+			$args['search'] = '--grep="'.$search.'"';
+		}
+
+		// If upcoming is set, we have to pull those commits first
+		$upcomingCount = 0;
+		$upcomingTotal = 0;
+		if ($upcoming)
+		{
+			$upcomingLog = $this->call('log', $args);
+
+			if (isset($upcomingLog))
+			{
+				$upcomingLogs  = explode("\n", $upcomingLog);
+				$upcomingCount = count($upcomingLogs);
+			}
+
+			$upcomingTotal = $this->countLogs(false, true, $search);
+		}
+
+		if ($upcomingCount < $length)
+		{
+			if (isset($args['upcoming']))
+			{
+				unset($args['upcoming']);
+			}
+			$args['length'] = '-' . ($length - $upcomingCount);
+			$args['skip']   = '--skip=' . ((($start - $upcomingTotal) >= 0) ? ($start - $upcomingTotal) : 0);
+			$currentLog     = $this->call('log', $args);
+			$currentLogs    = (!empty($currentLog)) ? explode("\n", $currentLog) : array();
+		}
+
+		$response = array();
+
+		if ($upcomingCount > 0)
+		{
+			foreach ($upcomingLogs as $entry)
+			{
+				$response[] = '* ' . $entry;
+			}
+		}
+		if (isset($currentLogs) && count($currentLogs) > 0 && $installed)
+		{
+			foreach ($currentLogs as $entry)
+			{
+				$response[] = $entry;
+			}
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Count log entries
+	 *
+	 * @return (int) count of logs
+	 **/
+	private function countLogs($installed=true, $upcoming=false, $search=null)
+	{
+		$total     = 0;
+		$countArgs = array('--count');
+
+		if (isset($search))
+		{
+			$countArgs[] = '-i';
+			$countArgs[] = '--grep="'.$search.'"';
+		}
+
+		if ($installed)
+		{
+			$installedArgs = $countArgs;
+			array_unshift($installedArgs, 'HEAD');
+			$total = $this->call('rev-list', $installedArgs);
+			$total = trim($total);
+		}
+
+		if ($upcoming)
+		{
+			$upcomingArgs = $countArgs;
+			array_unshift($upcomingArgs, "HEAD..{$this->upstream}");
+			$upcomingTotal = $this->call('rev-list', $upcomingArgs);
+			$upcomingTotal = trim($upcomingTotal);
+			$total += $upcomingTotal;
+		}
+
+		return trim($total);
 	}
 
 	/**
@@ -188,6 +363,11 @@ class Git
 				$return['status']  = 'fatal';
 				$return['message'] = trim(substr($response, stripos($response, 'fatal') + 6));
 			}
+			else if (stripos($response, 'error') !== false)
+			{
+				$return['status']  = 'fatal';
+				$return['message'] = trim(substr($response, stripos($response, 'error') + 6));
+			}
 			else
 			{
 				$return['status'] = 'unknown';
@@ -204,7 +384,7 @@ class Git
 			// Build arguments
 			$arguments = array(
 				'--pretty=format:"%an: \"%s\" (%ar)"',
-				'HEAD..origin/master'
+				"HEAD..{$this->upstream}"
 			);
 
 			// Make call to get log differences between us and origin

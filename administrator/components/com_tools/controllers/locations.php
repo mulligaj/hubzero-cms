@@ -34,13 +34,13 @@ defined('_JEXEC') or die('Restricted access');
 include_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'middleware.php');
 
 /**
- * Administrative tools controller for zones
+ * Administrative tools controller for zone locations
  */
 class ToolsControllerLocations extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of hosts
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -52,8 +52,8 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 		// Get filters
 		$this->view->filters = array();
 		$this->view->filters['zone']       = urldecode($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.zone', 
-			'zone', 
+			$this->_option . '.' . $this->_controller . '.zone',
+			'zone',
 			0,
 			'int'
 		));
@@ -64,13 +64,13 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 		);
 		// Sorting
 		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'zone'
 		));
 		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 
@@ -82,15 +82,15 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 		{
 			// Get paging variables
 			$this->view->filters['limit']        = $app->getUserStateFromRequest(
-				$this->_option . '.' . $this->_controller . '.limit', 
-				'limit', 
-				$config->getValue('config.list_limit'), 
+				$this->_option . '.' . $this->_controller . '.limit',
+				'limit',
+				$config->getValue('config.list_limit'),
 				'int'
 			);
 			$this->view->filters['start']        = $app->getUserStateFromRequest(
-				$this->_option . '.' . $this->_controller . '.limitstart', 
-				'limitstart', 
-				0, 
+				$this->_option . '.' . $this->_controller . '.limitstart',
+				'limitstart',
+				0,
 				'int'
 			);
 
@@ -110,8 +110,8 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 			// Initiate paging
 			jimport('joomla.html.pagination');
 			$this->view->pageNav = new JPagination(
-				$this->view->total, 
-				$this->view->filters['start'], 
+				$this->view->total,
+				$this->view->filters['start'],
 				$this->view->filters['limit']
 			);
 		}
@@ -131,7 +131,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a record
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -141,7 +141,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a record
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($row=null)
@@ -159,7 +159,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 		{
 			$this->view->row = $row;
 		}
-		else 
+		else
 		{
 			// Incoming
 			$id = JRequest::getInt('id', 0);
@@ -189,7 +189,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save changes to a record
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function applyTask()
@@ -199,7 +199,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save changes to a record
-	 * 
+	 *
 	 * @param      boolean $redirect Redirect after save?
 	 * @return     void
 	 */
@@ -213,7 +213,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 		$tmpl   = JRequest::getVar('tmpl', '');
 
 		$row = new MiddlewareModelLocation($fields['id']);
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -221,7 +221,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 		}
 
 		// Store new content
-		if (!$row->store(true)) 
+		if (!$row->store(true))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -236,7 +236,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 			}
 			else
 			{
-				echo '<p class="message">' . JText::_('Location successfully saved') . '</p>';
+				echo '<p class="message">' . JText::_('COM_TOOLS_ITEM_SAVED') . '</p>';
 			}
 			return;
 		}
@@ -245,7 +245,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				Jtext::_('Zone location successfully saved.'),
+				Jtext::_('COM_TOOLS_ITEM_SAVED'),
 				'message'
 			);
 			return;
@@ -256,7 +256,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 
 	/**
 	 * Toggle a zone's state
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function stateTask()
@@ -284,7 +284,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 			{
 				$this->setRedirect(
 					'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-					JText::_('State update failed.'),
+					JText::_('COM_TOOLS_ERROR_STATE_UPDATE_FAILED'),
 					'error'
 				);
 				return;
@@ -298,7 +298,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete one or more records
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -309,14 +309,14 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 		// Incoming
 		$ids = JRequest::getVar('id', array());
 
-		if (count($ids) > 0) 
+		if (count($ids) > 0)
 		{
 			// Loop through each ID
-			foreach ($ids as $id) 
+			foreach ($ids as $id)
 			{
 				$row = new MiddlewareModelLocation(intval($id));
 
-				if (!$row->delete()) 
+				if (!$row->delete())
 				{
 					JError::raiseError(500, $row->getError());
 					return;
@@ -326,7 +326,7 @@ class ToolsControllerLocations extends \Hubzero\Component\AdminController
 
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Zone location successfully deleted.'),
+			JText::_('COM_TOOLS_ITEM_DELETED'),
 			'message'
 		);
 	}

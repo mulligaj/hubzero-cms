@@ -31,50 +31,21 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Tags plugin class for Knowledge Base articles
  */
-class plgTagsKb extends JPlugin
+class plgTagsKb extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Record count
-	 * 
-	 * @var integer
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	private $_total = null;
-
-	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
-
-	/**
-	 * Return the name of the area this plugin retrieves records for
-	 * 
-	 * @return     array
-	 */
-	public function onTagAreas()
-	{
-		$areas = array(
-			'kb' => JText::_('PLG_TAGS_KB')
-		);
-		return $areas;
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Retrieve records for items tagged with specific tags
-	 * 
+	 *
 	 * @param      array   $tags       Tags to match records against
 	 * @param      mixed   $limit      SQL record limit
 	 * @param      integer $limitstart SQL record limit start
@@ -84,18 +55,17 @@ class plgTagsKb extends JPlugin
 	 */
 	public function onTagView($tags, $limit=0, $limitstart=0, $sort='', $areas=null)
 	{
-		if (is_array($areas) && $limit) 
-		{
-			if (!isset($areas['kb']) && !in_array('kb', $areas)) 
-			{
-				return array();
-			}
-		}
+		$response = array(
+			'name'    => $this->_name,
+			'title'   => JText::_('PLG_TAGS_KB'),
+			'total'   => 0,
+			'results' => null,
+			'sql'     => ''
+		);
 
-		// Do we have a member ID?
-		if (empty($tags)) 
+		if (empty($tags))
 		{
-			return array();
+			return $response;
 		}
 
 		$database = JFactory::getDBO();
@@ -111,11 +81,11 @@ class plgTagsKb extends JPlugin
 
 		// Build the query
 		$e_count = "SELECT COUNT(f.id) FROM (SELECT e.id, COUNT(DISTINCT t.tagid) AS uniques";
-		$e_fields = "SELECT e.id, e.title, e.alias, e.fulltxt AS itext, e.fulltxt AS ftext, e.state, e.created, e.created_by, e.modified, e.created AS publish_up, 
-					NULL AS publish_down, CONCAT('index.php?option=com_kb&section=&category=&alias=', e.alias) AS href, 'kb' AS section, COUNT(DISTINCT t.tagid) AS uniques, 
+		$e_fields = "SELECT e.id, e.title, e.alias, e.fulltxt AS itext, e.fulltxt AS ftext, e.state, e.created, e.created_by, e.modified, e.created AS publish_up,
+					NULL AS publish_down, CONCAT('index.php?option=com_kb&section=&category=&alias=', e.alias) AS href, 'kb' AS section, COUNT(DISTINCT t.tagid) AS uniques,
 					NULL AS params, e.helpful AS rcount, cc.alias AS data1, c.alias AS data2, NULL AS data3 ";
 		$e_from  = " FROM #__faq AS e
-		 			LEFT JOIN #__faq_categories AS c ON c.id = e.section 
+		 			LEFT JOIN #__faq_categories AS c ON c.id = e.section
 					LEFT JOIN #__faq_categories AS cc ON cc.id = e.category
 					LEFT JOIN #__tags_object AS t ON t.objectid=e.id AND t.tbl='kb' AND t.tagid IN ($ids)";
 		$e_where  = " WHERE e.state=1";
@@ -130,53 +100,32 @@ class plgTagsKb extends JPlugin
 		}
 		$order_by .= ($limit != 'all') ? " LIMIT $limitstart,$limit" : "";
 
-		if (!$limit) 
-		{
-			// Get a count
-			$database->setQuery($e_count . $e_from . $e_where . ") AS f");
-			$this->_total = $database->loadResult();
-			return $this->_total;
-		} 
-		else 
-		{
-			if (count($areas) > 1) 
-			{
-				return $e_fields . $e_from . $e_where;
-			}
+		$database->setQuery($e_count . $e_from . $e_where . ") AS f");
+		$response['total'] = $database->loadResult();
 
-			if ($this->_total != null) 
-			{
-				if ($this->_total == 0) 
-				{
-					return array();
-				}
-			}
-
-			// Get results
+		if ($areas && $areas == $response['name'])
+		{
 			$database->setQuery($e_fields . $e_from . $e_where . $order_by);
-			$rows = $database->loadObjectList();
-
-			if ($rows) 
-			{
-				foreach ($rows as $key => $row)
-				{
-					$rows[$key]->href = JRoute::_('index.php?option=com_kb&section=' . $row->data2 . '&category=' . $row->data1 . '&alias=' . $row->alias);
-				}
-			}
-
-			return $rows;
+			$response['results'] = $database->loadObjectList();
 		}
+		else
+		{
+			$response['sql'] = $e_fields . $e_from . $e_where;
+		}
+
+		return $response;
 	}
 
 	/**
 	 * Static method for formatting results
-	 * 
+	 *
 	 * @param      object $row Database row
 	 * @return     string HTML
 	 */
 	public function out($row)
 	{
-		if (strstr($row->href, 'index.php')) 
+		$row->href = JRoute::_('index.php?option=com_kb&section=' . $row->data2 . '&category=' . $row->data1 . '&alias=' . $row->alias);
+		if (strstr($row->href, 'index.php'))
 		{
 			$row->href = JRoute::_('index.php?option=com_kb&section=' . $row->data2 . '&category=' . $row->data1 . '&alias=' . $row->alias);
 		}
@@ -186,7 +135,7 @@ class plgTagsKb extends JPlugin
 		// Start building the HTML
 		$html  = "\t" . '<li class="kb-entry">' . "\n";
 		$html .= "\t\t" . '<p class="title"><a href="' . $row->href . '">' . stripslashes($row->title) . '</a></p>' . "\n";
-		if ($row->ftext) 
+		if ($row->ftext)
 		{
 			$html .= "\t\t" . '<p>' . \Hubzero\Utility\String::truncate(\Hubzero\Utility\Sanitize::stripAll(stripslashes($row->ftext)), 200) . "</p>\n";
 		}

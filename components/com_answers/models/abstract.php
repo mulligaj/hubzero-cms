@@ -37,31 +37,24 @@ defined('_JEXEC') or die('Restricted access');
 class AnswersModelAbstract extends \Hubzero\Base\Model
 {
 	/**
-	 * Item scope
-	 * 
-	 * @var string
-	 */
-	protected $_scope = NULL;
-
-	/**
-	 * JUser
-	 * 
+	 * Hubzero\User\Profile
+	 *
 	 * @var object
 	 */
 	protected $_creator = NULL;
 
 	/**
 	 * JRegistry
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_config = NULL;
 
 	/**
 	 * Return a formatted timestamp
-	 * 
-	 * @param      string $as What format to return
-	 * @return     string
+	 *
+	 * @param   string $as What format to return
+	 * @return  string
 	 */
 	public function created($as='')
 	{
@@ -83,14 +76,16 @@ class AnswersModelAbstract extends \Hubzero\Base\Model
 
 	/**
 	 * Get the creator of this entry
-	 * 
+	 *
 	 * Accepts an optional property name. If provided
 	 * it will return that property value. Otherwise,
-	 * it returns the entire JUser object
+	 * it returns the entire object
 	 *
-	 * @return     mixed
+	 * @param   string $property Property to retrieve
+	 * @param   mixed  $default  Default value if property not set
+	 * @return  mixed
 	 */
-	public function creator($property=null)
+	public function creator($property=null, $default=null)
 	{
 		if (!($this->_creator instanceof \Hubzero\User\Profile))
 		{
@@ -103,40 +98,21 @@ class AnswersModelAbstract extends \Hubzero\Base\Model
 		if ($property)
 		{
 			$property = ($property == 'id' ? 'uidNumber' : $property);
-			return $this->_creator->get($property);
+			return $this->_creator->get($property, $default);
 		}
 		return $this->_creator;
 	}
 
 	/**
 	 * Was the entry reported?
-	 * 
-	 * @return     boolean True if reported, False if not
+	 *
+	 * @return  boolean True if reported, False if not
 	 */
 	public function isReported()
 	{
-		if ($this->get('reports', -1) > 0)
+		if ($this->get('state') == self::APP_STATE_FLAGGED)
 		{
 			return true;
-		}
-		// Reports hasn't been set
-		if ($this->get('reports', -1) == -1) 
-		{
-			if (is_file(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'reportabuse.php')) 
-			{
-				include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'reportabuse.php');
-				$ra = new ReportAbuse($this->_db);
-				$val = $ra->getCount(array(
-					'id'       => $this->get('id'), 
-					'category' => $this->_scope,
-					'state'    => 0
-				));
-				$this->set('reports', $val);
-				if ($this->get('reports') > 0)
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 	}
@@ -144,13 +120,14 @@ class AnswersModelAbstract extends \Hubzero\Base\Model
 	/**
 	 * Get a configuration value
 	 * If no key is passed, it returns the configuration object
-	 * 
-	 * @param      string $key Config property to retrieve
-	 * @return     mixed
+	 *
+	 * @param   string $key     Config property to retrieve
+	 * @param   mixed  $default Default value if key not found
+	 * @return  mixed
 	 */
-	public function config($key=null)
+	public function config($key=null, $default=null)
 	{
-		if (!isset($this->_config))
+		if (!($this->_config instanceof JRegistry))
 		{
 			$this->_config = JComponentHelper::getParams('com_answers');
 		}
@@ -160,16 +137,16 @@ class AnswersModelAbstract extends \Hubzero\Base\Model
 			{
 				$this->_config->set('banking', JComponentHelper::getParams('com_members')->get('bankAccounts'));
 			}
-			return $this->_config->get($key);
+			return $this->_config->get($key, $default);
 		}
 		return $this->_config;
 	}
 
 	/**
 	 * Check a user's authorization
-	 * 
-	 * @param      string $action Action to check
-	 * @return     boolean True if authorized, false if not
+	 *
+	 * @param   string  $action Action to check
+	 * @return  boolean True if authorized, false if not
 	 */
 	public function access($action='view', $item='entry')
 	{

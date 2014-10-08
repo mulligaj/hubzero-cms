@@ -20,65 +20,62 @@ $canDo = UsersHelper::getActions();
 <script type="text/javascript">
 Joomla.submitbutton = function(task)
 {
-	if (task == 'level.cancel' || document.formvalidator.isValid(document.id('level-form'))) {
-		Joomla.submitform(task, document.id('level-form'));
+	if (task == 'level.cancel' || document.formvalidator.isValid($('#item-form'))) {
+		Joomla.submitform(task, document.getElementById('item-form'));
 	}
 }
 /*
-window.addEvent('domready', function(){
-	document.id('user-groups').getElements('input').each(function(i){
+jQuery(document).ready(function($){
+	$('#user-groups').find('input').each(function(i){
 		// Event to check all child groups.
-		i.addEvent('check', function(e){
+		$(i).on('check', function(e){
 			// Check the child groups.
-			document.id('user-groups').getElements('input').each(function(c){
-				if (this.getProperty('rel') == c.id) {
-					c.setProperty('checked', true);
-					c.setProperty('disabled', true);
-					c.fireEvent('check');
+			$('#user-groups').find('input').each(function(c){
+				if (this.attr('rel') == c.id) {
+					c.prop('checked', true);
+					c.prop('disabled', true);
+					c.trigger('check');
 				}
-			}.bind(this));
-		}.bind(i));
-
-		// Event to uncheck all the parent groups.
-		i.addEvent('uncheck', function(e){
+			});
+		})
+		.on('uncheck', function(e){
 			// Uncheck the parent groups.
-			document.id('user-groups').getElements('input').each(function(c){
-				if (c.getProperty('rel') == this.id) {
-					c.setProperty('checked', false);
-					c.setProperty('disabled', false);
-					c.fireEvent('uncheck');
+			$('#user-groups').find('input').each(function(c){
+				if (c.attr('rel') == this.id) {
+					c.prop('checked', false);
+					c.prop('disabled', false);
+					c.trigger('uncheck');
 				}
-			}.bind(this));
-		}.bind(i));
-
+			});
+		})
 		// Bind to the click event to check/uncheck child/parent groups.
-		i.addEvent('click', function(e){
+		.on('click', function(e){
 			// Check the child groups.
-			document.id('user-groups').getElements('input').each(function(c){
-				if (this.getProperty('rel') == c.id) {
-					c.setProperty('checked', true);
-					if (this.getProperty('checked')) {
-						c.setProperty('disabled', true);
+			$('#user-groups').find('input').each(function(c){
+				if (this.attr('rel') == c.id) {
+					c.prop('checked', true);
+					if (this.attr('checked')) {
+						c.prop('disabled', true);
 					} else {
-						c.setProperty('disabled', false);
+						c.prop('disabled', false);
 					}
-					c.fireEvent('check');
+					c.trigger('check');
 				}
-			}.bind(this));
+			});
 
 			// Uncheck the parent groups.
-			document.id('user-groups').getElements('input').each(function(c){
-				if (c.getProperty('rel') == this.id) {
-					c.setProperty('checked', false);
-					c.setProperty('disabled', false);
-					c.fireEvent('uncheck');
+			$('#user-groups').find('input').each(function(c){
+				if (c.attr('rel') == this.id) {
+					c.prop('checked', false);
+					c.prop('disabled', false);
+					c.trigger('uncheck');
 				}
-			}.bind(this));
-		}.bind(i));
+			});
+		});
 
 		// Initialise the widget.
-		if (i.getProperty('checked')) {
-			i.fireEvent('click');
+		if (i.prop('checked')) {
+			i.trigger('click');
 		}
 	});
 });
@@ -86,24 +83,29 @@ window.addEvent('domready', function(){
 </script>
 
 
-<form action="<?php echo JRoute::_('index.php?option=com_users&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="level-form" class="form-validate">
-	<div class="width-100">
+<form action="<?php echo JRoute::_('index.php?option=com_users&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate">
+	<div class="col width-50 fltlft">
 		<fieldset class="adminform">
-			<legend><?php echo JText::_('COM_USERS_LEVEL_DETAILS');?></legend>
-			<ul class="adminformlist">
-				<li><?php echo $this->form->getLabel('title'); ?></li>
-				<li><?php echo $this->form->getInput('title'); ?></li>
-			</ul>
+			<legend><span><?php echo JText::_('COM_USERS_LEVEL_DETAILS');?></span></legend>
+
+			<div class="input-wrap">
+				<?php echo $this->form->getLabel('title'); ?>
+				<?php echo $this->form->getInput('title'); ?>
+			</div>
 		</fieldset>
 	</div>
 
-	<div class="width-50">
+	<div class="col width-50 fltrt">
 		<fieldset class="adminform">
-			<legend><?php echo JText::_('COM_USERS_USER_GROUPS_HAVING_ACCESS');?></legend>
-			<?php echo JHtml::_('access.usergroups', 'jform[rules]', $this->item->rules); ?>
+			<legend><span><?php echo JText::_('COM_USERS_USER_GROUPS_HAVING_ACCESS');?></span></legend>
+
+			<div class="input-wrap">
+				<?php echo JHtml::_('access.usergroups', 'jform[rules]', $this->item->rules); ?>
+			</div>
 		</fieldset>
-		<input type="hidden" name="task" value="" />
-		<?php echo JHtml::_('form.token'); ?>
 	</div>
+	<div class="clr"></div>
+
+	<input type="hidden" name="task" value="" />
+	<?php echo JHtml::_('form.token'); ?>
 </form>
-<div class="clr"></div>

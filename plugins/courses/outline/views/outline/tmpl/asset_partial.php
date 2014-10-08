@@ -57,13 +57,14 @@ if ($this->a->get('type') == 'video')
 	<a class="asset-edit" href="#" title="edit"></a>
 	<?php if ($this->a->get('type') == 'form') : ?>
 		<a class="asset-edit-deployment" href="#" title="edit deployment"<?php echo ($this->a->get('state') != 1) ? ' style="display:none;"': ''; ?>></a>
+		<a class="asset-edit-layout" href="#" title="edit layout"></a>
 	<?php endif; ?>
 	<a class="asset-delete" href="#" title="delete"></a>
 	<form action="<?php echo JURI::base(true); ?>/api/courses/asset/togglepublished" class="next-step-publish">
 		<span class="next-step-publish">
 			<label class="published-label" for="published">
 				<span class="published-label-text"><?= ($this->a->get('state') == 0) ? 'Mark as reviewed and publish?' : 'Published' ?></span>
-				<input 
+				<input
 					class="uniform published-checkbox"
 					name="published"
 					type="checkbox"

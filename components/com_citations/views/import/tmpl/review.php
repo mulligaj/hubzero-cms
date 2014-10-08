@@ -31,6 +31,9 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$this->css()
+     ->js();
+
 //database object
 $database = JFactory::getDBO();
 
@@ -41,41 +44,41 @@ $citations_require_no_attention = $this->citations_require_no_attention;
 //dont show array
 $no_show = array("errors","duplicate");
 ?>
-<div id="content-header" class="full">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div>
+</header>
 
-<div id="import" class="section">
-	
+<section id="import" class="section">
+
 	<?php
-		foreach($this->messages as $message) {
+		foreach ($this->messages as $message) {
 			echo "<p class=\"{$message['type']}\">" . $message['message'] . "</p>";
 		}
 	?>
-	
+
 	<ul id="steps">
-		<li><a href="/citations/import" class="passed">Step 1<span>Upload citations file</span></a></li>
-		<li><a class="active">Step 2<span>Preview imported citations</span></a></li>
-		<li><a>Step 3<span>Browse uploaded citations</span></a></li>
+		<li><a href="<?php echo JURI::base(true); ?>/citations/import" class="passed"><?php echo JText::_('COM_CITATIONS_IMPORT_STEP1'); ?><span><?php echo JText::_('COM_CITATIONS_IMPORT_STEP1_NAME'); ?></span></a></li>
+		<li><a class="active"><?php echo JText::_('COM_CITATIONS_IMPORT_STEP2'); ?><span><?php echo JText::_('COM_CITATIONS_IMPORT_STEP2_NAME'); ?></span></a></li>
+		<li><a><?php echo JText::_('COM_CITATIONS_IMPORT_STEP3'); ?><span><?php echo JText::_('COM_CITATIONS_IMPORT_STEP3_NAME'); ?></span></a></li>
 	</ul><!-- / #steps -->
-	
+
 	<form method="post" action="<?php echo JRoute::_('index.php?option='. $this->option . '&task=import_save'); ?>">
-		<?php if($citations_require_attention) : ?>
+		<?php if ($citations_require_attention) : ?>
 			<table class="upload-list require-action">
 				<thead>
 					<tr>
 						<!--<th></th>-->
-						<th><?php echo count($citations_require_attention); ?> Pending Citation(s) Requiring Attention - (Click to Resolve Issue)</th>
+						<th><?php echo JText::sprintf('COM_CITATIONS_IMPORT_REQUIRE_ATTENTION', count($citations_require_attention)); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php $counter = 0; ?>
-					<?php foreach($citations_require_attention as $c) : ?>
+					<?php foreach ($citations_require_attention as $c) : ?>
 						<?php
 							//load the duplicate citation
 							$cc = new CitationsCitation($database);
 							$cc->load($c['duplicate']);
-							
+
 							//get the type
 							$ct = new CitationsType($database);
 							$type = $ct->getType($cc->type);
@@ -90,42 +93,42 @@ $no_show = array("errors","duplicate");
 						<tr>
 							<!--<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>-->
 							<td>
-								<span class="citation-title"><u>Duplicate Record</u>: <?php echo html_entity_decode($c['title']); ?></span>
-								<span class="click-more"><?php echo JText::_('&larr; Click to show citation details'); ?></span>
+								<span class="citation-title"><u><?php echo JText::_('COM_CITATIONS_IMPORT_DUPLICATE'); ?></u>: <?php echo html_entity_decode($c['title']); ?></span>
+								<span class="click-more"><?php echo JText::_('COM_CITATIONS_IMPORT_SHOW_CITATION_DETAILS'); ?></span>
 <?php if (1) { ?>
 								<table class="citation-details hide">
 									<thead>
 										<tr>
-											<th>Citation Details</th>
+											<th><?php echo JText::_('COM_CITATIONS_IMPORT_CITATION_DETAILS'); ?></th>
 											<th class="options">
-												<label title="Overwrite old version of citation in database and replace with new one.">
-													<input 
-														type="radio" 
-														class="citation_require_attention_option" 
-														name="citation_action_attention[<?php echo $counter; ?>]" 
+												<label>
+													<input
+														type="radio"
+														class="citation_require_attention_option"
+														name="citation_action_attention[<?php echo $counter; ?>]"
 														value="overwrite"
-														checked="checked" /> Replace Old Version with Uploaded One
+														checked="checked" /> <?php echo JText::_('COM_CITATIONS_IMPORT_CITATION_REPLACE'); ?>
 												</label>
-												<label title="Keep old version and also upload new version.">
-													<input 
-														type="radio" 
-														class="citation_require_attention_option" 
-														name="citation_action_attention[<?php echo $counter; ?>]" 
-														value="both" /> Keep Old and Import Uploaded Version
+												<label>
+													<input
+														type="radio"
+														class="citation_require_attention_option"
+														name="citation_action_attention[<?php echo $counter; ?>]"
+														value="both" /> <?php echo JText::_('COM_CITATIONS_IMPORT_CITATION_KEEP'); ?>
 												</label>
-												<label title="Keep old version and do nothing with new uploaded version.">
-													<input 
-														type="radio" 
-														class="citation_require_attention_option" 
-														name="citation_action_attention[<?php echo $counter; ?>]" 
-														value="discard" /> Don't Import Uploaded Version
+												<label>
+													<input
+														type="radio"
+														class="citation_require_attention_option"
+														name="citation_action_attention[<?php echo $counter; ?>]"
+														value="discard" /> <?php echo JText::_('COM_CITATIONS_IMPORT_CITATION_NOTHING'); ?>
 												</label>
 											</th>
 										</tr>
 									</thead>
 									<tbody>
-										<?php foreach(array_keys($c) as $k) : ?>
-											<?php if(!in_array($k, $no_show)) : ?>
+										<?php foreach (array_keys($c) as $k) : ?>
+											<?php if (!in_array($k, $no_show)) : ?>
 												<tr>
 													<td class="key">
 														<?php echo str_replace("_", " ", $k); ?>
@@ -133,18 +136,18 @@ $no_show = array("errors","duplicate");
 													<td>
 														<table class="citation-differences">
 															<tr>
-																<td>Just Uploaded:</td>
+																<td><?php echo JText::_('COM_CITATIONS_IMPORT_JUST_UPLOADED'); ?>:</td>
 																<td>
 																	<span class="new insert"><?php echo html_entity_decode(nl2br($c[$k])); ?></span>
 																</td>
 															</tr>
 															<tr>
-																<td>Citation on file:</td>
+																<td><?php echo JText::_('COM_CITATIONS_IMPORT_ON_FILE'); ?>:</td>
 																<td>
 																	<span class="old delete">
-																		<?php 
-																			switch($k)
-																			{   
+																		<?php
+																			switch ($k)
+																			{
 																				case 'type':	echo $type_title;		break;
 																				case 'tags':	echo $tags;				break;
 																				case 'badges':	echo $badges;			break;
@@ -171,45 +174,45 @@ $no_show = array("errors","duplicate");
 				<tbody>
 			</table>
 		<?php endif; ?>
-	
+
 		<!-- /////////////////////////////////////// -->
-		
-		<?php if($citations_require_no_attention) : ?>
+
+		<?php if ($citations_require_no_attention) : ?>
 			<table class="upload-list no-action">
 				<thead>
 					<tr>
 						<th><input type="checkbox" class="checkall" name="select-all-no-attention" checked="checked" /></th>
-						<th><?php echo count($citations_require_no_attention); ?> Pending Citation(s) - Ready to be Imported</th>
+						<th><?php echo JText::sprintf('COM_CITATIONS_IMPORT_REQUIRE_NO_ATTENTION', count($citations_require_no_attention)); ?></th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php $counter = 0; ?>
-						<?php foreach($citations_require_no_attention as $c) : ?>
+						<?php foreach ($citations_require_no_attention as $c) : ?>
 						<tr>
 							<td><input type="checkbox" class="check-single" name="citation_action_no_attention[<?php echo $counter++; ?>]" checked="checked" value="1" /></td>
 							<td>
 								<span class="citation-title">
-									<?php 
-										if(array_key_exists("title", $c))
+									<?php
+										if (array_key_exists("title", $c))
 										{
 											echo html_entity_decode($c['title']);
-										} 
-										else 
+										}
+										else
 										{
 											echo "NO TITLE FOUND";
 										}
 									?>
 								</span>
-								<span class="click-more"><?php echo JText::_('&larr; Click to show citation details'); ?></span>
+								<span class="click-more"><?php echo JText::_('COM_CITATIONS_IMPORT_SHOW_CITATION_DETAILS'); ?></span>
 								<table class="citation-details hide">
 									<thead>
 										<tr>
-											<th colspan="2"><?php echo JText::_('Citation Details'); ?></th>
+											<th colspan="2"><?php echo JText::_('COM_CITATIONS_IMPORT_CITATION_DETAILS'); ?></th>
 										</tr>
 									</thead>
 									<tbody>
-										<?php foreach(array_keys($c) as $k) : ?>
-											<?php if(!in_array($k, $no_show)) : ?>
+										<?php foreach (array_keys($c) as $k) : ?>
+											<?php if (!in_array($k, $no_show)) : ?>
 												<tr>
 													<td class="key"><?php echo str_replace("_", " ", $k); ?></td>
 													<td><?php echo html_entity_decode(nl2br($c[$k])); ?></td>
@@ -224,12 +227,12 @@ $no_show = array("errors","duplicate");
 				</tbody>
 			</table>
 		<?php endif; ?>
-	
+
 		<p class="submit">
-			<input type="submit" name="submit" value="Submit Imported Citations" />
+			<input type="submit" name="submit" value="<?php echo JText::_('COM_CITATIONS_IMPORT_SUBMIT_IMPORTED'); ?>" />
 		</p>
-		
+
 		<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 		<input type="hidden" name="task" value="import_save" />
 	</form>
-</div><!-- / .section -->
+</section><!-- / .section -->

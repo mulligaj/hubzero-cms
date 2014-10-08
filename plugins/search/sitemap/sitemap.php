@@ -33,7 +33,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 /**
  * Short description for 'plgSearchSiteMap'
- * 
+ *
  * Long description (if any) ...
  */
 class plgSearchSiteMap extends SearchPlugin
@@ -41,21 +41,21 @@ class plgSearchSiteMap extends SearchPlugin
 
 	/**
 	 * Short description for 'getName'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @return     string Return description (if any) ...
 	 */
-	public static function getName() 
+	public static function getName()
 	{
 		return 'Site Map';
 	}
 
 	/**
 	 * Short description for 'onYSearch'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      object $request Parameter description (if any) ...
 	 * @param      object &$results Parameter description (if any) ...
 	 * @return     void
@@ -78,7 +78,7 @@ class plgSearchSiteMap extends SearchPlugin
 		$results->add(new SearchResultSQL(
 			"SELECT
 				title, description, link, $weight as weight
-			FROM 
+			FROM
 				#__ysearch_site_map s
 			WHERE $weight > 0" . ($addtl_where ? ' AND ' . join(' AND ', $addtl_where) : '')
 		));
@@ -86,9 +86,9 @@ class plgSearchSiteMap extends SearchPlugin
 
 	/**
 	 * Short description for 'onYSearchAdministrate'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      array $context Parameter description (if any) ...
 	 * @return     mixed Return description (if any) ...
 	 */
@@ -98,20 +98,20 @@ class plgSearchSiteMap extends SearchPlugin
 		$dbh->setQuery('SELECT id, title, link, description FROM #__ysearch_site_map ORDER BY title');
 		$map = $dbh->loadAssocList();
 		$edit = NULL;
-		if (array_key_exists('sitemap', $context) 
-		 && array_key_exists('edit_id', $context['sitemap']) 
+		if (array_key_exists('sitemap', $context)
+		 && array_key_exists('edit_id', $context['sitemap'])
 		 && (!array_key_exists('save_id', $context['sitemap']) || $context['sitemap']['save_id'] != $context['sitemap']['edit_id']))
 		{
 			$edit = $context['sitemap']['edit_id'];
 		}
 
 		$html = array();
-		$html[] = '<p>The site search is aimed at accessing content, not structure. So, queries look for certain parts of the site may not work as well as one might hope, instead turning up tangentially related pieces of content. By encoding the site structure as content here the search has a better chance of doing the right thing.</p>';
-		$html[] = '<form action="" method="post">';
+		//$html[] = '<p>The site search is aimed at accessing content, not structure. So, queries look for certain parts of the site may not work as well as one might hope, instead turning up tangentially related pieces of content. By encoding the site structure as content here the search has a better chance of doing the right thing.</p>';
+		$html[] = '<form action="index.php?option=com_search" method="post">';
 		$html[] = '<input type="hidden" name="search-task" value="SiteMap' . ($edit ? 'SaveEdit' : 'Edit') . '" />';
 		$html[] = '<table class="adminlist">';
 		$html[] = '<thead>';
-		$html[] = '<tr><th>Title</th><th>Link</th><th>Description</th><th></th></tr>';
+		$html[] = '<tr><th>' . JText::_('COM_SEARCH_COL_TITLE') . '</th><th>' . JText::_('COM_SEARCH_COL_LINK') . '</th><th>' . JText::_('COM_SEARCH_COL_DESCRIPTION') . '</th><th></th></tr>';
 		$html[] = '</thead>';
 		$html[] = '<tbody>';
 		foreach ($map as $item)
@@ -119,10 +119,10 @@ class plgSearchSiteMap extends SearchPlugin
 			$html[] = '<tr>';
 			if ($edit == $item['id'])
 			{
-				$html[] = '<td><input name="sm-title" value="' . htmlentities(array_key_exists('sm-title', $_POST) ? $_POST['sm-title'] : $item['title']) . '" /></td>';
-				$html[] = '<td><input name="sm-link" value="' . htmlentities(array_key_exists('sm-link', $_POST) ? $_POST['sm-link'] : $item['link']) . '" /></td>';
+				$html[] = '<td><input type="text" name="sm-title" value="' . htmlentities(array_key_exists('sm-title', $_POST) ? $_POST['sm-title'] : $item['title']) . '" /></td>';
+				$html[] = '<td><input type="text" name="sm-link" value="' . htmlentities(array_key_exists('sm-link', $_POST) ? $_POST['sm-link'] : $item['link']) . '" /></td>';
 				$html[] = '<td><textarea cols="60" rows="3" name="sm-description">' . htmlentities(array_key_exists('sm-description', $_POST) ? $_POST['sm-description'] : $item['description']) . '</textarea></td>';
-				$html[] = '<td><input type="hidden" name="sm-id" value="' . $item['id'] . '" /><input type="submit" name="save" value="Save" /><input type="submit" name="cancel" value="Cancel" /></td>';
+				$html[] = '<td><input type="hidden" name="sm-id" value="' . $item['id'] . '" /><input type="submit" name="save" value="' . JText::_('COM_SEARCH_SAVE') . '" /><input type="submit" name="cancel" value="' . JText::_('COM_SEARCH_CANCEL') . '" /></td>';
 			}
 			else
 			{
@@ -135,7 +135,7 @@ class plgSearchSiteMap extends SearchPlugin
 				}
 				else
 				{
-					$html[] = '<td><input type="hidden" name="ysearch-task" value="SiteMapEdit" /><input type="submit" name="edit-' . $item['id'] . '" value="Edit" /><input type="submit" name="delete-' . $item['id'] . '" value="Delete" /></td>';
+					$html[] = '<td><input type="hidden" name="ysearch-task" value="SiteMapEdit" /><input type="submit" name="edit-' . $item['id'] . '" value="' . JText::_('COM_SEARCH_EDIT') . '" /><input type="submit" name="delete-' . $item['id'] . '" value="' . JText::_('COM_SEARCH_DELETE') . '" /></td>';
 				}
 			}
 			$html[] = '</tr>';
@@ -143,10 +143,10 @@ class plgSearchSiteMap extends SearchPlugin
 		if (!$edit)
 		{
 			$html[] = '<tr>';
-			$html[] = '<td><input name="new-sm-title" value="' . htmlentities(array_key_exists('new-sm-title', $_POST) ? $_POST['new-sm-title'] : '') . '" /></td>';
-			$html[] = '<td><input name="new-sm-link" value="' . htmlentities(array_key_exists('new-sm-link', $_POST) ? $_POST['new-sm-link'] : '') . '" /></td>';
+			$html[] = '<td><input type="text" name="new-sm-title" value="' . htmlentities(array_key_exists('new-sm-title', $_POST) ? $_POST['new-sm-title'] : '') . '" /></td>';
+			$html[] = '<td><input type="text" name="new-sm-link" value="' . htmlentities(array_key_exists('new-sm-link', $_POST) ? $_POST['new-sm-link'] : '') . '" /></td>';
 			$html[] = '<td><textarea cols="60" rows="3" name="new-sm-description">' . htmlentities(array_key_exists('new-sm-description', $_POST) ? $_POST['new-sm-description'] : '') . '</textarea></td>';
-			$html[] = '<td><input type="submit" name="add" value="Add" /></td>';
+			$html[] = '<td><input type="submit" name="add" value="' . JText::_('COM_SEARCH_ADD') . '" /></td>';
 			$html[] = '</tr>';
 		}
 		$html[] = '</tbody>';
@@ -157,9 +157,9 @@ class plgSearchSiteMap extends SearchPlugin
 
 	/**
 	 * Short description for 'save_entry_from_post'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      boolean $update Parameter description (if any) ...
 	 * @return     mixed Return description (if any) ...
 	 */
@@ -180,7 +180,7 @@ class plgSearchSiteMap extends SearchPlugin
 			}
 			if (!array_key_exists($key, $_POST) || empty($_POST[$key]))
 			{
-				return array('sitemap', '<p class="error">Incomplete information: all fields are required to save a sitemap entry</p>', array());
+				return array('sitemap', '<p class="error">' . JText::_('COM_SEARCH_ERROR_REQUIRED_FIELDS') . '</p>', array());
 			}
 		}
 
@@ -198,14 +198,14 @@ class plgSearchSiteMap extends SearchPlugin
 			unset($_POST['new-sm-link']);
 			$id = $dbh->insertid();
 		}
-		return array('sitemap', '<p class="success">Site map entry saved</p>', array('save_id' => $id));
+		return array('sitemap', '<p class="success">' . JText::_('COM_SEARCH_ENTRY_SAVED') . '</p>', array('save_id' => $id));
 	}
 
 	/**
 	 * Short description for 'onYSearchTaskSiteMapEdit'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @return     mixed Return description (if any) ...
 	 */
 	public static function onSearchTaskSiteMapEdit()
@@ -226,7 +226,7 @@ class plgSearchSiteMap extends SearchPlugin
 				{
 					$dbh = JFactory::getDBO();
 					$dbh->execute('DELETE FROM #__ysearch_site_map WHERE id = ' . (int)$id[2]);
-					return array('sitemap', '<p class="success">Deletion successful</p>', array());
+					return array('sitemap', '<p class="success">' . JText::_('COM_SEARCH_ENTRY_DELETED') . '</p>', array());
 				}
 			}
 		}
@@ -235,9 +235,9 @@ class plgSearchSiteMap extends SearchPlugin
 
 	/**
 	 * Short description for 'onYSearchTaskSiteMapSaveEdit'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @return     mixed Return description (if any) ...
 	 */
 	public static function onSearchTaskSiteMapSaveEdit()

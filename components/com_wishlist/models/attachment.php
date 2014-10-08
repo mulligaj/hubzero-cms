@@ -35,20 +35,20 @@ require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_w
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'abstract.php');
 
 /**
- * Model class for a forum post attachment
+ * Model class for a wish attachment
  */
 class WishlistModelAttachment extends WishlistModelAbstract
 {
 	/**
 	 * Table class name
-	 * 
-	 * @var object
+	 *
+	 * @var string
 	 */
 	protected $_tbl_name = 'WishAttachment';
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      mixed $oid Integer (ID), string (alias), object or array
 	 * @return     void
 	 */
@@ -93,17 +93,17 @@ class WishlistModelAttachment extends WishlistModelAbstract
 	}
 
 	/**
-	 * Returns a reference to a forum post attachment model
+	 * Returns a reference to this model
 	 *
-	 * @param      mixed   $oid ID (int), alias (string), array, or object
-	 * @param      integer $pid Post ID
-	 * @return     object ForumModelAttachment
+	 * @param   mixed   $oid    ID (int), alias (string), array, or object
+	 * @param   integer $wishid Wish ID
+	 * @return  object  WishlistModelAttachment
 	 */
 	static function &getInstance($oid=0, $wishid=null)
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
@@ -121,7 +121,7 @@ class WishlistModelAttachment extends WishlistModelAbstract
 			$key = $wishid . '_' . $oid['id'];
 		}
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new self($oid, $wishid);
 		}
@@ -132,8 +132,8 @@ class WishlistModelAttachment extends WishlistModelAbstract
 	/**
 	 * Returns a link or path to the file
 	 *
-	 * @param      string $type
-	 * @return     string
+	 * @param   string $type
+	 * @return  string
 	 */
 	public function link($type)
 	{
@@ -157,17 +157,17 @@ class WishlistModelAttachment extends WishlistModelAbstract
 	}
 
 	/**
-	 * Checks the file type and determines if it's in the 
+	 * Checks the file type and determines if it's in the
 	 * whitelist of allowed extensions
 	 *
-	 * @return     boolean True if allowed file type
+	 * @return  boolean True if allowed file type
 	 */
 	public function isAllowedType()
 	{
 		jimport('joomla.filesystem.file');
 		$ext = strtolower(JFile::getExt($this->get('filename')));
 
-		if (!in_array($ext, explode(',', $this->config('file_ext', 'jpg,jpeg,jpe,bmp,tif,tiff,png,gif,pdf,zip,mpg,mpeg,avi,mov,wmv,asf,asx,ra,rm,txt,rtf,doc,xsl,wav,mp3,eps,ppt,pps,swf,tar,tex,gz')))) 
+		if (!in_array($ext, explode(',', $this->config('file_ext', 'jpg,jpeg,jpe,bmp,tif,tiff,png,gif,pdf,zip,mpg,mpeg,avi,mov,wmv,asf,asx,ra,rm,txt,rtf,doc,xsl,wav,mp3,eps,ppt,pps,swf,tar,tex,gz'))))
 		{
 			return false;
 		}

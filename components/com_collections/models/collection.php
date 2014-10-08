@@ -35,72 +35,66 @@ require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tab
 require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'post.php');
 
 /**
- * Table class for forum posts
+ * Collections model class for a collection
  */
-class CollectionsModelCollection extends \Hubzero\Base\Model
+class CollectionsModelCollection extends CollectionsModelAbstract
 {
 	/**
-	 * Resource ID
-	 * 
-	 * @var mixed
+	 * Authorization checked?
+	 *
+	 * @var boolean
 	 */
 	private $_authorized = false;
 
 	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = 'CollectionsTableCollection';
 
 	/**
 	 * Model context
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = 'com_collections.collection.description';
 
 	/**
-	 * Container for properties
-	 * 
-	 * @var array
+	 * ItemList
+	 *
+	 * @var object
 	 */
 	private $_posts = null;
 
 	/**
-	 * Container for properties
-	 * 
-	 * @var array
+	 * CollectionsModelPost
+	 *
+	 * @var object
 	 */
 	private $_post = null;
 
 	/**
-	 * Container for properties
-	 * 
-	 * @var array
+	 * CollectionsModelItem
+	 *
+	 * @var object
 	 */
 	private $_item = null;
 
 	/**
-	 * Container for properties
-	 * 
-	 * @var array
+	 * CollectionsModelFollowing
+	 *
+	 * @var object
 	 */
 	private $_following = null;
 
 	/**
-	 * User object
-	 * 
-	 * @var object
-	 */
-	private $_creator = null;
-
-	/**
 	 * Constructor
-	 * 
-	 * @param      integer $id  Resource ID or alias
-	 * @param      object  &$db JDatabase
-	 * @return     void
+	 *
+	 * @param   mixed   $oid         Integer, string, array, or object
+	 * @param   integer $object_id   ID of owner object
+	 * @param   string  $object_type Owner type [member, group]
+	 * @return  void
 	 */
 	public function __construct($oid=null, $object_id=0, $object_type='member')
 	{
@@ -135,23 +129,23 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 	/**
 	 * Returns a reference to CollectionsModelCollection object
 	 *
-	 * @param      mixed   $oid         ID, array, or object
-	 * @param      integer $object_id   ID
-	 * @param      string  $object_type [member, group]
-	 * @return     object CollectionsModelCollection
+	 * @param   mixed   $oid         ID, array, or object
+	 * @param   integer $object_id   ID
+	 * @param   string  $object_type [member, group]
+	 * @return  object  CollectionsModelCollection
 	 */
 	static function &getInstance($oid=null, $object_id=0, $object_type='member')
 	{
 		static $instances;
 
-		if (!isset($instances)) 
+		if (!isset($instances))
 		{
 			$instances = array();
 		}
 
 		$key = $oid . '_' . $object_id . '_' . $object_type;
 
-		if (!isset($instances[$key])) 
+		if (!isset($instances[$key]))
 		{
 			$instances[$key] = new self($oid, $object_id, $object_type);
 		}
@@ -160,71 +154,41 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Check if the course exists
-	 * 
-	 * @param      mixed $idx Index value
-	 * @return     array
+	 * Create a default collection
+	 *
+	 * @param   integer $object_id   ID of owner object
+	 * @param   string  $object_type Owner type [member, group]
+	 * @return  boolean
 	 */
 	public function setup($object_id, $object_type)
 	{
-		return $this->_tbl->setup($object_id, $object_type);
-	}
+		$lang = JFactory::getLanguage();
+		$lang->load('com_collections');
 
-	/**
-	 * Return a formatted timestamp
-	 * 
-	 * @param      string $as What format to return
-	 * @return     boolean
-	 */
-	public function created($as='')
-	{
-		switch (strtolower($as))
+		$result = array(
+			'id'          => 0,
+			'title'       => JText::_('COM_COLLECTIONS_DEFAULT_TITLE'),
+			'description' => JText::_('COM_COLLECTIONS_DEFAULT_DESC'),
+			'object_id'   => $object_id,
+			'object_type' => $object_type,
+			'is_default'  => 1,
+			'created_by'  => $object_id,
+			'access'      => 4 // Private by default
+		);
+		if (!$result['created_by'])
 		{
-			case 'date':
-				return JHTML::_('date', $this->get('created'), JText::_('DATE_FORMAT_HZ1'));
-			break;
-
-			case 'time':
-				return JHTML::_('date', $this->get('created'), JText::_('TIME_FORMAT_HZ1'));
-			break;
-
-			default:
-				return $this->get('created');
-			break;
+			$result['created_by'] = JFactory::getUser()->get('id');
 		}
+		$this->bind($result);
+
+		return $this->store();
 	}
 
 	/**
-	 * Get the creator of this entry
-	 * 
-	 * Accepts an optional property name. If provided
-	 * it will return that property value. Otherwise,
-	 * it returns the entire user object
+	 * Store changes
 	 *
-	 * @param   string $property
-	 * @return  mixed
-	 */
-	public function creator($property=null)
-	{
-		if (!($this->_creator instanceof \Hubzero\User\Profile))
-		{
-			$this->_creator = \Hubzero\User\Profile::getInstance($this->get('created_by'));
-		}
-		if ($property)
-		{
-			$property = ($property == 'id' ? 'uidNumber' : $property);
-			return $this->_creator->get($property);
-		}
-		return $this->_creator;
-	}
-
-	/**
-	 * Short title for 'update'
-	 * Long title (if any) ...
-	 *
-	 * @param unknown $course_id Parameter title (if any) ...
-	 * @param array $data Parameter title (if any) ...
-	 * @return boolean Return title (if any) ...
+	 * @param   boolean $check Validate data?
+	 * @return  boolean True on success, False on error
 	 */
 	public function store($check=true)
 	{
@@ -234,7 +198,7 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 		}
 
 		// Create an Item entry
-		// This is because even collections can be reposted. 
+		// This is because even collections can be reposted.
 		// Thus, there needs to be an item entry to "repost"
 		$item = new CollectionsTableItem($this->_db);
 		$item->loadType($this->get('id'), 'collection');
@@ -244,13 +208,14 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 			$item->object_id   = $this->get('id');
 			$item->title       = $this->get('title');
 			$item->description = $this->get('description');
+			$item->access      = $this->get('access', 0);
 
-			if (!$item->check()) 
+			if (!$item->check())
 			{
 				$this->setError($item->getError());
 			}
 			// Store new content
-			if (!$item->store()) 
+			if (!$item->store())
 			{
 				$this->setError($item->getError());
 			}
@@ -261,8 +226,8 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 
 	/**
 	 * Get the item entry for a collection
-	 * 
-	 * @return     void
+	 *
+	 * @return  object CollectionsModelItem
 	 */
 	public function item()
 	{
@@ -276,13 +241,14 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 				$item->object_id   = $this->get('id');
 				$item->title       = $this->get('title');
 				$item->description = $this->get('description');
+				$item->access      = $this->get('access', 0);
 
-				if (!$item->check()) 
+				if (!$item->check())
 				{
 					$this->setError($item->getError());
 				}
 				// Store new content
-				if (!$item->store()) 
+				if (!$item->store())
 				{
 					$this->setError($item->getError());
 				}
@@ -294,9 +260,11 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Set and get a specific offering
-	 * 
-	 * @return     void
+	 * Get a list of reposts
+	 *
+	 * [!] Not implemented yet
+	 *
+	 * @return  null
 	 */
 	public function reposts()
 	{
@@ -307,15 +275,16 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Set and get a specific offering
-	 * 
-	 * @return     void
+	 * Set and get a specific post
+	 *
+	 * @param   integer $id Post ID
+	 * @return  object  CollectionsModelPost
 	 */
 	public function post($id=null)
 	{
 		// If the current post isn't set
 		//    OR the ID passed doesn't equal the current post's ID
-		if (!isset($this->_post) 
+		if (!isset($this->_post)
 		 || ($id !== null && (int) $this->_post->get('id') != $id))
 		{
 			// Reset current offering
@@ -347,17 +316,26 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 
 	/**
 	 * Get a list of posts in this collection
-	 *   Accepts an array of filters for database query 
+	 *   Accepts an array of filters for database query
 	 *   that retrieves results
-	 * 
-	 * @param      array $filters
-	 * @return     object
+	 *
+	 * @param   array   $filters Filters to apply
+	 * @param   boolean $clear   Clear cached data?
+	 * @return  mixed   Integer or object
 	 */
-	public function posts($filters=array())
+	public function posts($filters=array(), $clear=false)
 	{
 		if (!isset($filters['collection_id']))
 		{
 			$filters['collection_id'] = $this->get('id');
+		}
+		if (!isset($filters['state']))
+		{
+			$filters['state'] = self::APP_STATE_PUBLISHED;
+		}
+		if (!isset($filters['access']))
+		{
+			$filters['access'] = (JFactory::getUser()->get('guest') ? 0 : array(0, 1));
 		}
 
 		if (isset($filters['count']) && $filters['count'])
@@ -369,11 +347,9 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 
 		if (!isset($this->_posts) || !($this->_posts instanceof \Hubzero\Base\ItemList))
 		{
-			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tables' . DS . 'post.php');
-
 			$tbl = new CollectionsTablePost($this->_db);
 
-			if (($results = $tbl->getRecords($filters)))
+			if ($results = $tbl->getRecords($filters))
 			{
 				$ids = array();
 				foreach ($results as $key => $result)
@@ -382,14 +358,10 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 				}
 
 				// Get all the assets for this list of items
-				require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'tables' . DS . 'asset.php');
-
 				$ba = new CollectionsTableAsset($this->_db);
 				$assets = $ba->getRecords(array('item_id' => $ids));
 
 				// Get all the tags for this list of items
-				require_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'helpers' . DS . 'tags.php');
-
 				$bt = new CollectionsTags($this->_db);
 				$tags = $bt->getTagsForIds($ids);
 
@@ -397,7 +369,6 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 				foreach ($results as $key => $result)
 				{
 					$results[$key] = new CollectionsModelPost($result);
-					//$results[$key]->item($result);
 
 					if ($assets)
 					{
@@ -418,7 +389,7 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 						$results[$key]->item()->addAsset(null);
 					}
 
-					if (isset($tags[$results[$key]->get('item_id')])) 
+					if (isset($tags[$results[$key]->get('item_id')]))
 					{
 						$results[$key]->item()->addTag($tags[$results[$key]->get('item_id')]);
 					}
@@ -441,15 +412,15 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 
 	/**
 	 * Get a count of data associated with this collection
-	 * 
-	 * @param      string $what What to count
-	 * @return     integer
+	 *
+	 * @param   string $what What to count
+	 * @return  integer
 	 */
 	public function count($what='')
 	{
 		if (!isset($this->_counts) || !is_array($this->_counts))
 		{
-			$this->_counts = $this->_tbl->getPostTypeCount($this->get('id'));
+			$this->_counts = array();
 		}
 		$what = strtolower(trim($what));
 		switch ($what)
@@ -472,8 +443,6 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 			case 'followers':
 				if (!isset($this->_counts[$what]))
 				{
-					//$follow = new CollectionsModelFollowing($this->get('id'), 'collection');
-					//$this->_counts[$what] = $follow->count('followers');
 					$tbl = new CollectionsTableFollowing($this->_db);
 					$this->_counts[$what] = $tbl->count(array(
 						'following_type' => 'collection',
@@ -483,13 +452,41 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 				return $this->_counts[$what];
 			break;
 
+			case 'likes':
+			case 'like':
+			case 'votes':
+			case 'vote':
+				if ($this->get('likes', null) == null)
+				{
+					$tbl = new CollectionsTableItem($this->_db);
+					$this->set('likes', $tbl->getLikes(array(
+						'object_type' => 'collection',
+						'object_id'   => $this->get('id')
+					)));
+				}
+				return (int) $this->get('likes', 0);
+			break;
+
+			case 'reposts':
+			case 'repost':
+				if ($this->get('reposts', null) == null)
+				{
+					$tbl = new CollectionsTableItem($this->_db);
+					$this->set('reposts', $tbl->getReposts(array(
+						'object_type' => 'collection',
+						'object_id'   => $this->get('id')
+					)));
+				}
+				return (int) $this->get('reposts', 0);
+			break;
+
+			case 'posts':
 			case 'post':
 				if ($this->get('posts', null) == null)
 				{
 					$this->set('posts', $this->posts(array(
-						'count' => true,
-						'collection_id' => $this->get('id'))
-					));
+						'count' => true
+					)));
 				}
 				return (int) $this->get('posts', 0);
 			break;
@@ -502,10 +499,10 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 
 	/**
 	 * Check if someone or a group is following this collection
-	 * 
-	 * @param      integer $follower_id   ID of the follower
-	 * @param      string  $follower_type Type of the follower [member, group]
-	 * @return     boolean
+	 *
+	 * @param   integer $follower_id   ID of the follower
+	 * @param   string  $follower_type Type of the follower [member, group]
+	 * @return  boolean
 	 */
 	public function isFollowing($follower_id=null, $follower_type='member')
 	{
@@ -529,10 +526,10 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 
 	/**
 	 * Unfollow this collection
-	 * 
-	 * @param      integer $follower_id   ID of the follower
-	 * @param      string  $follower_type Type of the follower [member, group]
-	 * @return     boolean
+	 *
+	 * @param   integer $follower_id   ID of the follower
+	 * @param   string  $follower_type Type of the follower [member, group]
+	 * @return  boolean
 	 */
 	public function unfollow($follower_id=null, $follower_type='member')
 	{
@@ -555,10 +552,10 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 
 	/**
 	 * Follow this collection
-	 * 
-	 * @param      integer $follower_id   ID of the follower
-	 * @param      string  $follower_type Type of the follower [member, group]
-	 * @return     boolean
+	 *
+	 * @param   integer $follower_id   ID of the follower
+	 * @param   string  $follower_type Type of the follower [member, group]
+	 * @return  boolean
 	 */
 	public function follow($follower_id=null, $follower_type='member')
 	{
@@ -579,9 +576,9 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 	}
 
 	/**
-	 * Get the URL for this group
+	 * Get the URL for this collection
 	 *
-	 * @return     string
+	 * @return  string
 	 */
 	public function link()
 	{
@@ -605,10 +602,10 @@ class CollectionsModelCollection extends \Hubzero\Base\Model
 
 	/**
 	 * Get the content of the entry
-	 * 
-	 * @param      string  $as      Format to return state in [text, number]
-	 * @param      integer $shorten Number of characters to shorten text to
-	 * @return     string
+	 *
+	 * @param   string  $as      Format to return state in [text, number]
+	 * @param   integer $shorten Number of characters to shorten text to
+	 * @return  string
 	 */
 	public function description($as='parsed', $shorten=0)
 	{

@@ -31,30 +31,14 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * XMessage plugin class for Instant Messaging (IM)
  */
-class plgXMessageIm extends JPlugin
+class plgXMessageIm extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
-
-	/**
 	 * Return this messaging type
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function onMessageMethods()
@@ -64,7 +48,7 @@ class plgXMessageIm extends JPlugin
 
 	/**
 	 * Send a message to a user
-	 * 
+	 *
 	 * @param      array   $from     Message 'from' data (e.g., name, address)
 	 * @param      object  $xmessage The message to send
 	 * @param      object  $user     User to send the message to
@@ -73,7 +57,7 @@ class plgXMessageIm extends JPlugin
 	 */
 	public function onMessage($from, $xmessage, $user, $action)
 	{
-		if ($this->onMessageMethods() != $action) 
+		if ($this->onMessageMethods() != $action)
 		{
 			return true;
 		}

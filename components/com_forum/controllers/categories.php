@@ -4,19 +4,19 @@
  * @author		Shawn                                     Rice <zooley@purdue.edu>
  * @copyright	Copyright                               2005-2009 by Purdue Research Foundation, West Lafayette, IN 47906
  * @license		http://www.gnu.org/licenses/gpl-2.0.html GPLv2
- * 
+ *
  * Copyright 2005-2009 by Purdue Research Foundation, West Lafayette, IN 47906.
  * All rights reserved.
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
  * version 2 as published by the Free Software Foundation.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -32,7 +32,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Determine task and execute
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function execute()
@@ -62,14 +62,14 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		if (isset($this->view->section))
 		{
 			$pathway->addItem(
-				stripslashes($this->view->section->get('title')), 
+				stripslashes($this->view->section->get('title')),
 				'index.php?option=' . $this->_option . '&section=' . $this->view->section->get('alias')
 			);
 		}
 		if (isset($this->view->category))
 		{
 			$pathway->addItem(
-				stripslashes($this->view->category->get('title')), 
+				stripslashes($this->view->category->get('title')),
 				'index.php?option=' . $this->_option . '&section=' . $this->view->section->get('alias') . '&category=' . $this->view->category->get('alias')
 			);
 		}
@@ -94,15 +94,15 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		$document = JFactory::getDocument();
 		$document->setTitle($this->_title);
 	}
-	
+
 	/**
 	 * Display a list of threads for a category
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
-		$this->view->title = JText::_('Discussion Forum');
+		$this->view->title = JText::_('COM_FORUM');
 
 		// Incoming
 		$this->view->filters = array(
@@ -146,14 +146,14 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		$this->view->section  = $this->model->section($this->view->filters['section'], $this->model->get('scope'), $this->model->get('scope_id'));
 		if (!$this->view->section->exists())
 		{
-			JError::raiseError(404, JText::_('Section not found.'));
+			JError::raiseError(404, JText::_('COM_FORUM_SECTION_NOT_FOUND'));
 			return;
 		}
 
 		$this->view->category = $this->view->section->category($this->view->filters['category']);
 		if (!$this->view->category->exists())
 		{
-			JError::raiseError(404, JText::_('Category not found.'));
+			JError::raiseError(404, JText::_('COM_FORUM_CATEGORY_NOT_FOUND'));
 			return;
 		}
 
@@ -165,12 +165,6 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 		$this->view->model = $this->model;
 
-		// Push CSS to the tmeplate
-		$this->_getStyles();
-
-		// Push scripts to the template
-		$this->_getScripts('assets/js/' . $this->_name);
-
 		// Set the page title
 		$this->_buildTitle();
 
@@ -180,7 +174,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		$this->view->notifications = $this->getComponentMessage();
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -193,12 +187,12 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 	/**
 	 * Search threads and display a list of results
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function searchTask()
 	{
-		$this->view->title = JText::_('Discussion Forum');
+		$this->view->title = JText::_('COM_FORUM');
 
 		// Incoming
 		$this->view->filters = array(
@@ -250,12 +244,6 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		$this->view->config = $this->config;
 		$this->view->model  = $this->model;
 
-		// Push CSS to the tmeplate
-		$this->_getStyles();
-
-		// Push scripts to the template
-		$this->_getScripts('assets/js/' . $this->_name);
-
 		// Set the page title
 		$this->_buildTitle();
 
@@ -265,7 +253,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		$this->view->notifications = $this->getComponentMessage();
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -275,10 +263,10 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 		$this->view->display();
 	}
-	
+
 	/**
 	 * Show a form for creating an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function newTask()
@@ -288,22 +276,22 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 	/**
 	 * Show a form for editing an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($model=null)
 	{
 		$this->view->setLayout('edit');
 
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$return = JRoute::_('index.php?option=' . $this->_option, false, true);
 			$this->setRedirect(
-				JRoute::_('index.php?option=com_login&return=' . base64_encode($return))
+				JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($return))
 			);
 			return;
 		}
-		
+
 		$this->view->section = $this->model->section(JRequest::getVar('section', ''));
 
 		// Incoming
@@ -311,17 +299,17 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		{
 			$this->view->category = $model;
 		}
-		else 
+		else
 		{
 			$this->view->category = new ForumModelCategory(
-				JRequest::getVar('category', ''), 
+				JRequest::getVar('category', ''),
 				$this->view->section->get('id')
 			);
 		}
 
 		$this->_authorize('category', $this->view->category->get('id'));
 
-		if (!$this->view->category->exists()) 
+		if (!$this->view->category->exists())
 		{
 			$this->view->category->set('created_by', $this->juser->get('id'));
 			$this->view->category->set('section_id', $this->view->section->get('id'));
@@ -334,16 +322,13 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 			return;
 		}
 
-		// Push CSS to the template
-		$this->_getStyles();
-
 		$this->view->config = $this->config;
 		$this->view->model  = $this->model;
 
 		$this->view->notifications = $this->getComponentMessage();
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -356,7 +341,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 	/**
 	 * Save an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -388,7 +373,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		$model->set('closed', (isset($fields['closed']) && $fields['closed']) ? 1 : 0);
 
 		// Store new content
-		if (!$model->store(true)) 
+		if (!$model->store(true))
 		{
 			$this->addComponentMessage($model->getError(), 'error');
 			$this->editTask($model);
@@ -403,16 +388,16 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 	/**
 	 * Delete a category
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deleteTask()
 	{
 		// Is the user logged in?
-		if ($this->juser->get('guest')) 
+		if ($this->juser->get('guest'))
 		{
 			$this->setRedirect(
-				JRoute::_('index.php?option=com_login&return=' . base64_encode(JRoute::_('index.php?option=' . $this->_option, false, true))),
+				JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode(JRoute::_('index.php?option=' . $this->_option, false, true))),
 				JText::_('COM_FORUM_LOGIN_NOTICE'),
 				'warning'
 			);
@@ -426,7 +411,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		$category = $section->category(JRequest::getVar('category', ''));
 
 		// Make the sure the category exist
-		if (!$category->exists()) 
+		if (!$category->exists())
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option),
@@ -438,7 +423,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 		// Check if user is authorized to delete entries
 		$this->_authorize('category', $category->get('id'));
-		if (!$this->config->get('access-delete-category')) 
+		if (!$this->config->get('access-delete-category'))
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option),
@@ -457,7 +442,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 		// Set the category to "deleted"
 		$category->set('state', 2);  /* 0 = unpublished, 1 = published, 2 = deleted */
-		if (!$category->store()) 
+		if (!$category->store())
 		{
 			$this->setRedirect(
 				JRoute::_('index.php?option=' . $this->_option),
@@ -477,83 +462,63 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 	/**
 	 * Set the authorization level for the user
-	 * 
+	 *
 	 * @return     void
 	 */
 	protected function _authorize($assetType='component', $assetId=null)
 	{
 		$this->config->set('access-view-' . $assetType, true);
-		if (!$this->juser->get('guest')) 
+		if (!$this->juser->get('guest'))
 		{
-			if (version_compare(JVERSION, '1.6', 'ge'))
+			$asset  = $this->_option;
+			if ($assetId)
 			{
-				$asset  = $this->_option;
-				if ($assetId)
-				{
-					$asset .= ($assetType != 'component') ? '.' . $assetType : '';
-					$asset .= ($assetId) ? '.' . $assetId : '';
-				}
-
-				$at = '';
-				if ($assetType != 'component')
-				{
-					$at .= '.' . $assetType;
-				}
-
-				// Admin
-				$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
-				$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
-				// Permissions
-				if ($assetType == 'post' || $assetType == 'thread')
-				{
-					$this->config->set('access-create-' . $assetType, true);
-					$val = $this->juser->authorise('core.create' . $at, $asset);
-					if ($val !== null)
-					{
-						$this->config->set('access-create-' . $assetType, $val);
-					}
-
-					$this->config->set('access-edit-' . $assetType, true);
-					$val = $this->juser->authorise('core.edit' . $at, $asset);
-					if ($val !== null)
-					{
-						$this->config->set('access-edit-' . $assetType, $val);
-					}
-
-					$this->config->set('access-edit-own-' . $assetType, true);
-					$val = $this->juser->authorise('core.edit.own' . $at, $asset);
-					if ($val !== null)
-					{
-						$this->config->set('access-edit-own-' . $assetType, $val);
-					}
-				}
-				else 
-				{
-					$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
-					$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
-					$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
-				}
-
-				$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
-				$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
+				$asset .= ($assetType != 'component') ? '.' . $assetType : '';
+				$asset .= ($assetId) ? '.' . $assetId : '';
 			}
-			else 
+
+			$at = '';
+			if ($assetType != 'component')
 			{
-				if ($assetType == 'post' || $assetType == 'thread')
+				$at .= '.' . $assetType;
+			}
+
+			// Admin
+			$this->config->set('access-admin-' . $assetType, $this->juser->authorise('core.admin', $asset));
+			$this->config->set('access-manage-' . $assetType, $this->juser->authorise('core.manage', $asset));
+			// Permissions
+			if ($assetType == 'post' || $assetType == 'thread')
+			{
+				$this->config->set('access-create-' . $assetType, true);
+				$val = $this->juser->authorise('core.create' . $at, $asset);
+				if ($val !== null)
 				{
-					$this->config->set('access-create-' . $assetType, true);
-					$this->config->set('access-edit-' . $assetType, true);
-					$this->config->set('access-delete-' . $assetType, true);
+					$this->config->set('access-create-' . $assetType, $val);
 				}
-				if ($this->juser->authorize($this->_option, 'manage'))
+
+				$this->config->set('access-edit-' . $assetType, true);
+				$val = $this->juser->authorise('core.edit' . $at, $asset);
+				if ($val !== null)
 				{
-					$this->config->set('access-manage-' . $assetType, true);
-					$this->config->set('access-admin-' . $assetType, true);
-					$this->config->set('access-create-' . $assetType, true);
-					$this->config->set('access-delete-' . $assetType, true);
-					$this->config->set('access-edit-' . $assetType, true);
+					$this->config->set('access-edit-' . $assetType, $val);
+				}
+
+				$this->config->set('access-edit-own-' . $assetType, true);
+				$val = $this->juser->authorise('core.edit.own' . $at, $asset);
+				if ($val !== null)
+				{
+					$this->config->set('access-edit-own-' . $assetType, $val);
 				}
 			}
+			else
+			{
+				$this->config->set('access-create-' . $assetType, $this->juser->authorise('core.create' . $at, $asset));
+				$this->config->set('access-edit-' . $assetType, $this->juser->authorise('core.edit' . $at, $asset));
+				$this->config->set('access-edit-own-' . $assetType, $this->juser->authorise('core.edit.own' . $at, $asset));
+			}
+
+			$this->config->set('access-delete-' . $assetType, $this->juser->authorise('core.delete' . $at, $asset));
+			$this->config->set('access-edit-state-' . $assetType, $this->juser->authorise('core.edit.state' . $at, $asset));
 		}
 	}
 }

@@ -38,7 +38,7 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Upload a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function uploadTask()
@@ -62,7 +62,7 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 		$sizeLimit = $this->config->get('maxAllowed', '40000000');
 
 		// make sure we have id
-		if (!$id) 
+		if (!$id)
 		{
 			$this->setError(JText::_('MEMBERS_NO_ID'));
 			$this->displayTask($curfile, $id);
@@ -70,7 +70,7 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 		}
 
 		// make sure we have a file
-		if (!$file['name']) 
+		if (!$file['name'])
 		{
 			$this->setError(JText::_('MEMBERS_NO_FILE'));
 			$this->displayTask($curfile, $id);
@@ -78,10 +78,10 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 		}
 
 		// make sure we have an upload path
-		if (!is_dir($path)) 
+		if (!is_dir($path))
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path)) 
+			if (!JFolder::create($path))
 			{
 				$this->setError(JText::_('UNABLE_TO_CREATE_UPLOAD_PATH'));
 				$this->displayTask($curfile, $id);
@@ -151,7 +151,7 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 		// update profile
 		$profile = Hubzero\User\Profile::getInstance($id);
 		$profile->set('picture', 'profile.png');
-		if (!$profile->update()) 
+		if (!$profile->update())
 		{
 			$this->setError($profile->getError());
 		}
@@ -165,17 +165,17 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
 	{
 		// Check for request forgeries
 		JRequest::checkToken('get') or jexit('Invalid Token');
-		
+
 		// Incoming member ID
 		$id = JRequest::getInt('id', 0);
-		if (!$id) 
+		if (!$id)
 		{
 			$this->setError(JText::_('MEMBERS_NO_ID'));
 			$this->displayTask('', $id);
@@ -184,7 +184,7 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 
 		// Incoming file
 		$file = JRequest::getVar('file', '');
-		if (!$file) 
+		if (!$file)
 		{
 			$this->setError(JText::_('MEMBERS_NO_FILE'));
 			$this->displayTask('', $id);
@@ -195,19 +195,18 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 		$dir  = \Hubzero\Utility\String::pad($id);
 		$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . $dir;
 
-
 		// if we have file
-		if (!file_exists($path . DS . $file) or !$file) 
+		if (!file_exists($path . DS . $file) or !$file)
 		{
 			$this->setError(JText::_('FILE_NOT_FOUND'));
-		} 
-		else 
+		}
+		else
 		{
 			$ih = new MembersImgHandler();
 
 			// Attempt to delete the file
 			jimport('joomla.filesystem.file');
-			if (!JFile::delete($path . DS . $file)) 
+			if (!JFile::delete($path . DS . $file))
 			{
 				$this->setError(JText::_('UNABLE_TO_DELETE_FILE'));
 				$this->displayTask($file, $id);
@@ -225,20 +224,20 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 			}
 
 			// Remove the thumbnail
-			if (file_exists($path . DS . $curthumb)) 
+			if (file_exists($path . DS . $curthumb))
 			{
-				if (!JFile::delete($path . DS . $curthumb)) 
+				if (!JFile::delete($path . DS . $curthumb))
 				{
 					$this->setError(JText::_('UNABLE_TO_DELETE_FILE'));
 					$this->displayTask($file, $id);
 					return;
 				}
 			}
-			
+
 			// Instantiate a profile, change some info and save
 			$profile = Hubzero\User\Profile::getInstance($id);
 			$profile->set('picture', '');
-			if (!$profile->update()) 
+			if (!$profile->update())
 			{
 				$this->setError($profile->getError());
 			}
@@ -251,7 +250,7 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display a file and its info
-	 * 
+	 *
 	 * @param      string  $file File name
 	 * @param      integer $id   User ID
 	 * @return     void
@@ -264,13 +263,13 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 		$this->view->config = $this->config;
 
 		// Incoming
-		if (!$id) 
+		if (!$id)
 		{
 			$id = JRequest::getInt('id', 0);
 		}
 		$this->view->id = $id;
 
-		if (!$file) 
+		if (!$file)
 		{
 			$file = JRequest::getVar('file', '');
 		}
@@ -281,7 +280,7 @@ class MembersControllerMedia extends \Hubzero\Component\AdminController
 		$this->view->path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . $this->view->dir;
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{

@@ -2,7 +2,7 @@
 /**
  * @package		Joomla.Administrator
  * @subpackage	com_media
- * @copyright	Copyright (C) 2005 - 2014 Open Source Matters, Inc. All rights reserved.
+ * @copyright	Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
  * @license		GNU General Public License version 2 or later; see LICENSE.txt
  */
 
@@ -12,14 +12,14 @@ $user = JFactory::getUser();
 ?>
 <table width="100%">
 	<tr valign="top">
-		<td>
+		<td class="media-tree">
 			<fieldset id="treeview">
 				<legend><?php echo JText::_('COM_MEDIA_FOLDERS'); ?></legend>
 				<div id="media-tree_tree"></div>
 				<?php echo $this->loadTemplate('folders'); ?>
 			</fieldset>
 		</td>
-		<td>
+		<td class="media-browser">
 			<?php if (($user->authorise('core.create', 'com_media')) and $this->require_ftp): ?>
 				<form action="index.php?option=com_media&amp;task=ftpValidate" name="ftpForm" id="ftpForm" method="post">
 					<fieldset title="<?php echo JText::_('COM_MEDIA_DESCFTPTITLE'); ?>">
@@ -48,8 +48,8 @@ $user = JFactory::getUser();
 					<legend><?php echo JText::_('COM_MEDIA_FILES'); ?></legend>
 					<div class="path">
 					<?php if ($user->authorise('core.create', 'com_media')): ?>
-						<input class="inputbox" type="text" id="folderpath" readonly="readonly" />
-						<input class="inputbox" type="text" id="foldername" name="foldername"  />
+						<input class="inputbox" type="text" id="folderpath" readonly="readonly" placeholder="<?php echo JText::_('COM_MEDIA_FOLDER_PATH'); ?>" />
+						<input class="inputbox" type="text" id="foldername" name="foldername" placeholder="<?php echo JText::_('COM_MEDIA_FOLDER_NAME'); ?>" />
 						<input class="update-folder" type="hidden" name="folderbase" id="folderbase" value="<?php echo $this->state->folder; ?>" />
 						<button type="submit"><?php echo JText::_('COM_MEDIA_CREATE_FOLDER'); ?></button>
 					<?php endif; ?>
@@ -65,9 +65,15 @@ $user = JFactory::getUser();
 					<legend><?php echo $this->config->get('upload_maxsize')=='0' ? JText::_('COM_MEDIA_UPLOAD_FILES_NOLIMIT') : JText::sprintf('COM_MEDIA_UPLOAD_FILES', $this->config->get('upload_maxsize')); ?></legend>
 					<fieldset id="upload-noflash" class="actions">
 						<label for="upload-file" class="hidelabeltxt"><?php echo JText::_('COM_MEDIA_UPLOAD_FILE'); ?></label>
-						<input type="file" id="upload-file" name="Filedata[]" multiple />
-						<label for="upload-submit" class="hidelabeltxt"><?php echo JText::_('COM_MEDIA_START_UPLOAD'); ?></label>
-						<input type="submit" id="upload-submit" value="<?php echo JText::_('COM_MEDIA_START_UPLOAD'); ?>"/>
+						<div class="input-modal">
+							<span class="input-cell">
+								<input type="file" id="upload-file" name="Filedata[]" multiple="multiple" />
+							</span>
+							<span class="input-cell">
+								<label for="upload-submit" class="hidelabeltxt"><?php echo JText::_('COM_MEDIA_START_UPLOAD'); ?></label>
+								<input type="submit" id="upload-submit" value="<?php echo JText::_('COM_MEDIA_START_UPLOAD'); ?>"/>
+							</span>
+						</div>
 					</fieldset>
 					<input type="hidden" name="return-url" value="<?php echo base64_encode('index.php?option=com_media'); ?>" />
 				</fieldset>

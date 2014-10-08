@@ -29,40 +29,26 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Wiki plugin class for displaying a WYSIWYG wiki editor
  */
-class plgWikiEditorwykiwyg extends JPlugin
+class plgWikiEditorwykiwyg extends \Hubzero\Plugin\Plugin
 {
 	/**
 	 * Flag for if scripts need to be pushed to the document or not
-	 * 
+	 *
 	 * @var boolean
 	 */
 	private $_pushscripts = true;
 
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject The object to observe
-	 * @param      array  $config   An optional associative array of configuration settings.
-	 * @return     void
-	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-	}
-
-	/**
 	 * Initiate the editor. Push scripts to document if needed
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function onInitEditor()
 	{
-		if ($this->_pushscripts) 
+		if ($this->_pushscripts)
 		{
 			\Hubzero\Document\Assets::addPluginStylesheet($this->_type, $this->_name);
 			\Hubzero\Document\Assets::addPluginScript($this->_type, $this->_name);
@@ -75,7 +61,7 @@ class plgWikiEditorwykiwyg extends JPlugin
 
 	/**
 	 * Display a wiki editor
-	 * 
+	 *
 	 * @param      string  $name    Name of field
 	 * @param      string  $id      ID for field
 	 * @param      string  $content Field content

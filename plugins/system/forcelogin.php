@@ -35,7 +35,7 @@ jimport('joomla.event.plugin');
 
 /**
  * Short description for 'plgSystemForceLogin'
- * 
+ *
  * Long description (if any) ...
  */
 class plgSystemForceLogin extends JPlugin
@@ -43,9 +43,9 @@ class plgSystemForceLogin extends JPlugin
 
 	/**
 	 * Short description for 'plgSystemForceLogin'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @param      unknown &$subject Parameter description (if any) ...
 	 * @return     void
 	 */
@@ -56,9 +56,9 @@ class plgSystemForceLogin extends JPlugin
 
 	/**
 	 * Short description for 'onAfterRoute'
-	 * 
+	 *
 	 * Long description (if any) ...
-	 * 
+	 *
 	 * @return     unknown Return description (if any) ...
 	 */
 	function onAfterRoute()
@@ -78,7 +78,7 @@ class plgSystemForceLogin extends JPlugin
 		switch( JRequest::getCmd('option') )
 		{
 			case 'com_user':
-			case 'com_register':
+			case 'com_members':
 				break;
 
 			default:

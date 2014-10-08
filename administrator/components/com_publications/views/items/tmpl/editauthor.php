@@ -30,20 +30,25 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$pageTitle = ($this->author->id) ? JText::_('COM_PUBLICATIONS_EDIT_AUTHOR_INFO') : JText::_('COM_PUBLICATIONS_ADD_AUTHOR');
+
 $tmpl = JRequest::getVar('tmpl', '');
 
 if ($tmpl != 'component')
 {
-	JToolBarHelper::title(JText::_('COM_PUBLICATIONS').': [ ' . JText::_('Edit Author Info for Publication') . ' #' 
+	JToolBarHelper::title(JText::_('COM_PUBLICATIONS').': [ ' . $pageTitle . ' '
+	. JText::_('COM_PUBLICATIONS_FOR_PUB') . ' #'
 	. $this->pub->id . ' (v.' . $this->row->version_label . ')' . ' ]', 'groups.png');
 	JToolBarHelper::save('saveauthor');
 	JToolBarHelper::cancel();
 }
 
-$name = $this->author->name ? $this->author->name : NULL;
-$name = trim($name) ? $name : $this->author->invited_name;
+$name 		= $this->author->name ? $this->author->name : NULL;
+$firstname 	= NULL;
+$lastname 	= NULL;
 
-if (trim($name)) {	
+if (trim($name))
+{
 	$nameParts    = explode(" ", $name);
 	$lastname  	  = end($nameParts);
 	$firstname    = count($nameParts) > 1 ? $nameParts[0] : '';
@@ -54,49 +59,41 @@ $lastname 	= $this->author->lastName ? htmlspecialchars($this->author->lastName)
 
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
-	
+
 	if (pressbutton == 'cancel') {
 		submitform(pressbutton);
 		return;
 	}
-	
+
 	submitform(pressbutton);
-	
-	window.addEvent('domready', function(){
-		window.addEvent('keypress', function(){
-			if (window.event.keyCode == 13) {
-				submitbutton('addusers');
-			}
-		})
-	});
+
 }
 </script>
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo implode('<br />', $this->getError()); ?></p>
 <?php } ?>
-<p class="crumbs"><a href="<?php echo 'index.php?option=' . $this->option . '&amp;controller=' 
-. $this->controller; ?>"><?php echo JText::_('Publication Manager'); ?></a> &raquo; <a href="<?php echo 'index.php?option=' 
-. $this->option . '&amp;controller=' . $this->controller . '&amp;task=edit&amp;id[]= '. $this->pub->id; ?>"><?php echo JText::_('Publication') . ' #' . $this->pub->id; ?></a> &raquo; <?php echo JText::_('Edit Author Info'); ?></p>
+<p class="crumbs"><?php echo JText::_('COM_PUBLICATIONS_PUBLICATION_MANAGER'); ?> &raquo; <a href="<?php echo 'index.php?option='
+. $this->option . '&amp;controller=' . $this->controller . '&amp;task=edit&amp;id[]='. $this->pub->id; ?>"><?php echo JText::_('COM_PUBLICATIONS_PUBLICATION') . ' #' . $this->pub->id; ?></a> &raquo; <?php echo $pageTitle; ?></p>
 
 <form action="index.php" method="post" name="adminForm" id="item-form">
 <?php if ($tmpl == 'component') { ?>
 	<fieldset>
 		<div style="float: right">
-			<button type="button" onclick="submitbutton('addusers');"><?php echo JText::_( 'Save' );?></button>
+			<button type="button" onclick="submitbutton('addusers');"><?php echo JText::_( 'JSAVE' );?></button>
 			<button type="button" onclick="window.parent.document.getElementById('sbox-window').close();"><?php echo JText::_( 'Cancel' );?></button>
 		</div>
 		<div class="configuration" >
-			<?php echo JText::_('Edit author') ?>
+			<?php echo JText::_('COM_PUBLICATIONS_EDIT_AUTHOR') ?>
 		</div>
 	</fieldset>
 <?php } ?>
 	<div class="col width-100">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('Edit Author Information'); ?></span></legend>
-			
+			<legend><span><?php echo $pageTitle; ?></span></legend>
+
 			<input type="hidden" name="author" value="<?php echo $this->author->id; ?>" />
 			<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 			<input type="hidden" name="controller" value="<?php echo $this->controller; ?>">
@@ -104,22 +101,45 @@ function submitbutton(pressbutton)
 			<input type="hidden" name="task" value="saveauthor" />
 			<input type="hidden" name="id" value="<?php echo $this->pub->id; ?>" />
 			<input type="hidden" name="version" value="<?php echo $this->row->version_number; ?>" />
-
 			<table class="admintable">
 				<tbody>
+					<?php if (!$this->author->id) { ?>
 					<tr>
-						<td class="key"><label><?php echo JText::_('Author Name'); ?>:</label></td>
+						<td class="key"><label><?php echo JText::_('COM_PUBLICATIONS_FIELD_EMAIL'); ?>:</label></td>
 						<td>
-							<?php echo JText::_('First Name (and middle initial):'); ?> <input type="text" name="firstName" value="<?php echo $firstname; ?>" size="25" />
-							<?php echo JText::_('Last Name:'); ?> <input type="text" name="lastName" value="<?php echo $lastname; ?>" size="25" />
+							<input type="text" name="email" value="" />
+						</td>
+					</tr>
+					<?php } ?>
+					<tr>
+						<td class="key"><label><?php echo JText::_('COM_PUBLICATIONS_FIELD_USER_ID'); ?>:</label></td>
+						<td>
+							<?php if (!$this->author->id) { ?>
+							<input type="text" name="uid" value="<?php echo $this->author->user_id; ?>" size="25" />
+							<?php } else { ?>
+								<input type="hidden" name="uid" value="<?php echo $this->author->user_id; ?>" />
+								<span><?php echo $this->author->user_id; ?></span>
+							<?php } ?>
 						</td>
 					</tr>
 					<tr>
-						<td class="key"><label><?php echo JText::_('Organization'); ?>:</label></td>
+						<td class="key"><label><?php echo JText::_('COM_PUBLICATIONS_FIELD_AUTHOR_NAME_FIRST_AND_MIDDLE'); ?>:  <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label></td>
+						<td>
+							<input type="text" name="firstName" value="<?php echo $firstname; ?>" size="25" />
+						</td>
+					</tr>
+					<tr>
+						<td class="key"><label><?php echo JText::_('COM_PUBLICATIONS_FIELD_AUTHOR_NAME_LAST'); ?>:  <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label></td>
+						<td>
+							<input type="text" name="lastName" value="<?php echo $lastname; ?>" size="25" />
+						</td>
+					</tr>
+					<tr>
+						<td class="key"><label><?php echo JText::_('COM_PUBLICATIONS_FIELD_AUTHOR_ORGANIZATION'); ?>:  <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label></td>
 						<td>
 							<input type="text" name="organization" value="<?php echo $this->author->organization; ?>" size="25" />
 						</td>
-					</tr>					
+					</tr>
 				</tbody>
 			</table>
 		</fieldset>

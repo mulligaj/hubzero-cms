@@ -40,7 +40,7 @@ $ag = new CoursesModelAssetgroup($this->scope_id);
 
 		<p>
 			<label for="title">Title:</label>
-			<input type="text" name="title" value="<?= $ag->get('title') ?>" placeholder="Asset Group Title" />
+			<input type="text" name="title" value="<?php echo $ag->get('title') ?>" placeholder="Asset Group Title" />
 		</p>
 		<p>
 			<label for="state">Published:</label>
@@ -57,14 +57,6 @@ $ag = new CoursesModelAssetgroup($this->scope_id);
 
 	if ($plugins = $dispatcher->trigger('onAssetgroupEdit'))
 	{
-		$pth = false;
-		$paramsClass = 'JParameter';
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$pth = true;
-			//$paramsClass = 'JRegistry';
-		}
-
 		$data = $ag->get('params');
 
 		foreach ($plugins as $plugin)
@@ -72,9 +64,9 @@ $ag = new CoursesModelAssetgroup($this->scope_id);
 			$p = JPluginHelper::getPlugin('courses', $plugin['name']);
 			$default = new JRegistry($p->params);
 
-			$param = new $paramsClass(
+			$param = new JParameter(
 				(is_object($data) ? $data->toString() : $data),
-				JPATH_ROOT . DS . 'plugins' . DS . 'courses' . DS . $plugin['name'] . ($pth ? DS . $plugin['name'] : '') . '.xml'
+				JPATH_ROOT . DS . 'plugins' . DS . 'courses' . DS . $plugin['name'] . DS . $plugin['name'] . '.xml'
 			);
 			foreach ($default->toArray() as $k => $v)
 			{
@@ -84,7 +76,7 @@ $ag = new CoursesModelAssetgroup($this->scope_id);
 				}
 			}
 			$out = $param->render('params', 'onAssetgroupEdit');
-			if (!$out) 
+			if (!$out)
 			{
 				continue;
 			}
@@ -98,9 +90,9 @@ $ag = new CoursesModelAssetgroup($this->scope_id);
 	}
 ?>
 
-		<input type="hidden" name="course_id" value="<?= $this->course->get('id') ?>" />
-		<input type="hidden" name="offering" value="<?= $this->course->offering()->alias(); ?>" />
-		<input type="hidden" name="id" value="<?= $ag->get('id') ?>" />
+		<input type="hidden" name="course_id" value="<?php echo $this->course->get('id') ?>" />
+		<input type="hidden" name="offering" value="<?php echo $this->course->offering()->alias(); ?>" />
+		<input type="hidden" name="id" value="<?php echo $ag->get('id') ?>" />
 
 		<input type="submit" value="Submit" class="submit" />
 		<input type="button" value="Cancel" class="cancel" />

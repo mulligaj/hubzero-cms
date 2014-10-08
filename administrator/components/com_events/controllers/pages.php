@@ -38,13 +38,14 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of entries for an event
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
 	{
 		$ids = JRequest::getVar('id', array(0));
-		if (count($ids) < 1) 
+		$ids = (!is_array($ids) ? array($ids) : $ids);
+		if (count($ids) < 1)
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option
@@ -60,20 +61,20 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 		$this->view->filters = array();
 		$this->view->filters['event_id'] = $ids[0];
 		$this->view->filters['search']   = urldecode($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.search', 
-			'search', 
+			$this->_option . '.' . $this->_controller . '.search',
+			'search',
 			''
 		));
 		$this->view->filters['limit']    = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit', 
-			'limit', 
-			$config->getValue('config.list_limit'), 
+			$this->_option . '.' . $this->_controller . '.limit',
+			'limit',
+			$config->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']    = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.' . $this->_controller . '.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
 
@@ -88,8 +89,8 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
 
@@ -97,7 +98,7 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 		$this->view->event->load($ids[0]);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -111,27 +112,24 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Show a form for adding an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
 	{
-		$ids = JRequest::getVar('id', array());
-		if (is_array($ids)) 
+		$id = JRequest::getVar('id', array());
+		if (is_array($id))
 		{
-			$id = (!empty($ids)) ? $ids[0] : 0;
-		} 
-		else 
-		{
-			$id = 0;
+			$id = (!empty($id)) ? $id[0] : 0;
 		}
+
 		JRequest::setVar('id', array());
 		$this->editTask($id);
 	}
 
 	/**
 	 * Show a form for editing an entry
-	 * 
+	 *
 	 * @param      integer $eid Event ID
 	 * @return     void
 	 */
@@ -141,16 +139,11 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$eid = ($eid) ? $eid : JRequest::getInt('event', 0);
-		$ids = JRequest::getVar('id', array());
 
-		// Get the single ID we're working with
-		if (is_array($ids)) 
+		$id = JRequest::getVar('id', array());
+		if (is_array($id))
 		{
-			$id = (!empty($ids)) ? $ids[0] : 0;
-		} 
-		else 
-		{
-			$id = 0;
+			$id = (!empty($id)) ? $id[0] : 0;
 		}
 
 		// Initiate database class and load info
@@ -161,7 +154,7 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 		$this->view->event->load($eid);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -175,7 +168,7 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save an entry
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -185,13 +178,13 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 		// Bind incoming data to object
 		$row = new EventsPage($this->database);
-		if (!$row->bind($_POST)) 
+		if (!$row->bind($_POST))
 		{
 			JError::raiseError(500, $row->getError());
 			return;
 		}
 
-		if (!$row->alias) 
+		if (!$row->alias)
 		{
 			$row->alias = $row->title;
 		}
@@ -199,27 +192,27 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 		$row->event_id = JRequest::getInt('event', 0);
 		$row->alias = preg_replace("/[^a-zA-Z0-9]/", '', $row->alias);
 		$row->alias = strtolower($row->alias);
-		
+
 		//set created date and user
 		if ($row->id == NULL || $row->id == '' || $row->id == 0)
 		{
 			$row->created = JFactory::getDate()->toSql();
 			$row->created_by = JFactory::getUser()->get('id');
 		}
-		
+
 		//set modified date and user
 		$row->modified = JFactory::getDate()->toSql();
 		$row->modified_by = JFactory::getUser()->get('id');
 
 		// Check content for missing required data
-		if (!$row->check()) 
+		if (!$row->check())
 		{
 			JError::raiseError(500, $row->getError());
 			return;
 		}
 
 		// Store new content
-		if (!$row->store()) 
+		if (!$row->store())
 		{
 			JError::raiseError(500, $row->getError());
 			return;
@@ -234,7 +227,7 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Remove one or more entries for an event
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -247,13 +240,13 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 		$ids   = JRequest::getVar('id', array(0));
 
 		// Get the single ID we're working with
-		if (!is_array($ids)) 
+		if (!is_array($ids))
 		{
 			$ids = array();
 		}
 
 		// Do we have any IDs?
-		if (!empty($ids)) 
+		if (!empty($ids))
 		{
 			$page = new EventsPage($this->database);
 
@@ -274,7 +267,7 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Move an item up one in the ordering
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function orderupTask()
@@ -284,7 +277,7 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Move an item down one in the ordering
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function orderdownTask()
@@ -294,7 +287,7 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Move an item one down or own up int he ordering
-	 * 
+	 *
 	 * @param      string $move Direction to move
 	 * @return     void
 	 */
@@ -309,22 +302,22 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 		$pid = JRequest::getInt('event', 0);
 
 		// Ensure we have an ID to work with
-		if (!$id) 
+		if (!$id)
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No page ID found.'),
+				JText::_('COM_EVENTS_PAGE_NO_ID'),
 				'error'
 			);
 			return;
 		}
 
 		// Ensure we have a parent ID to work with
-		if (!$pid) 
+		if (!$pid)
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No event ID found.'),
+				JText::_('COM_EVENTS_PAGE_NO_EVENT_ID'),
 				'error'
 			);
 			return;
@@ -371,7 +364,7 @@ class EventsControllerPages extends \Hubzero\Component\AdminController
 
 	/**
 	 * Cancel a task by redirecting to main page
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cancelTask()

@@ -33,7 +33,7 @@ defined('_JEXEC') or die('Restricted access');
 
 jimport('joomla.plugin.plugin');
 
-require_once(JPATH_SITE . DS . 'libraries' . DS . 'CAS-1.3.0' . DS . 'CAS.php');
+require_once(JPATH_SITE . DS . 'libraries' . DS . 'CAS-1.3.3' . DS . 'CAS.php');
 
 /**
  * Authentication Plugin class for PUCAS
@@ -57,7 +57,7 @@ class plgAuthenticationPUCAS extends JPlugin
 
 	/**
 	 * Actions to perform when logging out a user session
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function logout()
@@ -70,7 +70,7 @@ class plgAuthenticationPUCAS extends JPlugin
 			phpCAS::setDebug($debug_location);
 		}
 
-		if(!phpCAS::isInitialized())
+		if (!phpCAS::isInitialized())
 		{
 			phpCAS::client(CAS_VERSION_2_0, 'www.purdue.edu', 443, '/apps/account/cas', false);
 		}
@@ -88,7 +88,7 @@ class plgAuthenticationPUCAS extends JPlugin
 		{
 			$return = base64_decode($return);
 
-			if (!JURI::isInternal($return)) 
+			if (!JURI::isInternal($return))
 			{
 				$return = '';
 			}
@@ -117,7 +117,7 @@ class plgAuthenticationPUCAS extends JPlugin
 			phpCAS::setDebug($debug_location);
 		}
 
-		if(!phpCAS::isInitialized())
+		if (!phpCAS::isInitialized())
 		{
 			phpCAS::client(CAS_VERSION_2_0, 'www.purdue.edu', 443, '/apps/account/cas', false);
 		}
@@ -133,17 +133,17 @@ class plgAuthenticationPUCAS extends JPlugin
 
 	/**
 	 * Actions to perform when logging in a user session
-	 * 
+	 *
 	 * @param      unknown &$credentials Parameter description (if any) ...
 	 * @param      array &$options Parameter description (if any) ...
 	 * @return     void
 	 */
 	public function login(&$credentials, &$options)
 	{
-		if ($return = JRequest::getVar('return', '', 'method', 'base64')) 
+		if ($return = JRequest::getVar('return', '', 'method', 'base64'))
 		{
 			$return = base64_decode($return);
-			if (!JURI::isInternal($return)) 
+			if (!JURI::isInternal($return))
 			{
 				$return = '';
 			}
@@ -170,7 +170,7 @@ class plgAuthenticationPUCAS extends JPlugin
 			phpCAS::setDebug($debug_location);
 		}
 
-		if(!phpCAS::isInitialized())
+		if (!phpCAS::isInitialized())
 		{
 			phpCAS::client(CAS_VERSION_2_0, 'www.purdue.edu', 443, '/apps/account/cas', false);
 		}
@@ -241,7 +241,7 @@ class plgAuthenticationPUCAS extends JPlugin
 			phpCAS::setDebug($debug_location);
 		}
 
-		if(!phpCAS::isInitialized())
+		if (!phpCAS::isInitialized())
 		{
 			phpCAS::client(CAS_VERSION_2_0, 'www.purdue.edu', 443, '/apps/account/cas', false);
 		}
@@ -252,7 +252,16 @@ class plgAuthenticationPUCAS extends JPlugin
 		{
 			$username = phpCAS::getUser();
 
-			$hzal = \Hubzero\Auth\Link::find_or_create('authentication', 'pucas', null, $username);
+			$method = (\JComponentHelper::getParams('com_users')->get('allowUserRegistration', false)) ? 'find_or_create' : 'find';
+			$hzal = \Hubzero\Auth\Link::$method('authentication', 'pucas', null, $username);
+
+			if ($hzal === false)
+			{
+				$response->status = JAUTHENTICATE_STATUS_FAILURE;
+				$response->error_message = 'Unknown user and new user registration is not permitted.';
+				return;
+			}
+
 			$hzal->email = $username . '@purdue.edu';
 
 			$response->auth_link = $hzal;
@@ -290,6 +299,21 @@ class plgAuthenticationPUCAS extends JPlugin
 			}
 
 			$hzal->update();
+
+			// If we have a real user, drop the authenticator cookie
+			if (isset($user) && is_object($user))
+			{
+				// Set cookie with login preference info
+				$prefs                  = array();
+				$prefs['user_id']       = $user->get('id');
+				$prefs['user_img']      = \Hubzero\User\Profile::getInstance($user->get('id'))->getPicture(0, false);
+				$prefs['authenticator'] = 'pucas';
+
+				$namespace = 'authenticator';
+				$lifetime  = time() + 365*24*60*60;
+
+				\Hubzero\Utility\Cookie::bake($namespace, $lifetime, $prefs);
+			}
 		}
 		else
 		{
@@ -302,9 +326,10 @@ class plgAuthenticationPUCAS extends JPlugin
 	 * Similar to onAuthenticate, except we already have a logged in user, we're just linking accounts
 	 *
 	 * @access	public
+	 * @param   array - $options
 	 * @return	void
 	 */
-	public function link()
+	public function link($options=array())
 	{
 		$app = JFactory::getApplication();
 
@@ -317,7 +342,7 @@ class plgAuthenticationPUCAS extends JPlugin
 			phpCAS::setDebug($debug_location);
 		}
 
-		if(!phpCAS::isInitialized())
+		if (!phpCAS::isInitialized())
 		{
 			phpCAS::client(CAS_VERSION_2_0, 'www.purdue.edu', 443, '/apps/account/cas', false);
 		}
@@ -335,8 +360,8 @@ class plgAuthenticationPUCAS extends JPlugin
 			if (\Hubzero\Auth\Link::getInstance($hzad->id, $username))
 			{
 				// This purdue cas account is already linked to another hub account
-				$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'), 
-					'This Purdue Career Account appears to already be linked to a hub account', 
+				$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'),
+					'This Purdue Career Account appears to already be linked to a hub account',
 					'error');
 			}
 			else
@@ -350,8 +375,8 @@ class plgAuthenticationPUCAS extends JPlugin
 		else
 		{
 			// User somehow got redirect back without being authenticated (not sure how this would happen?)
-			$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'), 
-				'There was an error linking your Purdue Career Account, please try again later.', 
+			$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'),
+				'There was an error linking your Purdue Career Account, please try again later.',
 				'error');
 		}
 	}

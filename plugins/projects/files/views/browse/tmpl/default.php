@@ -51,7 +51,7 @@ if ($this->remotedir)
 {
 	$bits = explode(':', $this->remoteid);
 	$remoteservice = $bits[0];
-	
+
 	$path_bc .= ' &raquo; <span><a href="'.JRoute::_('index.php?option='.$this->option.'&id='.$this->project->id.'&active=files').'/?subdir='.urlencode($this->subdir). a . 'remotedir=' . $this->remotedir . a. 'remoteid=' . $this->remoteid.'" class="remotedir"><span class="s-google"> '.$this->remotedir.' [' . JText::_('COM_PROJECTS_FILES_REMOTE_FOLDER') . ']</span></a></span> ';
 }
 
@@ -91,7 +91,7 @@ $services = $this->connect->getActive();
 	<input type="hidden" name="subdir" id="subdir" value="<?php echo urlencode($this->subdir); ?>" />
 	<input type="hidden" name="remotedir" id="remotedir" value="<?php echo urlencode($this->remotedir); ?>" />
 	<input type="hidden" name="remoteid" id="remoteid" value="<?php echo urlencode($this->remoteid); ?>" />
-	<input type="hidden" name="id" id="projectid" value="<?php echo $this->project->id; ?>" />	
+	<input type="hidden" name="id" id="projectid" value="<?php echo $this->project->id; ?>" />
 	<input type="hidden" name="sync" id="sync" value="<?php echo $this->sync; ?>" />
 	<input type="hidden" name="sharing" id="sharing" value="<?php echo $sharing; ?>" />
 	<?php if($this->case == 'files') { ?>
@@ -99,34 +99,27 @@ $services = $this->connect->getActive();
 		<h3 class="<?php echo $class; ?>"><?php if($this->subdir || $this->sdir) { ?><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto.'&active='.$this->case); ?>"><?php } ?><?php echo $this->title; ?><?php if($this->subdir || $this->sdir) { ?></a> <?php echo $path_bc; ?><?php } ?><?php if($this->task == 'newdir') { echo ' &raquo; <span class="indlist">' . JText::_('COM_PROJECTS_FILES_ADD_NEW_FOLDER') . '</span>'; } ?></h3>
 	</div>
 	<?php } ?>
-	<?php if($this->tool && $this->tool->name ) { 
+	<?php if($this->tool && $this->tool->name ) {
 		echo ProjectsHtml::toolDevHeader( $this->option, $this->config, $this->project, $this->tool, 'source', $path_bc);
 	?>
 
 	<?php } ?>
 	<?php if (!$this->tool) { ?>
-		<?php 
+		<?php
 			// NEW: connections to external services
-			$view = new \Hubzero\Plugin\View(
-				array(
-					'folder'=>'projects',
-					'element'=>'files',
-					'name'=>'connect',
-					'layout' => 'link'
-				)
-			);
-			$view->option = $this->option;
-			$view->project = $this->project;
-			$view->uid = $this->uid;
-			$view->database = $this->database;
-			$view->connect = $this->connect;
-			$view->oparams = $this->oparams;
-			echo $view->loadTemplate();
+			$this->view('link', 'connect')
+			     ->set('option', $this->option)
+			     ->set('project', $this->project)
+			     ->set('uid', $this->uid)
+			     ->set('database', $this->database)
+			     ->set('connect', $this->connect)
+			     ->set('oparams', $this->oparams)
+			     ->display();
 		 ?>
 	<?php } ?>
 
 	<div class="list-editing">
-		<p>			
+		<p>
 		<span id="manage_assets">
 			<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto.a.'active=files').'/?action=upload' . $subdirlink . a . 'case=' . $this->case; ?>" class="fmanage" id="a-upload" title="<?php echo JText::_('COM_PROJECTS_UPLOAD_TOOLTIP'); ?>"><span><?php echo JText::_('COM_PROJECTS_UPLOAD'); ?></span></a>
 			<?php if (!$this->remotedir)
@@ -134,9 +127,9 @@ $services = $this->connect->getActive();
 			<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto.a.'active=files').'/?action=newdir' . $subdirlink . a . 'case=' . $this->case; ?>" id="a-folder" title="<?php echo JText::_('COM_PROJECTS_FOLDER_TOOLTIP'); ?>" class="fmanage<?php if($this->task == 'newdir') { echo ' inactive'; } ?>"><span><?php echo JText::_('COM_PROJECTS_NEW_FOLDER'); ?></span></a>
 			<?php } ?>
 			<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto.a.'active=files').'/?action=download'; ?>" class="fmanage js" id="a-download" title="<?php echo JText::_('COM_PROJECTS_DOWNLOAD_TOOLTIP'); ?>"><span><?php echo JText::_('COM_PROJECTS_DOWNLOAD'); ?></span></a>
-			<a href="<?php echo JRoute::_('index.php?option=' . $this->option . a.'task=view'.a.$goto.a.'active=files').'/?action=move'; ?>" class="fmanage js" id="a-move" title="<?php echo JText::_('COM_PROJECTS_MOVE_TOOLTIP'); ?>"><span><?php echo JText::_('COM_PROJECTS_MOVE'); ?></span></a>		
+			<a href="<?php echo JRoute::_('index.php?option=' . $this->option . a.'task=view'.a.$goto.a.'active=files').'/?action=move'; ?>" class="fmanage js" id="a-move" title="<?php echo JText::_('COM_PROJECTS_MOVE_TOOLTIP'); ?>"><span><?php echo JText::_('COM_PROJECTS_MOVE'); ?></span></a>
 			<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto.a.'active=files').'/?action=delete'; ?>" class="fmanage js" id="a-delete" title="<?php echo JText::_('COM_PROJECTS_DELETE_TOOLTIP'); ?>"><span><?php echo JText::_('COM_PROJECTS_DELETE'); ?></span></a>
-		</span>	
+		</span>
 	</p>
 	</div>
 	<table id="filelist" class="listing">
@@ -157,8 +150,8 @@ $services = $this->connect->getActive();
 				<?php } ?>
 			</tr>
 		</thead>
-		<tbody>			
-			<?php 
+		<tbody>
+			<?php
 			if ($this->task == 'newdir') { ?>
 				<tr class="newfolder">
 					<td></td>
@@ -173,10 +166,10 @@ $services = $this->connect->getActive();
 								<input type="submit" value="<?php echo JText::_('COM_PROJECTS_SAVE'); ?>" />
 								<span class="btn btncancel mini"><a href="<?php echo JRoute::_('index.php?option=' . $this->option . a . $goto . a . 'active=files') . '?subdir='.urlencode($this->subdir) . a . 'case=' . $this->case; ?>"><?php echo JText::_('COM_PROJECTS_CANCEL'); ?></a></span>
 							</fieldset>
-					</td>				
-				</tr>	
+					</td>
+				</tr>
 			<?php } ?>
-			<?php 
+			<?php
 			if ($this->subdir) { ?>
 				<tr>
 					<td></td>
@@ -186,7 +179,7 @@ $services = $this->connect->getActive();
 			if (count($this->combined) > 0) {
 				$c = 1;
 				foreach ($this->combined as $combined) {
-					
+
 					if ($combined['type'] == 'folder')
 					{
 						$dir = $combined['item'];
@@ -199,14 +192,14 @@ $services = $this->connect->getActive();
 								<span id="rename-c-<?php echo $c; ?>" class="rename js" title="<?php echo JText::_('COM_PROJECTS_FILES_RENAME_DIR_TOOLTIP'); ?>">&nbsp;</span>
 							</td>
 							<td colspan="<?php echo $publishing ? 5 : 4; ?>"></td>
-						</tr>					
+						</tr>
 					<?php
 					}
 					elseif ($combined['type'] == 'document')
-					{	
+					{
 						$file = $combined['item'];
 						$remote = $combined['remote'];
-						
+
 						// Hide gitignore file
 						if($file['name'] == '.gitignore')
 						{
@@ -216,79 +209,65 @@ $services = $this->connect->getActive();
 							}
 							continue;
 						}
-						
+
 					?>
-					<?php 
-						if (!$remote) 
-						{ 	
+					<?php
+						if (!$remote)
+						{
 							// Local file
-							$view = new \Hubzero\Plugin\View(
-								array(
-									'folder'=>'projects',
-									'element'=>'files',
-									'name'=>'item',
-									'layout' => 'document'
-								)
-							);
-							$view->subdir 		= $this->subdir;
-							$view->item 		= $combined['item'];
-							$view->option 		= $this->option;
-							$view->project 		= $this->project;
-							$view->juser 		= $this->juser;
-							$view->gConnected 	= $gConnected;
-							$view->c			= $c;
-							$view->connect 		= $this->connect;
-							$view->publishing 	= $publishing;
-							$view->oparams 		= $this->oparams;
-							$view->case 		= $this->case;
-							echo $view->loadTemplate();
-						} 
-				 	}	
+							$this->view('document', 'item')
+							     ->set('subdir', $this->subdir)
+							     ->set('item', $combined['item'])
+							     ->set('option', $this->option)
+							     ->set('project', $this->project)
+							     ->set('juser', $this->juser)
+							     ->set('gConnected', $gConnected)
+							     ->set('c', $c)
+							     ->set('connect', $this->connect)
+							     ->set('publishing', $publishing)
+							     ->set('oparams', $this->oparams)
+							     ->set('case', $this->case)
+							     ->display();
+						}
+					}
 					elseif ($combined['type'] == 'remote')
 					{
 						// Google file
-						$view = new \Hubzero\Plugin\View(
-							array(
-								'folder'=>'projects',
-								'element'=>'files',
-								'name'=>'item',
-								'layout' => $combined['remote']
-							)
-						);
-						$view->subdir 		= $this->subdir;
-						$view->item 		= $combined['item'];
-						$view->option 		= $this->option;
-						$view->project 		= $this->project;
-						$view->sync 		= $this->sync;
-						$view->connected 	= $gConnected;
-						$view->connect 		= $this->connect;
-						$view->publishing 	= $publishing;
-						$view->oparams 		= $this->oparams;
-						echo $view->loadTemplate();
+						$this->view($combined['remote'], 'item')
+						     ->set('subdir', $this->subdir)
+						     ->set('item', $combined['item'])
+						     ->set('option', $this->option)
+						     ->set('project', $this->project)
+						     ->set('sync', $this->sync)
+						     ->set('connected', $gConnected)
+						     ->set('connect', $this->connect)
+						     ->set('publishing', $publishing)
+						     ->set('oparams', $this->oparams)
+						     ->display();
 					}
-					
-			 		$c++;
+
+					$c++;
 				}
 			}
-			
-			// Show directory as empty			
+
+			// Show directory as empty
 			if(count($this->combined) == 0 || $empty) { ?>
 				<tr>
 					<td colspan="<?php echo $publishing ? 7 : 6; ?>" class="mini faded">
-						<?php if ($this->subdir || $this->tool || $this->remotedir) 
-							{ 
-								echo JText::_('COM_PROJECTS_THIS_DIRECTORY_IS_EMPTY'); 
+						<?php if ($this->subdir || $this->tool || $this->remotedir)
+							{
+								echo JText::_('COM_PROJECTS_THIS_DIRECTORY_IS_EMPTY');
 								if (!$this->tool && !$this->remotedir)
 								{
-									echo ' <a href="' . JRoute::_('index.php?option=' . $this->option . a . 'active=files' 
-									. a . $goto) . '/?action=deletedir' . a . 'case='.$this->case . a 
-									. 'dir='.urlencode($this->subdir) . '" class="delete" id="delete-dir">' 
+									echo ' <a href="' . JRoute::_('index.php?option=' . $this->option . a . 'active=files'
+									. a . $goto) . '/?action=deletedir' . a . 'case='.$this->case . a
+									. 'dir='.urlencode($this->subdir) . '" class="delete" id="delete-dir">'
 									. JText::_('COM_PROJECTS_DELETE_THIS_DIRECTORY') . '</a>';
 								}
 							}
-							else 
+							else
 							{
-								echo JText::_('COM_PROJECTS_FILES_PROJECT_HAS_NO_FILES'); 
+								echo JText::_('COM_PROJECTS_FILES_PROJECT_HAS_NO_FILES');
 							}
 						?>
 					</td>
@@ -303,7 +282,7 @@ $services = $this->connect->getActive();
 		<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto.a.'active=files').'?case='.$this->case.a.'action=diskspace'; ?>" title="<?php echo JText::_('COM_PROJECTS_FILES_DISK_SPACE_TOOLTIP'); ?>"><span id="indicator-wrapper" <?php if($warning) { echo 'class="quota-warning"'; } ?>><span id="indicator-area" class="used:<?php echo $inuse; ?>">&nbsp;</span><span id="indicator-value"><span><?php echo $inuse.'% '.JText::_('COM_PROJECTS_FILES_USED'); ?></span></span></span></a>
 			 <span class="show-quota"><?php echo JText::_('COM_PROJECTS_FILES_QUOTA') . ': ' . ProjectsHtml::formatSize($this->quota); ?></span>
 		</span>
-		<span class="rightfloat">			
+		<span class="rightfloat">
 			<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.$goto.'&active=files').'/?action=status'.a.'case='.$this->case; ?>" class="showinbox"><?php echo JText::_('COM_PROJECTS_FILES_GIT_STATUS'); ?></a>
 		</span>
 	</p>

@@ -33,12 +33,13 @@ defined('_JEXEC') or die('Restricted access');
 
 $pathway = JFactory::getApplication()->getPathway();
 $pathway->addItem(
-	JText::_('File List'),
+	JText::_('COM_WIKI_SPECIAL_FILE_LIST'),
 	$this->page->link()
 );
 
-$jconfig = JFactory::getConfig();
-$juser = JFactory::getUser();
+$jconfig  = JFactory::getConfig();
+$juser    = JFactory::getUser();
+$database = JFactory::getDBO();
 
 $sort = strtolower(JRequest::getVar('sort', 'created'));
 if (!in_array($sort, array('created', 'filename', 'description', 'created_by')))
@@ -54,8 +55,6 @@ if (!in_array($dir, array('ASC', 'DESC')))
 $limit = JRequest::getInt('limit', $jconfig->getValue('config.list_limit'));
 $start = JRequest::getInt('limitstart', 0);
 
-$database = JFactory::getDBO();
-
 $where = " AND (wp.group_cn='' OR wp.group_cn IS NULL) ";
 if ($this->sub)
 {
@@ -63,20 +62,20 @@ if ($this->sub)
 	$where = " AND wp.group_cn=" . $database->Quote(trim($parts[0])) . " ";
 }
 
-$query = "SELECT COUNT(*) 
-		FROM #__wiki_attachments AS wa 
-		INNER JOIN #__wiki_page AS wp 
+$query = "SELECT COUNT(*)
+		FROM #__wiki_attachments AS wa
+		INNER JOIN #__wiki_page AS wp
 			ON wp.id=wa.pageid
-		WHERE wp.scope LIKE '" . $database->getEscaped($this->page->get('scope')) . "%' $where";
+		WHERE wp.scope LIKE " . $database->quote($this->page->get('scope') . '%') . " $where";
 
 $database->setQuery($query);
 $total = $database->loadResult();
 
-$query = "SELECT wa.*, wp.scope, wp.pagename 
-		FROM #__wiki_attachments AS wa 
-		INNER JOIN #__wiki_page AS wp 
+$query = "SELECT wa.*, wp.scope, wp.pagename
+		FROM #__wiki_attachments AS wa
+		INNER JOIN #__wiki_page AS wp
 			ON wp.id=wa.pageid
-		WHERE wp.scope LIKE '" . $database->getEscaped($this->page->get('scope')) . "%'
+		WHERE wp.scope LIKE " . $database->quote($this->page->get('scope') . '%') . "
 			$where
 		ORDER BY $sort $dir";
 if ($limit && $limit != 'all')
@@ -87,18 +86,11 @@ if ($limit && $limit != 'all')
 $database->setQuery($query);
 $rows = $database->loadObjectList();
 
-jimport('joomla.html.pagination');
-$pageNav = new JPagination(
-	$total, 
-	$start, 
-	$limit
-);
-
 $altdir = ($dir == 'ASC') ? 'DESC' : 'ASC';
 ?>
 <form method="get" action="<?php echo JRoute::_($this->page->link()); ?>">
 	<p>
-		This special page shows all uploaded files of this wiki. By default the last uploaded files are shown at top of the list. A click on a column header changes the sorting. Deleted files are not shown here.
+		<?php echo JText::_('COM_WIKI_SPECIAL_FILE_LIST_ABOUT'); ?>
 	</p>
 	<div class="container">
 		<table class="file entries">
@@ -106,53 +98,53 @@ $altdir = ($dir == 'ASC') ? 'DESC' : 'ASC';
 				<tr>
 					<th scope="col">
 						<a<?php if ($sort == 'created') { echo ' class="active"'; } ?> href="<?php echo JRoute::_($this->page->link() . '&sort=created&dir=' . $altdir); ?>">
-							<?php if ($sort == 'created') { echo ($dir == 'ASC') ? '&uarr;' : '&darr;'; } ?> <?php echo JText::_('Date'); ?>
+							<?php if ($sort == 'created') { echo ($dir == 'ASC') ? '&uarr;' : '&darr;'; } ?> <?php echo JText::_('COM_WIKI_COL_DATE'); ?>
 						</a>
 					</th>
 					<th scope="col">
 						<a<?php if ($sort == 'filename') { echo ' class="active"'; } ?> href="<?php echo JRoute::_($this->page->link() . '&sort=filename&dir=' . $altdir); ?>">
-							<?php if ($sort == 'filename') { echo ($dir == 'ASC') ? '&uarr;' : '&darr;'; } ?> <?php echo JText::_('Name'); ?>
+							<?php if ($sort == 'filename') { echo ($dir == 'ASC') ? '&uarr;' : '&darr;'; } ?> <?php echo JText::_('COM_WIKI_COL_NAME'); ?>
 						</a>
 					</th>
 					<th scope="col">
-						<?php echo JText::_('Preview'); ?>
+						<?php echo JText::_('COM_WIKI_COL_PREVIEW'); ?>
 					</th>
 					<th scope="col">
-						<?php echo JText::_('Size'); ?>
+						<?php echo JText::_('COM_WIKI_COL_SIZE'); ?>
 					</th>
 					<th scope="col">
 						<a<?php if ($sort == 'created_by') { echo ' class="active"'; } ?> href="<?php echo JRoute::_($this->page->link() . '&sort=created_by&dir=' . $altdir); ?>">
-							<?php if ($sort == 'created_by') { echo ($dir == 'ASC') ? '&uarr;' : '&darr;'; } ?> <?php echo JText::_('Uploaded by'); ?>
+							<?php if ($sort == 'created_by') { echo ($dir == 'ASC') ? '&uarr;' : '&darr;'; } ?> <?php echo JText::_('COM_WIKI_COL_UPLOADER'); ?>
 						</a>
 					</th>
 					<th scope="col">
 						<a<?php if ($sort == 'description') { echo ' class="active"'; } ?> href="<?php echo JRoute::_($this->page->link() . '&sort=description&dir=' . $altdir); ?>">
-							<?php if ($sort == 'description') { echo ($dir == 'ASC') ? '&uarr;' : '&darr;'; } ?> <?php echo JText::_('Description'); ?>
+							<?php if ($sort == 'description') { echo ($dir == 'ASC') ? '&uarr;' : '&darr;'; } ?> <?php echo JText::_('COM_WIKI_COL_DESCRIPTION'); ?>
 						</a>
 					</th>
 				</tr>
 			</thead>
 			<tbody>
-<?php
-if ($rows) 
-{
-	jimport('joomla.filesystem.file');
+			<?php
+			if ($rows)
+			{
+				jimport('joomla.filesystem.file');
 
-	foreach ($rows as $row)
-	{
-		$fsize = JText::_('(unknown)');
-		if (is_file(JPATH_ROOT . DS . trim($this->config->get('filepath', '/site/wiki'), DS) . DS . $row->pageid . DS . $row->filename))
-		{
-			$fsize = \Hubzero\Utility\Number::formatBytes(filesize(JPATH_ROOT . DS . trim($this->config->get('filepath', '/site/wiki'), DS) . DS . $row->pageid . DS . $row->filename));
-		}
+				foreach ($rows as $row)
+				{
+					$fsize = JText::_('(unknown)');
+					if (is_file(JPATH_ROOT . DS . trim($this->config->get('filepath', '/site/wiki'), DS) . DS . $row->pageid . DS . $row->filename))
+					{
+						$fsize = \Hubzero\Utility\Number::formatBytes(filesize(JPATH_ROOT . DS . trim($this->config->get('filepath', '/site/wiki'), DS) . DS . $row->pageid . DS . $row->filename));
+					}
 
-		$name = JText::_('(unknown)');
-		$xprofile = \Hubzero\User\Profile::getInstance($row->created_by);
-		if (is_object($xprofile))
-		{
-			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $row->created_by) . '">' . $this->escape(stripslashes($xprofile->get('name'))) . '</a>';
-		}
-?>
+					$name = JText::_('COM_WIKI_UNKNOWN');
+					$xprofile = \Hubzero\User\Profile::getInstance($row->created_by);
+					if (is_object($xprofile))
+					{
+						$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $row->created_by) . '">' . $this->escape(stripslashes($xprofile->get('name'))) . '</a>';
+					}
+			?>
 				<tr>
 					<td>
 						<time datetime="<?php echo $row->created; ?>"><?php echo $row->created; ?></time>
@@ -170,7 +162,7 @@ if ($rows)
 							<img src="<?php echo JRoute::_('index.php?option=' . $this->option . '&scope=' . $row->scope . '/' . $row->pagename . '/File:' . $row->filename); ?>" width="50" alt="<?php echo $this->escape(stripslashes($row->filename)); ?>" />
 						</a>
 						<?php
-						} 
+						}
 						?>
 					</td>
 					<td>
@@ -183,23 +175,29 @@ if ($rows)
 						<span><?php echo $this->escape(stripslashes($row->description)); ?></span>
 					</td>
 				</tr>
-<?php
-	}
-}
-else
-{
-?>
+			<?php
+				}
+			}
+			else
+			{
+			?>
 				<tr>
-					<td colspan="5">
-						<?php echo JText::_('No files found.'); ?>
+					<td colspan="6">
+						<?php echo JText::_('COM_WIKI_NONE'); ?>
 					</td>
 				</tr>
-<?php
-}
-?>
+			<?php
+			}
+			?>
 			</tbody>
 		</table>
 		<?php
+		jimport('joomla.html.pagination');
+		$pageNav = new JPagination(
+			$total,
+			$start,
+			$limit
+		);
 		$pageNav->setAdditionalUrlParam('scope', $this->page->get('scope'));
 		$pageNav->setAdditionalUrlParam('pagename', $this->page->get('pagename'));
 		$pageNav->setAdditionalUrlParam('sort', $sort);

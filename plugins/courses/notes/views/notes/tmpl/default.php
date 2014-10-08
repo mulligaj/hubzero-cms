@@ -31,6 +31,9 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$this->css()
+     ->js();
+
 $results = null;
 $notes = $this->model->notes($this->filters);
 if ($notes)
@@ -48,6 +51,8 @@ if ($notes)
 
 $base = $this->offering->link();
 ?>
+
+<?php if ($this->course->offering()->section()->access('view')) : ?>
 <form action="<?php echo JRoute::_($base . '&active=notes'); ?>" method="get">
 	<fieldset class="filters">
 		<div class="filters-inner">
@@ -72,7 +77,7 @@ $base = $this->offering->link();
 
 <div class="notes-wrap">
 <?php if ($results) { ?>
-	<?php 
+	<?php
 	foreach ($results as $id => $notes)
 	{
 		$lecture = new CoursesModelAssetgroup($id);
@@ -135,3 +140,12 @@ $base = $this->offering->link();
 	</div><!-- / #collection-introduction -->
 <?php } ?>
 </div>
+<?php else : ?>
+	<?php
+		$this->view('_not_enrolled')
+		     ->set('course', $this->course)
+		     ->set('option', $this->option)
+		     ->set('message', JText::_('PLG_COURSES_NOTES_ENROLLMENT_REQUIRED'))
+		     ->display();
+	?>
+<?php endif; ?>

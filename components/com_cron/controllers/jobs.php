@@ -50,21 +50,31 @@ class CronControllerJobs extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display a list of latest whiteboard entries
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function displayTask()
 	{
 		$ip = JRequest::ip();
 
-		$ips = explode(',', $this->config->get('whitelist', '127.0.0.1'));
+		$ips = explode(',', $this->config->get('whitelist',''));
 
 		$ips = array_map('trim', $ips);
 
 		if (!in_array($ip, $ips))
 		{
-			header("HTTP/1.1 404 Not Found");
-			exit();
+			$ips = gethostbynamel($_SERVER['SERVER_NAME']);
+
+			if (!in_array($ip, $ips))
+			{
+				$ips = gethostbynamel('localhost');
+
+				if (!in_array($ip, $ips))
+				{
+					header("HTTP/1.1 404 Not Found");
+					exit();
+				}
+			}
 		}
 
 		JRequest::setVar('no_html', 1);
@@ -129,7 +139,7 @@ class CronControllerJobs extends \Hubzero\Component\SiteController
 
 		$this->view->output = $output;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{

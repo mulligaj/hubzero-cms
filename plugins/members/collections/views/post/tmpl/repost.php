@@ -37,6 +37,8 @@ if ($this->collection_id)
 {
 	$task = JRequest::getVar('board', 0) . '/collect';
 }
+
+$this->css();
 ?>
 
 <?php if ($this->getError()) { ?>
@@ -53,7 +55,7 @@ if ($this->collection_id)
 					<select name="collection_id" id="field-collection_id">
 						<option value="0"><?php echo JText::_('Select ...'); ?></option>
 						<optgroup label="<?php echo JText::_('My collections'); ?>">
-<?php 
+<?php
 if ($this->myboards)
 {
 	foreach ($this->myboards as $board)
@@ -69,7 +71,7 @@ if ($this->myboards)
 }
 ?>
 						</optgroup>
-<?php 
+<?php
 if ($this->groupboards)
 {
 	foreach ($this->groupboards as $optgroup => $boards)

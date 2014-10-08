@@ -1,39 +1,24 @@
-//-----------------------------------------------------------
-//  Ensure we have our namespace
-//-----------------------------------------------------------
-if (!HUB) {
-	var HUB = {};
-}
-if (!HUB.Plugins) {
-	HUB.Plugins = {};
+/**
+ * @package     hubzero-cms
+ * @file        plugins/members/recommendations/recommendations.js
+ * @copyright   Copyright 2005-2013 Purdue University. All rights reserved.
+ * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ */
+
+if (!jq) {
+	var jq = $;
 }
 
-//----------------------------------------------------------
-// Resource Ranking pop-ups
-//----------------------------------------------------------
-HUB.Plugins.ResourcesRecommendations = {
-	initialize: function() {
-		// Recommendations web service
-		var recoms = $('recommendations-section');
-		if (recoms) {
-			var sbjt = $('recommendations-subject')
-			if (sbjt) {
-				sbjt.empty();
-				imgpath = '/components/com_resources/images/loading.gif';
-				var p = new Element('p', {'id':'loading-section'});
-				var img = new Element('img', {'id':'loading-img','src':imgpath}).injectInside(p);
-				p.injectInside(sbjt);
-			
-				var rid = $('rid');
-				if (rid) {
-					new Ajax('/index.php?option=com_resources&task=plugin&trigger=onResourcesRecoms&no_html=1&rid='+rid.value,{
-							'method' : 'get',
-							'update' : sbjt
-						}).request();
-				}
-			}
+jQuery(document).ready(function(jq){
+	var $ = jq,
+		sbjt = $('#recommendations-subject');
+
+	if (sbjt.length) {
+		var rid = $('#rid');
+		if (rid.length) {
+			$.get(sbjt.attr('data-src') + '/index.php?option=com_resources&task=plugin&trigger=onResourcesRecoms&no_html=1&rid=' + rid.val(), {}, function(data) {
+				$(sbjt).html(data);
+			});
 		}
-	} // end initialize
-}
-
-window.addEvent('domready', HUB.Plugins.ResourcesRecommendations.initialize);
+	}
+});

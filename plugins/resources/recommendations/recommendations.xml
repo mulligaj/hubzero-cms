@@ -29,7 +29,7 @@ HUBzero is a registered trademark of Purdue University.
 
 <extension version="1.7" type="plugin" group="resources">
 	<name>Resource - Recommendations</name>
-	<author>Shawn Rice</author>
+	<author>HUBzero</author>
 	<copyright>Copyright 2005-2011 Purdue University. All rights reserved.</copyright>
 	<license>http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3</license>
 	<description>Display recommendations for a resource</description>
@@ -42,8 +42,8 @@ HUBzero is a registered trademark of Purdue University.
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
-				<field name="threshold" type="text" size="5" default="0.21" label="Threshold" description="The threshold for returning results"/>
-				<field name="display_limit" type="text" size="5" default="10" label="Display Limit" description="Number of items to return"/>
+				<field name="threshold" type="text" size="5" default="0.21" label="PLG_RESOURCES_RECOMMENDATIONS_THRESHOLD_LABEL" description="PLG_RESOURCES_RECOMMENDATIONS_THRESHOLD_DESC" />
+				<field name="display_limit" type="text" size="5" default="10" label="PLG_RESOURCES_RECOMMENDATIONS_LIMIT_LABEL" description="PLG_RESOURCES_RECOMMENDATIONS_LIMIT_DESC" />
 			</fieldset>
 		</fields>
 	</config>

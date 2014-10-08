@@ -38,15 +38,15 @@ class KbHelperHtml
 {
 	/**
 	 * Outputs a <select> element with a specific value chosen
-	 * 
+	 *
 	 * @param      array  $categories Data to populate list with
 	 * @param      mixed  $value      Chosen value
 	 * @param      string $name       Field name
 	 * @return     string HTML <select>
 	 */
-	public static function sectionSelect($categories, $val, $name)
+	public static function sectionSelect($categories, $val, $name, $id='')
 	{
-		$out  = '<select name="' . $name . '">';
+		$out  = '<select name="' . $name . '" id="' . ($id ? $id : str_replace(array('[', ']'), '', $name)) . '">';
 		$out .= '<option value="">' . JText::_('COM_KB_SELECT_CATEGORY') . '</option>';
 		foreach ($categories as $category)
 		{

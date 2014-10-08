@@ -37,6 +37,8 @@ defined('_JEXEC') or die('Restricted access');
 
 /**
  * Scaffolding class for components
+ *
+ * @museIgnoreHelp
  **/
 class Component extends Scaffolding
 {
@@ -70,10 +72,11 @@ class Component extends Scaffolding
 			}
 		}
 
+		// Define our install directory or get it from args
 		$install_dir = JPATH_ROOT . DS . 'components';
 		if ($this->arguments->getOpt('install-dir') && strlen(($this->arguments->getOpt('install-dir'))) > 0)
 		{
-			$install_dir = JPATH_ROOT . DS . trim($this->arguments->getOpt('install-dir'), DS);
+			$install_dir = JPATH_ROOT . DS . trim($this->arguments->getOpt('install-dir'), DS) . DS . 'components';
 		}
 
 		if (substr($name, 0, 3) == 'com')
@@ -82,7 +85,7 @@ class Component extends Scaffolding
 		}
 
 		// Make sure component doesn't already exist
-		if (is_dir(JPATH_ROOT . DS . 'components' . DS . 'com_' . $name))
+		if (is_dir($install_dir . DS . 'com_' . $name))
 		{
 			$this->output->error("Error: the component name provided ({$name}) seems to already exists.");
 		}
@@ -107,7 +110,7 @@ class Component extends Scaffolding
 			->addArgument(
 				'-n, --name: component name',
 				'Give the component name. The component name can also be provided
-				as the next word following the command as shown here: 
+				as the next word following the command as shown here:
 				"muse scaffolding create component awesome"',
 				'Example: -n=awesome, --name=awesomer'
 			)

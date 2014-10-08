@@ -37,42 +37,49 @@ abstract class Model extends Object
 {
 	/**
 	 * Unpublished state
-	 * 
+	 *
 	 * @var integer
 	 */
 	const APP_STATE_UNPUBLISHED = 0;
 
 	/**
 	 * Published state
-	 * 
+	 *
 	 * @var integer
 	 */
 	const APP_STATE_PUBLISHED   = 1;
 
 	/**
 	 * Deleted state
-	 * 
+	 *
 	 * @var integer
 	 */
 	const APP_STATE_DELETED     = 2;
 
 	/**
+	 * Flagged state
+	 *
+	 * @var integer
+	 */
+	const APP_STATE_FLAGGED     = 3;
+
+	/**
 	 * Table class name
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_tbl_name = null;
 
 	/**
 	 * JTable
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_tbl = NULL;
 
 	/**
 	 * JDatabase
-	 * 
+	 *
 	 * @var object
 	 */
 	protected $_db = NULL;
@@ -80,20 +87,20 @@ abstract class Model extends Object
 	/**
 	 * Model context.
 	 * option.model(.content)
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $_context = NULL;
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      mixed $oid Integer (ID), string (alias), object or array
 	 * @return     void
 	 */
 	public function __construct($oid=null)
 	{
-		$this->_db = \JFactory::getDBO();
+		$this->_db = $this->initDbo();
 
 		if ($this->_tbl_name)
 		{
@@ -133,11 +140,11 @@ abstract class Model extends Object
  	 */
 	public function get($property, $default=null)
 	{
-		if (isset($this->_tbl->$property)) 
+		if (isset($this->_tbl->$property))
 		{
 			return $this->_tbl->$property;
 		}
-		else if (isset($this->_tbl->{'__' . $property})) 
+		else if (isset($this->_tbl->{'__' . $property}))
 		{
 			return $this->_tbl->{'__' . $property};
 		}
@@ -159,6 +166,28 @@ abstract class Model extends Object
 		}
 		$this->_tbl->$property = $value;
 		return $this;
+	}
+
+	/**
+	 * Method to get the database connection.
+	 * 
+	 * If detected that the code is being run in a super group
+	 * component, it will return the super group DB connection
+	 * instead of the site connection.
+	 *
+	 * @return  object  JDatabase
+	 */
+	public function initDbo()
+	{
+		if (defined('JPATH_GROUPCOMPONENT'))
+		{
+			$r = new \ReflectionClass($this);
+			if (substr($r->getFileName(), 0, strlen(JPATH_GROUPCOMPONENT)) == JPATH_GROUPCOMPONENT)
+			{
+				return \Hubzero\User\Group\Helper::getDbo();
+			}
+		}
+		return \JFactory::getDBO();
 	}
 
 	/**
@@ -193,7 +222,7 @@ abstract class Model extends Object
 
 	/**
 	 * Check if the entry exists (i.e., has a database record)
-	 * 
+	 *
 	 * @return     boolean True if record exists, False if not
 	 */
 	public function exists()
@@ -202,7 +231,7 @@ abstract class Model extends Object
 		{
 			return true;
 		}
-		if ($this->get('id') && (int) $this->get('id') > 0) 
+		if ($this->get('id') && (int) $this->get('id') > 0)
 		{
 			return true;
 		}
@@ -211,7 +240,7 @@ abstract class Model extends Object
 
 	/**
 	 * Has the offering started?
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function isPublished()
@@ -220,7 +249,7 @@ abstract class Model extends Object
 		{
 			return true;
 		}
-		if ($this->get('state') == self::APP_STATE_PUBLISHED) 
+		if ($this->get('state') == self::APP_STATE_PUBLISHED)
 		{
 			return true;
 		}
@@ -229,7 +258,7 @@ abstract class Model extends Object
 
 	/**
 	 * Has the offering started?
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function isUnpublished()
@@ -238,7 +267,7 @@ abstract class Model extends Object
 		{
 			return false;
 		}
-		if ($this->get('state') == self::APP_STATE_UNPUBLISHED) 
+		if ($this->get('state') == self::APP_STATE_UNPUBLISHED)
 		{
 			return true;
 		}
@@ -247,7 +276,7 @@ abstract class Model extends Object
 
 	/**
 	 * Has the offering started?
-	 * 
+	 *
 	 * @return     boolean
 	 */
 	public function isDeleted()
@@ -256,7 +285,7 @@ abstract class Model extends Object
 		{
 			return false;
 		}
-		if ($this->get('state') == self::APP_STATE_DELETED) 
+		if ($this->get('state') == self::APP_STATE_DELETED)
 		{
 			return true;
 		}
@@ -265,7 +294,7 @@ abstract class Model extends Object
 
 	/**
 	 * Bind data to the model
-	 * 
+	 *
 	 * @param      mixed $data Object or array
 	 * @return     boolean True on success, False on error
 	 */
@@ -402,11 +431,19 @@ abstract class Model extends Object
 
 			if ($this->_context)
 			{
-				$this->importPlugin('content')->trigger('onContentBeforeSave', array(
+				$results = $this->importPlugin('content')->trigger('onContentBeforeSave', array(
 					$this->_context,
-					&$this, 
+					&$this,
 					$this->exists()
 				));
+				foreach ($results as $result)
+				{
+					if ($result === false)
+					{
+						$this->setError(\JText::_('Content failed validation.'));
+						return false;
+					}
+				}
 			}
 		}
 
@@ -422,7 +459,7 @@ abstract class Model extends Object
 
 	/**
 	 * Delete a record
-	 * 
+	 *
 	 * @return     boolean True on success, false on error
 	 */
 	public function delete()
@@ -446,7 +483,7 @@ abstract class Model extends Object
 
 	/**
 	 * Import a set of plugins
-	 * 
+	 *
 	 * @return     object
 	 */
 	public function importPlugin($type='')
@@ -458,7 +495,7 @@ abstract class Model extends Object
 
 	/**
 	 * Import a set of plugins
-	 * 
+	 *
 	 * @return     object
 	 */
 	public function trigger($event='', $params=array())
@@ -468,7 +505,7 @@ abstract class Model extends Object
 
 	/**
 	 * Turn the object into a string
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function __toString()
@@ -478,7 +515,7 @@ abstract class Model extends Object
 
 	/**
 	 * Turn the object into a string
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function toString($ignore=array('_db'))
@@ -489,27 +526,27 @@ abstract class Model extends Object
 
 	/**
 	 * Special print_r to strip out any vars passed in $ignore
-	 * 
+	 *
 	 * @param  object  $subject  Object to print_r
 	 * @param  array   $ignore   Property names to ignore
 	 * @param  integer $depth    Recursion depth
 	 * @param  array   $refChain Reference chain
 	 * @return string
 	 */
-	private function _print_r($subject, $ignore = array(), $depth = 1, $refChain = array()) 
+	private function _print_r($subject, $ignore = array(), $depth = 1, $refChain = array())
 	{
 		$str = '';
 
-		if ($depth > 20) 
+		if ($depth > 20)
 		{
 			return $str;
 		}
 
-		if (is_object($subject)) 
+		if (is_object($subject))
 		{
 			foreach ($refChain as $refVal)
 			{
-				if ($refVal === $subject) 
+				if ($refVal === $subject)
 				{
 					$str .= "*RECURSION*\n";
 					return $str;
@@ -522,18 +559,18 @@ abstract class Model extends Object
 			$subject = (array) $subject;
 			foreach ($subject as $key => $val)
 			{
-				if (is_array($ignore) && !in_array($key, $ignore, 1)) 
+				if (is_array($ignore) && !in_array($key, $ignore, 1))
 				{
-					if ($key{0} == "\0") 
+					if ($key{0} == "\0")
 					{
 						$keyParts = explode("\0", $key);
-						if (is_array($ignore) && in_array($keyParts[2], $ignore, 1)) 
+						if (is_array($ignore) && in_array($keyParts[2], $ignore, 1))
 						{
 							continue;
 						}
 						$str .= str_repeat(" ", $depth * 4) . '[';
 						$str .= $keyParts[2] . (($keyParts[1] == '*')  ? ':protected' : ':private');
-					} 
+					}
 					else
 					{
 						$str .= str_repeat(" ", $depth * 4) . '[';
@@ -546,20 +583,20 @@ abstract class Model extends Object
 			$str .= str_repeat(" ", ($depth - 1) * 4) . ")\n";
 
 			array_pop($refChain);
-		} 
-		elseif (is_array($subject)) 
+		}
+		elseif (is_array($subject))
 		{
 			$str .= "Array ( \n";
 			foreach ($subject as $key => $val)
 			{
-				if (is_array($ignore) && !in_array($key, $ignore, 1)) 
+				if (is_array($ignore) && !in_array($key, $ignore, 1))
 				{
 					$str .= str_repeat(" ", $depth * 4) . '[' . $key . '] => ';
 					$str .= $this->_print_r($val, $ignore, $depth + 1, $refChain);
 				}
 			}
 			$str .= str_repeat(" ", ($depth - 1) * 4) . ")\n";
-		} 
+		}
 		else
 		{
 			$str .= $subject . "\n";

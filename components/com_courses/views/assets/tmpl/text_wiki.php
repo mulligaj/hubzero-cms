@@ -37,7 +37,7 @@ $config = array(
 	'pagename' => $this->asset->id,
 	'pageid'   => '',
 	'filepath' => DS . 'site' . DS . 'courses' . DS . $this->course->get('id') . DS . $this->asset->id,
-	'domain'   => $this->course->get('alias') 
+	'domain'   => $this->course->get('alias')
 );
 
 $this->model->set('content', stripslashes($this->model->get('content')));
@@ -49,9 +49,17 @@ $this->model->set('content', stripslashes($this->model->get('content')));
 ));
 ?>
 
-<div id="content-header">
-	<h2><?php echo $this->asset->title; ?></h2>
-</div>
+<header id="content-header">
+	<h2><?php echo $this->asset->title ?></h2>
+
+	<div id="content-header-extra">
+		<p>
+			<a class="icon-prev back btn" href="<?php echo JRoute::_($this->course->offering()->link() . '&active=outline'); ?>">
+				<?php echo JText::_('Back to course'); ?>
+			</a>
+		</p>
+	</div>
+</header>
 
 <div class="wiki-page-body">
 	<p>

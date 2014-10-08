@@ -32,7 +32,7 @@
 defined('_JEXEC') or die( 'Restricted access' );
 ?>
 
-<?php if($this->getError()) { ?>
+<?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
 <?php } ?>
 
@@ -44,7 +44,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 		<a class="icon-add btn add" title="" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->cn.'&active=calendar&action=addcalendar'); ?>">
 			<?php echo JText::_('Add Calendar'); ?>
 		</a>
-		
+
 	</li>
 </ul>
 <!--
@@ -91,7 +91,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 						<a class="edit" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->cn.'&active=calendar&action=editcalendar&calendar_id=' . $calendar->get('id')); ?>">
 							Edit
 						</a> &nbsp;|
-						<a class="delete" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->cn.'&active=calendar&action=deletecalendar&calendar_id=' . $calendar->get('id')); ?>">
+						<a class="delete" href="javascript:void(0);">
 							Delete
 						</a>
 						<?php if ($calendar->get('url')) : ?>
@@ -99,7 +99,21 @@ defined('_JEXEC') or die( 'Restricted access' );
 							<a class="refresh" href="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->cn.'&active=calendar&action=refreshcalendar&calendar_id=' . $calendar->get('id')); ?>">
 								Refresh
 							</a>
-						<?php endif; ?>	
+						<?php endif; ?>
+					</td>
+				</tr>
+				<tr class="delete-confirm">
+					<td colspan="4">
+						<form action="<?php echo JRoute::_('index.php?option='.$this->option.'&cn='.$this->group->cn.'&active=calendar&action=deletecalendar&calendar_id=' . $calendar->get('id')); ?>" method="post">
+							<h3>Delete Calendar</h3>
+							<p>What do you want to do with the events associated with this calendar?</p>
+							<select name="events">
+								<option value="keep">Delete Calendar &amp; Set Events as Uncategorized</option>
+								<option value="delete">Delete Calendar &amp; Delete Events</option>
+							</select>
+							<input class="btn btn-danger" type="submit" value="Delete" />
+							<input class="btn btn-secondary delete-cancel" type="reset" value="Cancel" />
+						</form>
 					</td>
 				</tr>
 				<tr>
@@ -112,7 +126,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 							<br />
 							<span class="calendar-url">
 								<span>Last Fetched:</span>
-								<?php 
+								<?php
 									if ($calendar->get('last_fetched') == '' || $calendar->get('last_fetched') == '0000-00-00 00:00:00')
 									{
 										echo 'Never';
@@ -126,6 +140,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 						<?php endif; ?>
 					</td>
 				</tr>
+
 			<?php endforeach; ?>
 		<?php else : ?>
 			<tr>

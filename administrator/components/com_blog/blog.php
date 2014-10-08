@@ -32,27 +32,9 @@ defined('_JEXEC') or die('Restricted access');
 
 $option = 'com_blog';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-	
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect('index.php', JText::_('ALERTNOTAUTH'));
-	}
-}
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
 
 // Include scripts
@@ -63,17 +45,17 @@ $scope = JRequest::getCmd('scope', 'site');
 $controllerName = JRequest::getCmd('controller', 'entries');
 
 JSubMenuHelper::addEntry(
-	JText::_('Site'),
+	JText::_('COM_BLOG_SCOPE_SITE'),
 	'index.php?option=' . $option. '&controller=entries&scope=site',
 	($controllerName == 'entries' && $scope == 'site')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Member'),
+	JText::_('COM_BLOG_SCOPE_MEMBER'),
 	'index.php?option=' . $option. '&controller=entries&scope=member',
 	($controllerName == 'entries' && $scope == 'member')
 );
 JSubMenuHelper::addEntry(
-	JText::_('Group'),
+	JText::_('COM_BLOG_SCOPE_GROUP'),
 	'index.php?option=' . $option. '&controller=entries&scope=group',
 	($controllerName == 'entries' && $scope == 'group')
 );

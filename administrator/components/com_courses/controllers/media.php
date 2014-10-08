@@ -38,7 +38,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Build file path
-	 * 
+	 *
 	 * @return     void
 	 */
 	private function _buildUploadPath($listdir, $subdir='')
@@ -55,7 +55,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Upload a file to the wiki via AJAX
-	 * 
+	 *
 	 * @return     string
 	 */
 	public function ajaxUploadTask()
@@ -63,18 +63,11 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		// Check for request forgeries
 		JRequest::checkToken() or JRequest::checkToken('get') or jexit('Invalid Token');
 
-		// Check if they're logged in
-		if ($this->juser->get('guest')) 
-		{
-			echo json_encode(array('error' => JText::_('Must be logged in.')));
-			return;
-		}
-
 		// Ensure we have an ID to work with
 		$listdir = JRequest::getVar('listdir', 0);
-		if (!$listdir) 
+		if (!$listdir)
 		{
-			echo json_encode(array('error' => JText::_('COM_COURSES_NO_ID')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_NO_ID')));
 			return;
 		}
 
@@ -105,37 +98,37 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		}
 		else
 		{
-			echo json_encode(array('error' => JText::_('File not found')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_FILE_NOT_FOUND')));
 			return;
 		}
 
 
-		if (!is_dir($path)) 
+		if (!is_dir($path))
 		{
 			jimport('joomla.filesystem.folder');
-			if (!JFolder::create($path)) 
+			if (!JFolder::create($path))
 			{
-				echo json_encode(array('error' => JText::_('Error uploading. Unable to create path.')));
+				echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_UNABLE_TO_CREATE_UPLOAD_PATH')));
 				return;
 			}
 		}
 
 		if (!is_writable($path))
 		{
-			echo json_encode(array('error' => JText::_('Server error. Upload directory isn\'t writable.')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_UPLOAD_DIRECTORY_IS_NOT_WRITABLE')));
 			return;
 		}
 
 		//check to make sure we have a file and its not too big
-		if ($size == 0) 
+		if ($size == 0)
 		{
-			echo json_encode(array('error' => JText::_('File is empty')));
+			echo json_encode(array('error' => JText::_('COM_COURSES_ERROR_EMPTY_FILE')));
 			return;
 		}
-		if ($size > $sizeLimit) 
+		if ($size > $sizeLimit)
 		{
 			$max = preg_replace('/<abbr \w+=\\"\w+\\">(\w{1,3})<\\/abbr>/', '$1', \Hubzero\Utility\Number::formatBytes($sizeLimit));
-			echo json_encode(array('error' => JText::sprintf('File is too large. Max file upload size is %s', $max)));
+			echo json_encode(array('error' => JText::sprintf('COM_COURSES_ERROR_FILE_TOO_LARGE', $max)));
 			return;
 		}
 
@@ -150,7 +143,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		$filename = str_replace(' ', '_', $filename);
 
 		$ext = $pathinfo['extension'];
-		while (file_exists($path . DS . $filename . '.' . $ext)) 
+		while (file_exists($path . DS . $filename . '.' . $ext))
 		{
 			$filename .= rand(10, 99);
 		}
@@ -178,7 +171,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 
 		//echo result
 		echo json_encode(array(
-			'success'   => true, 
+			'success'   => true,
 			'file'      => $filename . '.' . $ext,
 			'directory' => str_replace(JPATH_ROOT, '', $path),
 			'id'        => $listdir
@@ -187,7 +180,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Upload a file or create a new folder
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function uploadTask()
@@ -222,7 +215,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 			// Make sure the name is valid
 			if (preg_match("#[^0-9a-zA-Z_]#i", $foldername))
 			{
-				$this->setError(JText::_('Directory name must only contain alphanumeric characters and no spaces please.'));
+				$this->setError(JText::_('COM_COURSES_ERROR_INVALID_DIRECTORY'));
 			}
 			else
 			{
@@ -236,12 +229,12 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 				}
 				else
 				{
-					$this->setError(JText::_('Directory already exists'));
+					$this->setError(JText::_('COM_COURSES_ERROR_DIRECTORY_EXISTS'));
 				}
 			}
 			// Directory created
-		} 
-		else 
+		}
+		else
 		{
 			// Make sure the upload path exist
 			if (!is_dir($path))
@@ -249,7 +242,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 				jimport('joomla.filesystem.folder');
 				if (!JFolder::create($path))
 				{
-					$this->setError(JText::_('UNABLE_TO_CREATE_UPLOAD_PATH'));
+					$this->setError(JText::_('COM_COURSES_ERROR_UNABLE_TO_CREATE_UPLOAD_PATH'));
 					$this->displayTask();
 					return;
 				}
@@ -259,7 +252,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 			$file = JRequest::getVar('upload', '', 'files', 'array');
 			if (!$file['name'])
 			{
-				$this->setError(JText::_('COURSES_NO_FILE'));
+				$this->setError(JText::_('COM_COURSES_ERROR_NO_FILE'));
 				$this->displayTask();
 				return;
 			}
@@ -279,7 +272,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 			// Perform the upload
 			if (!JFile::upload($file['tmp_name'], $path . DS . $file['name']))
 			{
-				$this->setError(JText::_('ERROR_UPLOADING'));
+				$this->setError(JText::_('COM_COURSES_ERROR_UPLOADING'));
 			}
 			else
 			{
@@ -333,7 +326,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete a folder and contents
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deletefolderTask()
@@ -347,7 +340,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		$listdir = JRequest::getVar('listdir', 0);
 		if (!$listdir)
 		{
-			$this->setError(JText::_('COURSES_NO_LISTDIR'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_ID'));
 			$this->displayTask();
 			return;
 		}
@@ -362,16 +355,15 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		$folder = trim(JRequest::getVar('delFolder', ''), DS);
 		if (!$folder)
 		{
-			$this->setError(JText::_('COURSES_NO_DIRECTORY'));
+			$this->setError(JText::_('COM_COURSES_ERROR_MISSING_DIRECTORY'));
 			$this->displayTask();
 			return;
 		}
 
-		//$folder = ResourcesUtilities::normalizePath($folder);
-
 		// Check if the folder even exists
-		if (!is_dir($path . DS . $folder) or !$folder) {
-			$this->setError(JText::_('DIRECTORY_NOT_FOUND'));
+		if (!is_dir($path . DS . $folder) or !$folder)
+		{
+			$this->setError(JText::_('COM_COURSES_ERROR_MISSING_DIRECTORY'));
 		}
 		else
 		{
@@ -379,7 +371,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 			jimport('joomla.filesystem.folder');
 			if (!JFolder::delete($path . DS . $folder))
 			{
-				$this->setError(JText::_('UNABLE_TO_DELETE_DIRECTORY'));
+				$this->setError(JText::_('COM_COURSES_ERROR_UNABLE_TO_DELETE_DIRECTORY'));
 			}
 		}
 
@@ -389,7 +381,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Deletes a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deletefileTask()
@@ -401,7 +393,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		$listdir = JRequest::getVar('listdir', 0);
 		if (!$listdir)
 		{
-			$this->setError(JText::_('COURSES_NO_LISTDIR'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_ID'));
 			$this->displayTask();
 			return;
 		}
@@ -416,7 +408,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		$file = JRequest::getVar('delFile', '');
 		if (!$file)
 		{
-			$this->setError(JText::_('COURSES_NO_FILE'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_FILE'));
 			$this->displayTask();
 			return;
 		}
@@ -424,7 +416,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		// Check if the file even exists
 		if (!file_exists($path . DS . $file) or !$file)
 		{
-			$this->setError(JText::_('FILE_NOT_FOUND'));
+			$this->setError(JText::_('COM_COURSES_ERROR_NO_FILE_FOUND'));
 		}
 		else
 		{
@@ -432,7 +424,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 			jimport('joomla.filesystem.file');
 			if (!JFile::delete($path . DS . $file))
 			{
-				$this->setError(JText::_('UNABLE_TO_DELETE_FILE'));
+				$this->setError(JText::_('COM_COURSES_ERROR_UNABLE_TO_DELETE_FILE'));
 			}
 		}
 
@@ -442,7 +434,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Display an upload form and file listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -454,7 +446,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		$this->view->listdir   = JRequest::getVar('listdir', 0);
 		if (!$this->view->listdir)
 		{
-			echo '<p class="error">' . JText::_('No list directory provided.') . '</p>';
+			echo '<p class="error">' . JText::_('COM_COURSES_ERROR_MISSING_DIRECTORY') . '</p>';
 			return;
 		}
 
@@ -507,7 +499,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Lists all files and folders for a given directory
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function listTask()
@@ -517,7 +509,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 		$this->view->listdir   = JRequest::getVar('listdir', 0);
 		if (!$this->view->listdir)
 		{
-			echo '<p class="error">' . JText::_('No list directory provided.') . '</p>';
+			echo '<p class="error">' . JText::_('COM_COURSES_ERROR_MISSING_DIRECTORY') . '</p>';
 			return;
 		}
 
@@ -581,7 +573,7 @@ class CoursesControllerMedia extends \Hubzero\Component\AdminController
 
 	/**
 	 * Scans directory and builds multi-dimensional array of all files and sub-directories
-	 * 
+	 *
 	 * @param      string $base Directory to scan
 	 * @return     array
 	 */

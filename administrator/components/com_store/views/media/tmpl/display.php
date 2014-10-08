@@ -45,14 +45,14 @@ defined('_JEXEC') or die('Restricted access');
 					<input type="hidden" name="tmpl" value="component" />
 					<input type="hidden" name="id" value="<?php echo $this->id; ?>" />
 					<input type="hidden" name="task" value="upload" />
-		
+
 					<input type="file" name="upload" id="upload" size="17" />&nbsp;&nbsp;&nbsp;
 					<input type="submit" value="<?php echo JText::_('COM_STORE_UPLOAD'); ?>" />
 				</td>
 			</tr>
 		</tbody>
 	</table>
-	
+
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo implode('<br />', $this->getErrors()); ?></p>
 <?php } ?>
@@ -67,14 +67,14 @@ defined('_JEXEC') or die('Restricted access');
 <?php
 	$k = 0;
 
-	if ($this->file && file_exists(JPATH_ROOT . $this->path . DS . $this->file)) 
+	if ($this->file && file_exists(JPATH_ROOT . $this->path . DS . $this->file))
 	{
 		$this_size = filesize(JPATH_ROOT . $this->path . DS . $this->file);
 		list($width, $height, $type, $attr) = getimagesize(JPATH_ROOT . $this->path . DS . $this->file);
 ?>
 			<tr>
 				<td rowspan="6">
-					<img src="<?php echo '..' . $this->path . DS . $this->file; ?>" alt="<?php echo JText::_('COM_STORE_PICTURE'); ?>" id="conimage" />
+					<img src="<?php echo '..' . $this->path . DS . $this->file; ?>" alt="<?php echo JText::_('COM_STORE_PICTURE'); ?>" id="conimage" width="100" />
 				</td>
 				<td><?php echo JText::_('COM_STORE_FILE'); ?>:</td>
 				<td><?php echo $this->file; ?></td>

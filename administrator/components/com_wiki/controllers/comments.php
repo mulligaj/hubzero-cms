@@ -38,7 +38,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 {
 	/**
 	 * Display a list of blog entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -49,8 +49,8 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 		$this->view->filters = array();
 		$this->view->filters['pageid']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.pageid', 
-			'pageid', 
+			$this->_option . '.' . $this->_controller . '.pageid',
+			'pageid',
 			0,
 			'int'
 		));
@@ -61,27 +61,27 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 		)));
 		// Get sorting variables
 		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'created'
 		));
 		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 
 		// Get paging variables
 		$this->view->filters['limit']        = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit', 
-			'limit', 
-			$jconfig->getValue('config.list_limit'), 
+			$this->_option . '.' . $this->_controller . '.limit',
+			'limit',
+			$jconfig->getValue('config.list_limit'),
 			'int'
 		);
 		$this->view->filters['start']        = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart', 
-			'limitstart', 
-			0, 
+			$this->_option . '.' . $this->_controller . '.limitstart',
+			'limitstart',
+			0,
 			'int'
 		);
 
@@ -91,7 +91,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 		$obj = new WikiTableComment($this->database);
 
 		// Get records
-		$rows = $obj->getEntries($this->view->filters);
+		$rows = $obj->find('list', $this->view->filters);
 
 		$levellimit = ($this->view->filters['limit'] == 0) ? 500 : $this->view->filters['limit'];
 
@@ -121,13 +121,13 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
-			$this->view->total, 
-			$this->view->filters['start'], 
+			$this->view->total,
+			$this->view->filters['start'],
 			$this->view->filters['limit']
 		);
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -141,7 +141,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Recursive function to build tree
-	 * 
+	 *
 	 * @param      integer $id       Parent ID
 	 * @param      string  $indent   Indent text
 	 * @param      array   $list     List of records
@@ -159,12 +159,12 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 			{
 				$id = $v->id;
 
-				if ($type) 
+				if ($type)
 				{
 					$pre    = '<span class="treenode">&#8970;</span>&nbsp;';
 					$spacer = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-				} 
-				else 
+				}
+				else
 				{
 					$pre    = '- ';
 					$spacer = '&nbsp;&nbsp;';
@@ -174,11 +174,11 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 				{
 					$data = $v->toArray();
 				}
-				else 
+				else
 				{
-					foreach (get_object_vars($v) as $key => $val) 
+					foreach (get_object_vars($v) as $key => $val)
 					{
-						if (substr($key, 0, 1) != '_') 
+						if (substr($key, 0, 1) != '_')
 						{
 							$data[$key] = $val;
 						}
@@ -191,11 +191,11 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 					$k->$key = $val;
 				}
 
-				if ($v->parent == 0) 
+				if ($v->parent == 0)
 				{
 					$txt = '';
-				} 
-				else 
+				}
+				else
 				{
 					$txt = $pre;
 				}
@@ -212,7 +212,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Create a new category
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -222,7 +222,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Show a form for editing an entry
-	 * 
+	 *
 	 * @param      object $row WikiTableComment
 	 * @return     void
 	 */
@@ -236,11 +236,11 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 		{
 			$this->view->row = $row;
 		}
-		else 
+		else
 		{
 			// Incoming
 			$id = JRequest::getVar('id', array(0));
-			if (is_array($id) && !empty($id)) 
+			if (is_array($id) && !empty($id))
 			{
 				$id = $id[0];
 			}
@@ -257,7 +257,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 		}
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -271,7 +271,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save an entry and fall through to edit form
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function applyTask($redirect=1)
@@ -281,7 +281,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Save an entry
-	 * 
+	 *
 	 * @param      integer $redirect Redirect (1) or fall through to edit form (0) ?
 	 * @return     void
 	 */
@@ -296,7 +296,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 		// Initiate extended database class
 		$row = new WikiModelComment($fields['id']);
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -304,7 +304,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 		}
 
 		// Store new content
-		if (!$row->store(true)) 
+		if (!$row->store(true))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -316,7 +316,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 			// Set the redirect
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&pageid=' . $fields['pageid'],
-				JText::_('Comment saved!')
+				JText::_('COM_WIKI_COMMENT_SAVED')
 			);
 		}
 
@@ -325,7 +325,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Delete one or more entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -335,8 +335,9 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
-		if (count($ids) > 0) 
+		if (count($ids) > 0)
 		{
 			// Loop through all the IDs
 			foreach ($ids as $id)
@@ -353,13 +354,13 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 		// Set the redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&pageid=' . JRequest::getInt('pageid', 0),
-			JText::_('Comments deleted!')
+			JText::sprintf('COM_WIKI_COMMENTS_DELETED', count($ids))
 		);
 	}
 
 	/**
 	 * Calls stateTask to publish entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function publishTask()
@@ -369,7 +370,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Calls stateTask to unpublish entries
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function unpublishTask()
@@ -379,7 +380,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Set the status on one or more entries
-	 * 
+	 *
 	 * @param      integer $state Status to set
 	 * @return     void
 	 */
@@ -390,16 +391,17 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$ids    = JRequest::getVar('id', array());
+		$ids    = (!is_array($ids) ? array($ids) : $ids);
 		$pageid = JRequest::getInt('pageid', 0);
 
 		// Check for an ID
-		if (count($ids) < 1) 
+		if (count($ids) < 1)
 		{
-			$action = ($state == 1) ? JText::_('unpublish') : JText::_('publish');
+			$action = ($state == 1) ? JText::_('COM_WIKI_UNPUBLISH') : JText::_('COM_WIKI_PUBLISH');
 
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&pageid=' . $pageid,
-				JText::_('Select an entry to ' . $action),
+				JText::sprintf('COM_WIKI_ERROR_SELECT_TO', $action),
 				'error'
 			);
 			return;
@@ -417,13 +419,13 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 		}
 
 		// Set message
-		if ($state == 1) 
+		if ($state == 1)
 		{
-			$message = JText::_(count($ids) . ' Item(s) successfully published');
-		} 
+			$message = JText::sprintf('COM_WIKI_ITEMS_PUBLISHED', count($ids));
+		}
 		else
 		{
-			$message = JText::_(count($ids) . ' Item(s) successfully unpublished');
+			$message = JText::sprintf('COM_WIKI_ITEMS_UNPUBLISHED', count($ids));
 		}
 
 		// Set redirect
@@ -435,7 +437,7 @@ class WikiControllerComments extends \Hubzero\Component\AdminController
 
 	/**
 	 * Cancels a task and redirects to listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function cancel()

@@ -38,7 +38,7 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 {
 	/**
 	 * List types
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -47,7 +47,7 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 		$this->view->types = $ct->getType();
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -61,7 +61,7 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 
 	/**
 	 * Create a new type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -71,7 +71,7 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 
 	/**
 	 * Edit a type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function editTask($row=null)
@@ -86,18 +86,21 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 		{
 			$this->view->type = $row;
 		}
-		else 
+		else
 		{
 			// Incoming
 			$id = JRequest::getVar('id', array(0));
-			$id = (is_array($id)) ? $id[0] : 0;
+			if (is_array($id))
+			{
+				$id = (!empty($id)) ? $id[0] : 0;
+			}
 
 			$this->view->type = new CitationsType($this->database);
 			$this->view->type->load($id);
 		}
 
 		// Set any errors
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -108,10 +111,10 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 		// Output the HTML
 		$this->view->display();
 	}
-	
+
 	/**
 	 * Save a type
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function saveTask()
@@ -122,14 +125,14 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 		$fields = JRequest::getVar('type', array(), 'post');
 
 		$row = new CitationsType($this->database);
-		if (!$row->bind($fields)) 
+		if (!$row->bind($fields))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
 			return;
 		}
 
-		if (!$row->check()) 
+		if (!$row->check())
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -137,8 +140,8 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 		}
 
 		// Store new content
-		//if (!$row->save($type)) 
-		if (!$row->store()) 
+		//if (!$row->save($type))
+		if (!$row->store())
 		{
 			$this->addComponentMessage($row->getError(), 'error');
 			$this->editTask($row);
@@ -147,13 +150,13 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Citation(s) successfully saved')
+			JText::_('CITATION_TYPE_SAVED')
 		);
 	}
 
 	/**
 	 * Remove one or more types
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -163,13 +166,14 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 
 		// Incoming (expecting an array)
 		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		// Ensure we have an ID to work with
-		if (empty($ids)) 
+		if (empty($ids))
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('No citation selected.'),
+				JText::_('CITATION_NO_TYPE'),
 				'error'
 			);
 			return;
@@ -185,7 +189,7 @@ class CitationsControllerTypes extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('Citation(s) successfully removed')
+			JText::_('CITATION_TYPE_REMOVED')
 		);
 	}
 

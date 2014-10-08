@@ -37,10 +37,10 @@ jimport( 'joomla.plugin.plugin' );
  * Projects Links plugin
  */
 class plgProjectsLinks extends JPlugin
-{	
+{
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param      object &$subject Event observer
 	 * @param      array  $config   Optional config values
 	 * @return     void
@@ -52,26 +52,26 @@ class plgProjectsLinks extends JPlugin
 		// Load plugin parameters
 		$this->_plugin 		= JPluginHelper::getPlugin( 'projects', 'links' );
 		$this->_params 		= new JParameter($this->_plugin->params);
-		
+
 		// Load component configs
 		$this->_config 		= JComponentHelper::getParams('com_projects');
 		$this->_pubconfig 	= JComponentHelper::getParams('com_publications');
-		
+
 		// Output collectors
 		$this->_referer 	= '';
 		$this->_message 	= array();
 	}
-	
+
 	/**
 	 * Event call to determine if this plugin should return data
-	 * 
+	 *
 	 * @return     array   Plugin name and title
-	 */	
-	public function &onProjectAreas( $all = false) 
+	 */
+	public function &onProjectAreas( $all = false)
 	{
 		// Not showing side panel
 		$area = array();
-		
+
 		if ($all == true)
 		{
 			$area = array(
@@ -79,26 +79,26 @@ class plgProjectsLinks extends JPlugin
 				'title' => 'Links'
 			);
 		}
-		
-		return $area;		
+
+		return $area;
 	}
-	
+
 	/**
 	 * Event call to return count of items
-	 * 
+	 *
 	 * @param      object  $project 		Project
-	 * @param      integer &$counts 		
+	 * @param      integer &$counts
 	 * @return     array   integer
-	 */	
-	public function onProjectCount( $project, &$counts ) 
+	 */
+	public function onProjectCount( $project, &$counts )
 	{
 		// Not counting
 		return false;
 	}
-	
+
 	/**
 	 * Event call to return data for a specific project
-	 * 
+	 *
 	 * @param      object  $project 		Project
 	 * @param      string  $option 			Component name
 	 * @param      integer $authorized 		Authorization
@@ -108,73 +108,87 @@ class plgProjectsLinks extends JPlugin
 	 * @param      string  $action			Plugin task
 	 * @param      string  $areas  			Plugins to return data
 	 * @return     array   Return array of html
-	 */	
-	public function onProject ( $project, $option, $authorized, 
+	 */
+	public function onProject ( $project, $option, $authorized,
 		$uid, $msg = '', $error = '', $action = '', $areas = NULL)
 	{
-				
-		// What's the task?						
+
+		// What's the task?
 		$this->_task = $action ? $action : JRequest::getVar('action');
-		
+
 		// Get this area details
 		$this->_area = $this->onProjectAreas(true);
-		
+
 		// Load language file
 		$this->loadLanguage();
-		
+
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array( $areas )) 
+		if (is_array( $areas ))
 		{
-			if (empty($this->_area) || !in_array($this->_area['name'], $areas)) 
+			if (empty($this->_area) || !in_array($this->_area['name'], $areas))
 			{
 				return;
 			}
 		}
-		
-		$tasks = array('browser', 'parseurl', 'parsedoi', 'addcitation', 'deletecitation');
-						
+
+		$tasks = array('browser', 'select' , 'parseurl',
+			'parsedoi', 'addcitation', 'deletecitation',
+			'newcite', 'editcite', 'savecite');
+
 		// Publishing?
 		if ( in_array($this->_task, $tasks) )
 		{
 			$this->_project = $project;
-			
+
 			// Set vars
 			$this->_database 	= JFactory::getDBO();
 			$this->_option 		= $option;
 			$this->_authorized 	= $authorized;
 			$this->_uid 		= $uid;
+			$this->_msg 		= $msg;
 
-			if (!$this->_uid) 
+			if (!$this->_uid)
 			{
 				$juser = JFactory::getUser();
 				$this->_uid = $juser->get('id');
 			}
-			
-			// Actions				
-			switch ($this->_task) 
+
+			// Actions
+			switch ($this->_task)
 			{
 				case 'browser':
-				default: 			
-					$html = $this->browser(); 		
+				default:
+					$html = $this->browser();
 					break;
-					
+
 				case 'parseurl':
 					$html = $this->parseUrl();
 					break;
-					
+
 				case 'parsedoi':
 					$html = $this->parseDoi();
-					break;	
-					
+					break;
+
 				case 'addcitation':
 					$html = $this->addCitation();
 					break;
-					
+
 				case 'deletecitation':
 					$html = $this->deleteCitation();
-					break;				
+					break;
+
+				case 'select':
+				case 'newcite':
+					$html = $this->select();
+					break;
+				case 'editcite':
+					$html = $this->editcite();
+					break;
+				case 'savecite':
+					$html = $this->savecite();
+					break;
 			}
-			
+
 			$arr = array(
 				'html' 		=> $html,
 				'metadata' 	=> '',
@@ -182,155 +196,340 @@ class plgProjectsLinks extends JPlugin
 				'referer' 	=> $this->_referer
 			);
 
-			return $arr;			
-		}		
-		
+			return $arr;
+		}
+
 		// Nothing to return
 		return false;
 	}
-	
+
 	/**
 	 * Delete a citation from a publication
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function deleteCitation() 
+	public function deleteCitation()
 	{
 		// Incoming
 		$cid 		= JRequest::getInt('cid', 0);
 		$version 	= JRequest::getVar('version', 'dev');
 		$pid 		= JRequest::getInt('pid', 0);
-		
+
 		if (!$cid || !$pid)
 		{
 			$this->setError( JText::_('PLG_PROJECTS_LINKS_ERROR_CITATION_DELETE') );
 		}
-		
+
 		// Make sure this publication belongs to this project
 		$objP = new Publication( $this->_database );
 		if (!$objP->load($pid) || $objP->project_id != $this->_project->id)
 		{
 			$this->setError( JText::_('PLG_PROJECTS_LINKS_ERROR_CITATION_DELETE') );
 		}
-				
+
 		// Remove citation
 		if (!$this->getError())
 		{
-			include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
-			include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-				. DS . 'com_citations' . DS . 'tables' . DS . 'association.php' );
-			include_once( JPATH_ROOT . DS . 'components' . DS . 'com_citations' 
-				. DS . 'helpers' . DS . 'format.php' );	
-				
-			$c 		= new CitationsCitation( $this->_database );
-			$assoc 	= new CitationsAssociation($this->_database);
-			
-			// Fetch all associations
-			$aPubs = $assoc->getRecords(array('cid' => $cid));
-			
-			// Remove citation if only one association
-			if (count($aPubs) == 1)
+			// Unattach citation
+			if ($this->unattachCitation($pid, $cid ))
 			{
-				// Delete the citation
-				$c->delete($cid);
+				$this->_msg = JText::_('PLG_PROJECTS_LINKS_CITATION_DELETED');
 			}
-			
-			// Remove association
-			foreach ($aPubs as $aPub)
-			{
-				if ($aPub->oid == $pid && $aPub->tbl = 'publication')
-				{
-					$assoc->delete($aPub->id);	
-				}
-			}
-			
-			$this->_msg = JText::_('PLG_PROJECTS_LINKS_CITATION_DELETED');
 		}
-		
+
 		// Pass success or error message
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			$this->_message = array('message' => $this->getError(), 'type' => 'error');
 		}
-		elseif (isset($this->_msg) && $this->_msg) 
+		elseif (isset($this->_msg) && $this->_msg)
 		{
 			$this->_message = array('message' => $this->_msg, 'type' => 'success');
 		}
-		
+
 		// Build pub url
-		$route = $this->_project->provisioned 
+		$route = $this->_project->provisioned
 			? 'index.php?option=com_publications' . a . 'task=submit'
-			: 'index.php?option=com_projects' . a . 'alias=' . $this->_project->alias 
+			: 'index.php?option=com_projects' . a . 'alias=' . $this->_project->alias
 				. a . 'active=publications';
 		$url = JRoute::_($route . a . 'pid=' . $pid).'/?version=' . $version . '&section=citations';
 
 		$this->_referer = $url;
 		return;
 	}
-	
+
 	/**
 	 * Attach a citation to a publication
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function addCitation() 
+	public function addCitation()
 	{
 		// Incoming
 		$url 		= JRequest::getVar('citation-doi', '');
-		$vid 		= JRequest::getInt('versionid', 0);
+		$url		= $url ? $url : urldecode(JRequest::getVar('url'));
 		$version 	= JRequest::getVar('version', 'dev');
 		$pid 		= JRequest::getInt('pid', 0);
-		
+
 		if (!$url || !$pid)
 		{
 			$this->setError( JText::_('PLG_PROJECTS_LINKS_NO_DOI') );
 		}
-		
+
 		$parts 		= explode("doi:", $url);
 		$doi   		= count($parts) > 1 ? $parts[1] : $url;
 		$format		= $this->_pubconfig->get('citation_format', 'apa');
-		
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-			. DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
-		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' 
-			. DS . 'com_citations' . DS . 'tables' . DS . 'association.php' );
-		include_once( JPATH_ROOT . DS . 'components' . DS . 'com_citations' 
-			. DS . 'helpers' . DS . 'format.php' );
-				
-		$c 		= new CitationsCitation( $this->_database );
-		
-		if ($c->loadPubCitation($doi, $pid)) 
+
+		// Attach citation
+		if ($this->attachCitation($pid, $doi, $format, $this->_uid ))
 		{
-			$this->setError( JText::_('PLG_PROJECTS_LINKS_CITATION_ALREADY_ATTACHED') );
+			$this->_msg = JText::_('PLG_PROJECTS_LINKS_CITATION_SAVED');
+		}
+
+		// Pass success or error message
+		if ($this->getError())
+		{
+			$this->_message = array('message' => $this->getError(), 'type' => 'error');
+		}
+		elseif (isset($this->_msg) && $this->_msg)
+		{
+			$this->_message = array('message' => $this->_msg, 'type' => 'success');
+		}
+
+		// Build pub url
+		$route = $this->_project->provisioned
+			? 'index.php?option=com_publications' . a . 'task=submit'
+			: 'index.php?option=com_projects' . a . 'alias=' . $this->_project->alias
+				. a . 'active=publications';
+		$url = JRoute::_($route . a . 'pid=' . $pid)
+			.'/?version=' . $version . '&section=citations';
+
+		$this->_referer = $url;
+		return;
+	}
+
+	/**
+	 * Attach a citation to a publication (in non-curated flow)
+	 *
+	 * @return     string
+	 */
+	public function savecite()
+	{
+		// Incoming
+		$cite 		= JRequest::getVar('cite', array(), 'post', 'none', 2);
+		$pid  		= JRequest::getInt('pid', 0);
+		$version 	= JRequest::getVar('version', 'dev');
+
+		$new  = $cite['id'] ? false : true;
+
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'association.php' );
+
+		if (!$pid || !$cite['type'] || !$cite['title'])
+		{
+			$this->setError( JText::_('PLG_PROJECTS_PUBLICATIONS_CITATIONS_ERROR_MISSING_REQUIRED'));
 		}
 		else
-		{	
+		{
+			$citation = new CitationsCitation( $this->_database );
+			if (!$citation->bind($cite))
+			{
+				$this->setError($citation->getError());
+			}
+			else
+			{
+				$citation->created 		= $new == true ? JFactory::getDate()->toSql() : $citation->created;
+				$citation->uid			= $new == true ? $this->_uid : $citation->uid;
+				$citation->published	= 1;
+
+				if (!$citation->store(true))
+				{
+					// This really shouldn't happen.
+					$this->setError(JText::_('PLG_PROJECTS_PUBLICATIONS_CITATIONS_ERROR_SAVE'));
+				}
+			}
+			// Create association
+			if (!$this->getError() && $new == true && $citation->id)
+			{
+				$assoc 		 = new CitationsAssociation( $this->_database );
+				$assoc->oid  = $pid;
+				$assoc->tbl  = 'publication';
+				$assoc->type = 'owner';
+				$assoc->cid  = $citation->id;
+
+				// Store new content
+				if (!$assoc->store())
+				{
+					$this->setError($assoc->getError());
+				}
+			}
+
+			$this->_msg = JText::_('PLG_PROJECTS_LINKS_CITATION_SAVED');
+		}
+
+		// Pass success or error message
+		if ($this->getError())
+		{
+			$this->_message = array('message' => $this->getError(), 'type' => 'error');
+		}
+		elseif (isset($this->_msg) && $this->_msg)
+		{
+			$this->_message = array('message' => $this->_msg, 'type' => 'success');
+		}
+
+		// Build pub url
+		$route = $this->_project->provisioned
+			? 'index.php?option=com_publications' . a . 'task=submit'
+			: 'index.php?option=com_projects' . a . 'alias=' . $this->_project->alias
+				. a . 'active=publications';
+		$url = JRoute::_($route . a . 'pid=' . $pid)
+			.'/?version=' . $version . '&section=citations';
+
+		$this->_referer = $url;
+		return;
+	}
+
+	/**
+	 * Remove citation
+	 *
+	 * @return   boolean
+	 */
+	public function unattachCitation($pid = 0, $cid = 0, $returnStatus = false)
+	{
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'association.php' );
+		include_once( JPATH_ROOT . DS . 'components' . DS . 'com_citations'
+			. DS . 'helpers' . DS . 'format.php' );
+
+		if (!$cid || !$pid)
+		{
+			$this->setError( JText::_('PLG_PROJECTS_LINKS_NO_DOI') );
+
+			if ($returnStatus)
+			{
+				$out['error'] = $this->getError();
+				return $out;
+			}
+			return false;
+		}
+
+		$database = JFactory::getDBO();
+		$c 		  = new CitationsCitation( $database );
+		$assoc 	  = new CitationsAssociation($database);
+
+		// Fetch all associations
+		$aPubs = $assoc->getRecords(array('cid' => $cid));
+
+		// Remove citation if only one association
+		if (count($aPubs) == 1)
+		{
+			// Delete the citation
+			$c->delete($cid);
+		}
+
+		// Remove association
+		foreach ($aPubs as $aPub)
+		{
+			if ($aPub->oid == $pid && $aPub->tbl = 'publication')
+			{
+				$assoc->delete($aPub->id);
+			}
+		}
+
+		if ($returnStatus)
+		{
+			$out['success'] = true;
+			return $out;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Attach citation
+	 *
+	 * @return   boolean
+	 */
+	public function attachCitation($pid = 0, $doi = NULL, $format = 'apa',
+		$actor = 0, $returnStatus = false)
+	{
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'association.php' );
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'type.php' );
+		include_once( JPATH_ROOT . DS . 'components' . DS . 'com_citations'
+			. DS . 'helpers' . DS . 'format.php' );
+
+		$out = array('error' => NULL, 'success' => NULL );
+
+		if (!$doi || !$pid)
+		{
+			$this->setError( JText::_('PLG_PROJECTS_LINKS_NO_DOI') );
+
+			if ($returnStatus)
+			{
+				$out['error'] = $this->getError();
+				return $out;
+			}
+			return false;
+		}
+
+		$database = JFactory::getDBO();
+		$c 		  = new CitationsCitation( $database );
+
+		if ($c->loadPubCitation($doi, $pid))
+		{
+			$this->setError( JText::_('PLG_PROJECTS_LINKS_CITATION_ALREADY_ATTACHED') );
+
+			if ($returnStatus)
+			{
+				$out['error'] = $this->getError();
+				return $out;
+			}
+
+			return false;
+		}
+		else
+		{
 			// Get DOI preview
-			$output = $this->parseUrl($doi, true, true, $format);
+			$output = self::parseUrl($doi, true, true, $format);
 			$output = json_decode($output);
-			
+
 			if (isset($output->error) && $output->error)
 			{
 				$this->setError( $output->error );
+
+				if ($returnStatus)
+				{
+					$out['error'] = $this->getError();
+					return $out;
+				}
+
+				return false;
 			}
 			elseif (isset($output->preview) && $output->preview)
-			{								
+			{
 				// Load citation record with the same DOI if present
 				if (!$c->loadByDoi($doi))
 				{
 					$c->created 	= JFactory::getDate()->toSql();
 					$c->title   	= $doi;
-					$c->uid			= $this->_uid;
+					$c->uid			= $actor;
 					$c->affiliated 	= 1;
 				}
 				$c->formatted 		= $output->preview;
 				$c->format			= $format;
 				$c->doi				= $doi;
-				
+
 				// Try getting more metadata
 				$data = self::getDoiMetadata($doi, false, $url = '');
-				
+
 				// Save available data
 				if ($data)
 				{
@@ -342,79 +541,359 @@ class plgProjectsLinks extends JPlugin
 							$c->$column = $data->$column;
 						}
 					}
-					
+
 					// Some extra mapping hacks
 					$c->pages = $data->page;
+
+					// Get type ID
+					$ct = new CitationsType($database);
+					$types = $ct->getType();
+					$dType = isset($data->type) ? $data->type : 'article';
+
+					// Hub types don't match library types
+					// Trying to match the best we can
+					$validTypes = array();
+					foreach ($types as $type)
+					{
+						if ($type['type'] == $dType)
+						{
+							$c->type = $type['id'];
+						}
+						elseif ($type['type'] == 'article' )
+						{
+							$validTypes['journal-article'] = $type['id'];
+						}
+						elseif ($type['type'] == 'chapter')
+						{
+							$validTypes['book-chapter'] = $type['id'];
+						}
+						elseif ($type['type'] == 'inproceedings')
+						{
+							$validTypes['proceedings'] = $type['id'];
+						}
+					}
+
+					if (isset($validTypes[$dType]))
+					{
+						$c->type = $validTypes[$dType];
+					}
+					elseif (!intval($c->type))
+					{
+						// Default to article
+						$c->type = $validTypes['journal-article'];
+					}
 				}
-				
+
 				if (!$c->store())
 				{
 					$this->setError( JText::_('PLG_PROJECTS_LINKS_CITATION_ERROR_SAVE') );
+
+					if ($returnStatus)
+					{
+						$out['error'] = $this->getError();
+						return $out;
+					}
+
+					return false;
 				}
-				
+
 				// Create association
 				if ($c->id)
 				{
-					$assoc 		 = new CitationsAssociation($this->_database);
+					$assoc 		 = new CitationsAssociation($database);
 					$assoc->oid  = $pid;
 					$assoc->tbl  = 'publication';
 					$assoc->type = 'owner';
 					$assoc->cid  = $c->id;
-					
+
 					// Store new content
-					if (!$assoc->store()) 
+					if (!$assoc->store())
 					{
-						JError::raiseError(500, $assoc->getError());
-						return;
-					}							
+						$this->setError($assoc->getError());
+						if ($returnStatus)
+						{
+							$out['error'] = $this->getError();
+							return $out;
+						}
+
+						return false;
+					}
 				}
-								
-				$this->_msg = JText::_('PLG_PROJECTS_LINKS_CITATION_SAVED');								
 			}
 			else
 			{
 				$this->setError( JText::_('PLG_PROJECTS_LINKS_CITATION_COULD_NOT_LOAD') );
-			}			
-		}	
-				
-		// Pass success or error message
-		if ($this->getError()) 
-		{
-			$this->_message = array('message' => $this->getError(), 'type' => 'error');
-		}
-		elseif (isset($this->_msg) && $this->_msg) 
-		{
-			$this->_message = array('message' => $this->_msg, 'type' => 'success');
-		}
-		
-		// Build pub url
-		$route = $this->_project->provisioned 
-			? 'index.php?option=com_publications' . a . 'task=submit'
-			: 'index.php?option=com_projects' . a . 'alias=' . $this->_project->alias 
-				. a . 'active=publications';
-		$url = JRoute::_($route . a . 'pid=' . $pid).'/?version=' . $version . '&section=citations';
 
-		$this->_referer = $url;
-		return;
+				if ($returnStatus)
+				{
+					$out['error'] = $this->getError();
+					return $out;
+				}
+
+				return false;
+			}
+		}
+
+		if ($returnStatus)
+		{
+			$out['success'] = true;
+			return $out;
+		}
+
+		return true;
 	}
-		
+
 	/**
-	 * Browser for within publications
-	 * 
+	 * Browser within publications NEW
+	 *
 	 * @return     string
 	 */
-	public function browser() 
-	{		
+	public function select()
+	{
+		// Incoming
+		$props  = JRequest::getVar( 'p', '' );
+		$ajax   = JRequest::getInt( 'ajax', 0 );
+		$pid    = JRequest::getInt( 'pid', 0 );
+		$vid    = JRequest::getInt( 'vid', 0 );
+		$filter = urldecode(JRequest::getVar( 'filter', '' ));
+
+		// Parse props for curation
+		$parts   = explode('-', $props);
+		$block   = isset($parts[0]) ? $parts[0] : 'content';
+		$step    = (isset($parts[1]) && is_numeric($parts[1]) && $parts[1] > 0) ? $parts[1] : 1;
+		$element = (isset($parts[2]) && is_numeric($parts[2]) && $parts[2] > 0) ? $parts[2] : 1;
+
+		// Provisioned project?
+		$prov   = $this->_project->provisioned == 1 ? 1 : 0;
+
+		$layout = $this->_task == 'newcite' ? 'edit' : 'default';
+
+		// Output HTML
+		$view = new \Hubzero\Plugin\View(
+			array(
+				'folder'	=>'projects',
+				'element'	=>'links',
+				'name'		=>'selector',
+				'layout'	=> $layout
+			)
+		);
+
+		// Load classes
+		$objP  			= new Publication( $this->_database );
+		$view->version 	= new PublicationVersion( $this->_database );
+
+		// Load publication version
+		$view->version->load($vid);
+		if (!$view->version->id)
+		{
+			$this->setError(JText::_('PLG_PROJECTS_FILES_SELECTOR_ERROR_NO_PUBID'));
+		}
+
+		// Get publication
+		$view->publication = $objP->getPublication($view->version->publication_id,
+			$view->version->version_number, $this->_project->id);
+
+		if (!$view->publication)
+		{
+			$this->setError(JText::_('PLG_PROJECTS_FILES_SELECTOR_ERROR_NO_PUBID'));
+		}
+
+		// On error
+		if ($this->getError())
+		{
+			// Output error
+			$view = new \Hubzero\Plugin\View(
+				array(
+					'folder'	=>'projects',
+					'element'	=>'files',
+					'name'		=>'error'
+				)
+			);
+
+			$view->title  = '';
+			$view->option = $this->_option;
+			$view->setError( $this->getError() );
+			return $view->loadTemplate();
+		}
+
+		// Load master type
+		$mt   				= new PublicationMasterType( $this->_database );
+		$view->publication->_type   	= $mt->getType($view->publication->base);
+		$view->publication->_project 	= $this->_project;
+
+		// Get attachments
+		$pContent = new PublicationAttachment( $this->_database );
+		$view->publication->_attachments = $pContent->sortAttachments ( $vid );
+
+		// Get curation model
+		$view->publication->_curationModel = new PublicationsCuration($this->_database,
+		$view->publication->_type->curation);
+
+		// Make sure block exists, else use default
+		if (!$view->publication->_curationModel->setBlock( $block, $step ))
+		{
+			$block = 'content';
+			$step  = 1;
+		}
+
+		// Set pub assoc and load curation
+		$view->publication->_curationModel->setPubAssoc($view->publication);
+
+		if (!$ajax)
+		{
+			$document = JFactory::getDocument();
+			$document->addStyleSheet('plugins' . DS . 'projects' . DS . 'publications'
+				. DS . 'css' . DS . 'selector.css');
+		}
+
+		if ($this->_task == 'newcite')
+		{
+			// Incoming
+			$cid    = JRequest::getInt( 'cid', 0 );
+
+			include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+				. DS . 'com_citations' . DS . 'tables' . DS . 'type.php' );
+			include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+				. DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
+
+			// Load the object
+			$view->row = new CitationsCitation($this->_database);
+			$view->row->load($cid);
+
+			// get the citation types
+			$ct = new CitationsType($this->_database);
+			$view->types = $ct->getType();
+		}
+
+		$view->option 		= $this->_option;
+		$view->database 	= $this->_database;
+		$view->project 		= $this->_project;
+		$view->authorized 	= $this->_authorized;
+		$view->uid 			= $this->_uid;
+		$view->ajax			= $ajax;
+		$view->task			= $this->_task;
+		$view->element		= $element;
+		$view->block		= $block;
+		$view->step 		= $step;
+		$view->props		= $props;
+		$view->filter		= $filter;
+
+		// Get messages	and errors
+		$view->msg = $this->_msg;
+		if ($this->getError())
+		{
+			$view->setError( $this->getError() );
+		}
+		return $view->loadTemplate();
+	}
+
+	/**
+	 * Edit citation view
+	 *
+	 * @return     string
+	 */
+	public function editcite()
+	{
+		// Incoming
+		$cid    = JRequest::getInt( 'cid', 0 );
+		$pid    = JRequest::getInt( 'pid', 0 );
+		$vid    = JRequest::getInt( 'vid', 0 );
+
+		// Output HTML
+		$view = new \Hubzero\Plugin\View(
+			array(
+				'folder'	=>'projects',
+				'element'	=>'links',
+				'name'		=>'selector',
+				'layout'	=>'edit'
+			)
+		);
+
+		// Load classes
+		$objP  			= new Publication( $this->_database );
+		$view->version 	= new PublicationVersion( $this->_database );
+
+		// Load publication version
+		$view->version->load($vid);
+		if (!$view->version->id)
+		{
+			$this->setError(JText::_('PLG_PROJECTS_LINKS_SELECTOR_ERROR_NO_PUBID'));
+		}
+
+		// Get publication
+		$view->publication = $objP->getPublication($view->version->publication_id,
+			$view->version->version_number, $this->_project->id);
+
+		if (!$view->publication)
+		{
+			$this->setError(JText::_('PLG_PROJECTS_LINKS_SELECTOR_ERROR_NO_PUBID'));
+		}
+
+		// On error
+		if ($this->getError())
+		{
+			// Output error
+			$view = new \Hubzero\Plugin\View(
+				array(
+					'folder'	=>'projects',
+					'element'	=>'files',
+					'name'		=>'error'
+				)
+			);
+
+			$view->title  = '';
+			$view->option = $this->_option;
+			$view->setError( $this->getError() );
+			return $view->loadTemplate();
+		}
+
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'type.php' );
+		include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'
+			. DS . 'com_citations' . DS . 'tables' . DS . 'citation.php' );
+
+		// Load the object
+		$view->row = new CitationsCitation($this->_database);
+		$view->row->load($cid);
+
+		// get the citation types
+		$ct = new CitationsType($this->_database);
+		$view->types = $ct->getType();
+
+		$view->option 		= $this->_option;
+		$view->database 	= $this->_database;
+		$view->project 		= $this->_project;
+		$view->authorized 	= $this->_authorized;
+		$view->uid 			= $this->_uid;
+		$view->task			= $this->_task;
+		$view->ajax			= JRequest::getInt( 'ajax', 0 );
+
+		// Get messages	and errors
+		$view->msg = $this->_msg;
+		if ($this->getError())
+		{
+			$view->setError( $this->getError() );
+		}
+		return $view->loadTemplate();
+	}
+
+	/**
+	 * Browser for within publications
+	 *
+	 * @return     string
+	 */
+	public function browser()
+	{
 		// Incoming
 		$ajax 		= JRequest::getInt('ajax', 0);
 		$primary 	= JRequest::getInt('primary', 1);
 		$versionid  = JRequest::getInt('versionid', 0);
-										
-		if (!$ajax) 
+
+		if (!$ajax)
 		{
 			return false;
 		}
-				
+
 		// Output HTML
 		$view = new \Hubzero\Plugin\View(
 			array(
@@ -423,15 +902,15 @@ class plgProjectsLinks extends JPlugin
 				'name'=>'browser'
 			)
 		);
-				
+
 		// Get current attachments
 		$pContent = new PublicationAttachment( $this->_database );
 		$role 	= $primary ? '1' : '0';
 		$other 	= $primary ? '0' : '1';
-		
-		$view->attachments = $pContent->getAttachments($versionid, 
+
+		$view->attachments = $pContent->getAttachments($versionid,
 			$filters = array('role' => $role, 'type' => 'link'));
-		
+
 		// Output HTML
 		$view->params 		= new JParameter( $this->_project->params );
 		$view->option 		= $this->_option;
@@ -439,51 +918,51 @@ class plgProjectsLinks extends JPlugin
 		$view->project 		= $this->_project;
 		$view->authorized 	= $this->_authorized;
 		$view->uid 			= $this->_uid;
-		$view->config 		= $this->_config;	
+		$view->config 		= $this->_config;
 		$view->primary		= $primary;
 		$view->versionid	= $versionid;
-		
-		// Get messages	and errors	
-		if ($this->getError()) 
+
+		// Get messages	and errors
+		if ($this->getError())
 		{
 			$view->setError( $this->getError() );
 		}
-		
+
 		return  $view->loadTemplate();
-		
+
 	}
-	
+
 	/**
 	 * Parse DOI
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function parseDoi() 
-	{		
+	public function parseDoi()
+	{
 		// Incoming
 		$url = JRequest::getVar('url', '');
-		
+
 		// Is this a DOI?
 		$parts 		= explode("doi:", $url);
 		$doi   		= count($parts) > 1 ? $url : 'doi:' . $url;
-		
+
 		// Get format from config
 		$format 	= $this->_pubconfig->get('citation_format', 'apa');
-				
+
 		return $this->parseUrl($doi, true, true, $format);
 	}
-	
+
 	/**
 	 * Parse input
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function parseUrl($url = '', $citation = true, $incPreview = true, $format = 'apa') 
-	{		
+	public function parseUrl($url = '', $citation = true, $incPreview = true, $format = 'apa')
+	{
 		// Incoming
-		$url 			= $url ? $url : JRequest::getVar('url', $url);
-		$output 		= array('rtype' => 'url');
-		
+		$url 			= $url ? $url : urldecode(JRequest::getVar('url', $url));
+		$output 		= array('rtype' => 'url', 'message' => '');
+
 		if (!$url)
 		{
 			$output['error'] = JText::_('PLG_PROJECTS_LINKS_EMPTY_URL');
@@ -493,38 +972,44 @@ class plgProjectsLinks extends JPlugin
 		// Is this a DOI?
 		$parts 		= explode("doi:", $url);
 		$doi   		= count($parts) > 1 ? $parts[1] : NULL;
-		
+
 		// Treat url starting with numbers as DOI
 		if (preg_match('#[0-9]#', substr($url, 0, 2)))
 		{
 			$doi = $url;
 		}
-		
+
 		$data = NULL;
-		
+
 		// Pull DOI metadata
 		if ($doi)
 		{
 			$output['rtype'] = 'doi';
 			$data = self::getDoiMetadata($doi, $citation, $url, $format);
-			
+
 			if ($this->getError())
 			{
 				$output['error'] = $this->getError();
 				return json_encode($output);
-			}			
+			}
 		}
-		
+
+		if (!$doi && filter_var($url, FILTER_VALIDATE_URL) == false)
+		{
+			$output['error'] = JText::_('Please enter a valid URL starting with http:// or https://');
+			return json_encode($output);
+		}
+
 		// DOI metadata
 		if ($data)
 		{
 			$output['url'] 	= $url;
-			
+
 			if ($incPreview)
 			{
 				$output['preview'] 	= $data;
 			}
-			
+
 			if ($citation == false && is_object($data))
 			{
 				$output['data'] = array();
@@ -542,10 +1027,10 @@ class plgProjectsLinks extends JPlugin
 			    CURLOPT_HEADER         => false,    // don't return headers
 			    CURLOPT_FOLLOWLOCATION => true,     // follow redirects
 			    CURLOPT_ENCODING       => "",       // handle all encodings
-			    CURLOPT_USERAGENT      => "spider", // who am i
+			    CURLOPT_USERAGENT      => "", 		// who am i
 			    CURLOPT_AUTOREFERER    => true,     // set referer on redirect
-			    CURLOPT_CONNECTTIMEOUT => 120,      // timeout on connect
-			    CURLOPT_TIMEOUT        => 120,      // timeout on response
+			    CURLOPT_CONNECTTIMEOUT => 5,      // timeout on connect
+			    CURLOPT_TIMEOUT        => 5,      // timeout on response
 			    CURLOPT_MAXREDIRS      => 10,       // stop after 10 redirects
 			);
 
@@ -560,7 +1045,7 @@ class plgProjectsLinks extends JPlugin
 
 			if (!$finalUrl || !$content)
 			{
-				$output['error'] = JText::_('PLG_PROJECTS_LINKS_INVALID_URL');
+				$output['message'] = JText::_('PLG_PROJECTS_LINKS_NO_PREVIEW');
 				return json_encode($output);
 			}
 			else
@@ -570,7 +1055,7 @@ class plgProjectsLinks extends JPlugin
 
 			if ($content)
 			{
-				require_once( JPATH_ROOT . DS . 'plugins' . DS . 'projects' . DS . 'links' 
+				require_once( JPATH_ROOT . DS . 'plugins' . DS . 'projects' . DS . 'links'
 							. DS . 'helpers' . DS . 'simple_html_dom.php');
 
 				$out = '';
@@ -580,45 +1065,46 @@ class plgProjectsLinks extends JPlugin
 
 				$title 	= $html->find('title',0)->innertext; //Title Of Page
 
-				$out .= $title ? stripslashes('<h5>' . addslashes($title) . '</h5>') 
+				$out .= $title ? stripslashes('<h5>' . addslashes($title) . '</h5>')
 						: '<h5>' . ProjectsHtml::shortenText($finalUrl, 100) . '</h5>';
 
 				//Get all images found on this page
-			   	$jpgs = $html->find('img[src$=jpg],img[src$=png]');
+				$jpgs = $html->find('img[src$=jpg],img[src$=png]');
 				$images = array();
+
 				if ($jpgs)
 				{
-					foreach ($jpgs as $jpg) 
+					foreach ($jpgs as $jpg)
 					{
 				        $src 			= $jpg->getAttribute('src');
 						$width 			= $jpg->getAttribute('width');
-						
+
 						$pathCounter 	= substr_count($src, "../");
 						$src 			= self::getImgSrc($src);
-						
+
 						// Must be larger than 25px
-						if ($width && $width <= 25)
+						if ($width && $width <= 100)
 						{
 							continue;
 						}
-						
+
 						if (!$src)
 						{
 							continue;
 						}
 
-						if (!preg_match("/https?\:\/\//i", $src)) 
+						if (!preg_match("/https?\:\/\//i", $src))
 						{
 							$src = self::getImageUrl($pathCounter, self::getLink($src, $finalUrl));
 						}
-												
+
 						// Can only show images served via https
 						//$src = str_replace('http://', 'https://', $src);
-						if (preg_match("/https/i", $src)) 
+						if (preg_match("/https/i", $src))
 						{
-							$images[] = $src;	
+							$images[] = $src;
 						}
-				   	}		   
+					}
 				}
 
 				if ($images)
@@ -626,19 +1112,39 @@ class plgProjectsLinks extends JPlugin
 					$out .= '<div id="link-image"><img src="' . $images[0] . '" alt="" /></div>';
 				}
 
-				// Set description if desc meta tag found else grab a little plain text of the page
-			    if ($html->find('meta[name="description"]',0)) 
-				{
-			        $description = $html->find('meta[name="description"]',0)->content;
-			    } 
-				else 
-				{
-			        $description = $html->find('body',0)->plaintext;
-			    }
+				$description = NULL;
 
-				$out .= $description ? stripslashes('<p>' . ProjectsHtml::shortenText(addslashes($description), 300) . '</p>')
-						: '<p>' . ProjectsHtml::shortenText($finalUrl, 300) . '</p>';
-				
+				// Get description from paragraphs
+				$pars = $html->find('body div p');
+				if ($pars)
+				{
+					foreach ($pars as $p)
+					{
+						if (strlen($p->plaintext) > 200)
+						{
+							$description = $p->plaintext;
+							break;
+						}
+					}
+				}
+
+				if (!$description)
+				{
+					// Set description if desc meta tag found else grab a little plain text of the page
+				    if ($html->find('meta[name="description"]',0))
+					{
+				        $description = $html->find('meta[name="description"]',0)->content;
+				    }
+					else
+					{
+				        $description = $html->find('body',0)->plaintext;
+				    }
+				}
+
+				$out .= $description ? stripslashes('<p>'
+						. \Hubzero\Utility\String::truncate(addslashes($description), 200) . '</p>')
+						: '<p>' . \Hubzero\Utility\String::truncate(addslashes($finalUrl), 200) . '</p>';
+
 				if ($images)
 				{
 					$out .= '<span class="clear"></span>';
@@ -658,23 +1164,23 @@ class plgProjectsLinks extends JPlugin
 				return json_encode($output);
 			}
 		}
-								
+
 		return json_encode($output);
 	}
-	
+
 	/**
 	 * Get DOI Metadata
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function getDoiMetadata($doi, $citation = false, &$url, $rawData = false, $format = 'apa') 
+	public function getDoiMetadata($doi, $citation = false, &$url, $rawData = false, $format = 'apa')
 	{
 		// Include metadata model
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_publications' 
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_publications'
 			. DS . 'models' . DS . 'metadata.php');
-		
+
 		$format = in_array($format, array('apa', 'ieee')) ? $format : 'apa';
-		
+
 		$ch 	= curl_init();
 		$url 	= 'http://dx.doi.org/doi:' . $doi;
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -685,14 +1191,14 @@ class plgProjectsLinks extends JPlugin
 		if ($citation == true)
 		{
 			curl_setopt ($ch, CURLOPT_HTTPHEADER,
-		    	array (
+			array (
 				"Accept: text/x-bibliography; style=" . $format
 		    ));
 		}
 		else
 		{
 			curl_setopt ($ch, CURLOPT_HTTPHEADER,
-		    	array (
+			array (
 				"Accept: application/x-datacite+xml;q=0.9, application/citeproc+json;q=1.0"
 			));
 		}
@@ -703,18 +1209,19 @@ class plgProjectsLinks extends JPlugin
 		curl_close($ch);
 
 		// Error
-		if ( $status != 200 ) 
+		if ( $status != 200 )
 		{
 			$this->setError(JText::_('PLG_PROJECTS_LINKS_DOI_NOT_FOUND'));
 			return;
 		}
 
 		// Error - redirected instead of printing metadata
-		if ($contenttype == "text/html; charset=utf-8")
+		if (strpos($contenttype, 'text/html;') !== false)
 		{
+			$this->setError(JText::_('PLG_PROJECTS_LINKS_DOI_NOT_FOUND'));
 			return;
 		}
-		
+
 		// Error - redirected instead of printing metadata
 		if ($citation == true)
 		{
@@ -724,14 +1231,14 @@ class plgProjectsLinks extends JPlugin
 		// JSON
 		if ( $contenttype == "application/citeproc+json" )
 		{
-		   	if ($rawData == true)
+			if ($rawData == true)
 			{
 				return $metadata;
 			}
-					
+
 			// crossref DOI
-		   	$metadata = json_decode($metadata, true);
-			
+			$metadata = json_decode($metadata, true);
+
 			// Parse data
 			$data = self::parseDoiData($data, $metadata);
 		}
@@ -743,17 +1250,17 @@ class plgProjectsLinks extends JPlugin
 				return $metadata;
 			}
 		}
-		
+
 		return $data;
-		
+
 	}
-	
+
 	/**
 	 * Parse DOI metadata
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function parseDoiData( $data, $metadata) 
+	public function parseDoiData( $data, $metadata)
 	{
 		// Pull applicable data
 		foreach ($data as $key => $value)
@@ -764,7 +1271,7 @@ class plgProjectsLinks extends JPlugin
 				$which = isset($metadata[$key]) ? $key : $altKey;
 				$data->$key = $metadata[$which];
 			}
-		
+
 			// Parse authors
 			if ($key == 'author' && isset($metadata['author']))
 			{
@@ -773,7 +1280,7 @@ class plgProjectsLinks extends JPlugin
 				if (is_array($authors) && !empty($authors))
 				{
 					foreach ($authors as $author)
-					{							
+					{
 						if (isset($author['family']) && isset($author['given']))
 						{
 							$authString .=  $author['family'] . ', ' . $author['given'] . ', ';
@@ -783,11 +1290,11 @@ class plgProjectsLinks extends JPlugin
 							$authString .=  $author['literal'] . ', ';
 						}
 					}
-					$authString = substr($authString,0,strlen($authString) - 2);	
+					$authString = substr($authString,0,strlen($authString) - 2);
 				}
 				$data->author = $authString;
 			}
-		
+
 			// Parse date
 			if ($key == 'issued')
 			{
@@ -796,64 +1303,64 @@ class plgProjectsLinks extends JPlugin
 					$data->year = $metadata['issued']['date-parts'][0][0];
 				}
 			}
-		
+
 			// More custom parsing
 			if (isset($metadata['container-title']))
 			{
 				$data->journal = $metadata['container-title'];
 			}
 		}
-		
+
 		return $data;
 	}
-	
+
 	/**
 	 * Parse image source
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function getImgSrc($imgSrc) 
+	public function getImgSrc($imgSrc)
 	{
 		$imgSrc = str_replace("../", "", $imgSrc);
 		$imgSrc = str_replace("./", "", $imgSrc);
 		$imgSrc = str_replace(" ", "%20", $imgSrc);
-		
+
 		return $imgSrc;
 	}
-	
+
 	/**
 	 * Get image url
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function getImageUrl($pathCounter, $url) 
+	public function getImageUrl($pathCounter, $url)
 	{
 		$src = "";
-		if ($pathCounter > 0) 
+		if ($pathCounter > 0)
 		{
 			$urlBreaker = explode('/', $url);
-			for ($j = 0; $j < $pathCounter + 1; $j++) 
+			for ($j = 0; $j < $pathCounter + 1; $j++)
 			{
 				if (isset($urlBreaker[$j]))
 				{
 					$src .= $urlBreaker[$j] . '/';
 				}
-				
+
 			}
-		} 
-		else 
+		}
+		else
 		{
 			$src = $url;
 		}
 		return $src;
 	}
-	
+
 	/**
 	 * Get link
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function getLink($imgSrc, $referer) 
+	public function getLink($imgSrc, $referer)
 	{
 		if (strpos($imgSrc, "//") === 0)
 		{
@@ -869,17 +1376,17 @@ class plgProjectsLinks extends JPlugin
 		}
 		return $imgSrc;
 	}
-	
+
 	/**
 	 * Get page
-	 * 
+	 *
 	 * @return     string
 	 */
-	public function getPage($url) 
+	public function getPage($url)
 	{
 		$cannonical = "";
 
-		if (substr_count($url, 'http://') > 1 || substr_count($url, 'https://') > 1 
+		if (substr_count($url, 'http://') > 1 || substr_count($url, 'https://') > 1
 			|| (strpos($url, 'http://') !== false && strpos($url, 'https://') !== false))
 		{
 			return $url;
@@ -888,18 +1395,18 @@ class plgProjectsLinks extends JPlugin
 		if (strpos($url, "http://") !== false)
 		{
 			$url = substr($url, 7);
-		}			
+		}
 		elseif (strpos($url, "https://") !== false)
 		{
 			$url = substr($url, 8);
 		}
 
-		for ($i = 0; $i < strlen($url); $i++) 
+		for ($i = 0; $i < strlen($url); $i++)
 		{
 			if ($url[$i] != "/")
 			{
 				$cannonical .= $url[$i];
-			}				
+			}
 			else
 			{
 				break;

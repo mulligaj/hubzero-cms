@@ -30,14 +30,15 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+$this->css();
 ?>
 <h3 class="section-header">
-	<a name="questions"></a>
 	<?php echo JText::_('PLG_RESOURCES_QUESTIONS_RECENT_QUESTIONS'); ?>
 </h3>
 <div class="section">
 	<?php foreach ($this->getErrors() as $error) { ?>
-	<p class="error"><?php echo $error; ?></p>
+		<p class="error"><?php echo $error; ?></p>
 	<?php } ?>
 	<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->resource->id . '&active=questions'); ?>" method="post" id="hubForm" class="full">
 		<fieldset>
@@ -58,12 +59,12 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<input type="hidden" name="question[created_by]" value="<?php echo $this->escape($this->juser->get('id')); ?>" />
 
 			<label for="field-anonymous">
-				<input class="option" type="checkbox" name="question[anonymous]" id="field-anonymous" value="1" /> 
+				<input class="option" type="checkbox" name="question[anonymous]" id="field-anonymous" value="1" />
 				<?php echo JText::_('COM_ANSWERS_POST_QUESTION_ANON'); ?>
 			</label>
 
 			<label>
-				<?php echo JText::_('COM_ANSWERS_TAGS'); ?>: <span class="required"><?php echo JText::_('COM_ANSWERS_REQUIRED'); ?></span><br />
+				<?php echo JText::_('COM_ANSWERS_TAGS'); ?>:<br />
 				<?php
 				JPluginHelper::importPlugin('hubzero');
 
@@ -82,16 +83,15 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<label for="field-question">
 				<?php echo JText::_('COM_ANSWERS_ASK_DETAILS'); ?>:<br />
 				<?php
-				echo JFactory::getEditor()->display('question[question]', $this->escape(stripslashes($this->row->get('question'))), '', '', 50, 10, false, 'field-question');
+				echo JFactory::getEditor()->display('question[question]', $this->escape($this->row->get('question')), '', '', 50, 10, false, 'field-question');
 				?>
-				<span class="hint"><a class="popup" href="<?php echo JRoute::_('index.php?option=com_wiki&scope=&pagename=Help:WikiFormatting'); ?>">Wiki formatting</a> is allowed.</span>
 			</label>
 
 			</label>
 		<?php if ($this->banking) { ?>
 			<label for="field-reward">
 				<?php echo JText::_('COM_ANSWERS_ASSIGN_REWARD'); ?>:<br />
-				<input type="text" name="question[reward]" id="field-reward" value="" size="5" <?php if ((int) $this->funds <= 0) { echo 'disabled="disabled" '; } ?>/> 
+				<input type="text" name="question[reward]" id="field-reward" value="" size="5" <?php if ((int) $this->funds <= 0) { echo 'disabled="disabled" '; } ?>/>
 				<?php echo JText::_('COM_ANSWERS_YOU_HAVE'); ?> <strong><?php echo $this->escape($this->funds); ?></strong> <?php echo JText::_('COM_ANSWERS_POINTS_TO_SPEND'); ?>
 			</label>
 		<?php } else { ?>
@@ -99,6 +99,8 @@ defined('_JEXEC') or die( 'Restricted access' );
 		<?php } ?>
 		</fieldset>
 
-		<p class="submit"><input type="submit" value="<?php echo JText::_('COM_ANSWERS_SUBMIT'); ?>" /></p>
+		<p class="submit">
+			<input type="submit" class="btn btn-success" value="<?php echo JText::_('COM_ANSWERS_SUBMIT'); ?>" />
+		</p>
 	</form>
 </div><!-- / .section -->

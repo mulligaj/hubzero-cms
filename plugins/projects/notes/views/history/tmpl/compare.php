@@ -35,13 +35,13 @@ $orauthor = $this->or->creator('name') ? $this->or->creator('name') : JText::_('
 
 $drauthor = $this->dr->creator('name') ? $this->dr->creator('name') : JText::_('Unknown');
 ?>
-	<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
+	<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 		<h2><?php echo $this->escape($this->title); ?></h2>
 		<?php
-		if (!$this->page->isStatic()) 
+		if (!$this->page->isStatic())
 		{
 			$view = new JView(array(
-				'base_path' => $this->base_path, 
+				'base_path' => $this->base_path,
 				'name'      => 'page',
 				'layout'    => 'authors'
 			));
@@ -49,7 +49,7 @@ $drauthor = $this->dr->creator('name') ? $this->dr->creator('name') : JText::_('
 			$view->display();
 		}
 		?>
-	</div><!-- /#content-header -->
+	</header><!-- /#content-header -->
 
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
@@ -61,7 +61,7 @@ $drauthor = $this->dr->creator('name') ? $this->dr->creator('name') : JText::_('
 
 <?php
 	$view = new JView(array(
-		'base_path' => $this->base_path, 
+		'base_path' => $this->base_path,
 		'name'      => 'page',
 		'layout'    => 'submenu'
 	));
@@ -74,7 +74,7 @@ $drauthor = $this->dr->creator('name') ? $this->dr->creator('name') : JText::_('
 	$view->display();
 ?>
 
-<div class="main section">
+<section class="main section">
 	<div class="grid">
 		<div class="col span-half">
 			<dl class="diff-versions">
@@ -92,5 +92,4 @@ $drauthor = $this->dr->creator('name') ? $this->dr->creator('name') : JText::_('
 	</div><!-- / .section -->
 
 	<?php echo $this->content; ?>
-</div><!-- / .main section -->
-<div class="clear"></div>
+</section><!-- / .main section -->

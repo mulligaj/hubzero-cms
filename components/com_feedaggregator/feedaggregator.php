@@ -27,59 +27,23 @@
  * @copyright Copyright 2005-2013 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
- 
+
 // Check to ensure this file is included in Joomla!
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
-//add ACL
-if(version_compare(JVERSION, '1.6', 'lt'))
-{
-	$jacl = JFactory::getACL();
-	$jacl->addACL('com_feedaggregator', 'manage', 'users', 'super administrator');
-	$jacl->addACL('com_feedaggregator', 'manage', 'users', 'administrator');
-	$jacl->addACL('com_feedaggregator', 'manage', 'users', 'manager');
-	
-	print "Version 1.6";
-}
-
 $controllerName = JRequest::getCmd('controller', 'posts');
-$taskName = JRequest::getCmd('task', '');
-
-//import the component view?
-
-/*JSubMenuHelper::addEntry(
-		JText::_('New Posts'),
-		'index.php?option=com_feedaggregator&controller=posts&task=RetrieveNewPosts',
-		($controllerName == 'posts' && $taskName == 'RetrieveNewPosts')
-); 
-JSubMenuHelper::addEntry(
-		JText::_('Stored Posts'),
-		'index.php?option=com_feedaggregator&controller=posts',
-		($controllerName == 'posts')
-);
-JSubMenuHelper::addEntry(
-		JText::_('Mangage Feeds'),
-		'index.php?option=com_feedaggregator&controller=feeds',
-		($controllerName == 'feeds')
-);
-*/
-
-
 
 if (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))
 {
 	$controllerName = 'feeds';
 }
-// this adds the controller to the component's path
 
+// this adds the controller to the component's path
 require_once(JPATH_COMPONENT. DS . 'controllers' . DS . $controllerName . '.php');
 
 $controllerName = 'FeedaggregatorController' . ucfirst(strtolower($controllerName));
 
-//$controllerName = 'FeedaggregatorControllerFeeds';
-
 // Instantiate controller
 $controller = new $controllerName();
-
 $controller->execute();
 $controller->redirect();

@@ -32,7 +32,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $text = ($this->task == 'edit' ? JText::_('EDIT') : JText::_('NEW'));
 
-JToolBarHelper::title(JText::_('COM_MEMBERS_QUOTAS').': <small><small>[ '. $text.' ]</small></small>', 'user.png');
+JToolBarHelper::title(JText::_('COM_MEMBERS_QUOTAS').': '. $text, 'user.png');
 JToolBarHelper::apply();
 JToolBarHelper::save();
 JToolBarHelper::cancel();
@@ -51,36 +51,30 @@ JToolBarHelper::cancel();
 		submitform( pressbutton );
 	}
 
-	window.addEvent('domready', function() {
-		$$('#class_id').addEvent('change', function ( e ) {
-			e.stop();
+	jQuery(document).ready(function($){
+		$('#class_id').on('change', function (e) {
+			//e.preventDefault();
 
-			var req = new Request.JSON({
-				url: 'index.php?option=com_members&controller=quotas&task=getClassValues',
-				onSuccess: function ( data ) {
-					Object.each(data, function ( val, key ) {
-						var item = $$('#field-'+key);
-						item.set("value", val);
+			var req = $.getJSON('index.php?option=com_members&controller=quotas&task=getClassValues&class_id=' + $(this).val(), {}, function (data) {
+				$.each(data, function (key, val) {
+					var item = $('#field-'+key);
+					item.val(val);
 
-						if (e.target.options[e.target.selectedIndex].text == 'custom') {
-							item.removeProperty("readonly");
-						} else {
-							item.setProperty("readonly", true);
-						}
-					});
-				}
-			}).get({
-				'class_id' : e.target.value
+					if (e.target.options[e.target.selectedIndex].text == 'custom') {
+						item.prop("readonly", false);
+					} else {
+						item.prop("readonly", true);
+					}
+				});
 			});
 		});
 	});
 </script>
-
-<?php if ($this->getError()) : ?>
-	<p class="error"><?php echo $this->getError(); ?></p>
-<?php endif; ?>
-
 <form action="index.php" method="post" name="adminForm" id="item-form">
+	<?php if ($this->getError()) : ?>
+		<p class="error"><?php echo $this->getError(); ?></p>
+	<?php endif; ?>
+
 	<div class="col width-60 fltlft">
 		<fieldset class="adminform">
 			<legend><span><?php echo JText::_('COM_MEMBERS_QUOTA_LEGEND'); ?></span></legend>
@@ -90,41 +84,35 @@ JToolBarHelper::cancel();
 			<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 			<input type="hidden" name="task" value="save" />
 
-			<table class="admintable">
-				<tbody>
-					<?php if (!$this->row->id) : ?>
-						<tr>
-							<td class="key"><label for="field-user_id">User:</label></td>
-							<td>
-								<input type="text" name="fields[user_id]" id="field-user_id" value="" size="35" />
-								<span class="hint">Enter a username or user ID</span>
-							</td>
-						</tr>
-					<?php else : ?>
-						<input type="hidden" name="fields[user_id]" id="field-user_id" value="<?php echo $this->row->user_id; ?>" />
-					<?php endif; ?>
-					<tr>
-						<td class="key"><label for="field-alias"><?php echo JText::_('COM_MEMBERS_QUOTA_CLASS'); ?>:</label></td>
-						<td><?php echo $this->classes; ?></td>
-					</tr>
-					<tr>
-						<td class="key"><label for="field-soft_blocks"><?php echo JText::_('COM_MEMBERS_QUOTA_SOFT_BLOCKS'); ?>:</label></td>
-						<td><input <?php echo ($this->row->class_id) ? 'readonly' : ''; ?> type="text" name="fields[soft_blocks]" id="field-soft_blocks" value="<?php echo $this->escape(stripslashes($this->row->soft_blocks)); ?>" /></td>
-					</tr>
-					<tr>
-						<td class="key"><label for="field-hard_blocks"><?php echo JText::_('COM_MEMBERS_QUOTA_HARD_BLOCKS'); ?>:</label></td>
-						<td><input <?php echo ($this->row->class_id) ? 'readonly' : ''; ?> type="text" name="fields[hard_blocks]" id="field-hard_blocks" value="<?php echo $this->escape(stripslashes($this->row->hard_blocks)); ?>" /></td>
-					</tr>
-					<tr>
-						<td class="key"><label for="field-soft_files"><?php echo JText::_('COM_MEMBERS_QUOTA_SOFT_FILES'); ?>:</label></td>
-						<td><input <?php echo ($this->row->class_id) ? 'readonly' : ''; ?> type="text" name="fields[soft_files]" id="field-soft_files" value="<?php echo $this->escape(stripslashes($this->row->soft_files)); ?>" /></td>
-					</tr>
-					<tr>
-						<td class="key"><label for="field-hard_files"><?php echo JText::_('COM_MEMBERS_QUOTA_HARD_FILES'); ?>:</label></td>
-						<td><input <?php echo ($this->row->class_id) ? 'readonly' : ''; ?> type="text" name="fields[hard_files]" id="field-hard_files" value="<?php echo $this->escape(stripslashes($this->row->hard_files)); ?>" /></td>
-					</tr>
-				</tbody>
-			</table>
+			<?php if (!$this->row->id) : ?>
+				<div class="input-wrap" data-hint="Enter a username or user ID">
+					<label for="field-user_id">User:</label>
+					<input type="text" name="fields[user_id]" id="field-user_id" value="" />
+					<span class="hint">Enter a username or user ID</span>
+				</div>
+			<?php else : ?>
+				<input type="hidden" name="fields[user_id]" id="field-user_id" value="<?php echo $this->row->user_id; ?>" />
+			<?php endif; ?>
+			<div class="input-wrap">
+				<label for="class_id"><?php echo JText::_('COM_MEMBERS_QUOTA_CLASS'); ?>:</label>
+				<?php echo $this->classes; ?>
+			</div>
+			<div class="input-wrap">
+				<label for="field-soft_blocks"><?php echo JText::_('COM_MEMBERS_QUOTA_SOFT_BLOCKS'); ?>:</label>
+				<input <?php echo ($this->row->class_id) ? 'readonly' : ''; ?> type="text" name="fields[soft_blocks]" id="field-soft_blocks" value="<?php echo $this->escape(stripslashes($this->row->soft_blocks)); ?>" />
+			</div>
+			<div class="input-wrap">
+				<label for="field-hard_blocks"><?php echo JText::_('COM_MEMBERS_QUOTA_HARD_BLOCKS'); ?>:</label>
+				<input <?php echo ($this->row->class_id) ? 'readonly' : ''; ?> type="text" name="fields[hard_blocks]" id="field-hard_blocks" value="<?php echo $this->escape(stripslashes($this->row->hard_blocks)); ?>" />
+			</div>
+			<div class="input-wrap">
+				<label for="field-soft_files"><?php echo JText::_('COM_MEMBERS_QUOTA_SOFT_FILES'); ?>:</label>
+				<input <?php echo ($this->row->class_id) ? 'readonly' : ''; ?> type="text" name="fields[soft_files]" id="field-soft_files" value="<?php echo $this->escape(stripslashes($this->row->soft_files)); ?>" />
+			</div>
+			<div class="input-wrap">
+				<label for="field-hard_files"><?php echo JText::_('COM_MEMBERS_QUOTA_HARD_FILES'); ?>:</label>
+				<input <?php echo ($this->row->class_id) ? 'readonly' : ''; ?> type="text" name="fields[hard_files]" id="field-hard_files" value="<?php echo $this->escape(stripslashes($this->row->hard_files)); ?>" />
+			</div>
 		</fieldset>
 	</div>
 	<div class="col width-40 fltrt">
@@ -148,11 +136,11 @@ JToolBarHelper::cancel();
 			<tbody>
 				<tr>
 					<th><?php echo JText::_('COM_MEMBERS_QUOTA_SPACE'); ?></th>
-					<td><?php echo $this->du['info']['space'] / 1024; ?> blocks (<?php echo $this->du['percent']; ?>%)</td>
+					<td><?php echo (isset($this->du['info']['space']) ? $this->du['info']['space'] / 1024 : 0); ?> blocks (<?php echo $this->du['percent']; ?>%)</td>
 				</tr>
 				<tr>
 					<th><?php echo JText::_('COM_MEMBERS_QUOTA_FILES'); ?></th>
-					<td><?php echo $this->du['info']['files']; ?></td>
+					<td><?php echo (isset($this->du['info']['files']) ? $this->du['info']['files'] : 0); ?></td>
 				</tr>
 			</tbody>
 		</table>

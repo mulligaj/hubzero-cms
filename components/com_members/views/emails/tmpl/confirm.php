@@ -30,14 +30,9 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
-
-$sef = JRoute::_('index.php?option=com_register&task=confirm&confirm='. -$this->confirm);
-if (substr($sef,0,1) == '/') {
-	$sef = substr($sef,1,strlen($sef));
-}
 ?>
 This email is to confirm the email address for the <?php echo $this->sitename; ?> account: <?php echo $this->login; ?>.
 
 Click the following link to confirm your email address and activate your <?php echo $this->sitename; ?> account.
 
-<?php echo $this->baseURL . $sef; ?>
+<?php echo $this->baseURL . JRoute::_('index.php?option=' . $this->option . '&task=confirm&confirm=' . -$this->confirm); ?>

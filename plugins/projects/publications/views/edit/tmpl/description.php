@@ -27,15 +27,15 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 // Determine pane title
 $ptitle = '';
-if ($this->version == 'dev') 
+if ($this->version == 'dev')
 {
-	$ptitle .= $this->last_idx > $this->current_idx  
-			? ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_EDIT_DESCRIPTION')) 
+	$ptitle .= $this->last_idx > $this->current_idx
+			? ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_EDIT_DESCRIPTION'))
 			: ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_DESCRIBE_YOUR_PUBLICATION')) ;
 }
-else 
+else
 {
-	$ptitle .= ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PANEL_DESCRIPTION'));	
+	$ptitle .= ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_PANEL_DESCRIPTION'));
 }
 
 // Set title
@@ -44,11 +44,11 @@ $this->row->title = $this->row->title == JText::_('PLG_PROJECTS_PUBLICATIONS_PUB
 $fields = array();
 if (trim($this->customFields) != '') {
 	$fs = explode("\n", trim($this->customFields));
-	foreach ($fs as $f) 
+	foreach ($fs as $f)
 	{
 		$fields[] = explode('=', $f);
 	}
-} 
+}
 
 // Filter meta data (old resources)
 $this->row->description = preg_replace("#<nb:(.*?)>(.*?)</nb:(.*?)>#s", '', $this->row->description);
@@ -60,14 +60,14 @@ $canedit = ($this->pub->state == 1 || $this->pub->state == 0 || $this->pub->stat
 $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 
 ?>
-<form action="<?php echo $this->url; ?>" method="post" id="plg-form">	
-	<?php echo $this->project->provisioned == 1 
+<form action="<?php echo $this->url; ?>" method="post" id="plg-form">
+	<?php echo $this->project->provisioned == 1
 				? $this->helper->showPubTitleProvisioned( $this->pub, $this->route)
 				: $this->helper->showPubTitle( $this->pub, $this->route, $this->title); ?>
-		<fieldset>	
+		<fieldset>
 			<input type="hidden" name="id" value="<?php echo $this->project->id; ?>" id="projectid" />
 			<input type="hidden" name="version" value="<?php echo $this->version; ?>" />
-			<input type="hidden" name="active" value="publications" />					
+			<input type="hidden" name="active" value="publications" />
 			<input type="hidden" name="action" value="save" />
 			<input type="hidden" name="base" id="base" value="<?php echo $this->pub->base; ?>" />
 			<input type="hidden" name="section" id="section" value="<?php echo $this->active; ?>" />
@@ -79,7 +79,7 @@ $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 			<input type="hidden" name="required" id="required" value="<?php echo in_array($this->active, $this->required) ? 1 : 0; ?>" />
 			<input type="hidden" name="add_metadata" value="<?php echo ($this->typeParams->get('show_metadata', 0)) ? 1 : 0; ?>" />
 			<input type="hidden" name="provisioned" id="provisioned" value="<?php echo $this->project->provisioned == 1 ? 1 : 0; ?>" />
-			<?php if($this->project->provisioned == 1 ) { ?>
+			<?php if ($this->project->provisioned == 1 ) { ?>
 			<input type="hidden" name="task" value="submit" />
 			<?php } ?>
 		</fieldset>
@@ -89,7 +89,7 @@ $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 	// Draw status bar
 	$this->contribHelper->drawStatusBar($this, 'abstract', $this->typeParams->get('show_metadata', 0));
 
-	if ($this->move) 
+	if ($this->move)
 	{
 		$panel_number = 1;
 		while ($panel = current($this->panels)) {
@@ -105,13 +105,13 @@ $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 	  <div id="c-pane" class="columns">
 		 <div class="c-inner">
 			<?php if (!$noedit) { ?>
-			<span class="c-submit"><input type="submit" class="btn" value="<?php if($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" <?php if(count($this->checked['description']) == 0) { echo 'class="disabled"'; } ?> class="c-continue" id="c-continue" /></span>
+			<span class="c-submit"><input type="submit" class="btn" value="<?php if ($this->move) { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_AND_CONTINUE'); } else { echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE_CHANGES'); } ?>" <?php if (count($this->checked['description']) == 0) { echo 'class="disabled"'; } ?> class="c-continue" id="c-continue" /></span>
 			<?php } ?>
 			<h4><?php echo $ptitle; ?></h4>
 			<?php if ($noedit) { ?>
 				<p class="notice"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_ADVANCED_CANT_CHANGE').' <a href="'.$this->url.'/?action=newversion">'.ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_NEW_VERSION')).'</a>'; ?></p>
-			<?php } 
-			elseif($canedit) { ?>	
+			<?php }
+			elseif ($canedit) { ?>
 			<p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_DESCRIPTION_WRITE'); ?></p>
 			<?php } else { ?>
 				<p class="notice"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_TITLE_CANT_CHANGE').' <a href="'.$this->url.'/?action=newversion">'.ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_WHATS_NEXT_NEW_VERSION')).'</a>'; ?></p>
@@ -122,9 +122,9 @@ $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 						<td colspan="2">
 							<label>
 								<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_TITLE'); ?>:
-								<?php if($canedit) { ?>
-								<span class="required"><?php echo JText::_('REQUIRED'); ?></span>
+								<?php if ($canedit) { ?>
 								<span class="pub-info-pop tooltips" title="<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_TIPS_TITLE').' :: '.JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_TIPS_TITLE_ABOUT'); ?>">&nbsp;</span>
+								<span class="required"><?php echo JText::_('REQUIRED'); ?></span>
 								<input name="title" id="pub_title" maxlength="200" size="35" type="text" value="<?php echo $this->row->title; ?>" class="long pubinput" />
 								<?php } else { ?>
 									<p class="pubt"><?php echo stripslashes($this->row->title); ?></p>
@@ -135,10 +135,10 @@ $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 					<tr>
 						<td colspan="2">
 							<label>
-								<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_COMPOSE_MINI_ABSTRACT'); ?>: 
-								<?php if($canedit) { ?>
-									<span class="required"><?php echo JText::_('REQUIRED'); ?></span>
+								<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_COMPOSE_MINI_ABSTRACT'); ?>:
+								<?php if ($canedit) { ?>
 									<span class="pub-info-pop tooltips" title="<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_TIPS_ABSTRACT').' :: '.JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_TIPS_ABSTRACT_ABOUT'); ?>">&nbsp;</span>
+									<span class="required"><?php echo JText::_('REQUIRED'); ?></span>
 									<textarea name="abstract" id="pub_abstract" cols="40" rows="3" class="pubinput"><?php echo $this->row->abstract; ?></textarea>
 									<span id="counter_abstract" class="leftfloat mini"></span>
 								<?php } else { ?>
@@ -150,17 +150,17 @@ $noedit  = ($canedit || in_array($this->active, $this->mayupdate)) ? 0 : 1;
 					<tr>
 						<td colspan="2">
 							<label>
-								<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_COMPOSE_FULL_ABSTRACT'); ?>: 
-							</label>								
+								<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_COMPOSE_FULL_ABSTRACT'); ?>:
+							</label>
 							<span class="clear"></span>
-							<?php 
+							<?php
 							$model = new PublicationsModelPublication($this->row);
-							if ($noedit) 
+							if ($noedit)
 							{
 								echo $model->description('parsed');
 							}
 							else
-							{ 
+							{
 								echo \JFactory::getEditor()->display('description', $this->escape($model->description('raw')), '', '', 35, 20, false, 'description', null, null, array('class' => 'minimal no-footer'));
 							}
 							?>

@@ -103,7 +103,7 @@ class plgAuthenticationTwitter extends JPlugin
 		{
 			// User didn't authorize our app or clicked cancel
 			$app->redirect(JRoute::_('index.php?option=' . $com_user . '&view=login&return=' . $return),
-				'To log in via Twitter, you must authorize the ' . $app->getCfg('sitename') . ' app.', 
+				'To log in via Twitter, you must authorize the ' . $app->getCfg('sitename') . ' app.',
 				'error');
 			return;
 		}
@@ -208,7 +208,7 @@ class plgAuthenticationTwitter extends JPlugin
 		$twitter = new TwitterOAuth(
 			$this->params->get('app_id'),
 			$this->params->get('app_secret'),
-			$token_credentials['oauth_token'], 
+			$token_credentials['oauth_token'],
 			$token_credentials['oauth_token_secret']
 		);
 
@@ -222,7 +222,15 @@ class plgAuthenticationTwitter extends JPlugin
 			$username = (string) $account->id;
 
 			// Create the hubzero auth link
-			$hzal = \Hubzero\Auth\Link::find_or_create('authentication', 'twitter', null, $username);
+			$method = (\JComponentHelper::getParams('com_users')->get('allowUserRegistration', false)) ? 'find_or_create' : 'find';
+			$hzal = \Hubzero\Auth\Link::$method('authentication', 'twitter', null, $username);
+
+			if ($hzal === false)
+			{
+				$response->status = JAUTHENTICATE_STATUS_FAILURE;
+				$response->error_message = 'Unknown user and new user registration is not permitted.';
+				return;
+			}
 
 			// Set response variables
 			$response->auth_link = $hzal;
@@ -248,6 +256,21 @@ class plgAuthenticationTwitter extends JPlugin
 			}
 
 			$hzal->update();
+
+			// If we have a real user, drop the authenticator cookie
+			if (isset($user) && is_object($user))
+			{
+				// Set cookie with login preference info
+				$prefs                  = array();
+				$prefs['user_id']       = $user->get('id');
+				$prefs['user_img']      = str_replace('_normal', '', $account->profile_image_url_https);
+				$prefs['authenticator'] = 'twitter';
+
+				$namespace = 'authenticator';
+				$lifetime  = time() + 365*24*60*60;
+
+				\Hubzero\Utility\Cookie::bake($namespace, $lifetime, $prefs);
+			}
 		}
 		else
 		{
@@ -260,9 +283,10 @@ class plgAuthenticationTwitter extends JPlugin
 	 * Similar to onAuthenticate, except we already have a logged in user, we're just linking accounts
 	 *
 	 * @access	public
+	 * @param   array - $options
 	 * @return	void
 	 */
-	public function link()
+	public function link($options=array())
 	{
 		$app = JFactory::getApplication();
 
@@ -283,7 +307,7 @@ class plgAuthenticationTwitter extends JPlugin
 		$twitter = new TwitterOAuth(
 			$this->params->get('app_id'),
 			$this->params->get('app_secret'),
-			$token_credentials['oauth_token'], 
+			$token_credentials['oauth_token'],
 			$token_credentials['oauth_token_secret']
 		);
 
@@ -302,8 +326,8 @@ class plgAuthenticationTwitter extends JPlugin
 			if (\Hubzero\Auth\Link::getInstance($hzad->id, $username))
 			{
 				// This twitter account is already linked to another hub account
-				$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'), 
-					'This Twitter account appears to already be linked to a hub account', 
+				$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'),
+					'This Twitter account appears to already be linked to a hub account',
 					'error');
 				return;
 			}
@@ -317,8 +341,8 @@ class plgAuthenticationTwitter extends JPlugin
 		else
 		{
 			// User didn't authorize our app, or, clicked cancel
-			$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'), 
-				'To link the current account with your Twitter account, you must authorize the ' . $app->getCfg('sitename') . ' app.', 
+			$app->redirect(JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=account'),
+				'To link the current account with your Twitter account, you must authorize the ' . $app->getCfg('sitename') . ' app.',
 				'error');
 			return;
 		}

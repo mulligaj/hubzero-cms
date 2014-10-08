@@ -38,7 +38,7 @@ $filters = array(
 	'invitees' => JText::_('PLG_GROUPS_MEMBERS_INVITEES')
 );
 
-if ($this->filter == '') 
+if ($this->filter == '')
 {
 	$this->filter = 'members';
 }
@@ -46,11 +46,11 @@ if ($this->filter == '')
 $role_id   = '';
 $role_name = '';
 
-if ($this->role_filter) 
+if ($this->role_filter)
 {
-	foreach ($this->member_roles as $role) 
+	foreach ($this->member_roles as $role)
 	{
-		if ($role['id'] == $this->role_filter) 
+		if ($role['id'] == $this->role_filter)
 		{
 			$role_id   = $role['id'];
 			$role_name = $role['name'];
@@ -115,15 +115,15 @@ $option = 'com_groups';
 				<ul class="entries-menu filter-options">
 					<?php foreach ($filters as $filter => $name) { ?>
 						<?php $active = ($this->filter == $filter) ? ' active': ''; ?>
-						<?php 
+						<?php
 							if (($filter == 'pending' || $filter == 'invitees') && $this->membership_control == 0) {
 								continue;
 							}
 						?>
 						<?php if ($filter != 'pending' && $filter != 'invitees' || ($this->authorized == 'admin' || $this->authorized == 'manager')) { ?>
 								<li>
-									<a class="<?php echo $filter . $active; ?>" href="<?php echo JRoute::_('index.php?option='.$option.'&cn='.$this->group->cn.'&active=members&filter='.$filter); ?>"><?php echo $name; ?> 
-										<?php 
+									<a class="<?php echo $filter . $active; ?>" href="<?php echo JRoute::_('index.php?option='.$option.'&cn='.$this->group->cn.'&active=members&filter='.$filter); ?>"><?php echo $name; ?>
+										<?php
 											if ($filter == 'pending') {
 												echo '('.count($this->group->get('applicants')).')';
 											} elseif ($filter == 'invitees') {
@@ -135,7 +135,7 @@ $option = 'com_groups';
 										?>
 									</a>
 								</li>
-							
+
 						<?php } ?>
 					<?php } ?>
 				</ul>
@@ -150,9 +150,9 @@ $option = 'com_groups';
 
 				<table class="groups entries">
 					<caption>
-						<?php 
+						<?php
 							if ($this->role_filter) {
- 								echo $role_name;
+								echo $role_name;
 							} elseif ($this->q) {
 								echo JText::_('PLG_GROUPS_MEMBERS_SEARCH') . ': ' . $this->escape($this->q);
 							} else {
@@ -169,7 +169,7 @@ $option = 'com_groups';
 										$append = '&users[]=role&role_id='.$role_id;
 										$title = JText::sprintf('PLG_GROUPS_MEMBERS_MESSAGE_ALL_ROLE', $role_name);
 									} else {
-										switch($this->filter)
+										switch ($this->filter)
 										{
 											case 'pending':
 												$append = '&users[]=applicants';
@@ -199,7 +199,7 @@ $option = 'com_groups';
 						<?php } ?>
 					</caption>
 					<tbody>
-<?php
+						<?php
 						if ($this->groupusers) {
 							//$emailthumb = '/components/com_groups/assets/img/emailthumb.png';
 
@@ -207,7 +207,7 @@ $option = 'com_groups';
 							$juser = JFactory::getUser();
 							// Loop through the results
 							$html = '';
-							if ($this->limit == 0) 
+							if ($this->limit == 0)
 							{
 								$this->limit = 500;
 							}
@@ -216,19 +216,19 @@ $option = 'com_groups';
 								$cls = '';
 								$inviteemail = false;
 
-								if (($i+$this->start) >= count($this->groupusers)) 
+								if (($i+$this->start) >= count($this->groupusers))
 								{
 									break;
 								}
 								$guser = $this->groupusers[($i+$this->start)];
 
-								$u = \Hubzero\User\Profile::getInstance($guser);	
-								if (preg_match("/^[_\.\%0-9a-zA-Z-]+@([0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i", $guser)) 
+								$u = \Hubzero\User\Profile::getInstance($guser);
+								if (preg_match("/^[_\.\%0-9a-zA-Z-]+@([0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i", $guser))
 								{
 									$inviteemail = true;
 									$pic = rtrim(JURI::getInstance()->base(true), '/') . '/components/com_groups/assets/img/emailthumb.png';
 								}
-								else if(!is_object($u))
+								else if (!is_object($u))
 								{
 									continue;
 								}
@@ -262,7 +262,7 @@ $option = 'com_groups';
 								if (is_object($u) && $juser->get('id') == $u->get('uidNumber')) {
 									$cls .= ' me';
 								}
-?>
+						?>
 						<tr<?php echo ($cls) ? ' class="' . $cls . '"' : ''; ?>>
 							<td class="photo">
 								<img width="50" height="50" src="<?php echo $pic; ?>" alt="" />
@@ -280,7 +280,7 @@ $option = 'com_groups';
 										<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $u->get('uidNumber')); ?>">
 											<?php echo $this->escape(stripslashes($u->get('surname')) . ', ' . stripslashes($u->get('givenName'))); ?>
 										</a>
-									</span> 
+									</span>
 									<span class="status"><?php echo $status; ?></span><br />
 
 									<?php if ($u->get('organization')) { ?>
@@ -334,7 +334,7 @@ $option = 'com_groups';
 									$row = new GroupsReason($database);
 									$row->loadReason($u->get('uidNumber'), $this->group->gidNumber);
 
-									if ($row) 
+									if ($row)
 									{
 										$html .= '<span class="reason" data-title="' . JText::_('PLG_GROUPS_MEMBERS_REASON_FOR_REQUEST') . '">';
 										$html .= '<span class="reason-reason">'.stripslashes($row->reason).'</span>';
@@ -403,21 +403,21 @@ $option = 'com_groups';
 									}
 								}
 								echo $html;
-?>
+							?>
 						</tr>
-<?php
+						<?php
 							}
-						} else { 
-?>
+						} else {
+						?>
 						<tr>
 							<td><?php echo JText::_('PLG_GROUPS_MEMBERS_NO_RESULTS'); ?></td>
 						</tr>
-<?php 
-						} 
-?>
+						<?php
+						}
+						?>
 					</tbody>
 				</table>
-			<?php 
+			<?php
 				$this->pageNav->setAdditionalUrlParam('cn', $this->group->get('cn'));
 				$this->pageNav->setAdditionalUrlParam('active', 'members');
 				$this->pageNav->setAdditionalUrlParam('filter', $this->filter);
@@ -427,13 +427,12 @@ $option = 'com_groups';
 			?>
 				<div class="clearfix"></div>
 			</div><!-- / .container -->
-		</div>
-		<div class="clear"></div>
-	
-		
-		<input type="hidden" name="cn" value="<?php echo $this->group->cn; ?>" />
-		<input type="hidden" name="active" value="members" />
-		<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
-		<input type="hidden" name="filter" value="<?php echo $this->filter; ?>" />
-	</form>
+			<div class="clear"></div>
+
+			<input type="hidden" name="cn" value="<?php echo $this->group->cn; ?>" />
+			<input type="hidden" name="active" value="members" />
+			<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
+			<input type="hidden" name="filter" value="<?php echo $this->filter; ?>" />
+		</form>
+	</div><!-- / .subject -->
 </div><!--/ #group_members -->

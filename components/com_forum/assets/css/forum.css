@@ -21,10 +21,10 @@
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 		border: 1px solid #efd90a;
 		-webkit-border-radius: 0.25em;
-		-moz-border-radius: 0.25em;
-		-ms-border-radius: 0.25em;
-		-o-border-radius: 0.25em;
-		border-radius: 0.25em;
+		   -moz-border-radius: 0.25em;
+		    -ms-border-radius: 0.25em;
+		     -o-border-radius: 0.25em;
+		        border-radius: 0.25em;
 		background: #efd90a;
 		background: -webkit-gradient(linear, left top, left bottom, from(#f2ec00), to(#edcf00));
 		background: -webkit-linear-gradient(#f2ec00, #edcf00);
@@ -35,6 +35,8 @@
 		-ms-filter: "progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#f2ec00, endColorstr=#edcf00)";
 		color: #000;
 	}
+
+	/* Comments */
 	ol.comments .attachment:before {
 		content: "\f092";
 		font-family: "Fontcons";
@@ -44,58 +46,15 @@
 		content: "";
 		display: none;
 	}
-	ol.comments .comment-options a.active:before {
+	/*ol.comments .comment-options a.active:before {
 		content: "\2716";
+	}*/
+	ol.comments + .list-footer {
+		margin-top: 2em;
 	}
-	ol.comments li .edit,
-	ol.comments li .delete {
-		float: right;
-	}
-	.section h3:first-child {
+
+	.com_forum .section h3:first-child {
 		margin-top: 0;
-	}
-	/* Add comment */
-	.comment-add {
-		margin: 0 -1.61803399em -0.61803399em -1.61803399em;
-		padding: 1.61803399em;
-		border: 1px solid #ddd;
-		background-color: #f1f1f1;
-		border: none;
-		border-top: 1px solid #ddd;
-	}
-	.comment-add legend {
-		display: none;
-	}
-	.comment-add label {
-		display: block;
-	}
-	.comment-add label span {
-		display: none;
-	}
-	.comment-add .cancelreply {
-		margin-left: 2em;
-	}
-	.comment-add .submit {
-		clear: both;
-		margin: -1.5em 0 0 0;
-		padding: 0;
-		text-align: right;
-	}
-	.comment-add input, 
-	.comment-add select, 
-	.comment-add textarea {
-		margin: 0.25em 0 0.5em 0;
-		width: 100%;
-	}	
-	.comment-add .submit input,
-	.comment-add .option {
-		width: auto;
-	}
-	.comment-add .upload-label {
-		margin-bottom: 0.5em;
-	}
-	.comment-add .reply-anonymous-label {
-		width: 50%;
 	}
 
 /* Entries Table */
@@ -136,7 +95,7 @@
 	.entries caption .edit {
 		left: ;
 	}
-	
+
 	#content-header-extra .comments:before {
 		font-family: "Fontcons";
 		content: "\f086";
@@ -166,6 +125,9 @@
 	.com_forum .categories .entry-id:before {
 		content: "\f07b";
 	}
+	.com_forum .categories tbody th + td {
+		width: 70%;
+	}
 	.com_forum .categories .entry-id {
 		*zoom:expression(this.runtimeStyle['zoom']='1', this.innerHTML='<small class="entry-id-before">&#xf07b;</small>' + this.innerHTML);
 	}
@@ -181,7 +143,6 @@
 		text-align: right;
 		white-space: nowrap;
 	}
-	/* tbody */
 	.entries .topic {
 		font-weight: bold;
 		margin: 0;
@@ -189,7 +150,7 @@
 
 /* Aside */
 	/* Lists */
-	.aside .container .tags li {
+	.com_forum .aside .container .tags li {
 		background: none;
 		padding: 0 4px 0 0;
 	}
@@ -217,10 +178,92 @@
 		color: #666;
 		border-bottom: 1px dotted #999;
 	}
-
-/* Comments */
-	ol.comments + .list-footer {
+	.com_forum .pagination:after {
+		content: "";
+		display: table;
+		line-height: 0;
+		clear: right;
+	}
+	.com_forum .post-comment-title {
 		margin-top: 2em;
+	}
+
+	.aside .entry-comment {
+		display: block;
+		background: #f1f1f1;
+		background: rgba(0, 0, 0, 0.05);
+		padding: 1em;
+		position: relative;
+		border: none;
+		color: inherit;
+	}
+	.aside .entry-comment:after {
+		content: "";
+		width: 0;
+		height: 0;
+		border: 8px solid #222;
+		border-color: #222 transparent transparent transparent;
+		border-color: rgba(0, 0, 0, 0.05) transparent transparent transparent;
+		position: absolute;
+		top: 100%;
+		left: 1em;
+	}
+	.aside .entry-comment:hover {
+		background: #e9e9e9;
+		background: rgba(0, 0, 0, 0.1);
+	}
+	.aside .entry-comment:hover:after {
+		border-color: rgba(0, 0, 0, 0.1) transparent transparent transparent;
+	}
+	.aside .entry-author {
+		display: block;
+		margin: 1em 0 0 1em;
+	}
+	.aside .entry-date {
+		font-size: 0.9em;
+		display: block;
+		margin: 0 0 0 1em;
+	}
+
+	.instructions {
+		width: 30em;
+		margin: 90px auto;
+		padding: 5em 0 0 0;
+		text-align: center;
+		position: relative;
+	}
+	.instructions p {
+		font-size: 1.5em;
+		line-height: 1.8em;
+		font-weight: 300;
+		margin: 0 0 2em 0;
+	}
+	.instructions:before {
+		position: absolute;
+		top: 0px;
+		left: 50%;
+		font-size: 5em;
+		margin-left: -0.5em;
+		content: "\f086";
+		font-family: "Fontcons";
+	}
+	.instructions legend,
+	.instructions label {
+		display: none;
+	}
+	.instructions .input-wrap {
+		display: table;
+		width: 100%;
+	}
+	.instructions .input-cell {
+		display: table-cell;
+	}
+	.instructions .input-cell input[type=text] {
+		width: 100%;
+	}
+	.instructions .input-cell:last-child {
+		width: 5.75em;
+		text-align: right;
 	}
 
 /* IE 7 */

@@ -31,49 +31,32 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-jimport('joomla.plugin.plugin');
-
 /**
  * Resources Plugin class for supporting documentss
  */
-class plgResourcesSupportingDocs extends JPlugin
+class plgResourcesSupportingDocs extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
-	 * 
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var    boolean
 	 */
-	public function __construct(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @param      object $resource Current resource
 	 * @return     array
 	 */
 	public function &onResourcesAreas($model, $archive = 0)
 	{
-		if ($archive) 
+		$areas = array();
+
+		if (!$archive && $model->type->params->get('plg_' . $this->_name)
+			&& $model->access('view-all'))
 		{
-			$areas = array();
-		} 
-		else if ($model->type->params->get('plg_' . $this->_name)
-			&& $model->access('view-all')) 
-		{
-			$areas = array(
-				'supportingdocs' => JText::_('PLG_RESOURCES_SUPPORTINGDOCS')
-			);
-		} 
-		else 
-		{
-			$areas = array();
+			$areas['supportingdocs'] = JText::_('PLG_RESOURCES_SUPPORTINGDOCS');
 		}
 
 		return $areas;
@@ -81,7 +64,7 @@ class plgResourcesSupportingDocs extends JPlugin
 
 	/**
 	 * Return data on a resource view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $resource Current resource
 	 * @param      string  $option    Name of the component
 	 * @param      array   $areas     Active area(s)
@@ -97,34 +80,29 @@ class plgResourcesSupportingDocs extends JPlugin
 		);
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
 			if (!array_intersect($areas, $this->onResourcesAreas($model))
-			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model)))) 
+			 && !array_intersect($areas, array_keys($this->onResourcesAreas($model))))
 			{
 				// do nothing
 				return $arr;
 			}
 		}
 
-		\Hubzero\Document\Assets::addPluginStylesheet('resources', $this->_name);
-
 		// Instantiate a view
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'resources',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'browse'
 			)
 		);
-
-		$jconfig = JFactory::getConfig();
-
-		// Pass the view some info
 		$view->option    = $option;
 		$view->model     = $model;
 		$view->live_site = rtrim(JURI::base(), '/');
-		if ($this->getError()) 
+
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{

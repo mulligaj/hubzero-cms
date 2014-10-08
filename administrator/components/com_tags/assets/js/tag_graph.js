@@ -5,7 +5,6 @@ jQuery(function(jq)
 	var $ = jq,
 	    w = $('#graph').innerWidth(),
 	    h = 600;
-	console.log({'w': w});
 
 	var tag_editors = function(json)
 	{
@@ -257,12 +256,12 @@ jQuery(function(jq)
 					.attr("y1", function(d) { return d.source.y; })
 					.attr("x2", function(d) { return d.target.x; })
 					.attr("y2", function(d) { return d.target.y; });
-		
+
 				node
 					.attr("cx", function(d) { return d.x; })
 					.attr("cy", function(d) { return d.y; });
 
-				labels	
+				labels
 					.attr("x", function(d) { return d.x + 7; })
 					.attr("y", function(d) { return d.y + 2.5; });
 			});
@@ -271,7 +270,7 @@ jQuery(function(jq)
 
 	$('#tag-sel').submit(function(evt) {
 		evt.preventDefault();
-		var tag = $('#center-node').val().toLowerCase().replace(/[^-_a-z0-9]/g, '');
+		var tag = $('#center-node').val().toLowerCase().replace(/[^a-z0-9]/g, '');
 		if ($("input[@name=relationship]:checked").attr('id') === 'implicit')
 			center(tag);
 		else
@@ -290,7 +289,9 @@ jQuery(function(jq)
 	};
 	$(".tag-entry").autocomplete({ source: 'index.php?option=com_tags&controller=relationships&task=suggest&limit=50' });
 
-	var form_idx = $('fieldset.adminform').length, new_idx = 0;
+	var form_idx = $('fieldset.adminform').length,
+		new_idx = 0;
+
 	$('#add_group').click(function(evt) {
 		++new_idx;
 		++form_idx;

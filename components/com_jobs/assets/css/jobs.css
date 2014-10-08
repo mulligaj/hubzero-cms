@@ -434,7 +434,7 @@
 		margin-bottom: 0.5em;
 	}
 /* Shortlisting */
-	.favvit, 
+	.favvit,
 	a.favvit {
 		background: url("/components/com_jobs/assets/img/smiley-large.gif") 0 10px no-repeat; 
 		padding: 0.5em 0.5em 2em 1em; 
@@ -520,8 +520,7 @@
 		color: #ce9252;
 		border: none;
 	}
-	a.premium:before
-	{
+	a.premium:before {
 		content: "\f04e";
 		font-family: 'Fontcons';
 		margin-right: 0.2em;
@@ -548,18 +547,15 @@
 	.current  h3 {
 		color: #a35807;
 	}
-	.process_steps h3 span, 
+	.process_steps h3 span,
 	.countc {
 		background: #eef3fc;
 		border: 1px solid #cccccc;
-		-moz-border-radius-topright: 15px;
-		-moz-border-radius-bottomright: 15px;
-		-moz-border-radius-bottomleft: 15px;
-		-moz-border-radius-topleft: 15px;
-		-webkit-border-top-right-radius: 15px;
-		-webkit-border-bottom-right-radius: 15px;
-		-webkit-border-bottom-left-radius: 15px;
-		-webkit-border-top-left-radius: 15px;
+		-webkit-border-radius: 15px;
+		-moz-border-radius: 15px;
+		-ms-border-radius: 15px;
+		-o-border-radius: 15px;
+		border-radius: 15px;
 	}
 	.countc {
 		padding: 0.2em 0.5em 0.2em 0.5em;
@@ -807,14 +803,14 @@
 		font-weight: normal;
 		font-size: 80%;
 	}
-	#hubForm .explaination .joblist h3, 
+	#hubForm .explaination .joblist h3,
 	#hubForm .explaination h3 {
 		margin: 0;
-		padding: 0;		
+		padding: 0;
 		position: relative;
 		width: auto;
 	}
-	#hubForm .explaination h3  {
+	#hubForm .explaination h3 {
 		margin-top: 1em;
 		margin-bottom: 1em;
 		font-size: 130%;
@@ -823,10 +819,16 @@
 	#hubForm .explaination h4 {
 		padding: 0.5em 0 0.5em 1.5em;
 		color: #ce9252;
-		background: url("/components/com_jobs/assets/img/orangepointer.gif") 0 center no-repeat;
 		margin: 0;
 		position: relative;
 		width: auto;
+	}
+	#hubForm .explaination h4:before {
+		content: "\2192";
+		font-family: "Fontcons";
+		position: absolute;
+		top: 0.5em;
+		left: 0;
 	}
 	.com_jobs #hubForm .explaination .exp_wrap {
 		padding-left: 2em;
@@ -1041,10 +1043,10 @@
 		font-weight: bold;
 		color: #333333;
 	}
-	.additem {
+	/*.additem {
 		padding-left: 20px;
 		background: url("/components/com_jobs/assets/img/additem.gif") 0 0 no-repeat;
-	}
+	}*/
 /*---------------------------------------------------------------*/
 	.edittitle {
 		padding-left: 20px;
@@ -1135,14 +1137,14 @@
 	.editbt a {
 		background: url("/components/com_jobs/assets/img/page_white_edit.png") 0 0 no-repeat; 
 		padding-left: 16px;
-	}
-	.editbt a {
 		border: 0;
 	}
-	.questionmark  {
-		background: url("/components/com_jobs/assets/img/question.gif") 0 2px no-repeat; 
-		padding-left: 18px; 
-		margin-left: 0.1em;
+	.questionmark:before {
+		content: "\f059";
+		font-family: "Fontcons";
+		margin-right: 0.2em;
+		margin-left: 0.2em;
+		font-size: 1.2em;
 	}
 
 /* Resume Form */
@@ -1174,19 +1176,23 @@
 		width: 30%;
 	}
 
-/* Introductory screen 
-	#introduction {
-		background: #fbf8ea url("/components/com_jobs/assets/img/jobs-large.gif") 30px 25px no-repeat;
-	}*/
+/* Introductory screen */
 	#introduction:after {
 		content: "\f022";
 	}
 	.promo {
 		font-size: 85%;
 		color: #FF3300;
-		background: url("/components/com_jobs/assets/img/star.gif") left 2px no-repeat;
-		padding-left: 18px;
-		padding-right: 1em;
+		padding-left: 1.8em;
+		position: relative;
+	}
+	.promo:before {
+		content: "\2605";
+		font-family: "Fontcons";
+		position: absolute;
+		top: 0;
+		left: 0;
+		font-size: 1.2em;
 	}
 	.intronote {
 		width: 85%;
@@ -1207,7 +1213,8 @@
 		padding-right: 1em;
 		background: url("/components/com_jobs/assets/img/j_arrow_down.gif") right center no-repeat;
 	}
-	table.postings th, table.postings th a {
+	table.postings th,
+	table.postings th a {
 		color: #999;
 	}
 	table.postings th a {
@@ -1220,4 +1227,3 @@
 		color: #000;
 		border-bottom: 1px dotted #000;
 	}
-

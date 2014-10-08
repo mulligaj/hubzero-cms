@@ -30,6 +30,11 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
+
+if (!$this->no_html)
+{
+	$this->css();
+}
 ?>
 <?php if ($this->no_html) { ?>
 	<div id="report-response">
@@ -37,7 +42,7 @@ defined('_JEXEC') or die('Restricted access');
 			<p class="error"><?php echo implode('<br />', $this->getErrors()); ?></p>
 		<?php } ?>
 		<div>
-			<p><?php echo JText::_('COM_SUPPORT_YOUR_TICKET'); ?> # <span><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=ticket&id=' . $this->ticket); ?>" title="View ticket"><?php echo $this->ticket; ?></a></span></p>
+			<p><?php echo JText::_('COM_SUPPORT_YOUR_TICKET'); ?> # <span><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=ticket&id=' . $this->ticket); ?>"><?php echo $this->ticket; ?></a></span></p>
 			<p><button onclick="javascript:HUB.Modules.ReportProblems.resetForm();" title="<?php echo JText::_('COM_SUPPORT_NEW_REPORT'); ?>"><?php echo JText::_('COM_SUPPORT_NEW_REPORT'); ?></button></p>
 		</div>
 		<p>
@@ -45,9 +50,9 @@ defined('_JEXEC') or die('Restricted access');
 			<?php echo JText::_('COM_SUPPORT_TROUBLE_TICKET_TIMES'); ?>
 		</p>
 	</div>
-	<script type="text/javascript">window.top.window.<?php if (JPluginHelper::isEnabled('system', 'jquery')) { ?>HUB.Modules.ReportProblems.hideTimer();<?php } else { ?>HUB.ReportProblem.hideTimer();<?php } ?></script>
+	<script type="text/javascript">window.top.window.HUB.Modules.ReportProblems.hideTimer();</script>
 <?php } else { ?>
-	<div class="main section">
+	<section class="main section">
 		<?php if ($this->getError()) { ?>
 			<p class="error"><?php echo implode('<br />', $this->getErrors()); ?></p>
 		<?php } ?>
@@ -55,7 +60,7 @@ defined('_JEXEC') or die('Restricted access');
 			<div class="col span-half">
 				<div id="ticket-number">
 					<h2>
-						<span><?php echo JText::_('Ticket #'); ?></span><strong><?php echo $this->ticket; ?></strong>
+						<span><?php echo JText::sprintf('COM_SUPPORT_TICKET_NUMBER', ' '); ?></span><strong><?php echo $this->ticket; ?></strong>
 					</h2>
 				</div>
 			</div>
@@ -71,5 +76,5 @@ defined('_JEXEC') or die('Restricted access');
 				</div>
 			</div><!-- / .col span-half omega -->
 		</div><!-- / .grid -->
-	</div><!-- / .main section -->
+	</section><!-- / .main section -->
 <?php } ?>

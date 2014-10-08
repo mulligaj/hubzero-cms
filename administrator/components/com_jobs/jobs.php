@@ -33,70 +33,50 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 
 $option = 'com_jobs';
 
-if (version_compare(JVERSION, '1.6', 'lt'))
+if (!JFactory::getUser()->authorise('core.manage', $option))
 {
-	$jacl = JFactory::getACL();
-	$jacl->addACL($option, 'manage', 'users', 'super administrator');
-	$jacl->addACL($option, 'manage', 'users', 'administrator');
-	$jacl->addACL($option, 'manage', 'users', 'manager');
-	
-	// Authorization check
-	$user = JFactory::getUser();
-	if (!$user->authorize($option, 'manage'))
-	{
-		$app = JFactory::getApplication();
-		$app->redirect( 'index.php', JText::_('ALERTNOTAUTH') );
-	}
+	return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
 }
-else 
-{
-	if (!JFactory::getUser()->authorise('core.manage', $option)) 
-	{
-		return JError::raiseWarning(404, JText::_('JERROR_ALERTNOAUTHOR'));
-	}
-}
-
-jimport('joomla.application.component.helper');
 
 // Include scripts
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'admin.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'application.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'category.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'employer.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'job.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'prefs.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'resume.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'seeker.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'shortlist.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'stats.php');
-include_once(JPATH_COMPONENT . DS . 'tables' . DS . 'type.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'admin.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'application.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'category.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'employer.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'job.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'prefs.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'resume.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'seeker.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'shortlist.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'stats.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'type.php');
 
-include_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'jobs.php');
-include_once(JPATH_COMPONENT . DS . 'helpers' . DS . 'html.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'jobs.php');
+include_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'html.php');
 
 $controllerName = JRequest::getCmd('controller', 'jobs');
-if (!file_exists(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php'))
+if (!file_exists(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php'))
 {
 	$controllerName = 'jobs';
 }
 
 JSubMenuHelper::addEntry(
-	JText::_('Jobs'),
+	JText::_('COM_JOBS_JOBS'),
 	'index.php?option=com_jobs&controller=jobs',
 	$controllerName == 'jobs'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Categories'),
+	JText::_('COM_JOBS_CATEGORIES'),
 	'index.php?option=com_jobs&controller=categories',
 	$controllerName == 'categories'
 );
 JSubMenuHelper::addEntry(
-	JText::_('Types'),
+	JText::_('COM_JOBS_TYPES'),
 	'index.php?option=com_jobs&controller=types',
 	$controllerName == 'types'
 );
 
-require_once(JPATH_COMPONENT . DS . 'controllers' . DS . $controllerName . '.php');
+require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'JobsController' . ucfirst($controllerName);
 
 // Initiate controller

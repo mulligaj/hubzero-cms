@@ -65,15 +65,8 @@ $usertype = JText::_('Unknown');
 $submitter = JUser::getInstance($this->ticket->login);
 if ($submitter && is_object($submitter))
 {
-	if (version_compare(JVERSION, '1.6', 'lt'))
-	{
-		$usertype = $submitter->get('usertype');
-	} 
-	else
-	{
-		jimport( 'joomla.user.helper' );
-		$usertype = implode(', ', JUserHelper::getUserGroups($submitter->get('uidNumber')));
-	}
+	jimport( 'joomla.user.helper' );
+	$usertype = implode(', ', JUserHelper::getUserGroups($submitter->get('uidNumber')));
 }
 
 $comment = $this->ticket->report;
@@ -89,7 +82,7 @@ Attachments (up to 2MB each) are permitted
 Message from <?php echo rtrim($juri->base(), DS); ?>/support / Ticket #<?php echo $this->ticket->id; ?>
 <?php } ?>
 
-<?php 
+<?php
 $message  = '----------------------------'."\n";
 $message .= strtoupper(JText::_('TICKET')).': '.$this->ticket->id."\n";
 $message .= strtoupper(JText::_('TICKET_DETAILS_SUMMARY')).': '.$this->ticket->summary."\n";
@@ -363,7 +356,7 @@ Content-type: text/html;charset=utf-8";
 												<tr>
 													<td style="padding: 0 2em;">
 													<?php
-														if (!strstr($comment, '</p>') && !strstr($comment, '<pre class="wiki">')) 
+														if (!strstr($comment, '</p>') && !strstr($comment, '<pre class="wiki">'))
 														{
 															$comment = str_replace("<br />", '', $comment);
 															$comment = $this->escape($comment);

@@ -31,6 +31,8 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+include_once(JPATH_COMPONENT_SITE . DS . 'models' . DS . 'status.php');
+
 /**
  * Support controller class for ticket stats
  */
@@ -43,10 +45,6 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 	 */
 	public function displayTask()
 	{
-		// Push some styles to the template
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('components' . DS . $this->_option . DS . 'assets' . DS . 'css' . DS . $this->_name . '.css');
-
 		// Instantiate a new view
 		$this->view->title = JText::_(strtoupper($this->_name));
 
@@ -57,30 +55,11 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 
 		$this->view->sort = JRequest::getVar('sort', 'name');
 
-		// Set up some dates
-		/*$jconfig = JFactory::getConfig();
+		$jconfig = JFactory::getConfig();
 		$this->offset = $jconfig->getValue('config.offset');
 
 		$year  = JRequest::getInt('year', strftime("%Y", time()+($this->offset*60*60)));
 		$month = strftime("%m", time()+($this->offset*60*60));
-		$day   = strftime("%d", time()+($this->offset*60*60));
-		if ($day<="9"&preg_match("#(^[1-9]{1})#",$day))
-		{
-			$day = "0$day";
-		}
-		if ($month<="9"&preg_match("#(^[1-9]{1})#",$month))
-		{
-			$month = "0$month";
-		}
-
-		$startday = 0;
-		$numday = ((date("w",mktime(0,0,0,$month,$day,$year))-$startday)%7);
-		if ($numday == -1)
-		{
-			$numday = 6;
-		}
-		$week_start = mktime(0, 0, 0, $month, ($day - $numday), $year);
-		$week = strftime("%d", $week_start);
 
 		$this->view->year = $year;
 		$this->view->opened = array();
@@ -88,25 +67,14 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 
 		$st = new SupportTicket($this->database);
 
-		// Get opened ticket information
-		$this->view->opened['year'] = $st->getCountOfTicketsOpened($this->view->type, $year, '01', '01', $this->view->group);
-
-		$this->view->opened['month'] = $st->getCountOfTicketsOpened($this->view->type, $year, $month, '01', $this->view->group);
-
-		$this->view->opened['week'] = $st->getCountOfTicketsOpened($this->view->type, $year, $month, $week, $this->view->group);
-
-		// Currently open tickets
-		$this->view->opened['open'] = $st->getCountOfOpenTickets($this->view->type, false, $this->view->group);
-
-		// Currently unassigned tickets
-		$this->view->opened['unassigned'] = $st->getCountOfOpenTickets($this->view->type, true, $this->view->group);
-
-		// Get closed ticket information
-		$this->view->closed['year'] = $st->getCountOfTicketsClosed($this->view->type, $year, '01', '01', null, $this->view->group);
-
-		$this->view->closed['month'] = $st->getCountOfTicketsClosed($this->view->type, $year, $month, '01', null, $this->view->group);
-
-		$this->view->closed['week'] = $st->getCountOfTicketsClosed($this->view->type, $year, $month, $week, null, $this->view->group);
+		$sql = "SELECT DISTINCT(s.`group`), g.description
+				FROM #__support_tickets AS s
+				LEFT JOIN #__xgroups AS g ON g.cn=s.`group`
+				WHERE s.`group` !='' AND s.`group` IS NOT NULL
+				AND s.type=" . $this->database->quote($this->view->type) . "
+				ORDER BY g.description ASC";
+		$this->database->setQuery($sql);
+		$this->view->groups = $this->database->loadObjectList();
 
 		// Users
 		$this->view->users = null;
@@ -115,193 +83,46 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 		{
 			$query = "SELECT a.username, a.name, a.id"
 				. "\n FROM #__users AS a, #__xgroups AS g, #__xgroups_members AS gm"
-				. "\n WHERE g.cn='".$this->view->group."' AND g.gidNumber=gm.gidNumber AND gm.uidNumber=a.id"
+				. "\n WHERE g.cn=" . $this->database->quote($this->view->group) . " AND g.gidNumber=gm.gidNumber AND gm.uidNumber=a.id"
 				. "\n ORDER BY a.name";
 		}
 		else
 		{
-			$query = "SELECT a.username, a.name, a.id"
-				. "\n FROM #__users AS a"
-				. "\n INNER JOIN #__core_acl_aro AS aro ON aro.value = a.id"	// map user to aro
-				. "\n INNER JOIN #__core_acl_groups_aro_map AS gm ON gm.aro_id = aro.id"	// map aro to group
-				. "\n INNER JOIN #__core_acl_aro_groups AS g ON g.id = gm.group_id"
-				. "\n WHERE a.block = '0' AND g.id=25"
-				. "\n ORDER BY a.name";
-		}
-
-		$this->database->setQuery($query);
-		$users = $this->database->loadObjectList();
-		if ($users)
-		{
-			$u = array();
-			$p = array();
-			$g = array();
-			foreach ($users as $user)
-			{
-				$user->closed = array();
-
-				// Get closed ticket information
-				$user->closed['year'] = $st->getCountOfTicketsClosed($this->view->type, $year, '01', '01', $user->username, $this->view->group);
-
-				$user->closed['month'] = $st->getCountOfTicketsClosed($this->view->type, $year, $month, '01', $user->username, $this->view->group);
-
-				$user->closed['week'] = $st->getCountOfTicketsClosed($this->view->type, $year, $month, $week, $user->username, $this->view->group);
-
-				$p[$user->id] = $user;
-				switch ($this->view->sort)
-				{
-					case 'year':
-						$u[$user->id] = $user->closed['year'];
-					break;
-					case 'month':
-						$u[$user->id] = $user->closed['month'];
-					break;
-					case 'week':
-						$u[$user->id] = $user->closed['week'];
-					break;
-					case 'name':
-					default:
-						$u[$user->id] = $user->name;
-					break;
-				}
-			}
-			if ($this->view->sort != 'name')
-			{
-				arsort($u);
-			}
-			else
-			{
-				asort($u);
-			}
-			foreach ($u as $k => $v)
-			{
-				$g[] = $p[$k];
-			}
-
-			$this->view->users = $g;
-		}
-
-		// Get avgerage lifetime
-		$this->view->lifetime = $st->getAverageLifeOfTicket($this->view->type, $year, $this->view->group);
-
-		// Tickets over time
-		$this->view->closedmonths = array();
-		for ($i = 1; $i <= 12; $i++)
-		{
-			$this->view->closedmonths[$i] = $st->getCountOfTicketsClosedInMonth(
-				$this->view->type,
-				$year,
-				sprintf("%02d",$i),
-				$this->view->group
-			);
-		}
-
-		$this->view->openedmonths = array();
-		for ($i = 1; $i <= 12; $i++)
-		{
-			$this->view->openedmonths[$i] = $st->getCountOfTicketsOpenedInMonth(
-				$this->view->type,
-				$year,
-				sprintf("%02d",$i),
-				$this->view->group
-			);
-		}*/
-		$jconfig = JFactory::getConfig();
-		$this->offset = $jconfig->getValue('config.offset');
-
-		$year  = JRequest::getInt('year', strftime("%Y", time()+($this->offset*60*60)));
-		$month = strftime("%m", time()+($this->offset*60*60));
-		/*$day   = strftime("%d", time()+($this->offset*60*60));
-		if ($day <= "9"&preg_match("#(^[1-9]{1})#",$day)) 
-		{
-			$day = "0$day";
-		}
-		if ($month <= "9"&preg_match("#(^[1-9]{1})#",$month)) 
-		{
-			$month = "0$month";
-		}
-
-		$startday = 0;
-		$numday = ((date("w",mktime(0,0,0,$month,$day,$year))-$startday)%7);
-		if ($numday == -1) 
-		{
-			$numday = 6;
-		}
-		$week_start = mktime(0, 0, 0, $month, ($day - $numday), $year);
-		$week = strftime("%d", $week_start);*/
-
-		$this->view->year = $year;
-		$this->view->opened = array();
-		$this->view->closed = array();
-
-		$st = new SupportTicket($this->database);
-
-		$sql = "SELECT DISTINCT(s.`group`), g.description 
-				FROM #__support_tickets AS s
-				LEFT JOIN #__xgroups AS g ON g.cn=s.`group`
-				WHERE s.`group` !='' AND s.`group` IS NOT NULL 
-				AND s.type=" . $this->view->type . "
-				ORDER BY g.description ASC";
-		$this->database->setQuery($sql);
-		$this->view->groups = $this->database->loadObjectList();
-
-		// Users
-		$this->view->users = null;
-
-		if ($this->view->group) 
-		{
-			$query = "SELECT a.username, a.name, a.id"
-				. "\n FROM #__users AS a, #__xgroups AS g, #__xgroups_members AS gm"
-				. "\n WHERE g.cn='".$this->view->group."' AND g.gidNumber=gm.gidNumber AND gm.uidNumber=a.id"
-				. "\n ORDER BY a.name";
-		} 
-		else 
-		{
-			/*$query = "SELECT a.username, a.name, a.id"
-				. "\n FROM #__users AS a"
-				. "\n INNER JOIN #__core_acl_aro AS aro ON aro.value = a.id"	// map user to aro
-				. "\n INNER JOIN #__core_acl_groups_aro_map AS gm ON gm.aro_id = aro.id"	// map aro to group
-				. "\n INNER JOIN #__core_acl_aro_groups AS g ON g.id = gm.group_id"
-				. "\n WHERE a.block = '0' AND g.id=25"
-				. "\n ORDER BY a.name";*/
 			$query = "SELECT DISTINCT a.username, a.name, a.id"
 				. "\n FROM #__users AS a"
-				. "\n INNER JOIN #__support_tickets AS s ON s.owner = a.username"	// map user to aro
-				. "\n WHERE a.block = '0' AND s.type=" . $this->view->type . ""
+				. "\n INNER JOIN #__support_tickets AS s ON s.owner = a.id"	// map user to aro
+				. "\n WHERE a.block = '0' AND s.type=" . $this->database->quote($this->view->type)
 				. "\n ORDER BY a.name";
 		}
 
 		$this->database->setQuery($query);
 		$users = $this->database->loadObjectList();
 
-		// Get avgerage lifetime
-		//$this->view->lifetime = $st->getAverageLifeOfTicket($this->view->type, $year, $this->view->group);
-
 		// First ticket
-		$sql = "SELECT YEAR(created) 
+		$sql = "SELECT YEAR(created)
 				FROM #__support_tickets
-				WHERE report!='' 
-				AND type='{$this->view->type}' ORDER BY created ASC LIMIT 1";
+				WHERE report!=''
+				AND type=" . $this->database->quote($this->view->type) . " ORDER BY created ASC LIMIT 1";
 		$this->database->setQuery($sql);
 		$first = intval($this->database->loadResult());
 
 		// Opened tickets
-		$sql = "SELECT id, created, YEAR(created) AS `year`, MONTH(created) AS `month`, status, owner 
+		$sql = "SELECT id, created, YEAR(created) AS `year`, MONTH(created) AS `month`, status, owner
 				FROM #__support_tickets
-				WHERE report!='' 
-				AND type=" . $this->view->type . " AND open=1";
-		if (!$this->view->group) 
+				WHERE report!=''
+				AND type=" . $this->database->quote($this->view->type) . " AND open=1";
+		if (!$this->view->group)
 		{
 			$sql .= " AND (`group`='' OR `group` IS NULL)";
-		} 
-		else 
+		}
+		else
 		{
-			$sql .= " AND `group`='{$this->view->group}'";
+			$sql .= " AND `group`=" . $this->database->quote($this->view->group);
 		}
 		$sql .= " ORDER BY created ASC";
 		$this->database->setQuery($sql);
 		$openTickets = $this->database->loadObjectList();
-		
+
 		$owners = array();
 
 		$open = array();
@@ -341,36 +162,18 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 		}
 
 		// Closed tickets
-		/*$sql = "SELECT c.ticket, c.created_by, c.created, YEAR(c.created) AS `year`, MONTH(c.created) AS `month`, UNIX_TIMESTAMP(t.created) AS opened, UNIX_TIMESTAMP(c.created) AS closed
-				FROM #__support_comments AS c 
-				LEFT JOIN #__support_tickets AS t ON c.ticket=t.id
-				WHERE t.report!=''
-				AND type=" . $this->view->type . " AND open=0";
-		if (!$this->view->group) 
-		{
-			$sql .= " AND (`group`='' OR `group` IS NULL)";
-		} 
-		else 
-		{
-			$sql .= " AND `group`=" . $this->database->Quote($this->view->group);
-		}
-		$sql .= " ORDER BY c.created ASC";*/
 		$sql = "SELECT t.id AS ticket, t.owner AS created_by, t.closed AS created, YEAR(t.closed) AS `year`, MONTH(t.closed) AS `month`, UNIX_TIMESTAMP(t.created) AS opened, UNIX_TIMESTAMP(t.closed) AS closed
 				FROM #__support_tickets AS t
 				WHERE t.report!=''
 				AND t.type=" . $this->database->Quote($this->view->type) . " AND t.open=0";
-		if (!$this->view->group || $this->view->group == '_none_') 
+		if (!$this->view->group || $this->view->group == '_none_')
 		{
 			$sql .= " AND (t.`group`='' OR t.`group` IS NULL)";
-		} 
+		}
 		else if ($this->view->group)
 		{
 			$sql .= " AND t.`group`=" . $this->database->Quote($this->view->group);
 		}
-		/*if ($this->view->start && $end)
-		{
-			$sql .= " AND t.closed>='" . $this->view->start . "-01 00:00:00' AND t.closed<'" . $end . "-01 00:00:00'";
-		}*/
 		$sql .= " ORDER BY t.closed ASC";
 
 		$this->database->setQuery($sql);
@@ -451,7 +254,7 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 						$user->closed[$k] = array();
 					}
 
-					if ($i <= "9"&preg_match("#(^[1-9]{1})#",$i)) 
+					if ($i <= "9"&preg_match("#(^[1-9]{1})#",$i))
 					{
 						$month = "0$i";
 					}
@@ -466,7 +269,7 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 						{
 							if (intval($c->year) == intval($k) && intval($c->month) == intval($i))
 							{
-								if ($c->created_by == $user->username)
+								if ($c->created_by == $user->id)
 								{
 									$user->closed[$k][$i]++;
 									$user->total++;
@@ -475,7 +278,7 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 							}
 						}
 					}
-					
+
 					$users[$j] = $user;
 				}
 			}
@@ -486,9 +289,9 @@ class SupportControllerStats extends \Hubzero\Component\AdminController
 		foreach ($users as $k => $user)
 		{
 			$user->assigned = 0;
-			if (isset($owners[$user->username]))
+			if (isset($owners[$user->id]))
 			{
-				$user->assigned = $owners[$user->username];
+				$user->assigned = $owners[$user->id];
 			}
 
 			$key = (string) $user->total;

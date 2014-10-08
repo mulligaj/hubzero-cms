@@ -45,7 +45,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return the alias and name for this category of content
-	 * 
+	 *
 	 * @return     array
 	 */
 	public function &onCourseAreas()
@@ -62,7 +62,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Return data on a course view (this will be some form of HTML)
-	 * 
+	 *
 	 * @param      object  $course      Current course
 	 * @param      string  $option     Name of the component
 	 * @param      string  $authorized User's authorization level
@@ -94,9 +94,9 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 		$arr['metadata']['count'] = $offering->announcements(array('count' => true));
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array($areas)) 
+		if (is_array($areas))
 		{
-			if (!in_array($this_area['name'], $areas)) 
+			if (!in_array($this_area['name'], $areas))
 			{
 				return $arr;
 			}
@@ -118,7 +118,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 
 		$pathway = JFactory::getApplication()->getPathway();
 		$pathway->addItem(
-			JText::_('PLG_COURSES_' . strtoupper($this->_name)), 
+			JText::_('PLG_COURSES_' . strtoupper($this->_name)),
 			$this->offering->link() . '&active=' . $this->_name
 		);
 
@@ -142,7 +142,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Set redirect and message
-	 * 
+	 *
 	 * @param      object $url  URL to redirect to
 	 * @param      object $msg  Message to send
 	 * @return     void
@@ -165,17 +165,16 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Administrative dashboard info
-	 * 
+	 *
 	 * @param      object $course   CoursesModelCourse
 	 * @param      object $offering CoursesModelOffering
 	 * @return     string
 	 */
 	public function onCourseDashboard($course, $offering)
 	{
-		// Instantiate a vew
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'courses',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'browse',
 				'layout'  => 'dashboard'
@@ -189,45 +188,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 		$view->params   = $this->params;
 
 		// Set any errors
-		if ($this->getError()) 
-		{
-			$view->setError($this->getError());
-		}
-
-		return $view->loadTemplate();
-	}
-
-	/**
-	 * Display a list of all announcements
-	 * 
-	 * @return     string HTML
-	 */
-	private function _list()
-	{
-		// Get course members based on their status
-		// Note: this needs to happen *after* any potential actions ar performed above
-		$view = new \Hubzero\Plugin\View(
-			array(
-				'folder'  => 'courses',
-				'element' => $this->_name,
-				'name'    => 'browse'
-			)
-		);
-
-		$view->option   = $this->option;
-		$view->course   = $this->course;
-		$view->offering = $this->offering;
-		$view->params   = $this->params;
-
-		$view->filters  = array();
-		$view->filters['search'] = JRequest::getVar('q', '');
-		$view->filters['limit']  = JRequest::getInt('limit', $this->params->get('display_limit', 50));
-		$view->filters['start']  = JRequest::getInt('limitstart', 0);
-		$view->filters['start']  = ($view->filters['limit'] == 0) ? 0 : $view->filters['start'];
-
-		$view->no_html = JRequest::getInt('no_html', 0);
-
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -239,12 +200,56 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 	}
 
 	/**
-	 * Display a list of all announcements
-	 * 
-	 * @return     string HTML
+	 * Display a list of all entries
+	 *
+	 * @return  string HTML
+	 */
+	private function _list()
+	{
+		$view = new \Hubzero\Plugin\View(
+			array(
+				'folder'  => $this->_type,
+				'element' => $this->_name,
+				'name'    => 'browse'
+			)
+		);
+
+		$jconfig = JFactory::getConfig();
+
+		$view->option   = $this->option;
+		$view->course   = $this->course;
+		$view->offering = $this->offering;
+		$view->params   = $this->params;
+
+		// Get filters for the entries list
+		$view->filters  = array(
+			'search' => JRequest::getVar('q', ''),
+			'limit'  => JRequest::getInt('limit', $jconfig->getValue('config.list_limit')),
+			'start'  => JRequest::getInt('limitstart', 0)
+		);
+		$view->filters['start'] = ($view->filters['limit'] == 0 ? 0 : $view->filters['start']);
+
+		$view->no_html = JRequest::getInt('no_html', 0);
+
+		if ($this->getError())
+		{
+			foreach ($this->getErrors() as $error)
+			{
+				$view->setError($error);
+			}
+		}
+
+		return $view->loadTemplate();
+	}
+
+	/**
+	 * Display a form for editing or creating an entry
+	 *
+	 * @return  string HTML
 	 */
 	private function _edit($model=null)
 	{
+		// Permissions check
 		if (!$this->offering->access('manage', 'section'))
 		{
 			return $this->_list();
@@ -252,7 +257,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  => 'courses',
+				'folder'  => $this->_type,
 				'element' => $this->_name,
 				'name'    => 'edit'
 			)
@@ -270,7 +275,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 		}
 		$view->model = $model;
 
-		if ($this->getError()) 
+		if ($this->getError())
 		{
 			foreach ($this->getErrors() as $error)
 			{
@@ -284,11 +289,12 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Save an entry
-	 * 
-	 * @return     string HTML
+	 *
+	 * @return  string HTML
 	 */
 	private function _save()
 	{
+		// Permissions check
 		if (!$this->offering->access('manage', 'section'))
 		{
 			return $this->_list();
@@ -334,7 +340,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 		}
 
 		// Store content
-		if (!$model->store(true)) 
+		if (!$model->store(true))
 		{
 			$this->setError($model->getError());
 			if (!$no_html)
@@ -363,11 +369,12 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 
 	/**
 	 * Mark an entry as deleted
-	 * 
-	 * @return     string HTML
+	 *
+	 * @return  string HTML
 	 */
 	private function _delete()
 	{
+		// Permissions check
 		if (!$this->offering->access('manage', 'section'))
 		{
 			return $this->_list();
@@ -381,7 +388,7 @@ class plgCoursesAnnouncements extends \Hubzero\Plugin\Plugin
 		$model->set('state', 2);
 
 		// Store content
-		if (!$model->store()) 
+		if (!$model->store())
 		{
 			$this->setError($model->getError());
 		}

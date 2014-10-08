@@ -6,7 +6,7 @@ use Hubzero\Content\Migration\Base;
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Migration script for ...
+ * Migration script for resource import tables
  **/
 class Migration20140324161600ComResources extends Base
 {
@@ -64,7 +64,7 @@ class Migration20140324161600ComResources extends Base
 						  `created` datetime DEFAULT NULL,
 						  `created_by` int(11) DEFAULT NULL,
 						  PRIMARY KEY (`id`)
-						) ENGINE=MyISAM DEFAULT CHARSET=latin1;\n";
+						) ENGINE=MyISAM DEFAULT CHARSET=utf8;\n";
 		}
 
 		if ($query != '')

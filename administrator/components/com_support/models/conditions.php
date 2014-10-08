@@ -29,7 +29,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-/* 
+/*
  * Support model class for query conditions
  */
 class SupportModelConditions extends JObject
@@ -112,7 +112,7 @@ class SupportModelConditions extends JObject
 		$conditions->owner = $this->_expression(
 			array(
 				$this->_operator('=', 'is', true),
-				$this->_operator('!=', 'is', false),
+				$this->_operator('!=', 'is not', false),
 				$this->_operator('LIKE \'%$1%\'', 'contains', false),
 				$this->_operator('LIKE \'$1%\'', 'starts with', false),
 				$this->_operator('LIKE \'%$1\'', 'ends with', false),
@@ -128,7 +128,7 @@ class SupportModelConditions extends JObject
 			$this->_value('*', JText::_('(any of mine)'), true)
 		);
 		$juser = JFactory::getUser();
-		if (($xgroups = \Hubzero\User\Helper::getGroups($juser->get('id'), 'members'))) 
+		if (($xgroups = \Hubzero\User\Helper::getGroups($juser->get('id'), 'members')))
 		{
 			foreach ($xgroups as $xgroup)
 			{
@@ -195,7 +195,7 @@ class SupportModelConditions extends JObject
 				$this->_value('0', 'closed', false)
 			)
 		);
-		$conditions->status = $this->_expression(
+		/*$conditions->status = $this->_expression(
 			array(
 				$this->_operator('=', 'is', true),
 				$this->_operator('!=', 'is not', false)
@@ -205,6 +205,25 @@ class SupportModelConditions extends JObject
 				$this->_value('1', 'open', true),
 				$this->_value('2', 'waiting', false)
 			)
+		);*/
+		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'status.php');
+		$sr = new SupportTableStatus($this->database);
+		$status = $sr->find('list', array('sort' => 'open', 'sort_Dir' => 'DESC'));
+		$items = array();
+		$items[] = $this->_value(0, $this->escape('open: New'), true);
+		if (isset($status) && is_array($status))
+		{
+			foreach ($status as $anode)
+			{
+				$items[] = $this->_value($anode->id, $this->escape(($anode->open ? 'open: ' : 'closed: ') . stripslashes($anode->title)), false);
+			}
+		}
+		$conditions->status = $this->_expression(
+			array(
+				$this->_operator('=', 'is', true),
+				$this->_operator('!=', 'is not', false)
+			),
+			$items
 		);
 		$conditions->created = $this->_expression(
 			array(
@@ -236,7 +255,7 @@ class SupportModelConditions extends JObject
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'helpers' . DS . 'utilities.php');
 		$severities = SupportUtilities::getSeverities($this->config->get('severities'));
 		$items = 'text';
-		if (isset($severities) && is_array($severities)) 
+		if (isset($severities) && is_array($severities))
 		{
 			$items = array();
 			foreach ($severities as $severity)
@@ -257,14 +276,14 @@ class SupportModelConditions extends JObject
 			$items
 		);
 
-		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'resolution.php');
+		/*include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'resolution.php');
 		$sr = new SupportResolution($this->database);
 		$resolutions = $sr->getResolutions();
 		$items = 'text';
-		if (isset($resolutions) && is_array($resolutions)) 
+		if (isset($resolutions) && is_array($resolutions))
 		{
 			$items = array();
-			foreach ($resolutions as $anode) 
+			foreach ($resolutions as $anode)
 			{
 				$sel = false;
 				if ($anode->alias == 'fixed')
@@ -280,16 +299,16 @@ class SupportModelConditions extends JObject
 				$this->_operator('!=', 'is not', false)
 			),
 			$items
-		);
+		);*/
 
 		include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'category.php');
 		$sc = new SupportCategory($this->database);
 		$categories = $sc->find('list');
 		$items = 'text';
-		if (isset($categories) && is_array($categories)) 
+		if (isset($categories) && is_array($categories))
 		{
 			$items = array();
-			foreach ($categories as $anode) 
+			foreach ($categories as $anode)
 			{
 				$sel = false;
 				$items[] = $this->_value($this->escape($anode->alias), $this->escape(stripslashes($anode->title)), $sel);
@@ -363,7 +382,7 @@ class SupportModelConditions extends JObject
 	 */
 	public function escape($var)
 	{
-		if (in_array($this->_escape, array('htmlspecialchars', 'htmlentities'))) 
+		if (in_array($this->_escape, array('htmlspecialchars', 'htmlentities')))
 		{
 			return call_user_func($this->_escape, $var, ENT_COMPAT, $this->_charset);
 		}

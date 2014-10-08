@@ -56,7 +56,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 			'gid',
 			''
 		);
-		
+
 		// Ensure we have a group ID
 		if (!$this->view->filters['gid'])
 		{
@@ -72,7 +72,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		$group = new \Hubzero\User\Group();
 		$group->read($this->view->filters['gid']);
 
-		if (!$this->_authorize($group)) 
+		if (!$this->_authorize($group))
 		{
 			return;
 		}
@@ -91,13 +91,13 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		));
 		// Sorting options
 		$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sort', 
-			'filter_order', 
+			$this->_option . '.' . $this->_controller . '.sort',
+			'filter_order',
 			'name'
 		));
 		$this->view->filters['sort_Dir']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.sortdir', 
-			'filter_order_Dir', 
+			$this->_option . '.' . $this->_controller . '.sortdir',
+			'filter_order_Dir',
 			'ASC'
 		));
 		// Filters for returning results
@@ -121,7 +121,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		$this->view->total = $tbl->countMembers($this->view->filters);
 
 		$this->view->rows = $tbl->findMembers($this->view->filters);
-		
+
 		//add invite emails to list
 		if ($this->view->filters['status'] == '' || $this->view->filters['status'] == 'invitee')
 		{
@@ -140,8 +140,8 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 				$this->view->rows[$inviteemail['email']]->role      = 'inviteemail';
 			}
 		}
-		
-		
+
+
 		// Initiate paging
 		jimport('joomla.html.pagination');
 		$this->view->pageNav = new JPagination(
@@ -284,7 +284,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 
 		// Save changes
 		$this->group->update();
-		
+
 		// log
 		GroupsModelLog::log(array(
 			'gidNumber' => $this->group->get('gidNumber'),
@@ -296,85 +296,10 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->group->get('cn'),
-				JText::sprintf('User(s) added to group as %s.', $tbl)
+				JText::sprintf('COM_GROUPS_MEMBER_ADDED', $tbl)
 			);
 		}
 	}
-
-	/**
-	 * Accepts membership invite for user(s) 
-	 *
-	 * @return void
-	 */
-	/*
-	public function acceptTask()
-	{
-		// Check for request forgeries
-		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
-
-		$gid = JRequest::getVar('gid', '');
-
-		// Load the group page
-		$this->group = new \Hubzero\User\Group();
-		$this->group->read($gid);
-
-		// Set a flag for emailing any changes made
-		$users = array();
-
-		// Get all normal members (non-managers) of this group
-		$members = $this->group->get('members');
-
-		// Incoming array of users to promote
-		$mbrs = JRequest::getVar('id', array(0));
-
-		foreach ($mbrs as $mbr)
-		{
-			// Retrieve user's account info
-			$targetuser = JUser::getInstance($mbr);
-
-			// Ensure we found an account
-			if (is_object($targetuser))
-			{
-				$uid = $targetuser->get('id');
-
-				// Loop through existing members and make sure the user isn't already a member
-				if (in_array($uid, $members))
-				{
-					$this->setError(JText::sprintf('ALREADY_A_MEMBER', $mbr));
-					continue;
-				}
-
-				// Remove record of reason wanting to join group
-				//$reason = new GroupsReason($this->database);
-				//$reason->deleteReason($targetuser->get('username'), $this->group->get('cn'));
-
-				// They user is not already a member, so we can go ahead and add them
-				$users[] = $uid;
-			}
-			else
-			{
-				$this->setError(JText::_('COM_GROUPS_USER_NOTFOUND') . ' ' . $mbr);
-			}
-		}
-
-		// Remove users from applicants list
-		$this->group->remove('invitees', $users);
-
-		// Add users to members list
-		$this->group->add('members', $users);
-
-		// Save changes
-		$this->group->update();
-
-		if (!JRequest::getInt('no_html', 0))
-		{
-			$this->setRedirect(
-				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->group->get('cn'),
-				JText::sprintf('User(s) invite accepted.')
-			);
-		}
-	}
-	*/
 
 	/**
 	 * Approves requested membership for user(s)
@@ -385,7 +310,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 	{
 		// Check for request forgeries
 		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
-		
+
 		$gid = JRequest::getVar('gid', '');
 
 		// Load the group page
@@ -399,7 +324,8 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		$members = $this->group->get('members');
 
 		// Incoming array of users to promote
-		$mbrs = JRequest::getVar('id', array(0));
+		$mbrs = JRequest::getVar('id', array());
+		$mbrs = (!is_array($mbrs) ? array($mbrs) : $mbrs);
 
 		foreach ($mbrs as $mbr)
 		{
@@ -439,7 +365,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 
 		// Save changes
 		$this->group->update();
-		
+
 		// log
 		GroupsModelLog::log(array(
 			'gidNumber' => $this->group->get('gidNumber'),
@@ -451,7 +377,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->group->get('cn'),
-				JText::sprintf('User(s) membership approved.')
+				JText::sprintf('COM_GROUPS_MEMBER_APPROVED')
 			);
 		}
 	}
@@ -478,7 +404,8 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		$managers = $this->group->get('managers');
 
 		// Incoming array of users to promote
-		$mbrs = JRequest::getVar('id', array(0));
+		$mbrs = JRequest::getVar('id', array());
+		$mbrs = (!is_array($mbrs) ? array($mbrs) : $mbrs);
 
 		foreach ($mbrs as $mbr)
 		{
@@ -511,7 +438,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 
 		// Save changes
 		$this->group->update();
-		
+
 		GroupsModelLog::log(array(
 			'gidNumber' => $this->group->get('gidNumber'),
 			'action'    => 'group_members_promoted',
@@ -522,7 +449,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->group->get('cn'),
-				JText::sprintf('Member(s) promoted.')
+				JText::sprintf('COM_GROUPS_MEMBER_PROMOTED')
 			);
 		}
 	}
@@ -564,7 +491,8 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		$users = array();
 
 		// Incoming array of users to demote
-		$mbrs = JRequest::getVar('id', array(0));
+		$mbrs = JRequest::getVar('id', array());
+		$mbrs = (!is_array($mbrs) ? array($mbrs) : $mbrs);
 
 		foreach ($mbrs as $mbr)
 		{
@@ -598,7 +526,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 
 		// Save changes
 		$this->group->update();
-		
+
 		// log
 		GroupsModelLog::log(array(
 			'gidNumber' => $this->group->get('gidNumber'),
@@ -610,7 +538,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->group->get('cn'),
-				JText::sprintf('Member(s) demoted.')
+				JText::sprintf('COM_GROUPS_MEMBER_DEMOTED')
 			);
 		}
 	}
@@ -642,7 +570,8 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		$users_man = array();
 
 		// Incoming array of users to demote
-		$mbrs = JRequest::getVar('id', array(0));
+		$mbrs = JRequest::getVar('id', array());
+		$mbrs = (!is_array($mbrs) ? array($mbrs) : $mbrs);
 
 		foreach ($mbrs as $mbr)
 		{
@@ -678,7 +607,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 
 		// Save changes
 		$this->group->update();
-		
+
 		// log
 		GroupsModelLog::log(array(
 			'gidNumber' => $this->group->get('gidNumber'),
@@ -696,7 +625,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->group->get('cn'),
-				JText::sprintf('Member(s) removed.')
+				JText::sprintf('COM_GROUPS_MEMBER_REMOVED')
 			);
 		}
 	}
@@ -726,7 +655,8 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		$invitees = $this->group->get('invitees');
 
 		// Incoming array of users to demote
-		$mbrs = JRequest::getVar('id', array(0));
+		$mbrs = JRequest::getVar('id', array());
+		$mbrs = (!is_array($mbrs) ? array($mbrs) : $mbrs);
 
 		foreach ($mbrs as $mbr)
 		{
@@ -739,7 +669,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 			{
 				// Retrieve user's account info
 				$targetuser = JUser::getInstance($mbr);
-				
+
 				// Ensure we found an account
 				if (is_object($targetuser))
 				{
@@ -755,10 +685,10 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 				}
 			}
 		}
-		
+
 		// Remove users from members list
 		$this->group->remove('invitees', $users);
-		
+
 		//remove any invite emails
 		if (count($useremails) > 0)
 		{
@@ -768,7 +698,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 
 		// Save changes
 		$this->group->update();
-		
+
 		// log
 		GroupsModelLog::log(array(
 			'gidNumber' => $this->group->get('gidNumber'),
@@ -780,7 +710,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->group->get('cn'),
-				JText::sprintf('Member(s) uninvited.')
+				JText::sprintf('COM_GROUPS_MEMBER_UNINVITED')
 			);
 		}
 	}
@@ -805,7 +735,8 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		$users = array();
 
 		// Incoming array of users to demote
-		$mbrs = JRequest::getVar('id', array(0));
+		$mbrs = JRequest::getVar('id', array());
+		$mbrs = (!is_array($mbrs) ? array($mbrs) : $mbrs);
 
 		foreach ($mbrs as $mbr)
 		{
@@ -833,7 +764,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 
 		// Save changes
 		$this->group->update();
-		
+
 		// log
 		GroupsModelLog::log(array(
 			'gidNumber' => $this->group->get('gidNumber'),
@@ -845,7 +776,7 @@ class GroupsControllerMembership extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->group->get('cn'),
-				JText::sprintf('Users(s) denied membership.')
+				JText::sprintf('COM_GROUPS_MEMBER_DENIED')
 			);
 		}
 	}

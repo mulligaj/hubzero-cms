@@ -38,7 +38,7 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 {
 	/**
 	 * Display password blacklist
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -77,7 +77,7 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 
 	/**
 	 * Create a new blacklisted password
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function addTask()
@@ -88,27 +88,25 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 
 	/**
 	 * Edit a blacklisted password
-	 * 
+	 *
 	 * @param      integer $id ID of word to edit
 	 * @return     void
 	 */
 	public function editTask($id=0)
 	{
+		JRequest::setVar('hidemainmenu', 1);
+
 		$this->view->setLayout('edit');
 
 		if (!$id)
 		{
 			// Incoming
-			$ids = JRequest::getVar('id', array());
+			$id = JRequest::getVar('id', array());
 
 			// Get the single ID we're working with
-			if (is_array($ids))
+			if (is_array($id))
 			{
-				$id = (!empty($ids)) ? $ids[0] : 0;
-			}
-			else
-			{
-				$id = 0;
+				$id = (!empty($id)) ? $id[0] : 0;
 			}
 		}
 
@@ -128,7 +126,7 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 
 	/**
 	 * Apply changes to a password blacklist item
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function applyTask()
@@ -139,7 +137,7 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 
 	/**
 	 * Save blacklisted password
-	 * 
+	 *
 	 * @param      integer $redirect - whether or not to redirect after save
 	 * @return     boolean Return description (if any) ...
 	 */
@@ -175,7 +173,7 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 				JText::_('PASSWORD_BLACKLIST_SAVE_SUCCESS'),
 				'message'
 			);
-		} 
+		}
 		else
 		{
 			$this->view->setLayout('edit');
@@ -186,7 +184,7 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 
 	/**
 	 * Removes [a] password blacklist item(s)
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function removeTask()
@@ -196,6 +194,7 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 
 		// Incoming
 		$ids = JRequest::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
 
 		// Do we have any IDs?
 		if (!empty($ids))
@@ -235,6 +234,8 @@ class MembersControllerPasswordBlacklist extends \Hubzero\Component\AdminControl
 	 */
 	public function cancelTask()
 	{
-		$this->_redirect = 'index.php?option=' . $this->_option . '&controller=' . $this->_controller;
+		$this->setRedirect(
+			'index.php?option=' . $this->_option . '&controller=' . $this->_controller
+		);
 	}
 }

@@ -32,16 +32,16 @@
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Support mdoel for a ticket comment
+ * Support mdoel for a ticket changelog
  */
 class SupportModelChangelog extends \Hubzero\Base\Object
 {
 	/**
 	 * \Hubzero\ItemList
-	 * 
+	 *
 	 * @var object
 	 */
-	private $_log = array();
+	private $_log = null;
 
 	/**
 	 * Log format
@@ -52,8 +52,9 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 
 	/**
 	 * Is the question open?
-	 * 
-	 * @return     boolean
+	 *
+	 * @param   string  $data
+	 * @return  boolean
 	 */
 	public function __construct($data=null)
 	{
@@ -103,7 +104,7 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 					{
 						$obj = array(
 							'role'    => 'commentor',
-							'name'    => '[none]',
+							'name'    => JText::_('COM_SUPPORT_NONE'),
 							'address' => trim($matches[1])
 						);
 					}
@@ -111,7 +112,7 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 					{
 						$obj = array(
 							'role'    => trim($matches[1]),
-							'name'    => '[none]',
+							'name'    => JText::_('COM_SUPPORT_NONE'),
 							'address' => trim($matches[2])
 						);
 					}
@@ -140,7 +141,7 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 								$obj['before'] = trim($matches[1]);
 								$obj['after'] = trim($matches[2]);
 							}
-							else 
+							else
 							{
 								$obj['name'] = trim($matches[1]);
 								$obj['address'] = trim($matches[2]);
@@ -154,7 +155,7 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 							}
 							else
 							{
-								$obj['name'] = '[none]';
+								$obj['name'] = JText::_('COM_SUPPORT_NONE');
 								$obj['address'] = trim($matches[2]);
 							}
 						}
@@ -198,11 +199,21 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 	}
 
 	/**
+	 * Get the whole log
+	 *
+	 * @return  array
+	 */
+	public function lists()
+	{
+		return $this->_log;
+	}
+
+	/**
 	 * Returns a property of the object or the default value if the property is not set.
 	 *
 	 * @param   string  $property  The name of the property.
 	 * @param   mixed   $default   The default value.
-	 * @return  mixed    The value of the property.
+	 * @return  mixed   The value of the property.
 	 */
 	public function get($property, $default = null)
 	{
@@ -218,7 +229,7 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 	 *
 	 * @param   string  $property  The name of the property.
 	 * @param   mixed   $value     The value of the property to set.
-	 * @return  mixed  Previous value of the property.
+	 * @return  mixed   Previous value of the property.
 	 */
 	public function set($property, $value = null)
 	{
@@ -228,9 +239,9 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 
 	/**
 	 * Return a formatted timestamp
-	 * 
-	 * @param      string $as What format to return
-	 * @return     boolean
+	 *
+	 * @param   string  $as What format to return
+	 * @return  boolean
 	 */
 	public function render()
 	{
@@ -247,13 +258,13 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 				$clog[] = '<ul class="' . $type . '">';
 				foreach ($log as $items)
 				{
-					if ($type == 'changes')
+					if ($type == 'changes' && $items['before'] != $items['after'])
 					{
-						$clog[] = '<li>' . JText::sprintf('%s changed from "%s" to "%s"', $items['field'], $items['before'], $items['after']) . '</li>';
+						$clog[] = '<li>' . JText::sprintf('COM_SUPPORT_CHANGELOG_BEFORE_AFTER', $items['field'], $items['before'], $items['after']) . '</li>';
 					}
 					else if ($type == 'notifications')
 					{
-						$clog[] = '<li>' . JText::_('Messaged') . ' (' . $items['role'] . ') ' . $items['name'] . ' - ' . $items['address'] . '</li>';
+						$clog[] = '<li>' . JText::sprintf('COM_SUPPORT_CHANGELOG_NOTIFIED', $items['role'], $items['name'], $items['address']) . '</li>';
 					}
 				}
 				$clog[] = '</ul>';
@@ -261,87 +272,159 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 		}
 		if (!count($clog))
 		{
-			$clog[] = '<ul class="changes"><li>' . JText::_('No changes made.') . '</li></ul>';
+			$clog[] = '<ul class="changes"><li>' . JText::_('COM_SUPPORT_CHANGELOG_NONE_MADE') . '</li></ul>';
 		}
 		return implode("\n", $clog);
 	}
 
 	/**
-	 * Get a count of or list of attachments on this model
-	 * 
-	 * @param      string  $rtrn    Data to return state in [count, list]
-	 * @param      array   $filters Filters to apply to the query
-	 * @param      boolean $clear   Clear data cache?
-	 * @return     mixed
+	 * Add an entry to the change log
+	 *
+	 * @param   string $field  Field name
+	 * @param   string $before Old value (if any)
+	 * @param   string $after  New value (if any)
+	 * @return  object
 	 */
 	public function changed($field, $before='', $after='')
 	{
-		return $this->add('changes', $field, $before, $after);
-	}
-
-	/**
-	 * Get a count of or list of attachments on this model
-	 * 
-	 * @param      string  $rtrn    Data to return state in [count, list]
-	 * @param      array   $filters Filters to apply to the query
-	 * @param      boolean $clear   Clear data cache?
-	 * @return     mixed
-	 */
-	public function cced($field, $before='', $after='')
-	{
-		return $this->add('cc', $field, $before, $after);
-	}
-
-	/**
-	 * Get a count of or list of attachments on this model
-	 * 
-	 * @param      string  $rtrn    Data to return state in [count, list]
-	 * @param      array   $filters Filters to apply to the query
-	 * @param      boolean $clear   Clear data cache?
-	 * @return     mixed
-	 */
-	public function notified($field, $before='', $after='')
-	{
-		return $this->add('notifications', $field, $before, $after);
-	}
-
-	/**
-	 * Get a count of or list of attachments on this model
-	 * 
-	 * @param      string  $rtrn    Data to return state in [count, list]
-	 * @param      array   $filters Filters to apply to the query
-	 * @param      boolean $clear   Clear data cache?
-	 * @return     mixed
-	 */
-	public function add($to, $field, $before='', $after='')
-	{
-		if (!isset($this->_log[$to]))
-		{
-			throw new InvalidArgumentException(JText::sprintf('Unknown log category of %s', (string) $to));
-		}
-
 		$obj = new stdClass();
 		$obj->field  = (string) $field;
 		$obj->before = (string) $before;
 		$obj->after  = (string) $after;
 
-		$this->_log[$to][] = $obj;
+		$this->_log['changes'][] = $obj;
 
 		return $this;
 	}
 
 	/**
-	 * Get the state of the entry as either text or numerical value
-	 * 
-	 * @param      string  $as      Format to return state in [text, number]
-	 * @param      integer $shorten Number of characters to shorten text to
-	 * @return     mixed String or Integer
+	 * Add CC info to the log
+	 *
+	 * @param   string  $val Value to log
+	 * @return  object
+	 */
+	public function cced($val)
+	{
+		$val = trim($val);
+		if (!$val)
+		{
+			return $this;
+		}
+
+		if (strstr($val, ','))
+		{
+			$val = explode(',', $val);
+			foreach ($val as $acc)
+			{
+				$acc = trim($acc);
+
+				// Is this a username or email address?
+				if (!strstr($acc, '@'))
+				{
+					// Username or user ID - load the user
+					$acc = (is_string($acc)) ? strtolower($acc) : $acc;
+					$juser = JUser::getInstance($acc);
+
+					// Did we find an account?
+					if (is_object($juser))
+					{
+						$this->_log['cc'][] = $juser->get('username');
+					}
+					else
+					{
+						// Move on - nothing else we can do here
+						continue;
+					}
+				}
+				// Make sure it's a valid e-mail address
+				else if (\Hubzero\Utility\Validate::email($acc))
+				{
+					$this->_log['cc'][] = $acc;
+				}
+			}
+		}
+		else
+		{
+			if (is_numeric($val))
+			{
+				$juser = JUser::getInstance($val);
+				if (is_object($juser))
+				{
+					$val = $juser->get('username');
+				}
+			}
+			$this->_log['cc'][] = $val;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Add an entry to the notifications list
+	 *
+	 * @param   string $role    User role
+	 * @param   string $name    User name
+	 * @param   string $address User email
+	 * @return  object
+	 */
+	public function notified($role, $name, $address)
+	{
+		$obj = new stdClass();
+		$obj->role    = (string) $role;
+		$obj->name    = (string) $name;
+		$obj->address = (string) $address;
+
+		$this->_log['notifications'][] = $obj;
+
+		return $this;
+	}
+
+	/**
+	 * Get a count of or list of attachments on this model
+	 *
+	 * @param   string $to     Category
+	 * @param   string $field  Field name
+	 * @param   string $before Old value (if any)
+	 * @param   string $after  New value (if any)
+	 * @return  object
+	 */
+	public function add($to, $field, $before='', $after='')
+	{
+		if (!isset($this->_log[$to]))
+		{
+			throw new InvalidArgumentException(JText::sprintf('COM_SUPPORT_ERROR_CHANGELOG_UNKNOWN_CATEGORY', (string) $to));
+		}
+
+		switch ($to)
+		{
+			case 'changes':
+				return $this->changed($field, $before, $after);
+			break;
+
+			case 'notifications':
+				return $this->notified($field, $before, $after);
+			break;
+
+			case 'cc':
+				return $this->cced($field);
+			break;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Remove an item form the log
+	 *
+	 * @param   string $from  Area to remove from
+	 * @param   string $field Field to remove
+	 * @return  object
 	 */
 	public function remove($from, $field)
 	{
 		if (!isset($this->_log[$from]))
 		{
-			throw new InvalidArgumentException(JText::sprintf('Unknown log category of %s', (string) $from));
+			throw new InvalidArgumentException(JText::sprintf('COM_SUPPORT_ERROR_CHANGELOG_UNKNOWN_CATEGORY', (string) $from));
 		}
 
 		foreach ($this->_log[$from] as $key => $item)
@@ -356,9 +439,79 @@ class SupportModelChangelog extends \Hubzero\Base\Object
 	}
 
 	/**
-	 * Get the state of the entry as either text or numerical value
-	 * 
-	 * @return     string
+	 * Log changes from one version of the ticket to the next
+	 *
+	 * @param   object $before
+	 * @param   object $after
+	 * @return  object
+	 */
+	public function diff($before, $after)
+	{
+		if ($after->get('group') != $before->get('group'))
+		{
+			$this->changed(
+				JText::_('COM_SUPPORT_CHANGELOG_FIELD_GROUP'),
+				$before->get('group'),
+				$after->get('group')
+			);
+		}
+		if ($after->get('severity') != $before->get('severity'))
+		{
+			$this->changed(
+				JText::_('COM_SUPPORT_CHANGELOG_FIELD_SEVERITY'),
+				$before->get('severity'),
+				$after->get('severity')
+			);
+		}
+		if ($after->get('owner') != $before->get('owner'))
+		{
+			$this->changed(
+				JText::_('COM_SUPPORT_CHANGELOG_FIELD_OWNER'),
+				$before->owner('username', JText::_('COM_SUPPORT_NONE')),
+				$after->owner('username', JText::_('COM_SUPPORT_NONE'))
+			);
+		}
+		if ($after->get('resolved') != $before->get('resolved'))
+		{
+			$this->changed(
+				JText::_('COM_SUPPORT_CHANGELOG_FIELD_RESOLUTION'),
+				$before->get('resolved', JText::_('COM_SUPPORT_UNRESOLVED')),
+				$after->get('resolved', JText::_('COM_SUPPORT_UNRESOLVED'))
+			);
+		}
+		if ($after->get('status') != $before->get('status'))
+		{
+			$this->changed(
+				JText::_('COM_SUPPORT_CHANGELOG_FIELD_STATUS'),
+				$before->status('text'),
+				$after->status('text')
+			);
+		}
+		if ($after->get('category') != $before->get('category'))
+		{
+			$this->changed(
+				JText::_('COM_SUPPORT_CHANGELOG_FIELD_CATEGORY'),
+				$before->get('category', JText::_('COM_SUPPORT_BLANK')),
+				$after->get('category', JText::_('COM_SUPPORT_BLANK'))
+			);
+		}
+
+		if ($after->get('tags') != $before->get('tags'))
+		{
+			$this->changed(
+				JText::_('COM_SUPPORT_CHANGELOG_FIELD_TAGS'),
+				($before->get('tags') ? $before->get('tags') : JText::_('COM_SUPPORT_BLANK')),
+				($after->get('tags')  ? $after->get('tags')  : JText::_('COM_SUPPORT_BLANK'))
+			);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Output log as a string
+	 *
+	 * @return  string
 	 */
 	public function __toString()
 	{

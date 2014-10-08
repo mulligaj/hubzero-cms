@@ -31,13 +31,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 ?>
-	<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
+	<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 		<h2><?php echo $this->escape($this->title); ?></h2>
 		<?php
-		if (!$this->page->isStatic()) 
+		if (!$this->page->isStatic())
 		{
 			$view = new JView(array(
-				'base_path' => $this->base_path, 
+				'base_path' => $this->base_path,
 				'name'      => 'page',
 				'layout'    => 'authors'
 			));
@@ -45,7 +45,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			$view->display();
 		}
 		?>
-	</div><!-- /#content-header -->
+	</header><!-- /#content-header -->
 
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
@@ -57,7 +57,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 <?php
 	$view = new JView(array(
-		'base_path' => $this->base_path, 
+		'base_path' => $this->base_path,
 		'name'      => 'page',
 		'layout'    => 'submenu'
 	));
@@ -70,10 +70,10 @@ defined('_JEXEC') or die( 'Restricted access' );
 	$view->display();
 ?>
 
-<div class="main section">
+<section class="main section">
 	<div class="grid">
 		<div class="col span-half">
-			<p>Versions are listed in reverse-chronological order (newest to oldest). For any version listed below, click on its date to view it. For more help, see <a href="<?php echo JRoute::_('index.php?option='.$this->option.'&scope='.$this->page->get('scope').'&pagename=Help:PageHistory'); ?>">Help:Page history</a>.</p> 
+			<p>Versions are listed in reverse-chronological order (newest to oldest). For any version listed below, click on its date to view it. For more help, see <a href="<?php echo JRoute::_('index.php?option='.$this->option.'&scope='.$this->page->get('scope').'&pagename=Help:PageHistory'); ?>">Help:Page history</a>.</p>
 		</div><!-- / .aside -->
 		<div class="col span-half omega">
 			<p>(cur) = difference from current version<br />(last) = difference from preceding version</p>
@@ -141,7 +141,7 @@ foreach ($this->page->revisions('list', array('sortby' => 'version DESC'), true)
 ?>
 						<tr class="<?php echo $cls; ?>">
 							<td>
-							<?php if ($this->page->revisions()->isFirst()) { 
+							<?php if ($this->page->revisions()->isFirst()) {
 								$cur = $revision->get('version'); ?>
 								( cur )
 							<?php } else { ?>
@@ -160,7 +160,7 @@ foreach ($this->page->revisions('list', array('sortby' => 'version DESC'), true)
 							</td>
 						<?php if ($i == 1) { ?>
 							<td>
-								
+
 							</td>
 							<td>
 								<input type="radio" name="diff" value="<?php echo $revision->get('version'); ?>" checked="checked" />
@@ -170,7 +170,7 @@ foreach ($this->page->revisions('list', array('sortby' => 'version DESC'), true)
 								<input type="radio" name="oldid" value="<?php echo $revision->get('version'); ?>"<?php if ($i == 2) { echo ' checked="checked"'; } ?> />
 							</td>
 							<td>
-								
+
 							</td>
 						<?php } ?>
 							<td>
@@ -221,4 +221,4 @@ foreach ($this->page->revisions('list', array('sortby' => 'version DESC'), true)
 		<input type="hidden" name="task" value="compare" />
 	<?php } ?>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

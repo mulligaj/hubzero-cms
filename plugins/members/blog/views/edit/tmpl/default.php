@@ -37,6 +37,12 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 {
 	$this->entry->set('publish_down', '');
 }
+
+$this->css('jquery.datepicker.css', 'system')
+     ->css('jquery.timepicker.css', 'system')
+     ->css()
+     ->js('jquery.timepicker', 'system')
+     ->js();
 ?>
 <ul id="page_options">
 	<li>
@@ -49,7 +55,7 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 <?php if ($this->getError()) { ?>
 	<p class="error"><?php echo $this->getError(); ?></p>
 <?php } ?>
-	
+
 	<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=blog&task=save'); ?>" method="post" id="hubForm" class="full">
 		<fieldset>
 			<legend><?php echo JText::_('PLG_MEMBERS_BLOG_EDIT_DETAILS'); ?></legend>
@@ -58,19 +64,19 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 				<?php echo JText::_('PLG_MEMBERS_BLOG_TITLE'); ?>
 				<input type="text" name="entry[title]" id="field-title" size="35" value="<?php echo $this->escape(stripslashes($this->entry->get('title'))); ?>" />
 			</label>
-<?php if ($this->task == 'save' && !$this->entry->get('title')) { ?>
-			<p class="error"><?php echo JText::_('PLG_MEMBERS_BLOG_ERROR_PROVIDE_TITLE'); ?></p>
-<?php } ?>
+			<?php if ($this->task == 'save' && !$this->entry->get('title')) { ?>
+				<p class="error"><?php echo JText::_('PLG_MEMBERS_BLOG_ERROR_PROVIDE_TITLE'); ?></p>
+			<?php } ?>
 
 			<label for="entrycontent">
 				<?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_CONTENT'); ?>
 				<?php
-				echo JFactory::getEditor()->display('entry[content]', stripslashes($this->entry->get('content')), '', '', 50, 30, false, 'entrycontent');
+				echo JFactory::getEditor()->display('entry[content]', $this->entry->content('raw'), '', '', 50, 30, false, 'entrycontent');
 				?>
 			</label>
-		<?php if ($this->task == 'save' && !$this->entry->get('content')) { ?>
-			<p class="error"><?php echo JText::_('PLG_MEMBERS_BLOG_ERROR_PROVIDE_CONTENT'); ?></p>
-		<?php } ?>
+			<?php if ($this->task == 'save' && !$this->entry->get('content')) { ?>
+				<p class="error"><?php echo JText::_('PLG_MEMBERS_BLOG_ERROR_PROVIDE_CONTENT'); ?></p>
+			<?php } ?>
 
 			<fieldset>
 				<legend><?php echo JText::_('Uploaded files'); ?></legend>
@@ -88,35 +94,41 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 			<?php } ?>
 				<span class="hint"><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_TAGS_HINT'); ?></span>
 			</label>
-			
-			<div class="group">
-				<label for="field-allow_comments">
-					<input type="checkbox" class="option" name="entry[allow_comments]" id="field-allow_comments" value="1"<?php if ($this->entry->get('allow_comments') == 1) { echo ' checked="checked"'; } ?> /> 
-					<?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_ALLOW_COMMENTS'); ?>
-				</label>
 
-				<label for="field-state">
-					<?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_PRIVACY'); ?>
-					<select name="entry[state]" id="field-state">
-						<option value="1"<?php if ($this->entry->get('state') == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_STATE_PUBLIC'); ?></option>
-						<option value="2"<?php if ($this->entry->get('state') == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_STATE_REGISTERED'); ?></option>
-						<option value="0"<?php if ($this->entry->get('state') == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_STATE_PRIVATE'); ?></option>
-					</select>
-				</label>
+			<div class="grid">
+				<div class="col span6">
+					<label for="field-allow_comments">
+						<input type="checkbox" class="option" name="entry[allow_comments]" id="field-allow_comments" value="1"<?php if ($this->entry->get('allow_comments') == 1) { echo ' checked="checked"'; } ?> />
+						<?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_ALLOW_COMMENTS'); ?>
+					</label>
+				</div>
+				<div class="col span6 omega">
+					<label for="field-state">
+						<?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_PRIVACY'); ?>
+						<select name="entry[state]" id="field-state">
+							<option value="1"<?php if ($this->entry->get('state') == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_STATE_PUBLIC'); ?></option>
+							<option value="2"<?php if ($this->entry->get('state') == 2) { echo ' selected="selected"'; } ?>><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_STATE_REGISTERED'); ?></option>
+							<option value="0"<?php if ($this->entry->get('state') == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_STATE_PRIVATE'); ?></option>
+						</select>
+					</label>
+				</div>
 			</div>
-			
-			<div class="group">
-				<label for="field-publish_up">
-					<?php echo JText::_('PLG_MEMBERS_BLOG_PUBLISH_UP'); ?>
-					<input type="text" name="entry[publish_up]" id="field-publish_up" size="35" value="<?php echo $this->escape(stripslashes($this->entry->get('publish_up'))); ?>" />
-					<span class="hint"><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_PUBLISH_HINT'); ?></span>
-				</label>
 
-				<label for="field-publish_down">
-					<?php echo JText::_('PLG_MEMBERS_BLOG_PUBLISH_DOWN'); ?>
-					<input type="text" name="entry[publish_down]" id="field-publish_down" size="35" value="<?php echo $this->escape(stripslashes($this->entry->get('publish_down'))); ?>" />
-					<span class="hint"><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_PUBLISH_HINT'); ?></span>
-				</label>
+			<div class="grid">
+				<div class="col span6">
+					<label for="field-publish_up">
+						<?php echo JText::_('PLG_MEMBERS_BLOG_PUBLISH_UP'); ?>
+						<input type="text" name="entry[publish_up]" id="field-publish_up" size="35" value="<?php echo ($this->entry->get('publish_up') ? $this->escape(JHTML::_('date', $this->entry->get('publish_up'), 'Y-m-d H:i:s')) : ''); ?>" />
+						<span class="hint"><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_PUBLISH_HINT'); ?></span>
+					</label>
+				</div>
+				<div class="col span6 omega">
+					<label for="field-publish_down">
+						<?php echo JText::_('PLG_MEMBERS_BLOG_PUBLISH_DOWN'); ?>
+						<input type="text" name="entry[publish_down]" id="field-publish_down" size="35" value="<?php echo ($this->entry->get('publish_down') ?$this->escape(JHTML::_('date', $this->entry->get('publish_down'), 'Y-m-d H:i:s')) : ''); ?>" />
+						<span class="hint"><?php echo JText::_('PLG_MEMBERS_BLOG_FIELD_PUBLISH_HINT'); ?></span>
+					</label>
+				</div>
 			</div>
 		</fieldset>
 		<div class="clear"></div>
@@ -131,14 +143,15 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 		<input type="hidden" name="active" value="blog" />
 		<input type="hidden" name="task" value="view" />
 		<input type="hidden" name="action" value="save" />
-		
+
 		<p class="submit">
 			<input class="btn btn-succes" type="submit" value="<?php echo JText::_('PLG_MEMBERS_BLOG_SAVE'); ?>" />
-		<?php if ($this->entry->get('id')) { ?>
-			<a class="btn btn-secondary" href="<?php echo JRoute::_($this->entry->link()); ?>">
-				<?php echo JText::_('PLG_MEMBERS_BLOG_CANCEL'); ?>
-			</a>
-		<?php } ?>
+
+			<?php if ($this->entry->get('id')) { ?>
+				<a class="btn btn-secondary" href="<?php echo JRoute::_($this->entry->link()); ?>">
+					<?php echo JText::_('PLG_MEMBERS_BLOG_CANCEL'); ?>
+				</a>
+			<?php } ?>
 		</p>
 	</form>
 </div><!-- / .section -->

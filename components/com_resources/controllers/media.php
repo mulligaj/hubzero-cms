@@ -32,13 +32,13 @@
 defined('_JEXEC') or die('Restricted access');
 
 /**
- * Resources controller class
+ * Resources controller class for media
  */
 class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 {
 	/**
 	 * Upload a file or create a new folder
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function uploadTask()
@@ -60,7 +60,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 
 		$row = new ResourcesResource($this->database);
 		$row->load($resource);
-		
+
 		// allow for temp resource uploads
 		if (!$row->created || $row->created == '0000-00-00 00:00:00')
 		{
@@ -125,7 +125,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Deletes a file
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function deleteTask()
@@ -149,7 +149,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 
 		// Incoming sub-directory
 		//$subdir = JRequest::getVar('subdir', '');
-		
+
 		// allow for temp resource uploads
 		if (!$row->created || $row->created == '0000-00-00 00:00:00')
 		{
@@ -197,7 +197,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Display an upload form and file listing
-	 * 
+	 *
 	 * @return     void
 	 */
 	public function displayTask()
@@ -285,7 +285,7 @@ class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 
 	/**
 	 * Scans directory and builds multi-dimensional array of all files and sub-directories
-	 * 
+	 *
 	 * @param      string $base Directory to scan
 	 * @return     array
 	 */
@@ -311,47 +311,52 @@ class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 		return $dirlist;
 	}
 
+	/**
+	 * Record information for video tracking
+	 *
+	 * @return     void
+	 */
 	public function trackingTask()
 	{
-		//include need media tracking library
+		// Include need media tracking library
 		require_once JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'media.tracking.php';
 		require_once JPATH_COMPONENT_ADMINISTRATOR . DS . 'tables' . DS . 'media.tracking.detailed.php';
-		
-		//instantiate objects
+
+		// Instantiate objects
 		$juser    = JFactory::getUser();
 		$database = JFactory::getDBO();
 		$session  = JFactory::getSession();
-		
-		//get request vars
+
+		// Get request vars
 		$time       = JRequest::getVar('time', 0);
 		$duration   = JRequest::getVar('duration', 0);
 		$event      = JRequest::getVar('event', 'update');
 		$resourceid = JRequest::getVar('resourceid', 0);
 		$detailedId = JRequest::getVar('detailedTrackingId', 0);
 		$ipAddress  = $_SERVER['REMOTE_ADDR'];
-		
-		//check for resource id
-		if(!$resourceid)
+
+		// Check for resource id
+		if (!$resourceid)
 		{
 			echo 'Unable to find resource identifier.';
 			return;
 		}
-		
-		//instantiate new media tracking object
-		$mediaTracking         = new ResourceMediaTracking( $database );
-		$mediaTrackingDetailed = new ResourceMediaTrackingDetailed( $database );
-		
-		//load tracking information for user for this resource
-		$trackingInformation         = $mediaTracking->getTrackingInformationForUserAndResource( $juser->get('id'), $resourceid );
-		$trackingInformationDetailed = $mediaTrackingDetailed->loadByDetailId( $detailedId );
-		
-		//are we creating a new tracking record
-		if(!is_object($trackingInformation))
+
+		// Instantiate new media tracking object
+		$mediaTracking         = new ResourceMediaTracking($database);
+		$mediaTrackingDetailed = new ResourceMediaTrackingDetailed($database);
+
+		// Load tracking information for user for this resource
+		$trackingInformation         = $mediaTracking->getTrackingInformationForUserAndResource($juser->get('id'), $resourceid);
+		$trackingInformationDetailed = $mediaTrackingDetailed->loadByDetailId($detailedId);
+
+		// Are we creating a new tracking record?
+		if (!is_object($trackingInformation))
 		{
 			$trackingInformation                              = new stdClass;
 			$trackingInformation->user_id                     = $juser->get('id');
 			$trackingInformation->session_id                  = $session->getId();
-			$trackingInformation->ip_address                  = $ipAddress; 
+			$trackingInformation->ip_address                  = $ipAddress;
 			$trackingInformation->object_id                   = $resourceid;
 			$trackingInformation->object_type                 = 'resource';
 			$trackingInformation->object_duration             = $duration;
@@ -365,53 +370,53 @@ class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 		}
 		else
 		{
-			//get the amount of video watched from last tracking event
+			// Get the amount of video watched from last tracking event
 			$time_viewed = (int)$time - (int)$trackingInformation->current_position;
-			
-			//if we have a positive value and its less then our ten second threshold
-			//add viewing time to total watched time
+
+			// If we have a positive value and its less then our ten second threshold
+			// add viewing time to total watched time
 			if ($time_viewed < 10 && $time_viewed > 0)
 			{
 				$trackingInformation->total_viewing_time += $time_viewed;
 			}
-			
-			//set the new current position
+
+			// Set the new current position
 			$trackingInformation->current_position           = $time;
 			$trackingInformation->current_position_timestamp = JFactory::getDate()->toSql();
-			
-			//set the object duration
-			if($duration > 0)
+
+			// Set the object duration
+			if ($duration > 0)
 			{
 				$trackingInformation->object_duration = $duration;
 			}
-			
-			//check to see if we need to set a new farthest position
-			if($trackingInformation->current_position > $trackingInformation->farthest_position)
+
+			// Check to see if we need to set a new farthest position
+			if ($trackingInformation->current_position > $trackingInformation->farthest_position)
 			{
 				$trackingInformation->farthest_position           = $time;
 				$trackingInformation->farthest_position_timestamp = JFactory::getDate()->toSql();
 			}
-			
-			//if event type is start, means we need to increment view count
-			if($event == 'start' || $event == 'replay')
+
+			// If event type is start, means we need to increment view count
+			if ($event == 'start' || $event == 'replay')
 			{
 				$trackingInformation->total_views++;
 			}
-			
-			//if event type is end, we need to increment completed count
-			if($event == 'ended')
+
+			// If event type is end, we need to increment completed count
+			if ($event == 'ended')
 			{
 				$trackingInformation->completed++;
 			}
 		}
-		
-		// save detailed tracking info
-		if($event == 'start' || !$trackingInformationDetailed)
+
+		// Save detailed tracking info
+		if ($event == 'start' || !$trackingInformationDetailed)
 		{
 			$trackingInformationDetailed                              = new stdClass;
 			$trackingInformationDetailed->user_id                     = $juser->get('id');
 			$trackingInformationDetailed->session_id                  = $session->getId();
-			$trackingInformationDetailed->ip_address                  = $ipAddress; 
+			$trackingInformationDetailed->ip_address                  = $ipAddress;
 			$trackingInformationDetailed->object_id                   = $resourceid;
 			$trackingInformationDetailed->object_type                 = 'resource';
 			$trackingInformationDetailed->object_duration             = $duration;
@@ -423,42 +428,42 @@ class ResourcesControllerMedia extends \Hubzero\Component\SiteController
 		}
 		else
 		{
-			//set the new current position
+			// Set the new current position
 			$trackingInformationDetailed->current_position           = $time;
 			$trackingInformationDetailed->current_position_timestamp = JFactory::getDate()->toSql();
-			
-			//set the object duration
-			if($duration > 0)
+
+			// Set the object duration
+			if ($duration > 0)
 			{
 				$trackingInformationDetailed->object_duration = $duration;
 			}
-			
-			//check to see if we need to set a new farthest position
-			if(isset($trackingInformationDetailed->farthest_position) && $trackingInformationDetailed->current_position > $trackingInformationDetailed->farthest_position)
+
+			// Check to see if we need to set a new farthest position
+			if (isset($trackingInformationDetailed->farthest_position) && $trackingInformationDetailed->current_position > $trackingInformationDetailed->farthest_position)
 			{
 				$trackingInformationDetailed->farthest_position           = $time;
 				$trackingInformationDetailed->farthest_position_timestamp = JFactory::getDate()->toSql();
 			}
-			
-			//if event type is end, we need to increment completed count
-			if($event == 'ended')
+
+			// If event type is end, we need to increment completed count
+			if ($event == 'ended')
 			{
 				$trackingInformationDetailed->completed++;
 			}
 		}
-		
-		//save detailed
-		$mediaTrackingDetailed->save( $trackingInformationDetailed );
-		
-		//save tracking information
-		if( $mediaTracking->save($trackingInformation) )
+
+		// Save detailed
+		$mediaTrackingDetailed->save($trackingInformationDetailed);
+
+		// Save tracking information
+		if ($mediaTracking->save($trackingInformation))
 		{
-			if(!isset($trackingInformation->id))
+			if (!isset($trackingInformation->id))
 			{
 				$trackingInformation->id = $mediaTracking->id;
 			}
 			$trackingInformation->detailedId = $mediaTrackingDetailed->id;
-			echo json_encode( $trackingInformation );
+			echo json_encode($trackingInformation);
 		}
 	}
 }

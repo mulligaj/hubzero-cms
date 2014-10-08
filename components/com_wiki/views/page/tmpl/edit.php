@@ -31,52 +31,54 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-JPluginHelper::importPlugin( 'hubzero' );
+if (!$this->sub)
+{
+	$this->css();
+}
+$this->js('wiki.js', 'com_wiki')
+     ->js('jquery.fileuploader.js', 'system');
+
+$juser = JFactory::getUser();
+
+JPluginHelper::importPlugin('hubzero');
 $dispatcher = JDispatcher::getInstance();
 
 $tags = $this->page->tags('string');
 
-if ($this->page->exists()) 
+if ($this->page->exists())
 {
 	$lid = $this->page->get('id');
-} 
-else 
+}
+else
 {
 	$lid = JRequest::getInt('lid', (time() . rand(0,10000)), 'post');
 }
 ?>
-<div id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
+<header id="<?php echo ($this->sub) ? 'sub-content-header' : 'content-header'; ?>">
 	<h2><?php echo $this->escape($this->title); ?></h2>
-	<?php 
-	//if ($this->page->exists()) 
+	<?php
+	//if ($this->page->exists())
 	//{
-		$view = new JView(array(
-			'base_path' => $this->base_path, 
-			'name'      => 'page',
-			'layout'    => 'authors'
-		));
-		$view->page   = $this->page;
-		$view->display();
+		$this->view('authors')
+		     ->setBasePath($this->base_path)
+		     ->set('page', $this->page)
+		     ->display();
 	//}
 	?>
-</div><!-- /#content-header -->
+</header><!-- /#content-header -->
 
-<?php 
-	$view = new JView(array(
-		'base_path' => $this->base_path, 
-		'name'      => 'page',
-		'layout'    => 'submenu'
-	));
-	$view->option = $this->option;
-	$view->controller = $this->controller;
-	$view->page   = $this->page;
-	$view->task   = $this->task;
-	//$view->config = $this->config;
-	$view->sub    = $this->sub;
-	$view->display();
+<?php
+	$this->view('submenu')
+	     ->setBasePath($this->base_path)
+	     ->set('option', $this->option)
+	     ->set('controller', $this->controller)
+	     ->set('page', $this->page)
+	     ->set('task', $this->task)
+	     ->set('sub', $this->sub)
+	     ->display();
 ?>
 
-<div class="main section">
+<section class="main section">
 <?php
 if ($this->page->exists() && !$this->page->access('modify')) {
 	if ($this->page->param('allow_changes') == 1) { ?>
@@ -97,99 +99,102 @@ if ($this->page->exists() && !$this->page->access('modify')) {
 
 <?php if ($this->preview) { ?>
 	<div id="preview">
-		<div class="main section">
-			<p class="warning"><?php echo JText::_('This a preview only. Changes will not take affect until saved.'); ?></p>
+		<section class="main section">
+			<p class="warning"><?php echo JText::_('COM_WIKI_WARNING_PREVIEW_ONLY'); ?></p>
 
 			<div class="wikipage">
 				<?php echo $this->revision->get('pagehtml'); ?>
 			</div>
-		</div><!-- / .section -->
-	</div><div class="clear"></div>
+		</section><!-- / .section -->
+	</div>
 <?php } ?>
 
 <form action="<?php echo JRoute::_($this->page->link()); ?>" method="post" id="hubForm"<?php echo ($this->sub) ? ' class="full"' : ''; ?>>
 <?php if (!$this->sub) { ?>
-	<div class="explaination" id="file-manager" data-action="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;no_html=1&amp;controller=media&amp;task=upload&amp;listdir=<?php echo $lid; ?>" data-list="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;no_html=1&amp;controller=media&amp;task=list&amp;listdir=<?php echo $lid; ?>">
+	<div class="explaination">
 	<?php if ($this->page->exists() && $this->page->access('edit')) { ?>
-		<p>To change the page name (the portion used for URLs), go <a class="page-rename" href="<?php echo JRoute::_($this->page->link('rename')); ?>">here</a>.</p>
+		<p><?php echo JText::sprintf('COM_WIKI_WARNING_TO_CHANGE_PAGENAME', JRoute::_($this->page->link('rename'))); ?></p>
 	<?php } ?>
-		<p><a class="wiki-macros image-macro" href="<?php echo JRoute::_('index.php?option='.$this->option.'&scope='.$this->page->get('scope').'&pagename=Help:WikiMacros#image'); ?>">[[Image(filename.jpg)]]</a> to include an image.</p>
-		<p><a class="wiki-macros file-macro" href="<?php echo JRoute::_('index.php?option='.$this->option.'&scope='.$this->page->get('scope').'&pagename=Help:WikiMacros#file'); ?>">[[File(filename.pdf)]]</a> to include a file.</p>
+		<p><?php echo JText::sprintf('COM_WIKI_IMAGE_MACRO_HINT', JRoute::_('index.php?option=' . $this->option . '&scope=' . $this->page->get('scope') . '&pagename=Help:WikiMacros#image')); ?></p>
+		<p><?php echo JText::sprintf('COM_WIKI_FILE_MACRO_HINT', JRoute::_('index.php?option=' . $this->option . '&scope=' . $this->page->get('scope') . '&pagename=Help:WikiMacros#file')); ?></p>
 
-		<div id="file-uploader">
-			<iframe width="100%" height="370" name="filer" id="filer" style="border:2px solid #eee;margin-top: 0;" src="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;tmpl=component&amp;controller=media&amp;scope=<?php echo $this->page->get('scope'); ?>&amp;pagename=<?php echo $this->page->get('pagename'); ?>&amp;listdir=<?php echo $lid; ?>"></iframe>
+		<div id="file-manager" data-instructions="<?php echo JText::_('COM_WIKI_CLICK_OR_DROP_FILE'); ?>" data-action="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;no_html=1&amp;controller=media&amp;task=upload&amp;listdir=<?php echo $lid; ?>" data-list="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;no_html=1&amp;controller=media&amp;task=list&amp;listdir=<?php echo $lid; ?>">
+			<iframe name="filer" id="filer" src="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;tmpl=component&amp;controller=media&amp;scope=<?php echo $this->page->get('scope'); ?>&amp;pagename=<?php echo $this->page->get('pagename'); ?>&amp;listdir=<?php echo $lid; ?>"></iframe>
 		</div>
 		<div id="file-uploader-list"></div>
 	</div>
 <?php } else { ?>
 	<?php if ($this->page->exists() && $this->page->access('edit')) { ?>
-		<p>To change the page name (the portion used for URLs), go <a class="page-rename" href="<?php echo JRoute::_($this->page->link('rename')); ?>">here</a>.</p>
+		<p><?php echo JText::sprintf('COM_WIKI_WARNING_TO_CHANGE_PAGENAME', JRoute::_($this->page->link('rename'))); ?></p>
 	<?php } ?>
 <?php } ?>
 	<fieldset>
-		<legend><?php echo JText::_('Page'); ?></legend>
+		<legend><?php echo JText::_('COM_WIKI_FIELDSET_PAGE'); ?></legend>
 
-		<div class="group">
-		<label for="parent">
-			<?php echo JText::_('Parent page'); ?>:
-			<select name="scope" id="parent">
-				<option value=""><?php echo JText::_('[ none ]'); ?></option>
-			<?php
-				if ($this->tree) 
-				{
-					foreach ($this->tree as $item) 
-					{
-						if ($this->page->get('pagename') == $item->get('pagename'))
+		<div class="grid">
+			<div class="col span6">
+				<label for="parent">
+					<?php echo JText::_('COM_WIKI_FIELD_PARENT'); ?>:
+					<select name="scope" id="parent">
+						<option value=""><?php echo JText::_('COM_WIKI_NONE'); ?></option>
+					<?php
+						if ($this->tree)
 						{
-							continue;
-						}
-			?>
-				<option value="<?php echo $this->escape(stripslashes($item->get('scope'))); ?>"<?php if ($this->page->get('scope') == $item->get('scope')) { echo ' selected="selected"'; } ?>><?php echo $this->escape(stripslashes($item->get('scopeName'))); ?></option>
-			<?php
-					}
-				}
-			?>
-			</select>
-		</label>
-
-		<label for="templates">
-			<?php echo JText::_('Template'); ?>:
-			<select name="tplate" id="templates">
-				<option value="tc"><?php echo JText::_('Select a template...'); ?></option>
-				<?php
-					$hi = array();
-
-					foreach ($this->book->templates('list', array(), true) as $template)
-					{
-						$tmpltags = $template->tags('string');
-						if (strtolower($this->tplate) == strtolower($template->get('pagename'))) 
-						{
-							$tags = $tmpltags;
-						}
-
-						echo "\t".'<option value="t'.$template->get('id').'"';
-						if (strtolower($this->tplate) == strtolower($template->get('pagename'))
-						 || strtolower($this->tplate) == 't' . $template->get('id')) 
-						{
-							echo ' selected="selected"';
-							if (!$this->page->exists()) 
+							foreach ($this->tree as $item)
 							{
-								$this->revision->set('pagetext', stripslashes($template->revision()->get('pagetext')));
+								if ($this->page->get('pagename') == $item->get('pagename'))
+								{
+									continue;
+								}
+					?>
+						<option value="<?php echo $this->escape(stripslashes($item->get('scope'))); ?>"<?php if ($this->page->get('scope') == $item->get('scope')) { echo ' selected="selected"'; } ?>><?php echo $this->escape(stripslashes($item->get('scopeName'))); ?></option>
+					<?php
 							}
 						}
-						echo '>' . $this->escape(stripslashes($template->get('title'))) . '</option>'."\n";
+					?>
+					</select>
+				</label>
+			</div>
+			<div class="col span6 omega">
+				<label for="templates">
+					<?php echo JText::_('COM_WIKI_FIELD_TEMPLATE'); ?>:
+					<select name="tplate" id="templates">
+						<option value="tc"><?php echo JText::_('COM_WIKI_FIELD_TEMPLATE_SELECT'); ?></option>
+						<?php
+							$hi = array();
 
-						$j  = '<input type="hidden" name="t'.$template->get('id').'" id="t'.$template->get('id').'" value="'.$this->escape(stripslashes($template->revision()->get('pagetext'))).'" />'."\n";
-						$j .= '<input type="hidden" name="t'.$template->get('id').'_tags" id="t'.$template->get('id').'_tags" value="'.$this->escape(stripslashes($tmpltags)).'" />'."\n";
+							foreach ($this->book->templates('list', array(), true) as $template)
+							{
+								$tmpltags = $template->tags('string');
+								if (strtolower($this->tplate) == strtolower($template->get('pagename')))
+								{
+									$tags = $tmpltags;
+								}
 
-						$hi[] = $j;
-					}
-				?>
-			</select>
-			<?php echo implode("\n", $hi); ?>
-		</label>
+								echo "\t" . '<option value="t' . $template->get('id') . '"';
+								if (strtolower($this->tplate) == strtolower($template->get('pagename'))
+								 || strtolower($this->tplate) == 't' . $template->get('id'))
+								{
+									echo ' selected="selected"';
+									if (!$this->page->exists())
+									{
+										$this->revision->set('pagetext', stripslashes($template->revision()->get('pagetext')));
+									}
+								}
+								echo '>' . $this->escape(stripslashes($template->get('title'))) . '</option>' . "\n";
+
+								$j  = '<input type="hidden" name="t' . $template->get('id') . '" id="t' . $template->get('id') . '" value="' . $this->escape(stripslashes($template->revision()->get('pagetext'))) . '" />' . "\n";
+								$j .= '<input type="hidden" name="t' . $template->get('id') . '_tags" id="t' . $template->get('id') . '_tags" value="' . $this->escape(stripslashes($tmpltags)) . '" />' . "\n";
+
+								$hi[] = $j;
+							}
+						?>
+					</select>
+				</label>
+				<?php echo implode("\n", $hi); ?>
+			</div>
 		</div>
-		
+
 	<?php if ($this->page->access('edit')) { ?>
 		<label for="title">
 			<?php echo JText::_('COM_WIKI_FIELD_TITLE'); ?>:
@@ -199,116 +204,125 @@ if ($this->page->exists() && !$this->page->access('modify')) {
 	<?php } else { ?>
 		<input type="hidden" name="page[title]" id="title" value="<?php echo $this->escape($this->page->get('title')); ?>" />
 	<?php } ?>
-		
+
 		<label for="pagetext" style="position: relative;">
-			<?php echo JText::_('COM_WIKI_FIELD_PAGETEXT'); ?>: 
+			<?php echo JText::_('COM_WIKI_FIELD_PAGETEXT'); ?>:
 			<span class="required"><?php echo JText::_('COM_WIKI_REQUIRED'); ?></span>
 			<?php
 			echo WikiHelperEditor::getInstance()->display('revision[pagetext]', 'pagetext', $this->revision->get('pagetext'), '', '35', '40');
 			?>
 		</label>
 		<p class="ta-right hint">
-			See <a class="wiki-formatting popup" href="<?php echo JRoute::_('index.php?option=com_wiki&pagename=Help:WikiFormatting'); ?>">Help: Wiki Formatting</a> for help on editing content.
+			<?php echo JText::sprintf('COM_WIKI_FIELD_PAGETEXT_HINT', JRoute::_('index.php?option=com_wiki&pagename=Help:WikiFormatting')); ?>
 		</p>
 
 	<?php if ($this->sub) { ?>
 		<div class="field-wrap">
 			<div class="grid">
-				<div class="col span-half" id="file-manager" data-action="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;no_html=1&amp;controller=media&amp;task=upload&amp;listdir=<?php echo $lid; ?>" data-list="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;no_html=1&amp;controller=media&amp;task=list&amp;listdir=<?php echo $lid; ?>">
-					<div id="file-uploader">
-						<iframe width="100%" height="370" name="filer" id="filer" style="border:2px solid #eee;margin-top: 0;" src="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;tmpl=component&amp;controller=media&amp;scope=<?php echo $this->page->get('scope'); ?>&amp;pagename=<?php echo $this->page->get('pagename'); ?>&amp;listdir=<?php echo $lid; ?>"></iframe>
+				<div class="col span-half">
+					<div id="file-manager" data-instructions="<?php echo JText::_('COM_WIKI_CLICK_OR_DROP_FILE'); ?>" data-action="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;no_html=1&amp;controller=media&amp;task=upload&amp;listdir=<?php echo $lid; ?>" data-list="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;no_html=1&amp;controller=media&amp;task=list&amp;listdir=<?php echo $lid; ?>">
+						<iframe name="filer" id="filer" src="<?php echo rtrim(JURI::getInstance()->base(true), '/'); ?>/index.php?option=com_wiki&amp;tmpl=component&amp;controller=media&amp;scope=<?php echo $this->page->get('scope'); ?>&amp;pagename=<?php echo $this->page->get('pagename'); ?>&amp;listdir=<?php echo $lid; ?>"></iframe>
 					</div>
 					<div id="file-uploader-list"></div>
 				</div>
 				<div class="col span-half omega">
-					<p><a class="wiki-macros image-macro" href="<?php echo JRoute::_('index.php?option='.$this->option.'&scope='.$this->page->get('scope').'&pagename=Help:WikiMacros#image'); ?>">[[Image(filename.jpg)]]</a> to include an image.</p>
-					<p><a class="wiki-macros file-macro" href="<?php echo JRoute::_('index.php?option='.$this->option.'&scope='.$this->page->get('scope').'&pagename=Help:WikiMacros#file'); ?>">[[File(filename.pdf)]]</a> to include a file.</p>
+					<p><?php echo JText::sprintf('COM_WIKI_IMAGE_MACRO_HINT', JRoute::_('index.php?option=' . $this->option . '&scope=' . $this->page->get('scope') . '&pagename=Help:WikiMacros#image')); ?></p>
+					<p><?php echo JText::sprintf('COM_WIKI_FILE_MACRO_HINT', JRoute::_('index.php?option=' . $this->option . '&scope=' . $this->page->get('scope') . '&pagename=Help:WikiMacros#file')); ?></p>
 				</div>
 			</div><!-- / .grid -->
 		</div>
 	<?php } ?>
 	</fieldset><div class="clear"></div>
 
+<?php if (!$this->page->exists() || $this->page->get('created_by') == $juser->get('id') || $this->page->access('manage')) {?>
 	<fieldset>
-		<legend><?php echo JText::_('Access'); ?></legend>
+		<legend><?php echo JText::_('COM_WIKI_FIELDSET_ACCESS'); ?></legend>
 
-	<?php if ($this->page->access('edit')) {
-		$mode = $this->page->param('mode', 'wiki');
-		$cls = '';
-		if ($mode && $mode != 'knol') 
-		{
-			$cls = ' class="hide"';
-		}
+		<?php if ($this->page->access('edit')) {
+			$mode = $this->page->param('mode', 'wiki');
+			$cls = '';
+			if ($mode && $mode != 'knol')
+			{
+				$cls = ' class="hide"';
+			}
 
-		$juser = JFactory::getUser();
-		if (!$this->page->exists() || $this->page->get('created_by') == $juser->get('id') || $this->page->access('manage')) { ?>
-			<label for="params_mode">
-				<?php echo JText::_('COM_WIKI_FIELD_MODE'); ?>: <span class="required"><?php echo JText::_('COM_WIKI_REQUIRED'); ?></span>
-				<select name="params[mode]" id="params_mode">
-					<option value="knol"<?php if ($mode == 'knol') { echo ' selected="selected"'; } ?>>Knowledge article with specific authors</option>
-					<option value="wiki"<?php if ($mode == 'wiki') { echo ' selected="selected"'; } ?>>Wiki page anyone can edit</option>
-				<?php if ($this->page->access('admin')) { ?>
-					<option value="static"<?php if ($mode == 'static') { echo ' selected="selected"'; } ?>>Static (open layout)</option>
-				<?php } ?>
-				</select>
-			</label>
+			if (!$this->page->exists() || $this->page->get('created_by') == $juser->get('id') || $this->page->access('manage')) { ?>
+				<label for="params_mode">
+					<?php echo JText::_('COM_WIKI_FIELD_MODE'); ?>: <span class="required"><?php echo JText::_('COM_WIKI_REQUIRED'); ?></span>
+					<select name="params[mode]" id="params_mode">
+						<option value="knol"<?php if ($mode == 'knol') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_WIKI_FIELD_MODE_KNOL'); ?></option>
+						<option value="wiki"<?php if ($mode == 'wiki') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_WIKI_FIELD_MODE_WIKI'); ?></option>
+					<?php if ($this->page->access('admin')) { ?>
+						<option value="static"<?php if ($mode == 'static') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_WIKI_FIELD_MODE_STATIC'); ?></option>
+					<?php } ?>
+					</select>
+				</label>
+			<?php } else { ?>
+				<input type="hidden" name="params[mode]" id="params_mode" value="<?php echo $mode; ?>" />
+			<?php } ?>
+
+				<label<?php echo $cls; ?> for="params_authors">
+					<?php echo JText::_('COM_WIKI_FIELD_AUTHORS'); ?>:
+					<?php
+					$mc = $dispatcher->trigger(
+						'onGetMultiEntry',
+						array(array(
+							'members',
+							'authors',
+							'params_authors',
+							'',
+							$this->page->authors('string')
+						))
+					);
+					if (count($mc) > 0) {
+						echo $mc[0];
+					} else { ?>
+					<input type="text" name="authors" id="params_authors" value="<?php echo $this->escape($this->page->authors('string')); ?>" />
+					<?php } ?>
+				</label>
+
+				<label<?php echo $cls; ?>>
+					<input class="option" type="checkbox" name="params[hide_authors]" id="params_hide_authors"<?php if ($this->page->param('hide_authors') == 1) { echo ' checked="checked"'; } ?> value="1" />
+					<?php echo JText::_('COM_WIKI_FIELD_HIDE_AUTHORS'); ?>
+				</label>
+				&nbsp;
+
+				<label<?php echo $cls; ?> for="params_allow_changes">
+					<input class="option" type="checkbox" name="params[allow_changes]" id="params_allow_changes"<?php if ($this->page->param('allow_changes') == 1) { echo ' checked="checked"'; } ?> value="1" />
+					<?php echo JText::_('COM_WIKI_FIELD_ALLOW_CHANGES'); ?>
+				</label>
+
+				<label<?php echo $cls; ?> for="params_allow_comments">
+					<input class="option" type="checkbox" name="params[allow_comments]" id="params_allow_comments"<?php if ($this->page->param('allow_comments') == 1) { echo ' checked="checked"'; } ?> value="1" />
+					<?php echo JText::_('COM_WIKI_FIELD_ALLOW_COMMENTS'); ?>
+				</label>
 		<?php } else { ?>
-			<input type="hidden" name="params[mode]" id="params_mode" value="<?php echo $mode; ?>" />
+				<input type="hidden" name="params[mode]" value="<?php echo $this->page->param('mode', 'wiki'); ?>" />
+				<input type="hidden" name="params[allow_changes]" value="<?php echo ($this->page->param('allow_changes') == 1) ? '1' : '0'; ?>" />
+				<input type="hidden" name="params[allow_comments]" value="<?php echo ($this->page->param('allow_comments') == 1) ? '1' : '0'; ?>" />
+				<input type="hidden" name="authors" id="params_authors" value="<?php echo $this->escape($this->page->authors('string')); ?>" />
+				<input type="hidden" name="page[access]" value="<?php echo $this->escape($this->page->get('access')); ?>" />
 		<?php } ?>
-
-			<label<?php echo $cls; ?> for="params_authors">
-				<?php echo JText::_('COM_WIKI_FIELD_AUTHORS'); ?>:
-				<?php 
-				$mc = $dispatcher->trigger(
-					'onGetMultiEntry', 
-					array(array(
-						'members', 
-						'authors', 
-						'params_authors', 
-						'', 
-						$this->page->authors('string')
-					))
-				);
-				if (count($mc) > 0) {
-					echo $mc[0];
-				} else { ?>
-				<input type="text" name="authors" id="params_authors" value="<?php echo $this->escape($this->page->authors('string')); ?>" />
-				<?php } ?>
-			</label>
-
-			<label<?php echo $cls; ?>>
-				<input class="option" type="checkbox" name="params[hide_authors]" id="params_hide_authors"<?php if ($this->page->param('hide_authors') == 1) { echo ' checked="checked"'; } ?> value="1" />
-				<?php echo JText::_('Hide author list'); ?>
-			</label>
-			&nbsp;
-
-			<label<?php echo $cls; ?> for="params_allow_changes">
-				<input class="option" type="checkbox" name="params[allow_changes]" id="params_allow_changes"<?php if ($this->page->param('allow_changes') == 1) { echo ' checked="checked"'; } ?> value="1" />
-				<?php echo JText::_('COM_WIKI_FIELD_ALLOW_CHANGES'); ?>
-			</label>
-
-			<label<?php echo $cls; ?> for="params_allow_comments">
-				<input class="option" type="checkbox" name="params[allow_comments]" id="params_allow_comments"<?php if ($this->page->param('allow_comments') == 1) { echo ' checked="checked"'; } ?> value="1" />
-				<?php echo JText::_('COM_WIKI_FIELD_ALLOW_COMMENTS'); ?>
-			</label>
-	<?php } else { ?>
-			<input type="hidden" name="params[mode]" value="<?php echo $this->page->param('mode', 'wiki'); ?>" />
-			<input type="hidden" name="params[allow_changes]" value="<?php echo ($this->page->param('allow_changes') == 1) ? '1' : '0'; ?>" />
-			<input type="hidden" name="params[allow_comments]" value="<?php echo ($this->page->param('allow_comments') == 1) ? '1' : '0'; ?>" />
-			<input type="hidden" name="authors" id="params_authors" value="<?php echo $this->escape($this->page->authors('string')); ?>" />
-			<input type="hidden" name="page[access]" value="<?php echo $this->escape($this->page->get('access')); ?>" />
-	<?php } ?>
 
 			<input type="hidden" name="page[group]" value="<?php echo $this->escape($this->page->get('group_cn')); ?>" />
 
-		<?php if ($this->page->access('manage')) { ?>
-			<label for="state">
-				<input class="option" type="checkbox" name="page[state]" id="state"<?php if ($this->page->isLocked()) { echo ' checked="checked"'; } ?> value="1" />
-				<?php echo JText::_('COM_WIKI_FIELD_STATE'); ?>
-			</label>
-		<?php } ?>
+			<?php if ($this->page->access('manage')) { ?>
+				<label for="state">
+					<input class="option" type="checkbox" name="page[state]" id="state"<?php if ($this->page->isLocked()) { echo ' checked="checked"'; } ?> value="1" />
+					<?php echo JText::_('COM_WIKI_FIELD_STATE'); ?>
+				</label>
+			<?php } ?>
 		</fieldset>
 		<div class="clear"></div>
+<?php } else { ?>
+		<input type="hidden" name="page[access]" value="<?php echo $this->escape($this->page->get('access')); ?>" />
+		<input type="hidden" name="page[group]" value="<?php echo $this->escape($this->page->get('group_cn')); ?>" />
+		<input type="hidden" name="page[state]" value="<?php echo $this->escape($this->page->get('state'), 0); ?>" />
+		<input type="hidden" name="authors" value="<?php echo $this->escape($this->page->authors('string')); ?>" />
+		<input type="hidden" name="params[mode]" value="<?php echo $this->page->param('mode', 'wiki'); ?>" />
+		<input type="hidden" name="params[allow_changes]" value="<?php echo ($this->page->param('allow_changes') == 1) ? '1' : '0'; ?>" />
+		<input type="hidden" name="params[allow_comments]" value="<?php echo ($this->page->param('allow_comments') == 1) ? '1' : '0'; ?>" />
+<?php } ?>
 
 <?php if ($this->page->access('edit')) { ?>
 	<?php if (!$this->sub) { ?>
@@ -317,10 +331,10 @@ if ($this->page->exists() && !$this->page->access('modify')) {
 		</div>
 	<?php } ?>
 		<fieldset>
-			<legend><?php echo JText::_('Metadata'); ?></legend>
+			<legend><?php echo JText::_('COM_WIKI_FIELDSET_METADATA'); ?></legend>
 			<label>
 				<?php echo JText::_('COM_WIKI_FIELD_TAGS'); ?>:
-				<?php 
+				<?php
 				$tf = $dispatcher->trigger( 'onGetMultiEntry', array(array('tags', 'tags', 'actags','', $tags)) );
 				if (count($tf) > 0) {
 					echo $tf[0];
@@ -353,22 +367,22 @@ if ($this->page->exists() && !$this->page->access('modify')) {
 		<input type="hidden" name="revision[version]" value="<?php echo $this->escape($this->revision->get('version')); ?>" />
 		<input type="hidden" name="revision[created_by]" value="<?php echo $this->escape($this->revision->get('created_by')); ?>" />
 		<input type="hidden" name="revision[created]" value="<?php echo $this->escape($this->revision->get('created')); ?>" />
-		
+
 		<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 
-<?php if ($this->sub) { ?>
-		<input type="hidden" name="cn" value="<?php echo $this->escape($this->page->get('group_cn')); ?>" />
-		<input type="hidden" name="active" value="<?php echo $this->escape($this->sub); ?>" />
-		<input type="hidden" name="action" value="save" />
-<?php } else { ?>
-		<input type="hidden" name="task" value="save" />
-<?php } ?>
+		<?php if ($this->sub) { ?>
+			<input type="hidden" name="cn" value="<?php echo $this->escape($this->page->get('group_cn')); ?>" />
+			<input type="hidden" name="active" value="<?php echo $this->escape($this->sub); ?>" />
+			<input type="hidden" name="action" value="save" />
+		<?php } else { ?>
+			<input type="hidden" name="task" value="save" />
+		<?php } ?>
 
 		<?php echo JHTML::_('form.token'); ?>
 
 		<p class="submit">
-			<input type="submit" name="preview" value="<?php echo JText::_('PREVIEW'); ?>" /> &nbsp; 
-			<input type="submit" name="submit" value="<?php echo JText::_('SUBMIT'); ?>" />
+			<input type="submit" class="btn" name="preview" value="<?php echo JText::_('COM_WIKI_PREVIEW'); ?>" /> &nbsp;
+			<input type="submit" class="btn btn-success" name="submit" value="<?php echo JText::_('COM_WIKI_SUBMIT'); ?>" />
 		</p>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

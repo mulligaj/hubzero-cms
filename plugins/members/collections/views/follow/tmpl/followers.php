@@ -32,110 +32,84 @@
 defined('_JEXEC') or die('Restricted access');
 
 $base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=' . $this->name;
+
+$this->css()
+     ->js();
 ?>
 
-<?php if (!$this->juser->get('guest') && !$this->params->get('access-create-item')) { ?>
 <ul id="page_options">
 	<li>
-		<?php if ($this->model->isFollowing()) { ?>
-		<a class="unfollow btn" data-text-follow="<?php echo JText::_('Follow All'); ?>" data-text-unfollow="<?php echo JText::_('Unfollow All'); ?>" href="<?php echo JRoute::_($base . '&task=unfollow'); ?>">
-			<span><?php echo JText::_('Unfollow All'); ?></span>
+		<a class="icon-info btn popup" href="<?php echo JRoute::_('index.php?option=com_help&component=collections&page=index'); ?>">
+			<span><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_GETTING_STARTED'); ?></span>
 		</a>
-		<?php } else { ?>
-		<a class="follow btn" data-text-follow="<?php echo JText::_('Follow All'); ?>" data-text-unfollow="<?php echo JText::_('Unfollow All'); ?>" href="<?php echo JRoute::_($base . '&task=follow'); ?>">
-			<span><?php echo JText::_('Follow All'); ?></span>
-		</a>
-		<?php } ?>
 	</li>
 </ul>
-<?php } ?>
 
 <form method="get" action="<?php echo JRoute::_($base . '&task=followers'); ?>" id="collections">
+	<?php
+	$this->view('_submenu', 'collection')
+	     ->set('option', $this->option)
+	     ->set('member', $this->member)
+	     ->set('params', $this->params)
+	     ->set('name', $this->name)
+	     ->set('active', 'followers')
+	     ->set('collections', $this->collections)
+	     ->set('posts', $this->posts)
+	     ->set('followers', $this->total)
+	     ->set('following', $this->following)
+	     ->display();
+	?>
 
-	<fieldset class="filters">
-		<ul>
-<?php if ($this->params->get('access-manage-collection')) { ?>
-			<li>
-				<a class="livefeed tooltips" href="<?php echo JRoute::_($base); ?>" title="<?php echo JText::_('Live feed :: View posts from everything you\'re following'); ?>">
-					<span><?php echo JText::_('Feed'); ?></span>
-				</a>
-			</li>
-<?php } ?>
-			<li>
-				<a class="collections count" href="<?php echo JRoute::_($base . '&task=all'); ?>">
-					<span><?php echo JText::sprintf('<strong>%s</strong> collections', $this->collections); ?></span>
-				</a>
-			</li>
-			<li>
-				<a class="posts count" href="<?php echo JRoute::_($base . '&task=posts'); ?>">
-					<span><?php echo JText::sprintf('<strong>%s</strong> posts', $this->posts); ?></span>
-				</a>
-			</li>
-			<li>
-				<a class="followers count active" href="<?php echo JRoute::_($base . '&task=followers'); ?>">
-					<span><?php echo JText::sprintf('<strong>%s</strong> followers', $this->total); ?></span>
-				</a>
-			</li>
-			<li>
-				<a class="following count" href="<?php echo JRoute::_($base . '&task=following'); ?>">
-					<span><?php echo JText::sprintf('<strong>%s</strong> following', $this->following); ?></span>
-				</a>
-			</li>
-		</ul>
-		<div class="clear"></div>
-	</fieldset>
-
-<?php if ($this->rows->total() > 0) { ?>
-	<div class="container">
-		<table class="followers entries" summary="<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_TBL_SUMMARY'); ?>">
-			<caption>
-				<?php echo JText::_('People following you'); ?>
-			</caption>
-			<tbody>
-	<?php foreach ($this->rows as $row) { ?>
-				<tr class="<?php echo $row->get('follower_type'); ?>">
-					<th class="entry-img">
-						<img src="<?php echo $row->follower()->image(); ?>" width="40" height="40" alt="Profile picture of <?php echo $this->escape(stripslashes($row->follower()->title())); ?>" />
-					</th>
-					<td>
-						<a class="entry-title" href="<?php echo JRoute::_($row->follower()->link()); ?>">
-							<?php echo $this->escape(stripslashes($row->follower()->title())); ?>
-						</a>
-						<br />
-						<span class="entry-details">
-							<span class="follower count"><?php echo JText::sprintf('<strong>%s</strong> followers', $row->count('followers')); ?></span>
-							<span class="following count"><?php echo JText::sprintf('<strong>%s</strong> following', $row->count('following')); ?></span>
-						</span>
-					</td>
-					<td>
-						<time datetime="<?php echo $row->get('created'); ?>"><?php echo JHTML::_('date', $row->get('created'), JText::_('DATE_FORMAT_HZ1')); ?></time>
-					</td>
-				</tr>
-	<?php } ?>
-			</tbody>
-		</table>
-		<?php echo $this->pageNav->getListFooter(); ?>
-		<div class="clear"></div>
-	</div><!-- / .container -->
-<?php } else { ?>
-		<div id="collection-introduction">
-			<div class="instructions">
-	<?php if ($this->params->get('access-manage-collection')) { ?>
-				<p><?php echo JText::_('You currently do not have anyone following you or any of your collections. :('); ?></p>
-			</div><!-- / .instructions -->
-			<div class="questions">
-				<p><strong><?php echo JText::_('What are followers?'); ?></strong></p>
-				<p><?php echo JText::_('"Followers" are members that have decided to receive all public posts you make or all posts in one of your collections.'); ?><p>
-				<p><?php echo JText::_('Followers cannot see of your private collections or posts made to private collections.'); ?><p>
-			</div>
+	<?php if ($this->rows->total() > 0) { ?>
+		<div class="container">
+			<table class="followers entries">
+				<caption>
+					<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_FOLLOWING_YOU'); ?>
+				</caption>
+				<tbody>
+				<?php foreach ($this->rows as $row) { ?>
+					<tr class="<?php echo $row->get('follower_type'); ?>">
+						<th class="entry-img">
+							<img src="<?php echo $row->follower()->image(); ?>" width="40" height="40" alt="<?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_PROFILE_PICTURE', $this->escape(stripslashes($row->follower()->title()))); ?>" />
+						</th>
+						<td>
+							<a class="entry-title" href="<?php echo JRoute::_($row->follower()->link()); ?>">
+								<?php echo $this->escape(stripslashes($row->follower()->title())); ?>
+							</a>
+							<br />
+							<span class="entry-details">
+								<span class="follower count"><?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_NUM_FOLLOWERS', $row->count('followers')); ?></span>
+								<span class="following count"><?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_NUM_FOLLOWING', $row->count('following')); ?></span>
+							</span>
+						</td>
+						<td>
+							<time datetime="<?php echo $row->get('created'); ?>"><?php echo JHTML::_('date', $row->get('created'), JText::_('DATE_FORMAT_HZ1')); ?></time>
+						</td>
+					</tr>
+				<?php } ?>
+				</tbody>
+			</table>
+			<?php echo $this->pageNav->getListFooter(); ?>
+			<div class="clear"></div>
+		</div><!-- / .container -->
 	<?php } else { ?>
-				<p>
-					<?php echo JText::_('This member is not following anyone or any collections.'); ?>
-				</p>
-			</div><!-- / .instructions -->
-	<?php } ?>
+		<div id="collection-introduction">
+			<?php if ($this->params->get('access-manage-collection')) { ?>
+				<div class="instructions">
+					<p><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_FOLLOWING_YOU_NONE'); ?></p>
+				</div><!-- / .instructions -->
+				<div class="questions">
+					<p><strong><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_FOLLOW_WHAT_ARE_FOLLOWERS'); ?></strong></p>
+					<p><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_FOLLOW_WHAT_ARE_FOLLOWERS_EXPLANATION'); ?><p>
+				</div>
+			<?php } else { ?>
+				<div class="instructions">
+					<p>
+						<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_FOLLOW_MEMBER_HAS_NO_FOLLOWERS'); ?>
+					</p>
+				</div><!-- / .instructions -->
+			<?php } ?>
 		</div><!-- / #collection-introduction -->
-<?php } ?>
-		<div class="clear"></div>
-
+	<?php } ?>
+	<div class="clear"></div>
 </form>

@@ -32,26 +32,26 @@ defined('_JEXEC') or die('Restricted access');
 
 $canDo = AnswersHelper::getActions('question');
 
-JToolBarHelper::title(JText::_('Answers Manager'), 'answers.png');
-if ($canDo->get('core.admin')) 
+JToolBarHelper::title(JText::_('COM_ANSWERS_TITLE') . ': ' . JText::_('COM_ANSWERS_QUESTIONS'), 'answers.png');
+if ($canDo->get('core.admin'))
 {
 	JToolBarHelper::preferences($this->option, '550');
 	JToolBarHelper::spacer();
 }
-if ($canDo->get('core.create')) 
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
-if ($canDo->get('core.delete')) 
+if ($canDo->get('core.delete'))
 {
 	JToolBarHelper::deleteList();
 }
 JToolBarHelper::spacer();
-JToolBarHelper::help('questions.html', true);
+JToolBarHelper::help('questions');
 
 ?>
 <script type="text/javascript">
-function submitbutton(pressbutton) 
+function submitbutton(pressbutton)
 {
 	var form = document.adminForm;
 	if (pressbutton == 'cancel') {
@@ -65,15 +65,21 @@ function submitbutton(pressbutton)
 
 <form action="index.php" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
-		<label for="filter_search"><?php echo JText::_('SEARCH'); ?>:</label> 
-		<input type="text" name="q" id="filter_search" value="<?php echo $this->escape($this->filters['q']); ?>" />
+		<div class="col width-50 fltlft">
+			<label for="filter_search"><?php echo JText::_('JSEARCH_FILTER'); ?>:</label>
+			<input type="text" name="q" id="filter_search" value="<?php echo $this->escape($this->filters['q']); ?>" placeholder="<?php echo JText::_('COM_ANSWERS_FILTER_SEARCH_PLACEHOLDER'); ?>" />
 
-		<label for="filterby"><?php echo JText::_('Filter by:'); ?></label> 
-		<select name="filterby" id="filterby" onchange="document.adminForm.submit( );">
-			<option value="open"<?php if ($this->filters['filterby'] == 'open') { echo ' selected="selected"'; } ?>><?php echo JText::_('Open Questions'); ?></option>
-			<option value="closed"<?php if ($this->filters['filterby'] == 'closed') { echo ' selected="selected"'; } ?>><?php echo JText::_('Closed Questions'); ?></option>
-			<option value="all"<?php if ($this->filters['filterby'] == 'all') { echo ' selected="selected"'; } ?>><?php echo JText::_('All Questions'); ?></option>
-		</select>
+			<input type="submit" value="<?php echo JText::_('COM_ANSWERS_GO'); ?>" />
+			<button type="button" onclick="$('#filter_search').val('');this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
+		</div>
+		<div class="col width-50 fltrt">
+			<label for="filterby"><?php echo JText::_('COM_ANSWERS_FILTER_BY'); ?></label>
+			<select name="filterby" id="filterby" onchange="document.adminForm.submit();">
+				<option value="open"<?php if ($this->filters['filterby'] == 'open') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_ANSWERS_FILTER_BY_OPEN'); ?></option>
+				<option value="closed"<?php if ($this->filters['filterby'] == 'closed') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_ANSWERS_FILTER_BY_CLOSED'); ?></option>
+				<option value="all"<?php if ($this->filters['filterby'] == 'all') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_ANSWERS_FILTER_BY_ALL'); ?></option>
+			</select>
+		</div>
 	</fieldset>
 	<div class="clr"></div>
 
@@ -81,12 +87,12 @@ function submitbutton(pressbutton)
 		<thead>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count( $this->results );?>);" /></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Subject', 'subject', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'State', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Created', 'created', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Created by', 'created_by', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'Answers', 'rcount', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_ANSWERS_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_ANSWERS_COL_SUBJECT', 'subject', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_ANSWERS_COL_STATE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_ANSWERS_COL_CREATED', 'created', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_ANSWERS_COL_CREATOR', 'created_by', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_ANSWERS_COL_ANSWERS', 'rcount', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -105,14 +111,12 @@ for ($i=0, $n=count($this->results); $i < $n; $i++)
 	{
 		case '1':
 			$task = 'open';
-			$img = 'publish_x.png';
-			$alt = JText::_( 'Closed' );
+			$alt = JText::_('COM_ANSWERS_STATE_CLOSED');
 			$cls = 'unpublished';
 		break;
 		case '0':
 			$task = 'close';
-			$img = 'publish_g.png';
-			$alt = JText::_( 'Open' );
+			$alt = JText::_('COM_ANSWERS_STATE_OPEN');
 			$cls = 'published';
 		break;
 	}
@@ -126,7 +130,7 @@ for ($i=0, $n=count($this->results); $i < $n; $i++)
 				</td>
 				<td>
 				<?php if ($canDo->get('core.edit')) { ?>
-					<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id[]=<?php echo $row->get('id'); ?>">
+					<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id=<?php echo $row->get('id'); ?>">
 						<span><?php echo $this->escape($row->subject('clean')); ?></span>
 					</a>
 				<?php } else { ?>
@@ -137,7 +141,7 @@ for ($i=0, $n=count($this->results); $i < $n; $i++)
 				</td>
 				<td>
 				<?php if ($canDo->get('core.edit.state')) { ?>
-					<a class="state <?php echo $cls; ?>" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task; ?>&amp;id[]=<?php echo $row->get('id'); ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="Set this to <?php echo $task; ?>">
+					<a class="state <?php echo $cls; ?>" href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task; ?>&amp;id=<?php echo $row->get('id'); ?>&amp;<?php echo JUtility::getToken(); ?>=1" title="<?php echo JText::sprintf('COM_ANSWERS_SET_STATE', $task); ?>">
 						<span><?php echo $alt; ?></span>
 					</a>
 				<?php } else { ?>
@@ -150,17 +154,17 @@ for ($i=0, $n=count($this->results); $i < $n; $i++)
 					<time datetime="<?php echo $row->created(); ?>"><?php echo $row->created('date'); ?></time>
 				</td>
 				<td>
-					<a class="glyph user" href="index.php?option=com_members&amp;controller=members&amp;task=edit&amp;id[]=<?php echo $row->creator('id'); ?>">
+					<a class="glyph user" href="index.php?option=com_members&amp;controller=members&amp;task=edit&amp;id=<?php echo $row->creator('id'); ?>">
 						<?php echo $this->escape(stripslashes($row->creator('name'))); ?>
 					</a>
 				<?php if ($row->get('anonymous')) { ?>
-					<br /><span>(anonymous)</span>
+					<br /><span>(<?php echo JText::_('COM_ANSWERS_FIELD_ANONYMOUS'); ?></span>
 				<?php } ?>
 				</td>
 			<?php if ($row->comments('count', array('filterby' => 'all', 'replies' => false)) > 0) { ?>
 				<td style="white-space: nowrap;">
-					<a class="glyph comment" href="index.php?option=<?php echo $this->option ?>&amp;controller=answers&amp;qid=<?php echo $row->get('id'); ?>" title="<?php echo JText::_('View the answers for this Question'); ?>">
-						<span><?php echo JText::sprintf('%s response(s)', $row->comments('count')); ?></span>
+					<a class="glyph comment" href="index.php?option=<?php echo $this->option ?>&amp;controller=answers&amp;qid=<?php echo $row->get('id'); ?>">
+						<span><?php echo JText::sprintf('COM_ANSWERS_NUM_RESPONSES', $row->comments('count')); ?></span>
 					</a>
 				</td>
 			<?php } else { ?>
@@ -184,6 +188,6 @@ for ($i=0, $n=count($this->results); $i < $n; $i++)
 	<input type="hidden" name="boxchecked" value="0" />
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sort']; ?>" />
 	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
-	
+
 	<?php echo JHTML::_('form.token'); ?>
 </form>
