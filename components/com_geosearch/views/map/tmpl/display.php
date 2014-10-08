@@ -232,7 +232,11 @@ $doc->addScriptDeclaration($js);
 			</fieldset>
 		</div>
 
-		<div id="map_canvas"></div>
+		<div id="map_results">Displaying: <span>loading results</span></div>
+		<div id="map_container">
+			<div id="map_canvas"></div>
+		</div>
+
 		<br />
 
 			<div class="container hide">

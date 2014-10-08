@@ -135,3 +135,36 @@ input[type="button"]  {
 		height: 600px;
 	}
 }
+
+#map_container {
+	position: relative;
+}
+#map_container .loading {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: #000;
+	background: rgba(0,0,0,0.75); 
+}
+#map_container .loading span {
+	position: absolute;
+	top: 40%;
+	left: 35%;
+	right: 0;
+	color: #FFF;
+	text-align: left;
+	font-size: 36px;
+	font-weight: 100;
+}
+.data-entry {
+	margin-bottom: 10px;
+}
+#map_results {
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+#map_results span {
+	font-weight: normal;	
+}
