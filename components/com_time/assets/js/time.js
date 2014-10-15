@@ -74,9 +74,14 @@ HUB.Time = {
 		});
 
 		if (!!$.prototype.HUBfancyselect) {
-			$('select').HUBfancyselect({
-				'showSearch'         : true,
-				'searchPlaceholder'  : 'seach...'
+			$('select').not('.no-search').HUBfancyselect({
+				'showSearch'          : true,
+				'searchPlaceholder'   : 'search...',
+				'maxHeightWithSearch' : 250
+			});
+
+			$('select.no-search').HUBfancyselect({
+				'showSearch' : false
 			});
 		}
 	}
