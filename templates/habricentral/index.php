@@ -4,15 +4,7 @@ defined( '_JEXEC' ) or die( 'Restricted access' );
 $config = JFactory::getConfig();
 $juser = JFactory::getUser();
 
-//do we want to include jQuery
-if (JPluginHelper::isEnabled('system', 'jquery')) 
-{
-	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.jquery.js');
-} 
-else 
-{
-	$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js');
-}
+$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js?v=' . filemtime(JPATH_ROOT . '/templates/' . $this->template . '/js/hub.js'));
 
 $browser = new \Hubzero\Browser\Detector();
 $b = $browser->name();
@@ -27,9 +19,9 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 <!--[if IE 9 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie9"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
 	<head>
-		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('fontcons', 'reset', 'columns', 'notifications', 'comments', 'voting', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(); ?>" />
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/main.css" />
-		<link rel="stylesheet" type="text/css" media="print" href="<?php echo $this->baseurl ?>/templates/habricentral/css/print.css" />
+		<link rel="stylesheet" type="text/css" media="print"  href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/print.css" />
 
 		<jdoc:include type="head" />
 

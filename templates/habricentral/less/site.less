@@ -8,41 +8,27 @@
 
 // Fonts
 @import "fontcons.less"; // Fontcons defines available icons
+@import "icons.less"; // !! Dependant upon Fontcons.less
+@import "buttons.less";
 
 // Grid system and page structure
 @import "grid.less";
 @import "layout.less";
 
-// Base CSS
-//@import "type.less";
-//@import "code.less";
-//@import "forms.less";
-//@import "tables.less";
-
-// Components: Buttons & Alerts
-//@import "buttons.less";
+// Components: Alerts
 @import "notifications.less";
 
 // Components: Nav
 @import "tabs.less";
-//@import "navbar.less";
 @import "pagination.less";
 
 // Components: Popovers
-//@import "modal.less";
+@import "modal.less";
 @import "tooltip.less";
-//@import "popovers.less";
 
 // Components: Misc
-//@import "introduction.less";
-//@import "tags.less";
 @import "voting.less";
 @import "comments.less";
 
 // Utility classes
 @import "utilities.less"; // Has to be last to override when necessary
-
-//@import "splash.less";
-
-@import "icons.less";
-@import "buttons.less";

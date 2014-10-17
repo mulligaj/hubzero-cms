@@ -12,7 +12,7 @@
 }
 
 #group_options .dropdown-toggle {
-	height: 2.55em !important;
+	height: auto !important;
 }
 
 #group_options .dropdown-menu {
