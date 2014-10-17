@@ -1032,7 +1032,6 @@
 		position: relative;
 		border-left: 8px solid #e9e9e9;
 		padding: 0;
-		margin-left: -29px;
 		margin-bottom: 3em;
 		border-radius: 0;
 	}
@@ -1101,7 +1100,6 @@
 		display: table-cell;
 		vertical-align: top;
 		margin-right: 0;
-		padding-right: 15px;
 	}
 	section.section .subject .contentpaneopen {
 		padding: 0;
@@ -1196,38 +1194,70 @@
 /*---------------------------------------------------------------
 	HUB Forms
 ---------------------------------------------------------------*/
+	/* HUB Forms */
 	#hubForm {
-		padding: 0;
-		margin: 1em 0;
 		position: relative;
 	}
+	/* Side fade */
+	#hubForm small.hubform-before,
+	#hubForm:before {
+		content: "";
+		display: block;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		height: auto;
+		border: 0;
+		_display: none;
+		width: 1px;
+		background-color: #ddd;
+		right: 239px;
+	}
+	#hubForm.login .explaination small.explaination-after,
+	#hubForm.login .explaination:first-child:after {
+		display: none;
+	}
 	#hubForm fieldset {
-		padding: 0 2% 1.75em 18%;
-		border: none;
-		float: left;
-		width: 50%;
-		margin: 0.7em 0;
 		color: #777;
-		background: #F5F7F2;
-		border: 2px solid #DEE4CD;
+		background: #fff;
+		border: 1px solid #e5e5e5;
+		padding: 0 0px 1.75em 0px;
+		margin: 0.7em 270px 1.7em 0;
+	}
+	#hubForm .explaination + fieldset {
+		margin-right: 0px;
 	}
 	#hubForm legend {
+		display: block;
+		float: right;
+		width: 100%;
+		border-bottom: 1px solid #e5e5e5;
+		margin: 0 0 1em 0;
+		padding: 0.8em 2em;
+		*padding: 0.8em 0;
+		*text-indent: 2em;
 		font-weight: bold;
+		background: #666 url("../images/layout/noise.png");
+		text-shadow: 0 -1px 1px #000;
+		color: #ececec;
+		-webkit-box-sizing: border-box;
+		   -moz-box-sizing: border-box;
+		    -ms-box-sizing: border-box;
+		     -o-box-sizing: border-box;
+		        box-sizing: border-box;
 	}
-	#hubForm fieldset fieldset legend {
-		font-weight: normal;
+	#hubForm legend:before,
+	#hubForm legend:after {
+		content: "";
+		display: table;
+		line-height: 0;
 	}
-	#hubForm.full fieldset {
-		padding: 0 2% 1.75em 2%;
-		width: 66%;
-	}
-	#page_content #hubForm.full fieldset {
-		padding: 0 2% 1.75em 18%;;
-		width: 80%;
+	#hubForm legend:after {
+		clear: both;
 	}
 	#hubForm label {
 		display: block;
-		padding-top: 1.5em;
+		padding: 1.5em 2em 0 2em;
 	}
 	#hubForm input, 
 	#hubForm select, 
@@ -1235,17 +1265,35 @@
 		margin-top: 0.25em;
 		width: 100%;
 	}
-	#page_content #hubForm.full fieldset fieldset,
+	#hubForm.full fieldset {
+		margin: 0.7em 0 1.7em 0;
+	}
+	#hubForm.full:before,
+	#hubForm.full:after {
+		display: none;
+	}
 	#hubForm.full fieldset fieldset,
 	#hubForm fieldset fieldset {
-		margin: 1.75em 0 1.75em 0;
-		padding: 0 1em 1.75em 1em;
-		border: 1px solid #DEE4CD;
+		margin: 1.5em 2em;
+		padding: 0 0 1.5em 0;
+		border: 1px solid #e5e5e5;
 		float: none;
 		width: auto;
 	}
 	#hubForm fieldset fieldset label {
 		padding-top: 0.7em;
+	}
+	#hubForm fieldset fieldset legend {
+		float: none;
+		background: #fff;
+		color: #747474;
+		border: none;
+		width: auto;
+		padding: 0 1em;
+		margin: 0 0 0 1em;
+		text-indent: 0;
+		text-shadow: none;
+		font-size: 1em;
 	}
 	#hubForm.full fieldset fieldset fieldset,
 	#hubForm fieldset fieldset fieldset {
@@ -1272,78 +1320,31 @@
 	#hubForm .indent { 
 		margin-left: 1.75em; 
 	}
-	#hubForm .group {
-		position: relative;
-		margin-left: -3em;
-		padding: 0 0 1.5em 5em;
-		overflow: hidden;
-		top: 1.5em;
-		left: 1.5em;
+	#hubForm .field-wrap,
+	#hubForm p {
+		display: block;
+		margin: 1.5em 2em 0 2em;
 	}
-	#hubForm .group label {
-		padding: 0;
-		float: left;
-		width: 50%;
+	#hubForm span.field-wrap,
+	#hubForm label + .field-wrap {
+		margin: 0 2em 0 2em;
 	}
-	#hubForm .group .options label {
+	#hubForm label + input {
+		margin-left: 2em;
+		margin-right: 2em;
+		width: 92.5%;
+	}
+	#hubForm .grid .options label {
 		display: inline;
 		float: none;
 		width: auto;
 	}
-	#hubForm .group label:first-child {
-		margin: 0 2em 0 -3.5em;
+	#hubForm .grid {
+		margin: 0 2em;
 	}
-	#hubForm fieldset .group fieldset {
-		padding: 0;
-		margin: 1.5em 0;
-		float: left;
-		width: 47%;
-		padding-left: 1.5%;
-		padding-right: 1.5%;
-	}
-	#hubForm fieldset .group fieldset:first-child {
-		margin-left: -3.5em;
-		margin-right: 2em;
-	}
-	#hubForm .top label {
-		padding-left: 0%;
-		padding-right: 3%;
-		text-align: right;
-	}
-	#hubForm fieldset .top {
-		padding-top: 1em;
-	}
-	#hubForm .threeup {
-		margin-left: -1.5%;
-		margin-right: -3%;
-		padding: 0 0 1.5em 0;
-		left: 0;
-		margin-top: 0;
-		margin-bottom: 0.5em;
-	}
-	#hubForm .threeup label {
-		padding: 0;
-		float: left;
-		width: 30%;
-		margin-left: 0;
-		margin-right: 0;
-		padding-left: 1.5%;
-		padding-right: 1.5%;
-	}
-	#hubForm .threeup label:first-child {
-		margin-left: 0;
-		margin-right: 0;
-	}
-	#hubForm .group label .error,
-	#hubForm .group label .warning {
-		display: block;
-	}
-	#hubForm .group label.datepickers {
-		margin-bottom: 1.5em;
-	}
-	#hubForm .group label.datepickers input {
-		width: 85%;
-		margin-right: 1em;
+	#hubForm .grid label {
+		padding-left: 0;
+		padding-right: 0;
 	}
 	#hubForm label em {
 		display: block;
@@ -1357,6 +1358,9 @@
 		text-align: center;
 		margin-right: 30%;
 	}
+	#hubForm.full .submit {
+		margin-right: 0;
+	}
 	#hubForm .submit input {
 		display: inline;
 		width: auto;
@@ -1364,27 +1368,27 @@
 	#hubForm .inactive {
 		color: #aa9;
 	}
-	#hubForm legend,
-	#hubForm h3 {
-		position: absolute;
-		padding-top: 1.25em;
-		left: 1em;
-		margin: 0;
-		color: #000;
-		font-size: 1em;
-		line-height: 1.3em;
-		width: 16%;
-	}
-	#hubForm fieldset fieldset legend {
-		position: inherit;
-		width: auto;
-		padding: 0.2em 0.5em;
-		color: inherit;
-	}
 	#hubForm .explaination {
-		position: relative;
 		float: right;
-		width: 28%;
+		min-height: 10px;
+		width: 210px;
+		padding: 10px 0 0 30px;
+		margin: 0 0 0 30px;
+		border-top: 1px solid #ddd;
+		position: relative;
+		border-left: 8px solid #ddd;
+		padding: 10px 0 0 22px;
+	}
+	#hubForm .explaination:after,
+	#hubForm .explaination:after {
+		border: 8px solid #f9f9f9;
+		border-color: transparent transparent transparent #f9f9f9;
+		position: absolute;
+		top: 1.9em;
+		left: -9px;
+		content: "";
+		width: 0;
+		height: 0;
 	}
 	#hubForm .explaination a:hover {
 		color: #222;
@@ -1413,7 +1417,7 @@
 		color: red;
 	}
 	#hubForm .optional {
-		color: #999999;
+		color: #999;
 	}
 	#hubForm .hint {
 		color: #999;
@@ -1422,29 +1426,50 @@
 	#hubForm span.hint {
 		line-height: 2em;
 	}
-	#hubForm .group {
-		background-image: none;
-	}
-	#hubForm .group .hint {
-		margin: 0;
-		padding: 0;
-	}
 	#hubForm .warning,
 	#hubForm .error {
-		margin: 0;
+		margin-top: 0;
+	}
+	#hubForm fieldset .error,
+	#hubForm fieldset .warning,
+	#hubForm fieldset .information,
+	#hubForm fieldset .help {
+		margin: 1em 2em;
+	}
+	#hubForm ul {
+		margin: 1em 2em;
+	}
+	#hubForm ul li {
+		margin-left: 2em;
+	}
+	#hubForm ul li.error {
+		margin-left: 0;
+	}
+	#hubForm span.warning,
+	#hubForm span.information,
+	#hubForm span.help,
+	#hubForm span.error {
+		margin: 0.5em 0 0 0;
+		display: inline-block;
+	}
+	#hubForm .error p,
+	#hubForm .warning p,
+	#hubForm .information p,
+	#hubForm .help p {
+		margin: 1em 0;
 	}
 	#hubForm table {
 		margin: 1em 0;
 		border-top: 2px solid #DEE4CD;
 		border-color: #DEE4CD;
 	}
-	#hubForm td,
-	#hubForm th {
+	#hubForm table td,
+	#hubForm table th {
 		border-color: #DEE4CD;
 	}
 	#hubForm table input,
 	#hubForm table select {
-		width: auto; display: inline;
+		width: auto;
 	}
 	#hubForm fieldset fieldset.fieldsWithErrors,
 	#hubForm .fieldsWithErrors {
@@ -1464,24 +1489,11 @@
 	#hubForm .fieldWithErrors .optional {
 		font-weight: normal;
 	}
-	#hubForm .hide {
-		display: none;
-	}
-	.subject #hubForm {
-		border: 5px solid #fff;
-	}
-	.main .subject #hubForm {
-		border: 5px solid #efefef;
-	}
-	.subject #hubForm fieldset {
-		float: none;
+	#hubForm table input,
+	#hubForm table select {
 		width: auto;
-		margin: 0;
-		padding-bottom: 0;
-		background: #dfdfdf;
-		border-color: #bbb;
-		color: #555;
 	}
+
 	.com_content .subject #hubForm fieldset {
 		margin-bottom: 1em;
 		padding-bottom: 1em;
@@ -1667,28 +1679,6 @@
 	.fourhalf-stars  { background: url("../images/stars/stars.gif") right -360px no-repeat; }
 	.five-stars      { background: url("../images/stars/stars.gif") right -400px no-repeat; }
 
-/*---------------------------------------------------------------
-	Primary Resource file
----------------------------------------------------------------*/
-	#primary-document {
-		margin: 1em 0 1.5em 0;
-	}
-	#primary-document a {
-		margin: 0;
-		padding: 6px 0 0 10px;
-		display: block;
-		width: 204px;
-		height: 26px;
-		border: none;
-		color: #fff;
-		font-weight: bold;
-		background: url("../images/buttons/primary.gif") 0 0 no-repeat;
-	}
-	#primary-document a:hover { 
-		background-position: 0 -32px;
-		color: #fff;
-		border: none;
-	}
 /*---------------------------------------------------------------
 	Tooltips
 ---------------------------------------------------------------*/
