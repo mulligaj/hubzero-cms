@@ -272,7 +272,7 @@ class GeosearchControllerMap extends \Hubzero\Component\SiteController
 			$this->view->MT = new MembersTags($this->database);
 
 			// get RegisterOrganizationType Object
-			$this->view->ROT = new RegisterOrganizationType($this->database);
+			$this->view->ROT = new MembersTableOrganizationType($this->database);
 		}
 		
 		// get jobs

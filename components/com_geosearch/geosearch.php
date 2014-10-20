@@ -49,7 +49,7 @@ require_once( JPATH_ROOT.DS.'components'.DS.'com_events'.DS.'tables'.DS.'event.p
 require_once( JPATH_ROOT.DS.'components'.DS.'com_events'.DS.'helpers'.DS.'tags.php' );
 require_once( JPATH_ROOT.DS.'components'.DS.'com_events'.DS.'helpers'.DS.'date.php' );
 require_once( JPATH_ROOT.DS.'components'.DS.'com_members'.DS.'helpers'.DS.'tags.php' );
-include_once( JPATH_ROOT.DS.'components'.DS.'com_register'.DS.'tables'.DS.'organizationtype.php' );
+include_once( JPATH_ROOT.DS.'administrator'.DS.'components'.DS.'com_members'.DS.'tables'.DS.'organizationtype.php' );
 require_once( JPATH_ROOT.DS.'components'.DS.'com_resources'.DS.'helpers'.DS.'tags.php' );
 
 $controllerName = JRequest::getCmd('controller', 'map');
