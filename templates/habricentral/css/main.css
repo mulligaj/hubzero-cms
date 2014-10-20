@@ -2060,7 +2060,7 @@
 		background-color: #eef0e7;
 	}
 	.entry-search input {
-		background: #fff url("/components/com_kb/assets/img/search.png") 5px 50% no-repeat;
+		background: #fff url("/templates/habricentral/images/search.png") 5px 50% no-repeat;
 		padding: 7px 6px 7px 20px !important;
 		font-size: 1em
 	}
