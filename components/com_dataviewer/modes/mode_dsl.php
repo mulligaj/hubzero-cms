@@ -68,7 +68,7 @@ function get_dd($db_id, $dv_id = false, $version = false)
 	}
 
 	// Access restrictions for unpublished databases
-	if(!isset($dd['publication_state']) || $dd['publication_state'] != 1) {
+	if (!isset($dd['publication_state']) || $dd['publication_state'] != 1) {
 		$sql = "SELECT username FROM #__project_owners po JOIN #__users u ON (u.id = po.userid) WHERE projectid = {$dd['project']}";
 		$db = JFactory::getDBO();
 		$db->setQuery($sql);
@@ -85,7 +85,9 @@ function get_dd($db_id, $dv_id = false, $version = false)
 	/* Dynamically set processing mode */
 	$link = get_db($dv_conf['db']);
 	$cell_count_threshold = isset($dv_conf['proc_switch_threshold']) ? $dv_conf['proc_switch_threshold'] : 20000;
-	$total = mysql_query(query_gen_total($dd), $link);
+	mysql_query(query_gen_total($dd), $link);
+	$total = mysql_query('SELECT FOUND_ROWS() AS total', $link);
+	$total = mysql_fetch_assoc($total);
 	$total = mysql_fetch_assoc($total);
 	$total = isset($total['total']) ? $total['total'] : 0;
 	$dd['total_records'] = $total;
@@ -135,12 +137,12 @@ function _dd_post($dd)
 		// Ordering
 		$order_cols = $dd['cols'];
 		$dd['cols'] = array();
-		foreach($custom_view as $cv_col) {
+		foreach ($custom_view as $cv_col) {
 			$dd['cols'][$cv_col] = $order_cols[$cv_col];
 		}
 
 		// Hiding
-		foreach($order_cols as $id=>$prop) {
+		foreach ($order_cols as $id=>$prop) {
 			if (!in_array($id, $custom_view)) {
 				$dd['cols'][$id] = $prop;
 
@@ -168,7 +170,7 @@ function pathway($dd)
 	if (isset($db_id['extra']) && $db_id['extra'] == 'table') {
 		$ref_title = "Datastore";
 		$pathway->addItem($ref_title, '/datastores/' . $db_id['name'] . '#tables');
-	} elseif(isset($_SERVER['HTTP_REFERER'])) {
+	} elseif (isset($_SERVER['HTTP_REFERER'])) {
 		$ref_title = JRequest::getString('ref_title', $dd['title'] . " Resource");
 		$ref_title = htmlentities($ref_title);
 		$pathway->addItem($ref_title, $_SERVER['HTTP_REFERER']);
