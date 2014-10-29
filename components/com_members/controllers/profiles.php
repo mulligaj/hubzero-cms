@@ -62,8 +62,8 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 		$parts = explode('/', $_SERVER['REQUEST_URI']);
 		$file = array_pop($parts);
 
-		if (substr(strtolower($file), 0, 5) == 'image'
-		 || substr(strtolower($file), 0, 4) == 'file')
+		if (substr(strtolower($file), 0, 6) == 'image:'
+		 || substr(strtolower($file), 0, 5) == 'file:')
 		{
 			$this->setRedirect(
 				JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->_controller . '&task=donwload'), 'server')
@@ -1782,7 +1782,7 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 				array_push($guests, array('ip' => $row->ip, 'idle' => $row->idle));
 			}
 		}
-		
+
 		// Output View
 		$this->view->title = JText::_('Active Users and Guests');
 		$this->view->users = $users;
