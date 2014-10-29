@@ -1124,6 +1124,10 @@ class PublicationsHtml
 					$msg .= JText::_('COM_PUBLICATIONS_STATUS_MSG_WIP');
 					break;
 			}
+			if ($authorized == 'curator')
+			{
+				$msg .= ' '.JText::_('You are viewing this publication as a curator.');
+			}
 			if ($authorized == 3)
 			{
 				$msg .= ' '.JText::_('COM_PUBLICATIONS_PREVIEW_ACCESS');
@@ -1131,6 +1135,10 @@ class PublicationsHtml
 			if ($editlink && ($authorized == 1 || $authorized == 2 || $authorized == 4)) {
 				$msg .= ' <a href="'.$editlink.'">'.JText::_('COM_PUBLICATIONS_STATUS_MSG_MANAGE_PUBLICATION').'</a>.';
 			}
+		}
+		if ($publication->state == 1 && $authorized == 'curator')
+		{
+			return false;
 		}
 		if ($msg)
 		{
@@ -1226,6 +1234,26 @@ class PublicationsHtml
 
 		$html  = '<h2>' . $txt . '</h2>' . "\n";
 		$html  = '<header id="content-header">' . $html . '</header>';
+
+		return $html;
+	}
+
+	/**
+	 * Show pre-defined publication footer (curated)
+	 *
+	 * @param      object  $publication   	Publication object
+	 * @return     string HTML
+	 */
+	public static function footer( $publication, $html = '' )
+	{
+		if (isset($publication->_curationModel))
+		{
+			$params = $publication->_curationModel->_manifest->params;
+			if (isset($params->footer) && $params->footer)
+			{
+				$html = '<div class="pub-footer">' . $params->footer . '</div>';
+			}
+		}
 
 		return $html;
 	}
@@ -1432,7 +1460,7 @@ class PublicationsHtml
 
 		$config = JComponentHelper::getParams( 'com_publications' );
 
-		$html  = '<ol class="resources results">'."\n";
+		$html  = '<ol class="results" id="publications">'."\n";
 		foreach ($lines as $line)
 		{
 			// Get version authors

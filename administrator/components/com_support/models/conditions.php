@@ -128,10 +128,11 @@ class SupportModelConditions extends JObject
 			$this->_value('*', JText::_('(any of mine)'), true)
 		);
 		$juser = JFactory::getUser();
-		if (($xgroups = \Hubzero\User\Helper::getGroups($juser->get('id'), 'members')))
+		if ($xgroups = \Hubzero\User\Helper::getGroups($juser->get('id'), 'members'))
 		{
 			foreach ($xgroups as $xgroup)
 			{
+				$xgroup->description = trim($xgroup->description) ?: $xgroup->cn;
 				$items[] = $this->_value($xgroup->cn, ' &nbsp; ' . stripslashes($this->escape($xgroup->description)), false);
 			}
 		}
@@ -213,8 +214,14 @@ class SupportModelConditions extends JObject
 		$items[] = $this->_value(0, $this->escape('open: New'), true);
 		if (isset($status) && is_array($status))
 		{
+			$switched = false;
 			foreach ($status as $anode)
 			{
+				if (!$anode->open && !$switched)
+				{
+					$items[] = $this->_value(-1, $this->escape('closed: No resolution'), false);
+					$switched = true;
+				}
 				$items[] = $this->_value($anode->id, $this->escape(($anode->open ? 'open: ' : 'closed: ') . stripslashes($anode->title)), false);
 			}
 		}

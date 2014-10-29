@@ -45,8 +45,19 @@ JToolBarHelper::help('group');
 
 JHTML::_('behavior.framework');
 
-$gparams = new JRegistry($this->group->params);
+// are we using the email gateway for group forum
+$params =  JComponentHelper::getParams('com_groups');
+$allowEmailResponses = $params->get('email_comment_processing', 0);
+$autoEmailResponses  = $params->get('email_member_groupsidcussionemail_autosignup', 0);
 
+if ($this->group->get('discussion_email_autosubscribe', null) == 1
+	|| ($this->group->get('discussion_email_autosubscribe', null) == null && $autoEmailResponses))
+{
+	$autoEmailResponses = 1;
+}
+
+// get groups params
+$gparams              = new JRegistry($this->group->params);
 $membership_control   = $gparams->get('membership_control', 1);
 $display_system_users = $gparams->get('display_system_users', 'global');
 ?>
@@ -201,6 +212,22 @@ function submitbutton(pressbutton)
 				</select>
 			</div>
 		</fieldset>
+
+		<?php if ($allowEmailResponses) : ?>
+			<fieldset class="adminform">
+				<legend><span><?php echo JText::_('COM_GROUPS_EMAIL_SETTINGS'); ?></span></legend>
+
+				<fieldset>
+					<legend><?php echo JText::_('COM_GROUPS_DISCUSSION_EMAILS'); ?>:</legend>
+
+					<div class="input-wrap">
+						<input type="hidden" name="group[discussion_email_autosubscribe]" value="0" />
+						<input type="checkbox" name="group[discussion_email_autosubscribe]" id="field-membership_control" value="1" <?php if ($autoEmailResponses == 1) { ?>checked="checked"<?php } ?> />
+						<label for="field-membership_control"><?php echo JText::_('COM_GROUPS_DISCUSSION_EMAIL_AUTOSUBSCRIBE'); ?></label>
+					</div>
+				</fieldset>
+			</fieldset>
+		<?php endif; ?>
 	</div>
 	<div class="clr"></div>
 

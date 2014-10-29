@@ -371,11 +371,6 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 	 */
 	public function browseTask()
 	{
-		// Instantiate a new view
-		$view = new JView( array('name'=>'browse') );
-		$view->option = $this->_option;
-		$view->config = $this->config;
-
 		// Set the default sort
 		$default_sort = 'date';
 		if ($this->config->get('show_ranking'))
@@ -383,32 +378,38 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 			$default_sort = 'ranking';
 		}
 
+		// Get configuration
+		$jconfig = JFactory::getConfig();
+
 		// Incoming
-		$view->filters = array();
-		$view->filters['tag']    		= JRequest::getVar( 'tag', '' );
-		$view->filters['category']   	= JRequest::getVar( 'category', '' );
-		$view->filters['sortby'] 		= JRequest::getVar( 'sortby', $default_sort );
-		$view->filters['limit']  		= JRequest::getInt( 'limit', 25 );
-		$view->filters['start']  		= JRequest::getInt( 'limitstart', 0 );
+		$this->view->filters = array(
+			'category'   	=> JRequest::getVar('category', ''),
+			'sortby' 		=> JRequest::getCmd('sortby', $default_sort),
+			'limit'  		=> JRequest::getInt('limit', $jconfig->getValue('config.list_limit')),
+			'start'  		=> JRequest::getInt('limitstart', 0),
+			'search' 		=> JRequest::getVar('search', ''),
+			'tag'    		=> trim(JRequest::getVar('tag', '', 'request', 'none', 2)),
+			'tag_ignored' 	=> array()
+		);
 
 		// Get projects user has access to
 		if (!$this->juser->get('guest'))
 		{
 			$obj = new Project( $this->database );
-			$view->filters['projects']  = $obj->getUserProjectIds($this->juser->get('id'));
+			$this->view->filters['projects']  = $obj->getUserProjectIds($this->juser->get('id'));
 		}
 
 		// Get major types
 		$t = new PublicationCategory( $this->database );
-		$view->categories = $t->getCategories();
+		$this->view->categories = $t->getCategories();
 
-		if (!is_int($view->filters['category']))
+		if (!is_int($this->view->filters['category']))
 		{
-			foreach ($view->categories as $cat)
+			foreach ($this->view->categories as $cat)
 			{
-				if (trim($view->filters['category']) == $cat->url_alias)
+				if (trim($this->view->filters['category']) == $cat->url_alias)
 				{
-					$view->filters['category'] = $cat->id;
+					$this->view->filters['category'] = $cat->id;
 					break;
 				}
 			}
@@ -418,21 +419,21 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 		$rr = new Publication( $this->database );
 
 		// Execute count query
-		$results = $rr->getCount( $view->filters );
-		$view->total = ($results && is_array($results)) ? count($results) : 0;
+		$results = $rr->getCount( $this->view->filters );
+		$this->view->total = ($results && is_array($results)) ? count($results) : 0;
 
 		// Run query with limit
-		$view->results = $rr->getRecords( $view->filters );
+		$this->view->results = $rr->getRecords( $this->view->filters );
 
 		// Initiate paging
 		jimport('joomla.html.pagination');
-		$view->pageNav = new JPagination( $view->total, $view->filters['start'], $view->filters['limit'] );
+		$this->view->pageNav = new JPagination( $this->view->total, $this->view->filters['start'], $this->view->filters['limit'] );
 
 		// Get type if not given
 		$this->_title = JText::_(strtoupper($this->_option)) . ': ';
-		if ($view->filters['category'] != '')
+		if ($this->view->filters['category'] != '')
 		{
-			$t->load( $view->filters['category'] );
+			$t->load( $this->view->filters['category'] );
 			$this->_title .= $t->name;
 			$this->_task_title = $t->name;
 		}
@@ -442,12 +443,6 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 			$this->_task_title = JText::_('COM_PUBLICATIONS_ALL');
 		}
 
-		// Push some styles to the template
-		$this->_getStyles();
-
-		// Push some scripts to the template
-		$this->_getPublicationScripts();
-
 		// Set page title
 		$this->_buildTitle();
 
@@ -455,12 +450,18 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 		$this->_buildPathway();
 
 		// Output HTML
-		$view->title = $this->_title;
+		$this->view->title = $this->_title;
+		$this->view->config = $this->config;
 		if ($this->getError())
 		{
-			$view->setError( $this->getError() );
+			foreach ($this->getErrors() as $error)
+			{
+				$this->view->setError($error);
+			}
 		}
-		$view->display();
+		$this->view->setName('browse')
+					->setLayout('default')
+					->display();
 	}
 
 	/**
@@ -1217,7 +1218,10 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 		}
 
 		// Check if user has access to content
-		$this->_checkRestrictions($publication, $version);
+		if ($this->_checkRestrictions($publication, $version))
+		{
+			return false;
+		}
 
 		// Use new curation flow?
 		$useBlocks  = $this->config->get('curation', 0);
@@ -1550,7 +1554,10 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 			$this->publication 	= $objP->getPublication($this->_id, $version, NULL, $this->_alias);
 
 			// Check if user has access to content
-			$this->_checkRestrictions($this->publication, $version);
+			if ($this->_checkRestrictions($this->publication, $version))
+			{
+				return false;
+			}
 
 			// Get primary attachment(s)
 			$objPA = new PublicationAttachment( $this->database );
@@ -2688,7 +2695,7 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NOT_FOUND') );
 			$this->introTask();
-			return;
+			return true;
 		}
 
 		// Check if the resource is for logged-in users only and the user is logged-in
@@ -2696,7 +2703,7 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 		{
 			$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NO_ACCESS') );
 			$this->introTask();
-			return;
+			return true;
 		}
 
 		// Check authorization
@@ -2709,19 +2716,19 @@ class PublicationsControllerPublications extends \Hubzero\Component\SiteControll
 			{
 				$this->setError(JText::_('COM_PUBLICATIONS_RESOURCE_NO_ACCESS') );
 				$this->introTask();
-				return;
+				return true;
 			}
 		}
 
 		// Dev version/pending/posted/dark archive resource? Must be project owner
-		if (($version == 'dev' || $publication->state == 4
+		if (($version == 'dev' || $publication->state == 4 || $publication->state == 3
 			|| $publication->state == 5 || $publication->state == 6) && !$authorized)
 		{
 			$this->_blockAccess($publication);
-			return false;
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
 	/**

@@ -1037,6 +1037,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 
 		// Initiate class and bind data to database fields
 		$row = new SupportModelTicket();
+		$row->set('open', 1);
 		$row->set('status', 0);
 		$row->set('created', JFactory::getDate()->toSql());
 		$row->set('login', $reporter['login']);
@@ -1151,6 +1152,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			// Only do the following if a comment was posted
 			// otherwise, we're only recording a changelog
 			$old = new SupportModelTicket();
+			$old->set('open', 1);
 			$old->set('tags', '');
 
 			$rowc = new SupportModelComment();
@@ -1646,8 +1648,8 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		}
 
 		// Save the tags
-		$row->set('tags', JRequest::getVar('tags', '', 'post'));
-		$row->tag($row->get('tags'), $this->juser->get('id'), 1);
+		$row->tag(JRequest::getVar('tags', '', 'post'), $this->juser->get('id'), 1);
+		$row->set('tags', $row->tags('string'));
 
 		// Create a new support comment object and populate it
 		$access = JRequest::getInt('access', 0);

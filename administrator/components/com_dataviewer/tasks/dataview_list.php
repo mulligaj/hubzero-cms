@@ -27,11 +27,11 @@ function dv_dataview_list()
 
 	JToolBarHelper::title($db_conf['name'] . ' >> <small> The list of Dataviews</small>', 'databases');
 
-	if(!$jdb->getErrorMsg()) {
-		JToolBarHelper::custom(false, 'new', 'new', 'New Dataview', false, false);
+	if (!$jdb->getErrorMsg()) {
+		JToolBarHelper::custom('new', 'new', 'new', 'New Dataview', false);
 	}
 
-	JToolBarHelper::custom(false, 'back', 'back', 'Go back', false, false );
+	JToolBarHelper::custom('back', 'back', 'back', 'Go back', false );
 
 	$path = "$base/$db_id/applications/$com_name/datadefinitions/";
 
@@ -62,8 +62,8 @@ function dv_dataview_list()
 ?>
 
 	<script>
-		var com_name = '<?=$com_name?>';
-		var db_back_link = '<?=$back_link?>';
+		var com_name = '<?php echo $com_name; ?>';
+		var db_back_link = '<?php echo $back_link; ?>';
 	</script>
 	<style type="text/css"> .toolbar-box .header:before {content: " ";}</style>
 
@@ -83,7 +83,7 @@ function dv_dataview_list()
 		<tbody>
 <?php
 
-	if(count($files) < 1) {
+	if (count($files) < 1) {
 		print "<h2>No Dataviews available</h2>";
 	} else {
 
@@ -141,23 +141,23 @@ function dv_dataview_list()
 ?>
 
 	<!-- Remove Table form -->
-	<form id="db-dd-remove-frm" method="post" action="/administrator/index.php?option=com_<?=$com_name?>&task=data_definition_remove" style="display: none;">
-			<input name="<?=DB_RID?>" type="hidden" value="<?=DB_RID?>" />
-			<input name="db" type="hidden" value="<?=$db_id?>" />
+	<form id="db-dd-remove-frm" method="post" action="/administrator/index.php?option=com_<?php echo $com_name; ?>&task=data_definition_remove" style="display: none;">
+			<input name="<?php echo DB_RID; ?>" type="hidden" value="<?php echo DB_RID; ?>" />
+			<input name="db" type="hidden" value="<?php echo $db_id; ?>" />
 			<input name="dd_name" type="hidden">
 	</form>
 
 
 
-	<div id="db-dd-new" style="display: none;" title="<?=$db_conf['name']?> Database : Add new Dataview">
-		<form method="post" action="/administrator/index.php?option=com_<?=$com_name?>&task=data_definition_new">
-			<input name="<?=DB_RID?>" type="hidden" value="<?=DB_RID?>" />
-			<input name="db" type="hidden" value="<?=$db_id?>" />
+	<div id="db-dd-new" style="display: none;" title="<?php echo $db_conf['name']; ?> Database : Add new Dataview">
+		<form method="post" action="/administrator/index.php?option=com_<?php echo $com_name; ?>&task=data_definition_new">
+			<input name="<?php echo DB_RID; ?>" type="hidden" value="<?php echo DB_RID; ?>" />
+			<input name="db" type="hidden" value="<?php echo $db_id; ?>" />
 			<label for="table">Select Table:</label>
 			<br />
 			<select name="table" id="table">
 			<?php
-				foreach($list as $table) {
+				foreach ($list as $table) {
 					print '<option value="' . $table['TABLE_NAME'] . '">' . $table['TABLE_NAME'] . '</option>';
 				}
 			?>
