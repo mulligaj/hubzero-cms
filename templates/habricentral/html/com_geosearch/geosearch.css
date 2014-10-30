@@ -1,0 +1,15 @@
+@import url("/components/com_geosearch/assets/css/geosearch.css");
+
+.aside fieldset {
+	background: none;
+	
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	-ms-box-shadow: none;
+	-o-box-shadow: none;
+	box-shadow: none;
+}
+
+.aside .container ul.token-input-list-act {
+	border: 1px solid #D9D9D9;
+}
