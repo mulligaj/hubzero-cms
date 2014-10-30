@@ -133,3 +133,13 @@ section.upperpane .subject, .upperpane .subject {
 .resource-content ul.badges li:first-child {
 	margin: 0;
 }
+
+#primary-document {
+	text-align: right;
+}
+
+#primary-document .btn {
+	display: inline-block;
+	padding: 1.25em 2em;
+	min-width: 50%;
+}	
