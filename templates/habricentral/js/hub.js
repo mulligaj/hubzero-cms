@@ -176,6 +176,62 @@ jQuery(document).ready(function(jq){
 		e.preventDefault();	
 	});
 
+	//
+	$('a.play').fancybox({
+		type: 'ajax',
+		width: '100%',
+		height: '100%',
+		autoSize: false,
+		fitToView: false,
+		beforeLoad: function() {
+			href = $(this).attr('href');
+			if (href.indexOf('?') == -1) {
+				href += '?no_html=1';
+			} else {
+				href += '&no_html=1';
+			}
+			$(this).attr('href', href);
+
+			if (this.element.attr('class')) {
+				var sizeString = this.element.attr('class').split(' ').pop();
+				if (sizeString && sizeString.match(/\d+x\d+/i)) {
+					var sizeTokens = sizeString.split('x');
+					if (parseInt(sizeTokens[0])) {
+						this.width  = parseInt(sizeTokens[0]);// - 20;
+					}
+					if (parseInt(sizeTokens[1])) {
+						this.height = parseInt(sizeTokens[1]);// - 60;
+					}
+				}
+			}
+		},
+		afterShow: function() {
+			var iframe = $(".fancybox-inner").find("iframe");
+			if (iframe.attr('src').indexOf('docs.google.com') != -1)
+			{
+				$(".fancybox-inner").prepend("<div id=\"sbox-window-cover\"></div>");
+				$(".fancybox-inner").find("iframe").css("height", "99%"); //iframe being same height of lightbox causes scrollbar to appear
+			}
+			else if (iframe.attr('src').indexOf('/templates/habricentral/viewer/') != -1)
+			{
+				this.width = '100%';
+				this.height = '100%';
+				$.fancybox.update();
+			}
+		}
+	});
+
+	// change BBB text to "find this Text"
+	var bbb = $('#primary-document');
+	if (bbb.length)
+	{
+		var url = bbb.find('a').attr('href');
+		if (url.match(/\/findthistext/i))
+		{
+			bbb.find('a').html('Find this Text');
+		}
+	}
+
 	$(window).resize(function() {
 		if (!template.mobileNav) {
 			return;
