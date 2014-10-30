@@ -32,6 +32,7 @@ namespace Hubzero\Console\Command;
 
 use Hubzero\Console\Output;
 use Hubzero\Console\Arguments;
+use Hubzero\Console\Config;
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
@@ -39,16 +40,26 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Help class for rendering utility-wide help documentation
  **/
-class Configure extends Base implements CommandInterface
+class Configuration extends Base implements CommandInterface
 {
 	/**
 	 * Default (required) command
+	 *
+	 * @return void
+	 **/
+	public function execute()
+	{
+		$this->set();
+	}
+
+	/**
+	 * Sets a configuration option
 	 *
 	 * Sets/updates config vars, creating .muse config file as needed
 	 *
 	 * @return void
 	 **/
-	public function execute()
+	public function set()
 	{
 		$options = $this->arguments->getOpts();
 
@@ -81,7 +92,7 @@ class Configure extends Base implements CommandInterface
 			}
 		}
 
-		if ($this->save($options))
+		if (Config::save($options))
 		{
 			$this->output->addLine('Saved new configuration!', 'success');
 		}
@@ -92,7 +103,7 @@ class Configure extends Base implements CommandInterface
 	}
 
 	/**
-	 * Show help text for configure command
+	 * Shows help text for configure command
 	 *
 	 * @return void
 	 **/
@@ -115,46 +126,5 @@ class Configure extends Base implements CommandInterface
 				'Set your preferred email address.',
 				'Example: --name=john.doe@gmail.com'
 			);
-	}
-
-	/**
-	 * Save config vars
-	 *
-	 * @param  (array) $config - array of vars to save
-	 * @return void
-	 **/
-	private function save($config)
-	{
-		if (count($config) == 0)
-		{
-			return true;
-		}
-
-		$home = getenv('HOME');
-		$path = $home . DS . '.muse';
-
-		// If configuration file already exists, combine incoming with current
-		if (is_file($path))
-		{
-			$currentConfig = parse_ini_file($path);
-			$config = array_merge($currentConfig, $config);
-		}
-
-		// Bulid ini format file contents
-		$contents = '';
-		foreach ($config as $k => $v)
-		{
-			$contents .= "{$k} = $v\n";
-		}
-
-		// Put contents
-		if (file_put_contents($path, $contents) !== false)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
 	}
 }
