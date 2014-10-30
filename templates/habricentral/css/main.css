@@ -2055,6 +2055,9 @@
 		border-color: #f4f4f4;
 		background-color: #f4f4f4;
 	}
+	.container-block {
+		padding: 0 15px;
+	}
 	.data-entry {
 		border-color: #eef0e7;
 		background-color: #eef0e7;
