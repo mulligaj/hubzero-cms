@@ -513,7 +513,7 @@
 	}
 	#nav ul.menu {
 		position: relative;
-		z-index: 597;
+		z-index: 9999;
 		float: left;
 	}
 	#nav ul.menu li {
