@@ -585,6 +585,72 @@ class Base
 	}
 
 	/**
+	 * Standardize a plugin entry name
+	 *
+	 * @param $folder  - (string) plugin folder
+	 * @param $element - (string) plugin element
+	 * @return bool
+	 **/
+	public function normalizePluginEntry($folder, $element)
+	{
+		if ($this->baseDb->tableExists('#__plugins'))
+		{
+			$folder  = strtolower($folder);
+			$element = strtolower($element);
+			$name    = ucfirst($folder) . ' - ' . ucfirst($element);
+
+			return $this->renamePluginEntry($folder, $element, $name);
+		}
+		else if ($this->baseDb->tableExists('#__extensions'))
+		{
+			$folder  = strtolower($folder);
+			$element = strtolower($element);
+			$name    = 'plg_' . $folder . '_' . $element;
+
+			return $this->renamePluginEntry($folder, $element, $name);
+		}
+	}
+
+	/**
+	 * Rename a plugin entry in the appropriate table, depending on the Joomla version
+	 *
+	 * @param $folder  - (string) plugin folder
+	 * @param $element - (string) plugin element
+	 * @param $name    - (string) the new plugin name
+	 * @return bool
+	 **/
+	public function renamePluginEntry($folder, $element, $name)
+	{
+		if ($this->baseDb->tableExists('#__plugins'))
+		{
+			$table = '#__plugins';
+			$pk    = 'id';
+		}
+		else if ($this->baseDb->tableExists('#__extensions'))
+		{
+			$table = '#__extensions';
+			$pk    = 'extension_id';
+		}
+		else
+		{
+			return false;
+		}
+
+		$folder  = strtolower($folder);
+		$element = strtolower($element);
+
+		// First, make sure the plugin exists
+		$query = "SELECT `{$pk}` FROM `{$table}` WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
+		$this->baseDb->setQuery($query);
+		if ($id = $this->baseDb->loadResult())
+		{
+			$query = "UPDATE `{$table}` SET `name` = " . $this->baseDb->quote($name) . " WHERE `{$pk}` = " . $this->baseDb->quote($id);
+			$this->baseDb->setQuery($query);
+			$this->baseDb->query();
+		}
+	}
+
+	/**
 	 * Save plugin params
 	 *
 	 * @param $folder  - (string) plugin folder
@@ -834,6 +900,48 @@ class Base
 	public function installTemplate($element, $name=null, $client=1, $styles=NULL)
 	{
 		$this->addTemplateEntry($element, $name, $client, 1, 1, $styles);
+	}
+
+	/**
+	 * Sets the asset rules
+	 *
+	 * @param  string $element the element to which the rules apply
+	 * @param  array  $rules the incoming rules to set
+	 * @return void
+	 **/
+	public function setAssetRules($element, $rules)
+	{
+		if ($this->baseDb->tableExists('#__assets'))
+		{
+			$asset = \JTable::getInstance('Asset');
+			if (!$asset->loadByName($element))
+			{
+				return false;
+			}
+
+			// Loop through and map textual groups to ids (if applicable)
+			{
+				foreach ($rules as $idx => $rule)
+				{
+					foreach ($rule as $group => $value)
+					{
+						if (!is_numeric($group))
+						{
+							$query = "SELECT `id` FROM `#__usergroups` WHERE `title` = " . $this->baseDb->quote($group);
+							$this->baseDb->setQuery($query);
+							if ($id = $this->baseDb->loadResult())
+							{
+								unset($rules[$idx][$group]);
+								$rules[$idx][$id] = $value;
+							}
+						}
+					}
+				}
+			}
+
+			$asset->rules = json_encode($rules);
+			$asset->store();
+		}
 	}
 
 	/**

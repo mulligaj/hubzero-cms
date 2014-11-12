@@ -518,8 +518,17 @@ class Ldap
 		$ldap_params = \JComponentHelper::getParams('com_system');
 		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn','');
 
-		$dn = "cn=" . $dbinfo['cn'] . ",ou=groups," . $hubLDAPBaseDN;
-		$filter = '(objectclass=*)';
+		if (isset($dbinfo['gidNumber']) || (is_numeric($group) && $group >= 0))
+		{
+			$dn = 'ou=groups,' . $hubLDAPBaseDN;
+			$filter = '(gidNumber=' . ((isset($dbinfo['gidNumber'])) ? $dbinfo['gidNumber'] : $group) . ')';
+		}
+		else
+		{
+			$dn = "cn=" . $group . ",ou=groups," . $hubLDAPBaseDN;
+			$filter = '(objectclass=*)';
+		}
+
 		$reqattr = array('gidNumber','cn','description','memberUid');
 
 		$entry = ldap_search($conn, $dn, $filter, $reqattr, 0, 1, 0);
@@ -644,13 +653,43 @@ class Ldap
 			}
 		}
 
-		$dn = "cn=" . $dbinfo['cn'] . ",ou=groups," . $hubLDAPBaseDN;
 		if (empty($entry))
 		{
 			++self::$success['unchanged'];
 			return true;
 		}
 
+		$dn = "cn=" . $ldapinfo['cn'] . ",ou=groups," . $hubLDAPBaseDN;
+
+		// See if we're changing cn...if so, we need to do a rename
+		if (array_key_exists('cn', $entry))
+		{
+			$result = ldap_rename($conn, $dn, 'cn='.$entry['cn'], 'ou=groups,'.$hubLDAPBaseDN, true);
+
+			// Set aside new uid and unset from attributes needing to be changed
+			$newCn = $entry['cn'];
+			unset($entry['cn']);
+
+			// See if we have any items left
+			if (empty($entry))
+			{
+				if ($result !== true)
+				{
+					self::$errors['warning'][] = ldap_error($conn);
+					return false;
+				}
+				else
+				{
+					++self::$success['modified'];
+					return true;
+				}
+			}
+
+			// Build new dn
+			$dn = "cn=" . $newCn . ",ou=groups," . $hubLDAPBaseDN;
+		}
+
+		// Now do the modify
 		$result = ldap_modify($conn, $dn, $entry);
 
 		if ($result !== true)
@@ -1001,7 +1040,11 @@ class Ldap
 
 			if ($result !== true)
 			{
-				self::$errors['warning'][] = ldap_error($conn);
+				// Don't report errors for "not such object" warnings
+				if (ldap_errno($conn) != 32)
+				{
+					self::$errors['warning'][] = ldap_error($conn);
+				}
 			}
 			else
 			{
@@ -1013,7 +1056,7 @@ class Ldap
 		$dn = "ou=groups," . $hubLDAPBaseDN;
 		$filter = '(&(objectclass=posixGroup)(gidNumber>=1000))';
 
-		$sr = ldap_search($conn, $dn, $filter, array('gid'), 0, 0, 0);
+		$sr = ldap_search($conn, $dn, $filter, array('cn'), 0, 0, 0);
 
 		$gids = array();
 
@@ -1025,9 +1068,9 @@ class Ldap
 
 				while ($entry !== false)
 				{
-					$attr = ldap_get_attributes($conn, $firstentry);
+					$attr = ldap_get_attributes($conn, $entry);
 
-					$gids[] = $attr['gid'][0];
+					$gids[] = $attr['cn'][0];
 
 					$entry = ldap_next_entry($conn, $entry);
 				}
@@ -1036,7 +1079,7 @@ class Ldap
 
 		foreach ($gids as $gid)
 		{
-			$dn = "gid=$gid," . "ou=groups," . $hubLDAPBaseDN;
+			$dn = "cn=$gid," . "ou=groups," . $hubLDAPBaseDN;
 			$result = ldap_delete($conn, $dn);
 
 			if ($result !== true)
