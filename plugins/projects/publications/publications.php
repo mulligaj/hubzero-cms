@@ -721,7 +721,7 @@ class plgProjectsPublications extends JPlugin
 		$mt   = new PublicationMasterType( $this->_database );
 
 		// Check that version exists
-		$version = $objV->checkVersion($pid, $version) ? $version : 'default';
+		$version = $objV->checkVersion($pid, $version) ? $version : 'dev';
 
 		// Instantiate project publication
 		$pub 	 		= $objP->getPublication($pid, $version, $this->_project->id);
@@ -2582,6 +2582,8 @@ class plgProjectsPublications extends JPlugin
 				$new->submitted 	= NULL;
 				$new->reviewed 		= NULL;
 				$new->reviewed_by   = 0;
+				$new->curation		= NULL; // Curation manifest needs to reflect any new requirements
+				$new->params		= NULL; // Accept fresh configs
 
 				if ($new->store())
 				{
@@ -4913,8 +4915,9 @@ class plgProjectsPublications extends JPlugin
 		$move 	= JRequest::getInt('move', 0);
 		$item 	= urldecode(JRequest::getVar( 'item', '' ));
 
-		$type = strtolower(array_shift(explode('::', $item)));
-		$item = array_pop(explode('::', $item));
+		$parts = explode('::', $item);
+		$type = strtolower(array_shift($parts));
+		$item = array_pop($parts);
 		$hash = '';
 
 		if (!$type || !$item)
