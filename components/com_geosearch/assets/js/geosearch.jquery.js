@@ -227,7 +227,7 @@ HUB.Geosearch = {
 			if (type == "member") 
 			{
 				html += "<div class='member-img'><img src='"+photo+"' /></div>";
-				//var plink = "/index.php?option=com_members&id="+uid;
+				var plink = "/members/"+uid;
 			} 
 			else 
 			{
