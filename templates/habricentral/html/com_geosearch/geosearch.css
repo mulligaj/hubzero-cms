@@ -11,5 +11,39 @@
 }
 
 .aside .container ul.token-input-list-act {
-	border: 1px solid #D9D9D9;
+	height: auto !important;
+	border: 1px solid #999;
+	cursor: text;
+	font-size: 12px;
+	font-family: Verdana;
+	min-height: 1px;
+	z-index: 999;
+	margin: 0 !important;
+	padding: 0;
+}
+
+.aside .container ul.token-input-list-act li {
+	padding: 1px 3px;
+}
+
+.aside .container ul.token-input-list-act li.token-input-input-token-act {
+	border: none;
+	padding: 0;
+}
+
+.aside .container ul.token-input-list-act li:first-child {
+	border-top: 1px solid #DFD5AF;
+}
+
+.aside .container ul.token-input-list-act li.token-input-input-token-act:first-child {
+	border-top: none;	
+}
+
+.aside fieldset label.fieldset {
+	margin: 1em 0 0.1em 0;
+	padding: 0;
+}
+
+.aside fieldset legend + label.fieldset {
+	margin-top: 0.2em;
 }

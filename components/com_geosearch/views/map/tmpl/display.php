@@ -206,13 +206,13 @@ $doc->addScriptDeclaration($js);
             
             <fieldset>
             	<legend><?php echo JText::_('COM_GEOSEARCH_LIM_LOC'); ?></legend>
-                Within:<br />
+                <label class="fieldset">Within:</label>
                 <input type="text" name="distance" id="idist" value="<?php echo $this->distance; ?>" />
                 <select name="dist_units">
                 	<option value="mi">Miles</option>
                     <option value="km" <?php if ($this->unit == 'km') echo 'selected="selected"'; ?>>Kilometers</option>
-                </select><br />
-                of:<br />
+                </select>
+                <label class="fieldset">of:</label>
                 <input type="text" name="location" id="iloc" value="<?php if ($this->location != "") echo $this->location; ?>" <?php if ($this->location == "") echo "placeholder=\"place, address, or zip\""; ?>/>
             </fieldset>
             
