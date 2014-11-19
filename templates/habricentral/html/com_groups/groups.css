@@ -19,3 +19,11 @@
 	font-size: 12px;
 	line-height: 18px;
 }
+
+#page_header .tags {
+	margin: 30px 0 0 0 !important;
+}
+
+#group_options .manager > a {
+	color: #FFF;
+}
