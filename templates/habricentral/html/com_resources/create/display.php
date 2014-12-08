@@ -50,28 +50,34 @@ if (!$juser->get('guest')) {
 	$database->setQuery($query);
 	$submissions = $database->loadObjectList();
 }
+
+$this->css('introduction.css', 'system')
+     ->css('create.css');
+	 
 ?>
 <div id="content-header" class="full">
 	<h2><?php echo $this->title; ?></h2>
 </div><!-- / #content-header -->
 
-<div id="introduction" class="contribute section">
-	<div class="aside">
-		<p id="getstarted"><a href="<?php echo JRoute::_('index.php?option='.$option.'&task=draft'); ?>">Get Started &rsaquo;</a></p>
-	</div><!-- / .aside -->
-	<div class="subject">
-		<div class="two columns first">
-			<h3>Present your work!</h3>
+<section id="introduction" class="contribute section">
+	<div class="grid">
+		<div class="col span9">
+			<div class="col span6">
+				<h3>Present your work!</h3>
 			<p>Upload your work to the HABRI Central repository to share your contributions with the entire human-animal bond community.</p>
-		</div>
-		<div class="two columns second">
-			<h3>What do I need?</h3>
+			</div>
+			<div class="col span6 omega">
+				<h3>What do I need?</h3>
 			<p>To submit your work, all you need are the original file(s) and some basic information about them; we will guide you through the rest of the process.</p>
+			</div>
 		</div>
-		<div class="clear"></div>
-	</div><!-- / .subject -->
-	<div class="clear"></div>
-</div><!-- / #introduction.section -->
+		<div class="col span3 omega">
+			<p id="getstarted">
+				<a class="btn btn-primary" href="<?php echo JRoute::_('index.php?option='.$option.'&task=draft'); ?>">Get Started ›</a>
+			</p>
+		</div><!-- / .aside -->
+	</div>
+</section>
 
 <div class="section">
 
@@ -115,20 +121,20 @@ if (!$juser->get('guest')) {
 				$tags = $rt->getTags( $submission->id );
 ?>
 				<tr class="<?php echo $cls; ?>">
-					<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=1&id='.$submission->id); ?>"><?php } ?><?php echo stripslashes($submission->title); ?><?php if ($submission->published == 2) { ?></a><?php } ?><br /><span class="type"><?php echo stripslashes($submission->typetitle); ?></span></td>
-					<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=2&id='.$submission->id); ?>"><?php } ?><?php echo $attachments; ?> attachment(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
-					<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=3&id='.$submission->id); ?>"><?php } ?><?php echo $authors; ?> author(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
-					<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=4&id='.$submission->id); ?>"><?php } ?><?php echo count($tags); ?> tag(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
-					<td>
-						<span class="<?php echo $state; ?> status"><?php echo $state; ?></span>
-						<?php if ($submission->published == 2) { ?>
-						<br /><a class="review" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=5&id='.$submission->id); ?>"><?php echo JText::_('Review &amp; Submit &rsaquo;'); ?></a>
-						<?php } elseif ($submission->published == 3) { ?>
-						<br /><a class="retract" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=retract&id='.$submission->id); ?>"><?php echo JText::_('&lsaquo; Retract'); ?></a>
-						<?php } ?>
-					</td>
-					<td><a class="delete" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=discard&id='.$submission->id); ?>" title="<?php echo JText::_('Delete'); ?>"><?php echo JText::_('Delete'); ?></a></td>
-				</tr>
+						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=1&id='.$submission->id); ?>"><?php } ?><?php echo stripslashes($submission->title); ?><?php if ($submission->published == 2) { ?></a><?php } ?><br /><span class="type"><?php echo stripslashes($submission->typetitle); ?></span></td>
+						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=2&id='.$submission->id); ?>"><?php } ?><?php echo $attachments; ?> attachment(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
+						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=3&id='.$submission->id); ?>"><?php } ?><?php echo $authors; ?> author(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
+						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=4&id='.$submission->id); ?>"><?php } ?><?php echo count($tags); ?> tag(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
+						<td>
+							<span class="<?php echo $state; ?> status"><?php echo $state; ?></span>
+							<?php if ($submission->published == 2) { ?>
+							<br /><a class="review" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=5&id='.$submission->id); ?>"><?php echo JText::_('Review &amp; Submit &rsaquo;'); ?></a>
+							<?php } elseif ($submission->published == 3) { ?>
+							<br /><a class="retract" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=retract&id='.$submission->id); ?>"><?php echo JText::_('&lsaquo; Retract'); ?></a>
+							<?php } ?>
+						</td>
+						<td><a class="icon-delete" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=discard&id='.$submission->id); ?>" title="<?php echo JText::_('Delete'); ?>"><?php echo JText::_('Delete'); ?></a></td>
+					</tr>
 <?php
 			}
 ?>

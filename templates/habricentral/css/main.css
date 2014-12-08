@@ -1165,20 +1165,25 @@
 	.columns .search label {
 		display: none;
 	}
-	.columns .audio { padding-left: 23px; background: url("../images/home/fc-podcast.gif") 0 0em no-repeat; }
-	.columns .booksection { padding-left: 23px; background: url("../images/home/fc-wiki.gif") 0 0em no-repeat; }
+	.columns .audio, .columns .audi { padding-left: 23px; background: url("../images/home/fc-podcast.gif") 0 0em no-repeat; }
+	.columns .booksection, .columns .booksectio { padding-left: 23px; background: url("../images/home/fc-wiki.gif") 0 0em no-repeat; }
 	.columns .booksbooksection { padding-left: 23px; background: url("../images/home/fc-wiki.gif") 0 0em no-repeat; }
 	.columns .conferenceproceeding { padding-left: 23px; background: url("../images/home/fc-teachingmaterial.gif") 0 0em no-repeat; }
-	.columns .conferencepapersproceeding { padding-left: 23px; background: url("../images/home/fc-series.gif") 0 0em no-repeat; }
+	.columns .conferencepapersproceeding, .columns .conferencepaper { padding-left: 23px; background: url("../images/home/fc-series.gif") 0 0em no-repeat; }
 	.columns .governmentdocument { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; }  
 	.columns .journalarticle { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; }
-	.columns .magazinenewspaperarticle { padding-left: 23px; background: url("../images/home/fc-note.gif") 0 0em no-repeat; }
+	.columns .magazinenewspaperarticle, .columns .newspaperarticle { padding-left: 23px; background: url("../images/home/fc-note.gif") 0 0em no-repeat; }
 	.columns .miscellaneou { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; } 
 	.columns .pamphlet { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; } 
 	.columns .poster { padding-left: 23px; background: url("../images/home/fc-teachingmaterial.gif") 0 0em no-repeat; }
 	.columns .report { padding-left: 23px; background: url("../images/home/fc-series.gif") 0 0em no-repeat; }
 	.columns .these { padding-left: 23px; background: url("../images/home/fc-workshop.gif") 0 0em no-repeat; } 
 	.columns .video { padding-left: 23px; background: url("../images/home/fc-tv.gif") 0 0em no-repeat; } 
+	
+	.columns .organization { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; }
+	.columns .magazinearticl { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; } 
+	.columns .softliteraturenarrativ { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; } 
+	.columns .website { padding-left: 23px; background: url("../images/home/fc-publication.gif") 0 0em no-repeat; } 
 
 /*---------------------------------------------------------------
 	Sub menu
