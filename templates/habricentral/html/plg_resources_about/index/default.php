@@ -31,6 +31,8 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
+$this->css();
+
 $sef = JRoute::_('index.php?option=' . $this->option . '&id=' . $this->model->resource->id);
 
 // Collect data for coins
@@ -278,6 +280,22 @@ if ($this->model->params->get('show_assocs')) {
 	}
 }
 ?>
+			<?php
+				$tagger = new ResourcesTags($this->database);
+				$allTags = $tagger->getTags($this->model->resource->id, 0, 0, 1);
+				$badges = array_filter($allTags, function($tag)
+				{
+					return ($tag->admin == 1 && $tag->label == 'badge');
+				});
+			?>
+			<?php if (count($badges) > 0) : ?>
+				<tr>
+					<th>Badges</th>
+					<td class="badges-list">
+						<?php echo $tagger->buildCloud($badges); ?>
+					</td>
+				</tr>
+			<?php endif; ?>
 		</tbody>
 	</table><!-- / .resource -->
 </div><!-- / .subject -->

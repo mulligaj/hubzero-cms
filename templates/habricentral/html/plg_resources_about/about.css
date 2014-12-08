@@ -16,3 +16,8 @@
 	width: 120px;
 	word-wrap: break-word;
 }
+.badges-list .tags  a {
+	border: 1px solid #634024 !important;
+	background: #8e6e59 !important;
+	color: #FFF !important;
+}
