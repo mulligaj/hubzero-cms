@@ -2,7 +2,14 @@
  Geosearch
  */
 .geosearch fieldset legend { 
-	display:block !important; 
+	display:block !important;
+	margin: 0 0.5em;
+	padding: 0 1em 0 0.1em;
+}
+.geosearch fieldset {
+	border: 1px solid #ddd;
+	margin: 1em 0;
+	padding: 0.5em 1em 1em 1em;
 }
 .key {
 	float:right;
