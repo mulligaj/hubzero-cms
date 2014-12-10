@@ -592,13 +592,16 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 
 			// Message people watching this ticket, 
 			// but ONLY if the comment was NOT marked private
-			if (!$rowc->isPrivate())
+			$this->acl = SupportACL::getACL();
+			foreach ($row->watchers() as $watcher)
 			{
-				foreach ($row->watchers() as $watcher)
+				$this->acl->setUser($watcher->user_id);
+				if (!$rowc->isPrivate() || ($rowc->isPrivate() && $this->acl->check('read', 'private_comments')))
 				{
 					$rowc->addTo($watcher->user_id, 'watcher');
 				}
 			}
+			$this->acl->setUser($this->juser->get('id'));
 
 			if (count($rowc->to()))
 			{
@@ -658,6 +661,12 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 					{
 						$this->setError(JText::sprintf('COM_SUPPORT_ERROR_FAILED_TO_MESSAGE', $to['name'] . '(' . $to['role'] . ')'));
 					}
+
+					// Watching should be anonymous
+					if ($to['role'] == 'watcher')
+					{
+						continue;
+					}
 					$rowc->changelog()->notified(
 						$to['role'],
 						$to['name'],
@@ -685,6 +694,11 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 						SupportUtilities::sendEmail($to['email'], $subject, $message, $from);
 					}
 
+					// Watching should be anonymous
+					if ($to['role'] == 'watcher')
+					{
+						continue;
+					}
 					$rowc->changelog()->notified(
 						$to['role'],
 						$to['name'],
