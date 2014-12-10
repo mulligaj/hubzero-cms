@@ -41,6 +41,9 @@ function get_dd($db_id, $dv_id = false, $version = false)
 	$name = $dv_id;
 
 
+	// Curators
+	$curator_groups = array();
+
 	if (!$version) {
 		$sql = 'SELECT data_definition FROM #__project_databases WHERE `database_name` = ' . $db->quote($name);
 		$db->setQuery($sql);
@@ -58,22 +61,56 @@ function get_dd($db_id, $dv_id = false, $version = false)
 			'LEFT JOIN #__publication_attachments ON ' .
 				'(#__publication_versions.publication_id=#__publication_attachments.publication_id '.
 				'AND #__publication_versions.id=#__publication_attachments.publication_version_id) '.
-			'WHERE object_name=' . $db->quote($name);
+			'WHERE object_name=' . $db->quote($name) . 'AND object_revision=' . $db->quote($version);
 
 		$db->setQuery($sql);
 		$state = $db->loadResult();
 
+		$dd['version'] = $version;
 		$dd['publication_state'] = $state;
 
+
+		if ($state != 1) {
+			// curator groups
+			$curation_enabled = JComponentHelper::getParams('com_publications')->get('curation');
+
+			$curator_group = trim(JComponentHelper::getParams('com_publications')->get('curatorgroup'));
+
+			if ($curation_enabled && $curator_group != '') {
+				$curator_groups[] = $curator_group;
+			}
+
+			$sql = "SELECT cn FROM #__xgroups g LEFT JOIN #__publication_master_types t ON (g.gidNumber = t.curatorgroup) WHERE t.type = 'Databases'";
+			$db = JFactory::getDBO();
+			$db->setQuery($sql);
+			$dsl_curators = $db->loadResult();
+
+			if ($curation_enabled && $dsl_curators != '') {
+				$curator_groups[] = $dsl_curators;
+			}
+		}
 	}
 
-	// Access restrictions for unpublished databases
+
+	// Access control
 	if (!isset($dd['publication_state']) || $dd['publication_state'] != 1) {
+
+		// Project owners
 		$sql = "SELECT username FROM #__project_owners po JOIN #__users u ON (u.id = po.userid) WHERE projectid = {$dd['project']}";
 		$db = JFactory::getDBO();
 		$db->setQuery($sql);
 		$dd['acl']['allowed_users'] = $db->loadResultArray();
+
+		// Curators
+		if (isset($dd['publication_state'])) {
+			$dd['acl']['allowed_groups'] = $curator_groups;
+		}
+	} elseif (isset($dd['publication_state']) && $dd['publication_state'] == 1) {
+		$dd['acl']['allowed_users'] = false;
+		$dd['acl']['allowed_groups'] = false;
+		$dd['acl']['public'] = true;
 	}
+
 
 	$dv_conf['db']['database'] = $dd['database'];
 
@@ -84,7 +121,7 @@ function get_dd($db_id, $dv_id = false, $version = false)
 
 	/* Dynamically set processing mode */
 	$link = get_db($dv_conf['db']);
-	$cell_count_threshold = isset($dv_conf['proc_switch_threshold']) ? $dv_conf['proc_switch_threshold'] : 20000;
+	$cell_count_threshold = (isset($dv_conf['proc_switch_threshold']) && $dv_conf['proc_switch_threshold']) != 0 ? $dv_conf['proc_switch_threshold'] : 20000;
 	mysql_query(query_gen_total($dd), $link);
 	$total = mysql_query('SELECT FOUND_ROWS() AS total', $link);
 	$total = mysql_fetch_assoc($total);

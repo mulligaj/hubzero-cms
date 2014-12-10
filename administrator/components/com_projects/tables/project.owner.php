@@ -679,7 +679,7 @@ class ProjectOwner extends JTable
 		{
 			$query.= " LIMIT " . $limitstart . ", " . $limit;
 		}
-		
+
 		$this->_db->setQuery( $query );
 		$owners = $this->_db->loadObjectList();
 
@@ -888,8 +888,9 @@ class ProjectOwner extends JTable
 				$group = \Hubzero\User\Group::getInstance( $cn );
 			}
 			$members  = $this->getIds ( $alias, $role = '0', 1 );
+			$authors  = $this->getIds ( $alias, $role = '2', 1 );
 			$managers = $this->getIds ( $alias, $role = '1', 1 );
-			$all 	  = array_merge( $members, $managers);
+			$all 	  = array_merge( $members, $managers, $authors);
 			$all 	  = array_unique($all);
 
 			$group->set('members', $all);
