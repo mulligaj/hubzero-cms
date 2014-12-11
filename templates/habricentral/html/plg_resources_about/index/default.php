@@ -100,6 +100,297 @@ $maintext = $this->model->resource->fulltxt;
 $maintext = preg_replace('/&(?!(?i:\#((x([\dA-F]){1,5})|(104857[0-5]|10485[0-6]\d|1048[0-4]\d\d|104[0-7]\d{3}|10[0-3]\d{4}|0?\d{1,6}))|([A-Za-z\d.]{2,31}));)/i',"&amp;",$maintext);
 $maintext = str_replace('<blink>', '', $maintext);
 $maintext = str_replace('</blink>', '', $maintext);
+
+/*
+|--------------------------------------------------------------------------
+| Google Scholar
+|--------------------------------------------------------------------------
+|
+| Here we add the google scholar meta tags.
+|
+*/
+// get doc
+$document = JFactory::getDocument();
+
+// set title
+$document->setMetaData('citation_title', trim($this->model->resource->title));
+
+// set authors
+foreach ($this->model->contributors('!submitter') as $contributor)
+{
+	$document->setMetaData('citation_author', trim($contributor->name));
+}
+
+// array to handle different date keys per resource type
+$publicationDateMap = array(
+	'audio'                   => 'datepublished',
+	'booksection'             => 'publicationyear',
+	'books'                   => 'publicationdate',
+	'conferencepapers'        => 'yearpublished',
+	'conferenceproceedings'   => 'publicationdate',
+	'datasets'                => 'publicationdate',
+	'governmentdocuments'     => 'dateofpublication',
+	'journalarticles'         => 'yearofpublication',
+	'magazinearticle'         => 'dateofpublication',
+	'newspaperarticle'        => 'dateofpublication',
+	'pamphlets'               => 'dateofpublication',
+	'posters'                 => 'datepresented',
+	'presentations'           => 'datepresented',
+	'programs'                => 'date',
+	'reports'                 => 'dateofpublication',
+	'softliteraturenarrative' => 'dateofpublication',
+	'theses'                  => 'dateawarded',
+	'videos'                  => 'yearofpublication'
+);
+
+// add publication date
+$typeAlias = $this->model->type->alias;
+if (isset($publicationDateMap[$typeAlias]))
+{
+	$field = $publicationDateMap[$typeAlias];
+	if (isset($data[$field]))
+	{
+		function _getValue($tag='lat', $text)
+		{
+			$pattern = "/<$tag>(.*?)<\/$tag>/i";
+			preg_match($pattern, $text, $matches);
+			return (isset($matches[1]) ? $matches[1] : '');
+		}
+		$year  = _getValue('year', $data[$field]);
+		$month = _getValue('month', $data[$field]);
+		$day   = _getValue('day', $data[$field]);
+
+		$publicationDate  = $year;
+		$publicationDate .= ($day) ? '/' . $day : '';
+		$publicationDate .= ($month) ? '/' . $month : '';
+		$document->setMetaData('citation_publication_date', trim($publicationDate));
+	}
+}
+
+// handle individual types
+if ($typeAlias == 'audio')
+{
+	// do nothing
+}
+else if ($typeAlias == 'booksection')
+{
+	if (isset($data['isbn']) && $data['isbn'] != '')
+	{
+		$document->setMetaData('citation_isbn', trim($data['isbn']));
+	}
+	if (isset($data['volumeno']) && $data['volumeno'] != '')
+	{
+		$document->setMetaData('citation_volume', trim($data['volumeno']));
+	}
+	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '')
+	{
+		list($first, $last) = array_map('trim', explode('-', $data['pagenumbers']));
+		$document->setMetaData('citation_firstpage', $first);
+		$document->setMetaData('citation_lastpage', $last);
+	}
+}
+else if ($typeAlias == 'books')
+{
+	if (isset($data['isbn']) && $data['isbn'] != '')
+	{
+		$document->setMetaData('citation_isbn', trim($data['isbn']));
+	}
+	if (isset($data['volumeno']) && $data['volumeno'] != '')
+	{
+		$document->setMetaData('citation_volume', trim($data['volumeno']));
+	}
+}
+else if ($typeAlias == 'conferencepapers')
+{
+	if (isset($data['conferencename']) && $data['conferencename'] != '')
+	{
+		$document->setMetaData('citation_conference_title', trim($data['conferencename']));
+	}
+	if (isset($data['isbnissn']) && $data['isbnissn'] != '')
+	{
+		$document->setMetaData('citation_issn', trim($data['isbnissn']));
+	}
+}
+else if ($typeAlias == 'conferenceproceedings')
+{
+	if (isset($data['conferencename']) && $data['conferencename'] != '')
+	{
+		$document->setMetaData('citation_conference_title', trim($data['conferencename']));
+	}
+	if (isset($data['isbnissn']) && $data['isbnissn'] != '')
+	{
+		$document->setMetaData('citation_issn', trim($data['isbnissn']));
+	}
+	if (isset($data['volumeno']) && $data['volumeno'] != '')
+	{
+		$document->setMetaData('citation_volume', trim($data['volumeno']));
+	}
+	if (isset($data['pages']) && $data['pages'] != '')
+	{
+		list($first, $last) = array_map('trim', explode('-', $data['pages']));
+		$document->setMetaData('citation_firstpage', $first);
+		$document->setMetaData('citation_lastpage', $last);
+	}
+}
+else if ($typeAlias == 'datasets')
+{
+	// nothing
+}
+else if ($typeAlias == 'governmentdocuments')
+{
+	if (isset($data['issuenomonthandday']) && $data['issuenomonthandday'] != '')
+	{
+		$document->setMetaData('citation_issue', trim($data['issuenomonthandday']));
+	}
+	if (isset($data['volumeno']) && $data['volumeno'] != '')
+	{
+		$document->setMetaData('citation_volume', trim($data['volumeno']));
+	}
+}
+else if ($typeAlias == 'journalarticles')
+{
+	if (isset($data['journaltitle']) && $data['journaltitle'] != '')
+	{
+		$document->setMetaData('citation_journal_title', trim($data['journaltitle']));
+	}
+	if (isset($data['issn']) && $data['issn'] != '')
+	{
+		$document->setMetaData('citation_issn', trim($data['issn']));
+	}
+	if (isset($data['volumeno']) && $data['volumeno'] != '')
+	{
+		$document->setMetaData('citation_volume', trim($data['volumeno']));
+	}
+	if (isset($data['issuenomonth']) && $data['issuenomonth'] != '')
+	{
+		$document->setMetaData('citation_issue', trim($data['issuenomonth']));
+	}
+	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '')
+	{
+		list($first, $last) = array_map('trim', explode('-', $data['pagenumbers']));
+		$document->setMetaData('citation_firstpage', $first);
+		$document->setMetaData('citation_lastpage', $last);
+	}
+}
+else if ($typeAlias == 'magazinearticle')
+{
+	if (isset($data['volumeno']) && $data['volumeno'] != '')
+	{
+		$document->setMetaData('citation_volume', trim($data['volumeno']));
+	}
+	if (isset($data['issuenomonthandday']) && $data['issuenomonthandday'] != '')
+	{
+		$document->setMetaData('citation_issue', trim($data['issuenomonthandday']));
+	}
+	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '')
+	{
+		list($first, $last) = array_map('trim', explode('-', $data['pagenumbers']));
+		$document->setMetaData('citation_firstpage', $first);
+		$document->setMetaData('citation_lastpage', $last);
+	}
+}
+else if ($typeAlias == 'newspaperarticle')
+{
+	if (isset($data['isbnissn']) && $data['isbnissn'] != '')
+	{
+		$document->setMetaData('citation_issn', trim($data['isbnissn']));
+	}
+	if (isset($data['volume']) && $data['volume'] != '')
+	{
+		$document->setMetaData('citation_volume', trim($data['volume']));
+	}
+	if (isset($data['issue']) && $data['issue'] != '')
+	{
+		$document->setMetaData('citation_issue', trim($data['issue']));
+	}
+	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '')
+	{
+		list($first, $last) = array_map('trim', explode('-', $data['pagenumbers']));
+		$document->setMetaData('citation_firstpage', $first);
+		$document->setMetaData('citation_lastpage', $last);
+	}
+}
+else if ($typeAlias == 'pamphlets')
+{
+	if (isset($data['isbnissn']) && $data['isbnissn'] != '')
+	{
+		$document->setMetaData('citation_issn', trim($data['isbnissn']));
+	}
+}
+else if ($typeAlias == 'posters')
+{
+	if (isset($data['conferencename']) && $data['conferencename'] != '')
+	{
+		$document->setMetaData('citation_conference_title', trim($data['conferencename']));
+	}
+}
+else if ($typeAlias == 'presentations')
+{
+	if (isset($data['conferencename']) && $data['conferencename'] != '')
+	{
+		$document->setMetaData('citation_conference_title', trim($data['conferencename']));
+	}
+	if (isset($data['presentationsponsorexpurdueuniversity']) && $data['presentationsponsorexpurdueuniversity'] != '')
+	{
+		$document->setMetaData('citation_dissertation_institution', trim($data['presentationsponsorexpurdueuniversity']));
+	}
+}
+else if ($typeAlias == 'programs')
+{
+	// nothing
+}
+else if ($typeAlias == 'reports')
+{
+	if (isset($data['institution']) && $data['institution'] != '')
+	{
+		$document->setMetaData('citation_technical_report_institution', trim($data['institution']));
+	}
+	if (isset($data['reportno']) && $data['reportno'] != '')
+	{
+		$document->setMetaData('citation_technical_report_number', trim($data['reportno']));
+	}
+	if (isset($data['isbnissn']) && $data['isbnissn'] != '')
+	{
+		$document->setMetaData('citation_issn', trim($data['isbnissn']));
+	}
+	if (isset($data['volumeno']) && $data['volumeno'] != '')
+	{
+		$document->setMetaData('citation_volume', trim($data['volumeno']));
+	}
+	if (isset($data['issueno']) && $data['issueno'] != '')
+	{
+		$document->setMetaData('citation_issue', trim($data['issueno']));
+	}
+	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '')
+	{
+		list($first, $last) = array_map('trim', explode('-', $data['pagenumbers']));
+		$document->setMetaData('citation_firstpage', $first);
+		$document->setMetaData('citation_lastpage', $last);
+	}
+}
+else if ($typeAlias == 'softliteraturenarrative')
+{
+	// nothing	
+}
+else if ($typeAlias == 'theses')
+{
+	if (isset($data['university']) && $data['university'] != '')
+	{
+		$document->setMetaData('citation_dissertation_institution', trim($data['university']));
+	}
+}
+else if ($typeAlias == 'video')
+{
+	if (isset($data['conferencename']) && $data['conferencename'] != '')
+	{
+		$document->setMetaData('citation_conference_title', trim($data['conferencename']));
+	}
+	if (isset($data['presentationsponsorexpurdueuniversity']) && $data['presentationsponsorexpurdueuniversity'] != '')
+	{
+		$document->setMetaData('citation_technical_report_institution', trim($data['presentationsponsorexpurdueuniversity']));
+	}
+}
+
 ?>
 <div class="subject abouttab">
 	<table class="resource">
@@ -171,6 +462,8 @@ if (!$this->model->access('view-all')) {
 	foreach ($schema->fields as $field)
 	{
 		if (isset($data[$field->name])) {
+
+
 			if ($field->name == 'citations') {
 				$citations = $data[$field->name];
 			} else if ($value = $elements->display($field->type, $data[$field->name])) {
