@@ -424,7 +424,7 @@ if (!$this->model->access('view-all')) {
 		</tr>
 <?php
 } else {
-	if (trim($maintext)) {
+	if (trim($maintext) && $maintext != '<p></p>') {
 ?>
 <tr>
 		<th><?php echo JText::_('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
