@@ -49,3 +49,7 @@
 	.results .title {
 		padding-right: 200px;
 	}
+	
+	.container .results p.title {
+		margin-left: 10px;
+	}
