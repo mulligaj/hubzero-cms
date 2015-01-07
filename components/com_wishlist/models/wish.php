@@ -162,7 +162,7 @@ class WishlistModelWish extends WishlistModelAbstract
 
 	/**
 	 * Constructor
-	 *
+	 * 
 	 * @param   mixed $oid Integer (ID), string (alias), object or array
 	 * @return  void
 	 */
@@ -180,17 +180,6 @@ class WishlistModelWish extends WishlistModelAbstract
 			{
 				$this->set('negative', $this->votes('negative'));
 			}
-		}
-
-		$this->_db = JFactory::getDBO();
-		$wish = new Wish($this->_db);
-		if (is_numeric($oid) && $item = $wish->get_wish($oid))
-		{
-			$this->set('num_votes', $item->num_votes);
-			$this->set('numreplies', $item->numreplies);
-			$this->set('num_skipped_votes', $item->num_skipped_votes);
-			$this->set('average_imp', $item->average_imp);
-			$this->set('average_effort', $item->average_effort);
 		}
 	}
 
@@ -222,12 +211,12 @@ class WishlistModelWish extends WishlistModelAbstract
 			$key = $oid['id'];
 		}
 
-		if (!isset($instances[$key]))
+		if (!isset($instances[$oid]))
 		{
-			$instances[$key] = new self($oid);
+			$instances[$oid] = new self($oid);
 		}
 
-		return $instances[$key];
+		return $instances[$oid];
 	}
 
 	/**
@@ -759,7 +748,7 @@ class WishlistModelWish extends WishlistModelAbstract
 
 	/**
 	 * Get the record either immediately before or after the current one
-	 * in a listing of records.
+	 * in a listing of records. 
 	 *
 	 * @param   string  $directtion [prev|next]
 	 * @param   array   $filters    Filters to apply

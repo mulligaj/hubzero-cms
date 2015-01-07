@@ -470,6 +470,16 @@
 		border: none;
 	}
 
+/* Submitter comment
+--------------------------------------------- */
+
+	.submitter-comment {
+		padding: 0.5em 1em;
+		background: #f1f7f8;
+		border: 4px solid #b9cfda;
+		margin: 0 0 1em 0;
+	}
+
 /* Misc
 --------------------------------------------- */
 	.hidden {
@@ -526,6 +536,9 @@
 		padding: 0;
 		margin: 0;
 	}
+	.history-blocks .omega {
+		text-align: left;
+	}
 	.history-blocks ul {
 		line-height: 1em;
 	}
@@ -557,4 +570,12 @@
 	}
 	.changelog-time, .changelog-text {
 		padding: 0.5em 1em;
+	}
+	.public-page, .public-page:hover {
+		border: none;
+		margin-left: 1em;
+	}
+	.public-page:before {
+		padding-top: 0.3em;
+		position: absolute;
 	}

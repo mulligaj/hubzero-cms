@@ -25,14 +25,18 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css()
+     ->js()
+	 ->css('jquery.fancybox.css', 'system')
+	 ->css('curation.css')
+	 ->js('curation.js');
+
 // Get blocks
 $blocks = $this->pub->_curationModel->_blocks;
 
 $pubHelper 		= $this->pub->_helpers->pubHelper;
 $htmlHelper 	= $this->pub->_helpers->htmlHelper;
 $projectsHelper = $this->pub->_helpers->projectsHelper;
-
-$pubThumb  = $pubHelper->getThumb($this->pub->id, $this->pub->version_id, $this->config, false, $this->pub->cat_url);
 
 $now = JFactory::getDate()->toSql();
 
@@ -71,7 +75,7 @@ $by 	 = ' ' . JText::_('COM_PUBLICATIONS_CURATION_BY') . ' ' . $profile->get('na
 		</h3>
 	</div>
 	<p class="instruct">
-		<span class="pubimage"><img src="<?php echo $pubThumb; ?>" alt="" /></span>
+		<span class="pubimage"><img src="<?php echo JRoute::_('index.php?option=com_publications&id=' . $this->pub->id . '&v=' . $this->pub->version_id) . '/Image:thumb'; ?>" alt="" /></span>
 		<strong class="block"><?php echo $this->pub->reviewed ? JText::_('COM_PUBLICATIONS_CURATION_RESUBMITTED') : JText::_('COM_PUBLICATIONS_CURATION_SUBMITTED'); echo ' ' . JHTML::_('date', $this->pub->submitted, 'M d, Y') . $by; ?></strong>
 	<?php echo JText::_('COM_PUBLICATIONS_CURATION_REVIEW_AND_ACT'); ?>
 	<span class="legend">
@@ -96,6 +100,12 @@ $by 	 = ' ' . JText::_('COM_PUBLICATIONS_CURATION_BY') . ' ' . $profile->get('na
 			<input type="hidden" name="id" id="pid" value="<?php echo $this->pub->id; ?>" />
 			<input type="hidden" name="vid" id="vid" value="<?php echo $this->pub->version_id; ?>" />
 		 </fieldset>
+		<?php if ($this->history && $this->history->comment) { ?>
+			<div class="submitter-comment">
+				<h5><?php echo JText::_('COM_PUBLICATIONS_CURATION_SUBMITTER_COMMENT'); ?></h5>
+				<p><?php echo $this->history->comment; ?></p>
+			</div>
+		<?php } ?>
 		<div class="curation-blocks">
 <?php foreach ($blocks as $sequence => $block) {
 

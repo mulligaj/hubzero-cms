@@ -28,7 +28,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$canDo = CronHelper::getActions('component');
+$canDo = CronHelperPermissions::getActions('component');
 
 $text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 
@@ -263,19 +263,35 @@ jQuery(document).ready(function($){
 									(is_object($data) ? $data->toString() : $data),
 									JPATH_ROOT . DS . 'plugins' . DS . 'cron' . DS . $plugin->element . DS . $plugin->element . '.xml'
 								);
-								$out = $param->render('params', $event['params']);
+								$param->addElementPath(JPATH_ROOT . DS . 'plugins' . DS . 'cron' . DS . $plugin->element);
+								//$out = $param->render('params', $event['params']);
+								$html = array();
+								foreach ($param->getParams('params', $event['params']) as $p)
+								{
+									$html[] = '<div class="input-wrap">';
+									if ($p[0])
+									{
+										$html[] = $p[0];
+										$html[] = $p[1];
+									}
+									else
+									{
+										$html[] = $p[1];
+									}
+									$html[] = '</div>';
+								}
+
+								$out = (!empty($html) ? implode("\n", $html) : $out);
 							}
 
 							if (!$out)
 							{
-								$out = '<table><tbody><tr><td><i>' . JText::_('COM_CRON_NO_PARAMETERS_FOUND') . '</i></td></tr></tbody></table>';
+								$out = '<div class="input-wrap"><p><i>' . JText::_('COM_CRON_NO_PARAMETERS_FOUND') . '</i></p></div>';
 							}
 							?>
 							<fieldset class="adminform paramlist eventparams" style="display: <?php echo $style; ?>;" id="params-<?php echo $plugin->element . '--' . $event['name']; ?>">
 								<legend><span><?php echo JText::_('COM_CRON_FIELDSET_PARAMETERS'); ?></span></legend>
-								<div class="input-wrap">
-									<?php echo $out; ?>
-								</div>
+								<?php echo $out; ?>
 							</fieldset>
 							<?php
 						}
@@ -291,7 +307,7 @@ jQuery(document).ready(function($){
 				<?php echo JText::_('COM_CRON_FIELD_COMMON'); ?>:<br />
 				<select name="fields[recurrence]" id="field-recurrence">
 					<option value=""<?php echo ($this->row->get('recurrence') == '') ? ' selected="selected"' : ''; ?>><?php echo JText::_('COM_CRON_FIELD_COMMON_OPT_SELECT'); ?></option>
-					<option value="custom"<?php echo ($this->row->get('recurrence') == 'custom') ? ' selected="selected"' : ''; ?>><?php echo JText::_('COM_CRON_FIELD_COMMON_OPT_COMMON'); ?></option>
+					<option value="custom"<?php echo ($this->row->get('recurrence') == 'custom') ? ' selected="selected"' : ''; ?>><?php echo JText::_('COM_CRON_FIELD_COMMON_OPT_CUSTOM'); ?></option>
 					<option value="0 0 1 1 *"<?php echo ($this->row->get('recurrence') == '0 0 1 1 *') ? ' selected="selected"' : ''; ?>><?php echo JText::_('COM_CRON_FIELD_COMMON_OPT_ONCE_A_YEAR'); ?></option>
 					<option value="0 0 1 * *"<?php echo ($this->row->get('recurrence') == '0 0 1 * *') ? ' selected="selected"' : ''; ?>><?php echo JText::_('COM_CRON_FIELD_COMMON_OPT_ONCE_A_MONTH'); ?></option>
 					<option value="0 0 * * 0"<?php echo ($this->row->get('recurrence') == '0 0 * * 0') ? ' selected="selected"' : ''; ?>><?php echo JText::_('COM_CRON_FIELD_COMMON_OPT_ONCE_A_WEEK'); ?></option>

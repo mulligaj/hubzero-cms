@@ -80,8 +80,8 @@ $base = $this->course->offering()->link();
 
 	<ul class="unit">
 
-		<? foreach ($this->course->offering()->units() as $unit) : ?>
-		<li class="unit-item" id="unit_<?= $unit->get('id') ?>">
+		<?php foreach ($this->course->offering()->units() as $unit) : ?>
+		<li class="unit-item" id="unit_<?php echo $unit->get('id') ?>">
 			<div class="unit-title-arrow"></div>
 			<div class="unit-edit-container">
 				<div class="title unit-title">
@@ -94,15 +94,11 @@ $base = $this->course->offering()->link();
 						<form action="<?php echo JURI::base(true); ?>/api/courses/unit/save" class="unit-edit-form">
 							<label for="title">Title:</label>
 							<input class="unit-edit-text" name="title" type="text" value="<?php echo $unit->get('title'); ?>" placeholder="title" />
-							<label for="publish_up">Publish start date:</label>
-							<input class="unit-edit-publish-up datepicker" name="publish_up" type="text" value="<?= ($unit->get('publish_up') != '0000-00-00 00:00:00') ? JHTML::_('date', $unit->get('publish_up'), "Y-m-d H:i:s") : '' ?>" placeholder="Publish start date" />
-							<label for="publish_down">Publish end date:</label>
-							<input class="unit-edit-publish-down datepicker" name="publish_down" type="text" value="<?= ($unit->get('publish_down') != '0000-00-00 00:00:00') ? JHTML::_('date', $unit->get('publish_down'), "Y-m-d H:i:s") : '' ?>" placeholder="Publish end date" />
 							<input class="unit-edit-save" type="submit" value="Save" />
 							<input class="unit-edit-reset" type="reset" value="Cancel" />
 							<input type="hidden" name="course_id" value="<?php echo $this->course->get('id'); ?>" />
 							<input type="hidden" name="offering" value="<?php echo $this->course->offering()->alias(); ?>" />
-							<input type="hidden" name="section_id" value="<?= $this->course->offering()->section()->get('id') ?>" />
+							<input type="hidden" name="section_id" value="<?php echo $this->course->offering()->section()->get('id') ?>" />
 							<input type="hidden" name="id" value="<?php echo $unit->get('id'); ?>" />
 						</form>
 					</div>
@@ -124,9 +120,9 @@ $base = $this->course->offering()->link();
 
 			<ul class="asset-group-type-list">
 
-			<? foreach ($unit->assetgroups() as $agt) : ?>
+			<?php foreach ($unit->assetgroups() as $agt) : ?>
 
-				<li class="asset-group-type-item <?= ($agt->get('state') == '1') ? 'published' : 'unpublished' ?>">
+				<li class="asset-group-type-item <?php echo ($agt->get('state') == '1') ? 'published' : 'unpublished' ?>">
 					<div class="asset-group-type-item-container">
 						<div class="asset-group-title-container">
 							<div class="asset-group-title title">
@@ -136,24 +132,24 @@ $base = $this->course->offering()->link();
 							<form action="<?php echo JURI::base(true); ?>/api/courses/assetgroup/save">
 								<div class="label-input-pair">
 									<label for="title">Title:</label>
-									<input class="" name="title" type="text" value="<?= $agt->get('title') ?>" />
+									<input class="" name="title" type="text" value="<?php echo $agt->get('title') ?>" />
 								</div>
 								<div class="label-input-pair">
 									<label for="state">Published:</label>
 									<select name="state">
-										<option value="0"<?= ($agt->get('state') == '0') ? ' selected="selected"' : '' ?>>No</option>
-										<option value="1"<?= ($agt->get('state') == '1') ? ' selected="selected"' : '' ?>>Yes</option>
+										<option value="0"<?php echo ($agt->get('state') == '0') ? ' selected="selected"' : '' ?>>No</option>
+										<option value="1"<?php echo ($agt->get('state') == '1') ? ' selected="selected"' : '' ?>>Yes</option>
 									</select>
 								</div>
 								<div class="label-input-pair">
 									<label for="description">Description:</label>
-									<textarea name="description" rows="4"><?= $agt->get('description') ?></textarea>
+									<textarea name="description" rows="4"><?php echo $agt->get('description') ?></textarea>
 								</div>
 								<input class="asset-group-title-save" type="submit" value="Save" />
 								<input class="asset-group-title-cancel" type="reset" value="Cancel" />
-								<input type="hidden" name="course_id" value="<?= $this->course->get('id') ?>" />
-								<input type="hidden" name="offering" value="<?= $this->course->offering()->get('alias') ?>" />
-								<input type="hidden" name="id" value="<?= $agt->get('id') ?>" />
+								<input type="hidden" name="course_id" value="<?php echo $this->course->get('id') ?>" />
+								<input type="hidden" name="offering" value="<?php echo $this->course->offering()->get('alias') ?>" />
+								<input type="hidden" name="id" value="<?php echo $agt->get('id') ?>" />
 							</form>
 						</div>
 						<div class="asset-group-container">
@@ -197,7 +193,7 @@ $base = $this->course->offering()->link();
 					</div>
 				</li>
 
-			<? endforeach; // foreach asset groups ?>
+			<?php endforeach; // foreach asset groups ?>
 
 			</ul>
 <?php
@@ -222,7 +218,7 @@ $base = $this->course->offering()->link();
 ?>
 		</li>
 
-		<? endforeach; // foreach unit ?>
+		<?php endforeach; // foreach unit ?>
 
 		<li class="add-new unit-item">
 			Add a new unit

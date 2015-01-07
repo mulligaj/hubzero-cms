@@ -33,7 +33,13 @@ defined('_JEXEC') or die('Restricted access');
 
 $this->juser = JFactory::getUser();
 
-$base = 'index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=' . $this->name;
+$base = $this->member->getLink() . '&active=' . $this->name;
+
+if (!$this->collection->get('layout'))
+{
+	$this->collection->set('layout', 'grid');
+}
+$viewas = JRequest::getWord('viewas', $this->collection->get('layout'));
 
 $this->css()
      ->js('jquery.masonry', 'com_collections')
@@ -88,14 +94,17 @@ $this->css()
 					</a>
 				<?php } ?>
 			<?php } ?>
-			<span class="clear"></span>
+			<span class="view-options">
+				<a href="<?php echo JRoute::_($base . '&viewas=grid'); ?>" class="icon-grid<?php if ($viewas == 'grid') { echo ' selected'; } ?>" data-view="view-grid" title="<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_GRID_VIEW'); ?>"><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_GRID_VIEW'); ?></a>
+				<a href="<?php echo JRoute::_($base . '&viewas=list'); ?>" class="icon-list<?php if ($viewas == 'list') { echo ' selected'; } ?>" data-view="view-list" title="<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_LIST_VIEW'); ?>"><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_LIST_VIEW'); ?></a>
+			</span>
 		</p>
 	<?php } ?>
 
 	<?php if ($this->rows->total() > 0) { ?>
-		<div id="posts" data-base="<?php echo rtrim(JURI::base(true), '/'); ?>">
+		<div id="posts" data-base="<?php echo rtrim(JURI::base(true), '/'); ?>" data-update="<?php echo JRoute::_('index.php?option=com_collections&controller=posts&task=reorder&' . JUtility::getToken() . '=1'); ?>" class="view-<?php echo $viewas; ?>">
 			<?php if ($this->params->get('access-create-collection') && !JRequest::getInt('no_html', 0)) { ?>
-				<div class="post new-post">
+				<div class="post new-post" id="post_0">
 					<a class="icon-add add" href="<?php echo JRoute::_($base . '&task=post/new&board=' . $this->collection->get('alias')); ?>">
 						<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_NEW_POST'); ?>
 					</a>
@@ -106,8 +115,11 @@ $this->css()
 		{
 			$item = $row->item();
 			?>
-			<div class="post <?php echo $item->type(); ?>" id="b<?php echo $row->get('id'); ?>" data-id="<?php echo $row->get('id'); ?>" data-closeup-url="<?php echo JRoute::_($base . '&task=post/' . $row->get('id')); ?>">
+			<div class="post <?php echo $item->type(); ?>" id="post_<?php echo $row->get('id'); ?>" data-id="<?php echo $row->get('id'); ?>" data-closeup-url="<?php echo JRoute::_($base . '&task=post/' . $row->get('id')); ?>">
 				<div class="content">
+					<?php if (!$this->juser->get('guest') && $this->params->get('access-create-item')) { ?>
+						<div class="sort-handle tooltips" title="<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_GRAB_TO_REORDER'); ?>"></div>
+					<?php } ?>
 					<?php
 						$this->view('default_' . $item->type(), 'post')
 						     ->set('name', $this->name)
@@ -117,12 +129,12 @@ $this->css()
 						     ->set('row', $row)
 						     ->display();
 					?>
-					<?php if (count($item->tags()) > 0) { ?>
+					<?php if ($tags = $item->tags('cloud')) { ?>
 						<div class="tags-wrap">
-							<?php echo $item->tags('render'); ?>
+							<?php echo $tags; ?>
 						</div>
 					<?php } ?>
-					<div class="meta">
+					<div class="meta" data-metadata-url="<?php echo JRoute::_('index.php?option=com_collections&controller=posts&task=metadata&post=' . $row->get('id')); ?>">
 						<p class="stats">
 							<span class="likes">
 								<?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_NUM_LIKES', $item->get('positive', 0)); ?>
@@ -136,7 +148,8 @@ $this->css()
 						</p>
 						<div class="actions">
 							<?php if (!$this->juser->get('guest')) { ?>
-								<?php if ($item->get('created_by') == $this->juser->get('id')) { ?>
+								<?php //if ($item->get('created_by') == $this->juser->get('id')) { ?>
+								<?php if ($row->get('created_by') == $this->juser->get('id')) { ?>
 									<a class="edit" data-id="<?php echo $row->get('id'); ?>" href="<?php echo JRoute::_($base . '&task=post/' . $row->get('id') . '/edit'); ?>">
 										<span><?php echo JText::_('PLG_MEMBERS_COLLECTIONS_EDIT'); ?></span>
 									</a>
@@ -174,13 +187,25 @@ $this->css()
 						</div><!-- / .actions -->
 					</div><!-- / .meta -->
 					<div class="convo attribution reposted">
-						<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->get('created_by')); ?>" title="<?php echo $this->escape(stripslashes($row->creator('name'))); ?>" class="img-link">
-							<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($this->member, 0); ?>" alt="<?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_PROFILE_PICTURE', $this->escape(stripslashes($row->creator('name')))); ?>" />
-						</a>
-						<p>
-							<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->get('created_by') . '&active=collections'); ?>">
-								<?php echo $this->escape(stripslashes($row->creator()->get('name'))); ?>
+						<?php
+						$name = $this->escape(stripslashes($row->creator('name')));
+						if ($row->creator('public')) { ?>
+							<a href="<?php echo JRoute::_($row->creator()->getLink()); ?>" title="<?php echo $name; ?>" class="img-link">
+								<img src="<?php echo $row->creator()->getPicture(); ?>" alt="<?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_PROFILE_PICTURE', $name); ?>" />
 							</a>
+						<?php } else { ?>
+							<span class="img-link">
+								<img src="<?php echo $row->creator()->getPicture(); ?>" alt="<?php echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_PROFILE_PICTURE', $name); ?>" />
+							</span>
+						<?php } ?>
+						<p>
+							<?php if ($row->creator('public')) { ?>
+								<a href="<?php echo JRoute::_($row->creator()->getLink()); ?>">
+									<?php echo $name; ?>
+								</a>
+							<?php } else { ?>
+								<?php echo $name; ?>
+							<?php } ?>
 							<?php echo JText::_('PLG_MEMBERS_COLLECTIONS_ONTO'); ?>
 							<a href="<?php echo JRoute::_($row->link()); ?>">
 								<?php echo $this->escape(stripslashes($row->get('title'))); ?>

@@ -33,7 +33,7 @@ defined('_JEXEC') or die('Restricted access');
 
 $pathway = JFactory::getApplication()->getPathway();
 $pathway->addItem(
-	JText::_('All Pages'),
+	JText::_('COM_WIKI_SPECIAL_ALL_PAGES'),
 	$this->page->link()
 );
 
@@ -97,7 +97,7 @@ $database->setQuery($query);
 $rows = $database->loadObjectList();
 ?>
 	<form method="get" action="<?php echo JRoute::_($this->page->link()); ?>">
-		<fieldset>
+		<fieldset class="filters">
 			<legend><?php echo JText::_('COM_WIKI_FILTER_LIST'); ?></legend>
 
 			<label for="field-namespace">

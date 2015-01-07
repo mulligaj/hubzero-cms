@@ -60,7 +60,10 @@ if (isset($this->registration_update))
 }
 
 //incremental registration
-require_once JPATH_BASE.'/administrator/components/com_members/tables/incremental.php';
+require_once JPATH_BASE . '/administrator/components/com_members/tables/incremental/awards.php';
+require_once JPATH_BASE . '/administrator/components/com_members/tables/incremental/groups.php';
+require_once JPATH_BASE . '/administrator/components/com_members/tables/incremental/options.php';
+
 $uid = (int)$this->profile->get('uidNumber');
 $incrOpts = new ModIncrementalRegistrationOptions;
 $isIncrementalEnabled = $incrOpts->isEnabled($uid);
@@ -274,19 +277,26 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							//get list of organizations from db
 							include_once(JPATH_ROOT . DS . 'administrator' . DS .'components' . DS . 'com_members' . DS . 'tables' . DS . 'organization.php');
 							$database = JFactory::getDBO();
-							$xo = new MembersTableOrganization( $database);
-							$orgs = $xo->getOrgs();
+							$xo = new MembersTableOrganization($database);
+							$orgs = $xo->find('list');
+
+							$organization_alt = '';
 
 							//create select for organizations and optional text input
 							$organizations  = '<select name="org" class="input-select">';
 							$organizations .= '<option value="">' . JText::_('PLG_MEMBERS_PROFILE_SELECT_OR_ENTER_BELOW') . '</option>';
 							foreach ($orgs as $o)
 							{
-								$sel = ($o == $this->profile->get("organization")) ? "selected=\"selected\"" : "";
-								$organizations .= "<option {$sel} value=\"{$o}\">{$o}</option>";
+								$sel = ($o->organization == $this->profile->get("organization")) ? "selected=\"selected\"" : "";
+								if ($o->organization == $this->profile->get("organization"))
+								{
+									$sel = 'selected="selected"';
+									$organization_alt = $o->organization;
+								}
+								$organizations .= '<option ' . $sel . ' value="' . $o->organization . '">' . $o->organization . '</option>';
 							}
 							$organizations .= '</select>';
-							$organization_alt = (!in_array($this->profile->get("organization"), $orgs)) ? $this->escape($this->profile->get('organization')) : "";
+							$organization_alt = ($organization_alt ?: $this->escape($this->profile->get('organization')));
 							$organizations_text = "<input type=\"text\" name=\"orgtext\" class=\"input-text\" value=\"{$organization_alt}\" />";
 
 							$this->view('default', 'edit')
@@ -296,8 +306,8 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							     ->set('title', JText::_('PLG_MEMBERS_PROFILE_ORGANIZATION'))
 							     ->set('profile', $this->profile)
 							     ->set('isUser', $isUser)
-							     ->set('inputs', '<label>' . JText::_('PLG_MEMBERS_PROFILE_ORGANIZATION') . $organizations.'</label><label>' . JText::_('PLG_MEMBERS_PROFILE_ENTER_ORG_BELOW') . $organizations_text.'</label>')
-							     ->set('access', '<label>' . JText::_('PLG_MEMBERS_PROFILE_PRIVACY') . MembersHtml::selectAccess('access[org]',$this->params->get('access_org'),'input-select') . '</label>')
+							     ->set('inputs', '<label>' . JText::_('PLG_MEMBERS_PROFILE_ORGANIZATION') . $organizations . '</label><label>' . JText::_('PLG_MEMBERS_PROFILE_ENTER_ORG_BELOW') . $organizations_text . '</label>')
+							     ->set('access', '<label>' . JText::_('PLG_MEMBERS_PROFILE_PRIVACY') . MembersHtml::selectAccess('access[org]', $this->params->get('access_org'), 'input-select') . '</label>')
 							     ->display();
 						?>
 					</div>
@@ -335,14 +345,14 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							//get organization types from db
 							include_once(JPATH_ROOT . DS . 'administrator' . DS .'components' . DS . 'com_members' . DS . 'tables' . DS . 'organizationtype.php');
 							$database = JFactory::getDBO();
-							$xot = new MembersTableOrganizationType( $database);
-							$orgtypes = $xot->getTypes();
+							$xot = new MembersTableOrganizationType($database);
+							$orgtypes = $xot->find('list');
 
 							//output value
-							if (array_key_exists($this->profile->get("orgtype"), $orgtypes)) {
-								$orgtype = $orgtypes[$this->profile->get("orgtype")];
-							} else {
-								$orgtype = $this->escape($this->profile->get('orgtype'));
+							$orgtype = $this->escape($this->profile->get('orgtype'));
+							foreach ($orgtypes as $ot)
+							{
+								$orgtype = ($ot->type == $this->profile->get('orgtype') ? $this->escape($ot->title) : $orgtype);
 							}
 						?>
 						<div class="value">
@@ -351,11 +361,11 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 						<br class="clear" />
 						<?php
 							//build select of org types
-							$organization_types  = "<select name=\"orgtype\" class=\"input-select\">";
-							foreach ($orgtypes as $k => $o)
+							$organization_types  = '<select name="orgtype" class="input-select">';
+							foreach ($orgtypes as $orgtype)
 							{
-								$sel = ($k == $this->profile->get("orgtype")) ? "selected=\"selected\"" : "";
-								$organization_types .= "<option {$sel} value=\"{$k}\">{$o}</option>";
+								$sel = ($orgtype->type == $this->profile->get('orgtype')) ? ' selected="selected"' : '';
+								$organization_types .= '<option' . $sel . ' value="' . $this->escape($orgtype->type) . '">' . $this->escape($orgtype->title) . '</option>';
 							}
 							$organization_types .= "</select>";
 
@@ -624,9 +634,10 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 					|| ($this->params->get('access_address') == 2 && $isUser)
 				) : ?>
 				<?php
-					//get member addresses
-					$membersAddress = new MembersAddress( JFactory::getDBO());
-					$addresses = $membersAddress->getAddressesForMember( $this->profile->get("uidNumber"));
+					// Get member addresses
+					$db = JFactory::getDBO();
+					$membersAddress = new MembersAddress($db);
+					$addresses = $membersAddress->getAddressesForMember($this->profile->get("uidNumber"));
 
 					$cls = '';
 					if ($this->params->get('access_address') == 2)
@@ -635,11 +646,11 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 					}
 					if (count($addresses) < 1)
 					{
-						$cls .= ($isUser) ? " hidden" : " hide";
+						$cls .= ($isUser) ? ' hidden' : ' hide';
 					}
 					if (isset($update_missing) && in_array('address', array_keys($update_missing)))
 					{
-						$cls = str_replace(" hide", '', $cls);
+						$cls  = str_replace(' hide', '', $cls);
 						$cls .= ' missing';
 					}
 				?>
@@ -649,21 +660,27 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 							<?php echo JText::_('PLG_MEMBERS_PROFILE_ADDRESS'); ?>
 						</div>
 						<div class="value">
-							<?php echo $membersAddress->formatAddressesForProfile( $addresses, $isUser); ?>
+							<?php
+							$this->view('default', 'address')
+							     ->set('addresses', $addresses)
+							     ->set('displayEditLinks', $isUser)
+							     ->set('profile', $this->profile)
+							     ->display();
+							?>
 						</div>
 						<br class="clear" />
 						<?php
-							$addAddressLink = '<a class="btn add add-address" href="'.JRoute::_('index.php?option=com_members&id='.JFactory::getUser()->get('id').'&active=profile&action=addaddress').'">' . JText::_('PLG_MEMBERS_PROFILE_ADDRESS_ADD') . '</a>';
+							$addAddressLink = '<a class="btn add add-address" href="' . JRoute::_($this->profile->getLink() . '&active=profile&action=addaddress') . '">' . JText::_('PLG_MEMBERS_PROFILE_ADDRESS_ADD') . '</a>';
 
 							$this->view('default', 'edit')
 							     ->set('registration_field', 'address')
 							     ->set('profile_field', 'address')
 							     ->set('registration', $this->registration->address)
-							     ->set('title', JText::_('Address'))
+							     ->set('title', JText::_('PLG_MEMBERS_PROFILE_ADDRESS_TITLE'))
 							     ->set('profile', $this->profile)
 							     ->set('isUser', $isUser)
-							     ->set('inputs', '<label for="profile_address">' . JText::_('PLG_MEMBERS_PROFILE_ADDRESS') . '<br />'.$addAddressLink.'</label>')
-							     ->set('access', '<label>' . JText::_('PLG_MEMBERS_PROFILE_PRIVACY') . MembersHtml::selectAccess('access[address]',$this->params->get('access_address'),'input-select') . '</label>')
+							     ->set('inputs', '<label for="profile_address">' . JText::_('PLG_MEMBERS_PROFILE_ADDRESS') . '<br />' . $addAddressLink . '</label>')
+							     ->set('access', '<label>' . JText::_('PLG_MEMBERS_PROFILE_PRIVACY') . MembersHtml::selectAccess('access[address]', $this->params->get('access_address'), 'input-select') . '</label>')
 							     ->display();
 						?>
 					</div>
@@ -746,9 +763,9 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 				<?php
 					$cls = '';
 					$database = JFactory::getDBO();
-					$mt = new MembersTags( $database);
-					$tags = $mt->get_tag_cloud(0,0,$this->profile->get('uidNumber'));
-					$tag_string = $mt->get_tag_string( $this->profile->get('uidNumber'));
+					$mt = new MembersModelTags($this->profile->get('uidNumber'));
+					$tags = $mt->render();
+					$tag_string = $mt->render('string');
 
 					if ($this->params->get('access_tags') == 2)
 					{

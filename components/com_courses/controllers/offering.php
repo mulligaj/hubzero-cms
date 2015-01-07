@@ -187,7 +187,6 @@ class CoursesControllerOffering extends \Hubzero\Component\SiteController
 		}
 
 		// Get the active tab (section)
-		$default = 'outline';
 		$this->view->nonadmin = 0;
 		if ($this->course->offering()->access('manage', 'section'))
 		{
@@ -201,11 +200,7 @@ class CoursesControllerOffering extends \Hubzero\Component\SiteController
 				$this->_option . '.offering' . $this->course->offering()->get('id') . '.nonadmin',
 				$this->view->nonadmin
 			);
-
-			$default = ($this->view->nonadmin ? $default : 'dashboard');
 		}
-
-		$this->view->active = JRequest::getVar('active', $default);
 
 		// Get configuration
 		$jconfig = JFactory::getConfig();
@@ -221,37 +216,16 @@ class CoursesControllerOffering extends \Hubzero\Component\SiteController
 		$dispatcher = JDispatcher::getInstance();
 
 		// Trigger the functions that return the areas we'll be using
-		$plugins = $dispatcher->trigger('onCourseAreas', array());
+		$plugins = $dispatcher->trigger('onCourse', array(
+			$this->course,
+			$this->course->offering()
+		));
 
-		// Get tab access
-		foreach ($plugins as $plugin)
-		{
-			$course_plugin_access[$plugin['name']] = $plugin['default_access'];
-		}
-
-		// If active tab is not one of available tabs
-		if (!in_array($this->view->active, array_keys($course_plugin_access)))
-		{
-			$this->view->active = 'outline';
-		}
-
-		// Get the sections
-		$sections = $dispatcher->trigger('onCourse', array(
-				$this->config,
-				$this->course,
-				$this->course->offering(),
-				$this->action,
-				array($this->view->active)
-			)
-		);
-
-		$this->view->course               = $this->course;
-		$this->view->user                 = $this->juser;
-		$this->view->config               = $this->config;
-		$this->view->plugins              = $plugins;
-		$this->view->course_plugin_access = $course_plugin_access;
-		$this->view->sections             = $sections;
-		$this->view->notifications        = ($this->getComponentMessage()) ? $this->getComponentMessage() : array();
+		$this->view->course        = $this->course;
+		$this->view->user          = $this->juser;
+		$this->view->config        = $this->config;
+		$this->view->plugins       = $plugins;
+		$this->view->notifications = ($this->getComponentMessage()) ? $this->getComponentMessage() : array();
 		$this->view->display();
 	}
 
@@ -603,6 +577,36 @@ class CoursesControllerOffering extends \Hubzero\Component\SiteController
 		$this->setRedirect(
 			JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&gid=' . $this->course->get('alias') . '&task=offerings')
 		);
+	}
+
+	/**
+	 * Serve up an offering logo
+	 *
+	 * @return  void
+	 */
+	public function logoTask()
+	{
+		if (!($logo = $this->course->offering()->section()->logo()))
+		{
+			$logo = $this->course->offering()->logo();
+		}
+		$file = JPATH_ROOT . $logo;
+
+		// Initiate a new content server and serve up the file
+		$server = new \Hubzero\Content\Server();
+		$server->filename($file);
+		$server->disposition('inline');
+		$server->acceptranges(false);
+
+		if (!$server->serve())
+		{
+			// Should only get here on error
+			throw new JException(JText::_('COM_COURSES_SERVER_ERROR'), 404);
+		}
+		else
+		{
+			exit;
+		}
 	}
 }
 

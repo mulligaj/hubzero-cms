@@ -30,9 +30,13 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css()
+	 ->css('jquery.fancybox.css', 'system')
+     ->js();
+
 $html = '';
 $firstattach = $this->firstattach;
-if(!$firstattach)
+if (!$firstattach)
 {
 	echo '<p class="error">'.JText::_('COM_PUBLICATIONS_FILE_NOT_FOUND').'</p>'."\n";
 	return;
@@ -50,7 +54,7 @@ if ($attributes) {
 	$a = explode(',', $attributes);
 	$bits = array();
 	if ($a && is_array($a)) {
-		foreach ($a as $b) 
+		foreach ($a as $b)
 		{
 			if (strstr($b, ':')) {
 				$b = explode(':', $b);
@@ -64,29 +68,24 @@ if ($attributes) {
 $images = array('png', 'jpeg', 'jpe', 'jpg', 'gif', 'bmp');
 $files = array('pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'pages', 'ai', 'psd', 'tiff', 'dxf', 'eps', 'ps', 'ttf', 'xps', 'zip', 'rar', 'svg');
 
-if (is_file(JPATH_ROOT.$firstattach->url)) 
+if (is_file(JPATH_ROOT.$firstattach->url))
 {
-	if($firstattach->type == 'video' || $firstattach->ext == 'swf') 
+	if ($firstattach->type == 'video' || $firstattach->ext == 'swf')
 	{
 		// Serve video
-		$view = new JView( array('name'=>'view','layout'=>'video') );
-		$view->option = $this->option;
-		$view->config = $this->config;
-		$view->database = $this->database;
-		$view->publication = $this->publication;
-		$view->helper = $this->helper;
-		$view->attachments = $this->attachments;
-		$view->firstattach = $firstattach;
-		$view->path = $this->path;
-		$view->version = $this->version;
-		$view->height = $height;
-		$view->width = $width;
-		
-		// Output HTML
-		if ($this->getError()) {
-			$view->setError( $this->getError() );
-		}
-		$view->display();
+		$this->view('video')
+		     ->set('option', $this->option)
+		     ->set('publication', $this->publication)
+		     ->set('config', $this->config)
+		     ->set('firstattach', $firstattach)
+		     ->set('attachments', $this->attachments)
+		     ->set('helper', $this->helper)
+		     ->set('database', $this->database)
+		     ->set('version', $this->version)
+		     ->set('path', $this->path)
+		     ->set('height', $height)
+		     ->set('width', $width)
+		     ->display();
 	}
 	else if (in_array(strtolower($firstattach->ext), $images)) {
 		$html .= '<img ' . $attributes . ' src="' . $firstattach->url . '" alt="Image" />'."\n";
@@ -99,7 +98,7 @@ if (is_file(JPATH_ROOT.$firstattach->url))
 			$session = JFactory::getSession();
 
 			$session_id = $session->getId();
-			
+
 			jimport('joomla.utilities.simplecrypt');
 			$crypter = new JSimpleCrypt();
 			$token = base64_encode($crypter->encrypt($session_id));

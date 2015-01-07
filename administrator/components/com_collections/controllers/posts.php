@@ -39,7 +39,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\AdminController
 	/**
 	 * Display a list of all categories
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function displayTask()
 	{
@@ -112,7 +112,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\AdminController
 	/**
 	 * Create a new collection
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function addTask()
 	{
@@ -122,13 +122,11 @@ class CollectionsControllerPosts extends \Hubzero\Component\AdminController
 	/**
 	 * Edit a collection
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function editTask($row=null)
 	{
 		JRequest::setVar('hidemainmenu', 1);
-
-		$this->view->setLayout('edit');
 
 		if (is_object($row))
 		{
@@ -149,22 +147,21 @@ class CollectionsControllerPosts extends \Hubzero\Component\AdminController
 		}
 
 		// Set any errors
-		if ($this->getError())
+		foreach ($this->getErrors() as $error)
 		{
-			foreach ($this->getErrors() as $error)
-			{
-				$this->view->setError($error);
-			}
+			$this->view->setError($error);
 		}
 
 		// Output the HTML
-		$this->view->display();
+		$this->view
+			->setLayout('edit')
+			->display();
 	}
 
 	/**
 	 * Save a category and come back to the edit form
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function applyTask()
 	{
@@ -174,8 +171,8 @@ class CollectionsControllerPosts extends \Hubzero\Component\AdminController
 	/**
 	 * Save an entry
 	 *
-	 * @param      boolean $redirect Redirect after save?
-	 * @return     void
+	 * @param   boolean  $redirect  Redirect after save?
+	 * @return  void
 	 */
 	public function saveTask($redirect=true)
 	{
@@ -221,9 +218,9 @@ class CollectionsControllerPosts extends \Hubzero\Component\AdminController
 	/**
 	 * Delete one or more entries
 	 *
-	 * @return     void
+	 * @return  void
 	 */
-	public function deleteTask()
+	public function removeTask()
 	{
 		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
@@ -256,7 +253,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\AdminController
 	/**
 	 * Cancel a task (redirects to default task)
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function cancelTask()
 	{

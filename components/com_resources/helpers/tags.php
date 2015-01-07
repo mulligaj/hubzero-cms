@@ -31,60 +31,19 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tags' . DS . 'helpers' . DS . 'handler.php');
+require_once(JPATH_ROOT . DS . 'components' . DS . 'com_tags' . DS . 'models' . DS . 'cloud.php');
 
 /**
  * Resources Tagging class
  */
-class ResourcesTags extends TagsHandler
+class ResourcesTags extends TagsModelCloud
 {
 	/**
-	 * Constructor
+	 * Object type, used for linking objects (such as resources) to tags
 	 *
-	 * @param      object $db     JDatabase
-	 * @param      array  $config Optional configurations
-	 * @return     void
+	 * @var string
 	 */
-	public function __construct($db, $config=array())
-	{
-		$this->_db  = $db;
-		$this->_tbl = 'resources';
-	}
-
-	/**
-	 * Get tags on a resource
-	 *
-	 * @param      integer $id        Resource ID
-	 * @param      integer $tagger_id Tagger ID
-	 * @param      integer $strength  Tag strength
-	 * @param      integer $admin     Admin flag
-	 * @return     array
-	 */
-	public function getTags($id, $tagger_id=0, $strength=0, $admin=0)
-	{
-		$sql = "SELECT DISTINCT t.*, rt.label, (SELECT COUNT(rtt.id) FROM $this->_obj_tbl AS rtt WHERE rtt.tagid=rt.tagid) as `count` FROM $this->_tag_tbl AS t INNER JOIN $this->_obj_tbl AS rt ON rt.tagid=t.id WHERE ";
-
-		$where = array();
-		$where[] = "rt.objectid=$id";
-		$where[] = "rt.tbl='$this->_tbl'";
-		if ($admin != 1)
-		{
-			$where[] = "t.admin=0";
-		}
-		if ($tagger_id != 0)
-		{
-			$where[] = "rt.taggerid=" . $tagger_id;
-		}
-		if ($strength)
-		{
-			$where[] = "rt.strength=" . $strength;
-		}
-
-		$sql .= implode(" AND ", $where) . " ORDER BY t.raw_tag";
-
-		$this->_db->setQuery($sql);
-		return $this->_db->loadObjectList();
-	}
+	protected $_scope = 'resources';
 
 	/**
 	 * Get all tags with a resource association
@@ -99,7 +58,7 @@ class ResourcesTags extends TagsHandler
 		$juser = JFactory::getUser();
 		$now = JFactory::getDate()->toSql();
 
-		$this->_db->setQuery("SELECT objectid FROM $this->_tag_tbl AS t, $this->_obj_tbl AS o WHERE o.tagid=t.id AND t.tag='$tag' AND o.tbl='$this->_tbl'");
+		$this->_db->setQuery("SELECT objectid FROM `#__tags` AS t, `#__tags_object` AS o WHERE o.tagid=t.id AND t.tag='$tag' AND o.tbl='$this->_scope'");
 		$objs = $this->_db->loadObjectList();
 
 		$ids = '';
@@ -114,8 +73,8 @@ class ResourcesTags extends TagsHandler
 		}
 
 		$sql = "SELECT t.id, t.tag, t.raw_tag, r.id AS rid, 0 AS ucount, NULL AS rids
-				FROM $this->_tag_tbl AS t, $this->_obj_tbl AS o, #__resources AS r
-				WHERE o.tbl='$this->_tbl'
+				FROM `#__tags` AS t, `#__tags_object` AS o, `#__resources` AS r
+				WHERE o.tbl='$this->_scope'
 				AND o.tagid=t.id
 				AND t.admin=0
 				AND o.objectid=r.id
@@ -264,7 +223,7 @@ class ResourcesTags extends TagsHandler
 				}
 				$query .= ", #__tool_version as TV ";
 			}
-			$query .= ", $this->_obj_tbl AS RTA INNER JOIN #__tags AS TA ON (RTA.tagid = TA.id) ";
+			$query .= ", `#__tags_object` AS RTA INNER JOIN #__tags AS TA ON (RTA.tagid = TA.id) ";
 		}
 		else
 		{
@@ -362,17 +321,17 @@ class ResourcesTags extends TagsHandler
 		{
 			if ($tag && !$tag2)
 			{
-				$query .= "AND RTA.objectid=C.id AND RTA.tbl='$this->_tbl' AND (TA.tag IN ('" . $tag . "'))";
+				$query .= "AND RTA.objectid=C.id AND RTA.tbl='$this->_scope' AND (TA.tag IN ('" . $tag . "'))";
 				$query .= " GROUP BY C.id HAVING uniques=1";
 			}
 			else if ($tag2 && !$tag)
 			{
-				$query .= "AND RTA.objectid=C.id AND RTA.tbl='$this->_tbl' AND (TA.tag IN ('" . $tag2 . "'))";
+				$query .= "AND RTA.objectid=C.id AND RTA.tbl='$this->_scope' AND (TA.tag IN ('" . $tag2 . "'))";
 				$query .= " GROUP BY C.id HAVING uniques=1";
 			}
 			else if ($tag && $tag2)
 			{
-				$query .= "AND RTA.objectid=C.id AND RTA.tbl='$this->_tbl' AND (TA.tag IN ('" . $tag . "','" . $tag2 . "'))";
+				$query .= "AND RTA.objectid=C.id AND RTA.tbl='$this->_scope' AND (TA.tag IN ('" . $tag . "','" . $tag2 . "'))";
 				$query .= " GROUP BY C.id HAVING uniques=2";
 			}
 		}
@@ -418,7 +377,7 @@ class ResourcesTags extends TagsHandler
 		if ($id)
 		{
 			$query = "SELECT COUNT(*)
-						FROM $this->_obj_tbl AS ta, $this->_tag_tbl AS t
+						FROM `#__tags_object` AS ta, `#__tags` AS t
 						WHERE ta.tagid=t.id
 						AND t.tag='" . $tag . "'
 						AND ta.tbl='resources'
@@ -427,7 +386,7 @@ class ResourcesTags extends TagsHandler
 		if (!$id && $alias)
 		{
 			$query = "SELECT COUNT(*)
-						FROM $this->_obj_tbl AS ta, $this->_tag_tbl AS t, #__resources AS r
+						FROM `#__tags_object` AS ta, `#__tags` AS t, `#__resources` AS r
 						WHERE ta.tagid=t.id
 						AND t.tag='" . $tag . "'
 						AND ta.tbl='resources'
@@ -454,7 +413,7 @@ class ResourcesTags extends TagsHandler
 		}
 
 		$query = "SELECT r.$rtrn
-					FROM $this->_obj_tbl AS ta, $this->_tag_tbl AS t, #__resources AS r
+					FROM `#__tags_object` AS ta, `#__tags` AS t, `#__resources` AS r
 					WHERE ta.tagid=t.id
 					AND t.tag='".$tag."'
 					AND ta.tbl='resources'
@@ -464,7 +423,7 @@ class ResourcesTags extends TagsHandler
 		return $this->_db->loadResultArray();
 	}
 
-/**
+	/**
 	 * Get a tag cloud for an object
 	 *
 	 * @param      integer $showsizes Show tag size based on use?
@@ -476,7 +435,7 @@ class ResourcesTags extends TagsHandler
 	{
 		$t = new TagsTableTag($this->_db);
 		//$tags = $t->getCloud($this->_tbl, $admin, null);
-		$tags = $t->getTopTags($limit, $this->_tbl, 'tcount DESC', 0);
+		$tags = $t->getTopTags($limit, $this->_scope, 'tcount DESC', 0);
 
 		return $this->buildTopCloud($tags, 'alpha', 0, $tagstring);
 	}
@@ -492,7 +451,7 @@ class ResourcesTags extends TagsHandler
 	public function getTopTags($limit)
 	{
 		$t = new TagsTableTag($this->_db);
-		return $t->getTopTags($limit, $this->_tbl, 'tcount DESC', 0);
+		return $t->getTopTags($limit, $this->_scope, 'tcount DESC', 0);
 	}
 
 	/**
@@ -507,7 +466,7 @@ class ResourcesTags extends TagsHandler
 	{
 		$t = new TagsTableTag($this->_db);
 
-		$tags = $t->getTopTags($limit, $this->_tbl, 'tcount DESC', 0);
+		$tags = $t->getTopTags($limit, $this->_scope, 'tcount DESC', 0);
 
 		if ($tags && count($tags) > 0)
 		{
@@ -526,6 +485,18 @@ class ResourcesTags extends TagsHandler
 	}
 
 	/**
+	 * Turn a comma-separated string of tags into an array of normalized tags
+	 *
+	 * @param      string  $tag_string Comma-separated string of tags
+	 * @param      integer $keep       Use normalized tag as array key
+	 * @return     array
+	 */
+	public function parseTags($tag_string, $keep=0)
+	{
+		return $this->_parse($tag_string, $keep);
+	}
+
+	/**
 	 * Turn a string of tags to an array
 	 *
 	 * @param      string $tag Tag string
@@ -533,14 +504,7 @@ class ResourcesTags extends TagsHandler
 	 */
 	public function parseTopTags($tag, $remove='')
 	{
-		if (is_array($tag))
-		{
-			$bunch = $tag;
-		}
-		else
-		{
-			$bunch = $this->_parse_tags($tag);
-		}
+		$bunch = $this->_parse($tag);
 
 		$tags = array();
 		if ($remove)
@@ -579,7 +543,7 @@ class ResourcesTags extends TagsHandler
 			$lst = array();
 			if (is_string($tagstring))
 			{
-				$lst = $this->_parse_tags($tagstring);
+				$lst = $this->_parse($tagstring);
 			}
 			else
 			{

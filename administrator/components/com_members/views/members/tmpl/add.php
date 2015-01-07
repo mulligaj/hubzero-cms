@@ -32,7 +32,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $canDo = MembersHelper::getActions('component');
 
-JToolBarHelper::title(JText::_('MEMBER') . ': ' . JText::_('NEW'), 'user.png');
+JToolBarHelper::title(JText::_('COM_MEMBERS') . ': ' . JText::_('JACTION_CREATE'), 'user.png');
 if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::save('new');
@@ -56,39 +56,44 @@ JToolBarHelper::cancel();
 </script>
 
 <form action="index.php" method="post" name="adminForm" id="item-form">
-	<div class="col width-100 fltlft">
+	<div class="col width-60 fltlft">
 		<fieldset class="adminform">
-			<legend><span><?php echo JText::_('MEMBERS_PROFILE'); ?></span></legend>
+			<legend><span><?php echo JText::_('COM_MEMBERS_PROFILE'); ?></span></legend>
 
 			<input type="hidden" name="option" value="<?php echo $this->option ?>" />
 			<input type="hidden" name="task" value="edit" />
 			<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 
-			<div class="input-wrap">
-				<label for="username"><?php echo JText::_('COL_USERNAME'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
+			<div class="input-wrap" data-hint="<?php echo JText::_('COM_MEMBERS_FIELD_USERNAME_HINT'); ?>">
+				<label for="username"><?php echo JText::_('COM_MEMBERS_FIELD_USERNAME'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
 				<input type="text" name="profile[username]" id="username" />
+				<span class="hint"><?php echo JText::_('COM_MEMBERS_FIELD_USERNAME_HINT'); ?></span>
 			</div>
 			<div class="input-wrap">
-				<label for="email"><?php echo JText::_('COL_EMAIL'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
+				<label for="email"><?php echo JText::_('COM_MEMBERS_FIELD_EMAIL'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
 				<input type="text" name="profile[email]" id="email" />
 			</div>
 			<div class="input-wrap">
-				<label for="password"><?php echo JText::_('COL_PASSWORD'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
+				<label for="password"><?php echo JText::_('COM_MEMBERS_FIELD_PASSWORD'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
 				<input type="text" name="profile[password]" id="password" />
 			</div>
 			<div class="input-wrap">
-				<label for="givenName"><?php echo JText::_('FIRST_NAME'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
-				<input type="text" name="profile[givenName]" id="givenName" size="50" />
+				<label for="givenName"><?php echo JText::_('COM_MEMBERS_FIELD_FIRST_NAME'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
+				<input type="text" name="profile[givenName]" id="givenName" />
 			</div>
 			<div class="input-wrap">
-				<label for="middleName"><?php echo JText::_('MIDDLE_NAME'); ?>:</label>
-				<input type="text" name="profile[middleName]" id="middleName" size="50" />
+				<label for="middleName"><?php echo JText::_('COM_MEMBERS_FIELD_MIDDLE_NAME'); ?>:</label>
+				<input type="text" name="profile[middleName]" id="middleName" />
 			</div>
 			<div class="input-wrap">
-				<label for="surname"><?php echo JText::_('LAST_NAME'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
-				<input type="text" name="profile[surname]" id="surname" size="50" />
+				<label for="surname"><?php echo JText::_('COM_MEMBERS_FIELD_LAST_NAME'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label>
+				<input type="text" name="profile[surname]" id="surname" />
 			</div>
 		</fieldset>
 		<?php echo JHTML::_('form.token'); ?>
 	</div>
+	<div class="col width-40 fltrt">
+		<p class="warning"><?php echo JText::_('COM_MEMBERS_FIELD_USERNAME_NOTE'); ?></p>
+	</div>
+	<div class="clr"></div>
 </form>

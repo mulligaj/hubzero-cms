@@ -157,36 +157,29 @@ class CoursesControllerCourse extends \Hubzero\Component\SiteController
 		JPluginHelper::importPlugin('courses');
 		$dispatcher = JDispatcher::getInstance();
 
-		$this->view->cats = $dispatcher->trigger('onCourseViewAreas', array(
-				$this->course
-			)
-		);
-
-		$this->view->sections = $dispatcher->trigger('onCourseView', array(
+		$this->view->plugins = $dispatcher->trigger(
+			'onCourseView',
+			array(
 				$this->course,
 				$this->view->active
 			)
 		);
 
-		$this->view->isPage = false;
-
 		if ($pages = $this->course->pages(array('active' => 1)))
 		{
 			foreach ($pages as $page)
 			{
-				$this->view->cats[] = array(
-					$page->get('url') => $page->get('title')
-				);
+				$plg = with(new \Hubzero\Base\Object)
+					->set('name', $page->get('url'))
+					->set('title', $page->get('title'));
 
 				if ($page->get('url') == $this->view->active)
 				{
-					$this->view->sections[] = array(
-						'name' => $page->get('url'),
-						'html' => $page->content('parsed'),
-						'metadata' => ''
-					);
-					$this->view->isPage = true;
+					$plg->set('html', $page->content('parsed'));
+					$plg->set('isPage', true);
 				}
+
+				$this->view->plugins[] = $plg;
 			}
 		}
 
@@ -300,7 +293,6 @@ class CoursesControllerCourse extends \Hubzero\Component\SiteController
 
 		// Incoming
 		$data = JRequest::getVar('course', array(), 'post', 'none', 2);
-		$tags = trim(JRequest::getVar('tags', ''));
 
 		$course = CoursesModelCourse::getInstance($data['id']);
 
@@ -342,8 +334,11 @@ class CoursesControllerCourse extends \Hubzero\Component\SiteController
 			return;
 		}
 
-		$tagger = new CoursesTags($this->database);
-		$tagger->tag_object($this->juser->get('id'), $course->get('id'), $tags, 1);
+		if (isset($_POST['tags']))
+		{
+			$tags = trim(JRequest::getVar('tags', ''));
+			$course->tag($tags, $this->juser->get('id'));
+		}
 
 		// Rename the temporary upload directory if it exist
 		if ($isNew)
@@ -705,7 +700,7 @@ class CoursesControllerCourse extends \Hubzero\Component\SiteController
 		{
 			// Redirect back to the course page
 			$this->setRedirect(
-				JRoute::_($course->link() . '&action=' . ($model->get('id') ? 'addpage' : 'editpage')),
+				JRoute::_($course->link() . '&active=' . $model->get('url') . '&action=' . ($model->get('id') ? 'addpage' : 'editpage')),
 				$model->getError(),
 				'error'
 			);
@@ -716,7 +711,7 @@ class CoursesControllerCourse extends \Hubzero\Component\SiteController
 		{
 			// Redirect back to the course page
 			$this->setRedirect(
-				JRoute::_($course->link() . '&action=' . ($model->get('id') ? 'addpage' : 'editpage')),
+				JRoute::_($course->link() . '&active=' . $model->get('url') . '&action=' . ($model->get('id') ? 'addpage' : 'editpage')),
 				$model->getError(),
 				'error'
 			);
@@ -725,7 +720,7 @@ class CoursesControllerCourse extends \Hubzero\Component\SiteController
 
 		// Redirect back to the course page
 		$this->setRedirect(
-			JRoute::_($course->link()),
+			JRoute::_($course->link() . '&active=' . $model->get('url')),
 			JText::_('COM_COURSES_PAGE_SAVED')
 		);
 	}
@@ -860,6 +855,32 @@ class CoursesControllerCourse extends \Hubzero\Component\SiteController
 		else
 		{
 			return $availability;
+		}
+	}
+
+	/**
+	 * Serve up a course logo
+	 *
+	 * @return  void
+	 */
+	public function logoTask()
+	{
+		$file = JPATH_ROOT . $this->course->logo();
+
+		// Initiate a new content server and serve up the file
+		$server = new \Hubzero\Content\Server();
+		$server->filename($file);
+		$server->disposition('inline');
+		$server->acceptranges(false);
+
+		if (!$server->serve())
+		{
+			// Should only get here on error
+			throw new JException(JText::_('COM_COURSES_SERVER_ERROR'), 404);
+		}
+		else
+		{
+			exit;
 		}
 	}
 

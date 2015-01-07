@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2014 Purdue University. All rights reserved.
  *
  * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
  *
@@ -23,7 +23,8 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
+ * @author    Shawn Rice <zooley@purdue.edu>
+ * @copyright Copyright 2005-2014 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
@@ -40,41 +41,28 @@ use Exception;
 class View extends AbstractView
 {
 	/**
-	 * Layout name
-	 *
-	 * @var		string
-	 */
-	protected $_layout = 'default';
-
-	/**
-	 * Layout extension
-	 *
-	 * @var		string
-	 */
-	protected $_layoutExt = 'php';
-
-	/**
 	 * Folder
 	 *
-	 * @var	string
+	 * @var  string
 	 */
 	protected $_folder = null;
 
 	/**
 	 * Folder
 	 *
-	 * @var	string
+	 * @var	 string
 	 */
 	protected $_element = null;
 
 	/**
 	 * Constructor
 	 *
-	 * @return   void
+	 * @param   array  $config  A named configuration array for object construction.
+	 * @return  void
 	 */
 	public function __construct($config = array())
 	{
-		//set the view name
+		// Set the view name
 		if (empty($this->_folder))
 		{
 			if (array_key_exists('folder', $config))
@@ -87,7 +75,7 @@ class View extends AbstractView
 			}
 		}
 
-		//set the view name
+		// Set the view name
 		if (empty($this->_element))
 		{
 			if (array_key_exists('element', $config))
@@ -176,7 +164,7 @@ class View extends AbstractView
 	 * The model name by default parsed using the classname, or it can be set
 	 * by passing a $config['folder'] in the class constructor
 	 *
-	 * @return    string The name of the model
+	 * @return  string  The name of the model
 	 */
 	public function getFolder()
 	{
@@ -209,7 +197,7 @@ class View extends AbstractView
 	 * The model name by default parsed using the classname, or it can be set
 	 * by passing a $config['folder'] in the class constructor
 	 *
-	 * @return    string The name of the model
+	 * @return  string  The name of the model
 	 */
 	public function getElement()
 	{
@@ -244,8 +232,9 @@ class View extends AbstractView
 	/**
 	* Sets an entire array of search paths for templates or resources.
 	*
-	* @param string $type The type of path to set, typically 'template'.
-	* @param string|array $path The new set of search paths.  If null or false, resets to the current directory only.
+	* @param   string        $type  The type of path to set, typically 'template'.
+	* @param   string|array  $path  The new set of search paths. If null or false, resets to the current directory only.
+	* @return  void
 	*/
 	protected function _setPath($type, $path)
 	{
@@ -259,7 +248,6 @@ class View extends AbstractView
 		switch (strtolower($type))
 		{
 			case 'template':
-			{
 				$app = \JFactory::getApplication();
 
 				$option = 'plg_' . $this->_folder . '_' . $this->_element;
@@ -273,179 +261,16 @@ class View extends AbstractView
 						JPATH_BASE . DS . 'templates' . DS . $app->getTemplate() . DS . 'html' . DS . $option . DS . $this->getName()
 					);
 				}
-			}	break;
+			break;
 		}
-	}
-
-	/**
-	 * Determine the asset directory
-	 *
-	 * @param   string $path    File path
-	 * @param   string $default Default directory
-	 * @return  string
-	 */
-	private function _assetDir(&$path, $default='')
-	{
-		if (substr($path, 0, 2) == './')
-		{
-			$path = substr($path, 2);
-
-			return '';
-		}
-
-		if (substr($path, 0, 1) == '/')
-		{
-			$path = substr($path, 1);
-
-			return '/';
-		}
-
-		return $default;
-	}
-
-	/**
-	 * Push CSS to the document
-	 *
-	 * @param   string  $stylesheet Stylesheet name (optional, uses component name if left blank)
-	 * @param   string  $folder     Plugin type
-	 * @param   string  $element    Plugin name
-	 * @return  void
-	 */
-	public function css($stylesheet = '', $folder = null, $element = null)
-	{
-		if (!$folder)
-		{
-			$folder = $this->_folder;
-		}
-		if (!$element)
-		{
-			$element = $this->_element;
-		}
-
-		if ($folder === true || strstr($stylesheet, '{') || strstr($stylesheet, '@'))
-		{
-			\JFactory::getDocument()->addStyleDeclaration($stylesheet);
-			return $this;
-		}
-
-		if ($stylesheet && substr($stylesheet, -4) != '.css')
-		{
-			$stylesheet .= '.css';
-		}
-
-		$dir = $this->_assetDir($stylesheet, 'css');
-		if ($dir == '/')
-		{
-			Assets::addStylesheet($dir . $stylesheet);
-			return $this;
-		}
-
-		if ($folder == 'system')
-		{
-			Assets::addSystemStylesheet($stylesheet, $dir);
-			return $this;
-		}
-
-		if (substr($folder, 0, strlen('com_')) == 'com_')
-		{
-			Assets::addComponentStylesheet($folder, $stylesheet, $dir);
-		}
-
-		Assets::addPluginStylesheet($folder, $element, $stylesheet, $dir);
-		return $this;
-	}
-
-	/**
-	 * Push javascript to the document
-	 *
-	 * @param   string  $stylesheet Stylesheet name (optional, uses component name if left blank)
-	 * @param   string  $folder     Plugin type
-	 * @param   string  $element    Plugin name
-	 * @return  void
-	 */
-	public function js($script = '', $folder = null, $element = null)
-	{
-		if (!$folder)
-		{
-			$folder = $this->_folder;
-		}
-		if (!$element)
-		{
-			$element = $this->_element;
-		}
-
-		if ($folder === true || strstr($script, '(') || strstr($script, ';'))
-		{
-			\JFactory::getDocument()->addScriptDeclaration($script);
-			return $this;
-		}
-
-		$dir = $this->_assetDir($script, 'js');
-		if ($dir == '/')
-		{
-			Assets::addScript($dir . $script);
-			return $this;
-		}
-
-		if ($folder == 'system')
-		{
-			Assets::addSystemScript($script, $dir);
-			return $this;
-		}
-
-		if (substr($folder, 0, strlen('com_')) == 'com_')
-		{
-			Assets::addComponentScript($folder, $script, $dir);
-		}
-
-		Assets::addPluginScript($folder, $element, $script, $dir);
-		return $this;
-	}
-
-	/**
-	 * Get the path to an image
-	 *
-	 * @param   string  $image      Image name
-	 * @param   string  $folder     Plugin type
-	 * @param   string  $element    Plugin name
-	 * @return  string
-	 */
-	public function img($image, $folder = null, $element = null)
-	{
-		if (!$folder)
-		{
-			$folder = $this->_folder;
-		}
-		if (!$element)
-		{
-			$element = $this->_element;
-		}
-
-		$dir = $this->_assetDir($image, 'img');
-		if ($dir == '/')
-		{
-			return rtrim(\JURI::base(true), '/') . $dir . $image;
-		}
-
-		if ($folder == 'system')
-		{
-			return Assets::getSystemImage($image);
-		}
-
-		if (substr($folder, 0, strlen('com_')) == 'com_')
-		{
-			return Assets::getComponentImage($folder, $image, $dir);
-		}
-
-		return Assets::getPluginImage($folder, $element, $image, $dir);
 	}
 
 	/**
 	 * Create a plugin view and return it
 	 *
-	 * @param   string $layout View layout
-	 * @param   string $name   View name
-	 * @return	object
+	 * @param   string  $layout  View layout
+	 * @param   string  $name    View name
+	 * @return  object
 	 */
 	public function view($layout, $name=null)
 	{
@@ -465,5 +290,55 @@ class View extends AbstractView
 		     ->set('element', $this->_element);
 
 		return $view;
+	}
+
+	/**
+	 * Dynamically handle calls to the class.
+	 *
+	 * @param   string  $method
+	 * @param   array   $parameters
+	 * @return  mixed
+	 * @throws  \BadMethodCallException
+	 * @since   1.3.1
+	 */
+	public function __call($method, $parameters)
+	{
+		if (!static::hasHelper($method))
+		{
+			foreach ($this->_path['helper'] as $path)
+			{
+				$file = $path . DS . $method . '.php';
+				if (file_exists($file))
+				{
+					include_once $file;
+					break;
+				}
+			}
+
+			// Namespaced
+			$invokable1 = '\\Plugins\\' . ucfirst($this->_folder) . '\\' . ucfirst($this->_element) . '\\Helpers\\' . ucfirst($method);
+
+			// Old naming scheme "PluginFolderElementHelperMethod"
+			$invokable2 = 'Plugin' . ucfirst($this->_folder) . ucfirst($this->_element) . 'Helper' . ucfirst($method);
+
+			$callback = null;
+			if (class_exists($invokable1))
+			{
+				$callback = new $invokable1();
+			}
+			else if (class_exists($invokable2))
+			{
+				$callback = new $invokable2();
+			}
+
+			if (is_callable($callback))
+			{
+				$callback->setView($this);
+
+				$this->helper($method, $callback);
+			}
+		}
+
+		return parent::__call($method, $parameters);
 	}
 }

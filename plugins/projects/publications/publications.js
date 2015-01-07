@@ -255,23 +255,6 @@ HUB.ProjectPublications = {
 			});
 		}
 		
-		// Enable preview for metadata content
-		var pubwiki = $('.pubwiki');
-		if (pubwiki.length > 0) {
-			pubwiki.each(function(i, item) 
-			{
-				$(item).on('keyup', function(e) 
-				{				
-					// Preview description
-					var previewpane = $(item).attr('id').replace('pub_', '');	
-					previewpane = '#preview-' + previewpane;
-					if ($(previewpane)) {
-						HUB.ProjectPublications.previewWiki( $(item), $(previewpane) );	
-					}
-				});
-			});
-		}
-		
 		// Check abstract length
 		if($('#pub_abstract').length > 0)
 		{
@@ -1523,28 +1506,7 @@ HUB.ProjectPublications = {
 		}
 		return url;
 	},
-	
-	previewWiki: function( raw, preview )
-	{
-		var $ = this.jQuery;
-		if (preview.length && raw.length) 
-		{				
-			// Build ajax url
-			var url = HUB.ProjectPublications.getPubUrl(1);
 
-			url = url + '&action=wikipreview';
-			url = url + '&raw=' + escape(raw.val());
-			
-			$.post(url, {}, function(data) 
-			{
-				if (data) 
-				{
-					preview.html(data);
-				}
-			});
-		}		
-	},
-	
 	checkAccess: function() 
 	{
 		var $ = this.jQuery;

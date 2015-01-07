@@ -39,7 +39,7 @@ class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 	/**
 	 * Display a list of quotes
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function displayTask()
 	{
@@ -62,8 +62,8 @@ class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 		));
 
 		// Get sorting variables
-		$this->view->filters['sortby']     = trim($app->getUserStateFromRequest(
-			$this->_option . '.sort',
+		$this->view->filters['sort']     = trim($app->getUserStateFromRequest(
+			$this->_option . '.sortby',
 			'filter_order',
 			'date'
 		));
@@ -90,10 +90,10 @@ class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 		$obj = new FeedbackQuotes($this->database);
 
 		// Get a record count
-		$this->view->total = $obj->getCount($this->view->filters);
+		$this->view->total = $obj->find('count', $this->view->filters);
 
 		// Get records
-		$this->view->rows = $obj->getResults($this->view->filters);
+		$this->view->rows  = $obj->find('list', $this->view->filters);
 
 		// Initiate paging class
 		jimport('joomla.html.pagination');
@@ -104,12 +104,9 @@ class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 		);
 
 		// Set any errors
-		if ($this->getError())
+		foreach ($this->getErrors() as $error)
 		{
-			foreach ($this->getErrors() as $error)
-			{
-				$this->view->setError($error);
-			}
+			$this->view->setError($error);
 		}
 
 		// Output the HTML
@@ -119,7 +116,7 @@ class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 	/**
 	 * Create a new entry
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function addTask()
 	{
@@ -293,7 +290,7 @@ class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 	/**
 	 * Delete one or more entries
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function removeTask()
 	{
@@ -321,7 +318,7 @@ class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 
 		// Output messsage and redirect
 		$this->setRedirect(
-			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&type=' . $this->type,
+			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
 			JText::_('COM_FEEDBACK_REMOVED')
 		);
 	}
@@ -329,12 +326,12 @@ class FeedbackControllerQuotes extends \Hubzero\Component\AdminController
 	/**
 	 * Cancel a task and redirect to main listing
 	 *
-	 * @return     void
+	 * @return  void
 	 */
 	public function cancelTask()
 	{
 		$this->setRedirect(
-			'index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&type=' . $this->type
+			'index.php?option=' . $this->_option . '&controller=' . $this->_controller
 		);
 	}
 }

@@ -34,10 +34,25 @@ defined('_JEXEC') or die( 'Restricted access' );
 $field  = strtolower(JRequest::getWord('field', ''));
 $action = strtolower(JRequest::getWord('action', ''));
 
-$offerings = $this->course->offerings(array(
-	'available' => false,
-	'sort'      => 'publish_up'
-), true);
+if ($this->course->isManager())
+{
+	$filters = array(
+		'available' => false,
+		'sort'      => 'publish_up',
+		'sort_Dir'  => 'DESC'
+	);
+}
+else
+{
+	$filters = array(
+		'available' => true,
+		'state'     => 1,
+		'sort'      => 'publish_up',
+		'sort_Dir'  => 'DESC',
+		'limit'     => ($this->course->isStudent() ? 0 : 1)
+	);
+}
+$offerings = $this->course->offerings($filters, true);
 
 $this->css('course.css')
      ->js()
@@ -61,28 +76,18 @@ $this->css('course.css')
 			<?php if (($field == 'blurb' || $field == 'tags') && $this->course->access('edit', 'course')) { ?>
 				<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" class="form-inplace" method="post">
 					<label for="field_title">
+						<?php echo JText::_('COM_COURSES_FIELD_TITLE'); ?> <span class="required"><?php echo JText::_('JREQUIRED'); ?></span>
 						<input type="text" name="course[title]" id="field_title" value="<?php echo $this->escape($this->course->get('title')); ?>" />
 					</label>
 
 					<label for="field_blurb">
+						<?php echo JText::_('COM_COURSES_FIELD_BLURB'); ?>
 						<textarea name="course[blurb]" id="field_blurb" cols="50" rows="5"><?php echo $this->escape($this->course->get('blurb')); ?></textarea>
 					</label>
 
 					<label for="actags">
 						<?php echo JText::_('COM_COURSES_FIELD_TAGS'); ?>
-
-						<?php
-						JPluginHelper::importPlugin( 'hubzero' );
-						$dispatcher = JDispatcher::getInstance();
-						$tf = $dispatcher->trigger( 'onGetMultiEntry', array(array('tags', 'tags', 'actags','', $this->course->tags('string'))) );
-						$tf = implode("\n", $tf);
-
-						if ($tf) {
-							echo $tf;
-						} else { ?>
-							<input type="text" name="tags" id="actags" value="<?php echo $this->escape($this->couse->tags('string')); ?>" />
-						<?php } ?>
-
+						<?php echo $this->autocompleter('tags', 'tags', $this->escape($this->course->tags('string')), 'actags'); ?>
 						<span class="hint"><?php echo JText::_('COM_COURSES_FIELD_TAGS_HINT'); ?></span>
 					</label>
 
@@ -151,10 +156,10 @@ $this->css('course.css')
 		</div><!-- / .subject -->
 		<aside class="aside">
 			<p class="course-identity">
-				<?php if ($logo = $this->course->logo()) { ?>
+				<?php if ($logo = $this->course->logo('url')) { ?>
 					<img src="<?php 
 						$size = $this->course->logo('size');
-						echo $logo;
+						echo JRoute::_($logo);
 						?>" class="<?php echo ($size['width'] >= $size['height'] ? 'landscape' : 'portrait'); ?>" alt="<?php echo $this->escape($this->course->get('title')); ?>" />
 				<?php } else { ?>
 					<span></span>
@@ -192,50 +197,41 @@ $this->css('course.css')
 			{
 				$this->active = '';
 			}
-			if ($this->cats)
+
+			if ($this->plugins)
 			{
-				$i = 1;
-				foreach ($this->cats as $cat)
+				foreach ($this->plugins as $i => $plugin)
 				{
-					$name = key($cat);
-					if ($name != '')
+					$url = JRoute::_($this->course->link() . '&active=' . $plugin->get('name'));
+
+					if ($plugin->get('name') == $this->active)
 					{
-						$url = JRoute::_('index.php?option=' . $this->option . '&gid=' . $this->course->get('alias') . '&active=' . $name);
+						$pathway = JFactory::getApplication()->getPathway();
+						$pathway->addItem($plugin->get('title'), $url);
 
-						if (strtolower($name) == $this->active)
+						if ($this->active != 'overview')
 						{
-							$pathway = JFactory::getApplication()->getPathway();
-							$pathway->addItem($cat[$name], $url);
-
-							if ($this->active != 'overview')
-							{
-								$document = JFactory::getDocument();
-								$document->setTitle($document->getTitle() . ': ' . $cat[$name]);
-							}
-							if ($this->isPage)
-							{
-								$this->isPage = $name;
-							}
+							$document = JFactory::getDocument();
+							$document->setTitle($document->getTitle() . ': ' . $plugin->get('title'));
 						}
-						?>
-						<li id="sm-<?php echo $i; ?>"<?php echo (strtolower($name) == $this->active) ? ' class="active"' : ''; ?>>
-							<a class="tab" data-rel="<?php echo $name; ?>" href="<?php echo $url; ?>">
-								<span><?php echo $this->escape($cat[$name]); ?></span>
-							</a>
-						</li>
-						<?php
-						$i++;
 					}
+					?>
+					<li id="sm-<?php echo $i; ?>"<?php echo ($plugin->get('name') == $this->active) ? ' class="active"' : ''; ?>>
+						<a class="tab" data-rel="<?php echo $plugin->get('name'); ?>" href="<?php echo $url; ?>">
+							<span><?php echo $this->escape($plugin->get('title')); ?></span>
+						</a>
+					</li>
+					<?php
 				}
 			}
 			?>
-		<?php if ($this->course->access('edit', 'course')) { ?>
-			<li class="add-page">
-				<a class="icon-add tab" href="<?php echo JRoute::_($this->course->link() . '&action=addpage'); ?>">
-					<?php echo JText::_('PLG_COURSES_PAGES_ADD_PAGE'); ?>
-				</a>
-			</li>
-		<?php } ?>
+			<?php if ($this->course->access('edit', 'course')) { ?>
+				<li class="add-page">
+					<a class="icon-add tab" href="<?php echo JRoute::_($this->course->link() . '&action=addpage'); ?>">
+						<?php echo JText::_('PLG_COURSES_PAGES_ADD_PAGE'); ?>
+					</a>
+				</li>
+			<?php } ?>
 		</ul>
 
 		<?php
@@ -269,9 +265,7 @@ $this->css('course.css')
 						</div>
 
 						<label for="field_description">
-							<?php
-								echo \JFactory::getEditor()->display('page[content]', $this->escape(stripslashes($page->get('content'))), '', '', 35, 50, false, 'field_content');
-							?>
+							<?php echo $this->editor('page[content]', $this->escape(stripslashes($page->get('content'))), 35, 50, 'field_content'); ?>
 						</label>
 
 						<p class="submit">
@@ -298,283 +292,273 @@ $this->css('course.css')
 			</div>
 			<?php
 		}
-		elseif ($this->sections)
+		elseif ($this->plugins)
 		{
-			$k = 0;
-			foreach ($this->sections as $section)
+			foreach ($this->plugins as $plugin)
 			{
-				if ($section['html'] != '')
+				if ($html = $plugin->get('html'))
 				{
 					?>
-					<div class="inner-section" id="<?php echo $section['name']; ?>-section">
-						<?php if ($this->course->access('edit', 'course') && $this->isPage) { ?>
+					<div class="inner-section" id="<?php echo $plugin->get('name'); ?>-section">
+						<?php if ($this->course->access('edit', 'course') && $plugin->get('isPage')) { ?>
 							<div class="manager-options">
-								<a class="icon-error btn btn-secondary btn-danger" href="<?php echo JRoute::_($this->course->link() . '&active=' . $this->isPage . '&task=deletepage'); ?>">
+								<a class="icon-error btn btn-secondary btn-danger" href="<?php echo JRoute::_($this->course->link() . '&active=' . $plugin->get('name') . '&task=deletepage'); ?>">
 									<?php echo JText::_('COM_COURSES_DELETE'); ?>
 								</a>
-								<a class="icon-edit btn btn-secondary" href="<?php echo JRoute::_($this->course->link() . '&active=' . $this->isPage . '&action=editpage'); ?>">
+								<a class="icon-edit btn btn-secondary" href="<?php echo JRoute::_($this->course->link() . '&active=' . $plugin->get('name') . '&action=editpage'); ?>">
 									<?php echo JText::_('COM_COURSES_EDIT'); ?>
 								</a>
 								<span><strong><?php echo JText::_('COM_COURSES_PAGE_CONTENTS'); ?></strong></span>
 							</div>
 						<?php } ?>
-						<?php echo $section['html']; ?>
+						<?php echo $html; ?>
 					</div><!-- / .inner-section -->
 					<?php
 				}
-				$k++;
 			}
 		}
 		?>
 	</div><!-- / .subject -->
 	<aside class="aside">
-		<?php
-		$c = 0;
-		if ($offerings->total())
-		{
-			$found = false;
-			$now = JFactory::getDate()->toSql();
+		<?php if ($field == 'summary' && $this->course->access('edit', 'course')) { ?>
+			<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" class="form-inplace course-summary" method="post">
+				<label for="field_length">
+					<?php echo JText::_('COM_COURSES_COURSE_LENGTH'); ?><br />
+					<input type="text" name="course[length]" id="field_length" value="<?php echo $this->escape($this->course->get('length')); ?>" placeholder="<?php echo JText::_('COM_COURSES_COURSE_LENGTH_HINT'); ?>" />
+				</label>
 
-			// If the user is a manager
-			if ($this->course->isManager())
+				<label for="field_effort">
+					<?php echo JText::_('COM_COURSES_COURSE_EFFORT'); ?><br />
+					<input type="text" name="course[effort]" id="field_effort" value="<?php echo $this->escape($this->course->get('effort')); ?>" placeholder="<?php echo JText::_('COM_COURSES_COURSE_EFFORT_HINT'); ?>" />
+				</label>
+
+				<p class="submit">
+					<input type="submit" class="btn btn-success" value="<?php echo JText::_('COM_COURSES_SAVE'); ?>" />
+					<a class="btn btn-secondary" href="<?php echo JRoute::_($this->course->link()); ?>">
+						<?php echo JText::_('COM_COURSES_CANCEL'); ?>
+					</a>
+				</p>
+
+				<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
+				<input type="hidden" name="controller" value="course" />
+				<input type="hidden" name="task" value="save" />
+
+				<?php echo JHTML::_('form.token'); ?>
+
+				<input type="hidden" name="gid" value="<?php echo $this->escape($this->course->get('alias')); ?>" />
+				<input type="hidden" name="course[id]" value="<?php echo $this->escape($this->course->get('id')); ?>" />
+				<input type="hidden" name="course[alias]" value="<?php echo $this->escape($this->course->get('alias')); ?>" />
+			</form>
+		<?php } else { ?>
+			<?php
+			if ($this->course->access('edit', 'course'))
 			{
-				foreach ($offerings as $offering)
+				?>
+				<div class="manager-options">
+					<a class="icon-edit btn btn-secondary" href="<?php echo JRoute::_($this->course->link() . '&task=edit&field=summary'); ?>">
+						<?php echo JText::_('COM_COURSES_EDIT'); ?>
+					</a>
+					<span><strong><?php echo JText::_('COM_COURSES_SUMMARY'); ?></strong></span>
+				</div>
+				<?php
+			}
+			?>
+			<div class="course-summary">
+				<table>
+					<tbody>
+						<?php if ($this->course->config('show_stats')) { ?>
+							<tr>
+								<th scope="row"><?php echo JText::_('COM_COURSES_COURSE_ENROLLED'); ?>:
+								</th>
+								<td>
+									<?php echo number_format((int) $this->course->students(array('count' => true))); ?>
+								</td>
+							</tr>
+						<?php } ?>
+						<?php if ($length = $this->course->get('length')) { ?>
+							<tr>
+								<th scope="row">
+									<?php echo JText::_('COM_COURSES_COURSE_LENGTH'); ?>:
+								</th>
+								<td>
+									<?php echo $this->escape($length); ?>
+								</td>
+							</tr>
+						<?php } ?>
+						<?php if ($effort = $this->course->get('effort')) { ?>
+							<tr>
+								<th scope="row">
+									<?php echo JText::_('COM_COURSES_COURSE_EFFORT'); ?>:
+								</th>
+								<td>
+									<?php echo $this->escape($effort); ?>
+								</td>
+							</tr>
+						<?php } ?>
+						<?php if ($this->course->certificate()->exists()) { ?>
+							<tr>
+								<th scope="row">
+									<?php echo JText::_('COM_COURSES_COURSE_CERTIFICATE'); ?>:
+								</th>
+								<td>
+									<?php echo JText::_('COM_COURSES_COURSE_CERTIFICATE_AVAILABLE'); ?>
+								</td>
+							</tr>
+						<?php } ?>
+					</tbody>
+				</table>
+
+				<?php
+				$c = 0;
+				if ($offerings->total())
 				{
-					if ($offering->isDeleted() || $offering->isUnpublished())
-					{
-						continue;
-					}
-					$c++;
+					$found = false;
 
-					// Try to load the default section
-					$dflt = $offering->section('!!default!!');
-					if (!$dflt->exists())
+					// If a student...
+					if ($this->course->isStudent())
 					{
-						// No default? Get the first in the list
-						if (!$offering->sections()->total())
+						// Filters for getting all available sections
+						// includng the default
+						$filters = array(
+							'state'      => 1,
+							'available'  => true
+						);
+
+						foreach ($offerings as $offering)
 						{
-							$offering->makeSection();
-						}
-						$dflt = $offering->sections()->fetch('first');
-					}
-					$offering->section($dflt->get('alias'));
+							$s = array();
 
-					$found = true;
-					?>
-					<div class="offering-info">
-						<table>
-							<tbody>
-								<tr>
-									<th scope="row"><?php echo JText::_('COM_COURSES_OFFERING'); ?>:</th>
-									<td>
-										<?php echo $this->escape(stripslashes($offering->get('title'))); ?>
-									</td>
-								</tr>
-						<?php if ($offering->sections()->total() > 1) { ?>
-							</tbody>
-						</table>
-						<div class="btn-group-wrap">
-							<div class="btn-group dropdown">
-								<a class="btn" href="<?php echo JRoute::_($offering->link('enter')); ?>"><?php echo $this->escape(stripslashes($dflt->get('title'))); ?></a>
-								<span class="btn dropdown-toggle"></span>
-								<ul class="dropdown-menu">
-								<?php
-								foreach ($offering->sections() as $section)
+							// Get all the sections for this offering
+							$sections = $offering->sections($filters);
+							if ($sections->total() > 0)
+							{
+								// Loop through all sections and collect ones 
+								// the user is a student in
+								foreach ($sections as $section)
 								{
-									// Skip the default
-									if ($section->get('alias') == $dflt->get('alias') || $section->isDeleted())
+									// If not a student in *this* section
+									if (!$section->isMember())
 									{
 										continue;
 									}
-									// Set the section
-									$offering->section($section->get('id'));
-									?>
-									<li>
-										<a href="<?php echo JRoute::_($offering->link()); ?>">
-											<?php echo $this->escape(stripslashes($section->get('title'))); ?>
-										</a>
-									</li>
-									<?php
+
+									$s[] = $section;
+								}
+							}
+
+							// If there's more than one section...
+							if (count($s) > 1)
+							{
+								$offering->section($s[0]);
+
+								$this->view('_button')
+								     ->set('course', $this->course)
+								     ->set('offering', $offering)
+								     ->set('section', $s[0])
+								     ->set('sections', $s)
+								     ->display();
+
+								$found = true;
+							}
+							// If only one section...
+							else if (count($s) == 1)
+							{
+								$offering->section($s[0]);
+								?>
+								<p>
+									<a class="enroll btn" href="<?php echo JRoute::_($offering->link('enter')); ?>">
+										<?php echo JText::_('COM_COURSES_ACCESS_COURSE'); ?>
+									</a>
+								</p>
+								<?php
+
+								$found = true;
+							}
+
+							$c++;
+						}
+					}
+
+					if (!$found)
+					{
+						// If a course manager,
+						// show all sections regardless of published state
+						if ($this->course->isManager())
+						{
+							$filters = array(
+								'available'  => false
+							);
+						}
+						else
+						{
+							$filters = array(
+								'state'      => 1,
+								'available'  => true,
+								'enrollment' => array(0, 1),
+								'started'    => true,
+								'ended'      => false,
+								'is_default' => 0
+							);
+						}
+
+						foreach ($offerings as $offering)
+						{
+							// Try to load the default section
+							$dflt = $offering->section('!!default!!');
+							if (!$dflt->exists())
+							{
+								// No default? Get the first in the list
+								if (!$offering->sections()->total())
+								{
+									$offering->makeSection();
+								}
+								$dflt = $offering->sections()->fetch('first');
+								$offering->section($dflt);
+							}
+
+							$sections = $offering->sections($filters);
+							if ($sections->total() > 0)
+							{
+								$this->view('_button')
+								     ->set('course', $this->course)
+								     ->set('offering', $offering)
+								     ->set('section', $dflt)
+								     ->set('sections', $sections)
+								     ->display();
+							}
+							else
+							{
+								// If enrollment is closed on the default section
+								if ($dflt->get('enrollment') == 2 && !$dflt->isMember())
+								{
+									continue;
 								}
 								?>
-								</ul>
-								<div class="clear"></div>
-							</div><!-- /btn-group -->
-						</div>
-						<?php } else { ?>
-								<tr>
-									<th scope="row"><?php echo JText::_('COM_COURSES_SECTION'); ?>:</th>
-									<td>
-										<?php echo $offering->sections()->total() > 1 ? JText::_('COM_COURSES_SECTIONS_MANY') : $this->escape(stripslashes($dflt->get('title'))); ?>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-						<p>
-							<a class="access btn" href="<?php echo JRoute::_($offering->link('enter')); ?>">
-								<?php echo JText::_('COM_COURSES_ACCESS_COURSE'); ?>
-							</a>
-						</p>
-						<?php } ?>
-					</div><!-- / .offering-info -->
-					<?php
+								<p>
+									<a class="enroll btn" href="<?php echo JRoute::_($offering->link('enter')); ?>">
+										<?php echo JText::_('COM_COURSES_ACCESS_COURSE'); ?>
+									</a>
+								</p>
+								<?php
+							}
+
+							$c++;
+						}
+					}
 				}
-			}
-			// If the user is a student
-			else if ($this->course->isStudent())
-			{
-				foreach ($offerings as $offering)
+
+				if (!$c)
 				{
-					if (!$offering->isAvailable())
-					{
-						continue;
-					}
-					$c++;
-
-					foreach ($offering->sections() as $sect)
-					{
-						// If section is in draft mode or not published
-						if ($sect->isDraft() || !$sect->isPublished())
-						{
-							continue;
-						}
-						// If section hasn't started
-						if ($sect->get('publish_up') != '0000-00-00 00:00:00' && $sect->get('publish_up') > $now)
-						{
-							continue;
-						}
-						// If a publish down time is set and that time happened before now
-						if ($sect->get('publish_down') != '0000-00-00 00:00:00' && $sect->get('publish_down') <= $now)
-						{
-							continue;
-						}
-						// If not already a member and enrollment is closed
-						if (!$sect->isMember())
-						{
-							continue;
-						}
-
-						$found = true;
-
-						$offering->section($sect->get('alias'));
-						?>
-						<div class="offering-info">
-							<table>
-								<tbody>
-									<tr>
-										<th scope="row"><?php echo JText::_('COM_COURSES_OFFERING'); ?>:</th>
-										<td>
-											<?php echo $this->escape(stripslashes($offering->get('title'))); ?>
-										</td>
-									</tr>
-									<tr>
-										<th scope="row"><?php echo JText::_('COM_COURSES_SECTION'); ?>:</th>
-										<td>
-											<?php echo $this->escape(stripslashes($offering->section()->get('title'))); ?>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-							<p>
-								<a class="access btn" href="<?php echo JRoute::_($offering->link('enter')); ?>">
-									<?php echo JText::_('COM_COURSES_ACCESS_COURSE'); ?>
-								</a>
-							</p>
-						</div><!-- / .offering-info -->
-						<?php
-					}
-				}
-			}
-
-			if (!$found)
-			{
-				foreach ($offerings as $offering)
-				{
-					if (!$offering->isAvailable())
-					{
-						continue;
-					}
-					$c++;
-
-					foreach ($offering->sections() as $sect)
-					{
-						// If section is in draft mode or not published
-						if ($sect->isDraft() || !$sect->isPublished())
-						{
-							continue;
-						}
-						// If section hasn't started or has ended
-						if (!$sect->started() || $sect->ended())
-						{
-							continue;
-						}
-						// If a publish down time is set and that time happened before now
-						if ($sect->get('publish_down') != '0000-00-00 00:00:00' && $sect->get('publish_down') <= $now)
-						{
-							continue;
-						}
-						// If not already a member and enrollment is closed
-						if (!$sect->isMember() && $sect->get('enrollment') == 2)
-						{
-							continue;
-						}
-
-						$offering->section($sect->get('alias'));
-						?>
-						<div class="offering-info">
-							<table>
-								<tbody>
-									<tr>
-										<th scope="row"><?php echo JText::_('COM_COURSES_OFFERING'); ?>:</th>
-										<td>
-											<?php echo $this->escape(stripslashes($offering->get('title'))); ?>
-										</td>
-									</tr>
-									<tr>
-										<th scope="row"><?php echo JText::_('COM_COURSES_SECTION'); ?>:</th>
-										<td>
-											<?php echo $this->escape(stripslashes($offering->section()->get('title'))); ?>
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						<?php if ($offering->section()->isMember()) { ?>
-							<p>
-								<a class="access btn" href="<?php echo JRoute::_($offering->link('enter')); ?>">
-									<?php echo JText::_('COM_COURSES_ACCESS_COURSE'); ?>
-								</a>
-							</p>
-						<?php } else if ($offering->section()->get('enrollment') != 2) { ?>
-							<p>
-								<a class="enroll btn" href="<?php echo JRoute::_($offering->link('enroll')); ?>">
-									<?php echo JText::_('COM_COURSES_ACCESS_COURSE'); ?>
-								</a>
-							</p>
-						<?php } ?>
-						<?php if ($offering->section()->params('preview', 0)) { ?>
-							<p>
-								<a class="preview btn" href="<?php echo JRoute::_($offering->link('enter')); ?>">
-									<?php echo JText::_('COM_COURSES_PREVIEW_COURSE'); ?>
-								</a>
-							</p>
-						<?php } ?>
-						</div><!-- / .offering-info -->
-						<?php
-					}
-				}
-			}
-		}
-		if (!$c)
-		{
-			?>
-				<div class="offering-info">
+					?>
 					<p>
 						<?php echo JText::_('COM_COURSES_NO_OFFERINGS_AVAILABLE'); ?>
 					</p>
-				</div><!-- / .offering-info -->
-			<?php
-		}
-		?>
+					<?php
+				}
+				?>
+			</div>
+		<?php } ?>
+
 		<?php
 		if ($this->course->access('edit', 'course'))
 		{
@@ -617,13 +601,13 @@ $this->css('course.css')
 		}
 		?>
 		<?php
-		if ($this->sections)
+		if ($this->plugins)
 		{
-			foreach ($this->sections as $section)
+			foreach ($this->plugins as $plugin)
 			{
-				if ($section['metadata'] != '')
+				if ($meta = $plugin->get('metadata'))
 				{
-					echo $section['metadata'];
+					echo $meta;
 				}
 			}
 		}

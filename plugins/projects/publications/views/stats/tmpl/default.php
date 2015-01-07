@@ -38,15 +38,6 @@ $oneMonth = date('M', strtotime("-1 month"));
 $twoMonth = date('M', strtotime("-2 month"));
 $threeMonth = date('M', strtotime("-3 month"));
 
-$dateFormat = '%b %d, %Y';
-$tz = null;
-
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'M d, Y';
-	$tz = false;
-}
-
 $i = 0;
 $xticks = "[0, '" . $threeMonth . "'], [1, '" . $twoMonth . "'], [2, '" . $oneMonth . "'], [3, '" . $nowMonth . "']";
 
@@ -83,7 +74,7 @@ tooltip: true,
 
 ?>
 <div id="plg-header">
-<?php if($this->project->provisioned == 1 ) { ?>
+<?php if ($this->project->provisioned == 1 ) { ?>
 <h3 class="prov-header"><a href="<?php echo $this->route; ?>"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_MY_SUBMISSIONS')); ?></a> <?php if ($this->pub) { ?>  &raquo; <span class="restype indlist"><?php echo $typetitle; ?></span> <span class="indlist"><a href="<?php echo $this->url . '?version=' . $this->version; ?>"><?php echo $this->pub->title; ?></a></span><?php } ?> &raquo; <?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_STATS')); ?></h3>
 <?php } else { ?>
 <h3 class="publications c-header"><a href="<?php echo $this->route; ?>"><?php echo $this->title; ?></a> <?php if ($this->pub) { ?>  &raquo; <span class="restype indlist"><?php echo $typetitle; ?></span> <span class="indlist"><a href="<?php echo $this->url . '?version=' . $this->version; ?>"><?php echo $this->pub->title; ?></a></span><?php } ?> &raquo; <span class="indlist"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_STATS')); ?></span></h3>
@@ -109,30 +100,19 @@ tooltip: true,
 <?php
 	foreach ($this->pubstats as $stat)
 	{
-		$pubthumb = $this->helper->getThumb($stat->publication_id,
-			$stat->publication_version_id,
-			$this->pubconfig,
-			false,
-			$stat->cat_url
-		);
-
 		$toDate = strtotime($stat->first_published) > strtotime($this->firstlog) ? $stat->first_published : $this->firstlog;
 
 		$yTickSize = max($stat->threemonth_views, $stat->twomonth_views, $stat->lastmonth_views,
 			$stat->thismonth_views, $stat->threemonth_primary, $stat->twomonth_primary,
 			$stat->lastmonth_primary, $stat->thismonth_primary);
 
-		// Get user data from text log (primary content accesses - get unique users)
-		//$users = $this->helper->getUserLogs($stat, $this->pubconfig, 'primary');
-		//$userViews = $this->helper->getUserLogs($stat, $this->pubconfig, 'view');
-
 		$i++;
 		?>
 			<table class="pubstats-wrap">
 				<tr><td colspan="6" class="pubstats-h">
-					<img src="<?php echo $pubthumb; ?>" alt=""/>
+					<img src="<?php echo JRoute::_('index.php?option=com_publications&id=' . $stat->publication_id . '&v=' . $stat->publication_version_id) . '/Image:thumb'; ?>" alt=""/>
 					<span class="h-title"><a href="<?php echo JRoute::_('index.php?option=com_publications' . a . 'id=' . $stat->publication_id) . '?version=' . $stat->version_number; ?>"><?php echo $stat->title; ?></a></span>
-					<span class="block mini faded"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLISHED') . ' ' . JHTML::_('date', $stat->published_up, $dateFormat, $tz) . ' ' . JText::_('PLG_PROJECTS_PUBLICATIONS_IN') . ' ' . $stat->cat_name; ?></span>
+					<span class="block mini faded"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLISHED') . ' ' . JHTML::_('date', $stat->published_up, 'M d, Y') . ' ' . JText::_('PLG_PROJECTS_PUBLICATIONS_IN') . ' ' . $stat->cat_name; ?></span>
 				</td></tr>
 				<tr>
 					<td></td>
@@ -144,7 +124,7 @@ tooltip: true,
 
 					<td><?php echo '<span class="pubstats-label">' . JText::_('PLG_PROJECTS_PUBLICATIONS_STATS_LAST_MONTH') . '</span><span class="pubstats-note">' . $lastMonth . '</span>';  ?></td>
 
-					<td><?php echo '<span class="pubstats-label"><span class="prominent">' . JText::_('PLG_PROJECTS_PUBLICATIONS_STATS_TOTAL') . '</span>*</span><span class="pubstats-note">*' . JText::_('PLG_PROJECTS_PUBLICATIONS_SINCE') . ' ' .JHTML::_('date', $toDate, $dateFormat, $tz) . ' ' . '</span>';  ?></td>
+					<td><?php echo '<span class="pubstats-label"><span class="prominent">' . JText::_('PLG_PROJECTS_PUBLICATIONS_STATS_TOTAL') . '</span>*</span><span class="pubstats-note">*' . JText::_('PLG_PROJECTS_PUBLICATIONS_SINCE') . ' ' .JHTML::_('date', $toDate, 'M d, Y') . ' ' . '</span>';  ?></td>
 
 				</tr>
 				<tr>
@@ -283,7 +263,7 @@ tooltip: true,
 				</tr>
 			</table>
 <?php }
- } else { ?>
+	} else { ?>
 	<p class="noresults"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_STATS_NO_INFO'); ?></p>
 <?php } ?>
 </div>

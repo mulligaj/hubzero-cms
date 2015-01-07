@@ -89,6 +89,24 @@
 	.entry-details {
 		display: block;
 	}
+	.section-name,
+	.category-name {
+		max-width: 10em;
+		-ms-word-break: break-all;
+		word-wrap: break-word;
+		word-break: break-all;
+		-webkit-hyphens: auto;
+		-moz-hyphens: auto;
+		hyphens: auto;
+	}
+	.entry-description {
+		-ms-word-break: break-all;
+		word-wrap: break-word;
+		word-break: break-all;
+		-webkit-hyphens: auto;
+		-moz-hyphens: auto;
+		hyphens: auto;
+	}
 	.entries caption a {
 		float: right;
 	}
@@ -186,6 +204,15 @@
 	}
 	.com_forum .post-comment-title {
 		margin-top: 2em;
+	}
+
+	.com_forum .container .order-options a:before {
+		content: "\2193";
+		font-family: "Fontcons";
+	}
+	.com_forum .container .order-options a.asc:before {
+		content: "\2191";
+		font-family: "Fontcons";
 	}
 
 	.aside .entry-comment {

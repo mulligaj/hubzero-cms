@@ -25,15 +25,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$dateFormat = '%b %d, %Y';
-$tz = null;
-
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'M d, Y';
-	$tz = false;
-}
-
 $juri 	 = JURI::getInstance();
 $jconfig = JFactory::getConfig();
 $base 	 = rtrim($juri->base(), DS);
@@ -57,7 +48,7 @@ $message .= ' "' . $this->project->title. '"' ."\n";
 $message .= '-------------------------------' ."\n";
 $message .= JText::_('COM_PROJECTS_PROJECT') . ': ' . $this->project->title . ' (' . $this->project->alias . ')' . "\n";
 $message .= ucfirst(JText::_('COM_PROJECTS_CREATED')) . ' '
-		 . JHTML::_('date', $this->project->created, $dateFormat, $tz) . ' '
+		 . JHTML::_('date', $this->project->created, 'M d, Y') . ' '
 		 . JText::_('COM_PROJECTS_BY') . ' ';
 $message .= $this->project->owned_by_group
 			? $this->nativegroup->cn . ' ' . JText::_('COM_PROJECTS_GROUP')
@@ -79,7 +70,7 @@ if ($this->config->get('restricted_data', 0))
 	$message .= JText::_('COM_PROJECTS_EMAIL_HIPAA') . ': ' . $this->params->get('hipaa_data') ."\n";
 	$message .= JText::_('COM_PROJECTS_EMAIL_FERPA') . ': ' . $this->params->get('ferpa_data') ."\n";
 	$message .= JText::_('COM_PROJECTS_EMAIL_EXPORT') . ': ' . $this->params->get('export_data') ."\n";
-	if($this->params->get('followup'))
+	if ($this->params->get('followup'))
 	{
 		$message .= JText::_('COM_PROJECTS_EMAIL_FOLLOWUP_NEEDED') . ': ' . $this->params->get('followup') ."\n";
 	}

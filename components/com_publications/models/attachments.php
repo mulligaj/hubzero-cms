@@ -123,7 +123,6 @@ class PublicationsModelAttachments extends JObject
 
 			// Sort out attachments for this element
 			$attachments = self::getElementAttachments($elementId, $attachments, $name);
-
 			if ($attachments)
 			{
 				$type->transferData($element->params, $elementId, $pub, $params,
@@ -131,6 +130,7 @@ class PublicationsModelAttachments extends JObject
 				);
 			}
 		}
+
 	}
 
 	/**
@@ -212,6 +212,7 @@ class PublicationsModelAttachments extends JObject
 
 		$output = '<ul class="element-list">';
 		$i = 0;
+		$links = '';
 		foreach ($elements as $element)
 		{
 			// Load attachment type
@@ -231,7 +232,7 @@ class PublicationsModelAttachments extends JObject
 				$i++;
 			}
 			// Draw link(s)
-			$output .= $type->drawList(
+			$links .= $type->drawList(
 				$attachments,
 				$element->manifest,
 				$element->id,
@@ -243,7 +244,7 @@ class PublicationsModelAttachments extends JObject
 		$output .= $append;
 		$output .= '</ul>';
 
-		return $i > 0 ? $output : false;
+		return $links ? $output : false;
 	}
 
 	/**
@@ -268,6 +269,48 @@ class PublicationsModelAttachments extends JObject
 
 		// Draw link
 		return $type->drawLauncher($element->manifest, $element->id, $pub, $element->block, $elements, $authorized);
+	}
+
+	/**
+	 * Draws attachment
+	 *
+	 * @return  object
+	 */
+	public function drawAttachment( $name, $data = NULL, $typeParams = NULL, $handler = NULL )
+	{
+		// Load attachment type
+		$type = $this->loadAttach($name);
+
+		if ($type === false)
+		{
+			return false;
+		}
+		if (!$data)
+		{
+			return false;
+		}
+
+		// Draw
+		return $type->drawAttachment($data, $typeParams, $handler);
+	}
+
+	/**
+	 * Draws attachment
+	 *
+	 * @return  object
+	 */
+	public function buildDataObject( $name, $attachment, $view, $ordering = 1 )
+	{
+		// Load attachment type
+		$type = $this->loadAttach($name);
+
+		if ($type === false)
+		{
+			return false;
+		}
+
+		// Draw
+		return $type->buildDataObject($attachment, $view, $ordering);
 	}
 
 	/**
@@ -448,13 +491,12 @@ class PublicationsModelAttachments extends JObject
 			return false;
 		}
 
-		$i = 0;
 		foreach ($elements as $element)
 		{
 			// File?
 			if ($element->manifest->params->type != 'file')
 			{
-				continue;
+			//	continue;
 			}
 
 			// Load attachment type
@@ -468,11 +510,6 @@ class PublicationsModelAttachments extends JObject
 			$attachments = $pub->_attachments;
 			$attachments = isset($attachments['elements'][$element->id])
 						 ? $attachments['elements'][$element->id] : NULL;
-
-			if ($attachments)
-			{
-				$i++;
-			}
 
 			// Add to bundle
 			$type->addToBundle(
@@ -501,14 +538,13 @@ class PublicationsModelAttachments extends JObject
 			return false;
 		}
 
-		$i = 0;
 		$contents = NULL;
 		foreach ($elements as $element)
 		{
 			// File?
 			if ($element->manifest->params->type != 'file')
 			{
-				continue;
+			//	continue;
 			}
 
 			// Load attachment type
@@ -522,11 +558,6 @@ class PublicationsModelAttachments extends JObject
 			$attachments = $pub->_attachments;
 			$attachments = isset($attachments['elements'][$element->id])
 						 ? $attachments['elements'][$element->id] : NULL;
-
-			if ($attachments)
-			{
-				$i++;
-			}
 
 			// Add to bundle
 			$contents .= $type->drawPackageList(

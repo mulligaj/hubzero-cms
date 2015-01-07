@@ -180,6 +180,7 @@ function CoursesParseRoute($segments)
 				$vars['active'] = $segments[1];
 			break;
 
+			case 'logo':
 			case 'edit':
 			case 'newoffering':
 			case 'saveoffering':
@@ -227,7 +228,7 @@ function CoursesParseRoute($segments)
 				$course = CoursesModelCourse::getInstance($vars['gid']);
 				if ($course->exists())
 				{
-					$pages = $course->pages();
+					$pages = $course->pages(array('active' => 1));
 
 					foreach ($pages as $page)
 					{
@@ -280,7 +281,7 @@ function CoursesParseRoute($segments)
 		}
 		else
 		{
-			if ($segments[2] == 'enroll')
+			if ($segments[2] == 'enroll' || $segments[2] == 'logo')
 			{
 				$vars['task'] = $segments[2];
 			}

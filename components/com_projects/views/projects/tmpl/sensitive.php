@@ -25,14 +25,10 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$dateFormat = '%b %d, %Y';
-$tz = null;
-
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'M d, Y';
-	$tz = false;
-}
+$this->css()
+	->js()
+	->css('reviewers')
+	->css('jquery.fancybox.css', 'system');
 
 $html  = '';
 $setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
@@ -148,7 +144,6 @@ $setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
 			$params = new JParameter( $row->params );
 
 			$goto  = 'alias=' . $row->alias;
-			$thumb = ProjectsHtml::getThumbSrc($row->id, $row->alias, $row->picture, $this->config);
 			$html .= t.t.t.'<tr class="mline" id="tr_'.$row->id.'">'.n;
 			$html .= t.t.t.t.'<td class="th_privacy">';
 			$html .= '<span class="privacy-icon';
@@ -156,13 +151,13 @@ $setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
 			$html .= '">&nbsp;</span>';
 			$html .= '</td>'.n;
 			$html .= t.t.t.t.'<td class="th_image">';
-			$html .='<a href="'.JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto).'"><img src="'.$thumb.'" alt="'.htmlentities(ProjectsHtml::cleanText($row->title)).'" /></a></td>'.n;
+			$html .='<a href="'.JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto).'"><img src="'. JRoute::_('index.php?option=' . $this->option . '&alias=' . $row->alias . '&task=media') .'" alt="'.htmlentities(ProjectsHtml::cleanText($row->title)).'" /></a></td>'.n;
 			$html .= t.t.t.t.'<td class="th_title"><a href="'.JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto).'"  title="';
 			$html .= $row->about ? htmlentities(ProjectsHtml::cleanText($row->about))
 			: htmlentities(ProjectsHtml::cleanText($row->title));
 			$html .='">'.ProjectsHtml::cleanText($row->title).'</a><span class="block mini faded">'.$row->alias.'</span></td>'.n;
 			$html .= '<td class="mini faded">';
-			$html .= JHTML::_('date', $row->created, $dateFormat, $tz);
+			$html .= JHTML::_('date', $row->created, 'M d, Y');
 			$html .= '</td>'.n;
 			$html .= '<td class="mini faded">' . '<a href="/members/'.$row->created_by_user.'">'.$row->authorname.'</a>' ;
 			$profile = \Hubzero\User\Profile::getInstance($row->created_by_user);

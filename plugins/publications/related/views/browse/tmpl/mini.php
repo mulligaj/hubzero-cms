@@ -26,9 +26,7 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 // Add stylesheet
-$document = JFactory::getDocument();
-$document->addStyleSheet('plugins' . DS . 'publications' . DS
-	. 'related' . DS . 'assets' . DS . 'css' . DS . 'related.css');
+$this->css('assets/css/related.css');
 
 ?>
 <div id="whatsrelated">
@@ -54,8 +52,7 @@ $document->addStyleSheet('plugins' . DS . 'publications' . DS
 		}
 ?>
 		<li class="<?php echo $line->class; ?>">
-		 	<?php echo ($line->section == 'Series') ? JText::_('PLG_PUBLICATION_RELATED_PART_OF').' ' : ''; ?>
-			<a href="<?php echo $sef; ?>"><?php echo stripslashes($line->title); ?></a>
+			<a href="<?php echo $sef; ?>"><?php echo ($line->section == 'Series') ? JText::_('PLG_PUBLICATION_RELATED_PART_OF').' ' : ''; ?><?php echo stripslashes($line->title); ?></a>
 		</li>
 <?php } ?>
 	</ul>

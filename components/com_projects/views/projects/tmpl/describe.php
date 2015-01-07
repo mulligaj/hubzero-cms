@@ -25,6 +25,11 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css()
+	->js()
+	->js('setup')
+	->css('jquery.fancybox.css', 'system');
+
 // Do some text cleanup
 $this->project->title = ProjectsHtml::cleanText($this->project->title);
 

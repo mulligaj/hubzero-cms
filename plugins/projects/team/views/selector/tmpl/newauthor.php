@@ -128,7 +128,7 @@ if (count($this->authors) > 0)
 								<?php } ?>
 						</label>
 					</div>
-				<?php // } ?>
+				<?php //} ?>
 				<div class="block">
 					<div class="inlineblock">
 					<label>

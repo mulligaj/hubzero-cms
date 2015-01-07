@@ -96,9 +96,9 @@ class plgGroupsBlog extends \Hubzero\Plugin\Plugin
 			}
 		}
 
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'blog.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'archive.php');
 
-		$this->model = new BlogModel('group', $group->get('gidNumber'));
+		$this->model = new BlogModelArchive('group', $group->get('gidNumber'));
 
 		//are we returning html
 		if ($return == 'html')
@@ -202,7 +202,7 @@ class plgGroupsBlog extends \Hubzero\Plugin\Plugin
 
 		$filters = array(
 			'scope'    => 'group',
-			'group_id' => $group->get('gidNumber'),
+			'scope_id' => $group->get('gidNumber'),
 			'state'    => 'all'
 		);
 
@@ -317,7 +317,7 @@ class plgGroupsBlog extends \Hubzero\Plugin\Plugin
 			'year'       => JRequest::getInt('year', 0),
 			'month'      => JRequest::getInt('month', 0),
 			'scope'      => 'group',
-			'group_id'   => $this->group->get('gidNumber'),
+			'scope_id'   => $this->group->get('gidNumber'),
 			'search'     => JRequest::getVar('search',''),
 			'authorized' => false,
 			'state'      => 'public'
@@ -419,7 +419,7 @@ class plgGroupsBlog extends \Hubzero\Plugin\Plugin
 			'year'       => JRequest::getInt('year', 0),
 			'month'      => JRequest::getInt('month', 0),
 			'scope'      => 'group',
-			'group_id'   => $this->group->get('gidNumber'),
+			'scope_id'   => $this->group->get('gidNumber'),
 			'search'     => JRequest::getVar('search',''),
 			'created_by' => JRequest::getInt('author', 0),
 			'state'      => 'public'
@@ -560,7 +560,7 @@ class plgGroupsBlog extends \Hubzero\Plugin\Plugin
 		}
 
 		// make sure the group owns this
-		if ($view->row->get('group_id') != $this->group->get('gidNumber'))
+		if ($view->row->get('scope_id') != $this->group->get('gidNumber'))
 		{
 			JError::raiseError(403, JText::_('PLG_GROUPS_BLOG_NOT_AUTH'));
 			return;
@@ -571,7 +571,7 @@ class plgGroupsBlog extends \Hubzero\Plugin\Plugin
 			'limit'      => 10,
 			'start'      => 0,
 			'scope'      => 'group',
-			'group_id'   => $this->group->get('gidNumber'),
+			'scope_id'   => $this->group->get('gidNumber'),
 			'created_by' => 0
 		);
 
@@ -666,7 +666,7 @@ class plgGroupsBlog extends \Hubzero\Plugin\Plugin
 			$view->entry->set('allow_comments', 1);
 			$view->entry->set('state', 1);
 			$view->entry->set('scope', 'group');
-			$view->entry->set('group_id', $this->group->get('gidNumber'));
+			$view->entry->set('scope_id', $this->group->get('gidNumber'));
 		}
 
 		if ($this->getError())

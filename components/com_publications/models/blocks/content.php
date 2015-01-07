@@ -81,7 +81,12 @@ class PublicationsBlockContent extends PublicationsModelBlock
 		if ($viewname == 'curator')
 		{
 			// Output HTML
-			$view = new JView( array('name'=>'curation', 'layout'=> 'block' ) );
+			$view = new \Hubzero\Component\View(
+				array(
+					'name'		=> 'curation',
+					'layout'	=> 'block'
+				)
+			);
 		}
 		else
 		{
@@ -136,7 +141,7 @@ class PublicationsBlockContent extends PublicationsModelBlock
 		$view->pub			= $pub;
 		$view->active		= $this->_name;
 		$view->step			= $sequence;
-		$view->showControls	= 1;
+		$view->showControls	= isset($master->params->collapse_elements) && $master->params->collapse_elements == 1 ? 3 : 1;
 		$view->status		= $status;
 		$view->master		= $master;
 
@@ -190,10 +195,19 @@ class PublicationsBlockContent extends PublicationsModelBlock
 
 				if ($this->get('_update'))
 				{
+					$lastRecord = $pub->_curationModel->getLastUpdate($id, $this->_name, $pub, $sequence);
+
 					// Record update time
 					$data 				= new stdClass;
 					$data->updated 		= JFactory::getDate()->toSql();
 					$data->updated_by 	= $actor;
+
+					// Unmark as skipped
+					if ($lastRecord && $lastRecord->review_status == 3)
+					{
+						$data->review_status = 0;
+						$data->update = '';
+					}
 					$pub->_curationModel->saveUpdate($data, $id, $this->_name, $pub, $sequence);
 				}
 			}
@@ -243,11 +257,10 @@ class PublicationsBlockContent extends PublicationsModelBlock
 		$html = '';
 
 		// Get selector styles
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('plugins' . DS . 'projects' . DS . 'files' . DS . 'css' . DS . 'selector.css');
-		$document->addStyleSheet('plugins' . DS . 'projects' . DS . 'publications' . DS
-			. 'css' . DS . 'selector.css');
+		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'publications','css/selector');
 		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'links');
+		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files','css/selector');
+		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'databases','css/selector');
 
 		// Get block element model
 		$elModel = new PublicationsModelBlockElements($this->_parent->_db);

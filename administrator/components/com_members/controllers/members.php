@@ -249,7 +249,7 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 		// Redirect
 		$this->setRedirect(
 			JRoute::_('index.php?option='.$this->_option.'&controller='.$this->_controller.'&task=edit&id[]='.$profile->get('uidNumber'), false),
-			JText::_('MEMBER_SAVED')
+			JText::_('COM_MEMBERS_MEMBER_SAVED')
 		);
 	}
 
@@ -300,10 +300,10 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 		$this->view->validated = (isset($this->validated)) ? $this->validated : false;
 
 		// Get the user's interests (tags)
-		include_once(JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'helpers' . DS . 'tags.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'models' . DS . 'tags.php');
 
-		$mt = new MembersTags($this->database);
-		$this->view->tags = $mt->get_tag_string($id);
+		$mt = new MembersModelTags($id);
+		$this->view->tags = $mt->render('string');
 
 		// Set any errors
 		if ($this->getError())
@@ -345,7 +345,7 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 		// Do we have an ID?
 		if (!$id)
 		{
-			JError::raiseError(500, JText::_('MEMBERS_NO_ID'));
+			JError::raiseError(500, JText::_('COM_MEMBERS_NO_ID'));
 			return;
 		}
 
@@ -498,7 +498,7 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 			if (!empty($validated))
 			{
 				// Set error
-				$this->setError(JText::_('MEMBERS_PASSWORD_DOES_NOT_MEET_REQUIREMENTS'));
+				$this->setError(JText::_('COM_MEMBERS_PASSWORD_DOES_NOT_MEET_REQUIREMENTS'));
 				$this->validated = $validated;
 				$redirect = false;
 			}
@@ -553,10 +553,10 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 		$tags = trim(JRequest::getVar('tags', ''));
 
 		// Process tags
-		include_once(JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'helpers' . DS . 'tags.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'models' . DS . 'tags.php');
 
-		$mt = new MembersTags($this->database);
-		$mt->tag_object($id, $id, $tags, 1, 1);
+		$mt = new MembersModelTags($id);
+		$mt->setTags($tags, $id);
 
 		// Make sure certain changes make it back to the Joomla user table
 		$juser = JUser::getInstance($id);
@@ -573,7 +573,7 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 			// Redirect
 			$this->setRedirect(
 				JRoute::_('index.php?option='.$this->_option),
-				JText::_('MEMBER_SAVED')
+				JText::_('COM_MEMBERS_MEMBER_SAVED')
 			);
 		}
 		else
@@ -607,7 +607,7 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 				$path = JPATH_ROOT . DS . trim($this->config->get('webpath', '/site/members'), DS) . DS . \Hubzero\Utility\String::pad($id);
 				if (!file_exists($path . DS . $file) or !$file)
 				{
-					$this->setError(JText::_('FILE_NOT_FOUND'));
+					$this->setError(JText::_('COM_MEMBERS_FILE_NOT_FOUND'));
 				}
 				else
 				{
@@ -629,7 +629,7 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 		// Output messsage and redirect
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('MEMBER_REMOVED')
+			JText::_('COM_MEMBERS_REMOVED')
 		);
 	}
 
@@ -672,7 +672,7 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 		{
 			$this->setRedirect(
 				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-				JText::_('MEMBERS_NO_ID'),
+				JText::_('COM_MEMBERS_NO_ID'),
 				'error'
 			);
 			return;
@@ -707,7 +707,7 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 
 		$this->setRedirect(
 			'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
-			JText::_('MEMBERS_CONFIRMATION_CHANGED')
+			JText::_('COM_MEMBERS_CONFIRMATION_CHANGED')
 		);
 	}
 
@@ -792,6 +792,61 @@ class MembersControllerMembers extends \Hubzero\Component\AdminController
 		}
 
 		echo json_encode($json);
+	}
+
+	/**
+	 * Download a picture
+	 *
+	 * @return  void
+	 */
+	public function pictureTask()
+	{
+		//get vars
+		$id = JRequest::getInt('id', 0);
+
+		//check to make sure we have an id
+		if (!$id || $id == 0)
+		{
+			return;
+		}
+
+		//Load member profile
+		$member = \Hubzero\User\Profile::getInstance($id);
+
+		// check to make sure we have member profile
+		if (!$member)
+		{
+			return;
+		}
+
+		$file  = DS . trim($this->config->get('webpath', '/site/members'), DS);
+		$file .= DS . \Hubzero\User\Profile\Helper::niceidformat($member->get('uidNumber'));
+		$file .= DS . JRequest::getVar('image', $member->get('picture'));
+
+		// Ensure the file exist
+		if (!file_exists(JPATH_ROOT . DS . $file))
+		{
+			JError::raiseError(404, JText::_('COM_MEMBERS_FILE_NOT_FOUND') . ' ' . $file);
+			return;
+		}
+
+		// Serve up the image
+		$xserver = new \Hubzero\Content\Server();
+		$xserver->filename(JPATH_ROOT . DS . $file);
+		$xserver->disposition('attachment');
+		$xserver->acceptranges(false); // @TODO fix byte range support
+
+		//serve up file
+		if (!$xserver->serve())
+		{
+			// Should only get here on error
+			JError::raiseError(404, JText::_('COM_MEMBERS_MEDIA_ERROR_SERVING_FILE'));
+		}
+		else
+		{
+			exit;
+		}
+		return;
 	}
 }
 

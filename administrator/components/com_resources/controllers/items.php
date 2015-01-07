@@ -752,6 +752,8 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		// Is this a standalone resource?
 		if ($this->view->row->standalone == 1)
 		{
+			$this->view->lists['tags'] = '';
+
 			// Get groups
 			$filters = array(
 				'authorized' => 'admin',
@@ -784,6 +786,10 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 						ORDER BY a.ordering";
 				$this->database->setQuery($sql);
 				$authnames = $this->database->loadObjectList();
+
+				// Get the tags on this item
+				$tagger = new ResourcesTags($this->view->row->id);
+				$this->view->lists['tags'] = $tagger->render('string');
 			}
 
 			// Build <select> of contributors
@@ -797,10 +803,6 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 			$authorslist->roles     = $rt->getRolesForType($this->view->row->type);
 
 			$this->view->lists['authors'] = $authorslist->loadTemplate();
-
-			// Get the tags on this item
-			$rt = new ResourcesTags($this->database);
-			$this->view->lists['tags'] = $rt->get_tag_string($this->view->row->id, 0, 0, NULL, 0, 1);
 		}
 
 		// Set any errors
@@ -1038,8 +1040,8 @@ class ResourcesControllerItems extends \Hubzero\Component\AdminController
 		$tags = JRequest::getVar('tags', '', 'post');
 
 		// Save the tags
-		$rt = new ResourcesTags($this->database);
-		$rt->tag_object($this->juser->get('id'), $row->id, $tags, 1, 1);
+		$rt = new ResourcesTags($row->id);
+		$rt->setTags($tags, $this->juser->get('id'), 1, 1);
 
 		// Incoming authors
 		if ($row->type != 7)

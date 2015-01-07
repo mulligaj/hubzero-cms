@@ -107,9 +107,9 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		$this->juser    = JFactory::getUser();
 		$this->database = JFactory::getDBO();
 
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'collections.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_collections' . DS . 'models' . DS . 'archive.php');
 
-		$this->model = new CollectionsModel('group', $this->group->get('gidNumber'));
+		$this->model = new CollectionsModelArchive('group', $this->group->get('gidNumber'));
 
 		//get the plugins params
 		//$p = new \Hubzero\Plugin\Params($this->database);
@@ -989,10 +989,9 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 
 		// Incoming
 		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
-		$files  = JRequest::getVar('fls', '', 'files', 'array');
 
 		// Get model
-		$row = new CollectionsModelItem();
+		$row = new CollectionsModelItem($fields['id']);
 
 		// Bind content
 		if (!$row->bind($fields))
@@ -1002,14 +1001,17 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		}
 
 		// Add some data
-		if ($files)
+		if ($files  = JRequest::getVar('fls', '', 'files', 'array'))
 		{
 			$row->set('_files', $files);
 		}
-		$row->set('_assets', JRequest::getVar('assets', array(), 'post'));
+		$row->set('_assets', JRequest::getVar('assets', null, 'post'));
 		$row->set('_tags', trim(JRequest::getVar('tags', '')));
 		$row->set('state', 1);
-		$row->set('access', 0);
+		if (!$row->exists())
+		{
+			$row->set('access', 0);
+		}
 
 		// Store new content
 		if (!$row->store())

@@ -30,7 +30,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$canDo = CitationsHelper::getActions('citation');
+$canDo = CitationsHelperPermissions::getActions('citation');
 
 JToolBarHelper::title(JText::_('CITATIONS'), 'citation.png');
 if ($canDo->get('core.admin'))
@@ -71,8 +71,8 @@ function submitbutton(pressbutton)
 <form action="index.php" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
 		<div class="col width-50 fltlft">
-			<label for="filter_search"><?php echo JText::_('SEARCH'); ?>:</label>
-			<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('Search...'); ?>" />
+			<label for="filter_search"><?php echo JText::_('JSEARCH_FILTER'); ?>:</label>
+			<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('COM_CITATIONS_FILTER_SEARCH_PLACEHOLDER'); ?>" />
 
 			<input type="submit" name="filter_submit" id="filter_submit" value="<?php echo JText::_('GO'); ?>" />
 			<button type="button" onclick="$('#filter_search').val('');this.form.submit();"><?php echo JText::_('JSEARCH_FILTER_CLEAR'); ?></button>
@@ -118,7 +118,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 	$row =& $this->rows[$i];
 ?>
 			<tr class="<?php echo "row$k"; ?>">
-				<td><input type="checkbox" name="id[]" id="cb<?php echo $i;?>" value="<?php echo $row->id ?>" onclick="isChecked(this.checked);" /></td>
+				<td><input type="checkbox" name="id[]" id="cb<?php echo $i; ?>" value="<?php echo $row->id; ?>" onclick="isChecked(this.checked);" /></td>
 				<td>
 					<?php
 						$type = "";
@@ -147,7 +147,7 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 						}
 					?>
 					<?php if ($canDo->get('core.edit')) { ?>
-						<a href="index.php?option=<?php echo $this->option; ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id=<?php echo $row->id; ?>">
+						<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=edit&id=' . $row->id); ?>">
 							<?php echo $this->escape($title); ?>
 						</a>
 						<br />
@@ -168,10 +168,10 @@ for ($i=0, $n=count($this->rows); $i < $n; $i++)
 				</td>
 				<td><?php echo $this->escape($row->year); ?></td>
 				<td>
-					<?php if ($row->affiliated == 1) { echo '<span class="state publish"><span>' . JText::_('CITATION_YES') . '</span></span>'; } ?>
+					<?php if ($row->affiliated == 1) { echo '<span class="state publish"><span>' . JText::_('JYES') . '</span></span>'; } ?>
 				</td>
 				<td>
-					<?php if ($row->fundedby == 1) { echo '<span class="state publish"><span>' . JText::_('CITATION_YES') . '</span></span>'; } ?>
+					<?php if ($row->fundedby == 1) { echo '<span class="state publish"><span>' . JText::_('JYES') . '</span></span>'; } ?>
 				</td>
 			</tr>
 <?php

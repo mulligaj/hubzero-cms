@@ -53,22 +53,22 @@ if ($this->getError()) {
 				<input type="hidden" name="move" value="<?php echo $this->move; ?>" />
 				<input type="hidden" name="selections" id="ajax-selections" value="" />
 				<input type="hidden" name="provisioned" id="provisioned" value="<?php echo $this->project->provisioned == 1 ? 1 : 0; ?>" />
-				<?php if ($this->project->provisioned == 1 ) { ?>
+				<?php if($this->project->provisioned == 1 ) { ?>
 				<input type="hidden" name="task" value="submit" />
 				<?php } ?>
 			</fieldset>
 			<div class="content-edit">
-				<label for="title">
-					<span class="leftshift faded"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_LABEL')); ?>:</span>
-					<input type="text" name="title" maxlength="250" class="long" value="<?php echo $this->row && $this->row->title ? $this->row->title : ''; ?>"  />
-				</label>
-				<p class="c-wrapper">
-					<span class="leftshift faded"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_CONTENT_ITEM')); ?>:</span>
-					<span class="content-filepath"><?php echo '<span class="prominent">' . $name. '</span>' . $inDir; ?></span>
+				<p><span class="leftshift faded"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_CONTENT_ITEM')); ?>:</span>
+					<?php echo '<span class="prominent">' . $name. '</span>' . $inDir;  ?>
 				</p>
+				<label for="title">
+					<span class="leftshift faded"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_DESCRIPTION')); ?>:</span>
+					<input type="text" name="title" maxlength="100" class="long" value="<?php echo $this->row && $this->row->title ? $this->row->title : ''; ?>"  />
+					<span class="optional"><?php echo JText::_('OPTIONAL'); ?></span>
+				</label>
 				<p class="submitarea">
 					<input type="submit" class="btn" value="<?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_SAVE'); ?>" />
-					<?php if ($this->ajax) { ?>
+					<?php if($this->ajax) { ?>
 					<input type="reset" id="cancel-action" class="btn btn-cancel" value="<?php echo JText::_('COM_PROJECTS_CANCEL'); ?>" />
 					<?php } else {
 						$rtn = JRequest::getVar('HTTP_REFERER', $this->url, 'server');

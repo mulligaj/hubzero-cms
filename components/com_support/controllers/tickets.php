@@ -32,6 +32,7 @@
 defined('_JEXEC') or die('Restricted access');
 
 include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'query.php');
+include_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_support' . DS . 'tables' . DS . 'queryfolder.php');
 
 /**
  * Manage support tickets
@@ -573,85 +574,140 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			''
 		));
 
+		// Get query list
+		$sf = new SupportTableQueryFolder($this->database);
 		$sq = new SupportQuery($this->database);
-		$this->view->queries = array();
-		if ($this->acl->check('read', 'tickets'))
+
+		if (!$this->acl->check('read', 'tickets'))
 		{
-			$this->view->queries['common'] = $sq->getCommon();
-			if (!$this->view->queries['common'] || count($this->view->queries['common']) <= 0)
-			{
-				$this->view->queries['common'] = $sq->populateDefaults('common');
-			}
+			$this->view->folders = $sf->find('list', array(
+				'user_id'  => 0,
+				'sort'     => 'ordering',
+				'sort_Dir' => 'asc',
+				'iscore'   => 2
+			));
+
+			$queries = $sq->find('list', array(
+				'user_id'  => 0,
+				'sort'     => 'ordering',
+				'sort_Dir' => 'asc',
+				'iscore'   => 4
+			));
 		}
 		else
 		{
-			$this->view->queries['common'] = $sq->getCommonNotInACL();
-			if (!$this->view->queries['common'] || count($this->view->queries['common']) <= 0)
+			$this->view->folders = $sf->find('list', array(
+				'user_id'  => $this->juser->get('id'),
+				'sort'     => 'ordering',
+				'sort_Dir' => 'asc'
+			));
+
+			// Does the user have any folders?
+			if (!count($this->view->folders))
 			{
-				$this->view->queries['common'] = $sq->populateDefaults('commonnotacl');
+				// Get all the default folders
+				$this->view->folders = $sf->cloneCore($this->juser->get('id'));
+			}
+
+			$queries = $sq->find('list', array(
+				'user_id'  => $this->juser->get('id'),
+				'sort'     => 'ordering',
+				'sort_Dir' => 'asc'
+			));
+		}
+
+		foreach ($queries as $query)
+		{
+			$filters = $this->view->filters;
+			if ($query->id != $this->view->filters['show'])
+			{
+				$filters['search'] = '';
+			}
+
+			$query->query = $sq->getQuery($query->conditions);
+
+			// Get a record count
+			$query->count = $obj->getCount($query->query, $filters);
+
+			foreach ($this->view->folders as $k => $v)
+			{
+				if (!isset($this->view->folders[$k]->queries))
+				{
+					$this->view->folders[$k]->queries = array();
+				}
+				if ($query->folder_id == $v->id)
+				{
+					$this->view->folders[$k]->queries[] = $query;
+				}
+			}
+
+			if ($query->id == $this->view->filters['show'])
+			{
+				// Search
+				$this->view->filters['search']       = urldecode($app->getUserStateFromRequest(
+					$this->_option . '.' . $this->_controller . '.search',
+					'search',
+					''
+				));
+				// Set the total for the pagination
+				$this->view->total = ($this->view->filters['search']) ? $obj->getCount($query->query, $this->view->filters) : $query->count;
+
+				// Incoming sort
+				$this->view->filters['sort']         = trim($app->getUserStateFromRequest(
+					$this->_option . '.' . $this->_controller . '.sort',
+					'sort',
+					$query->sort
+				));
+
+				$this->view->filters['sortdir']     = trim($app->getUserStateFromRequest(
+					$this->_option . '.' . $this->_controller . '.sortdir',
+					'sortdir',
+					$query->sort_dir
+				));
+				// Get the records
+				$this->view->rows  = $obj->getRecords($query->query, $this->view->filters);
 			}
 		}
-		$this->view->queries['mine']   = $sq->getMine();
-		$this->view->queries['custom'] = $sq->getCustom($this->juser->get('id'));
 
-		if (!$this->view->queries['mine'] || count($this->view->queries['mine']) <= 0)
-		{
-			$this->view->queries['mine'] = $sq->populateDefaults('mine');
-		}
-		// If no query is set, default to the first one in the list
 		if (!$this->view->filters['show'])
 		{
-			$this->view->filters['show'] = $this->view->queries['common'][0]->id;
-			/*if ($this->acl->check('read', 'tickets'))
+			// Jump back to the beginning of the folders list
+			// and try to find the first query available
+			// to make it the current "active" query
+			reset($this->view->folders);
+			foreach ($this->view->folders as $folder)
 			{
-				$this->view->filters['show'] = $this->view->queries['common'][0]->id;
-			}
-			else
-			{
-				$this->view->filters['show'] = $this->view->queries['mine'][0]->id;
-			}*/
-		}
-
-		// Loop through each grouping
-		foreach ($this->view->queries as $key => $queries)
-		{
-			// Loop through each query in a group
-			foreach ($queries as $k => $query)
-			{
-				$filters = $this->view->filters;
-
-				// Build the query from the condition set
-				//if (!$query->query)
-				//{
-					$query->query = $sq->getQuery($query->conditions);
-				//}
-				if ($query->id != $this->view->filters['show'])
+				if (!empty($folder->queries))
 				{
-					$filters['search'] = '';
-				}
-				// Get a record count
-				$this->view->queries[$key][$k]->count = $obj->getCount($query->query, $filters);
-				// The query is the current active query
-				// get records
-				if ($query->id == $this->view->filters['show'])
-				{
-					// Set the total for the pagination
-					$this->view->total = $this->view->queries[$key][$k]->count;
-					// Incoming sort
-					$this->view->filters['sort']    = trim($app->getUserStateFromRequest(
-						$this->_option . '.' . $this->_controller . '.sort',
-						'sort',
-						$query->sort
-					));
-					$this->view->filters['sortdir'] = trim($app->getUserStateFromRequest(
-						$this->_option . '.' . $this->_controller . '.sortdir',
-						'sortdir',
-						$query->sort_dir
-					));
-					// Get the records
-					$this->view->rows  = $obj->getRecords($query->query, $this->view->filters);
+					$query = $folder->queries[0];
+					$this->view->filters['show'] = $query->id;
+					break;
 				}
 			}
+			//$folder = reset($this->view->folders);
+			//$query = $folder->queries[0];
+			// Search
+			$this->view->filters['search'] = urldecode($app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.search',
+				'search',
+				''
+			));
+			// Set the total for the pagination
+			$this->view->total = ($this->view->filters['search']) ? $obj->getCount($query->query, $this->view->filters) : $query->count;
+
+			// Incoming sort
+			$this->view->filters['sort']   = trim($app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.sort',
+				'filter_order',
+				$query->sort
+			));
+			$this->view->filters['sortdir'] = trim($app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.sortdir',
+				'filter_order_Dir',
+				$query->sort_dir
+			));
+			// Get the records
+			$this->view->rows = $obj->getRecords($query->query, $this->view->filters);
 		}
 
 		$watching = new SupportTableWatching($this->database);
@@ -862,8 +918,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		if (!isset($_POST['reporter']) || !isset($_POST['problem']))
 		{
 			// This really, REALLY shouldn't happen.
-			JError::raiseError(400, JText::_('COM_SUPPORT_ERROR_MISSING_DATA'));
-			return;
+			throw new JException(JText::_('COM_SUPPORT_ERROR_MISSING_DATA'), 400);
 		}
 		$reporter = JRequest::getVar('reporter', array(), 'post', 'none', 2);
 		$problem  = JRequest::getVar('problem', array(), 'post', 'none', 2);
@@ -1198,14 +1253,16 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			if (count($rowc->to()))
 			{
 				$allowEmailResponses = $this->config->get('email_processing');
-				if (!file_exists("/etc/hubmail_gw.conf"))
-				{
-					$allowEmailResponses = false;
-				}
-
 				if ($allowEmailResponses)
 				{
-					$encryptor = new \Hubzero\Mail\Token();
+					try
+					{
+						$encryptor = new \Hubzero\Mail\Token();
+					}
+					catch (Exception $e)
+					{
+						$allowEmailResponses = false;
+					}
 				}
 
 				$subject = JText::sprintf('COM_SUPPORT_EMAIL_SUBJECT_TICKET_COMMENT', $row->get('id'));
@@ -1400,9 +1457,10 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 	/**
 	 * Display a ticket and associated comments
 	 *
-	 * @return     void
+	 * @param   mixed  $comment
+	 * @return  void
 	 */
-	public function ticketTask()
+	public function ticketTask($comment = null)
 	{
 		// Get the ticket ID
 		$id = JRequest::getInt('id', 0);
@@ -1416,14 +1474,6 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			return;
 		}
 
-		// Initiate database class and load info
-		$this->view->row = SupportModelTicket::getInstance($id);
-		if (!$this->view->row->exists())
-		{
-			JError::raiseError(404, JText::_('COM_SUPPORT_ERROR_TICKET_NOT_FOUND'));
-			return;
-		}
-
 		// Check authorization
 		if ($this->juser->get('guest'))
 		{
@@ -1434,37 +1484,13 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			return;
 		}
 
-		// Incoming
-		$config = JFactory::getConfig();
-		$app    = JFactory::getApplication();
-
-		$this->view->filters = array();
-		// Paging
-		$this->view->filters['limit'] = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limit',
-			'limit',
-			$config->getValue('config.list_limit'),
-			'int'
-		);
-		$this->view->filters['start'] = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.limitstart',
-			'limitstart',
-			0,
-			'int'
-		);
-		// Query to filter by
-		$this->view->filters['show'] = $app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.show',
-			'show',
-			0,
-			'int'
-		);
-		// Search
-		$this->view->filters['search']       = urldecode($app->getUserStateFromRequest(
-			$this->_option . '.' . $this->_controller . '.search',
-			'search',
-			''
-		));
+		// Initiate database class and load info
+		$this->view->row = SupportModelTicket::getInstance($id);
+		if (!$this->view->row->exists())
+		{
+			JError::raiseError(404, JText::_('COM_SUPPORT_ERROR_TICKET_NOT_FOUND'));
+			return;
+		}
 
 		// Ensure the user is authorized to view this ticket
 		if (!$this->view->row->access('read', 'tickets'))
@@ -1472,6 +1498,39 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			JError::raiseError(403, JText::_('COM_SUPPORT_ERROR_NOT_AUTH'));
 			return;
 		}
+
+		// Incoming
+		$config = JFactory::getConfig();
+		$app    = JFactory::getApplication();
+
+		$this->view->filters = array(
+			// Paging
+			'limit' => $app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.limit',
+				'limit',
+				$config->getValue('config.list_limit'),
+				'int'
+			),
+			'start' => $app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.limitstart',
+				'limitstart',
+				0,
+				'int'
+			),
+			// Query to filter by
+			'show' => $app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.show',
+				'show',
+				0,
+				'int'
+			),
+			// Search
+			'search' => urldecode($app->getUserStateFromRequest(
+				$this->_option . '.' . $this->_controller . '.search',
+				'search',
+				''
+			))
+		);
 
 		if ($watch = JRequest::getWord('watch', ''))
 		{
@@ -1565,15 +1624,19 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			}
 		}
 
-		// Output HTML
-		if ($this->getError())
+		if (!$comment)
 		{
-			foreach ($this->getErrors() as $error)
-			{
-				$this->view->setError($error);
-			}
+			$comment = new SupportModelComment();
 		}
-		$this->view->display();
+		$this->view->comment = $comment;
+
+		// Output HTML
+		foreach ($this->getErrors() as $error)
+		{
+			$this->view->setError($error);
+		}
+
+		$this->view->setLayout('ticket')->display();
 	}
 
 	/**
@@ -1583,9 +1646,6 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 	 */
 	public function updateTask()
 	{
-		// Check for request forgeries
-		JRequest::checkToken() or jexit('Invalid Token');
-
 		// Make sure we are still logged in
 		if ($this->juser->get('guest'))
 		{
@@ -1596,6 +1656,9 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			return;
 		}
 
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Incoming
 		$id = JRequest::getInt('id', 0, 'post');
 		if (!$id)
@@ -1604,6 +1667,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			return;
 		}
 
+		$comment  = JRequest::getVar('comment', '', 'post', 'none', 2);
 		$incoming = JRequest::getVar('ticket', array(), 'post');
 		$incoming = array_map('trim', $incoming);
 
@@ -1619,6 +1683,26 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			return;
 		}
 
+		$rowc = new SupportModelComment();
+		$rowc->set('ticket', $id);
+
+		// Check if changes were made inbetween the time the comment was started and posted
+		$started = JRequest::getVar('started', JFactory::getDate()->toSql(), 'post');
+		$lastcomment = $row->comments('list', array(
+			'sort'     => 'created',
+			'sort_Dir' => 'DESC',
+			'limit'    => 1,
+			'start'    => 0,
+			'ticket'   => $id
+		))->first();
+		if ($lastcomment->created() >= $started)
+		{
+			$rowc->set('comment', $comment);
+			$this->setError(JText::_('Changes were made to this ticket in the time since you began commenting/making changes. Please review your changes before submitting.'));
+			return $this->ticketTask($rowc);
+		}
+
+		// Update ticket status if necessary
 		if ($id && isset($incoming['status']) && $incoming['status'] == 0)
 		{
 			$row->set('open', 0);
@@ -1640,7 +1724,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		}
 
 		// Incoming comment
-		$comment = JRequest::getVar('comment', '', 'post', 'none', 2);
+		//$comment = JRequest::getVar('comment', '', 'post', 'none', 2);
 		if ($comment)
 		{
 			// If a comment was posted by the ticket submitter to a "waiting user response" ticket, change status.
@@ -1664,7 +1748,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		// Create a new support comment object and populate it
 		$access = JRequest::getInt('access', 0);
 
-		$rowc = new SupportModelComment();
+		//$rowc = new SupportModelComment();
 		$rowc->set('ticket', $id);
 		$rowc->set('comment', nl2br($comment));
 		$rowc->set('created', JFactory::getDate()->toSql());
@@ -1750,13 +1834,16 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 			if (count($rowc->to()))
 			{
 				$allowEmailResponses = $this->config->get('email_processing');
-				if (!file_exists("/etc/hubmail_gw.conf"))
-				{
-					$allowEmailResponses = false;
-				}
 				if ($allowEmailResponses)
 				{
-					$encryptor = new \Hubzero\Mail\Token();
+					try
+					{
+						$encryptor = new \Hubzero\Mail\Token();
+					}
+					catch (Exception $e)
+					{
+						$allowEmailResponses = false;
+					}
 				}
 
 				$jconfig = JFactory::getConfig();
@@ -1910,8 +1997,8 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		}
 
 		// Delete tags
-		$tags = new SupportTags($this->database);
-		$tags->remove_all_tags($id);
+		$tags = new SupportModelTags($id);
+		$tags->removeAll();
 
 		// Delete comments
 		$comment = new SupportComment($this->database);
@@ -1989,8 +2076,8 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		$sessnum = '';
 		if ($sess = JRequest::getVar('sesstoken', ''))
 		{
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'models' . DS . 'mw.utils.php');
-			$mwdb = MwUtils::getMWDBO();
+			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'helpers' . DS . 'utils.php');
+			$mwdb = ToolsHelperUtils::getMWDBO();
 
 			// retrieve the username and IP from session with this session token
 			$query = "SELECT * FROM session WHERE session.sesstoken=" . $this->database->quote($sess) . " LIMIT 1";
@@ -2316,9 +2403,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		else
 		{
 			// Scan for viruses
-			//$path = $path . DS . $file['name']; //JPATH_ROOT . DS . 'virustest';
-			exec("clamscan -i --no-summary --block-encrypted $finalfile", $output, $status);
-			if ($status == 1)
+			if (!JFile::isSafe($finalfile))
 			{
 				if (JFile::delete($finalfile))
 				{

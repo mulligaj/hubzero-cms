@@ -163,11 +163,10 @@ class EventsModelCalendar extends \Hubzero\Base\Model
 					{
 						foreach ($results as $key => $result)
 						{
-							// turn start date in datetime object
 							$start = JFactory::getDate($result->publish_up);
 
 							// get the repeating & pass start date
-							$rule = new \Recurr\Rule($result->repeating_rule, $start);
+							$rule        = new \Recurr\Rule($result->repeating_rule, $start);
 
 							// define constraint that date must be between event publish_up & end 
 							$constraint  = new \Recurr\Transformer\Constraint\BetweenConstraint($start, $end);

@@ -141,23 +141,14 @@ $this->thread->set('category', $this->category->get('alias'));
 							<label for="fieldcomment">
 								<?php echo JText::_('COM_FORUM_FIELD_COMMENTS'); ?>
 								<?php
-								echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 15, false, 'fieldcomment', null, null, array('class' => 'minimal no-footer'));
+								echo $this->editor('fields[comment]', '', 35, 15, 'fieldcomment', array('class' => 'minimal no-footer'));
 								?>
 							</label>
 
 							<label>
 								<?php echo JText::_('COM_FORUM_FIELD_YOUR_TAGS'); ?>
 								<?php
-									$tags = $this->thread->tags('string');
-
-									JPluginHelper::importPlugin('hubzero');
-									$dispatcher = JDispatcher::getInstance();
-									$tf = $dispatcher->trigger( 'onGetMultiEntry', array(array('tags', 'tags', 'actags', '', $tags)) );
-									if (count($tf) > 0) {
-										echo $tf[0];
-									} else {
-										echo '<input type="text" name="tags" value="' . $tags . '" />';
-									}
+									echo $this->autocompleter('tags', 'tags', $this->escape($this->thread->tags('string')), 'actags');
 								?>
 							</label>
 
@@ -200,6 +191,7 @@ $this->thread->set('category', $this->category->get('alias'));
 					<input type="hidden" name="fields[category_id]" value="<?php echo $this->thread->get('category_id'); ?>" />
 					<input type="hidden" name="fields[parent]" value="<?php echo $this->thread->get('id'); ?>" />
 					<input type="hidden" name="fields[state]" value="1" />
+					<input type="hidden" name="fields[access]" value="<?php echo $this->thread->get('access', 0); ?>" />
 					<input type="hidden" name="fields[id]" value="" />
 					<input type="hidden" name="fields[scope]" value="site" />
 					<input type="hidden" name="fields[scope_id]" value="0" />

@@ -56,7 +56,7 @@ if (!function_exists('stem'))
 
 foreach (array('plugin', 'request', 'result_set', 'result_types', 'terms', 'authorization') as $mdl)
 {
-	require_once JPATH_COMPONENT_SITE . '/models/' . $mdl . '.php';
+	require_once JPATH_COMPONENT_SITE . DS . 'models' . DS . 'basic' . DS . $mdl . '.php';
 }
 
 JPluginHelper::importPlugin('search');
@@ -80,6 +80,8 @@ if (array_key_exists('search-task', $_POST))
 }
 
 JToolBarHelper::title(JText::_('COM_SEARCH') . ': ' . JText::_('COM_SEARCH_SITEMAP'), 'search.png');
+JToolBarHelper::preferences('com_search', '550');
+JToolBarHelper::spacer();
 JToolBarHelper::help('search');
 
 $app = JFactory::getApplication();

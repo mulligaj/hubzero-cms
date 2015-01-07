@@ -60,6 +60,7 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'tables' . DS . 'hubs.php';
 		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'tables' . DS . 'records.php';
 		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'tables' . DS . 'contacts.php';
+		require_once JPATH_ROOT . DS . 'components' . DS . 'com_time' . DS . 'models' . DS . 'permissions.php';
 
 		// Switch based on task (i.e. "/api/time/xxxxx")
 		switch ($this->segments[0])
@@ -76,6 +77,10 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 			case 'saveContact':              $this->saveContact();              break;
 			case 'indexTimeUsers':           $this->indexTimeUsers();           break;
 			case 'getValues':                $this->getValues();                break;
+			// Overview page methods (will be combined with records methods at some point)
+			case 'today':                    $this->today();                    break;
+			case 'week':                     $this->week();                     break;
+			case 'postRecord':               $this->postRecord();               break;
 
 			default:                         $this->method_not_found();         break;
 		}
@@ -452,6 +457,181 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 	}
 
 	/**
+	 * Get time records for the logged in user for today
+	 *
+	 * @return void
+	 */
+	private function today()
+	{
+		// Set message format
+		$this->setMessageType($this->format);
+
+		// Require authorization
+		if (!$this->authorize())
+		{
+			$this->setMessage('', 401, 'Unauthorized');
+			return;
+		}
+
+		// Filters for query
+		$filters['q'] = array(
+			array('column'=>'user_id', 'o'=>'=',  'value'=>JFactory::getApplication()->getAuthn('user_id')),
+			array('column'=>'date',    'o'=>'>=', 'value'=>JFactory::getDate(strtotime('today'))->toSql()),
+			array('column'=>'date',    'o'=>'<',  'value'=>JFactory::getDate(strtotime('today+1day'))->toSql())
+		);
+
+		// Create object and get records
+		$record  = new TimeRecords($this->db);
+		$records = $record->getRecords($filters);
+
+		$results = array();
+
+		// Restructure results into the format that the calendar plugin expects
+		if ($records && count($records) > 0)
+		{
+			$colors = array(
+				'#AA3939',
+				'#AA6C39',
+				'#226666',
+				'#2D882D',
+			);
+
+			$i = 0;
+
+			foreach ($records as $r)
+			{
+				$results[] = array(
+					'id'          => $r->id,
+					'title'       => $r->pname,
+					'start'       => \JHtml::_('date', $r->date, DATE_RFC2822),
+					'end'         => \JHtml::_('date', $r->end, DATE_RFC2822),
+					'description' => $r->description,
+					'task_id'     => $r->pid,
+					'hub_id'      => $r->hid,
+					'color'       => 'red'
+				);
+
+				++$i;
+			}
+		}
+
+		// Return object
+		$this->setMessage($results, 200, 'OK');
+	}
+
+	/**
+	 * Get the records per day this week
+	 *
+	 * @return void
+	 */
+	private function week()
+	{
+		// Set message format
+		$this->setMessageType($this->format);
+
+		// Require authorization
+		if (!$this->authorize())
+		{
+			$this->setMessage('', 401, 'Unauthorized');
+			return;
+		}
+
+		// Get the day of the week
+		$today = \JFactory::getDate()->format('N') - 1;
+
+		// Filters for query
+		$filters['q'] = array(
+			array('column'=>'user_id', 'o'=>'=',  'value'=>JFactory::getApplication()->getAuthn('user_id')),
+			array('column'=>'date',    'o'=>'>=', 'value'=>JFactory::getDate(strtotime("today-{$today}days"))->toSql()),
+			array('column'=>'date',    'o'=>'<',  'value'=>JFactory::getDate(strtotime("today+" . (8-$today) . 'days'))->toSql())
+		);
+
+		// Create object and get records
+		$record  = new TimeRecords($this->db);
+		$records = $record->getRecords($filters);
+
+		$results = array();
+
+		// Restructure results into the format that the calendar plugin expects
+		if ($records && count($records) > 0)
+		{
+			foreach ($records as $r)
+			{
+				$dayOfWeek = \JFactory::getDate($r->date)->format('N') - 1;
+				$results[$dayOfWeek][] = $r->time;
+			}
+		}
+
+		// Return object
+		$this->setMessage($results, 200, 'OK');
+	}
+
+	/**
+	 * Save a time record, updating it if it already exists
+	 *
+	 * @return void
+	 */
+	private function postRecord()
+	{
+		// Set message format
+		$this->setMessageType($this->format);
+
+		// Require authorization
+		if (!$this->authorize())
+		{
+			$this->setMessage('', 401, 'Unauthorized');
+			return;
+		}
+
+		// Incoming posted data (grab individually for added security)
+		$record = array();
+		$record['task_id']     = JRequest::getInt('task_id');
+		$record['date']        = JFactory::getDate(JRequest::getVar('start'))->toSql();
+		$record['end']         = JFactory::getDate(JRequest::getVar('end'))->toSql();
+		$record['description'] = JRequest::getVar('description');
+
+		$record = array_map('trim', $record);
+
+		// Compute time/duration
+		$record['time'] = (strtotime($record['end']) - strtotime($record['date'])) / 3600;
+
+		// Add user_id to array based on token
+		$record['user_id'] = JFactory::getApplication()->getAuthn('user_id');
+
+		// Create object and store content
+		$records = new TimeRecords($this->db);
+		$update  = false;
+
+		// See if we have an incoming id, indicating update
+		if ($id = JRequest::getInt('id', false))
+		{
+			$records->load($id);
+
+			// Make sure updater is the owner of the record
+			if ($records->user_id != $record['user_id'])
+			{
+				$this->setMessage('You are only allowed to update your own records', 401, 'Unauthorized');
+				return;
+			}
+
+			$update = true;
+		}
+
+		// Do the actual save
+		if (!$records->save($record))
+		{
+			$this->setMessage('Record creation failed', 500, 'Internal server error');
+			return;
+		}
+
+		// Return message
+		$message = ($update) ? 'Record successfully saved' : 'Record successfully created';
+		$status  = ($update) ? 200 : 201;
+		$code    = ($update) ? 'OK' : 'Created';
+		$this->setMessage($message, $status, $code);
+	}
+
+	/**
 	 * Default method - not found
 	 *
 	 * @return 404 error
@@ -478,23 +658,14 @@ class TimeControllerApi extends \Hubzero\Component\ApiController
 			return false;
 		}
 
-		// @FIXME: add parameter for group access
-		$accessgroup = 'time';
+		$permissions = new TimeModelPermissions('com_time');
 
-		// Check if they're a member of the admin group
-		JLoader::import('Hubzero.User.Helper');
-		$ugs = \Hubzero\User\Helper::getGroups($user_id);
-		if ($ugs && count($ugs) > 0)
+		// Make sure action can be performed
+		if (!$permissions->can('api'))
 		{
-			foreach ($ugs as $ug)
-			{
-				if ($ug->cn == $accessgroup)
-				{
-					return true;
-				}
-			}
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 }

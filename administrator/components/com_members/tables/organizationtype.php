@@ -22,10 +22,10 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package       hubzero-cms
- * @author		Shawn Rice <zooley@purdue.edu>
- * @copyright     Copyright 2005-2011 Purdue University. All rights reserved.
- * @license       http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @package   hubzero-cms
+ * @author    Shawn Rice <zooley@purdue.edu>
+ * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
+ * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
 // Check to ensure this file is included in Joomla!
@@ -39,7 +39,8 @@ class MembersTableOrganizationType extends JTable
 	/**
 	 * Object constructor to set table and key field
 	 *
-	 * @param object $db JDatabase object
+	 * @param   object  $db  JDatabase object
+	 * @return  void
 	 */
 	public function __construct($db)
 	{
@@ -49,7 +50,7 @@ class MembersTableOrganizationType extends JTable
 	/**
 	 * Method for checking that fields are valid before sending to the database
 	 *
-	 * @return boolean True if the object is ok
+	 * @return  boolean  True if the object is ok
 	 */
 	public function check()
 	{
@@ -70,12 +71,14 @@ class MembersTableOrganizationType extends JTable
 	}
 
 	/**
-	 * Returns an array of objects
+	 * Returns a list, count or single record
 	 *
-	 * @param	array	$filters	An associative array of filters used to construct a query
-	 * @return	array
+	 * @param   string  $what     Data to return?
+	 * @param   array   $filters  An associative array of filters used to construct a query
+	 * @param   array   $select   List of fields to return
+	 * @return  mixed
 	 */
-	public function find($what='', $filters, $select=array('*'))
+	public function find($what='', $filters=array(), $select=array('*'))
 	{
 		$what = strtolower($what);
 		$select = (array) $select;
@@ -155,8 +158,8 @@ class MembersTableOrganizationType extends JTable
 	/**
 	 * Build SQL based on filters passed
 	 *
-	 * @param      array $filters
-	 * @return     string
+	 * @param   array   $filters
+	 * @return  string
 	 */
 	private function _buildQuery($filters=array())
 	{
@@ -192,37 +195,15 @@ class MembersTableOrganizationType extends JTable
 	}
 
 	/**
-	 * Returns an associative array of types
-	 *
-	 * @param	array	$filters	An associative array of filters used to construct a query
-	 * @return	array
-	 */
-	public function getTypes($filters = array())
-	{
-		$types = array();
-		if ($records = $this->find('list', $filters))
-		{
-			foreach ($records as $record)
-			{
-				$types[$record->type] = stripslashes($record->title);
-			}
-		}
-
-		return $types;
-	}
-
-	/**
 	 * Loads a database row into the MembersOrganizationType object
 	 *
-	 * @param	string	$type	The organization type field
-	 * @return	boolean
+	 * @param   string   $type  The organization type field
+	 * @return  boolean
 	 */
 	public function loadType($type)
 	{
-		$fields = array(
+		return parent::load(array(
 			'type' => (string) $type
-		);
-
-		return parent::load($fields);
+		));
 	}
 }

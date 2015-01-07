@@ -44,15 +44,15 @@ HUB.ProjectPublicationsDraft = {
 		// Check block status on each element change
 		HUB.ProjectPublicationsDraft.onElementChange();
 
-		// Enable block actions
-		HUB.ProjectPublicationsDraft.enableBlock();
-
 		// Enable idnividual element controls
 		HUB.ProjectPublicationsDraft.enableElementNav();
 
 		// Set initial completeness
 		HUB.ProjectPublicationsDraft.completeness = $('#complete').length ? $('#complete').val() : 0;
 		HUB.ProjectPublicationsDraft.checkBlockCompleteness();
+
+		// Enable block actions
+		HUB.ProjectPublicationsDraft.enableBlock();
 
 		// Show 'more' link for extensive side text
 		HUB.ProjectPublicationsDraft.showMoreText();
@@ -123,6 +123,62 @@ HUB.ProjectPublicationsDraft = {
 				});
 			});
 		}
+	},
+
+	// Allow to skip required elements
+	allowSkip: function()
+	{
+		var $ = this.jQuery;
+
+		var edits = $('.skipit a');
+		if (edits.length)
+		{
+			edits.each(function(i, item)
+			{
+				$(item).on('click', function(e)
+				{
+					e.preventDefault();
+
+					var element = $(item).parent();
+					HUB.ProjectPublicationsDraft.drawSkipBox(element);
+
+				});
+			});
+		}
+	},
+
+	drawSkipBox: function (element)
+	{
+		var $ 		= this.jQuery;
+		var review 	= $('#skip-notice-review');
+		var submit 	= $('#skip-notice-submit');
+		var form 	= $('#skip-notice-form');
+
+		if (!review.length || !$('#skip-notice').length || !element.length)
+		{
+			return false;
+		}
+
+		// Reload prop value
+		$('#skip-props').val('');
+		var value = $(element).attr('id');
+		$('#skip-props').val(value);
+
+		// Open form in fancybox
+		$.fancybox( [$('#skip-notice')] );
+
+		$(form).unbind();
+
+		// Submit only if reason is entered
+		$(submit).on('click', function(e)
+		{
+			e.preventDefault();
+
+			if ($(review).val() && $(review).val() != '')
+			{
+				$(form).submit();
+			}
+		});
 	},
 
 	drawDisputeBox: function (element)
@@ -440,31 +496,53 @@ HUB.ProjectPublicationsDraft = {
 		buttons.each(function(i, item)
 		{
 			var element = $(item).attr('id').replace('-apply','');
+			element = element.replace('apply-','');
 			var parent 	= $('#' + element);
+			var apply = $(item).hasClass('icon-apply') ? true : false;
+			var complete = 0;
 
 			if ($(parent).length)
 			{
-				var complete = ($(parent).hasClass('el-complete') || $(parent).hasClass('el-optional') ) ? 1 : 0;
-
+				complete = ($(parent).hasClass('el-complete') || $(parent).hasClass('el-optional') || $(parent).hasClass('el-skipped') || $(parent).hasClass('el-failed') ) ? 1 : 0;
 				HUB.ProjectPublicationsDraft.enableElementButton(item, complete);
-
-				// Submit form
-				$(item).on('click', function(e)
-				{
-					e.preventDefault();
-
-					if (!$(item).hasClass('disabled'))
-					{
-						$('#action').val('apply');
-						$('#next').val('1');
-						if ($('#plg-form').length)
-						{
-							$('#plg-form').submit();
-						}
-					}
-				});
 			}
 
+			// Submit form
+			$(item).on('click', function(e)
+			{
+				e.preventDefault();
+
+				if ($(parent).length)
+				{
+					complete = ($(parent).hasClass('el-complete') || $(parent).hasClass('el-optional') || $(parent).hasClass('el-skipped') || $(parent).hasClass('el-failed') ) ? 1 : 0;
+					HUB.ProjectPublicationsDraft.enableElementButton(item, complete);
+				}
+
+				var id = $(item).parent().attr('id');
+
+				if ($(item).hasClass('skip') && id && !complete && !$(item).hasClass('icon-apply'))
+				{
+					id = id.replace('next-', '');
+
+					// Add form
+					$(item).parent().parent().before('<p class="error">Input is required. If you have a good reason to skip the requirement, please append a <span class="skipit" id="' + id + '"><a href="#">notice to reviewer</a></span>. </p>');
+					$(item).removeClass('skip');
+					$(item).addClass('disabled');
+					$(item).parent().parent().addClass('disabled');
+					HUB.ProjectPublicationsDraft.allowSkip();
+				}
+				else if (!$(item).hasClass('disabled'))
+				{
+					$('#action').val('apply');
+					if (!apply) {
+						$('#next').val('1');
+					}
+					if ($('#plg-form').length)
+					{
+						$('#plg-form').submit();
+					}
+				}
+			});
 		});
 	},
 
@@ -482,12 +560,14 @@ HUB.ProjectPublicationsDraft = {
 		if (complete == 1 && $(item).hasClass('disabled'))
 		{
 			$(item).removeClass('disabled');
+			$(item).removeClass('skip');
 			$(item).parent().parent().removeClass('disabled');
 		}
-		else if (complete == 0 && !$(item).hasClass('disabled'))
+		else if (complete == 0 && !$(item).hasClass('disabled') && !$(item).hasClass('skip'))
 		{
-			$(item).addClass('disabled');
-			$(item).parent().parent().addClass('disabled');
+			//$(item).addClass('disabled');
+			$(item).addClass('skip');
+			//$(item).parent().parent().addClass('disabled');
 		}
 	},
 
@@ -563,6 +643,7 @@ HUB.ProjectPublicationsDraft = {
 				var value 	 = '';
 				var required = $(item).hasClass('el-required') ? 1 : 0;
 				var editor   = $(item).hasClass('el-editor') ? 1 : 0;
+				var skipped  = $(item).hasClass('el-skipped') ? 1 : 0;
 
 				// Input field?
 				var input = $(item).find('input');
@@ -588,7 +669,7 @@ HUB.ProjectPublicationsDraft = {
 					{
 						HUB.ProjectPublicationsDraft.timer = setTimeout(function(v,r,e) {
 						   return function() { HUB.ProjectPublicationsDraft.checkElementCompleteness(v,r,e) }
-						   } ($(textarea).val(), required, $(item)), HUB.ProjectPublicationsDraft.doneTypingInterval);
+						   } ($(textarea).val().trim(), required, $(item)), HUB.ProjectPublicationsDraft.doneTypingInterval);
 					});
 					$(textarea).on('keydown', function(e)
 					{
@@ -607,6 +688,10 @@ HUB.ProjectPublicationsDraft = {
 						var timer = setInterval(function()
 						{
 							 var val = CKEDITOR.instances[editorId].getData();
+							 val = val.replace(/&nbsp;/g,'');
+							 val = val.replace(/<p><\/p>/g,'');
+							 val = val.trim();
+
 							 HUB.ProjectPublicationsDraft.checkElementCompleteness(val, required, $(item))
 						}, HUB.ProjectPublicationsDraft.doneTypingInterval);
 					}
@@ -925,7 +1010,7 @@ HUB.ProjectPublicationsDraft = {
 	{
 		var $ = this.jQuery;
 
-		var complete 	= 1;
+		var complete 	= $('#license').val() ? 1 : 0;
 		var ltext 		= $('#license-text');
 		var agree 		= $('#agreement');
 		var element 	= $('#licensePick');

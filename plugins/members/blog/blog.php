@@ -83,10 +83,10 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 			'metadata' => ''
 		);
 
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'blog.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'archive.php');
 
 		// Get our model
-		$this->model = new BlogModel('member', $member->get('uidNumber'));
+		$this->model = new BlogModelArchive('member', $member->get('uidNumber'));
 
 		if ($returnhtml)
 		{
@@ -173,7 +173,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 		// Build filters
 		$filters = array(
 			'scope'      => 'member',
-			'group_id'   => 0,
+			'scope_id'   => $member->get('uidNumber'),
 			'created_by' => $member->get('uidNumber')
 		);
 
@@ -288,7 +288,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 			'year'       => JRequest::getInt('year', 0),
 			'month'      => JRequest::getInt('month', 0),
 			'scope'      => 'member',
-			'group_id'   => 0,
+			'scope_id'   => $this->member->get('uidNumber'),
 			'search'     => JRequest::getVar('search',''),
 			'authorized' => false
 		);
@@ -360,7 +360,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 
 		// Start a new feed object
 		$doc = new JDocumentFeed;
-		$doc->link = JRoute::_('index.php?option=' . $this->option . '&id=' . $this->member->get('uidNumber') . '&active=' . $this->_name);
+		$doc->link = JRoute::_($this->member->getLink() . '&active=' . $this->_name);
 
 		// Get configuration
 		$jconfig = JFactory::getConfig();
@@ -372,7 +372,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 			'year'       => JRequest::getInt('year', 0),
 			'month'      => JRequest::getInt('month', 0),
 			'scope'      => 'member',
-			'group_id'   => 0,
+			'scope_id'   => $this->member->get('uidNumber'),
 			'search'     => JRequest::getVar('search',''),
 			'created_by' => $this->member->get('uidNumber')
 		);
@@ -482,10 +482,10 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 
 		// Filters for returning results
 		$view->filters = array(
-			'limit'    => 10,
-			'start'    => 0,
-			'scope'    => 'member',
-			'group_id' => 0,
+			'limit'      => 10,
+			'start'      => 0,
+			'scope'      => 'member',
+			'scope_id'   => $this->member->get('uidNumber'),
 			'created_by' => $this->member->get('uidNumber')
 		);
 
@@ -582,6 +582,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 			$view->entry->set('allow_comments', 1);
 			$view->entry->set('state', 1);
 			$view->entry->set('scope', 'member');
+			$view->entry->set('scope_id', $this->member->get('uidNumber'));
 			$view->entry->set('created_by', $this->member->get('uidNumber'));
 		}
 
@@ -735,7 +736,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 		}
 
 		// Return the topics list
-		$this->redirect(JRoute::_('index.php?option=com_members&id=' . $this->member->get('uidNumber') . '&active=' . $this->_name));
+		$this->redirect(JRoute::_($this->member->getLink() . '&active=' . $this->_name));
 	}
 
 	/**
@@ -939,7 +940,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 		}
 
 		$this->redirect(
-			JRoute::_('index.php?option=com_members&id=' . $this->member->get('uidNumber') . '&active=' . $this->_name . '&task=settings'),
+			JRoute::_($this->member->getLink() . '&active=' . $this->_name . '&task=settings'),
 			JText::_('PLG_MEMBERS_BLOG_SETTINGS_SAVED')
 		);
 	}

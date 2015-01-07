@@ -77,7 +77,12 @@ class PublicationsBlockDescription extends PublicationsModelBlock
 		if ($viewname == 'curator')
 		{
 			// Output HTML
-			$view = new JView( array('name'=>'curation', 'layout'=> 'block' ) );
+			$view = new \Hubzero\Component\View(
+				array(
+					'name'		=> 'curation',
+					'layout'	=> 'block'
+				)
+			);
 		}
 		else
 		{
@@ -124,7 +129,7 @@ class PublicationsBlockDescription extends PublicationsModelBlock
 		$view->pub			= $pub;
 		$view->active		= $this->_name;
 		$view->step			= $sequence;
-		$view->showControls	= 1;
+		$view->showControls	= isset($master->params->collapse_elements) && $master->params->collapse_elements == 1 ? 3 : 1;
 		$view->status		= $status;
 		$view->master		= $master;
 
@@ -238,12 +243,20 @@ class PublicationsBlockDescription extends PublicationsModelBlock
 				{
 					if ($row->$field != $value)
 					{
+						$lastRecord = $pub->_curationModel->getLastUpdate($id, $this->_name, $pub, $sequence);
 						$changed++;
 
 						// Record update time
 						$data 				= new stdClass;
 						$data->updated 		= JFactory::getDate()->toSql();
 						$data->updated_by 	= $actor;
+
+						// Unmark as skipped
+						if ($lastRecord && $lastRecord->review_status == 3)
+						{
+							$data->review_status = 0;
+							$data->update = '';
+						}
 						$pub->_curationModel->saveUpdate($data, $id, $this->_name, $pub, $sequence);
 					}
 					$row->$field = $value;

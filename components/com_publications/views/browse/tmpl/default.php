@@ -1,7 +1,7 @@
 <?php
 /**
  * @package		HUBzero CMS
- * @author		Shawn Rice <zooley@purdue.edu>
+ * @author		Alissa Nedossekina <alisa@purdue.edu>
  * @copyright	Copyright 2005-2009 by Purdue Research Foundation, West Lafayette, IN 47906
  * @license		http://www.gnu.org/licenses/gpl-2.0.html GPLv2
  *
@@ -114,7 +114,7 @@ $this->css()
 					<ul class="entries-menu filter-options">
 						<li>
 							<select name="category" id="filter-type">
-								<option value="" <?php echo (!$this->filters['category']) ? ' selected="selected"' : ''; ?>><?php echo JText::_('All Categories'); ?></a>
+								<option value="" <?php echo (!$this->filters['category']) ? ' selected="selected"' : ''; ?>><?php echo JText::_('All Categories'); ?></option>
 								<?php foreach ($this->categories as $item) { ?>
 									<option value="<?php echo $item->id; ?>"<?php echo ($this->filters['category'] == $item->id) ? ' selected="selected"' : ''; ?>><?php echo $this->escape(stripslashes($item->name)); ?></option>
 								<?php } ?>
@@ -125,15 +125,16 @@ $this->css()
 			<div class="clearfix"></div>
 			<div class="container-block">
 			<?php
-			if ($this->results) {
-				switch ($this->filters['sortby'])
-				{
-					case 'date_created': $show_date = 1; break;
-					case 'date_modified': $show_date = 2; break;
-					case 'date':
-					default: $show_date = 3; break;
-				}
-				echo PublicationsHtml::writeResults( $database, $this->results, $this->filters, $show_date );
+			if ($this->results)
+			{
+				// Display List of items
+				$this->view('_list')
+				     ->set('results', $this->results)
+				     ->set('filters', $this->filters)
+				     ->set('config', $this->config)
+				     ->set('helper', new PublicationHelper($database))
+				     ->display();
+
 				echo '<div class="clear"></div>';
 			} else { ?>
 				<p class="warning"><?php echo JText::_('COM_PUBLICATIONS_NO_RESULTS'); ?></p>
@@ -155,7 +156,7 @@ $this->css()
 				<h3>Popular Tags</h3>
 				<?php
 				$rt = new PublicationTags($database);
-				echo $rt->getTopTagCloud(12, $this->filters['tag']);
+				echo $rt->getTopTagCloud(20, $this->filters['tag']);
 				?>
 				<p>Click a tag to see only publications with that tag.</p>
 			</div>

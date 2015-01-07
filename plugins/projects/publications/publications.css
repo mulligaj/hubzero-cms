@@ -205,24 +205,8 @@
 	}
 
 /* Start */
-	#suggestions ul {
-		list-style: none;
-		margin-top: 2em;
-	}
-	#suggestions ul li {
-		display: block;
-		margin: 0;
-		margin-right: 2em;
-		margin-bottom: 1em;
-		padding: 0;
-		float: left;
-		width: 200px;
-		height: 100px;
-		font-size: 85%;
-		vertical-align: middle;
-	}
-	#suggestions ul a:before {
-		content: "\270D";
+	.suggestions div .block {
+		color: #999;
 	}
 	.welcome  {
 		height: auto;
@@ -567,7 +551,7 @@
 		border: 4px solid #eaeaea;
 		font-size: 90%;
 		background: #FFFFFF;
-		width: 100%;
+		width: 98%;
 	}
 	table.tbl-panel th {
 		padding: 0.5em;
@@ -1723,6 +1707,10 @@
 		width: auto;
 		white-space: nowrap;
 	}
+	.public-page:hover:before,
+	.manageit:hover:before {
+		color: black;
+	}
 
 /* Form within publication edit screens
 --------------------------------------------- */
@@ -1924,12 +1912,6 @@
 	}
 	#c-citations li:hover .c-delete, #c-citations li:hover .c-edit {
 		display: block;
-	}
-
-/* Provisioned projects
----------------------------- */
-	#abox-content {
-		text-align: left;
 	}
 
 /* Misc

@@ -57,11 +57,11 @@ class PublicationsElementGeo extends PublicationsElement
 	public function fetchTooltip($label, $description, &$element, $control_name='', $name='')
 	{
 		$output = '<label id="' . $control_name . '-' . $name . '-lbl" for="' . $control_name . '-' . $name . '"';
-		if ($description) 
+		if ($description)
 		{
 			$output .= ' class="hasTip" title="' . JText::_($label) . '::' . JText::_($description) . '">';
-		} 
-		else 
+		}
+		else
 		{
 			$output .= '>';
 		}
@@ -85,15 +85,9 @@ class PublicationsElementGeo extends PublicationsElement
 	{
 		if (!$this->_script)
 		{
-			$app = JFactory::getApplication();
-			$script = 'geo';
-			if (JPluginHelper::isEnabled('system', 'jquery') && !$app->isAdmin())
-			{
-				$script .= '.jquery';
-			}
 			$document = JFactory::getDocument();
 			$document->addScript('//maps.google.com/maps/api/js?sensor=false');
-			$document->addScript('/components/com_publications/models/element/' . $script . '.js');
+			$document->addScript('/components/com_publications/models/element/geo.js');
 			$this->_script = true;
 		}
 

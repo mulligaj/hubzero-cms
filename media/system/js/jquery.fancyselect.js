@@ -22,7 +22,7 @@
 			searchPlaceholder: 'Search...',
 			maxHeightWithSearch: 500,
 			onSearch: function() {},
-			onSelected: function() {}
+			onSelected: function() {},
 		};
 	
 	methods.init = function( options ) {
@@ -70,7 +70,7 @@
 					)
 				);
 			
-				//show search
+			//show search
 			if (settings.showSearch) 
 			{
 				dropdown.find('.fs-dropdown-options-container')
@@ -80,13 +80,13 @@
 					.find('.fs-dropdown-options').css('max-height', settings.maxHeightWithSearch)
 			}
 			
-			//append drop down
+			// append drop down
 			$this.before( dropdown );
-			
-			//add event triggers
+
+			// add event triggers
 			addEventHooks( $this );
 			
-			//hide select box
+			// hide select box
 			if(settings.hideSelect)
 			{
 				$this.hide();
@@ -181,7 +181,7 @@
 	
 	function option( option )
 	{
-		return $('<li class="fs-dropdown-option"></li>')
+		var item = $('<li class="fs-dropdown-option"></li>')
 					.append($('<a href="javascript:void(0);"></a>')
 						.attr('data-value', option.val())
 						.attr('data-text', option.text())
@@ -191,6 +191,17 @@
 							.append($('<span>' + option.text() + '</span>'))
 					);
 		
+		// append all data attribs on option object 
+		$.each($(option).data(), function(key, value)
+		{
+			if (key != 'color' && key != 'img')
+			{
+				item.find('a').attr('data-' + key, value);
+			}
+		});
+
+		// return
+		return item;
 	}
 	
 	function optgroup( optgroup )
@@ -226,17 +237,20 @@
 		var keyValueEntered = '',
 			data = $(object).data('fancyselect'),
 			dropdown = $('#fs-dropdown-' + data.id);
-		
+
 		//open/close dropdown
 		dropdown.on('click', '.fs-dropdown-selected-item', function(event) {
 			event.preventDefault();
-			if (dropdown.hasClass('fs-dropdown-open'))
+			if (!$(object).attr("readonly"))
 			{
-				closeDropdown( object )
-			}
-			else
-			{
-				openDowndown( object );
+				if (dropdown.hasClass('fs-dropdown-open'))
+				{
+					closeDropdown( object )
+				}
+				else
+				{
+					openDowndown( object );
+				}
 			}
 		});
 		

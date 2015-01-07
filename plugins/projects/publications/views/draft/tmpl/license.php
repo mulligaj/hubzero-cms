@@ -40,7 +40,7 @@ $route = $prov
 		? 'index.php?option=com_publications&task=submit&pid=' . $this->pub->id
 		: 'index.php?option=com_projects&alias=' . $this->pub->_project->alias;
 $selectUrl   = $prov
-		? JRoute::_( $route) . '?active=publications&action=select'
+		? JRoute::_( $route) . '?active=publications&action=select&p=' . $props . '&vid=' . $this->pub->version_id
 		: JRoute::_( $route . '&active=publications&action=select') .'/?p=' . $props . '&pid='
 		. $this->pub->id . '&vid=' . $this->pub->version_id;
 
@@ -68,7 +68,7 @@ $text = $this->pub->license_text ? $this->pub->license_text : $defaultText;
 
 <!-- Load content selection browser //-->
 <div id="<?php echo $elName; ?>" class="blockelement<?php echo $required ? ' el-required' : ' el-optional';
-echo $complete == 1 ? ' el-complete' : ' el-incomplete'; echo ($complete == 0 && $this->license) ? ' el-partial' : ''; ?> <?php echo $curatorStatus->status == 1 ? ' el-passed' : ''; echo $curatorStatus->status == 0 ? ' el-failed' : ''; echo $curatorStatus->updated ? ' el-updated' : ''; ?> ">
+echo $complete == 1 ? ' el-complete' : ' el-incomplete'; echo ($complete == 0 && $this->license) ? ' el-partial' : ''; ?> <?php echo $curatorStatus->status == 1 ? ' el-passed' : ''; echo $curatorStatus->status == 0 ? ' el-failed' : ''; echo $curatorStatus->updated && $curatorStatus->status != 2 ? ' el-updated' : ''; ?>">
 	<div class="element_editing">
 		<div class="pane-wrapper">
 			<span class="checker">&nbsp;</span>
@@ -113,9 +113,8 @@ echo $complete == 1 ? ' el-complete' : ' el-incomplete'; echo ($complete == 0 &&
 						if ($this->license->text && isset($substitutes[1]) && !empty($substitutes[1])) { ?>
 						<div class="replacements">
 							<p><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_LICENSE_REPLACE_DEFAULTS'); ?></p>
-						<?php
-							$subs = array_unique($substitutes[1]);
-							foreach ($subs as $sub)
+						<?php $subs = array_unique($substitutes[1]);
+								foreach ($subs as $sub)
 							{ ?>
 							<label>[<?php echo $sub; ?>]<span class="required"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_REQUIRED'); ?></span><input name="substitute[<?php echo $sub; ?>]" type="text" value="<?php echo $versionParams->get('licensecustom' . strtolower($sub), ''); ?>" class="customfield" /></label>
 						<?php $i++; } ?>

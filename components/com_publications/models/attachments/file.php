@@ -304,7 +304,11 @@ class PublicationsModelAttachmentFile extends PublicationsModelAttachment
 		if ($handler)
 		{
 			// Handler will draw list
-			return $handler->drawList($attachments, $configs, $pub, $authorized);
+			$html = $handler->drawList($attachments, $configs, $pub, $authorized);
+			if ($html)
+			{
+				return $html;
+			}
 		}
 		$notice = $authorized ? ' (' . JText::_('unavailable')  . ')' : '';
 
@@ -333,7 +337,6 @@ class PublicationsModelAttachmentFile extends PublicationsModelAttachment
 			$html .= $ext ? '('.strtoupper($ext) : '';
 			$html .= $size ? ' | '.$size : '';
 			$html .= $ext ? ')' : '';
-
 			if ($authorized === 'administrator')
 			{
 				$html .= ' <span class="edititem"><a href="index.php?option=com_publications&controller=items&task=editcontent&id='
@@ -403,7 +406,7 @@ class PublicationsModelAttachmentFile extends PublicationsModelAttachment
 
 		$showArchive = isset($pub->_curationModel->_manifest->params->show_archival)
 				? $pub->_curationModel->_manifest->params->show_archival :  0;
-		//$showArchive = ($showArchive && file_exists($configs->archPath)) ? true : false;
+	//	$showArchive = ($showArchive && file_exists($configs->archPath)) ? true : false;
 
 		// Sort out attachments for this element
 		$attachments = $this->_parent->getElementAttachments(
@@ -523,14 +526,14 @@ class PublicationsModelAttachmentFile extends PublicationsModelAttachment
 		// Get configs
 		$configs = $this->getConfigs($elementparams, $elementId, $pub, $blockParams);
 
-		$juser = JFactory::getUser();
-
 		// Get configs for new version
 		$typeParams = $elementparams->typeParams;
 		$directory  = isset($typeParams->directory) && $typeParams->directory
 					? $typeParams->directory : $newVersion->secret;
 
 		$newConfigs = new stdClass;
+
+		$juser = JFactory::getUser();
 
 		// Directory path within pub folder
 		$newConfigs->dirPath = $configs->subdir
@@ -559,25 +562,7 @@ class PublicationsModelAttachmentFile extends PublicationsModelAttachment
 		{
 			// Make new attachment record
 			$pAttach = new PublicationAttachment( $this->_parent->_db );
-			$pAttach->publication_id 		= $att->publication_id;
-			$pAttach->title 				= $att->title;
-			$pAttach->role 					= $att->role;
-			$pAttach->element_id 			= $elementId;
-			$pAttach->path 					= $att->path;
-			$pAttach->vcs_hash 				= $att->vcs_hash;
-			$pAttach->vcs_revision 			= $att->vcs_revision;
-			$pAttach->object_id 			= $att->object_id;
-			$pAttach->object_name 			= $att->object_name;
-			$pAttach->object_instance 		= $att->object_instance;
-			$pAttach->object_revision 		= $att->object_revision;
-			$pAttach->type 					= $att->type;
-			$pAttach->params 				= $att->params;
-			$pAttach->attribs 				= $att->attribs;
-			$pAttach->ordering 				= $att->ordering;
-			$pAttach->publication_version_id= $newVersion->id;
-			$pAttach->created_by 			= $juser->get('id');
-			$pAttach->created 				= JFactory::getDate()->toSql();
-			if (!$pAttach->store())
+			if (!$pAttach->copyAttachment($att, $newVersion->id, $elementId, $juser->get('id') ))
 			{
 				continue;
 			}
@@ -1490,6 +1475,75 @@ class PublicationsModelAttachmentFile extends PublicationsModelAttachment
 		}
 
 		return true;
+	}
+
+	/**
+	 * Build Data object
+	 *
+	 * @return  HTML string
+	 */
+	public function buildDataObject($att, $view, $i = 1)
+	{
+		// Get configs
+		$configs  = $this->getConfigs($view->manifest->params, $view->elementId, $view->pub, $view->master->params);
+
+		$data 		= new stdClass;
+		$data->path = str_replace($configs->path . DS, '', $att->path);
+		$parts 		= explode('.', $data->path);
+		$data->ext 	= strtolower(end($parts));
+
+		// Customize title
+		$defaultTitle	= $view->manifest->params->title
+						? str_replace('{pubtitle}', $view->pub->title,
+						$view->manifest->params->title) : NULL;
+		$defaultTitle	= $view->manifest->params->title
+						? str_replace('{pubversion}', $view->pub->version_label,
+						$defaultTitle) : NULL;
+		// Allow rename?
+		$allowRename = isset($view->manifest->params->typeParams->allowRename)
+					 ? $view->manifest->params->typeParams->allowRename
+					 : false;
+
+		// Set default title
+		$incNum				= $view->manifest->params->max > 1 ? ' (' . $i . ')' : '';
+		$dTitle				= $defaultTitle ? $defaultTitle . $incNum : basename($data->path);
+		$data->title 		= $att->title && $att->title != $defaultTitle
+							? $att->title : $dTitle;
+
+		$data->ordering 	= $i;
+		$data->editUrl  	= $view->editUrl;
+		$data->id			= $att->id;
+		$data->props		= $view->master->block . '-' . $view->master->sequence . '-' . $view->elementId;
+		;
+		$data->pid			= $view->pub->id;
+		$data->vid			= $view->pub->version_id;
+		$data->version		= $view->pub->version_number;
+		$data->projectPath  = $configs->path;
+		$data->git		    = $view->git;
+		$data->pubPath	    = $configs->pubPath;
+		$data->md5		    = $att->content_hash;
+		$data->viewer	    = $view->viewer;
+		$data->allowRename  = $allowRename;
+		$data->downloadUrl  = JRoute::_('index.php?option=com_publications&task=serve&id='
+							. $view->pub->id . '&v=' . $view->pub->version_number )
+							. '?el=' . $view->elementId . a . 'a=' . $att->id . a . 'download=1';
+
+		// Is attachment (image) also publication thumbnail
+		$params = new JParameter( $att->params );
+		$data->pubThumb = $params->get('pubThumb', NULL);
+		$data->suffix = $params->get('suffix', NULL);
+
+		$data->hash	  	= $att->vcs_hash;
+		$data->gone 	= is_file($configs->path . DS . $att->path) ? false : true;
+
+		// Get file size
+		$data->size		= $att->vcs_hash
+						? $view->git->gitLog($configs->path, $att->path, $att->vcs_hash, 'size') : NULL;
+		$data->gitStatus= $data->gone
+					? JText::_('PLG_PROJECTS_PUBLICATIONS_MISSING_FILE')
+					: NULL;
+
+		return $data;
 	}
 
 	/**

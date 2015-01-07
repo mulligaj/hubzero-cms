@@ -31,8 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-jimport( 'joomla.plugin.plugin' );
-
 include_once(JPATH_ROOT . DS . 'components' . DS . 'com_publications' . DS . 'models' . DS . 'publication.php');
 include_once(JPATH_ROOT . DS . 'components' . DS . 'com_publications' . DS . 'models' . DS . 'curation.php');
 
@@ -43,47 +41,28 @@ require_once(JPATH_ROOT . DS. 'administrator' . DS . 'components' . DS
 /**
  * Project publications
  */
-class plgProjectsPublications extends JPlugin
+class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
 	 *
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * @var    boolean
 	 */
-	public function plgProjectsPublications(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
+	protected $_autoloadLanguage = true;
 
-		// Load plugin parameters
-		$this->_plugin = JPluginHelper::getPlugin( 'projects', 'publications' );
-		$this->_params = new JParameter( $this->_plugin->params );
+	/**
+	 * Store redirect URL
+	 *
+	 * @var	   string
+	 */
+	protected $_referer = NULL;
 
-		// Load component configs
-		$this->_config = JComponentHelper::getParams( 'com_projects' );
-
-		// Load publications component configs
-		$this->_pubconfig = JComponentHelper::getParams( 'com_publications' );
-
-		// Areas that can be updated after publication
-		$this->_updateAllowed = ProjectsHelper::getParamArray(
-			$this->_params->get('updatable_areas', '' ));
-
-		// Common extensions (for gallery)
-		$this->_image_ext = ProjectsHelper::getParamArray(
-			$this->_params->get('image_types', 'bmp, jpeg, jpg, png' ));
-		$this->_video_ext = ProjectsHelper::getParamArray(
-			$this->_params->get('video_types', 'avi, mpeg, mov, wmv' ));
-
-		// Process steps
-		$this->_section = '';
-		$this->_layout = '';
-
-		// Output collectors
-		$this->_referer = '';
-		$this->_message = array();
-	}
+	/**
+	 * Store output message
+	 *
+	 * @var	   array
+	 */
+	protected $_message = NULL;
 
 	/**
 	 * Event call to determine if this plugin should return data
@@ -95,7 +74,7 @@ class plgProjectsPublications extends JPlugin
 		$area = array();
 
 		// Check if plugin is restricted to certain projects
-		$projects = $this->_params->get('restricted') ? ProjectsHelper::getParamArray($this->_params->get('restricted')) : array();
+		$projects = $this->params->get('restricted') ? ProjectsHelper::getParamArray($this->params->get('restricted')) : array();
 
 		if (!empty($projects))
 		{
@@ -206,8 +185,6 @@ class plgProjectsPublications extends JPlugin
 			return $arr;
 		}
 
-		// Load language file
-		$this->loadLanguage();
 		$database = JFactory::getDBO();
 
 		// Get task
@@ -225,6 +202,20 @@ class plgProjectsPublications extends JPlugin
 			$this->_uid = $juser->get('id');
 		}
 		$this->_database = $database;
+
+		// Load component configs
+		$this->_config = JComponentHelper::getParams( 'com_projects' );
+		$this->_pubconfig = JComponentHelper::getParams( 'com_publications' );
+
+		// Areas that can be updated after publication
+		$this->_updateAllowed = ProjectsHelper::getParamArray(
+			$this->params->get('updatable_areas', '' ));
+
+		// Common extensions (for gallery)
+		$this->_image_ext = ProjectsHelper::getParamArray(
+			$this->params->get('image_types', 'bmp, jpeg, jpg, png' ));
+		$this->_video_ext = ProjectsHelper::getParamArray(
+			$this->params->get('video_types', 'avi, mpeg, mov, wmv' ));
 
 		// Use new curation flow?
 		$this->useBlocks  = $this->_pubconfig->get('curation', 0);
@@ -373,6 +364,7 @@ class plgProjectsPublications extends JPlugin
 				break;
 
 			case 'dispute':
+			case 'skip':
 			case 'undispute':
 				$arr['html'] = $this->saveDraft();
 				break;
@@ -420,9 +412,6 @@ class plgProjectsPublications extends JPlugin
 				break;
 			case 'showitem':
 				$arr['html'] = $this->_loadContentItem();
-				break;
-			case 'wikipreview':
-				$arr['html'] = $this->_previewWiki();
 				break;
 			case 'showauthor':
 				$arr['html'] = $this->_showAuthor();
@@ -814,6 +803,10 @@ class plgProjectsPublications extends JPlugin
 				$pub->_curationModel->dispute($this->_uid, $element);
 				break;
 
+			case 'skip':
+				$pub->_curationModel->skip($this->_uid, $element);
+				break;
+
 			case 'undispute':
 				$pub->_curationModel->undispute($this->_uid, $element);
 				break;
@@ -894,7 +887,16 @@ class plgProjectsPublications extends JPlugin
 
 			if ($next)
 			{
-				$route .= a . 'el=' . $next . '#element' . $next;
+				if ($next == $element)
+				{
+					// Move to next block
+					$route .= a . 'section=' . $nextsection;
+					$route .= $nextnum ? a . 'step=' . $nextnum : '';
+				}
+				else
+				{
+					$route .= a . 'el=' . $next . '#element' . $next;
+				}
 			}
 			elseif ($element)
 			{
@@ -980,8 +982,33 @@ class plgProjectsPublications extends JPlugin
 				   'pid=' . $row->publication_id), 'publication', 1 );
 		}
 
-		// Notify
-		// TBD
+		// Notify project managers
+		$objO = new ProjectOwner($this->_database);
+		$managers = $objO->getIds($this->_project->id, 1, 1);
+		if (!empty($managers) && !$this->_project->provisioned)
+		{
+			$profile = \Hubzero\User\Profile::getInstance($this->_uid);
+			$juri = JURI::getInstance();
+
+			$sef = JRoute::_('index.php?option=' . $this->_option . a
+				. 'alias=' . $this->_project->alias . a . 'active=publications'
+				. a . 'pid=' . $row->publication_id);
+			$sef = trim($sef, DS);
+
+			ProjectsHelper::sendHUBMessage(
+				'com_projects',
+				$this->_config,
+				$this->_project,
+				$managers,
+				JText::_('COM_PROJECTS_EMAIL_MANAGERS_NEW_PUB_STARTED'),
+				'projects_admin_notice',
+				'publication',
+				$profile->get('name') . ' '
+					. JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_STARTED_NEW_PUB')
+					.' (id ' . $row->publication_id . ')' . ' - ' . $juri->base()
+					. $sef . '/?version=' . $row->version_number
+			);
+		}
 	}
 
 	/**
@@ -1042,6 +1069,7 @@ class plgProjectsPublications extends JPlugin
 		$view->config 		= $this->_config;
 		$view->choices 		= $choices;
 		$view->title		= $this->_area['title'];
+		$view->useBlocks    = $this->useBlocks;
 
 		// Get messages	and errors
 		$view->msg = $this->_msg;
@@ -1648,7 +1676,8 @@ class plgProjectsPublications extends JPlugin
 			array(
 				'folder'=>'projects',
 				'element'=>'publications',
-				'name'=>'start',
+				'name'=>'draft',
+				'layout'=>'start'
 			)
 		);
 
@@ -1676,6 +1705,7 @@ class plgProjectsPublications extends JPlugin
 		$view->config 		= $this->_config;
 		$view->choices 		= $choices;
 		$view->title		= $this->_area['title'];
+		$view->useBlocks    = $this->useBlocks;
 
 		// Get messages	and errors
 		$view->msg = $this->_msg;
@@ -1793,7 +1823,7 @@ class plgProjectsPublications extends JPlugin
 		$view->base 		= $base;
 		$view->active 		= 'content';
 		$view->config 		= $this->_config;
-		$view->pubparams 	= $this->_params;
+		$view->pubparams 	= $this->params;
 		$view->inreview 	= 0;
 		$view->title		= $this->_area['title'];
 
@@ -2451,6 +2481,7 @@ class plgProjectsPublications extends JPlugin
 	public function makeNewVersion($pub, $oldVersion, $newVersion)
 	{
 		// Initialize helpers
+		$pub->_helpers = new stdClass();
 		$pub->_helpers->pubHelper 		= new PublicationHelper($this->_database, $pub->version_id, $pub->id);
 		$pub->_helpers->htmlHelper	  	= new PublicationsHtml();
 		$pub->_helpers->projectsHelper 	= new ProjectsHelper( $this->_database );
@@ -2974,7 +3005,7 @@ class plgProjectsPublications extends JPlugin
 		// Get gallery images
 		$pScreenshot = new PublicationScreenshot( $this->_database );
 		$gallery = $pScreenshot->getScreenshots( $pub->version_id );
-		$view->shots = PublicationsHtml::showGallery($gallery, $gallery_path);
+		$view->shots = PublicationsHtml::showGallery($gallery, $gallery_path, $pub->id, $pub->version_id);
 
 		// Get JS
 		\Hubzero\Document\Assets::addComponentScript('com_publications', 'assets/js/publications');
@@ -3210,6 +3241,7 @@ class plgProjectsPublications extends JPlugin
 				$row->secret = $code;
 
 				$row->params = 'stage=content'."\n";
+
 				if (!$row->store())
 				{
 					// Roll back
@@ -3571,45 +3603,8 @@ class plgProjectsPublications extends JPlugin
 		// Record activity
 		if (!$this->getError() && $newpub && !$this->_project->provisioned)
 		{
-			$objAA = new ProjectActivity ( $this->_database );
-			$aid = $objAA->recordActivity( $this->_project->id, $this->_uid,
-				   JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_STARTED_NEW_PUB')
-					.' (id '.$pid.')', $pid, 'publication',
-				   JRoute::_('index.php?option=' . $this->_option . a .
-				   'alias=' . $this->_project->alias . a . 'active=publications' . a .
-				   'pid='.$pid), 'publication', 1 );
-
-			// Notify project managers
-			$objO = new ProjectOwner($this->_database);
-			$managers = $objO->getIds($this->_project->id, 1, 1);
-			if (!empty($managers))
-			{
-				$profile = \Hubzero\User\Profile::getInstance($this->_uid);
-
-				$juri = JURI::getInstance();
-
-				$sef = JRoute::_('index.php?option=' . $this->_option . a
-					. 'alias=' . $this->_project->alias . a . 'active=publications'
-					. a . 'pid='.$pid);
-				if (substr($sef,0,1) == '/')
-				{
-					$sef = substr($sef,1,strlen($sef));
-				}
-
-				ProjectsHelper::sendHUBMessage(
-					'com_projects',
-					$this->_config,
-					$this->_project,
-					$managers,
-					JText::_('COM_PROJECTS_EMAIL_MANAGERS_NEW_PUB_STARTED'),
-					'projects_admin_notice',
-					'publication',
-					$profile->get('name') . ' '
-						. JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_STARTED_NEW_PUB')
-						.' (id '.$pid.')' . ' - ' . $juri->base()
-						. $sef . '/?version=' . $row->version_number
-				);
-			}
+			// Record action, notify team
+			$this->onAfterCreate($row);
 		}
 
 		// Pass success or error message
@@ -3942,6 +3937,12 @@ class plgProjectsPublications extends JPlugin
 			{
 				$row->removeMainFlag($main_vid);
 			}
+
+			// Mark as curated
+			//if ($state == 1)
+			//{
+				$row->saveParam($row->id, 'curated', 1);
+			//}
 		}
 
 		// OnAfterPublish
@@ -3960,10 +3961,13 @@ class plgProjectsPublications extends JPlugin
 	public function onAfterChangeState( $pub, $row, $originalStatus = 3 )
 	{
 		$state  = $row->state;
-		$notify = 1;
+		$notify = 1; // Notify administrators/curators?
 
 		// Log activity in curation history
-		$pub->_curationModel->saveHistory($pub, $this->_uid, $originalStatus, $state, 0 );
+		if (isset($pub->_curationModel))
+		{
+			$pub->_curationModel->saveHistory($pub, $this->_uid, $originalStatus, $state, 0 );
+		}
 
 		// Display status message
 		switch ($state)
@@ -4025,6 +4029,7 @@ class plgProjectsPublications extends JPlugin
 		$link 	 = rtrim($juri->base(), DS) . DS . trim($sef, DS);
 		$message = $actor . ' ' . html_entity_decode($action) . '  - ' . $link;
 
+		// Notify admin group
 		if ($notify)
 		{
 			$admingroup = $this->_config->get('admingroup', '');
@@ -4049,6 +4054,36 @@ class plgProjectsPublications extends JPlugin
 					$message
 				);
 			}
+
+			// Notify curators by email
+			if ($this->useBlocks && isset($pub->_type))
+			{
+				$curatorMessage = ($state == 5) ? $message . "\n" . "\n" . JText::_('PLG_PROJECTS_PUBLICATIONS_EMAIL_CURATORS_REVIEW') . ' ' . rtrim($juri->base(), DS) . DS . 'publications/curation' : $message;
+
+				$curatorgroups = array($pub->_type->curatorgroup);
+				if ($this->_pubconfig->get('curatorgroup', ''))
+				{
+					$curatorgroups[] = $this->_pubconfig->get('curatorgroup', '');
+				}
+				foreach ($curatorgroups as $curatorgroup)
+				{
+					if (trim($curatorgroup) && $group = \Hubzero\User\Group::getInstance($curatorgroup))
+					{
+						$members 	= $group->get('members');
+						$managers 	= $group->get('managers');
+						$admins 	= array_merge($members, $managers);
+						$admins 	= array_unique($admins);
+
+						PublicationHelper::notify(
+							$this->_pubconfig,
+							$pub,
+							$admins,
+							JText::_('PLG_PROJECTS_PUBLICATIONS_EMAIL_CURATORS'),
+							$curatorMessage
+						);
+					}
+				}
+			}
 		}
 
 		// Notify project managers (in all cases)
@@ -4069,7 +4104,7 @@ class plgProjectsPublications extends JPlugin
 		}
 
 		// Produce archival package
-		if ($state == 1 || $state == 5)
+		if (isset($pub->_curationModel) && ($state == 1 || $state == 5))
 		{
 			$pub->_curationModel->package();
 		}
@@ -4113,7 +4148,12 @@ class plgProjectsPublications extends JPlugin
 				}
 				if (checkdate($month, $day, $year))
 				{
-					$pubdate = JFactory::getDate(mktime(0, 0, 0, $month, $day, $year))->toSql();
+					$pubdate = JFactory::getDate(gmmktime(0, 0, 0, $month, $day, $year))->toSql();
+				}
+				// Prevent date before current
+				if ($pubdate < JFactory::getDate()->toSql())
+				{
+					$pubdate = JFactory::getDate()->toSql();
 				}
 			}
 		}
@@ -4302,6 +4342,9 @@ class plgProjectsPublications extends JPlugin
 				return;
 			}
 
+			// Save version before changes
+			$originalStatus = $row->state;
+
 			// Save state
 			$row->state = $state;
 			$row->main = $main;
@@ -4389,109 +4432,21 @@ class plgProjectsPublications extends JPlugin
 					$row->removeMainFlag($main_vid);
 				}
 
+				// Mark as uncurated
+				if ($state == 1 && isset($this->useBlocks) && !$this->useBlocks)
+				{
+					$row->saveParam($row->id, 'curated', 2);
+				}
+
 				// Finalize attachments for publication
 				$published = $this->_publishAttachments($row);
 
 				// Produce archival package
 				$this->archivePub($row->publication_id, $row->id);
 
-				// Display status message
-				switch ($state)
-				{
-					case 1:
-					default:
-						$this->_msg = JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_SUCCESS_PUBLISHED');
-						$action 	= $republish
-									? JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_REPUBLISHED')
-									: JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_PUBLISHED');
-						break;
+				// OnAfterPublish
+				$this->onAfterChangeState( $pub, $row, $originalStatus );
 
-					case 4:
-						$this->_msg = $this->_task == 'revert'
-									? JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_SUCCESS_REVERTED')
-									: JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_SUCCESS_SAVED') ;
-						$action 	= $this->_task == 'revert'
-									? JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_REVERTED')
-									: JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_SAVED');
-						$notify = 0;
-						break;
-
-					case 5:
-						$this->_msg = JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_SUCCESS_PENDING');
-						$action 	= JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_ACTIVITY_SUBMITTED');
-						break;
-				}
-				$this->_msg .= ' <a href="'.JRoute::_('index.php?option=com_publications' . a .
-					    'id=' . $pid ) .'">'. JText::_('PLG_PROJECTS_PUBLICATIONS_PUBLICATION_VIEWIT').'</a>';
-
-				$pubtitle = \Hubzero\Utility\String::truncate($row->title, 100);
-				$action .= ' '.$row->version_label.' ';
-				$action .=  JText::_('PLG_PROJECTS_PUBLICATIONS_OF_PUBLICATION').' "'.html_entity_decode($pubtitle).'"';
-				$action  = htmlentities($action, ENT_QUOTES, "UTF-8");
-
-				// Record activity
-				if (!$this->_project->provisioned)
-				{
-					$objAA = new ProjectActivity ( $this->_database );
-					$aid = $objAA->recordActivity( $this->_project->id, $this->_uid,
-						   $action, $pid, $pubtitle,
-						   JRoute::_('index.php?option=' . $this->_option . a .
-						   'alias=' . $this->_project->alias . a . 'active=publications' . a .
-						   'pid=' . $pid) . '/?version=' . $row->version_number, 'publication', 1 );
-				}
-
-				// Send out notifications
-				$profile = \Hubzero\User\Profile::getInstance($this->_uid);
-				$actor 	 = $profile
-						? $profile->get('name')
-						: JText::_('PLG_PROJECTS_PUBLICATIONS_PROJECT_MEMBER');
-				$juri 	 = JURI::getInstance();
-				$sef	 = 'publications' . DS . $row->publication_id . DS . $row->version_number;
-				$link 	 = rtrim($juri->base(), DS) . DS . trim($sef, DS);
-				$message = $actor . ' ' . html_entity_decode($action) . '  - ' . $link;
-
-				if ($notify)
-				{
-					$admingroup = $this->_config->get('admingroup', '');
-					$group = \Hubzero\User\Group::getInstance($admingroup);
-					$admins = array();
-
-					if ($admingroup && $group)
-					{
-						$members 	= $group->get('members');
-						$managers 	= $group->get('managers');
-						$admins 	= array_merge($members, $managers);
-						$admins 	= array_unique($admins);
-
-						ProjectsHelper::sendHUBMessage(
-							'com_projects',
-							$this->_config,
-							$this->_project,
-							$admins,
-							JText::_('COM_PROJECTS_EMAIL_ADMIN_NEW_PUB_STATUS'),
-							'projects_new_project_admin',
-							'publication',
-							$message
-						);
-					}
-				}
-
-				// Notify project managers (in all cases)
-				$objO = new ProjectOwner($this->_database);
-				$managers = $objO->getIds($this->_project->id, 1, 1);
-				if (!$this->_project->provisioned && !empty($managers))
-				{
-					ProjectsHelper::sendHUBMessage(
-						'com_projects',
-						$this->_config,
-						$this->_project,
-						$managers,
-						JText::_('COM_PROJECTS_EMAIL_MANAGERS_NEW_PUB_STATUS'),
-						'projects_admin_notice',
-						'publication',
-						$message
-					);
-				}
 			}
 		}
 
@@ -4652,6 +4607,15 @@ class plgProjectsPublications extends JPlugin
 					$path    =  JPATH_ROOT . DS . trim($this->_pubconfig->get('webpath'), DS)
 							. DS .  \Hubzero\Utility\String::pad( $pid );
 
+					// Build version path
+					$vPath = $path . DS . \Hubzero\Utility\String::pad( $vid );
+
+					// Delete all version files
+					if (is_dir($vPath))
+					{
+						JFolder::delete($vPath);
+					}
+
 					// Delete access accosiations
 					$pAccess = new PublicationAccess( $this->_database );
 					$pAccess->deleteGroups($vid);
@@ -4764,8 +4728,10 @@ class plgProjectsPublications extends JPlugin
 		$role 		= JRequest::getInt('role', 0);
 
 		$item 		= urldecode(JRequest::getVar( 'item', '' ));
-		$type 		= strtolower(array_shift(explode('::', $item)));
-		$item 		= array_pop(explode('::', $item));
+		$parts 		= explode('::', $item);
+		$type 		= array_shift($parts);
+		$type 		= strtolower($type);
+		$item 		= array_pop($parts);
 
 		if (!$vid || !$pid)
 		{
@@ -4832,8 +4798,7 @@ class plgProjectsPublications extends JPlugin
 		$role 		= JRequest::getInt('role', 0);
 
 		$item 		= urldecode(JRequest::getVar( 'item', '' ));
-		$type 		= strtolower(array_shift(explode('::', $item)));
-		$item 		= array_pop(explode('::', $item));
+		$type 		= JRequest::getVar('type', 'file');
 
 		if (!$vid || !$pid || !$item)
 		{
@@ -4869,7 +4834,7 @@ class plgProjectsPublications extends JPlugin
 			$objPA->publication_version_id 	= $vid;
 			$objPA->path 					= $item;
 			$objPA->type 					= $type;
-			$objPA->vcs_hash 				= $vcs_hash;
+		//	$objPA->vcs_hash 				= $vcs_hash;
 			$objPA->created_by 				= $this->_uid;
 			$objPA->created 				= JFactory::getDate()->toSql();
 			$objPA->title 					= $title ? $title : '';
@@ -4916,7 +4881,8 @@ class plgProjectsPublications extends JPlugin
 		$item 	= urldecode(JRequest::getVar( 'item', '' ));
 
 		$parts = explode('::', $item);
-		$type = strtolower(array_shift($parts));
+		$type = array_shift($parts);
+		$type = strtolower($type);
 		$item = array_pop($parts);
 		$hash = '';
 
@@ -5040,7 +5006,7 @@ class plgProjectsPublications extends JPlugin
 		// Get serveas and choices depending on content selection
 		$serve = $this->_pubTypeHelper->dispatch($base, 'getServeAs',
 			$data = array('vid' => $vid, 'selections' => $selections,
-				'original_serveas' => $view->original_serveas, 'params' => $this->_params));
+				'original_serveas' => $view->original_serveas, 'params' => $this->params));
 
 		$serveas = ($serve && isset($serve['serveas'])) ? $serve['serveas'] : 'external';
 		$view->choices = ($serve && isset($serve['choices'])) ? $serve['choices'] : array();
@@ -5806,41 +5772,6 @@ class plgProjectsPublications extends JPlugin
 	}
 
 	/**
-	 * Preview wiki
-	 *
-	 * @return     string (html)
-	 */
-	protected function _previewWiki()
-	{
-		// Incoming
-		$raw  = JRequest::getVar( 'raw', '' );
-
-		// Convert
-		if ($raw)
-		{
-			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wiki' . DS . 'helpers' . DS . 'parser.php');
-
-			$p = WikiHelperParser::getInstance();
-
-			// import the wiki parser
-			$wikiconfig = array(
-				'option'   => $this->_option,
-				'scope'    => '',
-				'pagename' => 'projects',
-				'pageid'   => '',
-				'filepath' => '',
-				'domain'   => ''
-			);
-			$html = $p->parse( $raw, $wikiconfig );
-			return $html ? $html : ProjectsHtml::showNoPreviewMessage();
-		}
-		else
-		{
-			return ProjectsHtml::showNoPreviewMessage();
-		}
-	}
-
-	/**
 	 * Process audience
 	 *
 	 * @param      integer  	$pid
@@ -6084,13 +6015,6 @@ class plgProjectsPublications extends JPlugin
 			)
 		);
 
-		// Get screenshot path
-		$webpath = $this->_pubconfig->get('webpath');
-
-		// Get publications helper
-		$helper = new PublicationHelper( $this->_database );
-		$gallery_path = $helper->buildPath($pid, $vid, $webpath, 'gallery');
-
 		$ih = new ProjectsImgHandler();
 
 		// Load screenshot info if any
@@ -6106,9 +6030,6 @@ class plgProjectsPublications extends JPlugin
 			$fpath =  ProjectsHelper::getProjectPath($this->_project->alias,
 					$this->_config->get('webpath'), 1);
 
-			$prefix = $this->_config->get('offroot', 0) ? '' : JPATH_ROOT ;
-			$from_path = $prefix . $fpath;
-
 			// Include Git Helper
 			$this->getGitHelper();
 
@@ -6119,7 +6040,6 @@ class plgProjectsPublications extends JPlugin
 			$ih = new ProjectsImgHandler();
 			$view->file = $ih->createThumbName($filename, '-'.substr($hash, 0, 3));
 			$view->thumb = $ih->createThumbName($filename, '-'.substr($hash, 0, 3).'_tn', $extension = 'png');
-
 		}
 		else
 		{
@@ -6127,36 +6047,12 @@ class plgProjectsPublications extends JPlugin
 			$view->thumb = '';
 		}
 
-		if (!is_file(JPATH_ROOT.$gallery_path. DS .$view->file)
-			|| !is_file(JPATH_ROOT.$gallery_path. DS .$view->thumb))
-		{
-			$this->setError( JText::_('PLG_PROJECTS_PUBLICATIONS_GALLERY_MISSING_FILE') );
-		}
-
-		// Is image?
-		$ext = explode('.',$ima);
-		$ext = end($ext);
-		if (in_array($ext, $this->_image_ext) )
-		{
-			$view->type = 'image';
-		}
-		elseif (in_array($ext, $this->_video_ext))
-		{
-			$view->type = 'video';
-		}
-		else
-		{
-			$view->type = '';
-		}
-		$view->ext = $ext;
-
 		// Build pub url
 		$view->route = $this->_project->provisioned
 					? 'index.php?option=com_publications' . a . 'task=submit'
 					: 'index.php?option=com_projects' . a . 'alias=' . $this->_project->alias . a . 'active=publications';
 		$view->url = JRoute::_($view->route . a . 'pid=' . $pid);
 
-		$view->gallery_path = $gallery_path;
 		$view->shot 		= $pScreenshot;
 		$view->ima 			= $ima;
 		$view->vid 			= $vid;

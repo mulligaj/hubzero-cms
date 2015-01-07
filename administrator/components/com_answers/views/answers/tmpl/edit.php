@@ -30,7 +30,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$canDo = AnswersHelper::getActions('answer');
+$canDo = AnswersHelperPermissions::getActions('answer');
 
 $text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 
@@ -64,12 +64,12 @@ function submitbutton(pressbutton)
 		return;
 	}
 
+	<?php echo JFactory::getEditor()->save('text'); ?>
+
 	// do field validation
 	if (document.getElementById('field-answer').value == ''){
 		alert('<?php echo JText::_('COM_ANSWERS_ERROR_MISSING_ANSWER'); ?>');
 	} else {
-		<?php echo JFactory::getEditor()->save('text'); ?>
-
 		submitform(pressbutton);
 	}
 }

@@ -16,13 +16,12 @@ defined('_JEXEC') or die('Restricted access');
 	}
 
 	$name = JText::_('COM_WIKI_ANONYMOUS');
-	$huser = new \Hubzero\User\Profile;
 	if (!$this->comment->get('anonymous'))
 	{
-		$huser = $this->comment->creator(); //\Hubzero\User\Profile::getInstance($this->comment->get('created_by'));
-		if (is_object($huser) && $huser->get('name'))
+		$name = $this->escape(stripslashes($this->comment->creator('name', $name)));
+		if ($this->comment->creator('public'))
 		{
-			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $huser->get('uidNumber')) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
+			$name = '<a href="' . JRoute::_($this->comment->creator()->getLink()) . '">' . $name . '</a>';
 		}
 	}
 
@@ -39,7 +38,7 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 	<li class="comment <?php echo $cls; ?>" id="c<?php echo $this->comment->get('id'); ?>">
 		<p class="comment-member-photo">
-			<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
+			<img src="<?php echo $this->comment->creator()->getPicture($this->comment->get('anonymous')); ?>" alt="" />
 		</p>
 		<div class="comment-content">
 			<?php
@@ -81,18 +80,17 @@ defined('_JEXEC') or die('Restricted access');
 			</div>
 
 			<p class="comment-options">
-			<?php if ($this->page->access('delete', 'comment')) { // || $juser->get('id') == $this->comment->get('created_by') ?>
-				<?php //if ($this->config->get('access-delete-thread')) { ?>
+				<?php if ($this->page->access('delete', 'comment')) { ?>
 					<a class="icon-delete delete" href="<?php echo JRoute::_($this->comment->link('delete')); ?>"><!--
 						--><?php echo JText::_('COM_WIKI_DELETE'); ?><!--
 					--></a>
-				<?php //} ?>
+				<?php } ?>
 				<?php if ($this->page->access('edit', 'comment')) { ?>
 					<a class="icon-edit edit" href="<?php echo JRoute::_($this->comment->link('edit')); ?>"><!--
 						--><?php echo JText::_('COM_WIKI_EDIT'); ?><!--
 					--></a>
 				<?php } ?>
-			<?php } ?>
+
 			<?php if (!$this->comment->isReported()) { ?>
 				<?php if ($this->depth < $this->config->get('comments_depth', 3)) { ?>
 					<?php if (JRequest::getInt('reply', 0) == $this->comment->get('id')) { ?>
@@ -129,18 +127,18 @@ defined('_JEXEC') or die('Restricted access');
 						<input type="hidden" name="comment[created]" value="" />
 						<input type="hidden" name="comment[created_by]" value="<?php echo $juser->get('id'); ?>" />
 						<input type="hidden" name="comment[version]" value="<?php echo $this->page->revision()->get('version'); ?>" />
-						<input type="hidden" name="comment[state]" value="1" />
+						<input type="hidden" name="comment[status]" value="1" />
 
 						<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 						<input type="hidden" name="controller" value="comments" />
 						<input type="hidden" name="scope" value="<?php echo $this->page->get('scope'); ?>" />
 						<input type="hidden" name="pagename" value="<?php echo $this->page->get('pagename'); ?>" />
-						<input type="hidden" name="<?php echo $this->page->get('group_cn') ? 'action' : 'task'; ?>" value="savereply" />
+						<input type="hidden" name="<?php echo $this->page->get('group_cn') ? 'action' : 'task'; ?>" value="savecomment" />
 
 						<label for="comment_<?php echo $this->comment->get('id'); ?>_content">
 							<span class="label-text"><?php echo JText::_('COM_WIKI_ENTER_COMMENTS'); ?></span>
 							<?php
-							echo WikiHelperEditor::getInstance()->display('comment[comment]', 'comment_' . $this->comment->get('id') . '_content', '', 'minimal no-footer', '35', '4');
+							echo WikiHelperEditor::getInstance()->display('comment[ctext]', 'comment_' . $this->comment->get('id') . '_content', '', 'minimal no-footer', '35', '4');
 							?>
 						</label>
 

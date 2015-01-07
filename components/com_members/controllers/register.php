@@ -775,10 +775,10 @@ class MembersControllerRegister extends \Hubzero\Component\SiteController
 
 					// add member interests
 					$interests = $xregistration->get('interests');
-					$mt = new MembersTags($this->database);
+					$mt = new MembersModelTags($xprofile->get('uidNumber'));
 					if (!empty($interests))
 					{
-						$mt->tag_object($xprofile->get('uidNumber'), $xprofile->get('uidNumber'), $interests, 1, 1);
+						$mt->setTags($interests, $xprofile->get('uidNumber'));
 					}
 
 					if ($result)
@@ -1515,6 +1515,14 @@ class MembersControllerRegister extends \Hubzero\Component\SiteController
 			if (!$profile->update())
 			{
 				$this->setError(JText::_('COM_MEMBERS_REGISTER_ERROR_CONFIRMING'));
+			}
+
+			// if the user just changed their email & confirmed
+			// reset 'userchangedemail' key
+			$session = JFactory::getSession();
+			if ($session->get('userchangedemail', 0) == 1)
+			{
+				$session->set('userchangedemail', 0);
 			}
 
 			// Redirect

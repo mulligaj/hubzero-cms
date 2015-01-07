@@ -23,45 +23,44 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-// Which layout?
-$launcherLayout  = $this->config->get('launcher_layout', 0);
+$this->css()
+	 ->css('jquery.fancybox.css', 'system')
+     ->js();
 $authorized = ($this->restricted && !$this->authorized) ? false : true;
-
-$juser = JFactory::getUser();
 $html = '';
 
-if ($launcherLayout)
+// New launcher layout?
+if ($this->config->get('launcher_layout', 0))
 {
-	// New launcher layout
-	$view = new JView(
-		array('name' => 'view', 'layout' => 'launcher')
-	);
-	$view->publication 	 	= $this->publication;
-	$view->contributable 	= $this->contributable;
-	$view->option 		 	= $this->option;
-	$view->config 		 	= $this->config;
-	$view->params 		 	= $this->params;
-	$view->authorized 	 	= $this->authorized;
-	$view->restricted 	 	= $this->restricted;
-	$view->database 	 	= $this->database;
-	$view->lastPubRelease 	= $this->lastPubRelease;
-	$view->version		 	= $this->version;
-	$view->license			= $this->license;
-	$view->sections			= $this->sections;
-	$view->cats				= $this->cats;
-	echo $view->loadTemplate();
+	$this->view('launcher')
+	     ->set('option', $this->option)
+	     ->set('publication', $this->publication)
+	     ->set('config', $this->config)
+	     ->set('contributable', $this->contributable)
+	     ->set('authorized', $this->authorized)
+	     ->set('restricted', $this->restricted)
+	     ->set('database', $this->database)
+	     ->set('lastPubRelease', $this->lastPubRelease)
+	     ->set('version', $this->version)
+	     ->set('license', $this->license)
+	     ->set('sections', $this->sections)
+	     ->set('cats', $this->cats)
+	     ->set('params', $params)
+	     ->display();
 }
 else
-{
-	$html  = '<section class="main upperpane">'."\n";
-	$html .= '<div class="aside rankarea">'."\n";
+{ ?>
+	<section class="main upperpane">
+		<div class="aside rankarea">
 
+	<?php
 	// Show stats
 	$statshtml = '';
 	$this->helper->getCitations();
 	$this->helper->getLastCitationDate();
 	$stats = new AndmoreStats($this->database, $this->publication->id,
-		$this->publication->master_rating, count($this->helper->citations), $this->helper->lastCitationDate);
+		$this->publication->master_rating, count($this->helper->citations),
+		$this->helper->lastCitationDate);
 	$statshtml = $stats->display();
 
 	$xtra = '';
@@ -103,35 +102,30 @@ else
 		$xtra = '<p class="supported"><a href="'.$link.'">'.$tag->raw_tag.'</a></p>';
 	}
 
-	$html .= PublicationsHtml::metadata($this->option, $this->params, $this->publication, $statshtml, $this->sections, $this->version, $xtra, $this->lastPubRelease);
-	$html .= '</div><!-- / .aside -->'."\n";
-	$html .= '<div class="subject">'."\n";
-	$html .= ' <div class="overviewcontainer">'."\n";
-	$html .= PublicationsHtml::title( $this->option, $this->publication );
+	echo PublicationsHtml::metadata($this->option, $this->params, $this->publication,
+		$statshtml, $this->sections, $this->version, $xtra, $this->lastPubRelease); ?>
 
+	</div><!-- / .aside -->
+	<div class="subject">
+		<div class="overviewcontainer">
+			<?php echo PublicationsHtml::title( $this->option, $this->publication ); ?>
+<?php
 	// Display authors
-	if ($this->params->get('show_authors')) {
-		if ($this->authors) {
-			$html .= '<div id="authorslist">'."\n";
-			$html .= $this->helper->showContributors( $this->authors, true, false, false, $this->params->get('format_authors', 0) )."\n";
-			$html .= '</div>'."\n";
-		}
-	}
+	if ($this->params->get('show_authors') && $this->authors) { ?>
+		<div id="authorslist">
+			<?php echo $this->helper->showContributors($this->authors, true, false, false, false, $this->params->get('format_authors', 0)); ?>
+		</div>
+	<?php }	?>
+	<p class="ataglance"><?php echo $this->publication->abstract ? \Hubzero\Utility\String::truncate(stripslashes($this->publication->abstract), 250) : ''; ?></p>
 
-	// Display mini abstract
-	$html .= '<p class="ataglance">';
-	$html .= $this->publication->abstract ? \Hubzero\Utility\String::truncate(stripslashes($this->publication->abstract), 250) : '';
-	$html .= '</p>'."\n";
-
+<?php
 	// Show published date and category
-	$html .= PublicationsHtml::showSubInfo( $this->publication, $this->option );
-
-	$html .= ' </div><!-- / .overviewcontainer -->'."\n";
-	$html .= ' <div class="aside launcharea">'."\n";
-	$feeds = '';
-
+	echo PublicationsHtml::showSubInfo( $this->publication, $this->option ); ?>
+		</div><!-- / .overviewcontainer -->
+		<div class="aside launcharea">
+<?php
 	// Sort out primary files and draw a launch button
-	if ($this->config->get('curation', 0) && $this->tab != 'play')
+	if ($this->config->get('curation', 0) && $this->tab != 'play' && $this->params->get('curated') != 2)
 	{
 		// Get primary elements
 		$elements = $this->publication->_curationModel->getElements(1);

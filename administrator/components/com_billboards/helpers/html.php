@@ -34,7 +34,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * HTML helper for the billboards component
  */
-class BillboardsHtml
+class BillboardsHelperHtml
 {
 	/**
 	 * Build a select list of the collections available
@@ -54,7 +54,7 @@ class BillboardsHtml
 		$collections = $collection->getRecords($filters);
 
 		// Go through all the collections and add a select option for each
-		foreach($collections as $collection)
+		foreach ($collections as $collection)
 		{
 			$options[] = JHTML::_('select.option', $collection->id, $collection->name, 'value', 'text');
 			if ($collection->id == $collection_id)

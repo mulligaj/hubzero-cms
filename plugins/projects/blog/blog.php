@@ -100,12 +100,6 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 			}
 		}
 
-		// Check authorization
-		if (!$authorized && !$project->owner)
-		{
-			return $arr;
-		}
-
 		// Do we have a project ID?
 		if (!is_object($project) or !$project->id)
 		{
@@ -150,7 +144,7 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 			{
 				case 'page':
 				default:
-					$arr['html'] = $this->view();
+					$arr['html'] = $this->page();
 					break;
 				case 'delete':
 					$arr['html'] = $this->_delete();
@@ -177,6 +171,180 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 		return $arr;
 	}
 
+	/**
+	 * Event call to get side content
+	 *
+	 * @return
+	 */
+	public function onProjectExtras( $project, $uid = 0, $area, $option, $side = 'righthand')
+	{
+		// Check if our area is the one we want to return results for
+		if ($area != 'feed')
+		{
+			return;
+		}
+
+		$html = '';
+
+		$database = JFactory::getDBO();
+
+		// Get user ID
+		if (!$uid)
+		{
+			$juser 	= JFactory::getUser();
+			$uid 	= $juser->get('id');
+		}
+
+		// Load component configs
+		$this->_config = JComponentHelper::getParams('com_projects');
+		$limit = $this->_config->get('sidebox_limit', 3);
+
+		// Get project params
+		$params = new JParameter( $project->params );
+
+		// Show welcome screen?
+		$owner_params = new JParameter( $project->owner_params );
+		if ($owner_params->get('hide_welcome', 0) == 1)
+		{
+			// Get suggestions
+			$suggestions = ProjectsHelper::getSuggestions(
+				$project,
+				$option,
+				$uid,
+				$this->_config,
+				$params
+			);
+
+			// Show side module with suggestions
+			if (count($suggestions) > 1 && $project->num_visits < 20)
+			{
+				$view = new \Hubzero\Plugin\View(
+					array(
+						'folder'  => 'projects',
+						'element' => 'blog',
+						'name'    => 'modules',
+						'layout'  => 'suggestions'
+					)
+				);
+				$view->option 		= $option;
+				$view->suggestions 	= $suggestions;
+				$view->project 		= $project;
+				$html 		   .= $view->loadTemplate();
+			}
+		}
+
+		// Get todo's
+		$objTD = new ProjectTodo( $database );
+		$todos = $objTD->getTodos ($project->id, $filters = array(
+			'sortby' => 'due DESC, p.duedate ASC', 'limit' => $limit
+		  )
+		);
+
+		// To-do side module
+		if ($todos)
+		{
+			$view = new \Hubzero\Plugin\View(
+				array(
+					'folder'  => 'projects',
+					'element' => 'blog',
+					'name'    => 'modules',
+					'layout'  => 'todo'
+				)
+			);
+			$view->option 	= $option;
+			$view->items 	= $todos;
+			$view->project 	= $project;
+			$html 	   		.= $view->loadTemplate();
+		}
+
+		// Get Publications
+		$objP = new Publication( $database );
+		$pubs = $objP->getRecords($filters = array(
+			'sortby' => 'random', 'limit' => $limit, 'project' => $project->id,
+			'ignore_access' => 1, 'dev' => 1
+		));
+
+		if ($pubs && count($pubs) > 0)
+		{
+			// Get language file
+			$lang = JFactory::getLanguage();
+			$lang->load('plg_projects_publications');
+
+			// Publications side module
+			$view = new \Hubzero\Plugin\View(
+				array(
+					'folder'  => 'projects',
+					'element' => 'blog',
+					'name'    => 'modules',
+					'layout'  => 'publications'
+				)
+			);
+			$view->option 	= $option;
+			$view->items 	= $pubs;
+			$view->project 	= $project;
+			$html 	   		.= $view->loadTemplate();
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Event call to get plugin notification
+	 *
+	 * @return
+	 */
+	public function onProjectNotification( $project, $uid = 0, $area, $option)
+	{
+		// Check if our area is the one we want to return results for
+		if ($area != 'feed')
+		{
+			return;
+		}
+
+		$html = '';
+
+		// Load component configs
+		$this->_config = JComponentHelper::getParams('com_projects');
+
+		// Get project params
+		$params = new JParameter( $project->params );
+
+		// Show welcome screen?
+		$owner_params = new JParameter( $project->owner_params );
+		$show_welcome = ((!$project->lastvisit or $project->num_visits < 5)
+						&& ($owner_params->get('hide_welcome', 0) == 0))  ? 1 : 0;
+
+		// Show welcome banner with suggestions
+		if ($show_welcome)
+		{
+			// Get suggestions
+			$suggestions = ProjectsHelper::getSuggestions(
+				$project,
+				$option,
+				$uid,
+				$this->_config,
+				$params
+			);
+
+			// Display welcome message
+			$view = new \Hubzero\Plugin\View(
+				array(
+					'folder'  => 'projects',
+					'element' => 'blog',
+					'name'    => 'modules',
+					'layout'  => '_welcome'
+				)
+			);
+			$view->option 		= $option;
+			$view->suggestions 	= $suggestions;
+			$view->project 		= $project;
+			$view->creator 		= $project->created_by_user == $uid ? 1 : 0;
+			$html 		   .= $view->loadTemplate();
+		}
+
+		return $html;
+	}
+
 	//----------------------------------------
 	// Views
 	//----------------------------------------
@@ -186,7 +354,7 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 	 *
 	 * @return     string
 	 */
-	public function view()
+	public function page()
 	{
 		// Output HTML
 		$view = new \Hubzero\Plugin\View(
@@ -241,7 +409,8 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 		$entry = trim(JRequest::getVar('blogentry', ''));
 
 		// Text clean-up
-		$entry = \Hubzero\Utility\Sanitize::stripAll($entry);
+		$entry = \Hubzero\Utility\Sanitize::stripScripts($entry);
+		$entry = \Hubzero\Utility\Sanitize::stripImages($entry);
 
 		// Instantiate project microblog entry
 		$objM = new ProjectMicroblog($this->_database);
@@ -476,6 +645,10 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 				{
 					// Get comment
 					$c = $objC->getComments(NULL, NULL, $a->id, $this->_project->lastvisit);
+					if (!$c)
+					{
+						continue;
+					}
 
 					// Bring up commented item
 					$needle = array('id' => $c->parent_activity);
@@ -515,6 +688,7 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 					$eid       = $a->id;
 					$etbl      = 'activity';
 					$deletable = 0;
+					$preview   = '';
 
 					// Get blog entry
 					if ($class == 'blog')
@@ -545,7 +719,8 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 					}
 
 					// Get/parse item preview if available
-					$ebody = $this->getItemPreview($class, $a, $body);
+					$ebody   = $body ? $this->drawBodyText($body) : '';
+					$preview = $this->getItemPreview($class, $a);
 
 					// Get comments
 					$comments = $objC->getComments($eid, $etbl);
@@ -554,9 +729,15 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 					$deletable = $deletable && ($a->userid == $this->_uid or $this->_project->role == 1) ? 1 : 0;
 
 					$prep[] = array(
-						'activity' => $a, 'eid' => $eid, 'etbl' => $etbl,
-						'body' => $ebody, 'deletable' => $deletable,
-						'comments' => $comments, 'class' => $class, 'new' => $new
+						'activity' => $a,
+						'eid' => $eid,
+						'etbl' => $etbl,
+						'body' => $ebody,
+						'deletable' => $deletable,
+						'comments' => $comments,
+						'class' => $class,
+						'new' => $new,
+						'preview' => $preview
 					);
 				}
 			}
@@ -586,10 +767,14 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 		$body      = ProjectsHtml::replaceUrls($body, 'external');
 		$shortBody = ProjectsHtml::replaceUrls($shortBody, 'external');
 
+		// Emotions (new)
+		$body      = ProjectsHtml::replaceEmoIcons($body);
+		$shortBody = ProjectsHtml::replaceEmoIcons($shortBody);
+
 		// Style body text
 		$ebody  = '<span class="body';
 		$ebody .= strlen($shortBody) > 50 ? ' newline' : ' sameline';
-		$ebody .= '">' . $shortBody;
+		$ebody .= '">' . preg_replace("/\n/", '<br />', trim($shortBody));
 		if ($shorten)
 		{
 			$ebody .= ' <a href="#" class="more-content">' . JText::_('COM_PROJECTS_MORE') . '</a>';
@@ -598,7 +783,7 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 
 		if ($shorten)
 		{
-			$ebody .= '<span class="fullbody hidden">' . $body . '</span>' ;
+			$ebody .= '<span class="fullbody hidden">' . preg_replace("/\n/", '<br />', trim($body)) . '</span>' ;
 		}
 
 		return $ebody;
@@ -724,19 +909,17 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 		}
 
 		// We do need project file path
-		if (!$this->_path)
+		if (!$this->_path || !is_dir($this->_path))
 		{
 			return false;
 		}
 
-		$files 	  = explode(',', $ref);
-		$selected = array();
-
-		// Include Git Helper
-		$this->getGitHelper();
-
-		// Include image handler
-		$ih = new ProjectsImgHandler();
+		$files 	  	 = explode(',', $ref);
+		$selected 	 = array();
+		$maxHeight   = 0;
+		$minHeight   = 0;
+		$minWidth    = 0;
+		$maxWidth	 = 0;
 
 		$imagepath = trim($this->_config->get('imagepath', '/site/projects'), DS);
 		$to_path = DS . $imagepath . DS . strtolower($this->_project->alias) . DS . 'preview';
@@ -747,21 +930,41 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 			$file  = count($parts) > 1 ? $parts[1] : $parts[0];
 			$hash  = count($parts) > 1 ? $parts[0] : NULL;
 
-			if (!$hash)
-			{
-				$hash   = $this->_git->gitLog($this->_path, $file, '' , 'hash');
-				$hash  	= $hash ? substr($hash, 0, 10) : '';
-			}
-
 			if ($hash)
 			{
-				$hashed = $ih->createThumbName(basename($file), '-' . $hash, 'png');
+				// Only preview mid-size images from now on
+				$hashed = md5(basename($file) . '-' . $hash) . '.png';
 
 				if (is_file(JPATH_ROOT. $to_path . DS . $hashed))
 				{
-					$preview['image'] = $to_path . DS . $hashed;
+					$preview['image'] = $hashed;
 					$preview['url']   = NULL;
 					$preview['title'] = basename($file);
+
+					// Get image properties
+					list($width, $height, $type, $attr) = getimagesize(JPATH_ROOT. $to_path . DS . $hashed);
+
+					$preview['width'] = $width;
+					$preview['height'] = $height;
+					$preview['orientation'] = $width > $height ? 'horizontal' : 'vertical';
+					// Record min and max width and height to build image grid
+					if ($height >= $maxHeight)
+					{
+						$maxHeight = $height;
+					}
+					if ($height && $height <= $minHeight)
+					{
+						$minHeight = $height;
+					}
+					else
+					{
+						$minHeight = $height;
+					}
+					if ($width > $maxWidth)
+					{
+						$maxWidth = $width;
+					}
+
 					$selected[] = $preview;
 				}
 			}
@@ -782,8 +985,12 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 				'layout'  => 'files'
 			)
 		);
-
+		$view->maxHeight	= $maxHeight;
+		$view->maxWidth		= $maxWidth;
+		$view->minHeight	= ($minHeight > 400) ? 400 : $minHeight;
 		$view->selected		= $selected;
+		$view->option 		= $this->_option;
+		$view->project 		= $this->_project;
 		return $view->loadTemplate();
 	}
 
@@ -801,7 +1008,8 @@ class plgProjectsBlog extends \Hubzero\Plugin\Plugin
 		$parent_activity = JRequest::getInt('parent_activity', 0, 'post');
 
 		// Clean-up
-		$comment = \Hubzero\Utility\Sanitize::stripAll($comment);
+		$comment = \Hubzero\Utility\Sanitize::stripScripts($comment);
+		$comment = \Hubzero\Utility\Sanitize::stripImages($comment);
 
 		// Instantiate comment
 		$objC = new ProjectComment($this->_database);

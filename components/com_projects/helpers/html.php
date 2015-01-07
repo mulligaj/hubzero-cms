@@ -31,15 +31,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$dateFormat = '%b %d, %Y';
-$tz = null;
-
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'M d, Y';
-	$tz = false;
-}
-
 if (!defined('n')) {
 
 /**
@@ -69,60 +60,38 @@ if (!defined('n')) {
 class ProjectsHtml
 {
 	//----------------------------------------------------------
-	// Date/time management
+	// Time format
 	//----------------------------------------------------------
 
 	/**
-	 * Format time
+	 * Show time since present moment or an actual date
 	 *
-	 * @param      string $value
-	 * @param      string $format
+	 * @param      string 	$time
+	 * @param      boolean 	$utc	UTC
 	 * @return     string
 	 */
-	public static function valformat($value, $format)
+	public static function showTime($time, $utc = false)
 	{
-		if ($format == 1)
+		$parsed 		= date_parse($time);
+		$timestamp		= strtotime($time);
+		$current_time 	= $utc ? strtotime(JFactory::getDate()) : strtotime(date('c'));
+		$current  		= date_parse($current_time);
+		$lapsed 		= $current_time - $timestamp;
+		if ($lapsed < 30)
 		{
-			return(number_format($value));
+			return JText::_('just now');
 		}
-		elseif ($format == 2 || $format == 3)
+		elseif ($lapsed > 86400 && $current['year'] == $parsed['year'])
 		{
-			if ($format == 2)
-			{
-				$min = round($value / 60);
-			} else
-			{
-				$min = floor($value / 60);
-				$sec = $value - ($min * 60);
-			}
-			$hr = floor($min / 60);
-			$min -= ($hr * 60);
-			$day = floor($hr / 24);
-			$hr -= ($day * 24);
-			if ($day == 1)
-			{
-				$day = "1 day, ";
-			}
-			elseif ($day > 1)
-			{
-				$day = number_format($day) . " days, ";
-			}
-			else
-			{
-				$day = "";
-			}
-			if ($format == 2)
-			{
-				return(sprintf("%s%d:%02d", $day, $hr, $min));
-			}
-			else
-			{
-				return(sprintf("%s%d:%02d:%02d", $day, $hr, $min, $sec));
-			}
+			return JHTML::_('date', $timestamp, 'M j, Y', false);
+		}
+		elseif ($lapsed > 86400)
+		{
+			return JHTML::_('date', $timestamp, 'M j', false) . ' at ' . JHTML::_('date', $timestamp, 'h:ia', false);
 		}
 		else
 		{
-			return($value);
+			return ProjectsHtml::timeDifference($lapsed);
 		}
 	}
 
@@ -131,6 +100,7 @@ class ProjectsHtml
 	 *
 	 * @param      string 	$time
 	 * @param      boolean 	$full	Return detailed date/time?
+	 * @param      boolean 	$utc	UTC
 	 * @return     string
 	 */
 	public static function formatTime($time, $full = false, $utc = false)
@@ -143,7 +113,6 @@ class ProjectsHtml
 
 		if ($full)
 		{
-		//	return $utc ? JFactory::getDate($timestamp)->format('g:i A M j, Y') : date('Y-m-d H:i:s', $timestamp) ;
 			return JHTML::_('date', $timestamp, 'M d, Y H:i:s', false);
 		}
 
@@ -167,7 +136,8 @@ class ProjectsHtml
 	/**
 	 * Time elapsed from moment
 	 *
-	 * @param      string $timestamp
+	 * @param      string 	$timestamp
+	 * @param      boolean 	$utc	UTC
 	 * @return     string
 	 */
 	public static function timeAgo($timestamp, $utc = true)
@@ -191,7 +161,7 @@ class ProjectsHtml
 	public static function timeDifference ($difference)
 	{
 		// Set the periods of time
-		$periods = array('second', 'minute', 'hour', 'day', 'week', 'month', 'year', 'decade');
+		$periods = array('sec', 'min', 'hr', 'day', 'week', 'month', 'year', 'decade');
 
 		// Set the number of seconds per period
 		$lengths = array(1, 60, 3600, 86400, 604800, 2630880, 31570560, 315705600);
@@ -318,7 +288,7 @@ class ProjectsHtml
 	 */
 	public static function getDirSize ($directory = '')
 	{
-		if(!$directory)
+		if (!$directory)
 		{
 			return 0;
 		}
@@ -331,7 +301,7 @@ class ProjectsHtml
 
 		while ($file = readdir($dh))
 		{
-			if($file == "." || $file == "..")
+			if ($file == "." || $file == "..")
 			{
 				continue;
 			}
@@ -362,7 +332,6 @@ class ProjectsHtml
 	public static function formatSize($file_size, $round = 0)
 	{
 		if ($file_size >= 1073741824)
-	//	if ($file_size >= 107374182)
 		{
 			$file_size = round(($file_size / 1073741824 * 100), $round) / 100 . 'GB';
 		}
@@ -395,7 +364,7 @@ class ProjectsHtml
 	{
 		$file_size = str_replace(' ', '', $file_size);
 
-		if($from == 'b')
+		if ($from == 'b')
 		{
 			if ($to == 'GB')
 			{
@@ -527,7 +496,7 @@ class ProjectsHtml
 	{
 		$name = '';
 
-		switch($int)
+		switch ($int)
 		{
 			case 1:
 				$name = 'one';
@@ -697,9 +666,139 @@ class ProjectsHtml
 		return $icon;
 	}
 
+	/**
+	 * Get array of available emotion icons
+	 *
+	 * @return     array
+	 */
+	public static function getEmoIcons()
+	{
+		$icons = array(
+				':)'    =>  'happy',
+				':-)'   =>  'grin',
+				':D'    =>  'laugh',
+				':d'    =>  'laugh',
+				';)'    =>  'wink',
+				':P'    =>  'tongue',
+				':-P'   =>  'tongue',
+				':-p'   =>  'tongue',
+				':p'    =>  'tongue',
+				':('    =>  'unhappy',
+				':\'('	=>	'cry',
+				':o'    =>  'surprised',
+				':O'    =>  'surprised',
+				':0'    =>  'surprised',
+				':|'    =>  'displeased',
+				':-|'   =>  'displeased',
+				':/'    =>  'displeased',
+				'8|'    =>  'sunglasses',
+				'O:)'   =>  'saint',
+				'>:O'   =>  'angry',
+				':-/'   =>  'surprised',
+				'l-)'   =>  'sleep',
+				'(y)'   =>  'thumbsup',
+				'^_^'   =>  'squint',
+				'-_-'   =>  'squint',
+				'3:)'   =>  'devil'
+		);
+
+		return $icons;
+	}
+
+	/**
+	 * Replace with emotion icons
+	 *
+	 * @param      string $text
+	 * @return     string
+	 */
+	public static function replaceEmoIcons($text = NULL)
+	{
+		$icons = ProjectsHtml::getEmoIcons();
+
+		foreach ($icons as $icon => $image)
+		{
+			$pat 	=  '#(?<=\s|^)(' . preg_quote($icon) .')(?=\s|$)#';
+			$rep  	= '<span class="icon-emo-' . $image . '"></span>';
+			$text 	= preg_replace($pat, $rep, $text);
+		}
+
+		return $text;
+	}
+
 	//----------------------------------------------------------
 	// Project page elements
 	//----------------------------------------------------------
+
+	/**
+	 * Get project image source
+	 *
+	 * @param      string $alias
+	 * @param      string $picture
+	 * @param      array $config
+	 * @return     string HTML
+	 */
+	public static function getProjectImageSrc( $alias = '', $picture = '', $config = '' )
+	{
+		if ($alias === NULL || !$picture)
+		{
+			return false;
+		}
+		if (!$config)
+		{
+			$config = JComponentHelper::getParams('com_projects');
+		}
+		$path = trim($config->get('imagepath', '/site/projects'), DS)
+				. DS . $alias . DS . 'images';
+
+		$src  = file_exists( JPATH_ROOT . DS . $path . DS . $picture )
+					? $path . DS . $picture
+					: NULL;
+		return $src;
+	}
+
+	/**
+	 * Get project thumbnail source
+	 *
+	 * @param      string $alias
+	 * @param      string $picname
+	 * @param      array $config
+	 * @return     string
+	 */
+	public static function getThumbSrc( $alias = '', $picture = '', $config = '' )
+	{
+		if ($alias === NULL)
+		{
+			return false;
+		}
+		if (!$config)
+		{
+			$config = JComponentHelper::getParams('com_projects');
+		}
+
+		$src  = '';
+		$path = DS . trim($config->get('imagepath', '/site/projects'), DS) . DS . $alias . DS . 'images';
+
+		if (file_exists( JPATH_ROOT . $path . DS . 'thumb.png' ))
+		{
+			return $path . DS . 'thumb.png';
+		}
+
+		if ($picture)
+		{
+			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS
+				. 'helpers' . DS . 'imghandler.php' );
+
+			$ih = new ProjectsImgHandler();
+			$thumb = $ih->createThumbName($picture);
+			$src = $thumb && file_exists( JPATH_ROOT . $path . DS . $thumb ) ? $path . DS . $thumb :  NULL;
+		}
+		if (!$src)
+		{
+			$src = $config->get('defaultpic');
+		}
+
+		return $src;
+	}
 
 	/**
 	 * Embed project image
@@ -709,21 +808,18 @@ class ProjectsHtml
 	 */
 	public static function embedProjectImage( $view )
 	{
-		$path = DS . trim($view->config->get('imagepath', '/site/projects'), DS) . DS . $view->project->alias . DS . 'images';
-		$image  = $view->project->picture
-			&& file_exists( JPATH_ROOT . $path . DS . $view->project->picture )
-			? $path . DS . $view->project->picture
-			: NULL; ?>
-		<div id="pimage">
+		$source = ProjectsHtml::getProjectImageSrc($view->project->alias, $view->project->picture, $view->config); ?>
+		<div id="pimage" class="pimage">
 			<a href="<?php echo JRoute::_('index.php?option=' . $view->option . a . 'alias='
 			.$view->project->alias); ?>" title="<?php echo $view->project->title . ' - '
 			. JText::_('COM_PROJECTS_VIEW_UPDATES'); ?>">
 	<?php
-		if ($image) {
+		if ($source) {
 		?>
-			<img src="<?php echo $image;  ?>" alt="<?php echo $view->project->title; ?>" />
+			<img src="<?php echo JRoute::_('index.php?option=' . $view->option . '&alias='
+			. $view->project->alias . '&controller=media&media=master');  ?>" alt="<?php echo $view->project->title; ?>" />
 	<?php
- 		}
+		}
 		else
 		{ ?>
 			<span class="defaultimage">&nbsp;</span>
@@ -739,15 +835,6 @@ class ProjectsHtml
 	 */
 	public static function writeMemberOptions ( $view )
 	{
-		$dateFormat = '%b %d, %Y';
-		$tz = null;
-
-		if (version_compare(JVERSION, '1.6', 'ge'))
-		{
-			$dateFormat = 'M d, Y';
-			$tz = false;
-		}
-
 		$options = '';
 		$role    = JText::_('COM_PROJECTS_PROJECT') . ' <span>';
 
@@ -787,7 +874,7 @@ class ProjectsHtml
 		$html.= t.t.' 	<div id="options-dock">' . "\n";
 		$html.= t.t.' 		<div>' . "\n";
 		$html.= t.t.' 			<p>' . JText::_('COM_PROJECTS_JOINED')
-				. ' ' . JHTML::_('date', $view->project->since, $dateFormat, $tz) . '</p>' . "\n";
+				. ' ' . JHTML::_('date', $view->project->since, 'M d, Y') . '</p>' . "\n";
 		if ($options)
 		{
 			$html.= t.t.'			<ul>' . "\n";
@@ -805,6 +892,245 @@ class ProjectsHtml
 	 * Write project header
 	 *
 	 * @param      object $view
+	 * @return     string HTML
+	 */
+	public static function drawProjectHeader ($view, $publicView = false)
+	{
+		if ($view->project->private)
+		{
+			$privacy = '<span class="private">' . ucfirst(JText::_('COM_PROJECTS_PRIVATE')) . '</span>';
+		}
+		else
+		{
+			$privacy = '<a href="' . JRoute::_('index.php?option=' . $view->option . a . 'alias=' . $view->project->alias) . '/?preview=1" title="' . JText::_('COM_PROJECTS_PREVIEW_PUBLIC_PROFILE') . '">' . ucfirst(JText::_('COM_PROJECTS_PUBLIC')) . '</a>';
+		}
+
+		$start = ($view->project->owner && $publicView == false)
+				? '<span class="h-privacy">' .$privacy . '</span> ' . strtolower(JText::_('COM_PROJECTS_PROJECT'))
+				: ucfirst(JText::_('COM_PROJECTS_PROJECT'));
+
+		$assets = array('files', 'databases', 'tools');
+		$assetTabs = array();
+		if ($publicView || !isset($view->tabs))
+		{
+			$view->tabs = array();
+		}
+		if ($view->active == 'edit')
+		{
+			$view->tabs[] = array('name' => 'edit', 'title' => 'Edit');
+		}
+
+		// Sort tabs so that asset tabs are together
+		foreach ($view->tabs as $tab)
+		{
+			if (!isset($tab['name']))
+			{
+				continue;
+			}
+			if (in_array($tab['name'], $assets))
+			{
+				$assetTabs[] = $tab;
+			}
+		}
+		$a = 0;
+		if (count($assetTabs) > 1)
+		{
+			array_splice( $view->tabs, 3, 0, array(0 => array('name' => 'assets', 'title' => 'Assets')) );
+		}
+?>
+		<div id="project-header" class="project-header">
+			<div class="grid">
+				<div class="col span10">
+					<div class="pimage-container">
+					<?php echo ProjectsHtml::embedProjectImage($view); ?>
+					</div>
+					<div class="ptitle-container">
+						<h2><a href="<?php echo JRoute::_('index.php?option=' . $view->option . a . 'alias=' . $view->project->alias); ?>"><?php echo \Hubzero\Utility\String::truncate($view->project->title, 50); ?> <span>(<?php echo $view->project->alias; ?>)</span></a></h2>
+						<p>
+						<?php echo $start .' '.JText::_('COM_PROJECTS_BY').' ';
+						if ($view->project->owned_by_group)
+						{
+							$group = \Hubzero\User\Group::getInstance( $view->project->owned_by_group );
+							if ($group)
+							{
+								echo ' '.JText::_('COM_PROJECTS_GROUP').' <a href="/groups/'.$group->get('cn').'">'.$group->get('cn').'</a>';
+							}
+							else
+							{
+								echo JText::_('COM_PROJECTS_UNKNOWN').' '.JText::_('COM_PROJECTS_GROUP');
+							}
+						}
+						else
+						{
+							echo '<a href="/members/'.$view->project->owned_by_user.'">'.$view->project->fullname.'</a>';
+						}
+						?>
+						</p>
+					</div>
+				</div>
+				<div class="col span2 omega">
+					<?php echo $publicView == false ? ProjectsHtml::writeMemberOptions($view) : ''; ?>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+		<div class="menu-wrapper">
+		<?php if ($publicView == false && isset($view->tabs) && $view->tabs) { ?>
+			<ul>
+			<?php foreach ($view->tabs as $tab)
+			{
+				if (!isset($tab['name']))
+				{
+					continue;
+				}
+				if (in_array($tab['name'], $assets) && count($assetTabs) > 1)
+				{
+					continue;
+				}
+				if ($tab['name'] == 'blog')
+				{
+					$tab['name'] = 'feed';
+				}
+				$gopanel = $tab['name'] == 'assets' ? 'files' : $tab['name'];
+				$active = (($tab['name'] == $view->active) || ($tab['name'] == 'assets' && in_array($view->active, $assets)))
+				?>
+				<li<?php if ($active) { echo ' class="active"'; } ?> id="tab-<?php echo $tab['name']; ?>">
+					<a class="<?php echo $tab['name']; ?>" href="<?php echo JRoute::_('index.php?option=' . $view->option . '&' . 'alias=' . $view->project->alias . '&active=' . $gopanel); ?>/" title="<?php echo ucfirst(JText::_('COM_PROJECTS_PROJECT')) . ' ' . ucfirst($tab['title']); ?>">
+						<span class="label"><?php echo $tab['title']; ?></span>
+					<?php if ($tab['name'] != 'feed' && isset($view->project->counts[$tab['name']]) && $view->project->counts[$tab['name']] != 0) { ?>
+						<span class="mini" id="c-<?php echo $tab['name']; ?>"><span id="c-<?php echo $tab['name']; ?>-num"><?php echo $view->project->counts[$tab['name']]; ?></span></span>
+					<?php } elseif ($tab['name'] == 'feed') { ?>
+						<span id="c-new" class="mini highlight <?php if ($view->project->counts['newactivity'] == 0) { echo 'hidden'; } ?>"><span id="c-new-num"><?php echo $view->project->counts['newactivity'];?></span></span>
+					<?php } ?>
+					</a>
+					<?php if ($tab['name'] == 'assets') { ?>
+					<div id="asset-selection" class="submenu-wrap">
+						<?php foreach ($assetTabs as $aTab) { ?>
+							<p><a class="<?php echo $aTab['name']; ?>" href="<?php echo JRoute::_('index.php?option=' . $view->option . '&' . 'alias=' . $view->project->alias . '&active=' . $aTab['name']); ?>/" title="<?php echo ucfirst(JText::_('COM_PROJECTS_PROJECT')) . ' ' . ucfirst($aTab['title']); ?>" id="tab-<?php echo $aTab['name']; ?>"><span class="label"><?php echo $aTab['title']; ?></span><?php if (isset($view->project->counts[$aTab['name']]) && $view->project->counts[$aTab['name']] != 0) { ?>
+								<span class="mini" id="c-<?php echo $aTab['name']; ?>"><span id="c-<?php echo $aTab['name']; ?>-num"><?php echo $view->project->counts[$aTab['name']]; ?></span></span>
+							<?php } ?>
+								</a>
+							</p>
+						<?php } ?>
+					</div>
+					<?php } ?>
+				</li>
+			<?php  } ?>
+			<li class="sideli <?php if ($view->active == 'info') { echo ' active'; } ?>" id="tab-info"><a href="<?php echo JRoute::_('index.php?option=' . $view->option . '&' . 'alias=' . $view->project->alias . '&active=info'); ?>/" title="<?php echo ucfirst(JText::_('COM_PROJECTS_ABOUT')); ?>">
+				<span class="label"><?php echo JText::_('COM_PROJECTS_ABOUT'); ?></span></a></li>
+			</ul>
+		<?php } else {  ?>
+			<?php if (isset($view->guest) && $view->guest) { ?>
+			<p><?php echo JText::_('COM_PROJECTS_ARE_YOU_MEMBER'); ?> <a href="<?php echo JRoute::_('index.php?option=' . $view->option . '&alias=' . $view->project->alias . '&task=view') . '?action=login'; ?>"><?php echo ucfirst(JText::_('COM_PROJECTS_LOGIN')).'</a> '.JText::_('COM_PROJECTS_LOGIN_TO_PRIVATE_AREA'); ?></p>
+			<?php } ?>
+		<?php } ?>
+		</div>
+	<?php }
+
+	/**
+	 * Write project left-hand side (traditional layout)
+	 *
+	 * @param      object $view
+	 * @return     string HTML
+	 */
+	public static function drawLeftPanel ($view)
+	{
+		?>
+		<div class="main-menu">
+			<?php echo ProjectsHtml::embedProjectImage($view); ?>
+			<?php echo ProjectsHtml::drawProjectMenu($view); ?>
+		</div><!-- / .main-menu -->
+<?php	}
+
+	/**
+	 * Write project menu
+	 *
+	 * @param      object $view
+	 * @return     string HTML
+	 */
+	public static function drawProjectMenu ($view)
+	{
+		$goto  = 'alias=' . $view->project->alias;
+		$assets = array('files', 'databases', 'tools');
+		$assetTabs = array();
+
+		// Sort tabs so that asset tabs are together
+		foreach ($view->tabs as $tab)
+		{
+			if (in_array($tab['name'], $assets))
+			{
+				$assetTabs[] = $tab;
+			}
+		}
+		$a = 0;
+
+		?>
+		<ul class="projecttools">
+			<li<?php if ($view->active == 'feed') { echo ' class="active"'; }?>>
+				<a class="newsupdate" href="<?php echo JRoute::_('index.php?option=' . $view->option . '&' . $goto . '&active=feed'); ?>" title="<?php echo JText::_('COM_PROJECTS_VIEW_UPDATES'); ?>"><span><?php echo JText::_('COM_PROJECTS_TAB_FEED'); ?></span>
+				<span id="c-new" class="mini highlight <?php if ($view->project->counts['newactivity'] == 0) { echo 'hidden'; } ?>"><span id="c-new-num"><?php echo $view->project->counts['newactivity'];?></span></span></a>
+			</li>
+			<li<?php if ($view->active == 'info') { echo ' class="active"'; }?>><a href="<?php echo JRoute::_('index.php?option=' . $view->option . '&' . $goto . '&active=info'); ?>" class="inform" title="<?php echo JText::_('COM_PROJECTS_VIEW') . ' ' . strtolower(JText::_('COM_PROJECTS_PROJECT')) . ' ' . strtolower(JText::_('COM_PROJECTS_TAB_INFO')); ?>">
+				<span><?php echo JText::_('COM_PROJECTS_TAB_INFO'); ?></span></a>
+			</li>
+<?php if ($view->tabs) {
+foreach ($view->tabs as $tab)
+{
+	if ($tab['name'] == 'blog')
+	{
+		continue;
+	}
+
+	if (in_array($tab['name'], $assets) && count($assetTabs) > 1)
+	{
+		$a++; // counter for asset tabs
+
+		// Header tab
+		if ($a == 1)
+		{
+			?>
+			<li class="assets">
+				<span><?php echo JText::_('COM_PROJECTS_TAB_ASSETS'); ?></span>
+			</li>
+		</ul>
+		<ul class="projecttools assetlist">
+		<?php
+		foreach ($assetTabs as $aTab)
+		{
+			?>
+			<li<?php if ($aTab['name'] == $view->active) { echo ' class="active"'; } ?>>
+				<a class="<?php echo $aTab['name']; ?>" href="<?php echo JRoute::_('index.php?option=' . $view->option . '&' . $goto . '&active=' . $aTab['name']); ?>/" title="<?php echo JText::_('COM_PROJECTS_VIEW') . ' ' . strtolower(JText::_('COM_PROJECTS_PROJECT')) . ' ' . strtolower($aTab['title']); ?>">
+					<span><?php echo $aTab['title']; ?></span>
+				<?php if (isset($view->project->counts[$aTab['name']]) && $view->project->counts[$aTab['name']] != 0) { ?>
+					<span class="mini" id="c-<?php echo $aTab['name']; ?>"><span id="c-<?php echo $aTab['name']; ?>-num"><?php echo $view->project->counts[$aTab['name']]; ?></span></span>
+				<?php } ?>
+				</a>
+			</li>
+		<?php } ?>
+		</ul>
+		<ul class="projecttools">
+	<?php
+	}
+	continue;
+}
+?>
+			<li<?php if ($tab['name'] == $view->active) { echo ' class="active"'; } ?>>
+				<a class="<?php echo $tab['name']; ?>" href="<?php echo JRoute::_('index.php?option=' . $view->option . '&' . $goto . '&active=' . $tab['name']); ?>/" title="<?php echo JText::_('COM_PROJECTS_VIEW') . ' ' . strtolower(JText::_('COM_PROJECTS_PROJECT')) . ' ' . strtolower($tab['title']); ?>">
+					<span><?php echo $tab['title']; ?></span>
+				<?php if (isset($view->project->counts[$tab['name']]) && $view->project->counts[$tab['name']] != 0) { ?>
+					<span class="mini" id="c-<?php echo $tab['name']; ?>"><span id="c-<?php echo $tab['name']; ?>-num"><?php echo $view->project->counts[$tab['name']]; ?></span></span>
+				<?php } ?>
+				</a>
+			</li>
+<?php }
+} ?>
+		</ul>
+	<?php }
+
+	/**
+	 * Write project header
+	 *
+	 * @param      object $view
 	 * @param      boolean $back
 	 * @param      boolean $underline
 	 * @param      int $show_privacy
@@ -817,7 +1143,7 @@ class ProjectsHtml
 		$goto  = 'alias=' . $view->project->alias;
 		$privacy_txt = $view->project->private ? JText::_('COM_PROJECTS_PRIVATE') : JText::_('COM_PROJECTS_PUBLIC');
 
-		if($view->project->private)
+		if ($view->project->private)
 		{
 			$privacy = '<span class="private">' . ucfirst($privacy_txt) . '</span>';
 		}
@@ -832,20 +1158,21 @@ class ProjectsHtml
 				? '<span class="h-privacy">' .$privacy . '</span> ' . strtolower(JText::_('COM_PROJECTS_PROJECT'))
 				: ucfirst(JText::_('COM_PROJECTS_PROJECT'));
 	?>
-	<div id="content-header" <?php if(!$show_pic) { echo 'class="nopic"'; } ?>>
-		<?php if($show_pic) { ?>
-		<div class="pthumb"><a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto); ?>" title="<?php echo JText::_('COM_PROJECTS_VIEW_UPDATES'); ?>"><img src="<?php echo ProjectsHtml::getThumbSrc($view->project->id, $view->project->alias, $view->project->picture, $view->config); ?>" alt="<?php echo $view->project->title; ?>" /></a></div>
+	<div id="content-header" <?php if (!$show_pic) { echo 'class="nopic"'; } ?>>
+		<?php if ($show_pic) { ?>
+		<div class="pthumb"><a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto); ?>" title="<?php echo JText::_('COM_PROJECTS_VIEW_UPDATES'); ?>"><img src="<?php echo	JRoute::_('index.php?option=' . $view->option . '&alias='
+			. $view->project->alias . '&controller=media&media=thumb'); ?>" alt="<?php echo $view->project->title; ?>" /></a></div>
 		<?php } ?>
 		<div class="ptitle">
 			<h2><a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto); ?>"><?php echo \Hubzero\Utility\String::truncate($view->project->title, 50); ?> <span>(<?php echo $view->project->alias; ?>)</span></a></h2>
-			<?php if($back)  { ?>
+			<?php if ($back)  { ?>
 			<h3 class="returnln"><?php echo JText::_('COM_PROJECTS_RETURN_TO'); ?> <a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto); ?>"><?php echo JText::_('COM_PROJECTS_PROJECT_PAGE'); ?></a></h3>
 			<?php } else { ?>
-			<h3 <?php if($underline) { echo 'class="returnln"'; } ?>><?php echo $start .' '.JText::_('COM_PROJECTS_BY').' ';
-			if($view->project->owned_by_group)
+			<h3 <?php if ($underline) { echo 'class="returnln"'; } ?>><?php echo $start .' '.JText::_('COM_PROJECTS_BY').' ';
+			if ($view->project->owned_by_group)
 			{
 				$group = \Hubzero\User\Group::getInstance( $view->project->owned_by_group );
-				if($group)
+				if ($group)
 				{
 					echo ' '.JText::_('COM_PROJECTS_GROUP').' <a href="/groups/'.$group->get('cn').'">'.$group->get('cn').'</a>';
 				}
@@ -856,12 +1183,12 @@ class ProjectsHtml
 			}
 			else
 			{
-				echo '<a href="/members/'.$view->project->created_by_user.'">'.$view->project->fullname.'</a>';
+				echo '<a href="/members/'.$view->project->owned_by_user.'">'.$view->project->fullname.'</a>';
 			//	echo '<span class="prominent">'.$view->project->fullname.'</span>';
 			}
 			?>
-			<?php if($show_privacy == 1) { ?>
-				<span class="privacy <?php if($view->project->private) { echo 'private'; } ?>"><?php if(!$view->project->private) {  ?><a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto).'/?preview=1'; ?>"><?php } ?><?php echo $privacy_txt; ?><?php if(!$view->project->private) {  ?></a><?php } ?> <?php echo strtolower(JText::_('COM_PROJECTS_PROJECT')); ?>
+			<?php if ($show_privacy == 1) { ?>
+				<span class="privacy <?php if ($view->project->private) { echo 'private'; } ?>"><?php if (!$view->project->private) {  ?><a href="<?php echo JRoute::_('index.php?option='.$view->option.a.$goto).'/?preview=1'; ?>"><?php } ?><?php echo $privacy_txt; ?><?php if (!$view->project->private) {  ?></a><?php } ?> <?php echo strtolower(JText::_('COM_PROJECTS_PROJECT')); ?>
 				</span>
 			<?php } ?>
 			</h3>
@@ -871,92 +1198,9 @@ class ProjectsHtml
 	<?php
 	}
 
-	/**
-	 * Get project thumbnail
-	 *
-	 * @param      int $id
-	 * @param      string $alias
-	 * @param      string $picname
-	 * @param      array $config
-	 * @return     string HTML
-	 */
-	public static function getThumbSrc( $id, $alias, $picname = '', $config )
-	{
-		$src  = '';
-		$path = DS . trim($config->get('imagepath', '/site/projects'), DS) . DS . $alias . DS . 'images';
-
-		if (file_exists( JPATH_ROOT . $path . DS . 'thumb.png' ))
-		{
-			return $path . DS . 'thumb.png';
-		}
-
-		if ($picname)
-		{
-			require_once( JPATH_ROOT . DS . 'components' . DS . 'com_projects' . DS
-				. 'helpers' . DS . 'imghandler.php' );
-
-			$ih = new ProjectsImgHandler();
-			$thumb = $ih->createThumbName($picname);
-			$src = $thumb && file_exists( JPATH_ROOT . $path . DS . $thumb ) ? $path . DS . $thumb :  '';
-		}
-		if (!$src)
-		{
-			$src = $config->get('defaultpic');
-		}
-
-		return $src;
-	}
-
 	//----------------------------------------------------------
 	// Misc
 	//----------------------------------------------------------
-
-	/**
-	 * Tool development header
-	 *
-	 * @return     string HTML
-	 */
-	public static function toolDevHeader( $option, $config, $project, $tool, $active, $bcrumb = '')
-	{
-		// tool-only tab menu
-		$view = new \Hubzero\Plugin\View(
-			array(
-				'folder'=>'projects',
-				'element'=>'tools',
-				'name'=>'view'
-			)
-		);
-
-		// Load plugin parameters
-		$tool_plugin 	= JPluginHelper::getPlugin( 'projects', 'tools' );
-		$view->plgparams = new JParameter($tool_plugin->params);
-
-		$view->route 	= 'index.php?option=' . $option . a . 'alias=' . $project->alias . a . 'active=tools';
-		$view->url 		= JRoute::_('index.php?option=' . $option . a . 'alias=' . $project->alias . a . 'active=tools');
-		$view->tool 	= $tool;
-		$view->active 	= $active;
-		$view->title 	= 'Tools';
-
-		// Get path for tool thumb image
-		$p_path 			= ProjectsHelper::getProjectPath($project->alias, $config->get('imagepath'), 1, 'images');
-		$imagePath 			= $p_path . DS . 'tools';
-		$view->projectPath 	= $imagePath;
-		$view->path_bc 		= $bcrumb;
-		$view->ih 			= new ProjectsImgHandler();
-		return $view->loadTemplate();
-	}
-
-	/**
-	 * Show 'no preview' message
-	 *
-	 * @param      string $msg
-	 * @return     string HTML
-	 */
-	public static function showNoPreviewMessage( $msg = '' )
-	{
-		$msg = $msg ? $msg : JText::_('PLG_PROJECTS_PUBLICATIONS_PUB_PREVIEW_NO_CONTENT');
-		return '<p class="pale">'.$msg.'</p>';
-	}
 
 	/**
 	 * Generate random code
@@ -1010,11 +1254,7 @@ class ProjectsHtml
 	 */
 	public static function replaceUrls($string, $rel = 'nofollow')
 	{
-	    $host = "([a-z\d][-a-z\d]*[a-z\d]\.)+[a-z][-a-z\d]*[a-z]";
-	    $port = "(:\d{1,})?";
-	    $path = "(\/[^?<>\#\"\s]+)?";
-	    $query = "(\?[^<>\#\"\s]+)?";
-	    return preg_replace("#((ht|f)tps?:\/\/{$host}{$port}{$path}{$query})#i", "<a href=\"$1\" rel=\"{$rel}\">$1</a>", $string);
+	    return preg_replace('@((https?://)?([-\w]+\.[-\w\.]+)+\w(:\d+)?(/([-\w/_\.]*(\?\S+)?)?)*)@', "<a href=\"$1\" rel=\"{$rel}\">$1</a>", $string);
 	}
 
 	/**
@@ -1028,27 +1268,27 @@ class ProjectsHtml
 	{
 	    if (empty($needle) || empty($haystack))
 		{
-            return false;
-        }
+			return false;
+		}
 
-        foreach ($haystack as $key => $value)
+		foreach ($haystack as $key => $value)
 		{
-            $exists = 0;
-            foreach ($needle as $nkey => $nvalue)
+			$exists = 0;
+			foreach ($needle as $nkey => $nvalue)
 			{
-                if (!empty($value->$nkey) && $value->$nkey == $nvalue)
+				if (!empty($value->$nkey) && $value->$nkey == $nvalue)
 				{
-                    $exists = 1;
-                }
+					$exists = 1;
+				}
 				else
 				{
-                    $exists = 0;
-                }
-            }
-            if ($exists) return $key;
-        }
+					$exists = 0;
+				}
+			}
+			if ($exists) return $key;
+		}
 
-        return false;
+		return false;
 	}
 
 	/**
@@ -1142,7 +1382,6 @@ class ProjectsHtml
 	{
 		if (!$path)
 		{
-			// $this->setError( JText::_('No path set.') );
 			return false;
 		}
 
@@ -1356,7 +1595,7 @@ class ProjectsHtml
 			if (count($notes) > 0)
 			{
 				krsort($notes);
-				foreach($notes as $match)
+				foreach ($notes as $match)
 				{
 					$ntext .= ProjectsHtml::parseAdminNote($match, $reviewer);
 				}
@@ -1375,7 +1614,6 @@ class ProjectsHtml
 	 */
 	public static function getAdminNoteCount($notes = '', $reviewer = '')
 	{
-
 		preg_match_all("#<nb:".$reviewer.">(.*?)</nb:".$reviewer.">#s", $notes, $matches);
 
 		if (count($matches) > 0)
@@ -1407,11 +1645,11 @@ class ProjectsHtml
 			$meta = $matches[0];
 			$note   = preg_replace( '#<meta>(.*?)</meta>#s', '', $note );
 
-			if($shorten)
+			if ($shorten)
 			{
 				$note   = \Hubzero\Utility\String::truncate($note, $shorten);
 			}
-			if($showmeta)
+			if ($showmeta)
 			{
 				$meta = str_replace('<meta>','' , $meta);
 				$meta = str_replace('</meta>','', $meta);
@@ -1439,7 +1677,7 @@ class ProjectsHtml
 		if (count($matches) > 0)
 		{
 			$notes = $matches[0];
-			if(count($notes) > 0)
+			if (count($notes) > 0)
 			{
 				$match = ProjectsHtml::parseAdminNote(end($notes), $reviewer, 1, 100);
 			}

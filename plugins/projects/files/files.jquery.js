@@ -799,7 +799,7 @@ HUB.ProjectFiles = {
 			'<input type="hidden" name="oldname" value="' + original + '" />' +
 			'<input type="text" name="newname" value="' + original + '" maxlength="100" class="vlabel" />' +
 			'<input type="submit" value="rename" class="btn" id="submit-rename" />' +
-			'<input type="button" value="cancel" class="btn cancel-btn" id="cancel-rename" />' +
+			'<input type="button" value="cancel" class="btn btn-cancel" id="cancel-rename" />' +
 		'</label>');
 
 		$('#cancel-rename').on('click', function(e){

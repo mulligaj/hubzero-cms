@@ -101,7 +101,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 
 			//get task
 			$this->task = JRequest::getVar('action', 'view');
-			switch( $this->task )
+			switch ($this->task)
 			{
 				case 'addaddress':    $arr['html'] = $this->addAddress();    break;
 				case 'editaddress':   $arr['html'] = $this->editAddress();   break;
@@ -295,8 +295,8 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 
 		//add tags to the registration object
 		$database = JFactory::getDBO();
-		$mt = new MembersTags($database);
-		$registration->_registration['tags'] = $mt->get_tag_string($profile->get('uidNumber'));
+		$mt = new MembersModelTags($profile->get('uidNumber'));
+		$registration->_registration['tags'] = $mt->render('string');
 
 		//add bio to the registration object
 		$fields->Bio = REG_OPTIONAL;
@@ -420,7 +420,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		//inform and redirect
 		$this->redirect(
 			JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=profile'),
-			JText::_('Member address successfully saved.'),
+			JText::_('PLG_MEMBERS_PROFILE_ADDRESS_SAVED'),
 			'passed'
 		);
 		return;
@@ -453,7 +453,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		//make sure user can delete this address
 		if ($membersAddress->uidNumber != $juser->get('id'))
 		{
-			$this->setError(JText::_('You don\'t have permission to delete this member address.'));
+			$this->setError(JText::_('PLG_MEMBERS_PROFILE_ERROR_PERMISSION_DENIED'));
 			return $this->view();
 		}
 
@@ -474,7 +474,7 @@ class plgMembersProfile extends \Hubzero\Plugin\Plugin
 		//inform and redirect
 		$this->redirect(
 			JRoute::_('index.php?option=com_members&id=' . $juser->get('id') . '&active=profile'),
-			JText::_('Member address successfully deleted.'),
+			JText::_('PLG_MEMBERS_PROFILE_ADDRESS_REMOVED'),
 			'passed'
 		);
 		return;

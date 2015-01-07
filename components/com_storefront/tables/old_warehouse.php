@@ -138,7 +138,7 @@ class StorefrontWarehouse extends JTable
 		$sql = "SELECT DISTINCT p.* FROM `#__storefront_products` p JOIN `#__storefront_product_collections` c ON p.`pId` = c.`pId`";
 		$sql .= " WHERE p.`pActive` = 1";
 
-		foreach	($this->lookupCollections as $cId)
+		foreach ($this->lookupCollections as $cId)
 		{
 			$sql .= " AND c.`cId` = {$cId}";
 		}
@@ -269,8 +269,8 @@ class StorefrontWarehouse extends JTable
 			$skuOptionsSql .= ')';
 		}
 
-		$sql = "SELECT s.`sId`, COUNT(so.`oId`) AS matches FROM `jos_storefront_skus` s
-				LEFT JOIN `jos_storefront_sku_options` so ON s.`sId` = so.`sId`
+		$sql = "SELECT s.`sId`, COUNT(so.`oId`) AS matches FROM `#__storefront_skus` s
+				LEFT JOIN `#__storefront_sku_options` so ON s.`sId` = so.`sId`
 				WHERE s.`pId` = '{$pId}'";
 		if (!empty($options))
 		{
@@ -301,7 +301,8 @@ class StorefrontWarehouse extends JTable
 	 * @param  $collectionType -- type of collection, category by default
 	 * @return void
 	 */
-	private function _getCollections($collectionType = 'category') {
+	private function _getCollections($collectionType = 'category')
+	{
 		$sql = "SELECT DISTINCT c.`cId`, c.`cName`
 				FROM `#__storefront_collections` c
 				LEFT JOIN `#__storefront_product_collections` pc ON c.`cId` = pc.`cId`

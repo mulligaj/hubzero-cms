@@ -466,101 +466,6 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 	}
 
 	/**
-	 * Save author order
-	 *
-	 * @return     void
-	 */
-	public function saveauthororderTask()
-	{
-		// Check for request forgeries
-		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
-
-		// Incoming
-		$id       = JRequest::getInt('id', 0);
-		$version  = JRequest::getVar( 'version', '' );
-		$neworder = JRequest::getVar('list', '');
-
-		// Set redirect URL
-		$url = 'index.php?option=' . $this->_option . '&controller='
-			. $this->_controller . '&task=edit' . '&id[]=' . $id . '&version=' . $version;
-
-		if (!$neworder)
-		{
-			// Nothing to save
-			$this->setRedirect(
-				$url
-			);
-			return;
-		}
-
-		// Instantiate publication object
-		$objP = new Publication( $this->database );
-		if (!$objP->load($id))
-		{
-			$this->setRedirect(
-				$url,
-				JText::_('COM_PUBLICATIONS_NOT_FOUND'),
-				'error'
-			);
-			return;
-		}
-
-		$pub = $objP->getPublication($id, $version);
-
-		// Load publication project
-		$pub->_project = new Project($this->database);
-		$pub->_project->load($pub->project_id);
-
-		// Get language file
-		$lang = JFactory::getLanguage();
-		$lang->load('plg_projects_publications');
-
-		// Save via block
-		$blocksModel = new PublicationsModelBlocks($this->database);
-		$block = $blocksModel->loadBlock('authors');
-
-		$block->reorder(NULL, 0, $pub, $this->juser->get('id'));
-		if ($block->getError())
-		{
-			$this->setRedirect(
-				$url,
-				$block->getError(),
-				'error'
-			);
-			return;
-		}
-		else
-		{
-			// Instantiate Version
-			$row = new PublicationVersion($this->database);
-			$row->load($pub->version_id);
-
-			// Update DOI in case of name change
-			if ($row && $row->doi)
-			{
-				// Get updated authors
-				$pAuthor = new PublicationAuthor( $this->database );
-				$authors = $pAuthor->getAuthors($row->id);
-
-				// Collect DOI metadata
-				$metadata = $this->_collectMetadata($row, $pub, $authors);
-
-				if (!PublicationUtilities::updateDoi($row->doi, $row, $authors, $this->config, $metadata, $doierr))
-				{
-					$this->setError(JText::_('COM_PUBLICATIONS_ERROR_DOI') . ' ' . $doierr);
-				}
-			}
-
-			// Redirect back to publication
-			$this->setRedirect(
-				$url,
-				JText::_('COM_PUBLICATIONS_SUCCESS_SAVED_AUTHOR')
-			);
-			return;
-		}
-	}
-
-	/**
 	 * Save content item details
 	 *
 	 * @return     void
@@ -791,6 +696,101 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 	}
 
 	/**
+	 * Save author order
+	 *
+	 * @return     void
+	 */
+	public function saveauthororderTask()
+	{
+		// Check for request forgeries
+		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
+
+		// Incoming
+		$id       = JRequest::getInt('id', 0);
+		$version  = JRequest::getVar( 'version', '' );
+		$neworder = JRequest::getVar('list', '');
+
+		// Set redirect URL
+		$url = 'index.php?option=' . $this->_option . '&controller='
+			. $this->_controller . '&task=edit' . '&id[]=' . $id . '&version=' . $version;
+
+		if (!$neworder)
+		{
+			// Nothing to save
+			$this->setRedirect(
+				$url
+			);
+			return;
+		}
+
+		// Instantiate publication object
+		$objP = new Publication( $this->database );
+		if (!$objP->load($id))
+		{
+			$this->setRedirect(
+				$url,
+				JText::_('COM_PUBLICATIONS_NOT_FOUND'),
+				'error'
+			);
+			return;
+		}
+
+		$pub = $objP->getPublication($id, $version);
+
+		// Load publication project
+		$pub->_project = new Project($this->database);
+		$pub->_project->load($pub->project_id);
+
+		// Get language file
+		$lang = JFactory::getLanguage();
+		$lang->load('plg_projects_publications');
+
+		// Save via block
+		$blocksModel = new PublicationsModelBlocks($this->database);
+		$block = $blocksModel->loadBlock('authors');
+
+		$block->reorder(NULL, 0, $pub, $this->juser->get('id'));
+		if ($block->getError())
+		{
+			$this->setRedirect(
+				$url,
+				$block->getError(),
+				'error'
+			);
+			return;
+		}
+		else
+		{
+			// Instantiate Version
+			$row = new PublicationVersion($this->database);
+			$row->load($pub->version_id);
+
+			// Update DOI in case of name change
+			if ($row && $row->doi)
+			{
+				// Get updated authors
+				$pAuthor = new PublicationAuthor( $this->database );
+				$authors = $pAuthor->getAuthors($row->id);
+
+				// Collect DOI metadata
+				$metadata = $this->_collectMetadata($row, $pub, $authors);
+
+				if (!PublicationUtilities::updateDoi($row->doi, $row, $authors, $this->config, $metadata, $doierr))
+				{
+					$this->setError(JText::_('COM_PUBLICATIONS_ERROR_DOI') . ' ' . $doierr);
+				}
+			}
+
+			// Redirect back to publication
+			$this->setRedirect(
+				$url,
+				JText::_('COM_PUBLICATIONS_SUCCESS_SAVED_AUTHOR')
+			);
+			return;
+		}
+	}
+
+	/**
 	 * Save author name and details
 	 *
 	 * @return     void
@@ -835,10 +835,6 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 		// Get language file
 		$lang = JFactory::getLanguage();
 		$lang->load('plg_projects_publications');
-
-		// Save via block
-		$blocksModel = new PublicationsModelBlocks($this->database);
-		$block = $blocksModel->loadBlock('authors');
 
 		// Save via block
 		$blocksModel = new PublicationsModelBlocks($this->database);
@@ -930,6 +926,9 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 			);
 			return;
 		}
+
+		// Use new curation flow?
+		$useBlocks  = $this->config->get('curation', 0);
 
 		// Incoming version
 		$version 	= JRequest::getVar( 'version', '' );
@@ -1081,12 +1080,6 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 				case 3:
 				case 4:
 					$action = 'revert';
-					// New version started - cannot revert!
-					if ($pub->dev_version_label)
-					{
-						echo PublicationsAdminHtml::alert('This publication already has a new draft version started. Please delete the existing draft version before reverting this version to draft status.');
-						exit();
-					}
 					break;
 			}
 
@@ -1210,18 +1203,21 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 					{
 						$row->accepted = JFactory::getDate()->toSql();
 
-						// Get master type info
-						$mt = new PublicationMasterType( $this->database );
-						$pub->_type = $mt->getType($pub->base);
+						if ($useBlocks)
+						{
+							// Get master type info
+							$mt = new PublicationMasterType( $this->database );
+							$pub->_type = $mt->getType($pub->base);
 
-						// Get curation model
-						$pub->_curationModel = new PublicationsCuration(
-							$this->database,
-							$pub->_type->curation
-						);
+							// Get curation model
+							$pub->_curationModel = new PublicationsCuration(
+								$this->database,
+								$pub->_type->curation
+							);
 
-						// Store curation manifest
-						$row->curation = json_encode($pub->_curationModel->_manifest);
+							// Store curation manifest
+							$row->curation = json_encode($pub->_curationModel->_manifest);
+						}
 					}
 					$row->modified = JFactory::getDate()->toSql();
 					$row->modified_by = $this->juser->get('id');
@@ -1369,6 +1365,13 @@ class PublicationsControllerItems extends \Hubzero\Component\AdminController
 					$url,  $row->getError(), 'error'
 				);
 				return;
+			}
+
+			// Mark as curated/non-curated
+			if ($action == 'publish')
+			{
+				$curated = $useBlocks ? 1 : 2;
+				$row->saveParam($row->id, 'curated', $curated);
 			}
 		}
 

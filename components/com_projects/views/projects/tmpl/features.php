@@ -24,6 +24,10 @@
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
+
+$this->css()
+	->css('features');
+
 $html  = '';
 ?>
 <div id="content-header">
@@ -31,8 +35,8 @@ $html  = '';
 </div><!-- / #content-header -->
 <div id="content-header-extra">
     <ul id="useroptions">
-    	<li><a class="btn icon-add" href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=start'); ?>"><?php echo JText::_('COM_PROJECTS_START_NEW'); ?></a></li>
-		<li><a class="btn icon-browse" href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=browse'); ?>"><?php echo JText::_('COM_PROJECTS_BROWSE_PUBLIC_PROJECTS'); ?></a></li>
+    	<li><a class="btn icon-add" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=start'); ?>"><?php echo JText::_('COM_PROJECTS_START_NEW'); ?></a></li>
+		<li><a class="btn icon-browse" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=browse'); ?>"><?php echo JText::_('COM_PROJECTS_BROWSE_PUBLIC_PROJECTS'); ?></a></li>
 	</ul>
 </div><!-- / #content-header-extra -->
 <div class="clear"></div>
@@ -67,9 +71,9 @@ $html  = '';
 						<li><?php echo JText::_('COM_PROJECTS_FEATURES_BLOG_PLANNED_THREE'); ?></li>
 					</ul>
 					<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE'); ?></p>
-						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:microblog,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a>
+						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:microblog,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a>
 					</p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:microblog,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:microblog,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">
@@ -97,8 +101,8 @@ $html  = '';
 						<li><?php echo JText::_('COM_PROJECTS_FEATURES_TODO_PLANNED_THREE'); ?></li>
 					</ul>
 					<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE'); ?></p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:todo,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:todo,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:todo,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:todo,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">
@@ -125,8 +129,8 @@ $html  = '';
 						<li><?php echo JText::_('COM_PROJECTS_FEATURES_NOTES_PLANNED_TWO'); ?></li>
 					</ul>
 					<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE'); ?></p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:notes,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:notes,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:notes,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:notes,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">
@@ -152,8 +156,8 @@ $html  = '';
 						<li><?php echo JText::_('COM_PROJECTS_FEATURES_TEAM_PLANNED_ONE'); ?></li>
 					</ul>
 					<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE_REQUEST'); ?></p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:team,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:team,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:team,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:team,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">
@@ -175,8 +179,8 @@ $html  = '';
 				</div>
 				<div class="two columns second">
 					<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE_REQUEST'); ?> </p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:files,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
-					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:files,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:files,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
+					<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:files,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">
@@ -188,10 +192,10 @@ $html  = '';
 
 	<div class="feature">
 		<a name="feature-publications"></a>
-		<div id="feature-publications" <?php if(!$this->publishing) { echo 'class="in-the-works"'; } ?> >
+		<div id="feature-publications" <?php if (!$this->publishing) { echo 'class="in-the-works"'; } ?> >
 			<div class="four columns first">
-				<h3><?php echo JText::_('COM_PROJECTS_FEATURES_PUBLICATIONS'); ?><?php if(!$this->publishing) { echo '*'; } ?></h3>
-				<?php if(!$this->publishing) { ?>
+				<h3><?php echo JText::_('COM_PROJECTS_FEATURES_PUBLICATIONS'); ?><?php if (!$this->publishing) { echo '*'; } ?></h3>
+				<?php if (!$this->publishing) { ?>
 				<p class="wip"><?php echo JText::_('COM_PROJECTS_FEATURES_IN_THE_WORKS'); ?></p>
 				<?php } ?>
 				<p class="ima">&nbsp;</p>
@@ -202,8 +206,8 @@ $html  = '';
 				</div>
 				<div class="two columns second">
 						<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE_REQUEST'); ?> </p>
-						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:publications,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
-						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:publications,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:publications,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
+						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:publications,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">
@@ -227,8 +231,8 @@ $html  = '';
 				</div>
 				<div class="two columns second">
 						<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE_REQUEST'); ?></p>
-						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:apps,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
-						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:apps,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:apps,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
+						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:apps,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">
@@ -252,8 +256,8 @@ $html  = '';
 				</div>
 				<div class="two columns second">
 						<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE_REQUEST'); ?></p>
-						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:activity,com_projects'; ?>"  class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
-						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:activity,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:activity,com_projects'; ?>"  class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
+						<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:activity,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">
@@ -276,8 +280,8 @@ $html  = '';
 				</div>
 				<div class="two columns second">
 				<p class="sub"><?php echo JText::_('COM_PROJECTS_FEATURES_WANT_FEATURE_REQUEST'); ?></p>
-				<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'task=add'.a.'category=general'.a.'id=1').'/?tag=projects,projects:add-ons,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
-				<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist'.a.'category=general'.a.'id=1').'/?tags=projects,projects:add-ons,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
+				<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=add&category=general&id=1').'/?tag=projects,projects:add-ons,com_projects'; ?>" class="btn btn-success"><?php echo JText::_('COM_PROJECTS_FEATURES_SUGGEST_FEATURE'); ?></a></p>
+				<p><a href="<?php echo JRoute::_('index.php?option=com_wishlist&category=general&id=1').'/?tags=projects,projects:add-ons,com_projects'; ?>">&rarr; <?php echo JText::_('COM_PROJECTS_FEATURES_SEE_SUGGESTIONS'); ?></a></p>
 				</div>
 			</div><!-- / .four columns second -->
 			<div class="four columns fourth">

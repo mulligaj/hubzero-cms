@@ -42,13 +42,17 @@ $this->css()
 	$user = $this->wish->proposer();
 
 	$name = JText::_('COM_WISHLIST_ANONYMOUS');
-	if ($this->wish->get('anonymous') != 1)
+	if (!$this->wish->get('anonymous'))
 	{
-		$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $this->wish->get('proposed_by')) . '">' . $this->wish->proposer('name') . '</a>';
+		$name = $this->escape(stripslashes($this->wish->proposer('name', $name)));
+		if ($this->wish->proposer('public'))
+		{
+			$name = '<a href="' . JRoute::_($this->wish->proposer()->getLink()) . '">' . $name . '</a>';
+		}
 	}
 
 	// && ($this->wish->get('admin')==2 or $this->wish->get('admin')==1)
-	$assigned = ($this->wish->get('assigned')) ? JText::_('assigned to').' <a href="'.JRoute::_('index.php?option='.$this->option.'&task=wish&category='.$this->wishlist->get('category').'&rid='.$this->wishlist->get('referenceid') . '&wishid='.$this->wish->get('id')).'?filterby='.$this->filters['filterby'].'&sortby='.$this->filters['sortby'].'&tags='.$this->filters['tag'].'&action=editplan#plan">'.$this->wish->owner('name').'</a>' : '';
+	$assigned = ($this->wish->get('assigned')) ? JText::sprintf('COM_WISHLIST_WISH_ASSIGNED_TO', '<a href="'.JRoute::_('index.php?option='.$this->option.'&task=wish&category='.$this->wishlist->get('category').'&rid='.$this->wishlist->get('referenceid') . '&wishid='.$this->wish->get('id')).'?filterby='.$this->filters['filterby'].'&sortby='.$this->filters['sortby'].'&tags='.$this->filters['tag'].'&action=editplan#plan">'.$this->wish->owner('name').'</a>') : '';
 
 	if (!$assigned && ($this->wish->get('admin')==2 or $this->wish->get('admin')==1) && $this->wish->get('status')==0)
 	{
@@ -565,14 +569,6 @@ $this->css()
 								</label>
 
 								<label>
-									<?php
-									if (!JPluginHelper::isEnabled('system', 'jquery'))
-									{
-										$this->js('observer.js');
-										$this->js('autocompleter.js');
-										$this->css('autocompleter.css');
-									}
-									?>
 									<input type="text" name="group" value="<?php if ($this->wishlist->get('category')=='group') { echo $this->wishlist->item('alias'); } ?>" id="acgroup" class="secondary_option" autocomplete="off" />
 								</label>
 							<?php } ?>
@@ -662,7 +658,14 @@ $this->css()
 		</div><!-- / .subject -->
 		<div class="aside">
 			<p>
-				<a class="icon-add add btn" href="<?php echo JRoute::_($this->wish->link('comment'));?>">
+				<?php 
+					$link = JRoute::_($this->wish->link('comment'));
+					if ($this->juser->get('guest'))
+					{
+						$link = JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($link));
+					}
+				?>
+				<a class="icon-add add btn" href="<?php echo $link;?>">
 					<?php echo JText::_('COM_WISHLIST_ADD_A_COMMENT'); ?>
 				</a>
 			</p>
@@ -752,7 +755,7 @@ $this->css()
 				<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="post" id="planform" enctype="multipart/form-data">
 					<p class="plan-member-photo">
 						<span class="plan-anchor"></span>
-						<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($this->juser, 0); ?>" alt="<?php echo JText::_('Member avatar'); ?>" />
+						<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($this->juser, 0); ?>" alt="<?php echo JText::_('COM_WISHLIST_MEMBER_PICTURE'); ?>" />
 					</p>
 					<fieldset>
 				<?php if ($this->wish->get('action') == 'editplan') { ?>
@@ -838,7 +841,7 @@ $this->css()
 					<?php } ?>
 						<div class="planbody">
 							<p class="plannote">
-								<?php echo JText::_('COM_WISHLIST_PLAN_LAST_EDIT').' '.$this->wish->plan()->created('date').' at '.$this->wish->plan()->created('time').' '.JText::_('by').' '.$this->wish->plan()->creator('name');?>
+								<?php echo JText::_('COM_WISHLIST_PLAN_LAST_EDIT').' '.$this->wish->plan()->created('date').' at '.$this->wish->plan()->created('time').' '.JText::_('COM_WISHLIST_BY').' '.$this->wish->plan()->creator('name');?>
 							</p>
 							<?php echo $this->wish->plan()->content('parsed'); ?>
 						</div>

@@ -45,7 +45,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 	{
 		//$this->_authorize('collection');
 		//$this->_authorize('item');
-		$this->model = CollectionsModel::getInstance();
+		$this->model = CollectionsModelArchive::getInstance();
 
 		$this->registerTask('comment', 'post');
 
@@ -409,7 +409,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 			return $this->loginTask();
 		}
 
-		$model = new CollectionsModel('member', $this->juser->get('id'));
+		$model = new CollectionsModelArchive('member', $this->juser->get('id'));
 
 		$no_html = JRequest::getInt('no_html', 0);
 
@@ -503,5 +503,89 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 		$this->setRedirect(
 			JRoute::_('index.php?option=' . $this->option . '&controller=collections&task=posts')
 		);
+	}
+
+	/**
+	 * Save post reordering
+	 *
+	 * @return   void
+	 */
+	public function reorderTask()
+	{
+		// Check for request forgeries
+		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
+
+		// Incoming
+		$posts = JRequest::getVar('post', array());
+
+		if (is_array($posts))
+		{
+			$folder = null;
+			$i = 0;
+
+			foreach ($posts as $post)
+			{
+				$post = intval($post);
+				if (!$post)
+				{
+					continue;
+				}
+
+				$row = new CollectionsModelPost($post);
+				if (!$row->exists())
+				{
+					continue;
+				}
+				$row->set('ordering', $i + 1);
+				$row->store(false);
+
+				$i++;
+			}
+		}
+
+		if (!$no_html)
+		{
+			// Output messsage and redirect
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller,
+				JText::_('COM_COLLECTIONS_POSTS_REORDERED')
+			);
+			return;
+		}
+
+		$response = new stdClass;
+		$response->success = 1;
+		$response->message = JText::_('COM_COLLECTIONS_POSTS_REORDERED');
+
+		echo json_encode($response);
+	}
+
+	/**
+	 * Get basic metadata for a post
+	 *
+	 * @return  void
+	 */
+	public function metadataTask()
+	{
+		$id = JRequest::getInt('post', 0);
+
+		$post = new CollectionsModelPost($id);
+
+		if (!JRequest::getInt('no_html', 0))
+		{
+			// Output messsage and redirect
+			$this->setRedirect(
+				'index.php?option=' . $this->_option . '&controller=' . $this->_controller
+			);
+			return;
+		}
+
+		$response = new stdClass;
+		$response->id       = $id;
+		$response->reposts  = JText::sprintf('COM_COLLECTIONS_NUM_REPOSTS', $post->item()->get('reposts', 0));
+		$response->comments = JText::sprintf('COM_COLLECTIONS_NUM_COMMENTS', $post->item()->get('comments', 0));
+		$response->likes    = JText::sprintf('COM_COLLECTIONS_NUM_LIKES', $post->item()->get('positive', 0));
+
+		echo json_encode($response);
 	}
 }

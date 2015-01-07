@@ -186,7 +186,7 @@ $juser = JFactory::getUser();
 						{
 							$status = 'new';
 						}
-				?>
+						?>
 						<li<?php echo ($status) ? ' class="' . $status . '"' : ''; ?>>
 							<article>
 								<h4>
@@ -196,8 +196,8 @@ $juser = JFactory::getUser();
 								</h4>
 								<p class="course-identity">
 									<a href="<?php echo JRoute::_($course->link()); ?>">
-										<?php if ($logo = $course->logo()) { ?>
-											<img src="<?php echo $logo; ?>" alt="<?php echo $this->escape($course->get('title')); ?>" />
+										<?php if ($logo = $course->logo('url')) { ?>
+											<img src="<?php echo JRoute::_($logo); ?>" alt="<?php echo $this->escape($course->get('title')); ?>" />
 										<?php } else { ?>
 											<span></span>
 										<?php } ?>
@@ -211,20 +211,19 @@ $juser = JFactory::getUser();
 									</dt>
 									<dd class="instructors">
 										<?php
-											$instructors = $course->instructors();
-											if (count($instructors) > 0)
+										$instructors = $course->instructors();
+										if (count($instructors) > 0)
+										{
+											$names = array();
+											foreach ($instructors as $i)
 											{
-												$names = array();
-												foreach ($instructors as $i)
-												{
-													$instructor = \Hubzero\User\Profile::getInstance($i->get('user_id'));
+												$instructor = \Hubzero\User\Profile::getInstance($i->get('user_id'));
+												$name = $this->escape(stripslashes($instructor->get('name')));
 
-													$names[] = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $i->get('user_id')) . '">' . $this->escape(stripslashes($instructor->get('name'))) . '</a>';
-												}
-										?>
-												<?php echo JText::_('COM_COURSES_COURSE_INSTRUCTORS'); ?>: <span class="entry-instructors"><?php echo implode(', ', $names); ?></span>
-										<?php
+												$names[] = ($instructor->get('public') ? '<a href="' . JRoute::_($instructor->getLink()) . '">' . $name . '</a>' : $name);
 											}
+											echo JText::_('COM_COURSES_COURSE_INSTRUCTORS'); ?>: <span class="entry-instructors"><?php echo implode(', ', $names); ?></span><?php
+										}
 										?>
 									</dd>
 								</dl>
@@ -233,7 +232,7 @@ $juser = JFactory::getUser();
 								</p>
 							</article>
 						</li>
-				<?php
+						<?php
 					} // for loop
 				} else { ?>
 					<li class="no-results"><p class="warning"><?php echo JText::_('COM_COURSES_NO_RESULTS_FOUND'); ?></p></li>
@@ -257,7 +256,16 @@ $juser = JFactory::getUser();
 			<div class="container">
 				<h3><?php echo JText::_('COM_COURSES_POPULAR_CATEGORIES'); ?></h3>
 				<?php
-				$tags = $this->model->tags('cloud', 20, $this->filters['tag']);
+				$tags = $this->model->tags('cloud', array(
+					'limit'    => 20,
+					'start'    => 0,
+					'sort'     => 'total',
+					'sort_Dir' => '',
+					'scope'    => 'courses',
+					'scope_id' => 0,
+					'base'     => 'index.php?option=' . $this->option . '&task=browse',
+					'filters'  => $this->filters
+				));
 				if ($tags) {
 					echo $tags;
 				} else {

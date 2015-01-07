@@ -48,7 +48,7 @@ HUB.Plugins.GroupCalendar = {
 
 		var $calendar = $('#calendar'),
 			$base     = $calendar.attr('data-base'),
-			$month    = $calendar.attr('data-month') - 1,
+			$month    = $calendar.attr('data-month'),
 			$year     = $calendar.attr('data-year'),
 			_click    = null;
 
@@ -61,10 +61,12 @@ HUB.Plugins.GroupCalendar = {
 		// hide event list
 		$('.event-list').hide();
 
+		// build default date
+		var defaultDate = $year + '-' + HUB.Plugins.GroupCalendar.pad($month, 2) + '-01';
+
 		// setup full calendar
 		$calendar.fullCalendar({
-			month: $month,
-			year: $year,
+			defaultDate: defaultDate,
 			selectable: true,
 			selectHelper: true,
 			unselectAuto: true,
@@ -75,37 +77,53 @@ HUB.Plugins.GroupCalendar = {
 			},
 			weekMode: 'variable',
 			eventSources: [],
-			loading: function( isLoading, view ) {
+			loading: function( isLoading, view )
+			{
 				if (isLoading)
 				{
-					$('.fc-header-center').html('<div class="fc-loading"></div>');
+					$('.fc-center').html('<div class="fc-loading"></div>');
 				}
 				else
 				{
-					$('.fc-header-center').html('');
+					$('.fc-center').html('');
 				}
 			},
-			viewRender: function(view, element) {
-				var dateString = $calendar.fullCalendar('getDate'),
-					date = $.fullCalendar.formatDate( dateString, 'yyyy/MM' );
+			eventMouseover: function(event, jsEvent, view)
+			{
+				$('.fc-event[href="'+event.url+'"').addClass('active');
+			},
+			eventMouseout: function(event, jsEvent, view)
+			{
+				$('.fc-event').removeClass('active');
+			},
+			viewRender: function(view, element)
+			{
+				//$calendar.fullCalendar('gotoDate', $year, $month, 0);
+				var date = $calendar.fullCalendar('getDate').format('YYYY/MM');
 
-				//write date change to history
+				// write date change to history
 				if (window.history && window.history.pushState)
 				{
 					window.history.pushState(null,null, $base + '/' + date);
 				}
 			},
-			eventAfterAllRender: function(view) {
+			eventAfterAllRender: function(view)
+			{
 				// filter events
 				HUB.Plugins.GroupCalendar.filterEvents();
 			},
-			dayClick: function(date, allDay, jsEvent, view) {
-				var start = $.fullCalendar.formatDate( date, 'yyyy-MM-dd HH:mm:00' );
-				if (view.name == 'month')
-				{
-					start = $.fullCalendar.formatDate( date, 'yyyy-MM-dd 12:00:00' );
-				}
+			dayClick: function(date, jsEvent, view)
+			{	
+				// convert to local
+				date.local();
+
+				// get offset
+				var offset = date.zone();
+
+				// add offset and format
+				var start = date.add(offset, 'm').format('YYYY-MM-DD HH:mm:ss');
 				
+				// double  click
 				if (_click)
 				{
 					var diff = jsEvent.timeStamp - _click;
@@ -117,32 +135,27 @@ HUB.Plugins.GroupCalendar = {
 				}
 				_click = jsEvent.timeStamp;
 			},
-			select: function(startDate, endDate, allDay, jsEvent, view)
+			select: function(startDate, endDate, jsEvent, view)
 			{
-				var start, end,
-					viewName   = view.name,
-					startYear  = startDate.getUTCFullYear(),
-					startMonth = HUB.Plugins.GroupCalendar.pad(startDate.getUTCMonth()+1,2),
-					startDay   = HUB.Plugins.GroupCalendar.pad(startDate.getUTCDate(),2),
-					startHours = HUB.Plugins.GroupCalendar.pad(startDate.getUTCHours(),2),
-					startMins  = HUB.Plugins.GroupCalendar.pad(startDate.getUTCMinutes(),2),
-					endYear    = endDate.getUTCFullYear(),
-					endMonth   = HUB.Plugins.GroupCalendar.pad(endDate.getUTCMonth()+1,2),
-					endDay     = HUB.Plugins.GroupCalendar.pad(endDate.getUTCDate(),2),
-					endHours   = HUB.Plugins.GroupCalendar.pad(endDate.getUTCHours(),2),
-					endMins    = HUB.Plugins.GroupCalendar.pad(endDate.getUTCMinutes(),2);
+				// convert to local
+				startDate.local();
+				endDate.local();
 
-				// build event start and end
-				start = startYear + '-' + startMonth + '-' + startDay + ' ' + startHours + ':' + startMins + ':00';
-				end   = endYear + '-' + endMonth + '-' + endDay + ' ' + endHours + ':' + endMins + ':00';
+				// get offsets
+				var startOffset = startDate.zone();
+				var endOffset   = endDate.zone();
+
+				// add offsets & format
+				var start = startDate.add(startOffset, 'm').format('YYYY-MM-DD HH:mm:ss');
+				var end   = endDate.add(endOffset, 'm').format('YYYY-MM-DD HH:mm:ss');
 
 				// month select handled by dayclick event
-				if (viewName == 'month' && start == end)
+				if (view.name == 'month' && start == end)
 				{
 					return;
 				}
 				
-				// go to edit
+				// go to edit/add screen
 				window.location.href = $base + '/add?start=' + start + '&end=' + end;
 			}
 		});
@@ -158,7 +171,7 @@ HUB.Plugins.GroupCalendar = {
 		});
 
 		// add calendar picker to header
-		$('.fc-header-right').prepend($('#calendar-picker'));
+		$('.fc-right').prepend($('#calendar-picker'));
 	},
 
 	pad: function(value, length)
@@ -220,12 +233,12 @@ HUB.Plugins.GroupCalendar = {
 		
 		if (value == 0)
 		{
-			$('.fc-event').show();
+			$('.fc-event-container').show();
 		}
 		else
 		{
-			$('.fc-event').hide();
-			$('.calendar-' + value).show();
+			$('.fc-event-container').hide();
+			$('.calendar-' + value).parent('.fc-event-container').show();
 		}
 	},
 	
@@ -286,17 +299,75 @@ HUB.Plugins.GroupCalendar = {
 		if ($('#event_start_date, #event_end_date').length)
 		{
 			$('#event_start_date, #event_end_date').attr('autocomplete', 'OFF');
+			$('#event_start_time, #event_end_time').attr('autocomplete', 'OFF');
+
+			// date fields
 			$('#event_start_date, #event_end_date').datetimepicker({
-				controlType: 'slider',
 				dateFormat: 'mm/dd/yy',
-				timeFormat: '@ h:mm tt',
-				onClose: function( selectedDate ) {
-					if ($(this).attr('id') == 'event_start_date')
-					{
-						$('#event_end_date').datepicker( "option", "minDate", selectedDate );
-					}
+				showTimepicker: false,
+				onClose: function(selectedDate, inst)
+    			{
+    				var option = 'minDate',
+    					input  = '#event_end_date';
+
+    				if (inst.id == 'event_end_date')
+    				{
+    					option = 'maxDate';
+    					input  = '#event_start_date';
+    				}
+    				$(input).datetimepicker('option', option, selectedDate);
+    			},
+    			onSelect: function()
+    			{
+    				$(this).datepicker("hide");
     			}
 			});
+
+			// time fields
+			$('#event_start_time, #event_end_time').datetimepicker({
+				timeFormat: 'h:mm tt',
+				timeOnly: true
+			});
+
+			// toggle time fields
+			if ($('#event_allday').length)
+			{
+				// handle user clicking
+				$('#event_allday').on('click', function(event) {
+					if ($(this).is(':checked'))
+					{
+						// hide timepicker
+						$('#event_start_date').datetimepicker('option', 'showTimepicker', false);
+						$('#event_end_date').datetimepicker('option', 'showTimepicker', false);
+
+						// hide time field
+						$('#event_start_time').attr('disabled', true).hide();
+						$('#event_end_time').attr('disabled', true).hide();
+					} 
+					else
+					{
+						// show timepicker
+						$('#event_start_date').datetimepicker('option', 'showTimepicker', true);
+						$('#event_end_date').datetimepicker('option', 'showTimepicker', true);
+
+						// show time field
+						$('#event_start_time').removeAttr('disabled').show();
+						$('#event_end_time').removeAttr('disabled').show();
+					}
+				});
+
+				// handle all day if intially checked initially checked
+				if ($('#event_allday').is(':checked'))
+				{
+					// hide timepicker
+					$('#event_start_date').datetimepicker('option', 'showTimepicker', false);
+					$('#event_end_date').datetimepicker('option', 'showTimepicker', false);
+
+					// hide time field
+					$('#event_start_time').attr('disabled', true).hide();
+					$('#event_end_time').attr('disabled', true).hide();
+				}
+			}
 		}
 		
 		//show date picker for register by
@@ -306,7 +377,11 @@ HUB.Plugins.GroupCalendar = {
 			$('#event_registerby').datetimepicker({
 				controlType: 'slider',
 				dateFormat: 'mm/dd/yy',
-				timeFormat: '@ h:mm tt'
+				timeFormat: '@ h:mm tt',
+    			onSelect: function()
+    			{
+    				$(this).datepicker("hide");
+    			}
 			});
 		}
 		

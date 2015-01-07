@@ -104,11 +104,12 @@
 	.el-failed .checker:before {
 		color: red;
 	}
-	.el-updated .checker:before {
+	.el-updated .checker:before,
+	.el-skipped .checker:before {
 		color: orange;
 	}
 	.el-required.el-incomplete.el-updated .checker:before {
-		color: red;
+		/*color: red;*/
 	}
 	.el-coming .checker:before {
 		color: #CCC;
@@ -313,10 +314,10 @@
 		padding: 0;
 		margin: 0;
 	}
-	.link-type {
+	.link-type, .data-type {
 		padding-left: 20px;
 	}
-	.link-type:before {
+	.link-type:before, .data-type:before {
 		content: "\26D3";
 		width: 16px;
 		height: 16px;
@@ -327,6 +328,10 @@
 		position: absolute;
 		margin-left: -1.2em;
 		margin-right: 0.2em;
+	}
+	.data-type:before {
+		content: "\f001";
+		color: #c6a68d;
 	}
 	.item-title .item-details {
 		margin-left: 1em;
@@ -486,9 +491,11 @@
 		background: #fef5f1;
 		border: 1px solid #ecd8cf;
 	}
+	/*
 	.el-required.el-incomplete .status-notice {
 		display: none;
 	}
+	*/
 
 /* Review
 --------------------------------------------- */
@@ -568,6 +575,9 @@
 	}
 	.draft-review #review-agreement .element-instructions:before {
 		content: "\2611";
+	}
+	.draft-review #review-comment .element-instructions:before {
+		content: "\275D";
 	}
 	.draft-review .icon-apply:before {
 		color: #FFFFFF;
@@ -698,6 +708,10 @@
 	.el-failed .field-wrap textarea,
 	.el-failed .chosenitem,
 	.el-failed .list-wrapper,
+	.el-skipped .field-wrap input,
+	.el-skipped .field-wrap textarea,
+	.el-skipped .chosenitem,
+	.el-skipped .list-wrapper,
 	.el-required.el-incomplete.el-updated .field-wrap input,
 	.el-required.el-incomplete.el-updated .field-wrap textarea,
 	.el-required.el-incomplete.el-updated .chosenitem,
@@ -846,6 +860,9 @@
 	a.more-content {
 		font-size: 85%;
 	}
+	.content-publications .confirmaction p {
+		font-size: 85% !important;
+	}
 
 /* License
 --------------------------------------------- */
@@ -874,7 +891,8 @@
 	.item-title .item-details {
 		font-size: 100%;
 	}
-	.item-title.link-type .item-details {
+	.item-title.link-type .item-details,
+	.item-title.data-type .item-details {
 		font-size: 85%;
 		margin-left: 0;
 	}
@@ -891,6 +909,12 @@
 	#pub-editor.pane-desc .c-inner .draft-review .blockelement h6 {
 		background: #E2E2E2;
 		margin-top: 3em;
+	}
+	.replacements {
+		padding: 1em 2em;
+	}
+	.replacements label {
+		padding: 0.5em 0;
 	}
 /*
 --------------------------------------------- */
@@ -969,6 +993,9 @@
 		background: #FFFFFF;
 		padding: 0.5em 1em;
 	}
+	.freeze .element-value, .freeze .element-value p, .freeze .element-value ul {
+		font-size: 1em !important;
+	}
 	.freeze .element-title, .freeze .element-title:hover {
 		background: none;
 	}
@@ -989,9 +1016,6 @@
 		width: auto;
 		display: inline;
 	}
-	.replacements {
-		padding: 1em 2em;
-	}
 
 /* Status page
 --------------------------------------------- */
@@ -1009,10 +1033,7 @@
 
 /* Handler controls
 --------------------------------------------- */
-	.handler-controls {
-
-	}
-	.handler-controls .handler-type {
+	.handler-controls .handlertype {
 		padding: 1em;
 		background: #e0ebee;
 		margin: 0 0 1.5em 0;
@@ -1020,26 +1041,12 @@
 	.multizip p {
 		padding-left : 50px;
 	}
-	.handler-controls .handler-imageviewer {
-		padding: 1em;
-		background: #e0ebee;
-	}
-	.handler-controls .handler-imageviewer h3 {
-		padding-left: 50px;
-	}
-	.handler-controls .handler-imageviewer h3:before,
 	.multizip p:before {
-		width: 55px;
-		height: 55px;
-		font-size: 55px;
 		font-family: 'Fontcons';
 		color: #5ec1da;
 		border: none;
-		content: "\f08c";
 		position: absolute;
 		margin: 10px 0 0 -60px;
-	}
-	.multizip p:before {
 		content: "\f005";
 		width: 40px;
 		height: 40px;
@@ -1053,21 +1060,47 @@
 		margin-top: 3em;
 		padding-left: 1em;
 	}
-	*[class^="handler-"] h3,
-	*[class*=" handler-"] h3 {
+	*[class^="handlertype-"],
+	*[class*=" handlertype-"] {
+		padding: 1em;
+		background: #e0ebee;
+	}
+	*[class^="handlertype-"] h3,
+	*[class*=" handlertype-"] h3 {
 		font-size: 1.2em;
 		line-height: 1.2em;
 		margin: 0;
+		padding-left: 50px;
 	}
-	*[class^="handler-"] p,
-	*[class*=" handler-"] p {
+	*[class^="handlertype-"] p,
+	*[class*=" handlertype-"] p {
 		line-height: 1.5em;
 		margin: 0;
 	}
-	.handler-type label {
+	[class^="handlertype-"] h3:before, [class*=" handlertype-"] h3:before {
+		font-family: 'Fontcons';
+		color: #5ec1da;
+		border: none;
+		position: absolute;
+		margin: 10px 0 0 -60px;	
+		width: 40px;
+		height: 40px;
+		font-size: 40px;
+		margin-left: -50px;
+	}
+	.handlertype-imageviewer h3:before {
+		content: "\f08c";
+		width: 55px;
+		height: 55px;
+		font-size: 55px;
+	}
+	.handlertype-datastore h3:before {
+		content: "\f00b";
+	}
+	.handlertype label {
 		margin-top: 1em;
 	}
-	.handler-type input {
+	.handlertype input {
 		padding: 0.3em 0.5em;
 		font-size: 85%;
 		color: #666;
@@ -1091,3 +1124,16 @@
 			margin-right: 40px;
 		}
 	}
+	.btn.disabled {
+		color: #a8a8a8;
+	}
+	.button-wrapper:before {
+		color: #333;
+	}
+	.disabled .button-wrapper:before {
+		color: #CCC;
+	}
+	.disabled .button-wrapper.bw-previous:before {
+		color: #333;
+	}
+	

@@ -79,7 +79,7 @@ class ToolsControllerHosttypes extends \Hubzero\Component\AdminController
 		$this->view->filters['start'] = ($this->view->filters['limit'] != 0 ? (floor($this->view->filters['start'] / $this->view->filters['limit']) * $this->view->filters['limit']) : 0);
 
 		// Get the middleware database
-		$mwdb = MwUtils::getMWDBO();
+		$mwdb = ToolsHelperUtils::getMWDBO();
 
 		$model = new MwHosttype($mwdb);
 
@@ -147,7 +147,7 @@ class ToolsControllerHosttypes extends \Hubzero\Component\AdminController
 			// Incoming
 			$item = JRequest::getVar('item', '', 'get');
 
-			$mwdb = MwUtils::getMWDBO();
+			$mwdb = ToolsHelperUtils::getMWDBO();
 
 			$this->view->row = new MwHosttype($mwdb);
 			$this->view->row->load($item);
@@ -189,7 +189,7 @@ class ToolsControllerHosttypes extends \Hubzero\Component\AdminController
 		$refs = 0;
 
 		// Get the middleware database
-		$mwdb = MwUtils::getMWDBO();
+		$mwdb = ToolsHelperUtils::getMWDBO();
 		$mwdb->setQuery("SELECT count(*) AS count FROM host WHERE provisions & " . $mwdb->Quote($value) . " != 0");
 		$elts = $mwdb->loadObjectList();
 		if ($elts)
@@ -222,7 +222,7 @@ class ToolsControllerHosttypes extends \Hubzero\Component\AdminController
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Get the middleware database
-		$mwdb = MwUtils::getMWDBO();
+		$mwdb = ToolsHelperUtils::getMWDBO();
 
 		$fields = JRequest::getVar('fields', array(), 'post');
 
@@ -312,7 +312,7 @@ class ToolsControllerHosttypes extends \Hubzero\Component\AdminController
 		// Incoming
 		$ids = JRequest::getVar('id', array());
 
-		$mwdb = MwUtils::getMWDBO();
+		$mwdb = ToolsHelperUtils::getMWDBO();
 
 		if (count($ids) > 0)
 		{

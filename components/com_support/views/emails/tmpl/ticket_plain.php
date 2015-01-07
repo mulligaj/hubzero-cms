@@ -63,7 +63,7 @@ if ($this->delimiter)
 {
 	$message .= $this->delimiter . "\n";
 	$message .= JText::_('COM_SUPPORT_EMAIL_REPLY_ABOVE') . "\n";
-	$message .= 'Message from ' . $base . '/support / Ticket #' . $this->ticket->get('id') . "\n";
+	$message .= 'Message from ' . rtrim($juri->base(), DS) . '/support / Ticket #' . $this->ticket->get('id') . "\n";
 }
 $message .= '----------------------------'."\n";
 $message .= strtoupper(JText::_('COM_SUPPORT_TICKET')).': '.$this->ticket->get('id')."\n";

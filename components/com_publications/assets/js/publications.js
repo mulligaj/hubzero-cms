@@ -28,7 +28,7 @@ HUB.Publications = {
 
 	initialize: function() {
 		var $ = this.jQuery;
-
+		
 		$('#filter-type').on('change', function(e){
 			$('#resourcesform').submit();
 		});

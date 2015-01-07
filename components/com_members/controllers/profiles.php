@@ -59,18 +59,6 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 			JRequest::setVar('task', 'view');
 		}
 
-		$parts = explode('/', $_SERVER['REQUEST_URI']);
-		$file = array_pop($parts);
-
-		if (substr(strtolower($file), 0, 6) == 'image:'
-		 || substr(strtolower($file), 0, 5) == 'file:')
-		{
-			$this->setRedirect(
-				JRequest::getVar('REQUEST_URI', JRoute::_('index.php?option=' . $this->_controller . '&task=donwload'), 'server')
-			);
-			return;
-		}
-
 		//$this->registerTask('__default', 'browse');
 		$this->registerTask('promo-opt-out', 'incremOptOut');
 
@@ -90,12 +78,15 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 			return;
 		}
 
-		require_once JPATH_BASE . '/administrator/components/com_members/tables/incremental.php';
+		require_once JPATH_BASE . '/administrator/components/com_members/tables/incremental/awards.php';
+		require_once JPATH_BASE . '/administrator/components/com_members/tables/incremental/groups.php';
+		require_once JPATH_BASE . '/administrator/components/com_members/tables/incremental/options.php';
+
 		$ia = new ModIncrementalRegistrationAwards($profile);
 		$ia->optOut();
 
 		$this->setRedirect(
-			JRoute::_('index.php?option=com_members&id=' . $profile->get('uidNumber') . '&active=profile'),
+			JRoute::_($profile->getLink() . '&active=profile'),
 			JText::_('You have been successfully opted out of this promotion.'),
 			'passed'
 		);
@@ -170,16 +161,32 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 		$filters['limit']  = 20;
 		$filters['start']  = 0;
 		$filters['search'] = strtolower(trim(JRequest::getString('value', '')));
-		$filters['search'] = $filters['search'] . '*';
 
-		// match member names on all three name parts		
-		$match = "MATCH(xp.givenName,xp.middleName,xp.surname) AGAINST(" . $this->database->quote($filters['search']) . " IN BOOLEAN MODE)";
-		$query = "SELECT xp.uidNumber, xp.name, xp.username, xp.organization, xp.picture, xp.public, $match as rel
-				FROM #__xprofiles AS xp
-				INNER JOIN #__users u ON u.id = xp.uidNumber AND u.block = 0
-				WHERE $match AND xp.emailConfirmed>0 $restrict
-				ORDER BY rel DESC, xp.name ASC
-				LIMIT " . $filters['start'] . "," . $filters['limit'];
+		// match against orcid id
+		if (preg_match('/\d{4}-\d{4}-\d{4}-\d{4}/', $filters['search']))
+		{
+			$query = "SELECT xp.uidNumber, xp.name, xp.username, xp.organization, xp.picture, xp.public 
+					FROM #__xprofiles AS xp 
+					INNER JOIN #__users u ON u.id = xp.uidNumber AND u.block = 0 
+					WHERE orcid= " . $this->database->quote($filters['search']) . " AND xp.emailConfirmed>0 $restrict 
+					ORDER BY xp.name ASC 
+					LIMIT " . $filters['start'] . "," . $filters['limit'];
+		}
+		else
+		{
+			// add trailing wildcard
+			$filters['search'] = $filters['search'] . '*';
+
+			// match member names on all three name parts
+			$match = "MATCH(xp.givenName,xp.middleName,xp.surname) AGAINST(" . $this->database->quote($filters['search']) . " IN BOOLEAN MODE)";
+			$query = "SELECT xp.uidNumber, xp.name, xp.username, xp.organization, xp.picture, xp.public, $match as rel
+					FROM #__xprofiles AS xp
+					INNER JOIN #__users u ON u.id = xp.uidNumber AND u.block = 0
+					WHERE $match AND xp.emailConfirmed>0 $restrict
+					ORDER BY rel DESC, xp.name ASC
+					LIMIT " . $filters['start'] . "," . $filters['limit'];
+		}
+
 		$this->database->setQuery($query);
 		$rows = $this->database->loadObjectList();
 
@@ -1196,8 +1203,8 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 		}
 
 		// Get the user's interests (tags)
-		$mt = new MembersTags($this->database);
-		$this->view->tags = $mt->get_tag_string($id);
+		$mt = new MembersModelTags($id);
+		$this->view->tags = $mt->render('string');
 
 		// Add to the pathway
 		$pathway->addItem(
@@ -1515,8 +1522,8 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 		// Process tags
 		if (isset($tags) && in_array('interests', $field_to_check))
 		{
-			$mt = new MembersTags($this->database);
-			$mt->tag_object($id, $id, $tags, 1, 1);
+			$mt = new MembersModelTags($id);
+			$mt->setTags($tags, $id);
 		}
 
 		$email = $profile->get('email');
@@ -1550,6 +1557,19 @@ class MembersControllerProfiles extends \Hubzero\Component\SiteController
 			{
 				$user = JFactory::getSession()->get('user');
 				$user->set('name', $juser->get('name'));
+			}
+
+			// Update session if email is changing
+			if ($juser->get('email') != JFactory::getSession()->get('user')->get('email'))
+			{
+				$user = JFactory::getSession()->get('user');
+				$user->set('email', $juser->get('email'));
+
+				// add item to session to mark that the user changed emails
+				// this way we can serve profile images for these users but not all
+				// unconfirmed users
+				$session = JFactory::getSession();
+				$session->set('userchangedemail', 1);
 			}
 		}
 

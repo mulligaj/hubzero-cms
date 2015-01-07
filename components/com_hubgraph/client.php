@@ -10,8 +10,8 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 {
 	private static $inst;
 	private static $defaultSettings = array(
-		'host' => 'unix:///var/run/hubgraph-server.sock',
-		'port' => NULL,
+		'host' => 'unix:///var/run/hubzero-hubgraph/hubgraph-server.sock',
+	        'port' => NULL,
 		'showTagCloud' => TRUE,
 		'enabledOptions' => ''
 	);
@@ -29,12 +29,26 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 	{
 		if (!self::$inst)
 		{
-			$query = 'SELECT params FROM jos_extensions WHERE `type`=\'component\' AND `element` = \'com_hubgraph\'';
-
+			if (version_compare(JVERSION, '1.6', 'lt'))
+			{
+				$query = 'SELECT params FROM jos_components WHERE `option` = \'com_hubgraph\'';
+			}
+			else
+			{
+				$query = 'SELECT params FROM jos_extensions WHERE `type`=\'component\' AND `element` = \'com_hubgraph\'';
+			}
 			$conf = Db::scalarQuery($query);
 			if ($conf)
 			{
-				self::$inst = unserialize($conf);
+				if (isset($conf[0]) && $conf[0] != '{')
+				{
+					self::$inst = unserialize($conf);
+				}
+				else
+				{
+					self::$inst = new HubgraphConfiguration;
+					self::$inst->settings = json_decode($conf, TRUE);
+				}
 			}
 			if (!self::$inst instanceof HubgraphConfiguration)
 			{
@@ -48,13 +62,16 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 
 	public function save()
 	{
-		$params = serialize($this);
-
-		$updateQuery = 'UPDATE jos_extensions SET params = ? WHERE `type`=\'component\' AND `element` = \'com_hubgraph\'';
-		$insertQuery = 'INSERT INTO jos_extensions(name, `type`, `element`, params) VALUES (\'HubGraph\', \'component\', \'com_hubgraph\', ?)';
-
-		if (!Db::update($updateQuery, array($params)))
-		{
+		$params = json_encode($this->settings);
+		if (version_compare(JVERSION, '1.6', 'lt')) {
+			$updateQuery = 'UPDATE jos_components SET params = ? WHERE `option` = \'com_hubgraph\'';
+			$insertQuery = 'INSERT INTO jos_components(name, `option`, params) VALUES (\'HubGraph\', \'com_hubgraph\', ?)';
+		}
+		else {
+			$updateQuery = 'UPDATE jos_extensions SET params = ? WHERE `type`=\'component\' AND `element` = \'com_hubgraph\'';
+			$insertQuery = 'INSERT INTO jos_extensions(name, `type`, `element`, params) VALUES (\'HubGraph\', \'component\', \'com_hubgraph\', ?)';
+		}
+		if (!Db::update($updateQuery, array($params))) {
 			Db::execute($insertQuery, array($params));
 		}
 	}
@@ -89,10 +106,7 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 
 	public static function niceKey($k)
 	{
-		return ucfirst(preg_replace_callback('/([A-Z])+/', function($ma)
-		{
-			return ' '.strtolower($ma[1]);
-		}, $k));
+		return ucfirst(preg_replace_callback('/([A-Z])+/', function($ma) { return ' '.strtolower($ma[1]); }, $k));
 	}
 
 	public function offsetSet($offset, $value)
@@ -170,26 +184,20 @@ class HubgraphClient
 		$inHeaders = true;
 		$status = NULL;
 		$body = '';
-		while (($chunk = fgets($sock, self::CHUNK_LEN)))
-		{
-			if ($first && !preg_match('/^HTTP\/1\.1\ (\d{3})/', $chunk, $code))
-			{
+		while (($chunk = fgets($sock, self::CHUNK_LEN))) {
+			if ($first && !preg_match('/^HTTP\/1\.1\ (\d{3})/', $chunk, $code)) {
 				throw new \Exception('Unable to determine response status');
 			}
-			elseif ($first)
-			{
-				if (($status = intval($code[1])) === 204)
-				{
+			elseif ($first) {
+				if (($status = intval($code[1])) === 204) {
 					break;
 				}
 				$first = false;
 			}
-			elseif ($inHeaders && preg_match('/^[\r\n]+$/', $chunk))
-			{
+			elseif ($inHeaders && preg_match('/^[\r\n]+$/', $chunk)) {
 				$inHeaders = false;
 			}
-			elseif (!$inHeaders)
-			{
+			elseif (!$inHeaders) {
 				$body .= $chunk;
 			}
 		}
@@ -203,16 +211,12 @@ class HubgraphClient
 		++$count;
 		$path = '/views/'.$key;
 		$query = '';
-		if ($args)
-		{
-			foreach ($args as $k=>$v)
-			{
-				if (is_array($v))
-				{
+		if ($args) {
+			foreach ($args as $k=>$v) {
+				if (is_array($v)) {
 					$query .= ($query == '' ? '' : '&').$k.'='.implode(',', array_map('urlencode', $v));
 				}
-				else
-				{
+				else {
 					$query .= ($query == '' ? '' : '&').$k.'='.(is_bool($v) ? ($v ? 'true' : 'false') : urlencode($v));
 				}
 			}

@@ -57,6 +57,12 @@ HUB.Administrator.Newsletter = {
 				minDate: 0
 			});
 		}
+
+		// stop page refresh if form has changed except on submit
+		if (jQuery().formWatcher)
+		{
+			$('form').formWatcher();
+		}
 		
 		HUB.Administrator.Newsletter.locationMap();
 		HUB.Administrator.Newsletter.mailingListAndCount();

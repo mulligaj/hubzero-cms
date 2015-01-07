@@ -183,7 +183,7 @@ foreach ($this->items as $item)
 <script src="/plugins/projects/files/js/fileselector.js"></script>
 <div id="abox-content">
 <h3><?php echo JText::_('PLG_PROJECTS_FILES_SELECTOR'); ?> 	<span class="abox-controls">
-		<a class="btn btn-success" id="b-filesave"><?php echo JText::_('PLG_PROJECTS_FILES_SELECTOR_SAVE_SELECTION'); ?></a>
+		<a class="btn btn-success active" id="b-filesave"><?php echo JText::_('PLG_PROJECTS_FILES_SELECTOR_SAVE_SELECTION'); ?></a>
 		<?php if ($this->ajax) { ?>
 		<a class="btn btn-cancel" id="cancel-action"><?php echo JText::_('PLG_PROJECTS_FILES_CANCEL'); ?></a>
 		<?php } ?>
@@ -277,7 +277,7 @@ foreach ($this->items as $item)
 			</div>
 		</div>
 	</div>
-	<?php } else {  ?>
+	<?php } else { ?>
 	<div id="quick-upload" class="quick-uploader">
 		<p><?php echo JText::_('PLG_PROJECTS_FILES_SELECTOR_NEED_ADD_FILES'); ?> <?php echo JText::_('PLG_PROJECTS_FILES_SELECTOR_QUICK_UPLOAD'); ?>:</p>
 

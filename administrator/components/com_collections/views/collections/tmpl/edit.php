@@ -112,6 +112,26 @@ function submitbutton(pressbutton)
 				<label for="field-description"><?php echo JText::_('COM_COLLECTIONS_FIELD_DESCRIPTION'); ?></label><br />
 				<?php echo JFactory::getEditor()->display('fields[description]', $this->escape($this->row->description('raw')), '', '', 35, 10, false, 'field-description', null, null, array('class' => 'minimal no-footer')); ?>
 			</div>
+
+			<div class="col width-50 fltlft">
+				<div class="input-wrap">
+					<label for="field-layout"><?php echo JText::_('COM_COLLECTIONS_FIELD_LAYOUT'); ?></label>
+					<select name="fields[layout]" id="field-layout">
+						<option value="grid"<?php if ($this->row->get('layout') == 'grid') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COLLECTIONS_FIELD_LAYOUT_GRID'); ?></option>
+						<option value="list"<?php if ($this->row->get('layout') == 'list') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COLLECTIONS_FIELD_LAYOUT_LIST'); ?></option>
+					</select>
+				</div>
+			</div>
+			<div class="col width-50 fltrt">
+				<div class="input-wrap">
+					<label for="field-sort"><?php echo JText::_('COM_COLLECTIONS_FIELD_SORT'); ?></label>
+					<select name="fields[sort]" id="field-sort">
+						<option value="created"<?php if ($this->row->get('sort') == 'created') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COLLECTIONS_FIELD_SORT_CREATED'); ?></option>
+						<option value="ordering"<?php if ($this->row->get('sort') == 'ordering') { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_COLLECTIONS_FIELD_SORT_ORDERING'); ?></option>
+					</select>
+				</div>
+			</div>
+			<div class="clr"></div>
 		</fieldset>
 	</div>
 	<div class="col width-40 fltrt">
