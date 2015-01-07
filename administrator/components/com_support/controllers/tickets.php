@@ -435,6 +435,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 		{
 			// Get any set emails that should be notified of ticket submission
 			$defs = str_replace("\r", '', $this->config->get('emails', '{config.mailfrom}'));
+			$defs = str_replace('\n', "\n", $defs);
 			$defs = explode("\n", $defs);
 
 			if ($defs)
@@ -861,6 +862,7 @@ class SupportControllerTickets extends \Hubzero\Component\AdminController
 			{
 				$users[] = JHTML::_('select.optgroup', JText::_('COM_SUPPORT_GROUP') . ' ' . $nme);
 				$users = array_merge($users, $gusers);
+				$users[] = JHTML::_('select.optgroup', JText::_('COM_SUPPORT_GROUP') . ' ' . $nme);
 			}
 		}
 
