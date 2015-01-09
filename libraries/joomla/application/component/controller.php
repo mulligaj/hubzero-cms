@@ -672,7 +672,7 @@ class JController extends JObject
 		$document = JFactory::getDocument();
 		$viewType = $document->getType();
 		$viewName = JRequest::getCmd('view', $this->default_view);
-		$viewLayout = JRequest::getCmd('layout', 'default');
+		$viewLayout = JRequest::getString('layout', 'default');
 
 		$view = $this->getView($viewName, $viewType, '', array('base_path' => $this->basePath, 'layout' => $viewLayout));
 
@@ -900,7 +900,7 @@ class JController extends JObject
 			}
 			else
 			{
-				$result = JError::raiseError(500, JText::sprintf('JLIB_APPLICATION_ERROR_VIEW_NOT_FOUND', $name, $type, $prefix));
+				$result = JError::raiseError(404, JText::sprintf('JLIB_APPLICATION_ERROR_VIEW_NOT_FOUND', $name, $type, $prefix));
 
 				return $result;
 			}

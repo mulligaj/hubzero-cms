@@ -71,7 +71,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		if (count($pathway->getPathWay()) == 1  && $this->_task)
 		{
 			$task = $this->_task;
-			if ($this->_task == 'ticket' || $this->_task == 'new' || $this->_task == 'display')
+			if (in_array($this->_task, array('ticket', 'new', 'display', 'save')))
 			{
 				$task = 'tickets';
 			}
@@ -1134,9 +1134,7 @@ class SupportControllerTickets extends \Hubzero\Component\SiteController
 		$jconfig = JFactory::getConfig();
 
 		// Get any set emails that should be notified of ticket submission
-		$defs = str_replace("\r", '', $this->config->get('emails', '{config.mailfrom}'));
-		$defs = str_replace('\n', "\n", $defs);
-		$defs = explode("\n", $defs);
+		$defs = explode(',', $this->config->get('emails', '{config.mailfrom}'));
 
 		if ($defs)
 		{
