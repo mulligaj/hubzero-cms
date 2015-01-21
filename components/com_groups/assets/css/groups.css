@@ -321,6 +321,9 @@
 		padding: 0.4em 2em 0.4em 3.5em;
 		border: none;
 	}
+	#page_menu li .page {
+		padding-left: 20px;
+	}
 	#page_menu li a:before,
 	#page_menu li a:after,
 	#page_menu li span:before,
@@ -1952,6 +1955,15 @@ body.group-page-preview {
 	border-radius: 0;
 	margin-right: -1px;
 	margin-left: -1px;
+}
+.mozilla .version-jumpto {
+	-webkit-appearance: normal;
+	-moz-appearance: normal;
+	appearance: normal;
+	padding: 0.5em 0.91em;
+}
+.mozilla .version-jumpto-container:after {
+	display: none;
 }
 .toolbar .version-jumpto-container {
 	position: relative;
