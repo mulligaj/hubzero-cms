@@ -185,12 +185,17 @@ function popratings()
 			<div class="input-wrap">
 				<p class="warning"><?php echo JText::_('COM_RESOURCES_WARNING_TOOLS_USE_PIPELINE'); ?></p>
 			</div>
-
+			<div class="input-wrap">
+				<label for="field-alias"><?php echo JText::_('COM_RESOURCES_FIELD_ALIAS'); ?>:</label><br />
+				<input type="text" name="alias" id="field-alias" maxlength="250" value="<?php echo $this->escape(stripslashes($this->row->alias)); ?>" />
+			</div>
 			<div class="input-wrap" data-hint="<?php echo JText::_('COM_RESOURCES_FIELD_CANONICAL_HINT'); ?>">
 				<label for="attrib-canonical"><?php echo JText::_('COM_RESOURCES_FIELD_CANONICAL'); ?>:</label><br />
 				<input type="text" name="attrib[canonical]" id="attrib-canonical" maxlength="250" value="<?php echo $this->attribs->get('canonical', ''); ?>" />
 				<span class="hint"><?php echo JText::_('COM_RESOURCES_FIELD_CANONICAL_HINT'); ?></span>
 			</div>
+			<input type="hidden" name="title" id="field-title" value="<?php echo $this->escape(stripslashes($this->row->title)); ?>" />
+			<input type="hidden" name="type" id="type" value="7" />
 	<?php } else { ?>
 
 			<div class="input-wrap">
