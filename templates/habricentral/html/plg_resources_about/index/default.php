@@ -91,7 +91,8 @@ $schema = $elements->getSchema();
 if ($this->model->resource->introtext) 
 {
 	$document = JFactory::getDocument();
-	$document->setDescription($this->escape(strip_tags($this->model->resource->introtext)));
+	$abstract = strip_tags($this->model->resource->introtext);
+	$document->setDescription($this->escape($abstract));
 }
 
 // Check if there's anything left in the fulltxt after removing custom fields
@@ -114,6 +115,12 @@ $document = JFactory::getDocument();
 
 // set title
 $document->setMetaData('citation_title', trim($this->model->resource->title));
+
+// set abstract
+if ($this->model->resource->introtext)
+{
+	$document->setMetaData('citation_abstract', $this->escape($abstract));
+}
 
 // set authors
 foreach ($this->model->contributors('!submitter') as $contributor)
@@ -271,6 +278,14 @@ else if ($typeAlias == 'journalarticles')
 		$document->setMetaData('citation_firstpage', $first);
 		$document->setMetaData('citation_lastpage', $last);
 	}
+	
+	// $document->setMetaData('eprints:abstract', 'eprints:abstract test');
+	// $document->setMetaData('prism:teaser', 'prism:teaser test');
+	// $document->setMetaData('og:description', 'og:description test');
+	// $document->setMetaData('bibo:abstract', 'bibo:abstract test');
+	// $document->setMetaData('dcterms:abstract', 'dcterms:abstract test');
+	// $document->setMetaData('dc:description.abstract', 'dc:description.abstract test');
+	// $document->setMetaData('dcterms:description.abstract', 'dcterms:description.abstract test');
 }
 else if ($typeAlias == 'magazinearticle')
 {
@@ -281,6 +296,10 @@ else if ($typeAlias == 'magazinearticle')
 	if (isset($data['issuenomonthandday']) && $data['issuenomonthandday'] != '')
 	{
 		$document->setMetaData('citation_issue', trim($data['issuenomonthandday']));
+	}
+	if (isset($data['magazinetitle']) && $data['magazinetitle'] != '')
+	{
+		$document->setMetaData('citation_journal_title', trim($data['magazinetitle']));
 	}
 	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '')
 	{
@@ -302,6 +321,10 @@ else if ($typeAlias == 'newspaperarticle')
 	if (isset($data['issue']) && $data['issue'] != '')
 	{
 		$document->setMetaData('citation_issue', trim($data['issue']));
+	}
+	if (isset($data['newspapertitle']) && $data['newspapertitle'] != '')
+	{
+		$document->setMetaData('citation_journal_title', trim($data['newspapertitle']));
 	}
 	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '')
 	{
@@ -652,7 +675,7 @@ if ($this->model->params->get('show_assocs')) {
 		}
 	}
 	
-	echo $formatter->formatCitation($cite, false, true, $cconfig, true);
+	//echo $formatter->formatCitation($cite, false, true, $cconfig, true);
 	
 } ?>
 <div class="clear"></div>
