@@ -81,7 +81,7 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 	public function displayTask()
 	{
 		// check for multiple query sets
-		$query = "SELECT DISTINCT display FROM `#__oaipmh_dcspecs`";
+		$query = "SELECT DISTINCT display FROM `#__oaipmh_dcspecs` ORDER BY display";
 		$this->database->setQuery($query);
 		$qsets = $this->database->loadResultArray();
 
@@ -129,6 +129,10 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 		{
 			case 'GetRecord':
 				$response .= "<request verb=\"GetRecord\" identifier=\"$identifier\" metadataPrefix=\"$this->metadata\">$this->hubname/oaipmh</request>";
+
+				// remove url from identifier
+				$identifier = $this->stripResourcesUrl($identifier);
+
 				// check for errors
 				$check = new TablesOaipmhResult($this->database, $customs, $identifier);
 				$badID = false;
@@ -257,6 +261,13 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 							for ($i=$begin; $i<($begin + $toWrite); $i++)
 							{
 								$result = new TablesOaipmhResult($this->database, $custom, $ids[$i]);
+
+								// move on if no identifier
+								if (!$result->identifier)
+								{
+									continue;
+								}
+
 								// record or just header?
 								if ($verb == "ListIdentifiers")
 								{
@@ -352,15 +363,15 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 	 */
 	protected function getRecords($records, $from='', $until='')
 	{
+		$SQL = '';
 		if (is_array($records))
 		{
-			$SQL = '';
+			$SQL_PIECES = array();
 			for ($i=0;$i<count($records); $i++)
 			{
-				$SQL .= $this->addDateRange($records[$i]->records, $from, $until) . " UNION ";
-				$i++;
-				$SQL .= $this->addDateRange($records[$i]->records, $from, $until) . " ";
+				$SQL_PIECES[] = $this->addDateRange($records[$i]->records, $from, $until);
 			}
+			$SQL = implode(' UNION ', $SQL_PIECES);
 		}
 		else
 		{
@@ -566,6 +577,11 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 					{
 						$return .= $this->doDoi($result->identifier);
 					}
+					elseif ($dcs[$i] == "date")
+					{
+						$date = JFactory::getDate($result->date)->format($this->gran);
+						$return .= "<dc:date>" . $date . "</dc:date>";
+					}
 					else
 					{
 						$res = html_entity_decode($result->$dcs[$i]);
@@ -597,6 +613,13 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 			$header .= $this->doDoi($result->identifier);
 		}
 		$datestamp = strtotime($result->date);
+
+		// we want the "T" & "Z" strings in the output NOT the UTC offset (-400)
+		if ($this->gran == 'c')
+		{
+			$this->gran = 'Y-m-d\Th:i:s\Z';
+		}
+
 		$datestamp = date($this->gran, $datestamp);
 		if (!empty($datestamp))
 		{
@@ -627,6 +650,25 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 			$url = rtrim($this->hubname, DS) . DS . ltrim(JRoute::_('index.php?option=com_resources&id=' . $id), DS);
 		}
 		return '<identifier>' . $url . '</identifier>';
+	}
+
+	/**
+	 * Remove hub url from identifier.
+	 * 
+	 * @param  [type] $identifier [description]
+	 * @return [type]             [description]
+	 */
+	protected function stripResourcesUrl($identifier)
+	{
+		// return identifiers that dont contain the hubs url
+		if (strpos($identifier, $this->hubname) === false)
+		{
+			return $identifier;
+		}
+
+		// return last part of array
+		$parts = explode(DS, $identifier);
+		return array_pop($parts);
 	}
 
 	/**
@@ -713,10 +755,30 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 			foreach ($total as $set)
 			{
 				$setlist .= "<set>";
+
+				// must always have a <setSpec> tag
+				$spec = '';
 				if (!empty($set[0]))
 				{
-					$setlist .= "<setSpec>{$set[0]}</setSpec>";
+					$spec = $set[0];
 				}
+				elseif (empty($set[0]) && !empty($set[1]))
+				{
+					$spec = strtolower($set[1]);
+					$spec = str_replace(' ', '_', $spec);
+				}
+
+				// organize by set
+				if (isset($set[3]) && !empty($set[3]))
+				{
+					$spec = $set[3] . ':' . $spec;
+				}
+
+				if ($spec)
+				{
+					$setlist .= "<setSpec>{$spec}</setSpec>";
+				}
+
 				if (!empty($set[1]))
 				{
 					$setlist .= "<setName>{$set[1]}</setName>";
