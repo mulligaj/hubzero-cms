@@ -1,4 +1,4 @@
-<? defined('JPATH_BASE') or die(); 
+<?php defined('JPATH_BASE') or die();
 
 require_once 'db.php';
 
@@ -33,7 +33,13 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 			}
 			$conf = Db::scalarQuery($query);
 			if ($conf) {
-				self::$inst = unserialize($conf);
+				if (isset($conf[0]) && $conf[0] != '{') {
+					self::$inst = unserialize($conf);
+				}
+				else {
+					self::$inst = new HubgraphConfiguration;
+					self::$inst->settings = json_decode($conf, TRUE);
+				}
 			}
 			if (!self::$inst instanceof HubgraphConfiguration) {
 				self::$inst = new HubgraphConfiguration;
@@ -45,7 +51,7 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 	}
 
 	public function save() {
-		$params = serialize($this);
+		$params = json_encode($this->settings);
 		if (version_compare(JVERSION, '1.6', 'lt')) {
 			$updateQuery = 'UPDATE jos_components SET params = ? WHERE `option` = \'com_hubgraph\'';
 			$insertQuery = 'INSERT INTO jos_components(name, `option`, params) VALUES (\'HubGraph\', \'com_hubgraph\', ?)';
@@ -64,7 +70,7 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 			if (!array_key_exists($k, $this->settings)) {
 				$this->settings[$k] = $v;
 			}
-		}	
+		}
 	}
 
 	public function bind($form) {
@@ -75,7 +81,7 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 		}
 		return $this;
 	}
-	
+
 	public function isOptionEnabled($opt) {
 		return in_array($opt, explode(',', $this->settings['enabledOptions']));
 	}
@@ -83,11 +89,11 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 	public static function niceKey($k) {
 		return ucfirst(preg_replace_callback('/([A-Z])+/', function($ma) { return ' '.strtolower($ma[1]); }, $k));
 	}
-	
+
 	public function offsetSet($offset, $value) {
 		if (is_null($offset) || !isset($this->settings[$offset])) {
 			throw new \Exception('not supported');
-		} 
+		}
 		$this->settings[$offset] = $value;
 	}
 	public function offsetExists($offset) {
@@ -106,7 +112,7 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 		return reset($this->settings);
 	}
 	public function current() {
-		return current($this->settings); 
+		return current($this->settings);
 	}
 	public function key() {
 		return key($this->settings);
@@ -123,7 +129,7 @@ class HubgraphClient {
 	const CHUNK_LEN = 1024;
 
 	private static function http($method, $url, $entity = NULL) {
-		$conf = HubgraphConfiguration::instance(); 
+		$conf = HubgraphConfiguration::instance();
 		if (!($sock = @fsockopen($conf['host'], $conf['port'], $_errno, $errstr, 1))) {
 			throw new HubGraphConnectionError('unable to establish HubGraph connection using '.$conf['host'].': '.$errstr);
 		}

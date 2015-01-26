@@ -1,18 +1,21 @@
-<? defined('JPATH_BASE') or die(); 
+<?php defined('JPATH_BASE') or die();
 
 class HubgraphRequest
 {
 	private $form;
 
-	public function __construct($form) {
+	public function __construct($form)
+	{
 		$this->form = $form;
 	}
 
-	public function getTerms() {
+	public function getTerms()
+	{
 		return isset($this->form['terms']) && !is_array($this->form['terms']) ? stripslashes($this->form['terms']) : '';
 	}
 
-	public function getTags() {
+	public function getTags()
+	{
 		static $rv = NULL;
 		if (is_null($rv)) {
 			$rv = array();
@@ -21,17 +24,18 @@ class HubgraphRequest
 				foreach (Db::query('SELECT raw_tag, id FROM jos_tags WHERE id IN ('.implode(', ', array_fill(0, count($this->form['tags']), '?')).')', $this->form['tags']) as $row) {
 					$rv[] = array('id' => $row['id'], 'title' => $row['raw_tag']);
 				}
-				usort($rv, function($a, $b) use($order) { 
+				usort($rv, function($a, $b) use($order) {
 					$oa = $order[$a['id']];
 					$ob = $order[$b['id']];
-					return $oa == $ob ? 0 : ($oa > $ob ? 1 : -1); 
+					return $oa == $ob ? 0 : ($oa > $ob ? 1 : -1);
 				});
 			}
 		}
 		return $rv;
 	}
 
-	public function getTimeframe() {
+	public function getTimeframe()
+	{
 		if (isset($this->form['timeframe']) && is_array($this->form['timeframe'])) {
 			return array_filter($this->form['timeframe'], function($t) {
 				return preg_match('/^(?:\d\d\d\d|day|week|month|year)$/', $t);
@@ -40,26 +44,33 @@ class HubgraphRequest
 		return null;
 	}
 
-	public function getContributors() {
+	public function getContributors()
+	{
 		static $rv = NULL;
 		if (is_null($rv)) {
 			$rv = array();
 			if (isset($this->form['users']) && is_array($this->form['users'])) {
 				$order = array_flip($this->form['users']);
-				foreach (Db::query('SELECT name, uidNumber FROM jos_xprofiles WHERE uidNumber IN ('.implode(', ', array_fill(0, count($this->form['users']), '?')).')', $this->form['users']) as $row) {
+				$idList = implode(', ', array_fill(0, count($this->form['users']), '?'));
+				foreach (Db::query(
+					'SELECT name, uidNumber FROM jos_xprofiles WHERE uidNumber IN ('.$idList.')
+					UNION
+					SELECT name, authorid AS uidNumber FROM jos_author_assoc WHERE authorid IN ('.$idList.')
+					LIMIT 1', array_merge($this->form['users'], $this->form['users'])) as $row) {
 					$rv[] = array('id' => $row['uidNumber'], 'title' => $row['name']);
 				}
-				usort($rv, function($a, $b) use($order) { 
+				usort($rv, function($a, $b) use($order) {
 					$oa = $order[$a['id']];
 					$ob = $order[$b['id']];
-					return $oa == $ob ? 0 : ($oa > $ob ? 1 : -1); 
+					return $oa == $ob ? 0 : ($oa > $ob ? 1 : -1);
 				});
 			}
 		}
 		return $rv;
 	}
-	
-	public function getGroupName($gid) {
+
+	public function getGroupName($gid)
+	{
 		static $map = array();
 		if (!isset($map[$gid])) {
 			$map[$gid] = Db::scalarQuery('SELECT description FROM jos_xgroups WHERE gidNumber = ? OR cn = ?', array($gid, $gid));
@@ -67,8 +78,9 @@ class HubgraphRequest
 		return $map[$gid];
 	}
 
-	public function getGroup() {
-		static $group = NULL; 
+	public function getGroup()
+	{
+		static $group = NULL;
 		$implicit = FALSE;
 		if (!$group) {
 			if (isset($this->form['groups'])) {
@@ -94,11 +106,13 @@ class HubgraphRequest
 		return $group;
 	}
 
-	private static function idList($coll) {
+	private static function idList($coll)
+	{
 		return implode(',', array_map(function($item) { return $item['id']; }, (array)$coll));
 	}
 
-	public function getTransportCriteria($merge = array()) {
+	public function getTransportCriteria($merge = array())
+	{
 		static $crit;
 		if (is_null($crit)) {
 			$user = JFactory::getUser();
@@ -115,7 +129,7 @@ class HubgraphRequest
 
 			$crit = array(
 				'terms'        => $this->getTerms(),
-				'tags'         => self::idList($this->getTags()), 
+				'tags'         => self::idList($this->getTags()),
 				'domain'       => lcfirst(htmlentities($this->getDomain())),
 				'users'        => self::idList($this->getContributors()),
 				'page'         => $this->getPage(),
@@ -125,34 +139,38 @@ class HubgraphRequest
 				'groups'       => $groups,
 				'timeframe'    => $this->getTimeframe(),
 				'inGroup'      => self::idList($this->getGroup()),
-				'cache'        => isset($_GET['cache']) ? $_GET['cache'] : NULL 
+				'cache'        => isset($_GET['cache']) ? $_GET['cache'] : NULL
 			);
 		}
 		return array_merge($merge, $crit);
 	}
-	
-	public function getPerPage() {
+
+	public function getPerPage()
+	{
 		return isset($_GET['per']) && (int)$_GET['per'] == $_GET['per'] && (int)$_GET['per'] ? (int)$_GET['per'] : 40;
 	}
 
-	public function getPage() {
+	public function getPage()
+	{
 		return isset($_GET['page']) && (int)$_GET['page'] ? (int)$_GET['page'] : 1;
 	}
 
-	public function getDomain() {
+	public function getDomain()
+	{
 		if (isset($this->form['domain'])) {
 			return $this->form['domain'];
 		}
 		if (isset($this->form['option']) && $this->form['option'] == 'com_resources') {
 			if (isset($this->form['type']) && ($type = Db::scalarQuery('SELECT type FROM jos_resource_types WHERE alias = ?', array($this->form['type'])))) {
-				return 'resources~'.$type;	
+				return 'resources~'.$type;
 			}
 			return 'resources';
 		}
 		return '';
 	}
 
-	public function getDomainMap() {
+	public function getDomainMap()
+	{
 		$map = array();
 		if (($parts = explode('~', $this->getDomain()))) {
 			$lineage = '';
@@ -164,7 +182,8 @@ class HubgraphRequest
 		return $map;
 	}
 
-	public function anyCriteria() {
+	public function anyCriteria()
+	{
 		foreach ($this->getTransportCriteria() as $key=>$crit) {
 			switch ($key) {
 				case 'offset': case 'super': case 'uid': case 'groups': case 'page': case 'per':

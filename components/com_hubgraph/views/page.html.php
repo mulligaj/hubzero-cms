@@ -7,27 +7,34 @@ class GenericRenderer
 	private static $context = array();
 	const DATE_FORMAT = 'n M Y';
 
-	public static function setContext($ctx) {
+	public static function setContext($ctx)
+	{
 		self::$context = $ctx;
 	}
 
-	protected static function getContext($k, $ik = NULL) {
+	protected static function getContext($k, $ik = NULL)
+	{
 		$rv = isset(GenericRenderer::$context[$k]) ? self::$context[$k] : array();
-		if ($ik) {
+		if ($ik)
+		{
 			$rv = isset($rv[$ik]) ? $rv[$ik] : NULL;
 		}
 		return $rv;
 	}
 
-	public function __construct($item) {
+	public function __construct($item)
+	{
 		$this->item = $item;
 		$this->build();
 	}
 
-	protected function children() {
-		if (isset($this->item['children']) && is_array($this->item['children'])) {
+	protected function children()
+	{
+		if (isset($this->item['children']) && is_array($this->item['children']))
+		{
 			$rv = array('<ol class="children">');
-			foreach ($this->item['children'] as $child) {
+			foreach ($this->item['children'] as $child)
+			{
 				$class = $child['domain'].'ChildRenderer';
 				$class = class_exists($class) ? $class : 'GenericChildRenderer';
 				$rv[] = (string)new $class($child);
@@ -37,29 +44,40 @@ class GenericRenderer
 		}
 	}
 
-	protected function push($renderer) {
+	protected function push($renderer)
+	{
 		$this->renderers[] = $renderer;
 		return $this;
 	}
-	
-	protected static function debug($str) {
+
+	protected static function debug($str)
+	{
 		return defined('HG_DEBUG') ? $str : '';
 	}
 
-	protected function domain() {
+	protected function domain()
+	{
 		return ucfirst($this->item['domain']);
 	}
 
-	protected function date() {
-		if (isset($this->item['date'])) {
-			if (preg_match('/^\s*(\d{4})\/01\/01\s*00:00:00/', $this->item['date'], $ma)) {
+	protected function date()
+	{
+		if (isset($this->item['publicationyear']))
+		{
+			return array('<td>', h($this->item['publicationyear']), '</td>');
+		}
+		if (isset($this->item['date']))
+		{
+			if (preg_match('/^\s*(\d{4})\/01\/01\s*00:00:00/', $this->item['date'], $ma))
+			{
 				return array('<td>', $ma[1], '</td>');
 			}
 			return array('<td>', date(self::DATE_FORMAT, strtotime($this->item['date'])), '</td>');
 		}
 	}
 
-	protected function type() {
+	protected function type()
+	{
 		$st = $this->subtype();
 		return array(
 			'<td class="domain">',
@@ -68,24 +86,54 @@ class GenericRenderer
 			'</td>'
 		);
 	}
-	protected function subtype() {
-		foreach (array('type', 'section', 'category') as $subtype) {
-			if (isset($this->item[$subtype])) {
+
+	protected function isbn()
+	{
+		if (isset($this->item['isbn']))
+		{
+			return array('<td>ISBN: ', $this->item['isbn'], '</td>');
+		}
+	}
+
+	protected function publicationDetails()
+	{
+		if (isset($this->item['publisher'])) 
+		{
+			return array(
+				'<td>',
+				(isset($this->item['placeofpublication']) ? h($this->item['placeofpublication']) . ' ' : ''),
+				h($this->item['publisher']),
+				'</td>'
+			);
+		}
+	}
+
+	protected function subtype()
+	{
+		foreach (array('type', 'section', 'category') as $subtype)
+		{
+			if (isset($this->item[$subtype]))
+			{
 				return $this->item[$subtype];
 			}
 		}
 	}
 
-	protected function contributors() {
+	protected function contributors()
+	{
 		$rv = array();
-		if (isset($this->item['group_ids']) && $this->item['group_ids']) {
+		if (isset($this->item['group_ids']) && $this->item['group_ids'])
+		{
 			$group = self::getContext('groups', $this->item['group_ids'][0]);
 			$rv[] = array('<td>', $group[0], '</td>');
 		}
-		if (isset($this->item['contributor_ids'])) {
+		if (isset($this->item['contributor_ids']))
+		{
 			$rv[] = '<td>';
-			foreach ($this->item['contributor_ids'] as $idx=>$cid) {
-				if (($c = self::getContext('contributors', $cid)) && $c[0]) {
+			foreach ($this->item['contributor_ids'] as $idx=>$cid)
+			{
+				if (($c = self::getContext('contributors', $cid)) && $c[0])
+				{
 					$rv[] = ($idx == 0 ? '' : ', ') . h($c[0]);
 				}
 			}
@@ -94,34 +142,97 @@ class GenericRenderer
 		}
 	}
 
-	protected function extraDetails() {
+	protected function extraDetails()
+	{
+		$rv = array();
+		$nums = array();
+		foreach (array('totalnoofpages', 'volumeno', 'issuenomonth', 'pagenumbers') as $k)
+		{
+			if (isset($this->item[$k]))
+			{
+				$nums[] = $k == 'issuenomonth' ? '('.$this->item[$k].')' : $this->item[$k];
+			}
+		}
+		foreach (array('publication_title', 'booktitle', 'journaltitle', $this->item['type'] == 'Books' ? 'title' : '') as $k)
+		{
+			if (isset($this->item[$k]) && trim($this->item[$k]))
+			{
+				$rv[] = array(
+					'<td>', 
+					$this->item[$k], $nums ? ', '.str_replace(', (', '(', implode(', ', $nums)) : NULL,  
+					'</td>'
+				);
+				break;
+			}
+		}
+		return $rv ? array('<tr>', $rv, '</tr>') : NULL;
 	}
 
-	protected function details() {
+	protected function details()
+	{
 		return array(
 			'<table class="details"><tr>',
-			$this->type(),
-			$this->date(),
 			$this->contributors(),
+			$this->date(),
 			'</tr>',
 			$this->extraDetails(),
 			'</table>'
 		);
 	}
 
-	protected function related() {
+	protected function related()
+	{
 		return '<a class="related" data-domain="'.a($this->item['domain']).'" data-id="'.a($this->item['id']).'">Show related results</a>';
 	}
 
-	protected function metadata() {
-		return array($this->tags(), $this->related());
+	protected function language()
+	{
+		$lang = array();
+		if (isset($this->item['language'])) {
+			$lang[] = $this->item['language'];
+		}
+		if (isset($this->item['additionallanguage']) && trim($this->item['additionallanguage']))
+		{
+			$lang[] = implode(', ', preg_split('/[^-\w]+/', $this->item['additionallanguage']));
+		}
+		if ($lang)
+		{
+			return array('<td>', implode(', ', $lang), '</td>');
+		}
 	}
 	
-	protected function tags() {
-		if (isset($this->item['tag_ids']) && is_array($this->item['tag_ids'])) {
+	protected function doi()
+	{
+		if (isset($this->item['doi']) && $this->item['doi'])
+		{
+			return array('<td><a href="http://dx.doi.org/', $this->item['doi'], '">DOI: ', $this->item['doi'], '</a></td>');
+		}
+	}
+
+	protected function metadata()
+	{
+		return array(
+			'<table class="details"><tr>',
+			$this->publicationDetails(),
+			$this->isbn(),
+			$this->type(),
+			$this->language(),
+			$this->doi(),
+			'</tr></table>',
+			$this->tags(), 
+			$this->related()
+		);
+	}
+
+	protected function tags()
+	{
+		if (isset($this->item['tag_ids']) && is_array($this->item['tag_ids']))
+		{
 			$rv = array();
-			foreach ($this->item['tag_ids'] as $tid) {
-				if (($t = GenericRenderer::getContext('tags', $tid)) && $t[0]) {
+			foreach ($this->item['tag_ids'] as $tid)
+			{
+				if (($t = GenericRenderer::getContext('tags', $tid)) && $t[0])
+				{
 					$rv[] = array($tid, $t[0], $t[1]);
 				}
 			}
@@ -135,7 +246,8 @@ class GenericRenderer
 		}
 	}
 
-	protected function title($h = 'h3') {
+	protected function title($h = 'h3')
+	{
 		$links = (array)$this->item['link'];
 		$rv = array(
 			'<'.$h.'>',
@@ -153,7 +265,8 @@ class GenericRenderer
 		return $rv;
 	}
 
-	protected function body() {
+	protected function body()
+	{
 		if (isset($this->item['body']) && trim($this->item['body'])) {
 			return array(
 				'<blockquote>',
@@ -163,7 +276,8 @@ class GenericRenderer
 		}
 	}
 
-	protected function build() {
+	protected function build()
+	{
 		$this->push(array(
 			$this->title(),
 			$this->details(),
@@ -173,20 +287,24 @@ class GenericRenderer
 			$this->debug('<pre>'.print_r($this->item, 1).'</pre>')
 		));
 	}
-	
-	public function __toString() {
+
+	public function __toString()
+	{
 		$stringArray = function($r) use(&$stringArray) {
 			if (is_array($r)) {
 				$rv = array();
-				foreach ($r as $k=>$v) {
+				foreach ($r as $k=>$v)
+				{
 					$rv = array_merge($rv, $stringArray($v));
 				}
 				return $rv;
 			}
-			if (is_callable($r)) {
+			if (is_callable($r))
+			{
 				return $stringArray(call_user_func($r));
 			}
-			if (is_null($r)) {
+			if (is_null($r))
+			{
 				return array('');
 			}
 			return array($r);
@@ -197,7 +315,8 @@ class GenericRenderer
 
 class GenericChildRenderer extends GenericRenderer
 {
-	protected function build() {
+	protected function build()
+	{
 		$this->push(array(
 			$this->title('h4'),
 			$this->body()
@@ -207,38 +326,51 @@ class GenericChildRenderer extends GenericRenderer
 
 class GroupsRenderer extends GenericRenderer
 {
-	public function date() {
+	public function date()
+	{
 		return array('<td>', p($this->item['member_count'], 'member'), '</td>');
 	}
 }
 
 class CitationsRenderer extends GenericRenderer
 {
-	protected function contributors() {
+	protected function contributors()
+	{
 		$rv = array();
-		if (isset($this->item['authors'])) {
+		if (isset($this->item['authors']))
+		{
 			$rv[] = $this->item['authors'];
 		}
-		if (isset($this->item['editor']) && trim($this->item['editor'])) {
+		if (isset($this->item['editor']) && trim($this->item['editor']))
+		{
 			$rv[] = array(' (ed: ', $this->item['editor'], ')');
 		}
-		if ($rv) {
+		if ($rv)
+		{
 			array_unshift($rv, '<td>');
 			$rv[] = '</td>';
 			return $rv;
 		}
 	}
 
-	protected function extraDetails() {
+	protected function extraDetails()
+	{
 		$rv = array();
-		if (isset($this->item['publication_title']) && trim($this->item['publication_title'])) {
-			$rv[] = array('<td>', h($this->item['publication_title']), '</td>');
+		foreach (array('publication_title', 'booktitle') as $k)
+		{
+			if (isset($this->item[$k]) && trim($this->item[$k])) 
+			{
+				$rv[] = array('<td>', h($this->item[$k]), '</td>');
+				break;
+			}
 		}
 		$parts = array();
-		if (isset($this->item['chapter'])) {
+		if (isset($this->item['chapter'])) 
+		{
 			$parts[] = 'ch. '.$this->item['chapter'];
 		}
-		if (isset($this->item['pages'])) {
+		if (isset($this->item['pages'])) 
+		{
 			$parts[] = 'pp. '.$this->item['pages'];
 		}
 		if ($parts) {
@@ -261,9 +393,11 @@ class CitationsRenderer extends GenericRenderer
 
 class EventsRenderer extends GenericRenderer
 {
-	protected function date() {
+	protected function date()
+	{
 		static $now;
-		if (!$now) {
+		if (!$now)
+		{
 			$now = time();
 		}
 		return str_replace('<td>', '<td>'.(strtotime($this->item['date'] > $now) ? 'happening ' : 'happened '), parent::date());
@@ -272,19 +406,25 @@ class EventsRenderer extends GenericRenderer
 
 class MembersRenderer extends GenericRenderer
 {
-	protected function domain() {
+	protected function domain()
+	{
 		return ($this->item['count'] ? 'Contributor' : 'Member').($this->item['organization'] ? ', '.h($this->item['organization']) : '');
 	}
-	
-	protected function date() {
+
+	protected function date()
+	{
 		return str_replace('<td>', '<td>since ', parent::date());
 	}
-	
-	protected function extraDetails() {
-		if ($this->item['contributions']) {
+
+	protected function extraDetails()
+	{
+		if ($this->item['contributions'])
+		{
 			$rv = array();
-			foreach ($this->item['contributions'] as $type=>$num) {
-				if ($type == 'content') {
+			foreach ($this->item['contributions'] as $type=>$num)
+			{
+				if ($type == 'content')
+				{
 					$type = 'content pages';
 				}
 				$rv[] = $num.' '.($num == 1 ? preg_replace('/e?s$/', '', $type) : $type);
@@ -294,7 +434,8 @@ class MembersRenderer extends GenericRenderer
 	}
 }
 
-function rmUrl($base, $key, $id) {
+function rmUrl($base, $key, $id)
+{
 	return preg_replace('/[&?]$/', '', preg_replace('/'.$key.'(?:\[\])?='.preg_quote($id).'/i', '', urldecode($base)));
 }
 $url = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : $_SERVER['REDIRECT_QUERY_STRING'];
@@ -307,7 +448,7 @@ if (!defined('HG_AJAX')):
 ?>
 	<div class="count">
 		<ol class="domains">
-			<li<?= isset($domainMap['']) ? ' class="current"' : '' ?>><button type="submit" name="domain" value=""><?= p($results['total'], 'result') . ($results['total'] == 0 ? ':[' : '') ?></button></li>
+			<li<?php echo isset($domainMap['']) ? ' class="current"' : '' ?>><button type="submit" name="domain" value=""><?php echo p($results['total'], 'result') . ($results['total'] == 0 ? ':[' : '') ?></button></li>
 			<?php 
 				// nees :[
 				$domains = array();
@@ -332,9 +473,9 @@ if (!defined('HG_AJAX')):
 					endif;
 					return strcasecmp($a['title'], $b['title']);
 				});
-				foreach ($domains as $domain): 
+				foreach ($domains as $domain):
 			?>
-				<li<?= isset($domainMap[$domain['title']]) ? ' class="current subsel"' : '' ?>><button type="submit" name="domain" value="<?= isset($domainMap[$domain['title']]) ? '' : a($domain['title']) ?>"><?= h(p($domain['count'], Inflect::singularize($domain['title']))) ?></button></li>
+				<li<?php echo isset($domainMap[$domain['title']]) ? ' class="current subsel"' : '' ?>><button type="submit" name="domain" value="<?php echo isset($domainMap[$domain['title']]) ? '' : a($domain['title']) ?>"><?php echo h(p($domain['count'], Inflect::singularize($domain['title']))) ?></button></li>
 			<?php endforeach; ?>
 		</ol>
 		</div>
@@ -342,12 +483,15 @@ if (!defined('HG_AJAX')):
 			<tbody>
 			<?php
 			$timeframe = array();
-			if (isset($_GET['timeframe']) && is_array($_GET['timeframe'])) {
-				foreach ($_GET['timeframe'] as $tf) {
+			if (isset($_GET['timeframe']) && is_array($_GET['timeframe']))
+			{
+				foreach ($_GET['timeframe'] as $tf)
+				{
 					$timeframe[] = array('id' => $tf, 'title' => $tf);
 				}
-			} 
-			foreach (array('tags' => 'Tagged', 'contributors' => 'Contributed&nbsp;by', 'groups' => 'In&nbsp;group', 'timeframe' => 'Date') as $key=>$label): 
+			}
+			$timeframe = isset($_GET['timeframe']) ? array_map(function($t) { return array('id' => $t, 'title' => $t); }, (array)$_GET['timeframe']) : NULL;
+			foreach (array('tags' => 'Tagged', 'contributors' => 'Contributed&nbsp;by', 'groups' => 'In&nbsp;group', 'timeframe' => 'Date') as $key=>$label):
 				$transportKey = $key == 'contributors' ? 'users' : $key;
 				$inReq = isset($_GET[$transportKey]) ? array_flip($_GET[$transportKey]) : array();
 				if (!$inReq):
@@ -367,8 +511,8 @@ if (!defined('HG_AJAX')):
 					endif;
 				endif;
 
-				uasort($results[$key], 
-					$key == 'timeframe' 
+				uasort($results[$key],
+					$key == 'timeframe'
 						? function($a, $b) {
 							foreach (array('today', 'prior week', 'prior month', 'prior year') as $relative):
 								if ($a[0] == $relative):
@@ -390,19 +534,21 @@ if (!defined('HG_AJAX')):
 				$max = NULL;
 			?>
 			<tr>
-				<td class="label"><?= $label ?>:</td>
+				<td class="label"><?php echo $label ?>:</td>
 				<td>
-					<ol class="<?= $key ?>">
+					<ol class="<?php echo $key ?>">
 						<?php 
 						if (isset($$transportKey)):
 							foreach ((array)$$transportKey as $item):
 								$inReq[$item['id']] = TRUE;
+								if ($item['title']):
 							?>
 								<li>
-									<input type="hidden" name="<?= $transportKey ?>[]" value="<?= a($item['id']) ?>" />
-									<a href="<?= rmUrl($url, $transportKey, $item['id']) ?>"><?= h($item['title']) ?><span>x</span></a>
+									<input type="hidden" name="<?php echo $transportKey ?>[]" value="<?php echo a($item['id']) ?>" />
+									<a href="<?php echo rmUrl($url, $transportKey, $item['id']) ?>"><?php echo h($item['title']) ?><span>x</span></a>
 								</li>
 							<?php
+								endif;
 							endforeach;
 						endif;
 						foreach ($results[$key] as $id=>$item):
@@ -411,7 +557,7 @@ if (!defined('HG_AJAX')):
 							endif;
 							$used[$item[1]] = TRUE;
 						?>
-							<li><button type="submit" title="<?= p($item[1], 'result') ?>" name="<?= $transportKey ?>[]" value="<?= $id ?>"><?= $item[0]; ?></button></li>
+							<li><button type="submit" title="<?php echo p($item[1], 'result') ?>" name="<?php echo $transportKey ?>[]" value="<?php echo $id ?>"><?php echo $item[0]; ?></button></li>
 						<?php endforeach; ?>
 					</ol>
 				</td>
@@ -425,9 +571,9 @@ endif;
 if (isset($terms)):
 	if ($results['terms']['suggested']):
 ?>
-	<p class="info">(Did you mean <em><a href="/search<?= $link ?>"><?= $terms ?></a></em>?)</p>
+	<p class="info">(Did you mean <em><a href="/search<?php echo $link ?>"><?php echo $terms ?></a></em>?)</p>
 <?php elseif ($results['terms']['autocorrected']): ?>
-	<p class="info">(Showing results for <em><?= $terms ?></em>)</p> 
+	<p class="info">(Showing results for <em><?php echo $terms ?></em>)</p> 
 <?php endif;
 endif;
 if ($results['results']):
@@ -438,7 +584,7 @@ if ($results['results']):
 	));
 	if (!defined('HG_AJAX')):
 ?>
-	<ul class="results" data-cache="<?= $results['cache'] ?>">
+	<ul class="results" data-cache="<?php echo $results['cache'] ?>">
 	<?php
 	endif;
 	foreach ($results['results'] as $result):
@@ -448,7 +594,7 @@ if ($results['results']):
 		endif;
 		$class = str_replace(' ', '', $result['domain']).'Renderer';
 		echo class_exists($class, FALSE) ? new $class($result) : new GenericRenderer($result);
-	endforeach; 
+	endforeach;
 	if (!defined('HG_AJAX')):
 	?>
 	</ul>
@@ -457,10 +603,10 @@ if ($results['results']):
 		<ol>
 		<?php 
 			$curDomain = $req->getDomain();
-			for ($start = 0, $page = 1; $start <= ($curDomain ? $results['domains'][$curDomain] : $results['total']); $start += $perPage, ++$page): 
+			for ($start = 0, $page = 1; $start <= ($curDomain ? $results['domains'][$curDomain] : $results['total']); $start += $perPage, ++$page):
 		?>
-			<li<?= $page == $results['page'] ? ' class="current"' : ''; ?>>
-				<button type="submit" name="page" value="<?= $page ?>"><?= $page ?></button>
+			<li<?php echo $page == $results['page'] ? ' class="current"' : ''; ?>>
+				<button type="submit" name="page" value="<?php echo $page ?>"><?php echo $page ?></button>
 			</li>
 		<?php endfor; ?>
 		</ol>
