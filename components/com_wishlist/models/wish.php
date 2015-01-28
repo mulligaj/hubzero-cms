@@ -1123,6 +1123,11 @@ class WishlistModelWish extends WishlistModelAbstract
 
 			$this->set('myranking', $tbl);
 		}
+		// Not ranked?
+		if (!$this->get('myranking')->id)
+		{
+			return NULL;
+		}
 
 		return $this->get('myranking')->$rtrn;
 	}
