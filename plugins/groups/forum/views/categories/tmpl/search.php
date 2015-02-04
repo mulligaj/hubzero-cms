@@ -79,7 +79,8 @@ $this->css()
 				$name = JText::_('PLG_GROUPS_FORUM_ANONYMOUS');
 				if (!$row->get('anonymous'))
 				{
-					$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $row->creator('id')) . '">' . $this->escape(stripslashes($row->creator('name'))) . '</a>';
+					$name = $this->escape(stripslashes($row->creator('name')));
+					$name = ($row->creator('public') ? '<a href="' . JRoute::_($row->creator()->getLink()) . '">' . $name . '</a>' : $name);
 				}
 				$cls = array();
 				if ($row->get('closed'))
@@ -111,14 +112,14 @@ $this->css()
 						</td>
 						<td>
 							<span><?php echo JText::_('PLG_GROUPS_FORUM_SECTION'); ?></span>
-							<span class="entry-details">
-								<?php echo $this->escape($this->sections[$this->categories[$row->get('category_id')]->get('section_id')]->get('title')); ?>
+							<span class="entry-details section-name">
+								<?php echo $this->escape(\Hubzero\Utility\String::truncate($this->sections[$this->categories[$row->get('category_id')]->get('section_id')]->get('title'), 100, array('exact' => true))); ?>
 							</span>
 						</td>
 						<td>
 							<span><?php echo JText::_('PLG_GROUPS_FORUM_CATEGORY'); ?></span>
-							<span class="entry-details">
-								<?php echo $this->escape($this->categories[$row->get('category_id')]->get('title')); ?>
+							<span class="entry-details category-name">
+								<?php echo $this->escape(\Hubzero\Utility\String::truncate($this->categories[$row->get('category_id')]->get('title'), 100, array('exact' => true))); ?>
 							</span>
 						</td>
 					</tr>

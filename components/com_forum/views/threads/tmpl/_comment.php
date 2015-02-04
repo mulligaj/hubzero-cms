@@ -36,13 +36,12 @@ defined('_JEXEC') or die('Restricted access');
 	$this->comment->set('category', $this->category->get('alias'));
 
 	$name = JText::_('COM_FORUM_ANONYMOUS');
-	$huser = '';
 	if (!$this->comment->get('anonymous'))
 	{
-		$huser = \Hubzero\User\Profile::getInstance($this->comment->get('created_by'));
-		if (is_object($huser) && $huser->get('name'))
+		$name = $this->escape(stripslashes($this->comment->creator()->get('name', $name)));
+		if ($this->comment->creator()->get('public'))
 		{
-			$name = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $this->comment->get('created_by')) . '">' . $this->escape(stripslashes($huser->get('name'))) . '</a>';
+			$name = '<a href="' . JRoute::_($this->comment->creator()->getLink()) . '">' . $name . '</a>';
 		}
 	}
 
@@ -59,7 +58,7 @@ defined('_JEXEC') or die('Restricted access');
 ?>
 	<li class="comment <?php echo $cls; ?><?php if (!$this->comment->get('parent')) { echo ' start'; } ?>" id="c<?php echo $this->comment->get('id'); ?>">
 		<p class="comment-member-photo">
-			<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($huser, $this->comment->get('anonymous')); ?>" alt="" />
+			<img src="<?php echo $this->comment->creator()->getPicture($this->comment->get('anonymous')); ?>" alt="" />
 		</p>
 		<div class="comment-content">
 			<p class="comment-title">
@@ -136,7 +135,7 @@ defined('_JEXEC') or die('Restricted access');
 
 							<input type="hidden" name="fields[id]" value="0" />
 							<input type="hidden" name="fields[state]" value="1" />
-							<input type="hidden" name="fields[access]" value="0" />
+							<input type="hidden" name="fields[access]" value="<?php echo $this->thread->get('access', 0); ?>" />
 							<input type="hidden" name="fields[scope]" value="<?php echo $this->thread->get('scope'); ?>" />
 							<input type="hidden" name="fields[category_id]" value="<?php echo $this->thread->get('category_id'); ?>" />
 							<input type="hidden" name="fields[scope_id]" value="<?php echo $this->thread->get('scope_id'); ?>" />
@@ -156,7 +155,7 @@ defined('_JEXEC') or die('Restricted access');
 							<label for="field_<?php echo $this->comment->get('id'); ?>_comment">
 								<span class="label-text"><?php echo JText::_('COM_FORUM_FIELD_COMMENTS'); ?></span>
 								<?php
-								echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 4, false, 'field_' . $this->comment->get('id') . '_comment', null, null, array('class' => 'minimal no-footer'));
+								echo $this->editor('fields[comment]', '', 35, 4, 'field_' . $this->comment->get('id') . '_comment', array('class' => 'minimal no-footer'));
 								?>
 							</label>
 

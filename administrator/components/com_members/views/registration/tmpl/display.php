@@ -30,11 +30,15 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-JToolBarHelper::title(JText::_('Member Registration'), 'addedit.png');
-JToolBarHelper::preferences($this->option, '550');
-JToolBarHelper::save();
-JToolBarHelper::cancel();
+$canDo = MembersHelper::getActions('component');
 
+JToolBarHelper::title(JText::_('COM_MEMBERS_REGISTRATION'), 'addedit.png');
+if ($canDo->get('core.edit'))
+{
+	JToolBarHelper::preferences($this->option, '550');
+	JToolBarHelper::save();
+	JToolBarHelper::cancel();
+}
 ?>
 <script type="text/javascript">
 function submitbutton(pressbutton)
@@ -60,11 +64,11 @@ function submitbutton(pressbutton)
 		<table class="adminlist">
 			<thead>
 				<tr>
-					<th scope="col"><?php echo JText::_('Field/Area'); ?></th>
-					<th scope="col"><?php echo JText::_('Create Account'); ?></th>
-					<th scope="col"><?php echo JText::_('Proxy Create Account'); ?></th>
-					<th scope="col"><?php echo JText::_('Update on Next Login'); ?></th>
-					<th scope="col"><?php echo JText::_('Edit Profile'); ?></th>
+					<th scope="col"><?php echo JText::_('COM_MEMBERS_COL_AREA'); ?></th>
+					<th scope="col"><?php echo JText::_('COM_MEMBERS_COL_CREATE_ACCOUNT'); ?></th>
+					<th scope="col"><?php echo JText::_('COM_MEMBERS_COL_PROXY_CREATE_ACCOUNT'); ?></th>
+					<th scope="col"><?php echo JText::_('COM_MEMBERS_COL_UPDATE_ACCOUNT'); ?></th>
+					<th scope="col"><?php echo JText::_('COM_MEMBERS_COL_EDIT_ACCOUNT'); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -73,67 +77,67 @@ foreach ($this->params as $field => $values)
 {
 	if (substr($field, 0, strlen('registration')) == 'registration')
 	{
-		$title = $values[3];
-		$value = $values[4];
+		$title = $values->title;
+		$value = $values->value;
 
 		$create = strtoupper(substr($value, 0, 1));
 		$proxy  = strtoupper(substr($value, 1, 1));
 		$update = strtoupper(substr($value, 2, 1));
 		$edit   = strtoupper(substr($value, 3, 1));
 
-		$field = str_replace('registration', '', $field);
+		$field = str_replace('registration', '', $values->name);
 ?>
 				<tr>
 					<td><?php echo $title; ?></td>
 					<td>
 						<?php if ($create != '-') : ?>
 							<select name="settings[<?php echo $field; ?>][create]">
-								<option value="O"<?php if ($create == 'O') { echo ' selected="selected"'; }?>><?php echo JText::_('Optional'); ?></option>
-								<option value="R"<?php if ($create == 'R') { echo ' selected="selected"'; }?>><?php echo JText::_('Required'); ?></option>
-								<option value="H"<?php if ($create == 'H') { echo ' selected="selected"'; }?>><?php echo JText::_('Hide'); ?></option>
-								<option value="U"<?php if ($create == 'U') { echo ' selected="selected"'; }?>><?php echo JText::_('Read only'); ?></option>
+								<option value="O"<?php if ($create == 'O') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_OPTIONAL'); ?></option>
+								<option value="R"<?php if ($create == 'R') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_REQUIRED'); ?></option>
+								<option value="H"<?php if ($create == 'H') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_HIDE'); ?></option>
+								<option value="U"<?php if ($create == 'U') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_READ_ONLY'); ?></option>
 							</select>
 						<?php else: ?>
-							<?php echo JText::_('n/a'); ?>
+							<?php echo JText::_('COM_MEMBERS_NOT_APPLICABLE'); ?>
 							<input type="hidden" name="settings[<?php echo $field; ?>][create]" value="-">
 						<?php endif; ?>
 					</td>
 					<td>
 						<?php if ($proxy != '-') : ?>
 							<select name="settings[<?php echo $field; ?>][proxy]">
-								<option value="O"<?php if ($proxy == 'O') { echo ' selected="selected"'; }?>><?php echo JText::_('Optional'); ?></option>
-								<option value="R"<?php if ($proxy == 'R') { echo ' selected="selected"'; }?>><?php echo JText::_('Required'); ?></option>
-								<option value="H"<?php if ($proxy == 'H') { echo ' selected="selected"'; }?>><?php echo JText::_('Hide'); ?></option>
-								<option value="U"<?php if ($proxy == 'U') { echo ' selected="selected"'; }?>><?php echo JText::_('Read only'); ?></option>
+								<option value="O"<?php if ($proxy == 'O') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_OPTIONAL'); ?></option>
+								<option value="R"<?php if ($proxy == 'R') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_REQUIRED'); ?></option>
+								<option value="H"<?php if ($proxy == 'H') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_HIDE'); ?></option>
+								<option value="U"<?php if ($proxy == 'U') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_READ_ONLY'); ?></option>
 							</select>
 						<?php else: ?>
-							<?php echo JText::_('n/a'); ?>
+							<?php echo JText::_('COM_MEMBERS_NOT_APPLICABLE'); ?>
 							<input type="hidden" name="settings[<?php echo $field; ?>][proxy]" value="-">
 						<?php endif; ?>
 					</td>
 					<td>
 						<?php if ($update != '-') : ?>
 							<select name="settings[<?php echo $field; ?>][update]">
-								<option value="O"<?php if ($update == 'O') { echo ' selected="selected"'; }?>><?php echo JText::_('Optional'); ?></option>
-								<option value="R"<?php if ($update == 'R') { echo ' selected="selected"'; }?>><?php echo JText::_('Required'); ?></option>
-								<option value="H"<?php if ($update == 'H') { echo ' selected="selected"'; }?>><?php echo JText::_('Hide'); ?></option>
-								<option value="U"<?php if ($update == 'U') { echo ' selected="selected"'; }?>><?php echo JText::_('Read only'); ?></option>
+								<option value="O"<?php if ($update == 'O') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_OPTIONAL'); ?></option>
+								<option value="R"<?php if ($update == 'R') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_REQUIRED'); ?></option>
+								<option value="H"<?php if ($update == 'H') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_HIDE'); ?></option>
+								<option value="U"<?php if ($update == 'U') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_READ_ONLY'); ?></option>
 							</select>
 						<?php else: ?>
-							<?php echo JText::_('n/a'); ?>
+							<?php echo JText::_('COM_MEMBERS_NOT_APPLICABLE'); ?>
 							<input type="hidden" name="settings[<?php echo $field; ?>][update]" value="-">
 						<?php endif; ?>
 					</td>
 					<td>
 						<?php if ($edit != '-') : ?>
 							<select name="settings[<?php echo $field; ?>][edit]">
-								<option value="O"<?php if ($edit == 'O') { echo ' selected="selected"'; }?>><?php echo JText::_('Optional'); ?></option>
-								<option value="R"<?php if ($edit == 'R') { echo ' selected="selected"'; }?>><?php echo JText::_('Required'); ?></option>
-								<option value="H"<?php if ($edit == 'H') { echo ' selected="selected"'; }?>><?php echo JText::_('Hide'); ?></option>
-								<option value="U"<?php if ($edit == 'U') { echo ' selected="selected"'; }?>><?php echo JText::_('Read only'); ?></option>
+								<option value="O"<?php if ($edit == 'O') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_OPTIONAL'); ?></option>
+								<option value="R"<?php if ($edit == 'R') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_REQUIRED'); ?></option>
+								<option value="H"<?php if ($edit == 'H') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_HIDE'); ?></option>
+								<option value="U"<?php if ($edit == 'U') { echo ' selected="selected"'; }?>><?php echo JText::_('COM_MEMBERS_REGISTRATION_READ_ONLY'); ?></option>
 							</select>
 						<?php else: ?>
-							<?php echo JText::_('n/a'); ?>
+							<?php echo JText::_('COM_MEMBERS_NOT_APPLICABLE'); ?>
 							<input type="hidden" name="settings[<?php echo $field; ?>][edit]" value="-">
 						<?php endif; ?>
 					</td>

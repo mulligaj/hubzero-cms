@@ -37,29 +37,6 @@ defined('_JEXEC') or die( 'Restricted access' );
 class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 {
 	/**
-	 * Method to set a property of the class
-	 *
-	 * @param     string $property Name of property
-	 * @param     mixed  $value    Value of the property
-	 * @return    void
-	 */
-	public function setVar($property, $value)
-	{
-		$this->$property = $value;
-	}
-
-	/**
-	 * Method to get a property of the class
-	 *
-	 * @param      string $property Name of property
-	 * @return     mixed
-	 */
-	public function getVar($property)
-	{
-		return $this->$property;
-	}
-
-	/**
 	 * Determines task being called and attempts to execute it
 	 *
 	 * @return	void
@@ -67,11 +44,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 	public function execute()
 	{
 		// Publishing enabled?
-		$this->_publishing =
-			is_file(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS
-				. 'com_publications' . DS . 'tables' . DS . 'publication.php')
-			&& JPluginHelper::isEnabled('projects', 'publications')
-			? 1 : 0;
+		$this->_publishing = JPluginHelper::isEnabled('projects', 'publications') ? 1 : 0;
 
 		// Include scripts
 		$this->_inlcudeScripts();
@@ -90,9 +63,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		$this->_alias   	= JRequest::getVar( 'alias', '' );
 		$this->_identifier  = $this->_id ? $this->_id : $this->_alias;
 
-		// Add fancybox styling
-		$this->_getStyles('', 'jquery.fancybox.css', true);
-
 		// Set the default task
 		$this->registerTask('__default', 'intro');
 
@@ -102,74 +72,8 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		$this->registerTask('reinstate', 'changestate');
 		$this->registerTask('fixownership', 'changestate');
 		$this->registerTask('delete', 'changestate');
-		$this->registerTask('get', 'pubview');
 
 		parent::execute();
-	}
-
-	/**
-	 * Pub view for project files, notes etc.
-	 *
-	 * @return     void
-	 */
-	public function pubviewTask()
-	{
-		if (is_file(JPATH_ROOT . DS . 'administrator' . DS . 'components'.DS
-			.'com_projects' . DS . 'tables' . DS . 'project.public.stamp.php'))
-		{
-			require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'.DS
-				.'com_projects' . DS . 'tables' . DS . 'project.public.stamp.php');
-		}
-		else
-		{
-			return false;
-		}
-
-		// Incoming
-		$stamp = JRequest::getVar( 's', '' );
-
-		// Clean up stamp value (only numbers and letters)
-		$regex  = array('/[^a-zA-Z0-9]/');
-		$stamp  = preg_replace($regex, '', $stamp);
-
-		// Load item reference
-		$objSt = new ProjectPubStamp( $this->database );
-		if (!$stamp || !$objSt->loadItem($stamp))
-		{
-			$this->setRedirect(
-				JRoute::_('index.php?option=' . $this->_option)
-			);
-			return;
-		}
-
-		// Can only serve files or notes at the moment
-		if (!in_array($objSt->type, array('files', 'notes', 'publications')))
-		{
-			$this->setRedirect(
-				JRoute::_('index.php?option=' . $this->_option)
-			);
-			return;
-		}
-
-		// Get plugin
-		JPluginHelper::importPlugin( 'projects', $objSt->type );
-		$dispatcher = JDispatcher::getInstance();
-
-		// Serve requested item
-		$content = $dispatcher->trigger('serve', array($objSt->projectid, $objSt->reference));
-
-		// Return content
-		if ($content[0])
-		{
-			return $content[0];
-		}
-
-		// Redirect if nothing fetched
-		$this->setRedirect(
-			JRoute::_('index.php?option=' . $this->_option)
-		);
-
-		return;
 	}
 
 	/**
@@ -213,16 +117,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		{
 			return false;
 		}
-	}
-
-	/**
-	 * Push scripts to document head
-	 *
-	 * @return     void
-	 */
-	protected function _getProjectScripts()
-	{
-		$this->_getScripts('assets/js/' . $this->_name);
 	}
 
 	/**
@@ -314,7 +208,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 	 */
 	public function introTask()
 	{
-		$this->view->setLayout('intro');
 		$this->_task = 'intro';
 
 		// Incoming
@@ -356,10 +249,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			$setup_complete
 		);
 
-		// Add the CSS to the template
-		$this->_getStyles('', 'introduction.css', true);
-		$this->_getStyles();
-
 		// Set the pathway
 		$this->_buildPathway(null);
 
@@ -386,7 +275,8 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			$this->view->setError( $this->getError() );
 		}
 
-		$this->view->display();
+		$this->view->setLayout('intro')
+					->display();
 	}
 
 	/**
@@ -399,12 +289,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		// Get language file
 		$lang = JFactory::getLanguage();
 		$lang->load('com_projects_features');
-
-		// Add the CSS to the template
-		$this->_getStyles();
-
-		// Push some scripts to the template
-		$this->_getProjectScripts();
 
 		// Set the pathway
 		$this->_buildPathway(null);
@@ -441,12 +325,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		$action  	= JRequest::getVar( 'action', '' );
 		$layout	 	= 'browse';
 
-		// Add the CSS to the template
-		$this->_getStyles();
-
-		// Push some scripts to the template
-		$this->_getProjectScripts();
-
 		// Set the pathway
 		$this->_task = 'browse';
 		$this->_buildPathway(null);
@@ -470,12 +348,12 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			}
 			else
 			{
-				$view 		 = new JView( array('name' => 'error') );
-				$view->error = JText::_('COM_PROJECTS_REVIEWER_RESTRICTED_ACCESS');
-				$view->title = $reviewer == 'sponsored'
+				$this->view = new \Hubzero\Component\View( array('name'=>'error', 'layout' =>'default') );
+				$this->view->error  = JText::_('COM_PROJECTS_REVIEWER_RESTRICTED_ACCESS');
+				$this->view->title = $reviewer == 'sponsored'
 							 ? JText::_('COM_PROJECTS_REVIEWER_SPS')
 							 : JText::_('COM_PROJECTS_REVIEWER_HIPAA');
-				$view->display();
+				$this->view->display();
 				return;
 			}
 		}
@@ -635,10 +513,10 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 						!$cgroup->is_member_of('managers',$this->juser->get('id')))
 					{
 						$this->_buildPathway(null);
-						$view 			= new JView( array('name'=>'error', 'layout' => 'restricted') );
-						$view->error  	= JText::_('COM_PROJECTS_SETUP_ERROR_NOT_FROM_CREATOR_GROUP');
-						$view->title 	= $this->title;
-						$view->display();
+						$this->view = new \Hubzero\Component\View( array('name'=>'error', 'layout' =>'restricted') );
+						$this->view->error  = JText::_('COM_PROJECTS_SETUP_ERROR_NOT_FROM_CREATOR_GROUP');
+						$this->view->title = $this->title;
+						$this->view->display();
 						return;
 					}
 				}
@@ -859,9 +737,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			$objT = new ProjectType( $this->database );
 			$this->view->typetitle = $objT->getTypeTitle($obj->type);
 			$this->view->uploadnow = JRequest::getInt( 'uploadnow', 0 );
-
-			// Get project thumb
-			$this->view->thumb_src = ProjectsHtml::getThumbSrc($obj->id, $obj->alias, $obj->picture, $this->config);
 		}
 
 		// Editing team
@@ -918,13 +793,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		// Set the pathway
 		$this->_buildPathway($this->view->project, $group);
 
-		// Add the CSS to the template
-		$this->_getStyles();
-
-		// Push some scripts to the template
-		$this->_getProjectScripts();
-		$this->_getScripts('assets/js/setup');
-
 		// Output HTML
 		$this->view->title  		= $this->title;
 		$this->view->option 		= $this->_option;
@@ -958,14 +826,14 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		$action  		=  JRequest::getVar( 'action', '' );
 		$sync 			=  0;
 
-		// Stop ajax action if user got logged put
+		// Stop ajax action if user got logged out
 		if ($ajax && $this->juser->get('guest'))
 		{
 			// Project on hold
-			$view 		  = new JView( array('name' => 'error') );
-			$view->error  = JText::_('COM_PROJECTS_PROJECT_RELOGIN');
-			$view->title  = JText::_('COM_PROJECTS_PROJECT_RELOGIN_REQUIRED');
-			$view->display();
+			$this->view 		= new \Hubzero\Component\View( array('name'=>'error', 'layout' =>'default') );
+			$this->view->error  = JText::_('COM_PROJECTS_PROJECT_RELOGIN');
+			$this->view->title  = JText::_('COM_PROJECTS_PROJECT_RELOGIN_REQUIRED');
+			$this->view->display();
 			return;
 		}
 
@@ -1001,12 +869,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			$alias  = $project->alias;
 		}
 
-		// Add the CSS to the template
-		$this->_getStyles();
-
-		// Push some scripts to the template
-		$this->_getProjectScripts();
-
 		// Is this a group project?
 		$group = NULL;
 		if ($project->owned_by_group)
@@ -1022,7 +884,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 				// Options for project creator
 				if ($project->created_by_user == $this->juser->get('id'))
 				{
-					$view 			= new JView( array('name'=>'changeowner') );
+					$view 			= new \Hubzero\Component\View( array('name'=>'changeowner', 'layout' =>'default') );
 					$view->project 	= $project;
 					$view->task 	= $this->_task;
 					$view->option 	= $this->_option;
@@ -1035,7 +897,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 				else
 				{
 					// Project on hold
-					$view 		 = new JView( array('name' => 'error') );
+					$view 		 = new \Hubzero\Component\View( array('name'=>'error', 'layout' =>'default') );
 					$view->error = JText::_('COM_PROJECTS_PROJECT_OWNER_DELETED');
 					$view->title = JText::_('COM_PROJECTS_PROJECT_OWNERSHIP_ERROR');
 					$view->display();
@@ -1174,7 +1036,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 				else
 				{
 					// Different email
-					$view 		  = new JView( array('name' => 'error') );
+					$view 		  = new \Hubzero\Component\View( array('name'=>'error', 'layout' =>'default') );
 					$view->error  = JText::_('COM_PROJECTS_INVITE_DIFFERENT_EMAIL');
 					$view->title  = $this->title;
 					$view->display();
@@ -1191,9 +1053,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 				if ($this->juser->get('id') == $project->created_by_user && $project->setup_stage >= $setup_complete)
 				{
 					$layout = 'provisioned';
-
-					// Add JS
-					$this->_getScripts('assets/js/setup');
 				}
 				elseif ($this->juser->get('guest'))
 				{
@@ -1204,7 +1063,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 				else
 				{
 					// Need to be project creator
-					$view 			= new JView( array('name' => 'error') );
+					$view 			= new \Hubzero\Component\View( array('name'=>'error', 'layout' =>'default') );
 					$view->error  	= JText::_('COM_PROJECTS_ERROR_MUST_BE_PROJECT_CREATOR');
 					$view->title 	= $this->title;
 					$view->display();
@@ -1293,7 +1152,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 
 			$this->view->pub 	   = isset($pub) ? $pub : '';
 			$this->view->team 	   = $objO->getOwnerNames($this->_identifier);
-			$this->view->suggested = $this->_suggestAlias($pub->title);
+			$this->view->suggested = ProjectsHelper::suggestAlias($pub->title);
 			$this->view->verified  = $this->verifyTask(0, $this->view->suggested, $pid);
 			$this->view->suggested = $this->view->verified ? $this->view->suggested : '';
 		}
@@ -1335,6 +1194,13 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			$jsession->set('projects-nolog', 0);
 		}
 
+		// Get plugin
+		JPluginHelper::importPlugin( 'projects');
+		$dispatcher = JDispatcher::getInstance();
+
+		// Get plugins with side tabs
+		$this->view->tabs 	= $dispatcher->trigger( 'onProjectAreas', array( ) );
+
 		// Go through plugins
 		$this->view->content = '';
 		if ($layout == 'internal')
@@ -1342,19 +1208,13 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			$plugin = $this->active == 'feed' ? 'blog' : $this->active;
 			$plugin = $this->active == 'info' ? '' : $plugin;
 
-			// Get plugin
-			JPluginHelper::importPlugin( 'projects');
-			$dispatcher = JDispatcher::getInstance();
-
-			// Get plugins with side tabs
-			$this->view->tabs 	= $dispatcher->trigger( 'onProjectAreas', array( ) );
 			$availPlugins 		= $dispatcher->trigger( 'onProjectAreas', array('all' => true) );
 
 			// Get tabs
-			$tabs = $this->_getTabs($this->view->tabs);
+			$tabs = ProjectsHelper::getTabs($this->view->tabs);
 
 			// Get active plugins (some may not be in tabs)
-			$activePlugins = $this->_getTabs($availPlugins);
+			$activePlugins = ProjectsHelper::getTabs($availPlugins);
 
 			// Get plugin content
 			if ($this->active != 'info')
@@ -1504,50 +1364,32 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			{
 				// Hide welcome screen?
 				$c = JRequest::getInt( 'c', 0 );
-				if ($c) {
-					$objO->saveParam ( $project->id, $this->juser->get('id'), $param = 'hide_welcome', 1 );
+				if ($c)
+				{
+					$objO->saveParam(
+						$project->id,
+						$this->juser->get('id'),
+						$param = 'hide_welcome', 1
+					);
 					$this->_redirect = JRoute::_('index.php?option=' . $this->_option
 						. a . 'task=view' . a . 'alias=' . $project->alias);
 					return;
 				}
-
-				// Show welcome screen?
-				$owner_params = new JParameter( $project->owner_params );
-				$show_welcome = ((!$project->lastvisit or $project->num_visits < 3)
-								&& ($owner_params->get('hide_welcome', 0) == 0))  ? 1 : 0;
-
-				// Show welcome banner with suggestions
-				$suggestions = ProjectsHelper::getSuggestions(
-					$project,
-					$this->_option,
-					$this->juser->get('id'),
-					$this->config,
-					$this->view->params
-				);
-
-				if ($show_welcome)
-				{
-					$wview = new JView(
-						array(
-							'name'=>'welcome'
-						)
-					);
-					$wview->option 		= $this->_option;
-					$wview->project 	= $project;
-					$wview->suggestions = $suggestions;
-					$wview->creator 	= $project->created_by_user == $this->juser->get('id') ? 1 : 0;;
-					$notification 		= $wview->loadTemplate();
-				}
-				else
-				{
-					// Get side modules
-					$side_modules = $this->_getModules( $this->view->project, $this->_option,
-						$this->juser->get('id'), $suggestions);
-				}
 			}
 
-			$this->view->side_modules      = isset($side_modules) ? $side_modules : '';
-			$this->view->notification      = isset($notification) ? $notification : '';
+			// Get notification
+			$notification       		= $dispatcher->trigger('onProjectNotification',
+				array( $project, $this->juser->get('id'), $this->active, $this->_option )
+			);
+			$this->view->notification 	= $notification && !empty($notification)
+				? $notification[0] : NULL;
+
+			// Get side content
+			$sideContent       			= $dispatcher->trigger('onProjectExtras',
+				array( $project, $this->juser->get('id'), $this->active, $this->_option )
+			);
+			$this->view->sideContent 	= $sideContent && !empty($sideContent)
+				? $sideContent[0] : NULL;
 		}
 
 		// Output HTML
@@ -1682,12 +1524,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		$this->view->setLayout( 'edit' );
 		$this->view->project = $project;
 
-		// Add the CSS to the template
-		$this->_getStyles();
-
-		// Push some scripts to the template
-		$this->_getProjectScripts();
-
 		// Get section-specific extra bits of information
 		switch ($this->active)
 		{
@@ -1729,7 +1565,8 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 				{
 					if (isset($content[0]['msg']) && !empty($content[0]['msg']))
 					{
-						$this->setNotification($content[0]['msg']['message'], $content[0]['msg']['type']);
+						$this->setNotification($content[0]['msg']['message'],
+							$content[0]['msg']['type']);
 					}
 					if ($content[0]['html'])
 					{
@@ -1789,9 +1626,22 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			return;
 		}
 
+		// Get plugin
+		JPluginHelper::importPlugin( 'projects');
+		$dispatcher = JDispatcher::getInstance();
+
+		// Get plugins with side tabs
+		$this->view->tabs 	= $dispatcher->trigger( 'onProjectAreas', array( ) );
+
+		// Get item counts
+		$dispatcher->trigger( 'onProjectCount', array( $project, &$counts) );
+		$counts['newactivity'] = 0;
+		$this->view->project->counts = $counts;
+
 		// Output HTML
 		$this->view->uid 		= $this->juser->get('id');
-		$this->view->active 	= $active;
+		$this->view->section 	= $active;
+		$this->view->active 	= 'edit';
 		$this->view->sections 	= $sections;
 		$this->view->title  	= $this->title;
 		$this->view->authorized = $authorized;
@@ -1821,9 +1671,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 	 */
 	public function saveTask($pid = 0, $what = 'info', $setup = 1, $tempid = 0)
 	{
-		$dateFormat = 'M d, Y';
-		$tz = false;
-
 		// Incoming
 		$name 		= trim(JRequest::getVar( 'name', '', 'post' ));
 		$title 		= trim(JRequest::getVar( 'title', '', 'post' ));
@@ -2008,7 +1855,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 							&& $old_params != $project->params)
 						{
 							// Meta data for comment
-							$meta = '<meta>' . JHTML::_('date', JFactory::getDate(), $dateFormat, $tz)
+							$meta = '<meta>' . JHTML::_('date', JFactory::getDate(), 'M d, Y')
 							. ' - ' . $this->juser->get('name') . '</meta>';
 
 							$cbase   = $obj->admin_notes;
@@ -2028,7 +1875,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 
 							if (\Hubzero\User\Group::getInstance($admingroup))
 							{
-								$admins = $this->_getGroupMembers($admingroup);
+								$admins = ProjectsHelper::getGroupMembers($admingroup);
 
 								// Send out email to admins
 								if (!empty($admins))
@@ -2228,9 +2075,9 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 							$admingroup 	= $this->config->get('admingroup', '');
 							$sdata_group 	= $this->config->get('sdata_group', '');
 							$ginfo_group 	= $this->config->get('ginfo_group', '');
-							$project_admins = $this->_getGroupMembers($admingroup);
-							$ginfo_admins 	= $this->_getGroupMembers($ginfo_group);
-							$sdata_admins 	= $this->_getGroupMembers($sdata_group);
+							$project_admins = ProjectsHelper::getGroupMembers($admingroup);
+							$ginfo_admins 	= ProjectsHelper::getGroupMembers($ginfo_group);
+							$sdata_admins 	= ProjectsHelper::getGroupMembers($sdata_group);
 
 							$admins = array_merge($project_admins, $ginfo_admins, $sdata_admins);
 							$admins = array_unique($admins);
@@ -2309,7 +2156,8 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		if ($project->provisioned != 1)
 		{
 			// Redirect to project page
-			$this->_redirect = JRoute::_('index.php?option=' . $this->_option . a . 'alias=' . $project->alias);
+			$this->_redirect = JRoute::_('index.php?option=' . $this->_option
+				. a . 'alias=' . $project->alias);
 			return;
 		}
 
@@ -2317,7 +2165,8 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		$setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
 		if ($project->setup_stage < $setup_complete)
 		{
-			$this->_redirect = JRoute::_('index.php?option=' . $this->_option . a . 'task=setup'
+			$this->_redirect = JRoute::_('index.php?option=' . $this->_option
+				. a . 'task=setup'
 				. a . 'alias=' . $project->alias);
 			return;
 		}
@@ -2349,12 +2198,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 
 		// Set the page title
 		$this->_buildTitle($project);
-
-		// Add the CSS to the template
-		$this->_getStyles();
-
-		// Push some scripts to the template
-		$this->_getProjectScripts();
 
 		// Return to page in case of error
 		if ($this->getError())
@@ -2666,9 +2509,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 	 */
 	public function processTask()
 	{
-		$dateFormat = 'M d, Y';
-		$tz = false;
-
 		// Incoming
 		$reviewer 	= JRequest::getVar( 'reviewer', '' );
 		$action  	= JRequest::getVar( 'action', '' );
@@ -2707,12 +2547,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		// Set the page title
 		$this->_buildTitle(null);
 
-		// Add the CSS to the template
-		$this->_getStyles();
-
-		// Push some scripts to the template
-		$this->_getProjectScripts();
-
 		// Get project params
 		$params = new JParameter( $obj->params );
 
@@ -2726,7 +2560,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			// Meta data for comment
 			$now = JFactory::getDate()->toSql();
 			$actor = $this->juser->get('name');
-			$meta = '<meta>' . JHTML::_('date', $now, $dateFormat, $tz) . ' - ' . $actor . '</meta>';
+			$meta = '<meta>' . JHTML::_('date', $now, 'M d, Y') . ' - ' . $actor . '</meta>';
 
 			// Save approval
 			if ($reviewer == 'sensitive')
@@ -2811,7 +2645,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 						$cbase  .= (trim($comment) != '') ? ' ' . $comment : '';
 						$cbase  .= $meta . '</nb:' . $reviewer . '>';
 					}
-					$notify = 1;
 				}
 			}
 
@@ -2834,7 +2667,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 
 				if (\Hubzero\User\Group::getInstance($admingroup))
 				{
-					$admins = $this->_getGroupMembers($admingroup);
+					$admins = ProjectsHelper::getGroupMembers($admingroup);
 					$admincomment = $comment
 						? $actor . ' ' . JText::_('COM_PROJECTS_SAID') . ': ' . $comment
 						: '';
@@ -2950,7 +2783,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			$this->view->option 	= $this->_option;
 			$this->view->project	= $obj;
 			$this->view->params		= $params;
-			$this->view->thumb_src 	= ProjectsHtml::getThumbSrc($obj->id, $obj->alias, $obj->picture, $this->config);
 			$this->view->config 	= $this->config;
 			$this->view->database 	= $this->database;
 			$this->view->action		= $action;
@@ -2963,66 +2795,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 				$this->view->setError( $this->getError() );
 			}
 			$this->view->display();
-		}
-	}
-
-	/**
-	 * Update activity counts (AJAX)
-	 *
-	 * @param  int $pid
-	 * @param  string $what
-	 * @param  int $authorized
-	 * @param  int $ajax
-	 * @param  int $uid
-	 * @return void
-	 */
-	public function showcountTask ( $pid = 0, $what = '', $authorized = 0, $ajax = 1, $uid = 0 )
-	{
-		$pid  	= $pid ? $pid : JRequest::getInt( 'pid', 0 );
-		$what 	= $what ? $what : JRequest::getVar( 'what', '' );
-		$uid 	= $uid ? $uid : $this->juser->get('id');
-		$count 	= 0;
-
-		// Check id
-		if (!$pid)
-		{
-			return false;
-		}
-
-		// Check authorization
-		if (!$authorized)
-		{
-			$authorized = $this->_authorize($pid);
-		}
-		if (!$authorized)
-		{
-			return false;
-		}
-
-		$db = JFactory::getDBO();
-		$project = new Project( $db );
-		if (!$project->loadProject( $pid ))
-		{
-			return false;
-		}
-		// Get plugin
-		JPluginHelper::importPlugin( 'projects', $what);
-		$dispatcher = JDispatcher::getInstance();
-		$dispatcher->trigger( 'onProjectCount', array( $project, &$counts) );
-
-		if (isset($counts[$what]))
-		{
-			$count = $counts[$what];
-		}
-
-		if ($ajax)
-		{
-			echo $count;
-			return;
-		}
-		else
-		{
-			return $count;
 		}
 	}
 
@@ -3056,7 +2828,8 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 			'suspend', 'reinstate', 'fixownership',
 			'delete', 'intro', 'activate', 'process',
 			'upload', 'img', 'verify', 'autocomplete',
-			'showcount', 'wikipreview', 'auth', 'public');
+			'showcount', 'preview', 'auth', 'public',
+			'get', 'media');
 
 		if ($names)
 		{
@@ -3146,24 +2919,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 	//----------------------------------------------------------
 	// Private Functions
 	//----------------------------------------------------------
-
-	/**
-	 * Suggest alias name from title
-	 *
-	 * @param  string $title
-	 * @return     void
-	 */
-	protected function _suggestAlias($title = '')
-	{
-		if ($title)
-		{
-			$name = preg_replace('/ /', '', $title);
-			$name = strtolower($name);
-			$name = preg_replace('/[^a-z0-9]/', '', $name);
-			$name = substr($name, 0, 30);
-			return $name;
-		}
-	}
 
 	/**
 	 * Copy temp image file
@@ -3469,35 +3224,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 	}
 
 	/**
-	 * Get group members
-	 *
-	 * @param  string $admingroup
-	 * @return void
-	 */
-	protected function _getGroupMembers($admingroup)
-	{
-		$admins = array();
-		if ($admingroup)
-		{
-			$group = \Hubzero\User\Group::getInstance($admingroup);
-			if ($group)
-			{
-				$gidNumber = $group->get('gidNumber');
-
-				if ($gidNumber)
-				{
-					$members 	= $group->get('members');
-					$managers 	= $group->get('managers');
-					$admins 	= array_merge($members, $managers);
-					$admins 	= array_unique($admins);
-				}
-			}
-		}
-
-		return $admins;
-	}
-
-	/**
 	 * Authorize users
 	 *
 	 * @param  int $projectid
@@ -3544,7 +3270,8 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 	 * @param  int 		$owner		Project owner ID if project owner
 	 * @return void
 	 */
-	protected function _logActivity ($pid = 0, $section = 'general', $layout = '', $action = '', $owner = 0)
+	protected function _logActivity ($pid = 0, $section = 'general',
+		$layout = '', $action = '', $owner = 0)
 	{
 		// Is logging enabled?
 		$enabled = $this->config->get('logging', 0);
@@ -3575,105 +3302,6 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		$objLog->request_uri 	= JRequest::getVar('REQUEST_URI', $juri->base(), 'server');
 		$objLog->ajax 			= $ajax;
 		$objLog->store();
-	}
-
-	/**
-	 * Get side modules for project page (internal)
-	 *
-	 * @param  object $project
-	 * @param  string $option
-	 * @param  int $uid
-	 * @param  array $suggestions
-	 * @return void
-	 */
-	protected function _getModules( $project = '', $option = '', $uid = 0, $suggestions = array())
-	{
-		$limit = $this->config->get('sidebox_limit', 3);
-		$modules = '';
-
-		// Show side module with suggestions
-		if (count($suggestions) > 1 && $project->num_visits < 10)
-		{
-			$view = new JView(
-				array(
-					'name' 	 => 'modules',
-					'layout' => 'suggestions'
-				)
-			);
-			$view->option 		= $option;
-			$view->suggestions 	= $suggestions;
-			$view->project 		= $project;
-			$modules 		   .= $view->loadTemplate();
-		}
-
-		// Get todo's
-		$objTD = new ProjectTodo( $this->database );
-		$todos = $objTD->getTodos ($project->id, $filters = array(
-			'sortby' => 'due DESC, p.duedate ASC', 'limit' => $limit
-		  )
-		);
-
-		// To-do side module
-		$view = new JView(
-			array(
-				'name' => 'modules',
-				'layout' => 'todo'
-			)
-		);
-		$view->option 	= $option;
-		$view->items 	= $todos;
-		$view->project 	= $project;
-		$modules 	   .= $view->loadTemplate();
-
-		// Get publications
-		if ($this->_publishing)
-		{
-			$objP = new Publication( $this->database );
-			$pubs = $objP->getRecords($filters = array(
-				'sortby' => 'random', 'limit' => $limit, 'project' => $project->id,
-				'ignore_access' => 1, 'dev' => 1
-			));
-
-			if (count($pubs) > 0)
-			{
-				// Get language file
-				$lang = JFactory::getLanguage();
-				$lang->load('plg_projects_publications');
-			}
-
-			// Publications side module
-			$view = new JView(
-				array(
-					'name' => 'modules',
-					'layout' => 'publications'
-				)
-			);
-			$view->option 	= $option;
-			$view->items 	= $pubs;
-			$view->project 	= $project;
-			$modules 	   .= $view->loadTemplate();
-		}
-
-		// Get notes
-		$projectsHelper = new ProjectsHelper( $this->database );
-		$masterscope 	= 'projects' . DS . $project->alias . DS . 'notes';
-		$group_prefix 	= $this->config->get('group_prefix', 'pr-');
-		$group 			= $group_prefix . $project->alias;
-		$notes 			= $projectsHelper->getNotes($group, $masterscope, $limit, 'RAND()');
-
-		// To-do side module
-		$view = new JView(
-			array(
-				'name' 	 => 'modules',
-				'layout' => 'notes'
-			)
-		);
-		$view->option 	= $option;
-		$view->items 	= $notes;
-		$view->project 	= $project;
-		$modules 	   .= $view->loadTemplate();
-
-		return $modules;
 	}
 
 	/**
@@ -3729,7 +3357,7 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 		$subject_pending = JText::_('COM_PROJECTS_EMAIL_SUBJECT_INVITE') . ' ' . $project->alias;
 
 		// Message body
-		$eview 					= new JView( array('name'=>'emails', 'layout'=> 'invite_plain' ) );
+		$eview = new \Hubzero\Component\View( array('name'=>'emails', 'layout' =>'invite_plain') );
 		$eview->option 			= $this->_option;
 		$eview->hubShortName 	= $jconfig->getValue('config.sitename');
 		$eview->project 		= $project;
@@ -3797,29 +3425,5 @@ class ProjectsControllerProjects extends \Hubzero\Component\SiteController
 					. ': ' . $subject_pending, $message, $from);
 			}
 		}
-	}
-
-	/**
-	 * Get tabs
-	 *
-	 * @return    array
-	 */
-	protected function _getTabs( &$plugins )
-	{
-		// Make sure we have name and title
-		$tabs = array();
-		for ($i = 0, $n = count($plugins); $i <= $n; $i++)
-		{
-			if (empty($plugins[$i]) || !isset($plugins[$i]['name']))
-			{
-				unset($plugins[$i]);
-			}
-			else
-			{
-				$tabs[] = $plugins[$i]['name'];
-			}
-		}
-
-		return $tabs;
 	}
 }

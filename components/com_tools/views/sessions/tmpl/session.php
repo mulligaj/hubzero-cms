@@ -90,13 +90,13 @@ if (!$this->app->sess) {
 			</ul>
 		<?php } ?>
 		</div><!-- #app-header -->
-		<noscript>
-			<p class="warning">
-				<?php echo JText::_('COM_TOOLS_ERROR_NOSCRIPT'); ?>
-			</p>
-		</noscript>
 
-		<div id="app-content" class="<?php if ($readOnly) { echo 'view-only'; } ?>" style="width: <?php echo $this->output->width; ?>px; height: <?php echo $this->output->height; ?>px">
+		<div id="app-content" tabindex="1" class="<?php if ($readOnly) { echo 'view-only'; } ?>" style="width: <?php echo $this->output->width; ?>px; height: <?php echo $this->output->height; ?>px">
+			<noscript>
+				<p class="warning">
+					<?php echo JText::_('COM_TOOLS_ERROR_NOSCRIPT'); ?>
+				</p>
+			</noscript>
 			<input type="hidden" id="app-orig-width" name="apporigwidth" value="<?php echo $this->escape($this->output->width); ?>" />
 			<input type="hidden" id="app-orig-height" name="apporigheight" value="<?php echo $this->escape($this->output->height); ?>" />
 			<?php
@@ -104,7 +104,12 @@ if (!$this->app->sess) {
 			$dispatcher = JDispatcher::getInstance();
 
 			$output = $dispatcher->trigger('onToolSessionView', array($this->app, $this->output, $readOnly));
-			echo implode("\n", $output);
+			$output = implode("\n", $output);
+			if (!trim($output))
+			{
+				$output = '<p class="error">' . JText::_('COM_TOOLS_ERROR_NOVIEWER') . '</p>';
+			}
+			echo $output;
 			?>
 		</div><!-- / #app-content -->
 		<div id="app-footer">

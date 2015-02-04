@@ -28,6 +28,11 @@ defined('_JEXEC') or die( 'Restricted access' );
 $route = 'index.php?option=com_publications&task=submit';
 $url = JRoute::_($route . '&pid=' . $this->pub->id);
 
+$this->css()
+	->js()
+	->css('provisioned')
+	->js('setup');
+
 ?>
 <div id="project-wrap">
 	<section class="main section">
@@ -43,7 +48,7 @@ $url = JRoute::_($route . '&pid=' . $this->pub->id);
 			if ($this->getError()) {
 				echo ('<p class="witherror">' . $this->getError().'</p>');
 			}
-			else if($this->msg) {
+			else if ($this->msg) {
 				echo ('<p>' . $this->msg . '</p>');
 			} ?>
 		</div>

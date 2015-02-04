@@ -44,6 +44,7 @@ if ($this->post->exists())
 }
 else
 {
+	$this->post->set('access', 0);
 	$action = $this->post->link('new');
 }
 ?>
@@ -107,6 +108,14 @@ else
 			<?php } ?>
 
 			<?php if (!$this->post->get('parent')) { ?>
+				<label for="field-access">
+					<?php echo JText::_('COM_FORUM_FIELD_READ_ACCESS'); ?>
+					<select name="fields[access]" id="field-access">
+						<option value="0"<?php if ($this->post->get('access', 0) == 0) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_FORUM_FIELD_READ_ACCESS_OPTION_PUBLIC'); ?></option>
+						<option value="1"<?php if ($this->post->get('access', 0) == 1) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_FORUM_FIELD_READ_ACCESS_OPTION_REGISTERED'); ?></option>
+					</select>
+				</label>
+
 				<label for="field-category_id">
 					<?php echo JText::_('COM_FORUM_FIELD_CATEGORY'); ?> <span class="required"><?php echo JText::_('COM_FORUM_REQUIRED'); ?></span>
 					<select name="fields[category_id]" id="field-category_id">
@@ -128,25 +137,20 @@ else
 				</label>
 			<?php } else { ?>
 				<input type="hidden" name="fields[category_id]" id="field-category_id" value="<?php echo $this->post->get('category_id'); ?>" />
+				<input type="hidden" name="fields[access]" id="field-access" value="<?php echo $this->post->get('access', 0); ?>" />
 			<?php } ?>
 
 				<label for="fieldcomment">
 					<?php echo JText::_('COM_FORUM_FIELD_COMMENTS'); ?> <span class="required"><?php echo JText::_('COM_FORUM_REQUIRED'); ?></span>
 					<?php
-					echo \JFactory::getEditor()->display('fields[comment]', $this->escape(stripslashes($this->post->content('raw'))), '', '', 35, 15, false, 'fieldcomment', null, null, array('class' => 'minimal no-footer'));
+					echo $this->editor('fields[comment]', $this->escape(stripslashes($this->post->content('raw'))), 35, 15, 'fieldcomment', array('class' => 'minimal no-footer'));
 					?>
 				</label>
 
 				<label>
 					<?php echo JText::_('COM_FORUM_FIELD_TAGS'); ?>:
 					<?php
-						JPluginHelper::importPlugin('hubzero');
-						$tf = JDispatcher::getInstance()->trigger(
-							'onGetMultiEntry',
-							array(array('tags', 'tags', 'actags', '', $this->post->tags('string')))
-						);
-
-						echo (count($tf) > 0) ? implode("\n", $tf) : '<input type="text" name="tags" id="actags" value="'. $this->escape($this->post->tags('string')) .'" />';
+						echo $this->autocompleter('tags', 'tags', $this->escape($this->post->tags('string')), 'actags');
 					?>
 				</label>
 
@@ -192,7 +196,6 @@ else
 			</fieldset>
 			<input type="hidden" name="fields[parent]" value="<?php echo $this->post->get('parent'); ?>" />
 			<input type="hidden" name="fields[state]" value="1" />
-			<input type="hidden" name="fields[access]" value="0" />
 			<input type="hidden" name="fields[thread]" value="<?php echo $this->post->get('thread'); ?>" />
 			<input type="hidden" name="fields[id]" value="<?php echo $this->post->get('id'); ?>" />
 			<input type="hidden" name="fields[scope]" value="site" />

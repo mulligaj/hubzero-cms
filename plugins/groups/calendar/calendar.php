@@ -289,6 +289,7 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		\Hubzero\Document\Assets::addSystemStylesheet('jquery.fancyselect.css');
 
 		// add full calendar lib
+		\Hubzero\Document\Assets::addSystemScript('moment.min');
 		\Hubzero\Document\Assets::addSystemScript('jquery.fullcalendar.min');
 		\Hubzero\Document\Assets::addSystemStylesheet('jquery.fullcalendar.css');
 		\Hubzero\Document\Assets::addSystemStylesheet('jquery.fullcalendar.print.css', 'text/css', 'print');
@@ -355,13 +356,13 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		$events = array();
 
 		// get request params
-		$start      = JRequest::getInt('start', 0);
-		$end        = JRequest::getInt('end', 0);
+		$start      = JRequest::getVar('start');
+		$end        = JRequest::getVar('end');
 		$calendarId = JRequest::getInt('calender_id', 'null');
 
 		// format date/times
-		$start = JFactory::getDate($start);
-		$end   = JFactory::getDate($end);
+		$start = JFactory::getDate($start . ' 00:00:00');
+		$end   = JFactory::getDate($end . ' 00:00:00');
 		$end->modify('-1 second');
 
 		// get calendar events
@@ -391,26 +392,29 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		// loop through each event to return it
 		foreach ($rawEvents as $rawEvent)
 		{
+			$up   = JFactory::getDate($rawEvent->get('publish_up'));
+			$down = JFactory::getDate($rawEvent->get('publish_down'));
+
 			$event            = new stdClass;
 			$event->id        = $rawEvent->get('id');
 			$event->title     = $rawEvent->get('title');
 			$event->allDay    = $rawEvent->get('allday') == 1;
 			$event->url       = $rawEvent->link();
-			$event->start     = JFactory::getDate($rawEvent->get('publish_up'))->toUnix();
+			$event->start     = JHTML::_('date', $rawEvent->get('publish_up'), 'Y-m-d\TH:i:sO');
 			$event->className = ($rawEvent->get('calendar_id')) ? 'calendar-'.$rawEvent->get('calendar_id') : 'calendar-0';
 			if ($rawEvent->get('publish_down') != '0000-00-00 00:00:00')
 			{
-				$event->end = JFactory::getDate($rawEvent->get('publish_down'))->toUnix();
+				$event->end = JHTML::_('date', $rawEvent->get('publish_down'), 'Y-m-d\TH:i:sO');
 			}
 
 			// add start & end for displaying dates user clicked on
 			// instead of actual event start & end
 			if ($rawEvent->get('repeating_rule') != '')
 			{
-				$event->url .= '?start=' . $event->start;
+				$event->url .= '?start=' . $up->toUnix();
 				if ($rawEvent->get('publish_down') != '0000-00-00 00:00:00')
 				{
-					$event->url .= '&end=' . $event->end;
+					$event->url .= '&end=' . $down->toUnix();
 				}
 			}
 
@@ -589,17 +593,25 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		//parse publish up date/time
 		if (isset($event['publish_up']) && $event['publish_up'] != '')
 		{
-			//remove @ symbol
-			$event['publish_up'] = str_replace("@", "", $event['publish_up']);
+			// combine date & time
+			if (isset($event['publish_up_time']))
+			{
+				$event['publish_up'] = $event['publish_up'] . ' ' . $event['publish_up_time'];
+			}
 			$event['publish_up'] = JFactory::getDate($event['publish_up'], $timezone)->format("Y-m-d H:i:s");
+			unset($event['publish_up_time']);
 		}
 
 		//parse publish down date/time
 		if (isset($event['publish_down']) && $event['publish_down'] != '')
 		{
-			//remove @ symbol
-			$event['publish_down'] = str_replace("@", "", $event['publish_down']);
+			// combine date & time
+			if (isset($event['publish_down_time']))
+			{
+				$event['publish_down'] = $event['publish_down'] . ' ' . $event['publish_down_time'];
+			}
 			$event['publish_down'] = JFactory::getDate($event['publish_down'], $timezone)->format("Y-m-d H:i:s");
+			unset($event['publish_down_time']);
 		}
 
 		//parse register by date/time
@@ -646,7 +658,13 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		//check to make sure end time is greater then start time
 		if (isset($event['publish_down']) && $event['publish_down'] != '0000-00-00 00:00:00' && $event['publish_down'] != '')
 		{
-			if (strtotime($event['publish_up']) >= strtotime($event['publish_down']))
+			$up     = strtotime($event['publish_up']);
+			$down   = strtotime($event['publish_down']);
+			$allday = (isset($event['allday']) && $event['allday'] == 1) ? true : false;
+
+			// make sure up greater then down when not all day
+			// when all day event up can equal down
+			if (($up >= $down && !$allday) || ($allday && $up > $down))
 			{
 				$this->setError('You must an event end date greater than the start date.');
 				$this->event = $eventsModelEvent;

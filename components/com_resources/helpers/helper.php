@@ -160,7 +160,7 @@ class ResourcesHelper extends JObject
 	 */
 	public function getToolAuthors($toolname, $revision)
 	{
-		if (false) // @FIXME  quick hack to deal with influx of data in jos_tool_groups
+		if (false) // @FIXME  quick hack to deal with influx of data in #__tool_groups
 		{
 		$sql = "SELECT n.uidNumber AS id, t.name AS name, n.name AS xname,  n.organization AS xorg, n.givenName AS firstname, n.middleName AS middlename, n.surname AS lastname, t.organization AS org, t.*, NULL as role"
 			 . "\n FROM #__tool_authors AS t, #__xprofiles AS n "
@@ -594,10 +594,10 @@ class ResourcesHelper extends JObject
 	/**
 	 * Get tags on this resource
 	 *
-	 * @param      integer $tagger_id Tagger ID
-	 * @param      integer $strength  Tag strength
-	 * @param      integer $admin     Include admin tags?
-	 * @return     mixed False if errors, array on success
+	 * @param   integer  $tagger_id  Tagger ID
+	 * @param   integer  $strength   Tag strength
+	 * @param   integer  $admin      Include admin tags?
+	 * @return  mixed    False if errors, array on success
 	 */
 	public function getTags($tagger_id=0, $strength=0, $admin=0)
 	{
@@ -608,8 +608,21 @@ class ResourcesHelper extends JObject
 
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'tags.php');
 
-		$rt = new ResourcesTags($this->_db);
-		$this->tags = $rt->get_tags_on_object($this->_id, 0, 0, $tagger_id, $strength, $admin);
+		$rt = new ResourcesTags($this->_id);
+		$filters = array();
+		if ($tagger_id)
+		{
+			$filters['tagger_id'] = $tagger_id;
+		}
+		if ($strength)
+		{
+			$filters['strength'] = $strength;
+		}
+		if (!$admin)
+		{
+			$filters['admin'] = $admin;
+		}
+		$this->tags = $rt->tags('list', $filters);
 		return $this->tags;
 	}
 
@@ -629,8 +642,17 @@ class ResourcesHelper extends JObject
 
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'tags.php');
 
-		$rt = new ResourcesTags($this->_db);
-		$this->tagsForEditing = $rt->get_tag_string($this->_id, 0, 0, $tagger_id, $strength, 0);
+		$rt = new ResourcesTags($this->_id);
+		$filters = array();
+		if ($tagger_id)
+		{
+			$filters['tagger_id'] = $tagger_id;
+		}
+		if ($strength)
+		{
+			$filters['strength'] = $strength;
+		}
+		$this->tagsForEditing = $rt->render('string', $filters);
 		return $this->tagsForEditing;
 	}
 
@@ -649,8 +671,8 @@ class ResourcesHelper extends JObject
 
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'helpers' . DS . 'tags.php');
 
-		$rt = new ResourcesTags($this->_db);
-		$this->tagCloud = $rt->get_tag_cloud(0, $admin, $this->_id);
+		$rt = new ResourcesTags($this->_id);
+		$this->tagCloud = $rt->render('cloud');
 		return $this->tagCloud;
 	}
 

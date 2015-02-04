@@ -25,6 +25,11 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css()
+	->js()
+	->js('setup')
+	->css('jquery.fancybox.css', 'system');
+
 // Do some text cleanup
 $this->project->title = ProjectsHtml::cleanText($this->project->title);
 $this->project->about = ProjectsHtml::cleanText($this->project->about);
@@ -55,7 +60,7 @@ $html  = '';
 	<div class="clear"></div>
 
 	<div class="info_blurb">
-		<div class="pthumb"><img src="<?php echo $this->thumb_src; ?>" alt="" /></div>
+		<div class="pthumb"><img src="<?php echo JRoute::_('index.php?option=' . $this->option . '&alias=' . $this->project->alias . '&task=media') ?>" alt="" /></div>
 		<div class="pinfo">
 			<div class="grid">
 				<div class="col span6">

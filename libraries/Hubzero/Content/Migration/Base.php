@@ -315,10 +315,11 @@ class Base
 	/**
 	 * Get element params
 	 *
-	 * @param  $option  - (string) com_xyz
-	 * @return (object) - JRegistry of params
+	 * @param  string $option    com_xyz
+	 * @param  bool   $returnRaw whether or not to return jregistry object or raw param string
+	 * @return object|string
 	 **/
-	public function getParams($element)
+	public function getParams($element, $returnRaw=false)
 	{
 		if ($this->baseDb->tableExists('#__components'))
 		{
@@ -351,13 +352,16 @@ class Base
 			$params = $this->baseDb->loadResult();
 		}
 
-		if ($params)
+		if (!$returnRaw)
 		{
-			$params = new \JRegistry($params);
-		}
-		else
-		{
-			$params = new \JRegistry();
+			if ($params)
+			{
+				$params = new \JRegistry($params);
+			}
+			else
+			{
+				$params = new \JRegistry();
+			}
 		}
 
 		return $params;
@@ -1027,20 +1031,21 @@ class Base
 	/**
 	 * Remove module entries from the appropriate table, depending on the Joomla version
 	 *
-	 * @param $name - (string) plugin name
+	 * @param $name   - (string) plugin name
+	 * @param $client - (int)    client (site=0, admin=1)
 	 * @return bool
 	 **/
-	public function deleteModuleEntry($element)
+	public function deleteModuleEntry($element, $client=null)
 	{
 		if ($this->baseDb->tableExists('#__extensions'))
 		{
 			// Delete module entry
-			$query = "DELETE FROM `#__extensions` WHERE `element` = '{$element}'";
+			$query = "DELETE FROM `#__extensions` WHERE `element` = '{$element}'" . ((isset($client)) ? " AND `client_id` = " . $this->baseDb->quote($client) : '');
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
 			// See if entries are present in #__modules table as well
-			$query = "SELECT `id` FROM `#__modules` WHERE `module` = '{$element}'";
+			$query = "SELECT `id` FROM `#__modules` WHERE `module` = '{$element}'" . ((isset($client)) ? " AND `client_id` = " . $this->baseDb->quote($client) : '');
 			$this->baseDb->setQuery($query);
 			$ids = $this->baseDb->loadColumn();
 
@@ -1058,7 +1063,7 @@ class Base
 		}
 		else
 		{
-			$query = "SELECT `id` FROM `#__modules` WHERE `module` = '{$element}'";
+			$query = "SELECT `id` FROM `#__modules` WHERE `module` = '{$element}'" . ((isset($client)) ? " AND `client_id` = " . $this->baseDb->quote($client) : '');
 			$this->baseDb->setQuery($query);
 			$ids = $this->baseDb->loadColumn();
 

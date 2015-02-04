@@ -30,11 +30,17 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$text = ($this->task == 'editClass' ? JText::_('EDIT') : JText::_('NEW'));
+$canDo = MembersHelper::getActions('component');
+
+$text = ($this->task == 'editClass' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 
 JToolBarHelper::title(JText::_('COM_MEMBERS_QUOTA_CLASSES') . ': ' . $text, 'user.png');
-JToolBarHelper::apply('applyClass');
-JToolBarHelper::save('saveClass');
+if ($canDo->get('core.edit'))
+{
+	JToolBarHelper::apply('applyClass');
+	JToolBarHelper::save('saveClass');
+	JToolBarHelper::spacer();
+}
 JToolBarHelper::cancel('cancelClass');
 ?>
 
@@ -80,6 +86,17 @@ function submitbutton(pressbutton)
 			<div class="input-wrap">
 				<label for="field-hard_files"><?php echo JText::_('COM_MEMBERS_QUOTA_HARD_FILES'); ?>:</label>
 				<input type="text" name="fields[hard_files]" id="field-hard_files" value="<?php echo $this->escape(stripslashes($this->row->hard_files)); ?>" />
+			</div>
+		</fieldset>
+		<fieldset class="adminform">
+			<legend><span><?php echo JText::_('COM_MEMBERS_QUOTA_CLASS_USERGROUPS_LEGEND'); ?></span></legend>
+			<p><?php echo JText::_('COM_MEMBERS_QUOTA_CLASS_USERGROUPS_DESC'); ?></p>
+			<?php
+			// Include the component HTML helpers.
+			JHtml::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_users/helpers/html');
+			?>
+			<div class="input-wrap">
+				<?php echo JHtml::_('access.usergroups', 'fields[groups]', $this->row->getGroupIds(), true); ?>
 			</div>
 		</fieldset>
 	</div>

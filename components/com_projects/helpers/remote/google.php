@@ -14,18 +14,18 @@
  *
  * HUBzero is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.	 If not, see <http://www.gnu.org/licenses/>.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package   hubzero-cms
- * @author    Alissa Nedossekina <alisa@purdue.edu>
+ * @package	  hubzero-cms
+ * @author	  Alissa Nedossekina <alisa@purdue.edu>
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @license	  http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
 // Check to ensure this file is included in Joomla!
@@ -39,10 +39,10 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Load file metadata
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$id				Remote id
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$id				Remote id
 	 *
-	 * @return   array or false
+	 * @return	 array or false
 	 */
 	public static function loadFile ($apiService, $id = '')
 	{
@@ -67,13 +67,13 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Insert permission
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$id				Remote id
-	 * @param    string					$title			File title
-	 * @param    string					$parentId		Parent id
-	 * @param    array					&$metadata		Collector array
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$id				Remote id
+	 * @param	 string					$title			File title
+	 * @param	 string					$parentId		Parent id
+	 * @param	 array					&$metadata		Collector array
 	 *
-	 * @return   string (id) or false
+	 * @return	 string (id) or false
 	 */
 	public static function insertPermission($apiService, $fileId, $value, $type, $role)
 	{
@@ -96,7 +96,7 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Clear permission for user
 	 *
-	 * @return    boolean
+	 * @return	  boolean
 	 */
 	public static function clearPermissions ($apiService, $shared = array(), $itemId )
 	{
@@ -126,11 +126,11 @@ class ProjectsGoogleHelper extends JObject
 				{
 					try
 					{
-					    $apiService->permissions->delete($itemId, $permissionId);
+						$apiService->permissions->delete($itemId, $permissionId);
 					}
 					catch (Exception $e)
 					{
-					    // error
+						// error
 					}
 				}
 			}
@@ -142,13 +142,13 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Patch file metadata (SYNC)
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$id				Remote id
-	 * @param    string					$title			File title
-	 * @param    string					$parentId		Parent id
-	 * @param    array					&$metadata		Collector array
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$id				Remote id
+	 * @param	 string					$title			File title
+	 * @param	 string					$parentId		Parent id
+	 * @param	 array					&$metadata		Collector array
 	 *
-	 * @return   string (id) or false
+	 * @return	 string (id) or false
 	 */
 	public static function patchFile ($apiService, $id = '', $title = '', $parentId = '', &$metadata)
 	{
@@ -189,15 +189,15 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Insert new file in remote (SYNC)
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$title			File title
-	 * @param    string					$data			File content
-	 * @param    string					$mimeType		MIME type
-	 * @param    string					$parentId		Parent id
-	 * @param    array					&$metadata		Collector array
-	 * @param    boolean				$convert		Convert for remote editing?
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$title			File title
+	 * @param	 string					$data			File content
+	 * @param	 string					$mimeType		MIME type
+	 * @param	 string					$parentId		Parent id
+	 * @param	 array					&$metadata		Collector array
+	 * @param	 boolean				$convert		Convert for remote editing?
 	 *
-	 * @return   string (id) or false
+	 * @return	 string (id) or false
 	 */
 	public static function insertFile ($apiService, $title = '', $localPath = NULL, $mimeType = NULL, $parentId = 0, &$metadata, $convert = false)
 	{
@@ -288,16 +288,16 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Update remote file with local change (SYNC)
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$id				Remote id
-	 * @param    string					$title			File title
-	 * @param    string					$data			File content
-	 * @param    string					$mimeType		MIME type
-	 * @param    string					$parentId		Parent id
-	 * @param    array					&$metadata		Collector array
-	 * @param    boolean				$convert		Convert for remote editing?
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$id				Remote id
+	 * @param	 string					$title			File title
+	 * @param	 string					$data			File content
+	 * @param	 string					$mimeType		MIME type
+	 * @param	 string					$parentId		Parent id
+	 * @param	 array					&$metadata		Collector array
+	 * @param	 boolean				$convert		Convert for remote editing?
 	 *
-	 * @return   string (id) or false
+	 * @return	 string (id) or false
 	 */
 	public static function updateFile ($apiService, $id = 0, $title = '', $localPath = NULL, $mimeType = NULL, $parentId = 0, &$metadata, $convert = false)
 	{
@@ -384,9 +384,9 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Untrash remote item
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$id				Remote id
-	 * @return   boolean
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$id				Remote id
+	 * @return	 boolean
 	 */
 	public static function untrashItem ($apiService, $id = 0)
 	{
@@ -410,9 +410,9 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Delete parent
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$id				Remote id
-	 * @return   boolean
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$id				Remote id
+	 * @return	 boolean
 	 */
 	public static function deleteParent ($apiService, $id = 0, $folderId = 0)
 	{
@@ -437,9 +437,9 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Delete all parents
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$id				Remote id
-	 * @return   boolean
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$id				Remote id
+	 * @return	 boolean
 	 */
 	public static function deleteAllParents ($apiService, $id = 0)
 	{
@@ -451,7 +451,7 @@ class ProjectsGoogleHelper extends JObject
 
 		try
 		{
-		    $parents = $apiService->parents->listParents($id);
+			$parents = $apiService->parents->listParents($id);
 
 			if (!empty($parents['items']))
 			{
@@ -466,25 +466,25 @@ class ProjectsGoogleHelper extends JObject
 					}
 					catch (Exception $e)
 					{
-					    return false;
+						return false;
 					}
 				}
 			}
 		}
 		catch (Exception $e)
 		{
-		    return false;
+			return false;
 		}
 	}
 
 	/**
 	 * Delete remote item
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$id				Remote id
-	 * @param    boolean				$permanent		Delete permanently? (or trash)
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$id				Remote id
+	 * @param	 boolean				$permanent		Delete permanently? (or trash)
 	 *
-	 * @return   void
+	 * @return	 void
 	 */
 	public static function deleteItem ($apiService, $id = 0, $permanent = false)
 	{
@@ -515,12 +515,12 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Create remote folder
 	 *
-	 * @param    Google_DriveService  	$apiService 	Drive API service instance
-	 * @param    string					$title			Folder name
-	 * @param    string					$parentId		Parent id
-	 * @param    array					&$metadata		Collector array
+	 * @param	 Google_DriveService	$apiService		Drive API service instance
+	 * @param	 string					$title			Folder name
+	 * @param	 string					$parentId		Parent id
+	 * @param	 array					&$metadata		Collector array
 	 *
-	 * @return   string (new folder id) or false
+	 * @return	 string (new folder id) or false
 	 */
 	public static function createFolder ($apiService, $title = '', $parentId = 0, &$metadata)
 	{
@@ -536,15 +536,15 @@ class ProjectsGoogleHelper extends JObject
 
 		if ($parentId != null)
 		{
-		    $parent = new Google_ParentReference;
-		    $parent->setId($parentId);
-		    $file->setParents(array($parent));
+			$parent = new Google_ParentReference;
+			$parent->setId($parentId);
+			$file->setParents(array($parent));
 		}
 
 		try
 		{
 			$createdFolder = $apiService->files->insert($file, array(
-			      'mimeType' => 'application/vnd.google-apps.folder'
+				  'mimeType' => 'application/vnd.google-apps.folder'
 			));
 
 			$metadata = $createdFolder;
@@ -560,15 +560,15 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get and sort through remote changes since last sync
 	 *
-	 * @param      Google_DriveService  $apiService 	Drive API service instance
-	 * @param      string				$folderID		Folder ID
-	 * @param      array				&$remotes		Collector array for active items
-	 * @param      array				&$deletes		Collector array for deleted items
-	 * @param      string				$path			Path
-	 * @param      string				$startChangeId	Last Change ID
-	 * @param      array				$connections	Array of local-remote connections
+	 * @param	   Google_DriveService	$apiService		Drive API service instance
+	 * @param	   string				$folderID		Folder ID
+	 * @param	   array				&$remotes		Collector array for active items
+	 * @param	   array				&$deletes		Collector array for deleted items
+	 * @param	   string				$path			Path
+	 * @param	   string				$startChangeId	Last Change ID
+	 * @param	   array				$connections	Array of local-remote connections
 	 *
-	 * @return   int (new change ID) or false
+	 * @return	 int (new change ID) or false
 	 */
 	public static function collectChanges ($apiService, $folderID = 0, &$remotes, &$deletes, $path = '', $startChangeId = NULL, $connections = array())
 	{
@@ -613,21 +613,21 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get remote folder changes
 	 *
-	 * @param      array  		$items 			Remote items
-	 * @param      string		$folderID		Folder ID
-	 * @param      array		&$remotes		Collector array for active items
-	 * @param      array		&$deletes		Collector array for deleted items
-	 * @param      string		$path			Path
-	 * @param      array		$connections	Array of local-remote connections
-	 * @param      array		&$duplicates	Collector array for duplicates
+	 * @param	   array		$items			Remote items
+	 * @param	   string		$folderID		Folder ID
+	 * @param	   array		&$remotes		Collector array for active items
+	 * @param	   array		&$deletes		Collector array for deleted items
+	 * @param	   string		$path			Path
+	 * @param	   array		$connections	Array of local-remote connections
+	 * @param	   array		&$duplicates	Collector array for duplicates
 	 *
-	 * @return   void
+	 * @return	 void
 	 */
 	public static function getFolderChange ($items, $folderID = 0, &$remotes, &$deletes, $path = '', $connections, &$duplicates)
 	{
 		$lpath = $path ? $path : '';
 
-		$conIds   = $connections['ids'];
+		$conIds	  = $connections['ids'];
 		$conPaths = $connections['paths'];
 
 		// Get all changes in a folder
@@ -657,11 +657,11 @@ class ProjectsGoogleHelper extends JObject
 						continue;
 					}
 
-					$status 	= $doc['labels']['trashed'] ? 'D' : 'A';
-					$converted 	= preg_match("/google-apps/", $doc['mimeType']) && !preg_match("/.folder/", $doc['mimeType']) ? 1 : 0;
+					$status		= $doc['labels']['trashed'] ? 'D' : 'A';
+					$converted	= preg_match("/google-apps/", $doc['mimeType']) && !preg_match("/.folder/", $doc['mimeType']) ? 1 : 0;
 					$url		= isset($doc['downloadUrl']) ? $doc['downloadUrl'] : '';
 					$original	= isset($doc['originalFilename']) ? $doc['originalFilename'] : '';
-					$time 		= strtotime($doc['modifiedDate']);
+					$time		= strtotime($doc['modifiedDate']);
 					$thumb		= isset($doc['thumbnailLink']) ? $doc['thumbnailLink'] : NULL;
 
 					$author		= isset($doc['lastModifyingUserName'])
@@ -696,8 +696,8 @@ class ProjectsGoogleHelper extends JObject
 					$fpath = $lpath ? $lpath . DS . $title : $title;
 
 					$synced			= isset($conIds[$doc['id']]) ? $conIds[$doc['id']]['synced'] : NULL;
-					$md5Checksum 	= isset($doc['md5Checksum']) ? $doc['md5Checksum'] : NULL;
-					$fileSize 		= isset($doc['fileSize']) ? $doc['fileSize'] : NULL;
+					$md5Checksum	= isset($doc['md5Checksum']) ? $doc['md5Checksum'] : NULL;
+					$fileSize		= isset($doc['fileSize']) ? $doc['fileSize'] : NULL;
 
 					// Make sure path is not already used (Google allows files with same name in same dir, Git doesn't)
 					$fpath = ProjectsGoogleHelper::buildDuplicatePath($doc['id'], $fpath, $doc['mimeType'],
@@ -725,20 +725,20 @@ class ProjectsGoogleHelper extends JObject
 					}
 
 					$remotes[$fpath] = array(
-						'status' 		=> $status,
-						'time' 	 		=> $time,
+						'status'		=> $status,
+						'time'			=> $time,
 						'modified'		=> gmdate('Y-m-d H:i:s', $time),
-						'type'   		=> $type,
+						'type'			=> $type,
 						'local_path'	=> $fpath,
-						'remoteid' 		=> $doc['id'],
+						'remoteid'		=> $doc['id'],
 						'title'			=> $doc['title'],
-						'converted' 	=> $converted,
+						'converted'		=> $converted,
 						'rParent'		=> ProjectsGoogleHelper::getParentID($doc['parents']),
 						'url'			=> $url,
-						'original' 		=> $original,
+						'original'		=> $original,
 						'author'		=> $author,
 						'synced'		=> $synced,
-						'md5' 			=> $md5Checksum,
+						'md5'			=> $md5Checksum,
 						'mimeType'		=> $doc['mimeType'],
 						'thumb'			=> $thumb,
 						'rename'		=> $rename,
@@ -748,7 +748,7 @@ class ProjectsGoogleHelper extends JObject
 					if (preg_match("/.folder/", $doc['mimeType']))
 					{
 						// Recurse
-						ProjectsGoogleHelper::getFolderChange($items, $doc['id'], $remotes,  $deletes, $fpath, $connections, $duplicates );
+						ProjectsGoogleHelper::getFolderChange($items, $doc['id'], $remotes,	 $deletes, $fpath, $connections, $duplicates );
 					}
 				}
 			}
@@ -758,9 +758,9 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get download URL
 	 *
-	 * @param      array  		$resource 	Remote resource
-	 * @param      string		$ext		Export ext
-	 * @return     url string
+	 * @param	   array		$resource	Remote resource
+	 * @param	   string		$ext		Export ext
+	 * @return	   url string
 	 */
 	public static function getDownloadUrl($resource = array(), $ext = 'pdf')
 	{
@@ -792,14 +792,14 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Build local path for remote items with the same name
 	 *
-	 * @param      string		$id				Remote ID
-	 * @param      string		$fpath			File path
-	 * @param      string		$format			mime type
-	 * @param      array		$connections	Array of local-remote connections
-	 * @param      array		&$remotes		Collector array for active items
-	 * @param      array		&$duplicates	Collector array for duplicates
+	 * @param	   string		$id				Remote ID
+	 * @param	   string		$fpath			File path
+	 * @param	   string		$format			mime type
+	 * @param	   array		$connections	Array of local-remote connections
+	 * @param	   array		&$remotes		Collector array for active items
+	 * @param	   array		&$duplicates	Collector array for duplicates
 	 *
-	 * @return   void
+	 * @return	 void
 	 */
 	public static function buildDuplicatePath ($id = 0, $fpath, $format = '', $connections, &$remotes, &$duplicates)
 	{
@@ -845,12 +845,12 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get folders
 	 *
-	 * @param      Google_DriveService  $apiService 	Drive API service instance
-	 * @param      string				$folderID		Folder ID
-	 * @param      array				&$remoteFolders	Collector array for remote folders
-	 * @param      string				$path			Path
+	 * @param	   Google_DriveService	$apiService		Drive API service instance
+	 * @param	   string				$folderID		Folder ID
+	 * @param	   array				&$remoteFolders Collector array for remote folders
+	 * @param	   string				$path			Path
 	 *
-	 * @return   void
+	 * @return	 void
 	 */
 	public static function getFolders ($apiService, $folderID = 0, &$remoteFolders, $path = '')
 	{
@@ -910,9 +910,9 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get remote folder content
 	 *
-	 * @param      array $parents
+	 * @param	   array $parents
 	 *
-	 * @return   string or false
+	 * @return	 string or false
 	 */
 	public static function getParentID ($parents = array())
 	{
@@ -926,14 +926,14 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get remote folder content
 	 *
-	 * @param      Google_DriveService  $apiService 	Drive API service instance
-	 * @param      string				$folderID		Folder ID
-	 * @param      array				$remotes		Array of remote items
-	 * @param      string				$path			Path
-	 * @param      array				$connections	Array of local-remote connections
-	 * @param      array				&$duplicates	Collector array for duplicates
+	 * @param	   Google_DriveService	$apiService		Drive API service instance
+	 * @param	   string				$folderID		Folder ID
+	 * @param	   array				$remotes		Array of remote items
+	 * @param	   string				$path			Path
+	 * @param	   array				$connections	Array of local-remote connections
+	 * @param	   array				&$duplicates	Collector array for duplicates
 	 *
-	 * @return   void
+	 * @return	 void
 	 */
 	public static function getFolderContent ($apiService, $folderID = 0, $remotes, $path = '', $since, $connections, &$duplicates)
 	{
@@ -943,7 +943,7 @@ class ProjectsGoogleHelper extends JObject
 			return false;
 		}
 
-		$conIds   = $connections['ids'];
+		$conIds	  = $connections['ids'];
 		$conPaths = $connections['paths'];
 
 		// Search param
@@ -964,18 +964,18 @@ class ProjectsGoogleHelper extends JObject
 				$lpath = $path ? $path : '';
 				foreach ($data['items'] as $item)
 				{
-					$time 		= strtotime($item['modifiedDate']);
-					$status 	= $item['labels']['trashed'] ? 'D' : 'A';
-					$skip 		= 0;
+					$time		= strtotime($item['modifiedDate']);
+					$status		= $item['labels']['trashed'] ? 'D' : 'A';
+					$skip		= 0;
 
 					// Check against modified date
-					$changed = (strtotime(date("c", strtotime($item['modifiedDate'])))  - strtotime($since));
+					$changed = (strtotime(date("c", strtotime($item['modifiedDate'])))	- strtotime($since));
 					if ($since && $changed <= 0 && $item['labels']['trashed'] != 1)
 					{
 						$skip = 1;
 					}
 
-					$converted 	= preg_match("/google-apps/", $item['mimeType']) && !preg_match("/.folder/", $item['mimeType']) ? 1 : 0;
+					$converted	= preg_match("/google-apps/", $item['mimeType']) && !preg_match("/.folder/", $item['mimeType']) ? 1 : 0;
 					$url		= isset($item['downloadUrl']) ? $item['downloadUrl'] : '';
 					$original	= isset($item['originalFilename']) ? $item['originalFilename'] : '';
 					$thumb		= isset($item['thumbnailLink']) ? $item['thumbnailLink'] : NULL;
@@ -1054,20 +1054,20 @@ class ProjectsGoogleHelper extends JObject
 					if (!$skip)
 					{
 						$remotes[$fpath] = array(
-							'status' 		=> $status,
-							'time' 	 		=> $time,
+							'status'		=> $status,
+							'time'			=> $time,
 							'modified'		=> gmdate('Y-m-d H:i:s', $time),
-							'type'   		=> $type,
+							'type'			=> $type,
 							'local_path'	=> $fpath,
-							'remoteid' 		=> $item['id'],
+							'remoteid'		=> $item['id'],
 							'title'			=> $item['title'],
-							'converted' 	=> $converted,
+							'converted'		=> $converted,
 							'rParent'		=> ProjectsGoogleHelper::getParentID($item['parents']),
 							'url'			=> $url,
-							'original' 		=> $original,
+							'original'		=> $original,
 							'author'		=> $author,
 							'synced'		=> $synced,
-							'md5' 			=> $md5Checksum,
+							'md5'			=> $md5Checksum,
 							'mimeType'		=> $item['mimeType'],
 							'thumb'			=> $thumb,
 							'rename'		=> $rename,
@@ -1095,13 +1095,13 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get Google export format(s)
 	 *
-	 * @param      string	$mimeType
-	 * @param      boolean	$getAll
-	 * @param      boolean	$getExt
-	 * @param      boolean	$getPaired
-	 * @param      string	$original_ext
+	 * @param	   string	$mimeType
+	 * @param	   boolean	$getAll
+	 * @param	   boolean	$getExt
+	 * @param	   boolean	$getPaired
+	 * @param	   string	$original_ext
 	 *
-	 * @return     mixed, string or array
+	 * @return	   mixed, string or array
 	 */
 	public static function getGoogleConversionFormat ($mimeType = '', $getAll = false, $getExt = false, $getPaired = 0, $original_ext = '')
 	{
@@ -1122,7 +1122,7 @@ class ProjectsGoogleHelper extends JObject
 
 				if ($getPaired)
 				{
-					$exts 	= array('docx', 'pdf', 'html', 'txt', 'rtf', 'otd', 'tex');
+					$exts	= array('docx', 'pdf', 'html', 'txt', 'rtf', 'otd', 'tex');
 					return array_combine($exts, $formats);
 				}
 				$ext = 'gdoc';
@@ -1182,10 +1182,10 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get file name for import
 	 *
-	 * @param      array	$remote
-	 * @param      string	$importExt
+	 * @param	   array	$remote
+	 * @param	   string	$importExt
 	 *
-	 * @return     string
+	 * @return	   string
 	 */
 	public static function getImportFilename ($remote = array(), $importExt = '')
 	{
@@ -1212,9 +1212,9 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get file ext for import
 	 *
-	 * @param      string	$file
+	 * @param	   string	$file
 	 *
-	 * @return     string
+	 * @return	   string
 	 */
 	public static function getImportExt ($file = '')
 	{
@@ -1247,7 +1247,7 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get all formats that Google can work with and convert
 	 *
-	 * @return     array
+	 * @return	   array
 	 */
 	public static function getGoogleConversionExts()
 	{
@@ -1262,7 +1262,7 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get Google native formats
 	 *
-	 * @return     array
+	 * @return	   array
 	 */
 	public static function getGoogleNativeExts()
 	{
@@ -1276,9 +1276,9 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get Google import extension
 	 *
-	 * @param      string	$mimeType
+	 * @param	   string	$mimeType
 	 *
-	 * @return     string
+	 * @return	   string
 	 */
 	public static function getGoogleImportExt ($mimeType = '')
 	{
@@ -1310,10 +1310,10 @@ class ProjectsGoogleHelper extends JObject
 	/**
 	 * Get default Google export format
 	 *
-	 * @param      string	$ext
-	 * @param      string	$type
+	 * @param	   string	$ext
+	 * @param	   string	$type
 	 *
-	 * @return     string
+	 * @return	   string
 	 */
 	public static function getGoogleExportType ($ext = 'pdf', $type = '')
 	{
@@ -1321,56 +1321,56 @@ class ProjectsGoogleHelper extends JObject
 		{
 			case 'pdf':
 			default:
-				$type 	= 'application/pdf';
+				$type	= 'application/pdf';
 				break;
 
 			case 'html':
-				$type 	= 'text/html';
+				$type	= 'text/html';
 				break;
 
 			case 'txt':
 			case 'tex':
-				$type 	= 'text/plain';
+				$type	= 'text/plain';
 				break;
 
 			case 'rtf':
-				$type 	= 'application/rtf';
+				$type	= 'application/rtf';
 				break;
 
 			case 'doc':
-				$type 	= 'application/msword';
+				$type	= 'application/msword';
 				break;
 
 			case 'xlsx':
-				$type 	= 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+				$type	= 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 				break;
 
 			case 'docx':
-				$type 	= 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+				$type	= 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 				break;
 
 			case 'otd':
-				$type 	= 'application/vnd.oasis.opendocument.text';
+				$type	= 'application/vnd.oasis.opendocument.text';
 				break;
 
 			case 'ods':
-				$type 	= 'application/x-vnd.oasis.opendocument.spreadsheet';
+				$type	= 'application/x-vnd.oasis.opendocument.spreadsheet';
 				break;
 
 			case 'jpeg':
-				$type 	= 'image/jpeg';
+				$type	= 'image/jpeg';
 				break;
 
 			case 'png':
-				$type 	= 'image/png';
+				$type	= 'image/png';
 				break;
 
 			case 'svg':
-				$type 	= 'image/svg+xml';
+				$type	= 'image/svg+xml';
 				break;
 
 			case 'pptx':
-				$type 	= 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+				$type	= 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 				break;
 		}
 

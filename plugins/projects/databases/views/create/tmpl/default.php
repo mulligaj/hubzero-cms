@@ -102,7 +102,7 @@ $document->addScript('/plugins/projects/databases/res/spectrum/spectrum.js');
 		<input type="hidden" name="title" value="<?php echo $this->title?>">
 		<input type="hidden" name="desc" value="<?php echo $this->desc?>">
 		<input type="hidden" name="db_id" value="<?php echo $this->db_id?>">
-		<input type="button" value="Next &raquo;" id="prj-db-preview-file" class="btn" />
+		<input type="button" value="Next &raquo;" class="btn" id="prj-db-preview-file" />
 	</form>
 <?php
 	}
@@ -131,7 +131,7 @@ $document->addScript('/plugins/projects/databases/res/spectrum/spectrum.js');
 	<form id="prj-db-finish-form" method="post" action="<?php echo JRoute::_('index.php?option=' . $this->option . a . 'id=' . $this->project->id . a . 'active=databases' . a . 'action=create_database' . a . 'raw_op=1')?>">
 		<label for="prj-db-title" >Title:</label><br /><input type="text" name="prj-db-title" id="prj-db-title" style="width: 450px;" /><br /><br />
 		<label for="prj-db-desc" >Description:</label><br /><textarea type="text" name="prj-db-desc" id="prj-db-desc" style="width: 450px; height: 150px;"></textarea><br /><br />
-		<input type="submit" value="Finish" id="prj-db-finish-btn" class="btn" />
+		<input type="submit" value="Finish" class="btn" id="prj-db-finish-btn" />
 	</form>
 </div>
 

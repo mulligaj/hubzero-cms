@@ -1,6 +1,6 @@
 <?php
-defined('JPATH_BASE') or die(); 
-ini_set('display_errors', 1);
+defined('JPATH_BASE') or die();
+
 require 'Inflect.php';
 
 /*
@@ -26,31 +26,38 @@ $basePath = preg_replace('#^'.preg_quote(JPATH_BASE).'#', '', dirname(__FILE__))
 $path = JFactory::getApplication()->getPathway();
 $path->addItem('Search', $base);
 
-function hgView($view, $args = array()) {
+function hgView($view, $args = array())
+{
 	header('Content-type: text/json');
 	echo HubgraphClient::execView($view, array_merge($_GET, $args));
 	exit();
 }
 
-function p($num, $label) {
+function p($num, $label)
+{
 	return Inflect::pluralizeIf($num, $label);
 }
 
-function h($str) {
+function h($str)
+{
 	return htmlentities($str);
 }
 
-function a($str) {
+function a($str)
+{
 	return str_replace('"', '&quot;', $str);
 }
 
-function assertSuperAdmin() {
-	if (JFactory::getUser()->usertype != 'Super Administrator') {
+function assertSuperAdmin()
+{
+	if (JFactory::getUser()->usertype != 'Super Administrator')
+	{
 		JError::raiseError(405, 'Forbidden');
 	}
 }
 
-function createNonce() {
+function createNonce()
+{
 //	set_include_path(get_include_path() . PATH_SEPARATOR . JPATH_BASE.'/libraries/openid');
 //	require_once 'Auth/OpenID/Nonce.php';
 	$now = time();
@@ -59,7 +66,8 @@ function createNonce() {
 	return $_SESSION['hg_nonce'];
 }
 
-function consumeNonce($form) {
+function consumeNonce($form)
+{
 	$now = time();
 	if (!isset($form['nonce']) || $form['nonce'] != $_SESSION['hg_nonce']
 		|| !preg_match('/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ/', $form['nonce'], $ma)
@@ -86,8 +94,8 @@ try {
 		case 'getRelated':
 			hgView('related', $req->getTransportCriteria(array('limit' => 5, 'domain' => $_GET['domain'], 'id' => $_GET['id'])));
 		case 'index': case 'page':
-			$results = $req->anyCriteria() 
-				? json_decode(HubgraphClient::execView('search', $req->getTransportCriteria(array('limit' => $perPage))), TRUE) 
+			$results = $req->anyCriteria()
+				? json_decode(HubgraphClient::execView('search', $req->getTransportCriteria(array('limit' => $perPage))), TRUE)
 				: NULL;
 			$tags         = $req->getTags();
 			$users        = $req->getContributors();
@@ -95,7 +103,7 @@ try {
 			$domainMap    = $req->getDomainMap();
 			$loggedIn     = (bool)JFactory::getUser()->id;
 			ksort($domainMap);
-			
+
 			if ($task == 'page') {
 				define('HG_AJAX', 1);
 				require 'views/page.html.php';
@@ -106,8 +114,8 @@ try {
 			}
 		break;
 		case 'update':
-			$results = $req->anyCriteria() 
-				? json_decode(HubgraphClient::execView('search', $req->getTransportCriteria(array('limit' => $perPage))), TRUE) 
+			$results = $req->anyCriteria()
+				? json_decode(HubgraphClient::execView('search', $req->getTransportCriteria(array('limit' => $perPage))), TRUE)
 				: NULL;
 			define('HG_AJAX', 1);
 			require 'views/index-update.html.php';
@@ -122,7 +130,7 @@ try {
 			consumeNonce($_POST);
 			$conf->bind($_POST)->save();
 			header('Location: /hubgraph?task=settings');
-			exit();	
+			exit();
 		break;
 		default:
 			throw new NotFoundError('no such task');

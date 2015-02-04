@@ -90,13 +90,13 @@ if (!$this->sub)
 					<a href="<?php echo JRoute::_($this->page->link('addcomment') . '#commentform'); ?>" class="icon-add add btn"><?php echo JText::_('COM_WIKI_ADD_COMMENT'); ?></a>
 				</p>
 			<?php } ?>
-			<h3 id="commentlist-title"><?php echo JText::_('COMMENTS'); ?></h3>
+			<h3 id="commentlist-title"><?php echo JText::_('COM_WIKI_COMMENTS'); ?></h3>
 
 			<?php
 			$filters = array('version' => '');
 			if ($this->v)
 			{
-				$filters['version'] = 'AND version=' . $this->v;
+				$filters['version'] = $this->v;
 			}
 
 			if ($this->page->comments('list', $filters)->total())
@@ -143,7 +143,7 @@ if (!$this->sub)
 							?>
 						</select>
 					</label>
-					<p class="submit"><input type="submit" value="<?php echo JText::_('COM_WIKI_GO'); ?>" /></p>
+					<p class="submit"><input type="submit" class="btn" value="<?php echo JText::_('COM_WIKI_GO'); ?>" /></p>
 				<?php if ($this->sub) { ?>
 					<input type="hidden" name="action" value="comments" />
 					<input type="hidden" name="active" value="<?php echo $this->sub; ?>" />
@@ -174,11 +174,11 @@ if (!$this->sub)
 			<?php if (!$this->mycomment->get('parent')) { ?>
 				<fieldset>
 					<legend><?php echo JText::_('COM_WIKI_FIELD_RATING'); ?>:</legend>
-					<label><input class="option" id="review_rating_1" name="comment[rating]" type="radio" value="1"<?php if ($this->mycomment->get('rating') == 1) { $html .= ' checked="checked"'; } ?> /> &#x272D;&#x2729;&#x2729;&#x2729;&#x2729; <?php echo JText::_('COM_WIKI_FIELD_RATING_ONE'); ?></label>
-					<label><input class="option" id="review_rating_2" name="comment[rating]" type="radio" value="2"<?php if ($this->mycomment->get('rating') == 2) { $html .= ' checked="checked"'; } ?> /> &#x272D;&#x272D;&#x2729;&#x2729;&#x2729;</label>
-					<label><input class="option" id="review_rating_3" name="comment[rating]" type="radio" value="3"<?php if ($this->mycomment->get('rating') == 3) { $html .= ' checked="checked"'; } ?> /> &#x272D;&#x272D;&#x272D;&#x2729;&#x2729;</label>
-					<label><input class="option" id="review_rating_4" name="comment[rating]" type="radio" value="4"<?php if ($this->mycomment->get('rating') == 4) { $html .= ' checked="checked"'; } ?> /> &#x272D;&#x272D;&#x272D;&#x272D;&#x2729;</label>
-					<label><input class="option" id="review_rating_5" name="comment[rating]" type="radio" value="5"<?php if ($this->mycomment->get('rating') == 5) { $html .= ' checked="checked"'; } ?> /> &#x272D;&#x272D;&#x272D;&#x272D;&#x272D; <?php echo JText::_('COM_WIKI_FIELD_RATING_FIVE'); ?></label>
+					<label><input class="option" id="review_rating_1" name="comment[rating]" type="radio" value="1"<?php if ($this->mycomment->get('rating') == 1) { echo ' checked="checked"'; } ?> /> &#x272D;&#x2729;&#x2729;&#x2729;&#x2729; <?php echo JText::_('COM_WIKI_FIELD_RATING_ONE'); ?></label>
+					<label><input class="option" id="review_rating_2" name="comment[rating]" type="radio" value="2"<?php if ($this->mycomment->get('rating') == 2) { echo ' checked="checked"'; } ?> /> &#x272D;&#x272D;&#x2729;&#x2729;&#x2729;</label>
+					<label><input class="option" id="review_rating_3" name="comment[rating]" type="radio" value="3"<?php if ($this->mycomment->get('rating') == 3) { echo ' checked="checked"'; } ?> /> &#x272D;&#x272D;&#x272D;&#x2729;&#x2729;</label>
+					<label><input class="option" id="review_rating_4" name="comment[rating]" type="radio" value="4"<?php if ($this->mycomment->get('rating') == 4) { echo ' checked="checked"'; } ?> /> &#x272D;&#x272D;&#x272D;&#x272D;&#x2729;</label>
+					<label><input class="option" id="review_rating_5" name="comment[rating]" type="radio" value="5"<?php if ($this->mycomment->get('rating') == 5) { echo ' checked="checked"'; } ?> /> &#x272D;&#x272D;&#x272D;&#x272D;&#x272D; <?php echo JText::_('COM_WIKI_FIELD_RATING_FIVE'); ?></label>
 				</fieldset>
 			<?php } ?>
 				<label>
@@ -209,13 +209,13 @@ if (!$this->sub)
 			<?php } ?>
 
 				<label id="comment-anonymous-label">
-					<input class="option" type="checkbox" name="anonymous" id="comment-anonymous" value="1"<?php if ($this->mycomment->get('anonymous') != 0) { echo ' checked="checked"'; } ?> />
+					<input class="option" type="checkbox" name="comment[anonymous]" id="comment-anonymous" value="1"<?php if ($this->mycomment->get('anonymous') != 0) { echo ' checked="checked"'; } ?> />
 					<?php echo JText::_('COM_WIKI_FIELD_ANONYMOUS'); ?>
 				</label>
 
 				<?php echo JHTML::_('form.token'); ?>
 
-				<p class="submit"><input type="submit" value="<?php echo JText::_('COM_WIKI_SUBMIT'); ?>" /></p>
+				<p class="submit"><input type="submit" class="btn" value="<?php echo JText::_('COM_WIKI_SUBMIT'); ?>" /></p>
 				<div class="sidenote">
 					<p>
 						<strong><?php echo JText::_('COM_WIKI_COMMENT_KEEP_RELEVANT'); ?></strong>

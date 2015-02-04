@@ -33,6 +33,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 $this->css()
      ->js();
+$tags = $this->wish->tags('string') ? $this->wish->tags('string') : JRequest::getVar('tag', '');
 
 if ($this->wishlist->exists())
 {
@@ -76,7 +77,7 @@ if ($this->wishlist->exists())
 				<?php } ?>
 			</div><!-- / .aside -->
 			<fieldset>
-				<legend><?php echo JText::_('Details'); ?></legend>
+				<legend><?php echo JText::_('COM_WISHLIST_DETAILS'); ?></legend>
 
 			<?php if ($this->task == 'editwish') { ?>
 				<label for="field-by">
@@ -123,7 +124,7 @@ if ($this->wishlist->exists())
 					// Tag editor plug-in
 					JPluginHelper::importPlugin( 'hubzero' );
 					$dispatcher = JDispatcher::getInstance();
-					$tf = $dispatcher->trigger('onGetMultiEntry', array(array('tags', 'tags', 'actags','', $this->wish->tags('string'))) );
+					$tf = $dispatcher->trigger('onGetMultiEntry', array(array('tags', 'tags', 'actags','', $tags)) );
 					if (count($tf) > 0) {
 						echo $tf[0];
 					} else { ?>

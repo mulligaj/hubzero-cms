@@ -46,7 +46,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 	</ul>
 	<ul class="module-list-content">
 		<?php foreach ($this->modules as $module) : ?>
-			<?php $xml = JFactory::getXML(JPATH_ROOT.DS.'modules'.DS.$module->module.DS.$module->module.'.xml'); ?>
+			<?php $xml = JFactory::getXML(JPATH_ROOT . DS . 'modules' . DS . $module->module . DS . $module->module . '.xml'); ?>
 			<li class="<?php echo $module->id; ?>">
 				<div class="module-title-bar">
 
@@ -63,12 +63,21 @@ defined('_JEXEC') or die( 'Restricted access' );
 					<h3><?php echo $module->title; ?></h3>
 				</div>
 				<dl class="module-details">
-					<dt><?php echo JText::_('PLG_MEMBERS_DASHBOARD_ADD_MODULES_MODULE_VERSION'); ?></dt>
-					<dd><?php echo $xml->attributes()->version; ?></dd>
+				<?php if ($xml) : ?>
+					<?php if (isset($xml->attributes()->version)) : ?>
+						<dt><?php echo JText::_('PLG_MEMBERS_DASHBOARD_ADD_MODULES_MODULE_VERSION'); ?></dt>
+						<dd><?php echo $xml->attributes()->version; ?></dd>
+					<?php endif; ?>
 
 					<?php if ($xml->description != 'MOD_CUSTOM_XML_DESCRIPTION') : ?>
 						<dt><?php echo JText::_('PLG_MEMBERS_DASHBOARD_ADD_MODULES_MODULE_DESCRIPTION'); ?></dt>
-						<dd><?php echo $xml->description; ?></dd>
+						<dd><?php
+						if (!strstr($xml->description, ' '))
+						{
+							JFactory::getLanguage()->load($module->module, JPATH_SITE);
+							$xml->description = JText::_($xml->description);
+						}
+						echo $xml->description; ?></dd>
 					<?php endif; ?>
 
 					<?php if (count($xml->images->image) > 0) : ?>
@@ -79,6 +88,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 							<?php endforeach; ?>
 						</dd>
 					<?php endif; ?>
+				<?php endif; ?>
 				</dl>
 			</li>
 		<?php endforeach; ?>

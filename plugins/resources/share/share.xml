@@ -29,10 +29,10 @@ HUBzero is a registered trademark of Purdue University.
 
 <extension version="1.7" type="plugin" group="resources">
 	<name>Resources - Share</name>
-	<author>snowwitje</author>
+	<author>HUBzero</author>
 	<copyright>Copyright 2005-2011 Purdue University. All rights reserved.</copyright>
 	<license>http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3</license>
-	<description>Display options to post resource link on Facebbok, Twitter etc. </description>
+	<description>PLG_RESOURCES_SHARE_XML_DESCRIPTION</description>
 	<files>
 		<filename plugin="share">share.php</filename>
 	</files>
@@ -54,14 +54,6 @@ HUBzero is a registered trademark of Purdue University.
 					<option value="0">JNO</option>
 					<option value="1">JYES</option>
 				</field>
-				<field name="share_digg" type="radio" default="1" label="PLG_RESOURCES_SHARE_SHOW_DIGG_LABEL" description="PLG_RESOURCES_SHARE_SHOW_DIGG_DESC">
-					<option value="0">JNO</option>
-					<option value="1">JYES</option>
-				</field>
-				<field name="share_technorati" type="radio" default="1" label="PLG_RESOURCES_SHARE_SHOW_TECHNORATI_LABEL" description="PLG_RESOURCES_SHARE_SHOW_TECHNORATI_DESC">
-					<option value="0">JNO</option>
-					<option value="1">JYES</option>
-				</field>
 				<field name="share_delicious" type="radio" default="1" label="PLG_RESOURCES_SHARE_SHOW_DELICIOUS_LABEL" description="PLG_RESOURCES_SHARE_SHOW_DELICIOUS_DESC">
 					<option value="0">JNO</option>
 					<option value="1">JYES</option>
@@ -70,11 +62,7 @@ HUBzero is a registered trademark of Purdue University.
 					<option value="0">JNO</option>
 					<option value="1">JYES</option>
 				</field>
-				<field name="share_email" type="radio" default="1" label="PLG_RESOURCES_SHARE_SHOW_EMAIL_LABEL" description="PLG_RESOURCES_SHARE_SHOW_EMAIL_DESC">
-					<option value="0">JNO</option>
-					<option value="1">JYES</option>
-				</field>
-				<field name="share_print" type="radio" default="1" label="PLG_RESOURCES_SHARE_SHOW_PRINT_LABEL" description="PLG_RESOURCES_SHARE_SHOW_PRINT_DESC">
+				<field name="share_linkedin" type="radio" default="1" label="PLG_RESOURCES_SHARE_SHOW_LINKEDIN_LABEL" description="PLG_RESOURCES_SHARE_SHOW_LINKEDIN_DESC">
 					<option value="0">JNO</option>
 					<option value="1">JYES</option>
 				</field>

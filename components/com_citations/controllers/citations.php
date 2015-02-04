@@ -151,6 +151,17 @@ class CitationsControllerCitations extends \Hubzero\Component\SiteController
 		$this->view->filters['startuploaddate'] = JRequest::getVar('startuploaddate', '0000-00-00');
 		$this->view->filters['enduploaddate']   = JRequest::getVar('enduploaddate', '0000-00-00');
 
+		// do we have a group filter
+		$this->view->filters['group'] = '';
+		if ($group = JRequest::getVar('group', ''))
+		{
+			$this->view->filters['scope']    = 'groups';
+			$this->view->filters['scope_id'] = $group;
+
+			// only used so we only have one param on form filters
+			$this->view->filters['group'] = $group;
+		}
+
 		// Affiliation filter
 		$this->view->filter = array(
 			'all'    => JText::_('COM_CITATIONS_ALL'),
@@ -265,8 +276,16 @@ class CitationsControllerCitations extends \Hubzero\Component\SiteController
 		$ct = new CitationsType($this->database);
 		$this->view->types = $ct->getType();
 
+		// get groups
+		$this->view->groups = Hubzero\User\Group::find(array(
+			'type'      => array('1','3'),
+			'published' => 1,
+			'approved'  => 1,
+			'fields'    => array('gidNumber', 'cn')
+		));
+
 		//get the users id to make lookup
-		$users_ip = $this->getIP();
+		$users_ip = JRequest::ip();
 
 		//get the param for ip regex to use machine ip
 		$ip_regex = array('10.\d{2,5}.\d{2,5}.\d{2,5}');
@@ -499,28 +518,6 @@ class CitationsControllerCitations extends \Hubzero\Component\SiteController
 		}
 
 		return $openUrl;
-	}
-
-	/**
-	 * Get user IP
-	 *
-	 * @return     string
-	 */
-	private function getIP()
-	{
-		foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key)
-		{
-			if (array_key_exists($key, $_SERVER) === true)
-			{
-				foreach (explode(',', $_SERVER[$key]) as $ip)
-				{
-					if (filter_var($ip, FILTER_VALIDATE_IP) !== false)
-					{
-						return $ip;
-					}
-				}
-			}
-		}
 	}
 
 	/**
@@ -877,15 +874,15 @@ class CitationsControllerCitations extends \Hubzero\Component\SiteController
 		//check if we are allowing tags
 		if ($this->config->get('citation_allow_tags', 'no') == 'yes')
 		{
-			$ct1 = new CitationTags($this->database);
-			$ct1->tag_object($this->juser->get('id'), $row->id, $tags, 1, false, '');
+			$ct1 = new CitationTags($row->id);
+			$ct1->setTags($tags, $this->juser->get('id'), 0, 1, '');
 		}
 
 		//check if we are allowing badges
 		if ($this->config->get('citation_allow_badges', 'no') == 'yes')
 		{
-			$ct2 = new CitationTags($this->database);
-			$ct2->tag_object($this->juser->get('id'), $row->id, $badges, 1, false, 'badge');
+			$ct2 = new CitationTags($row->id);
+			$ct2->setTags($badges, $this->juser->get('id'), 0, 1, 'badge');
 		}
 
 		// Redirect
@@ -1049,8 +1046,8 @@ class CitationsControllerCitations extends \Hubzero\Component\SiteController
 			$cc->load($c);
 
 			//get the badges
-			$ct = new CitationTags($this->database);
-			$cc->badges = $ct->get_tag_string($cc->id, 0, 0, NULL, 0, 0, 'badge');
+			$ct = new CitationTags($cc->id);
+			$cc->badges = $ct->render('string', array('label' => 'badge'));
 
 			$cd = new CitationsDownload();
 			$cd->setFormat(strtolower($download));

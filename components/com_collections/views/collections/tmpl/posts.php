@@ -100,12 +100,12 @@ $this->css()
 								     ->set('row', $row)
 								     ->display();
 							?>
-							<?php if (count($item->tags()) > 0) { ?>
+							<?php if ($tags = $item->tags('cloud')) { ?>
 								<div class="tags-wrap">
-									<?php echo $item->tags('render'); ?>
+									<?php echo $tags; ?>
 								</div>
 							<?php } ?>
-							<div class="meta">
+							<div class="meta" data-metadata-url="<?php echo JRoute::_('index.php?option=com_collections&controller=posts&task=metadata&post=' . $row->get('id')); ?>">
 								<p class="stats">
 									<span class="likes">
 										<?php echo JText::sprintf('COM_COLLECTIONS_NUM_LIKES', $item->get('positive', 0)); ?>
@@ -148,13 +148,26 @@ $this->css()
 								</div><!-- / .actions -->
 							</div><!-- / .meta -->
 							<div class="convo attribution">
-								<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->creator('id') . '&active=collections'); ?>" title="<?php echo $this->escape(stripslashes($row->creator('name'))); ?>" class="img-link">
-									<img src="<?php echo $row->creator()->getPicture(); ?>" alt="<?php echo JText::sprintf('COM_COLLECTIONS_PROFILE_PICTURE', $this->escape(stripslashes($row->creator('name')))); ?>" />
-								</a>
-								<p>
-									<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->creator('id') . '&active=collections'); ?>">
-										<?php echo $this->escape(stripslashes($row->creator('name'))); ?>
+								<?php
+								$name = $this->escape(stripslashes($row->creator('name')));
+
+								if ($row->creator('public')) { ?>
+									<a href="<?php echo JRoute::_($row->creator()->getLink() . '&active=collections'); ?>" title="<?php echo $name; ?>" class="img-link">
+										<img src="<?php echo $row->creator()->getPicture(); ?>" alt="<?php echo JText::sprintf('COM_COLLECTIONS_PROFILE_PICTURE', $name); ?>" />
 									</a>
+								<?php } else { ?>
+									<span class="img-link">
+										<img src="<?php echo $row->creator()->getPicture(); ?>" alt="<?php echo JText::sprintf('COM_COLLECTIONS_PROFILE_PICTURE', $name); ?>" />
+									</span>
+								<?php } ?>
+								<p>
+									<?php if ($row->creator('public')) { ?>
+										<a href="<?php echo JRoute::_($row->creator()->getLink() . '&active=collections'); ?>">
+											<?php echo $name; ?>
+										</a>
+									<?php } else { ?>
+										<?php echo $name; ?>
+									<?php } ?>
 									<?php echo JText::_('COM_COLLECTIONS_ONTO'); ?>
 									<a href="<?php echo JRoute::_($row->link()); ?>">
 										<?php echo $this->escape(stripslashes($row->get('title'))); ?>
@@ -162,9 +175,9 @@ $this->css()
 									<br />
 									<span class="entry-date">
 										<span class="entry-date-at"><?php echo JText::_('COM_COLLECTIONS_AT'); ?></span>
-										<span class="time"><?php echo JHTML::_('date', $row->get('created'), JText::_('TIME_FORMAT_HZ1')); ?></span>
+										<span class="time"><time datetime="<?php echo $row->created(); ?>"><?php echo $row->created('time'); ?></time></span>
 										<span class="entry-date-on"><?php echo JText::_('COM_COLLECTIONS_ON'); ?></span>
-										<span class="date"><?php echo JHTML::_('date', $row->get('created'), JText::_('DATE_FORMAT_HZ1')); ?></span>
+										<span class="date"><time datetime="<?php echo $row->created(); ?>"><?php echo $row->created('date'); ?></time></span>
 									</span>
 								</p>
 							</div><!-- / .attribution -->

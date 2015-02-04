@@ -42,15 +42,6 @@ $this->css()
      ->js('jquery.timepicker.js', 'system')
      ->js();
 
-JPluginHelper::importPlugin( 'hubzero' );
-$dispatcher = JDispatcher::getInstance();
-$tf = $dispatcher->trigger(
-	'onGetMultiEntry',
-	array(
-		array('tags', 'tags', 'actags','', $this->entry->tags('string'))
-	)
-);
-
 if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0000-00-00 00:00:00')
 {
 	$this->entry->set('publish_down', '');
@@ -66,9 +57,9 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 
 <section class="main section">
 	<div class="section-inner">
-	<?php /*if ($this->getError()) { ?>
-		<p class="error"><?php echo $this->getError(); ?></p>
-	<?php }*/ ?>
+		<?php /*if ($this->getError()) { ?>
+			<p class="error"><?php echo $this->getError(); ?></p>
+		<?php }*/ ?>
 
 		<form action="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=save'); ?>" method="post" id="hubForm">
 			<div class="explaination">
@@ -82,27 +73,21 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 					<?php echo JText::_('COM_BLOG_FIELD_TITLE'); ?> <span class="required"><?php echo JText::_('COM_BLOG_REQUIRED'); ?></span>
 					<input type="text" name="entry[title]" id="field-title" size="35" value="<?php echo $this->escape(stripslashes($this->entry->get('title'))); ?>" />
 				</label>
-			<?php if ($this->task == 'save' && !$this->entry->get('title')) { ?>
-				<p class="error"><?php echo JText::_('COM_BLOG_ERROR_PROVIDE_TITLE'); ?></p>
-			<?php } ?>
+				<?php if ($this->task == 'save' && !$this->entry->get('title')) { ?>
+					<p class="error"><?php echo JText::_('COM_BLOG_ERROR_PROVIDE_TITLE'); ?></p>
+				<?php } ?>
 
 				<label for="entrycontent"<?php if ($this->task == 'save' && !$this->entry->get('content')) { echo ' class="fieldWithErrors"'; } ?>>
 					<?php echo JText::_('COM_BLOG_FIELD_CONTENT'); ?> <span class="required"><?php echo JText::_('COM_BLOG_REQUIRED'); ?></span>
-					<?php
-					echo \JFactory::getEditor()->display('entry[content]', $this->escape($this->entry->content('raw')), '', '', 50, 40, false, 'entrycontent');
-					?>
+					<?php echo $this->editor('entry[content]', $this->escape($this->entry->content('raw')), 50, 40); ?>
 				</label>
-			<?php if ($this->task == 'save' && !$this->entry->get('content')) { ?>
-				<p class="error"><?php echo JText::_('COM_BLOG_ERROR_PROVIDE_CONTENT'); ?></p>
-			<?php } ?>
+				<?php if ($this->task == 'save' && !$this->entry->get('content')) { ?>
+					<p class="error"><?php echo JText::_('COM_BLOG_ERROR_PROVIDE_CONTENT'); ?></p>
+				<?php } ?>
 
 				<label>
 					<?php echo JText::_('COM_BLOG_FIELD_TAGS'); ?>
-				<?php if (count($tf) > 0) {
-					echo $tf[0];
-				} else { ?>
-					<input type="text" name="tags" value="<?php echo $this->entry->tags('string'); ?>" />
-				<?php } ?>
+					<?php echo $this->autocompleter('tags', 'tags', $this->escape($this->entry->tags('string'))); ?>
 					<span class="hint"><?php echo JText::_('COM_BLOG_FIELD_TAGS_HINT'); ?></span>
 				</label>
 
@@ -130,7 +115,7 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 					<div class="col span-half">
 						<label for="field-publish_up">
 							<?php echo JText::_('COM_BLOG_FIELD_PUBLISH_UP'); ?>
-							<input type="text" name="entry[publish_up]" class="datetime-field" id="field-publish_up" size="35" value="<?php echo ($this->entry->get('publish_up') ? $this->escape(JHTML::_('date', $this->entry->get('publish_up'), 'Y-m-d H:i:s')) : ''); ?>" />
+							<input type="text" name="entry[publish_up]" class="datetime-field" id="field-publish_up" data-timezone="<?php echo (timezone_offset_get(new DateTimeZone(JFactory::getConfig()->get('offset')), JDate::getInstance('now')) / 60); ?>" value="<?php echo ($this->entry->get('publish_up') ? $this->escape(JHTML::_('date', $this->entry->get('publish_up'), 'Y-m-d H:i:s')) : ''); ?>" />
 							<span class="hint"><?php echo JText::_('COM_BLOG_FIELD_PUBLISH_HINT'); ?></span>
 						</label>
 					</div>
@@ -138,7 +123,7 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 					<div class="col span-half omega">
 						<label for="field-publish_down">
 							<?php echo JText::_('COM_BLOG_FIELD_PUBLISH_DOWN'); ?>
-							<input type="text" name="entry[publish_down]" class="datetime-field" id="field-publish_down" size="35" value="<?php echo ($this->entry->get('publish_down') ? $this->escape(JHTML::_('date', $this->entry->get('publish_down'), 'Y-m-d H:i:s')) : ''); ?>" />
+							<input type="text" name="entry[publish_down]" class="datetime-field" id="field-publish_down" data-timezone="<?php echo (timezone_offset_get(new DateTimeZone(JFactory::getConfig()->get('offset')), JDate::getInstance('now')) / 60); ?>" value="<?php echo ($this->entry->get('publish_down') ? $this->escape(JHTML::_('date', $this->entry->get('publish_down'), 'Y-m-d H:i:s')) : ''); ?>" />
 							<span class="hint"><?php echo JText::_('COM_BLOG_FIELD_PUBLISH_HINT'); ?></span>
 						</label>
 					</div>
@@ -153,6 +138,8 @@ if ($this->entry->get('publish_down') && $this->entry->get('publish_down') == '0
 			<input type="hidden" name="entry[created]" value="<?php echo $this->entry->get('created'); ?>" />
 			<input type="hidden" name="entry[created_by]" value="<?php echo $this->entry->get('created_by'); ?>" />
 			<input type="hidden" name="entry[scope]" value="site" />
+			<input type="hidden" name="entry[scope_id]" value="0" />
+			<input type="hidden" name="entry[access]" value="0" />
 			<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 			<input type="hidden" name="task" value="save" />
 

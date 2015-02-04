@@ -54,6 +54,7 @@ HUBzero is a registered trademark of Purdue University.
 					<option value="0">JNO</option>
 					<option value="1">JYES</option>
 				</field>
+				<field name="support_ticketpending_status" type="ticketstatus" default="0" label="Has status:" description="The status of the ticket." />
 				<field name="support_ticketpending_severity" type="list" default="all" label="Tickets with severity" description="Ticket severity to message users about.">
 					<option value="all">PLG_CRON_SUPPORT_ALL</option>
 					<option value="critical,major">PLG_CRON_SUPPORT_HIGH</option>
@@ -79,8 +80,9 @@ HUBzero is a registered trademark of Purdue University.
 				<field name="support_ticketpending_owners" type="textarea" cols="30" rows="3" default="" label="Owned by" description="A comma-separated list of usernames." />
 				<field name="support_ticketpending_submitters" type="textarea" cols="30" rows="3" default="" label="Submitted by" description="A comma-separated list of usernames." />
 				<field name="support_ticketpending_notify" type="textarea" cols="30" rows="3" default="{config.mailfrom}" label="Who to notify" description="A comma-separated list of usernames or email addresses." />
-				<field name="support_ticketpending_excludeTags" type="textarea" cols="30" rows="3" default="fixedinstable, fixedinmaster, pendingdevpush, pendingcorepush, pendingupdate" label="Exclude tickets tagged with" description="A comma-separated list of tags." />
-				<field name="support_ticketpending_includeTags" type="textarea" cols="30" rows="3" default="pendingreview" label="Include tickets tagged with" description="A comma-separated list of tags." />
+				<field name="support_ticketpending_excludeTags" type="textarea" cols="30" rows="3" default="" label="Exclude tickets tagged with" description="A comma-separated list of tags." />
+				<field name="support_ticketpending_includeTags" type="textarea" cols="30" rows="3" default="" label="Include tickets tagged with" description="A comma-separated list of tags." />
+				<field name="support_ticketpending_message" type="ticketmessage" default="0" label="Email message" description="A message to send upon closing the ticket." />
 			</fieldset>
 			<fieldset group="ticketreminder">
 				<field name="support_ticketreminder_severity" type="list" default="all" label="Tickets with severity" description="Ticket severity to message users about.">
@@ -96,18 +98,7 @@ HUBzero is a registered trademark of Purdue University.
 					<option value="1">PLG_CRON_SUPPORT_OPEN</option>
 					<option value="0">PLG_CRON_SUPPORT_CLOSED</option>
 				</field>
-				<field name="support_ticketlist_new" type="list" default="1" label="Has status: New" description="Ticket is open and new (no action taken yet).">
-					<option value="0">JNO</option>
-					<option value="1">JYES</option>
-				</field>
-				<field name="support_ticketlist_waiting" type="list" default="1" label="Has status: Waiting" description="Ticket has a status of waiting user action.">
-					<option value="0">JNO</option>
-					<option value="1">JYES</option>
-				</field>
-				<field name="support_ticketlist_accepted" type="list" default="1" label="Has status: Accepted" description="Ticket is open and has some action taken on it (tagged, comments, etc).">
-					<option value="0">JNO</option>
-					<option value="1">JYES</option>
-				</field>
+				<field name="support_ticketlist_status" type="ticketstatus" default="0" label="Has status:" description="The status of the ticket." />
 				<field name="support_ticketlist_severity" type="list" default="all" label="Tickets with severity" description="Ticket severity to message users about.">
 					<option value="all">PLG_CRON_SUPPORT_ALL</option>
 					<option value="critical,major">PLG_CRON_SUPPORT_HIGH</option>
@@ -149,7 +140,7 @@ HUBzero is a registered trademark of Purdue University.
 				<field name="support_ticketlist_owners" type="textarea" cols="30" rows="3" default="" label="Owned by" description="A comma-separated list of usernames." />
 				<field name="support_ticketlist_submitters" type="textarea" cols="30" rows="3" default="" label="Submitted by" description="A comma-separated list of usernames." />
 				<field name="support_ticketlist_notify" type="textarea" cols="30" rows="3" default="{config.mailfrom}" label="Who to notify" description="A comma-separated list of usernames or email addresses." />
-				<field name="support_ticketlist_excludeTags" type="textarea" cols="30" rows="3" default="fixedinstable, fixedinmaster, pendingdevpush, pendingcorepush, pendingupdate" label="Exclude tickets tagged with" description="A comma-separated list of tags." />
+				<field name="support_ticketlist_excludeTags" type="textarea" cols="30" rows="3" default="" label="Exclude tickets tagged with" description="A comma-separated list of tags." />
 				<field name="support_ticketlist_includeTags" type="textarea" cols="30" rows="3" default="" label="Include tickets tagged with" description="A comma-separated list of tags." />
 			</fieldset>
 			<fieldset group="tickettemp">
@@ -166,18 +157,9 @@ HUBzero is a registered trademark of Purdue University.
 		</fields>
 	</config>
 	<params group="ticketpending">
-		<param name="support_ticketpending_new" type="list" default="0" label="PLG_CRON_SUPPORT_TICKETPENDING_NEW_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_NEW_DESC">
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</param>
-		<param name="support_ticketpending_waiting" type="list" default="1" label="PLG_CRON_SUPPORT_TICKETPENDING_WAITING_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_WAITING_DESC">
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</param>
-		<param name="support_ticketpending_accepted" type="list" default="0" label="PLG_CRON_SUPPORT_TICKETPENDING_ACCEPTED_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_ACCEPTED_DESC">
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</param>
+		<param name="support_ticketpending_status1" type="ticketstate" default="" label="PLG_CRON_SUPPORT_TICKETPENDING_STATUSONE_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_STATUSONE_DESC" />
+		<param name="support_ticketpending_status2" type="ticketstate" default="" label="PLG_CRON_SUPPORT_TICKETPENDING_STATUSTWO_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_STATUSTWO_DESC" />
+		<param name="support_ticketpending_status3" type="ticketstate" default="" label="PLG_CRON_SUPPORT_TICKETPENDING_STATUSTHREE_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_STATUSTHREE_DESC" />
 		<param name="support_ticketpending_severity" type="list" default="all" label="PLG_CRON_SUPPORT_TICKETPENDING_SEVERITY_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_SEVERITY_DESC">
 			<option value="all">PLG_CRON_SUPPORT_ALL</option>
 			<option value="critical,major">PLG_CRON_SUPPORT_HIGH</option>
@@ -203,8 +185,9 @@ HUBzero is a registered trademark of Purdue University.
 		<param name="support_ticketpending_owners" type="textarea" cols="30" rows="3" default="" label="PLG_CRON_SUPPORT_TICKETPENDING_OWNERS_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_OWNERS_DESC" />
 		<param name="support_ticketpending_submitters" type="textarea" cols="30" rows="3" default="" label="PLG_CRON_SUPPORT_TICKETPENDING_SUBMITTERS_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_SUBMITTERS_DESC" />
 		<param name="support_ticketpending_notify" type="textarea" cols="30" rows="3" default="{config.mailfrom}" label="PLG_CRON_SUPPORT_TICKETPENDING_NOTIFY_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_NOTIFY_DESC" />
-		<param name="support_ticketpending_excludeTags" type="textarea" cols="30" rows="3" default="fixedinstable, fixedinmaster, pendingdevpush, pendingcorepush, pendingupdate" label="PLG_CRON_SUPPORT_TICKETPENDING_EXCLUDETAGS_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_EXCLUDETAGS_DESC" />
-		<param name="support_ticketpending_includeTags" type="textarea" cols="30" rows="3" default="pendingreview" label="PLG_CRON_SUPPORT_TICKETPENDING_INCLUDETAGS_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_INCLUDETAGS_DESC" />
+		<param name="support_ticketpending_excludeTags" type="textarea" cols="30" rows="3" default="" label="PLG_CRON_SUPPORT_TICKETPENDING_EXCLUDETAGS_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_EXCLUDETAGS_DESC" />
+		<param name="support_ticketpending_includeTags" type="textarea" cols="30" rows="3" default="" label="PLG_CRON_SUPPORT_TICKETPENDING_INCLUDETAGS_LABEL" description="PLG_CRON_SUPPORT_TICKETPENDING_INCLUDETAGS_DESC" />
+		<param name="support_ticketpending_message" type="ticketmessage" default="0" label="Email message" description="A message to send upon closing the ticket." />
 	</params>
 	<params group="ticketreminder">
 		<param name="support_ticketreminder_severity" type="list" default="all" label="PLG_CRON_SUPPORT_TICKETREMINDER_SEVERITY_LABEL" description="PLG_CRON_SUPPORT_TICKETREMINDER_SEVERITY_DESC">
@@ -220,18 +203,9 @@ HUBzero is a registered trademark of Purdue University.
 			<option value="1">PLG_CRON_SUPPORT_OPEN</option>
 			<option value="0">PLG_CRON_SUPPORT_CLOSED</option>
 		</param>
-		<param name="support_ticketlist_new" type="list" default="1" label="PLG_CRON_SUPPORT_TICKETLIST_NEW_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_NEW_DESC">
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</param>
-		<param name="support_ticketlist_waiting" type="list" default="1" label="PLG_CRON_SUPPORT_TICKETLIST_WAITING_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_WAITING_DESC">
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</param>
-		<param name="support_ticketlist_accepted" type="list" default="1" label="PLG_CRON_SUPPORT_TICKETLIST_ACCEPTED_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_ACCEPTED_DESC">
-			<option value="0">JNO</option>
-			<option value="1">JYES</option>
-		</param>
+		<param name="support_ticketlist_status1" type="ticketstate" default="" label="PLG_CRON_SUPPORT_TICKETLIST_STATUSONE_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_STATUSONE_DESC" />
+		<param name="support_ticketlist_status2" type="ticketstate" default="" label="PLG_CRON_SUPPORT_TICKETLIST_STATUSTWO_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_STATUSTWO_DESC" />
+		<param name="support_ticketlist_status3" type="ticketstate" default="" label="PLG_CRON_SUPPORT_TICKETLIST_STATUSTHREE_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_STATUSTHREE_DESC" />
 		<param name="support_ticketlist_severity" type="list" default="all" label="PLG_CRON_SUPPORT_TICKETLIST_SEVERITY_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_SEVERITY_DESC">
 			<option value="all">PLG_CRON_SUPPORT_ALL</option>
 			<option value="critical,major">PLG_CRON_SUPPORT_HIGH</option>
@@ -273,7 +247,7 @@ HUBzero is a registered trademark of Purdue University.
 		<param name="support_ticketlist_owners" type="textarea" cols="30" rows="3" default="" label="PLG_CRON_SUPPORT_TICKETLIST_OWNERS_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_OWNERS_DESC" />
 		<param name="support_ticketlist_submitters" type="textarea" cols="30" rows="3" default="" label="PLG_CRON_SUPPORT_TICKETLIST_SUBMITTERS_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_SUBMITTERS_DESC" />
 		<param name="support_ticketlist_notify" type="textarea" cols="30" rows="3" default="{config.mailfrom}" label="PLG_CRON_SUPPORT_TICKETLIST_NOTIFY_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_NOTIFY_DESC" />
-		<param name="support_ticketlist_excludeTags" type="textarea" cols="30" rows="3" default="fixedinstable, fixedinmaster, pendingdevpush, pendingcorepush, pendingupdate" label="PLG_CRON_SUPPORT_TICKETLIST_EXCLUDETAGS_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_EXCLUDETAGS_DESC" />
+		<param name="support_ticketlist_excludeTags" type="textarea" cols="30" rows="3" default="" label="PLG_CRON_SUPPORT_TICKETLIST_EXCLUDETAGS_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_EXCLUDETAGS_DESC" />
 		<param name="support_ticketlist_includeTags" type="textarea" cols="30" rows="3" default="" label="PLG_CRON_SUPPORT_TICKETLIST_INCLUDETAGS_LABEL" description="PLG_CRON_SUPPORT_TICKETLIST_INCLUDETAGS_DESC" />
 	</params>
 	<params group="tickettemp">

@@ -60,15 +60,14 @@ class ResourcesControllerTags extends \Hubzero\Component\AdminController
 		}
 
 		// Get tags for this resource
-		$rt = new ResourcesTags($this->database);
-		$tagsMen = $rt->getTags($this->view->id, 0, 0, 1);
+		$rt = new ResourcesTags($this->view->id);
 
 		$mytagarray    = array();
 		$myrawtagarray = array();
-		foreach ($tagsMen as $tagMen)
+		foreach ($rt->tags() as $tagMen)
 		{
-			$mytagarray[]    = $tagMen->tag;
-			$myrawtagarray[] = $tagMen->raw_tag;
+			$mytagarray[]    = $tagMen->get('tag');
+			$myrawtagarray[] = $tagMen->get('raw_tag');
 		}
 		$this->view->mytagarray = $mytagarray;
 
@@ -96,7 +95,7 @@ class ResourcesControllerTags extends \Hubzero\Component\AdminController
 	 */
 	public function saveTask()
 	{
-	    // Check for request forgeries
+		// Check for request forgeries
 		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
@@ -105,9 +104,9 @@ class ResourcesControllerTags extends \Hubzero\Component\AdminController
 		$selected = JRequest::getVar('tgs', array(0));
 
 		// Process tags
-		$tagging = new ResourcesTags($this->database);
-		$tagArray  = $tagging->_parse_tags($entered);
-		$tagArray2 = $tagging->_parse_tags($entered, 1);
+		$tagging = new ResourcesTags($id);
+		$tagArray  = $tagging->parseTags($entered);
+		$tagArray2 = $tagging->parseTags($entered, 1);
 
 		$diffTags = array_diff($tagArray, $selected);
 		foreach ($diffTags as $diffed)
@@ -115,7 +114,7 @@ class ResourcesControllerTags extends \Hubzero\Component\AdminController
 			array_push($selected, $tagArray2[$diffed]);
 		}
 		$tags = implode(',', $selected);
-		$tagging->tag_object($this->juser->get('id'), $id, $tags, 0, 1);
+		$tagging->setTags($tags, $this->juser->get('id'), 1);
 
 		// Redirect
 		$this->setRedirect(

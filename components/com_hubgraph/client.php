@@ -10,38 +10,48 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 {
 	private static $inst;
 	private static $defaultSettings = array(
-		'host' => 'unix:///var/run/hubgraph-server.sock',
+		'host' => 'unix:///var/run/hubgraph/hubgraph-server.sock',
 	        'port' => NULL,
 		'showTagCloud' => TRUE,
 		'enabledOptions' => ''
 	);
 	private $settings, $idx;
 
-	private function __construct() {
-		if (!$this->settings) {
+	private function __construct()
+	{
+		if (!$this->settings)
+		{
 			$this->settings = self::$defaultSettings;
 		}
 	}
 
-	public static function instance() {
-		if (!self::$inst) {
-			if (version_compare(JVERSION, '1.6', 'lt')) {
+	public static function instance()
+	{
+		if (!self::$inst)
+		{
+			if (version_compare(JVERSION, '1.6', 'lt'))
+			{
 				$query = 'SELECT params FROM jos_components WHERE `option` = \'com_hubgraph\'';
 			}
-			else {
+			else
+			{
 				$query = 'SELECT params FROM jos_extensions WHERE `type`=\'component\' AND `element` = \'com_hubgraph\'';
 			}
 			$conf = Db::scalarQuery($query);
-			if ($conf) {
-				if (isset($conf[0]) && $conf[0] != '{') {
+			if ($conf)
+			{
+				if (isset($conf[0]) && $conf[0] != '{')
+				{
 					self::$inst = unserialize($conf);
 				}
-				else {
+				else
+				{
 					self::$inst = new HubgraphConfiguration;
 					self::$inst->settings = json_decode($conf, TRUE);
 				}
 			}
-			if (!self::$inst instanceof HubgraphConfiguration) {
+			if (!self::$inst instanceof HubgraphConfiguration)
+			{
 				self::$inst = new HubgraphConfiguration;
 				self::$inst->save();
 			}
@@ -50,7 +60,8 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 		return self::$inst;
 	}
 
-	public function save() {
+	public function save()
+	{
 		$params = json_encode($this->settings);
 		if (version_compare(JVERSION, '1.6', 'lt')) {
 			$updateQuery = 'UPDATE jos_components SET params = ? WHERE `option` = \'com_hubgraph\'';
@@ -65,83 +76,107 @@ class HubgraphConfiguration implements \ArrayAccess, \Iterator
 		}
 	}
 
-	private function validate() {
-		foreach (self::$defaultSettings as $k=>$v) {
-			if (!array_key_exists($k, $this->settings)) {
+	private function validate()
+	{
+		foreach (self::$defaultSettings as $k=>$v)
+		{
+			if (!array_key_exists($k, $this->settings))
+			{
 				$this->settings[$k] = $v;
 			}
 		}
 	}
 
-	public function bind($form) {
-		foreach (array_keys($this->settings) as $k) {
-			if (array_key_exists($k, $form)) {
+	public function bind($form)
+	{
+		foreach (array_keys($this->settings) as $k)
+		{
+			if (array_key_exists($k, $form))
+			{
 				$this->settings[$k] = $form[$k] == '' ? NULL : $form[$k];
 			}
 		}
 		return $this;
 	}
 
-	public function isOptionEnabled($opt) {
+	public function isOptionEnabled($opt)
+	{
 		return in_array($opt, explode(',', $this->settings['enabledOptions']));
 	}
 
-	public static function niceKey($k) {
+	public static function niceKey($k)
+	{
 		return ucfirst(preg_replace_callback('/([A-Z])+/', function($ma) { return ' '.strtolower($ma[1]); }, $k));
 	}
 
-	public function offsetSet($offset, $value) {
-		if (is_null($offset) || !isset($this->settings[$offset])) {
+	public function offsetSet($offset, $value)
+	{
+		if (is_null($offset) || !isset($this->settings[$offset]))
+		{
 			throw new \Exception('not supported');
 		}
 		$this->settings[$offset] = $value;
 	}
-	public function offsetExists($offset) {
+	public function offsetExists($offset)
+	{
 		return isset($this->settings[$offset]);
 	}
-	public function offsetUnset($_offset) {
+	public function offsetUnset($_offset)
+	{
 		throw new \Exception('not supported');
 	}
-	public function offsetGet($offset) {
-		if (!$this->offsetExists($offset)) {
+	public function offsetGet($offset)
+	{
+		if (!$this->offsetExists($offset))
+		{
 			return NULL;
 		}
 		return $this->settings[$offset];
 	}
-	public function rewind() {
+	public function rewind()
+	{
 		return reset($this->settings);
 	}
-	public function current() {
+	public function current()
+	{
 		return current($this->settings);
 	}
-	public function key() {
+	public function key()
+	{
 		return key($this->settings);
 	}
-	public function next() {
+	public function next()
+	{
 		return next($this->settings);
 	}
-	public function valid() {
+	public function valid()
+	{
 		return array_key_exists($this->key(), $this->settings);
 	}
 }
 
-class HubgraphClient {
+class HubgraphClient
+{
 	const CHUNK_LEN = 1024;
 
-	private static function http($method, $url, $entity = NULL) {
+	private static function http($method, $url, $entity = NULL)
+	{
 		$conf = HubgraphConfiguration::instance();
-		if (!($sock = @fsockopen($conf['host'], $conf['port'], $_errno, $errstr, 1))) {
+		if (!($sock = @fsockopen($conf['host'], $conf['port'], $_errno, $errstr, 1)))
+		{
 			throw new HubGraphConnectionError('unable to establish HubGraph connection using '.$conf['host'].': '.$errstr);
 		}
 
 		fwrite($sock, "$method $url HTTP/1.1\r\n");
 		fwrite($sock, "Host: localhost\r\n");
 		fwrite($sock, "X-HubGraph-Request: ".sha1(uniqid())."\r\n");
-		if ($entity) {
+		if ($entity)
+		{
 			fwrite($sock, "Content-Length: ".strlen($entity)."\r\n");
 		}
 		fwrite($sock, "Connection: close\r\n\r\n");
-		if ($entity) {
+		if ($entity)
+		{
 			fwrite($sock, $entity);
 		}
 
@@ -170,7 +205,8 @@ class HubgraphClient {
 		return array($status, $body);
 	}
 
-	public static function execView($key, $args = NULL) {
+	public static function execView($key, $args = NULL)
+	{
 		static $count = 0;
 		++$count;
 		$path = '/views/'.$key;

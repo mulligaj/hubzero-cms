@@ -450,10 +450,10 @@ class MembersModelRegistration
 		}
 
 		//get user tags
-		require_once( JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'helpers' . DS . 'tags.php' );
+		require_once( JPATH_ROOT . DS . 'components' . DS . 'com_members' . DS . 'models' . DS . 'tags.php' );
 		$database = JFactory::getDBO();
-		$mt = new MembersTags($database);
-		$tag_string = $mt->get_tag_string( $xprofile->get('uidNumber') );
+		$mt = new MembersModelTags($xprofile->get('uidNumber'));
+		$tag_string = $mt->render('string');
 
 		//get member addresses
 		require_once(JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_members' . DS . 'tables' . DS . 'address.php');
@@ -749,15 +749,23 @@ class MembersModelRegistration
 			$uid = JUserHelper::getUserId($login);
 
 			if ($uid && $uid != $id)
+			{
 				$this->_invalid['login'] = 'The user login "'. htmlentities($login) .'" already exists. Please try another.';
+			}
 
 			if (\Hubzero\Utility\Validate::reserved('username', $login))
+			{
 				$this->_invalid['login'] = 'The user login "'. htmlentities($login) .'" already exists. Please try another.';
+			}
 
+			// system username check
 			$puser = posix_getpwnam($login);
-
 			if (!empty($puser) && $uid && $uid != $puser['uid'])
-				$this->_invalid['login'] = 'The user login "'. htmlentities($login) .'" already exists. Please try another.';
+			{
+				// log error and display error to user
+				\JFactory::getLogger()->error('System username/userid does not match DB username/password for user: ' . $uid);
+				$this->_invalid['login'] = 'Username mismatch error, please contact system administrator to fix your account.';
+			}
 		}
 
 		if ($registrationPassword == REG_REQUIRED)

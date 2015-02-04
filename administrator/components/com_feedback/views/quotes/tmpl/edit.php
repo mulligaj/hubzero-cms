@@ -30,7 +30,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$canDo = FeedbackHelper::getActions('quote');
+$canDo = FeedbackHelperPermissions::getActions('quote');
 
 $text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 
@@ -264,7 +264,6 @@ jQuery(document).ready(function($) {
 	<input type="hidden" name="id" value="<?php echo $this->row->id; ?>" />
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="task" value="save" />
-	<input type="hidden" name="type" value="<?php echo $this->type ?>" />
 
 	<?php echo JHTML::_('form.token'); ?>
 </form>

@@ -32,7 +32,11 @@ $author = $pAuthor->getAuthorByOwnerId($this->row->publication_version_id, $this
 
 // Get profile thumb image
 $profile = \Hubzero\User\Profile::getInstance($this->row->user_id);
-$thumb = \Hubzero\User\Profile\Helper::getMemberPhoto($profile);
+
+$juser = JFactory::getUser();
+$actor   = \Hubzero\User\Profile::getInstance($juser->get('id'));
+
+$thumb   = $profile ? $profile->getPicture() : $actor->getPicture(true);
 
 $name = $author->name ? $author->name : $author->p_name;
 $name = trim($name) ? $name : $author->invited_name;
@@ -45,7 +49,7 @@ if (trim($name)) {
 else {
 	$firstname = htmlspecialchars($author->givenName);
 	$lastname  = htmlspecialchars($author->surname);
-	if(!$author->user_id)
+	if (!$author->user_id)
 	{
 		$name = $author->invited_email;
 	}
@@ -94,7 +98,15 @@ $lastname = $author->lastName ? htmlspecialchars($author->lastName) : $lastname;
 						<span class="leftshift faded"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_AUTHORS_AUTHOR_ORGANIZATION')); ?>*:</span>
 						<input type="text" name="organization" class="long" value="<?php echo $author->organization ? htmlspecialchars($author->organization) : htmlspecialchars($author->p_organization); ?>" maxlength="255" />
 					</label>
+					<p class="hint"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_AUTHORS_REQUIRED_FIELDS'); ?></p>
 					<div class="clear"></div>
+					<?php if (!$author->username) { ?>
+						<label for="email">
+							<span class="leftshift faded"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_AUTHORS_AUTHOR_EMAIL')); ?>:</span>
+							<input type="text" name="email" class="long" value="<?php echo $author->invited_email ? $author->invited_email : ''; ?>" maxlength="255" /><span class="optional"><?php echo JText::_('OPTIONAL'); ?></span>
+						</label>
+						<div class="clear"></div>
+					<?php } ?>
 					<label for="credit">
 						<span class="leftshift faded"><?php echo ucfirst(JText::_('PLG_PROJECTS_PUBLICATIONS_AUTHORS_AUTHOR_CREDIT')); ?>:</span>
 						<input type="text" name="credit"  class="long" value="<?php echo htmlspecialchars($author->credit); ?>" maxlength="255"  /><span class="optional"><?php echo JText::_('OPTIONAL'); ?></span>
@@ -109,6 +121,7 @@ $lastname = $author->lastName ? htmlspecialchars($author->lastName) : $lastname;
 					<a href="<?php echo $this->backUrl; ?>" class="btn btn-cancel"><?php echo JText::_('PLG_PROJECTS_PUBLICATIONS_CANCEL'); ?></a>
 					<?php } ?>
 				</p>
+				
 			</div>
 	</form>
 	<div class="clear"></div>

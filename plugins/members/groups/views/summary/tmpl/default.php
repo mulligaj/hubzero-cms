@@ -31,7 +31,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$base = 'index.php?option=com_members&id=' . $this->member->get('uidNumber') . '&active=groups';
+$base = $this->member->getLink() . '&active=groups';
 
 $this->css();
 ?>
@@ -131,7 +131,7 @@ $this->css();
 						<span class="entry-id"><?php echo $group->gidNumber; ?></span>
 					</th>
 					<td>
-						<?php if($published) : ?>
+						<?php if ($published) : ?>
 							<a class="entry-title" rel="<?php echo $group->gidNumber; ?>" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&cn='. $group->cn); ?>">
 								<?php echo $this->escape(stripslashes($group->description)); ?>
 							</a><br />

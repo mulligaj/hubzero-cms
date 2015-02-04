@@ -263,6 +263,10 @@ $cc = array();
 		$i = 0;
 		foreach ($this->row->comments() as $comment)
 		{
+			if ($comment->changelog()->format() != 'html')
+			{
+				$cc = $comment->changelog()->get('cc');
+			}
 			// Is the comment private?
 			// If so, does the user have access to read private comments?
 			//   If not, skip it
@@ -296,11 +300,6 @@ $cc = array();
 			}
 
 			$o = ($o == 'odd') ? 'even' : 'odd';
-
-			if ($comment->changelog()->format() != 'html')
-			{
-				$cc = $comment->changelog()->get('cc');
-			}
 			?>
 			<li class="comment <?php echo $access . ' ' . $o; ?>" id="c<?php echo $comment->get('id'); ?>">
 				<p class="comment-member-photo">
@@ -406,6 +405,8 @@ $cc = array();
 				<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 				<input type="hidden" name="task" value="update" />
 
+				<input type="hidden" name="started" value="<?php echo JFactory::getDate()->toSql(); ?>" />
+
 				<input type="hidden" name="search" value="<?php echo $this->escape($this->filters['search']); ?>" />
 				<input type="hidden" name="show" value="<?php echo $this->escape($this->filters['show']); ?>" />
 				<input type="hidden" name="limit" value="<?php echo $this->escape($this->filters['limit']); ?>" />
@@ -456,7 +457,7 @@ $cc = array();
 						<div class="col span6">
 							<label>
 								<?php echo JText::_('COM_SUPPORT_COMMENT_SEVERITY'); ?>:
-								<?php echo SupportHtml::selectArray('ticket[severity]', $this->lists['severities'], $this->row->get('severity')); ?>
+								<?php echo SupportHelperHtml::selectArray('ticket[severity]', $this->lists['severities'], $this->row->get('severity')); ?>
 							</label>
 						</div>
 						<div class="col span6 omega">
@@ -568,13 +569,13 @@ $cc = array();
 					</div>
 					<div class="clear"></div>
 				<?php } // ACL can create comments (admin) or private comments ?>
-					<textarea name="comment" id="comment" rows="13" cols="35"></textarea>
+					<textarea name="comment" id="comment" rows="13" cols="35"><?php echo $this->comment->get('comment'); ?></textarea>
 				</fieldset>
 
 				<fieldset>
 					<legend><?php echo JText::_('COM_SUPPORT_COMMENT_LEGEND_ATTACHMENTS'); ?></legend>
 					<?php
-					$tmp = ('-' . time());
+					$tmp = JRequest::getVar('tmp_dir', ('-' . time()), 'post');
 					$this->js('jquery.fileuploader.js', 'system');
 					$jbase = rtrim(JURI::getInstance()->base(true), '/');
 					?>
@@ -592,6 +593,13 @@ $cc = array();
 						</noscript>
 					</div>
 					<div class="field-wrap file-list" id="ajax-uploader-list">
+						<?php
+						$this->view('list', 'media')
+							->set('model', $this->comment)
+							->set('comment', $tmp)
+							->set('ticket', $this->row->get('id'))
+							->display();
+						?>
 					</div>
 					<input type="hidden" name="tmp_dir" id="comment-tmp_dir" value="<?php echo $tmp; ?>" />
 				</fieldset>
@@ -628,6 +636,7 @@ $cc = array();
 			<?php } else { ?>
 				<input type="hidden" name="email_submitter" id="email_submitter" value="1" />
 				<input type="hidden" name="email_owner" id="email_owner" value="1" />
+				<input type="hidden" name="cc" id="acmembers" value="<?php echo implode(', ', $cc); ?>" />
 			<?php } // ACL can create comments (admin) ?>
 
 				<?php echo JHTML::_('form.token'); ?>

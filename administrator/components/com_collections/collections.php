@@ -39,7 +39,7 @@ if (!JFactory::getUser()->authorise('core.manage', $option))
 }
 
 // Include scripts
-require_once(JPATH_COMPONENT_SITE . DS . 'models' . DS . 'collections.php');
+require_once(JPATH_COMPONENT_SITE . DS . 'models' . DS . 'archive.php');
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'helpers' . DS . 'permissions.php');
 
 $controllerName = JRequest::getCmd('controller', 'collections');
@@ -57,6 +57,11 @@ JSubMenuHelper::addEntry(
 	JText::_('COM_COLLECTIONS_POSTS'),
 	'index.php?option=com_collections&controller=posts',
 	$controllerName == 'posts'
+);
+JSubMenuHelper::addEntry(
+	JText::_('COM_COLLECTIONS_ITEMS'),
+	'index.php?option=com_collections&controller=items',
+	$controllerName == 'items'
 );
 
 require_once(JPATH_COMPONENT_ADMINISTRATOR . DS . 'controllers' . DS . $controllerName . '.php');

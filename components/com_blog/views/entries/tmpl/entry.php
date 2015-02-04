@@ -156,8 +156,9 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 				<?php
 				if ($this->config->get('show_authors'))
 				{
-					if (is_object($this->row->creator()))
+					if ($name = $this->row->creator()->get('name'))
 					{
+						$name = $this->escape(stripslashes($name));
 				?>
 					<div class="entry-author">
 						<h3><?php echo JText::_('COM_BLOG_AUTHOR_ABOUT'); ?></h3>
@@ -166,9 +167,13 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 						</p>
 						<div class="entry-author-content">
 							<h4>
-								<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $this->row->get('created_by')); ?>">
-									<?php echo $this->escape(stripslashes($this->row->creator('name'))); ?>
-								</a>
+								<?php if ($this->row->creator()->get('public')) { ?>
+									<a href="<?php echo JRoute::_($this->row->creator()->getLink()); ?>">
+										<?php echo $name; ?>
+									</a>
+								<?php } else { ?>
+									<?php echo $name; ?>
+								<?php } ?>
 							</h4>
 							<div class="entry-author-bio">
 							<?php if ($this->row->creator('bio')) { ?>
@@ -326,10 +331,10 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 						$name = JText::_('COM_BLOG_ANONYMOUS');
 						if (!$replyto->get('anonymous'))
 						{
-							$xuser = \Hubzero\User\Profile::getInstance($replyto->get('created_by'));
-							if (is_object($xuser) && $xuser->get('name'))
+							$name = $this->escape(stripslashes($replyto->creator('name', $name)));
+							if ($replyto->creator('public'))
 							{
-								$name = '<a href="'.JRoute::_('index.php?option=com_members&id=' . $replyto->get('created_by')) . '">' . stripslashes($xuser->get('name')) . '</a>';
+								$name = '<a href="' . JRoute::_($replyto->creator()->getLink()) . '">' . $name . '</a>';
 							}
 						}
 					?>
@@ -353,7 +358,7 @@ $entry_month = substr($this->row->get('publish_up'), 5, 2);
 					<label for="commentcontent">
 						Your <?php echo ($replyto->exists()) ? 'reply' : 'comments'; ?>:
 						<?php
-							echo \JFactory::getEditor()->display('comment[content]', '', '', '', 40, 15, false, 'commentcontent', null, null, array('class' => 'minimal no-footer'));
+							echo $this->editor('comment[content]', '', 40, 15, 'commentcontent', array('class' => 'minimal no-footer'));
 						?>
 					</label>
 					<?php } else { ?>

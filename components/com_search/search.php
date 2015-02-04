@@ -31,12 +31,30 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$controllerName = JRequest::getCmd('controller', JRequest::getCmd('view', 'search'));
-if (!file_exists(JPATH_COMPONENT_SITE . DS . 'controllers' . DS . $controllerName . '.php'))
+$config = JComponentHelper::getParams('com_search');
+
+$controllerName = JRequest::getCmd('controller', JRequest::getCmd('view', $config->get('engine', 'basic')));
+
+// Are we falling back to the default engine?
+$fallback = JFactory::getSession()->get('searchfallback');
+if ($fallback && intval($fallback) <= time())
 {
-	$controllerName = 'search';
+	// Don't fallback if the time limit has expired
+	$fallback = null;
 }
-require_once(JPATH_COMPONENT_SITE . DS . 'controllers' . DS . $controllerName . '.php');
+
+// Are we explicitely forcing the engine?
+if ($force = JRequest::getCmd('engine'))
+{
+	$fallback = null;
+	$controllerName = $force;
+}
+
+if ($fallback || !file_exists(__DIR__ . DS . 'controllers' . DS . $controllerName . '.php'))
+{
+	$controllerName = 'basic';
+}
+require_once(__DIR__ . DS . 'controllers' . DS . $controllerName . '.php');
 $controllerName = 'SearchController' . ucfirst(strtolower($controllerName));
 
 // Instantiate controller

@@ -81,34 +81,201 @@ class PublicationsModelHandlers extends JObject
 	 */
 	public function showHandlers($pub, $elementid, $handlers, $handler, $attachments)
 	{
-		$html = '<div class="handler-controls">';
-
-		// We have a handler assigned
+		$html = '';
+		// We have a forced handler
 		if ($handler)
 		{
 			if (!is_object($handler))
 			{
 				$handler = $this->ini($handler);
 			}
-
-			$html .= $handler->drawSelectedHandler($pub, $elementid, $attachments);
+			$html  = '<div class="handler-controls">';
+			$html .= $this->drawSelectedHandler($handler);
+			$html .= '</div>';
 		}
 		elseif ($handlers)
 		{
-			// Handler choice
-			// TBD
+			// TEMP
+			return false;
 
-			if ($handlers == 'auto')
+			// Load needed objects
+			$obj = new PublicationHandler($this->_db);
+
+			// Get all available handlers
+			$all = $obj->getHandlers($pub->version_id, $elementid);
+
+			// Get applicable handlers
+			if (!$all)
 			{
-				// Look for relevant handlers
-				// TBD
+				return;
+			}
+			$i = 0;
+			$html = '<div class="handler-controls">';
+			foreach ($all as $item)
+			{
+				$handler  = $this->ini($item->name);
+				if ($relevant = self::isRelevant($handler, $attachments) || $item->assigned)
+				{
+					$html .= $this->drawHandlerChoice($handler, $item->assigned, $relevant);
+					$i++;
+				}
+			}
+			$html.= '</div>';
+
+			// No applicable hanlders?
+			if ($i == 0)
+			{
+				return;
 			}
 		}
 
+		return $html;
+	}
+
+	/**
+	 * Check if handler applies to selection
+	 *
+	 * @return  void
+	 */
+	public function isRelevant( $handler, $attachments )
+	{
+		// Get handler configs
+		$configs = $handler->get('_configs');
+		if (!$configs)
+		{
+			$configs = $handler->getConfig();
+		}
+
+		// Attachments are needed
+		if (!$attachments || empty($attachments))
+		{
+			return false;
+		}
+
+		// Check allowed formats
+		if (!self::checkAllowed($attachments, $configs->params->allowed_ext))
+		{
+			return false;
+		}
+
+		// Check required formats
+		if (!self::checkRequired($attachments, $configs->params->required_ext))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check for allowed formats
+	 *
+	 * @return  object
+	 */
+	public function checkAllowed( $attachments, $formats = array() )
+	{
+		if (empty($attachments))
+		{
+			return true;
+		}
+
+		if (empty($formats))
+		{
+			return true;
+		}
+
+		foreach ($attachments as $attach)
+		{
+			$file = isset($attach->path) ? $attach->path : $attach;
+			$ext = explode('.', $file);
+			$ext = end($ext);
+
+			if ($ext && !in_array(strtolower($ext), $formats))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check for required formats
+	 *
+	 * @return  object
+	 */
+	public function checkRequired( $attachments, $formats = array() )
+	{
+		if (empty($attachments))
+		{
+			return true;
+		}
+
+		if (empty($formats))
+		{
+			return true;
+		}
+
+		$i = 0;
+		foreach ($attachments as $attach)
+		{
+			$file = isset($attach->path) ? $attach->path : $attach;
+			$ext = explode('.', $file);
+			$ext = end($ext);
+
+			if ($ext && in_array(strtolower($ext), $formats))
+			{
+				$i++;
+			}
+		}
+
+		if ($i < count($formats))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Side controls for handler
+	 *
+	 * @return  void
+	 */
+	public function drawSelectedHandler($handler, $assigned = NULL)
+	{
+		$configs = $handler->get('_configs');
+		if (!$configs)
+		{
+			$configs = $handler->getConfig();
+		}
+		$html = '<div class="handlertype-' . $handler->get('_name') . '">';
+		$html.= '<h3>' . JText::_('Presentation') . ': ' . $configs->label . '</h3>';
+		$html.= '<p>' . $configs->about . '</p>';
 		$html.= '</div>';
 
 		return $html;
 	}
+
+	/**
+	 * Side controls for handler
+	 *
+	 * @return  void
+	 */
+	public function drawHandlerChoice($handler, $assigned = NULL, $relevant = true)
+	{
+		$configs = $handler->get('_configs');
+		if (!$configs)
+		{
+			$configs = $handler->getConfig();
+		}
+		$html = '<div class="handlertype-' . $handler->get('_name') . '">';
+		$html.= '<h3>' . $configs->label . '</h3>';
+		$html.= '</div>';
+
+		return $html;
+	}
+
 
 	/**
 	 * Initialize
@@ -182,5 +349,37 @@ class PublicationsModelHandlers extends JObject
 
 		$this->_types[$signature] = new $elementClass($this);
 		return $this->_types[$signature];
+	}
+
+	/**
+	 * Get params for the handler
+	 *
+	 * @return  void
+	 */
+	public function parseConfig($name, $configs = array())
+	{
+		// Load config from db
+		$obj = new PublicationHandler($this->_db);
+		$savedConfig = $obj->getConfig($name);
+
+		if ($savedConfig)
+		{
+			foreach ($configs as $configName => $configValue)
+			{
+				if ($configName == 'params')
+				{
+					foreach ($configValue as $paramName => $paramValue)
+					{
+						$configs['params'][$paramName] = isset($savedConfig['params'][$paramName]) && $savedConfig['params'][$paramName] ? $savedConfig['params'][$paramName] : $paramValue;
+					}
+				}
+				else
+				{
+					$configs[$configName] = isset($savedConfig[$configName]) && $savedConfig[$configName] ? $savedConfig[$configName] : $configValue;
+				}
+			}
+		}
+
+		return $configs;
 	}
 }

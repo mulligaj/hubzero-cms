@@ -51,7 +51,7 @@
 		clear: left;
 	}
 	.com_publications .container .results li {
-		padding: 1.5em 1em;
+		padding: 0.5em 1em;
 		border-top: 1px solid #efefef;
 		border-bottom: none;
 	}
@@ -72,7 +72,7 @@
 		top: 0.3em;
 	}
 	.com_publications .aside.extracontent ul {
-		width: 100%;
+		width: auto;
 		background: #f1edf5;
 		padding: 1em 0;
 		border-top: 1px solid #e2dbe8;
@@ -89,6 +89,7 @@
 	.com_publications .aside.extracontent li a {
 		padding: 0.2em 1em;
 		width: 100%;
+		padding-left: 0;
 	}
 	.aside.extracontent li a:hover {
 		background: none;
@@ -105,6 +106,7 @@
 		color: #aaa;
 		border: none;
 		content: "\270D";
+		margin-left: -0.5em;
 	}
 	.extracontent .dataset a:before {
 		content: "\f071";
@@ -167,6 +169,7 @@
 	#introbody .extracontent {
 		margin: 0;
 		border: none;
+		padding: 0;
 		line-height: 1.2em;
 	}
 	#introbody .extracontent li {
@@ -538,8 +541,8 @@
 		padding: 0;
 		margin: 0;
 	}
-	.com_publications #abox-content {
-		text-align: center;
+	#abox-content {
+		text-align: left !important;
 	}
 	.tabbed #abox-content div.sample {
 		/* display: none; */
@@ -639,7 +642,7 @@
 	}
 	.metadata p:before {
 		font-family: 'Fontcons';
-		font-size: 12px;
+		font-size: 14px;
 		line-height: 12px;
 		margin-right: 0.3em;
 		color: #bbb;
@@ -677,6 +680,12 @@
 	}
 	.metadata p.wishlist:before {
 		content: "\f078";
+	}
+	.metadata p.supported:before {
+		content: "\f04e";
+		color: #E2AA23;
+		font-size: 20px;
+		margin-left: -3px;
 	}
 
 /* Ranking */
@@ -934,7 +943,7 @@
 		}
 	#publications li {
 		clear: left;
-		padding: 1.5em 0;
+		padding: 1em 0;
 		border-top: 1px solid #EFEFEF;
 		}
 	#publications li .details {
@@ -1340,13 +1349,6 @@
 		float: right;
 		font-size: 0.8em;
 		margin-right: 0.5em;
-	}
-	h3.prov-header, #mypub h3, #abox-content h3.prov-header {
-		background: #f9f6ec;
-		padding: 0.2em 0.5em;
-		margin: 0;
-		width: 100%;
-		border: none;
 	}
 	h3.prov-header a {
 		color: #000;
@@ -1901,6 +1903,7 @@
 		background: #f9f6ec;
 		padding: 0.2em;
 		margin: 0;
+		margin-bottom: 1em;
 		width: 100%;
 		border: none;
 		font-size: 100%;

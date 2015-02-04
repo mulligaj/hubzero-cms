@@ -104,22 +104,19 @@ class CronControllerJobs extends \Hubzero\Component\SiteController
 					continue;
 				}
 
-				$job->set('last_run', JHTML::_('date', JFactory::getDate(), 'Y-m-d H:i:s')); //JFactory::getDate()->toSql());
-				$job->set('next_run', $job->nextRun());
-				$job->store();
-
 				// Show related content
 				$job->mark('start_run');
 
-				$results = $dispatcher->trigger($job->get('event'), array($job->get('params')));
+				// Set it as active in case there were multiple plugins called on
+				// the event. This is to ensure ALL processes finished.
+				$job->set('active', 1);
+				$job->store();
+
+				$results = $dispatcher->trigger($job->get('event'), array($job));
 				if ($results)
 				{
 					if (is_array($results))
 					{
-						// Set it as active in case there were multiple plugins called on
-						// the event. This is to ensure ALL processes finished.
-						$job->set('active', 1);
-
 						foreach ($results as $result)
 						{
 							if ($result)
@@ -131,6 +128,8 @@ class CronControllerJobs extends \Hubzero\Component\SiteController
 				}
 
 				$job->mark('end_run');
+				$job->set('last_run', JHTML::_('date', JFactory::getDate(), 'Y-m-d H:i:s')); //JFactory::getDate()->toSql());
+				$job->set('next_run', $job->nextRun());
 				$job->store();
 
 				$output->jobs[] = $job->toArray();

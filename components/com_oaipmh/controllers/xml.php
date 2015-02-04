@@ -135,6 +135,7 @@ class OaipmhControllerXml extends \Hubzero\Component\SiteController
 
 				// check for errors
 				$check = new TablesOaipmhResult($this->database, $customs, $identifier);
+				$badID = false;
 				if ($check->identifier == '')
 				{
 					$badID = true;

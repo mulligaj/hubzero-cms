@@ -80,7 +80,7 @@ $schema 	= $metaElements->getSchema();
 	// Show gallery images
 	if ($this->params->get('show_gallery') || $useBlocks)
 	{
-		if ($useBlocks)
+		if ($useBlocks && $this->params->get('curated') != 2)
 		{
 			// Get handler model
 			$modelHandler = new PublicationsModelHandlers($this->database);
@@ -103,7 +103,7 @@ $schema 	= $metaElements->getSchema();
 
 			$pScreenshot = new PublicationScreenshot($this->database);
 			$gallery = $pScreenshot->getScreenshots( $this->publication->version_id );
-			$shots = PublicationsHtml::showGallery($gallery, $gallery_path);
+			$shots = PublicationsHtml::showGallery($gallery, $gallery_path, $this->publication->id, $this->publication->version_id);
 			if ($shots)
 			{
 				$html  = ' <div class="sscontainer">'."\n";
@@ -129,6 +129,8 @@ $schema 	= $metaElements->getSchema();
 		$listLabel = isset($this->publication->_curationModel->_manifest->params->list_label)
 				? $this->publication->_curationModel->_manifest->params->list_label
 				: JText::_('COM_PUBLICATIONS_CONTENT_LIST');
+		// Add plugin style
+		\Hubzero\Document\Assets::addPluginStylesheet('publications', 'supportingdocs');
 
 		if ($listAll)
 		{

@@ -73,7 +73,8 @@ $juser = JFactory::getUser();
 			<?php
 			foreach ($this->sections as $section)
 			{
-				if (!$section->exists() && $section->categories()->total())
+				$t = $section->categories('list', array('access' => ($juser->get('guest') ? 0 : array(0, 1))), true)->total();
+				if (!$section->exists() && $t)
 				{
 					continue;
 				}
@@ -100,7 +101,7 @@ $juser = JFactory::getUser();
 
 							<?php if (($this->config->get('access-edit-section') || $this->config->get('access-delete-section')) && $section->get('id')) { ?>
 								<?php if ($this->config->get('access-delete-section')) { ?>
-									<a class="icon-delete delete" data-txt-confirm="<?php echo JText::_('Are you sure you wish to delete this item?'); ?>" href="<?php echo JRoute::_('index.php?option='.$this->option . '&section=' . $section->get('alias') . '&task=delete'); ?>" title="<?php echo JText::_('COM_FORUM_DELETE'); ?>">
+									<a class="icon-delete delete" data-txt-confirm="<?php echo JText::_('COM_FORUM_CONFIRM_DELETE'); ?>" href="<?php echo JRoute::_('index.php?option='.$this->option . '&section=' . $section->get('alias') . '&task=delete'); ?>" title="<?php echo JText::_('COM_FORUM_DELETE'); ?>">
 										<span><?php echo JText::_('COM_FORUM_DELETE'); ?></span>
 									</a>
 								<?php } ?>
@@ -213,8 +214,11 @@ $juser = JFactory::getUser();
 						$lname = JText::_('COM_FORUM_ANONYMOUS');
 						if (!$post->get('anonymous'))
 						{
-							//$lname = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $post->creator('id')) . '">' . $this->escape(stripslashes($post->creator('name'))) . '</a>';
-							$lname = $this->escape(stripslashes($post->creator('name')));
+							$lname = $this->escape(stripslashes($post->creator('name', $lname)));
+							if ($post->creator('public'))
+							{
+								$lname = '<a href="' . JRoute::_($post->creator()->getLink()) . '">' . $lname . '</a>';
+							}
 						}
 						foreach ($this->sections as $section)
 						{

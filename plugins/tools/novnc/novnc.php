@@ -53,7 +53,11 @@ class plgToolsNovnc extends \Hubzero\Plugin\Plugin
 	 */
 	public function onToolSessionView($tool, $session, $readOnly=false)
 	{
-		$viewer = JRequest::getWord('viewer');
+		$us = JFactory::getSession();
+
+		$declared = JRequest::getWord('viewer');
+		$viewer = ($declared ? $declared : $us->get('tool_viewer'));
+
 		if ((isset($session->rendered) && $session->rendered)
 		 || ($viewer && $viewer != $this->_name))
 		{
@@ -66,6 +70,11 @@ class plgToolsNovnc extends \Hubzero\Plugin\Plugin
 		}
 
 		$session->rendered = true;
+
+		if (!$declared)
+		{
+			$us->set('tool_viewer', $this->_name);
+		}
 
 		$view = new \Hubzero\Plugin\View(array(
 			'folder'  => $this->_type,
@@ -96,6 +105,8 @@ class plgToolsNovnc extends \Hubzero\Plugin\Plugin
 		{
 			$browsers = array();
 
+			$allowed = str_replace("\r", '', $allowed);
+			$allowed = str_replace('\n', "\n", $allowed);
 			$allowed = explode("\n", $allowed);
 			foreach ($allowed as $allow)
 			{
@@ -125,12 +136,12 @@ class plgToolsNovnc extends \Hubzero\Plugin\Plugin
 					continue;
 				}
 
-				if ($minimum->major < $browser->major())
+				if ($minimum->major > $browser->major())
 				{
 					return false;
 				}
 
-				if ($minimum->minor < $browser->minor())
+				if ($minimum->major == $browser->major() && $minimum->minor > $browser->minor())
 				{
 					return false;
 				}
@@ -139,6 +150,8 @@ class plgToolsNovnc extends \Hubzero\Plugin\Plugin
 
 		if ($regexes = trim($this->params->get('regexes')))
 		{
+			$regexes = str_replace("\r", '', $regexes);
+			$regexes = str_replace('\n', "\n", $regexes);
 			$regexes = explode("\n", $regexes);
 			foreach ($regexes as $disallow)
 			{

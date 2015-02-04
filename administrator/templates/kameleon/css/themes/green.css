@@ -18,10 +18,10 @@
 	div.configuration,
 	h2.modal-title,
 	.light .main-navigation {
-		background: #a7d163;
+		background: #73c36c;
 	}
 	.light .main-navigation ul#menu ul {
-		background: #a7d163;
+		background: #73c36c;
 	}
 	.light .main-navigation ul#menu ul li {
 		background-color: rgba(0, 0, 0, 0.2);
@@ -32,16 +32,16 @@
 
 /* Dark header */
 	.dark #toolbar-box {
-		background: #a7d163;
-		border-color: #a7d163;
+		background: #73c36c;
+		border-color: #73c36c;
 	}
 	.dark #toolbar-box .pagetitle h2 {
 		color: #fff;
 	}
 	.dark .toolbar-box li a span:after {
 		text-shadow:
-		     -1px -1px 0 #a7d163,
-		      1px -1px 0 #a7d163,
-		      -1px 1px 0 #a7d163,
-		       1px 1px 0 #a7d163;
+		     -1px -1px 0 #73c36c,
+		      1px -1px 0 #73c36c,
+		      -1px 1px 0 #73c36c,
+		       1px 1px 0 #73c36c;
 	}

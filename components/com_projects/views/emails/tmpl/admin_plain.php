@@ -25,15 +25,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$dateFormat = '%b %d, %Y';
-$tz = null;
-
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'M d, Y';
-	$tz = false;
-}
-
 $juri 	 = JURI::getInstance();
 $jconfig = JFactory::getConfig();
 $base 	 = rtrim($juri->base(), DS);
@@ -56,7 +47,7 @@ $message  = JText::_('COM_PROJECTS_EMAIL_ADMIN_NOTIFICATION') ."\n";
 $message .= '-------------------------------' ."\n";
 $message .= JText::_('COM_PROJECTS_PROJECT') . ': ' . $this->project->title . ' (' . $this->project->alias . ')' . "\n";
 $message .= ucfirst(JText::_('COM_PROJECTS_CREATED')) . ' '
-		 . JHTML::_('date', $this->project->created, $dateFormat, $tz) . ' '
+		 . JHTML::_('date', $this->project->created, 'M d, Y') . ' '
 		 . JText::_('COM_PROJECTS_BY') . ' ';
 $message .= $this->project->owned_by_group
 			? $this->nativegroup->cn . ' ' . JText::_('COM_PROJECTS_GROUP')
@@ -69,18 +60,18 @@ if ($this->project->private == 0)
 }
 $message .= '-------------------------------' ."\n\n";
 
-if($this->config->get('restricted_data', 0) && $this->reviewer == 'sensitive')
+if ($this->config->get('restricted_data', 0) && $this->reviewer == 'sensitive')
 {
 	$message .= JText::_('COM_PROJECTS_EMAIL_HIPAA') . ': ' . $this->params->get('hipaa_data') ."\n";
 	$message .= JText::_('COM_PROJECTS_EMAIL_FERPA') . ': ' . $this->params->get('ferpa_data') ."\n";
 	$message .= JText::_('COM_PROJECTS_EMAIL_EXPORT') . ': ' . $this->params->get('export_data') ."\n";
-	if($this->params->get('followup'))
+	if ($this->params->get('followup'))
 	{
 		$message .= JText::_('COM_PROJECTS_EMAIL_FOLLOWUP_NEEDED') . ': ' . $this->params->get('followup') ."\n";
 	}
 	$message .= '-------------------------------' ."\n\n";
 }
-if($this->config->get('grantinfo', 0) && $this->reviewer == 'sponsored')
+if ($this->config->get('grantinfo', 0) && $this->reviewer == 'sponsored')
 {
 	$message .= JText::_('COM_PROJECTS_EMAIL_GRANT_TITLE') . ': ' . $this->params->get('grant_title') ."\n";
 	$message .= JText::_('COM_PROJECTS_EMAIL_GRANT_PI') . ': ' . $this->params->get('grant_PI') ."\n";
@@ -95,14 +86,14 @@ if ($this->message)
 	$message .= $this->message ."\n";
 }
 
-if($this->config->get('ginfo_group', 0) && $this->reviewer == 'sponsored')
+if ($this->config->get('ginfo_group', 0) && $this->reviewer == 'sponsored')
 {
 	$message .= '-------------------------------' ."\n\n";
 	$message .= JText::_('COM_PROJECTS_EMAIL_LINK_SPS') ."\n";
 	$message .= $browseLink . '?reviewer=sponsored' . "\n\n";
 }
 
-if($this->config->get('sdata_group', 0) && $this->reviewer == 'sensitive')
+if ($this->config->get('sdata_group', 0) && $this->reviewer == 'sensitive')
 {
 	$message .= '-------------------------------' ."\n\n";
 	$message .= JText::_('COM_PROJECTS_EMAIL_LINK_HIPAA') ."\n";

@@ -697,7 +697,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$rtrn = JRequest::getVar('return', '');
 
 		$this->setRedirect(
-			JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&app=' . $app->toolname . '&task=session&sess=' . $app->sess . '&return=' . $rtrn . (JRequest::getInt('novnc', 0) ? '&novnc=1' : ''), false)
+			JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&app=' . $app->toolname . '&task=session&sess=' . $app->sess . '&return=' . $rtrn . (JRequest::getWord('viewer') ? '&viewer=' . JRequest::getWord('viewer') : ''), false)
 		);
 	}
 
@@ -791,7 +791,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		$rtrn = JRequest::getVar('return', '');
 
 		$this->setRedirect(
-			JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&app=' . $session->app() . '&task=session&sess=' . $new_id . '&return=' . $rtrn . (JRequest::getInt('novnc', 0) ? '&novnc=1' : ''), false)
+			JRoute::_('index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&app=' . $session->app() . '&task=session&sess=' . $new_id . '&return=' . $rtrn . (JRequest::getWord('viewer') ? '&viewer=' . JRequest::getWord('viewer') : ''), false)
 		);
 	}
 
@@ -1126,28 +1126,27 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		// Call the view command
 		$status = $this->middleware($command, $output);
 
-
 		if ($app->params->get('vncEncoding',0))
 		{
-		        $output->encoding = trim($app->params->get('vncEncoding',''),'"');
+			$output->encoding = trim($app->params->get('vncEncoding',''),'"');
 		}
 
 		if ($app->params->get('vncShowControls',0))
 		{
-		        $output->show_controls = trim($app->params->get('vncShowControls',''),'"');
+			$output->show_controls = trim($app->params->get('vncShowControls',''),'"');
 		}
 
 		if ($app->params->get('vncShowLocalCursor',0))
 		{
-		        $output->show_local_cursor = trim($app->params->get('vncShowLocalCursor',''),'"');
+			$output->show_local_cursor = trim($app->params->get('vncShowLocalCursor',''),'"');
 		}
 
 		if ($app->params->get('vncDebug',0))
 		{
-		        $output->debug = trim($app->params->get('vncDebug',''),'"');
+			$output->debug = trim($app->params->get('vncDebug',''),'"');
 		}
 
-		foreach ($output as $key=>$value)
+		foreach ($output as $key => $value)
 		{
 			$output->$key = strval($value);
 		}
@@ -1160,13 +1159,13 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			{
 				$value = strtolower($output->$key);
 
-				if (in_array($value,array("1","y","on","yes","t","true")))
+				if (in_array($value, array('1', 'y', 'on', 'yes', 't', 'true')))
 				{
-					$output->$key = "Yes";
+					$output->$key = 'Yes';
 				}
 				else
 				{
-					$output->$key = "No";
+					$output->$key = 'No';
 				}
 			}
 		}
@@ -1188,47 +1187,47 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		if (!isset($output->view_only))
 		{
-			$output->view_only = "No";
+			$output->view_only = 'No';
 		}
 
 		if (!isset($output->trust_all_vnc_certs))
 		{
-			$output->trust_all_vnc_certs = "Yes";
+			$output->trust_all_vnc_certs = 'Yes';
 		}
 
 		if (!isset($output->disableSSL))
 		{
-			$output->disable_ssl = "No";
+			$output->disable_ssl = 'No';
 		}
 
 		if (!isset($output->name))
 		{
-			$output->name = "App Viewer";
+			$output->name = 'App Viewer';
 		}
 
 		if (!isset($output->offer_relogin))
 		{
-			$output->offer_relogin = "Yes";
+			$output->offer_relogin = 'Yes';
 		}
 
 		if (!isset($output->permissions))
 		{
-			$output->permissions = "all-permissions";
+			$output->permissions = 'all-permissions';
 		}
 
 		if (!isset($output->code))
 		{
-			$output->code = "VncViewer.class";
+			$output->code = 'VncViewer.class';
 		}
 
 		if (!isset($output->archive))
 		{
-			$output->archive =  rtrim(JURI::base(true), '/') . "/components/com_tools/scripts/VncViewer-20140116-01.jar";
+			$output->archive =  rtrim(JURI::base(true), '/') . '/components/com_tools/scripts/VncViewer-20140116-01.jar';
 		}
 
 		if (!isset($output->id))
 		{
-			$output->id = "theapp";
+			$output->id = 'theapp';
 		}
 
 		if (!isset($output->host))
@@ -1238,15 +1237,15 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		if (!isset ($output->password) && !empty($output->encpassword))
 		{
-			$decpassword = pack("H*",$output->encpassword);
+			$decpassword = pack("H*", $output->encpassword);
 			$output->password = ToolsHelperVnc::decrypt($decpassword);
 		}
 
 		if (!isset ($output->token) && !empty($output->connect))
 		{
-			if (strncmp($output->connect,'vncsession:',11) ==0)
+			if (strncmp($output->connect, 'vncsession:', 11) ==0)
 			{
-				$output->token = substr($output->connect,11);
+				$output->token = substr($output->connect, 11);
 			}
 		}
 
@@ -1255,11 +1254,11 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			$cls = array();
 			if ($app->params->get('noResize', 0))
 			{
-			        $cls[] = 'no-resize';
+				$cls[] = 'no-resize';
 			}
 			if ($app->params->get('noPopout', 0))
 			{
-			        $cls[] = 'no-popout';
+				$cls[] = 'no-popout';
 			}
 			if ($app->params->get('noPopoutClose', 0))
 			{
@@ -1267,11 +1266,11 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			}
 			if ($app->params->get('noPopoutMaximize', 0))
 			{
-			        $cls[] = 'no-popout-maximize';
+				$cls[] = 'no-popout-maximize';
 			}
 			if ($app->params->get('noRefresh', 0))
 			{
-			        $cls[] = 'no-refresh';
+				$cls[] = 'no-refresh';
 			}
 
 			$output->class = "thisapp";
@@ -1346,12 +1345,9 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		}
 
 		// Set any error messages
-		if ($this->getError())
+		foreach ($this->getErrors() as $error)
 		{
-			foreach ($this->getErrors() as $error)
-			{
-				$this->view->setError($error);
-			}
+			$this->view->setError($error);
 		}
 
 		// Output HTML
@@ -1754,14 +1750,14 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 
 		if (empty($country) && in_array($exportcontrol, array('us', 'd1', 'pu')))
 		{
-			$this->setError(JText::_('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_UNKNOWN'));
+			$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_UNKNOWN');
 			$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED location export control check");
 			return false;
 		}
 
 		if (\Hubzero\Geocode\Geocode::is_e1nation(\Hubzero\Geocode\Geocode::ipcountry($ip)))
 		{
-			$this->setError(JText::_('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_E1'));
+			$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_E1');
 			$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED E1 export control check");
 			return false;
 		}
@@ -1771,7 +1767,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			case 'us':
 				if (\Hubzero\Geocode\Geocode::ipcountry($ip) != 'us')
 				{
-					$this->setError(JText::_('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_USA_ONLY'));
+					$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_USA_ONLY');
 					$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED US export control check");
 					return false;
 				}
@@ -1780,7 +1776,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			case 'd1':
 				if (\Hubzero\Geocode\Geocode::is_d1nation(\Hubzero\Geocode\Geocode::ipcountry($ip)))
 				{
-					$this->setError(JText::_('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_LICENSE'));
+					$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_LICENSE');
 					$xlog->debug("mw::_getToolExportControl($exportcontrol) FAILED D1 export control check");
 					return false;
 				}
@@ -1789,7 +1785,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 			case 'pu':
 				if (!\Hubzero\Geocode\Geocode::is_iplocation($ip, $exportcontrol))
 				{
-					$this->setError(JText::_('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_PURDUE_ONLY'));
+					$this->setError('COM_TOOLS_ERROR_ACCESS_DENIED_EXPORT_PURDUE_ONLY');
 					$xlog->debug("mw::_getToolExportControl($exportControl) FAILED PURDUE export control check");
 					return false;
 				}
@@ -1817,7 +1813,7 @@ class ToolsControllerSessions extends \Hubzero\Component\SiteController
 		// Ensure we have a tool
 		if (!$tool)
 		{
-			$this->setError(JText::_('COM_TOOLS_ERROR_TOOL_NOT_FOUND'));
+			$this->setError('COM_TOOLS_ERROR_TOOL_NOT_FOUND');
 			$xlog->debug("mw::_getToolAccess($tool,$login) FAILED null tool check");
 			return false;
 		}

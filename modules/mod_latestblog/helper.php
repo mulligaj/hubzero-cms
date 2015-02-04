@@ -42,7 +42,7 @@ class modLatestBlog extends \Hubzero\Module\Module
 	 */
 	public function run()
 	{
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'blog.php');
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_blog' . DS . 'models' . DS . 'archive.php');
 
 		$juser = JFactory::getUser();
 
@@ -54,7 +54,7 @@ class modLatestBlog extends \Hubzero\Module\Module
 			'limit'    => $this->params->get('limit', 5),
 			'start'    => 0,
 			'scope'    => $this->params->get('blog', 'site'),
-			'group_id' => 0,
+			'scope_id' => 0,
 			'state'    => (!$juser->get('guest') ? 'registered' : 'public')
 		);
 		if ($filters['scope'] == 'both' || $filters['scope'] == 'group')
@@ -66,7 +66,7 @@ class modLatestBlog extends \Hubzero\Module\Module
 			$filters['scope'] = '';
 		}
 
-		$archive = new BlogModel('site', 0);
+		$archive = new BlogModelArchive('site', 0);
 		$rows = $archive->entries('list', $filters);
 
 		if ($this->params->get('blog', 'site') == 'group' || $this->params->get('blog', 'site') == 'both')
@@ -74,24 +74,24 @@ class modLatestBlog extends \Hubzero\Module\Module
 			//make sure that the group for each blog post has the right privacy setting
 			foreach ($rows as $k => $gf)
 			{
-				if (!$gf->get('group_id'))
+				if (!$gf->get('scope_id'))
 				{
 					continue;
 				}
 
 				$group = $gf->item();
-				if (is_object($group)) 
+				if (is_object($group))
 				{
 					$blog_access = \Hubzero\User\Group\Helper::getPluginAccess($group, 'blog');
 
-					if ($blog_access == 'nobody' 
-					 || ($blog_access == 'registered' && $juser->get('guest')) 
-					 || ($blog_access == 'members' && !in_array($juser->get('id'), $group->get('members')))) 
+					if ($blog_access == 'nobody'
+					 || ($blog_access == 'registered' && $juser->get('guest'))
+					 || ($blog_access == 'members' && !in_array($juser->get('id'), $group->get('members'))))
 					{
 						$rows->offsetUnset($k);
 					}
-				} 
-				else 
+				}
+				else
 				{
 					$rows->offsetUnset($k);
 				}

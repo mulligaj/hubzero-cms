@@ -26,13 +26,17 @@
 defined('_JEXEC') or die( 'Restricted access' );
 
 $setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
+
+$this->css('introduction.css', 'system')
+     ->css()
+     ->js();
 ?>
 <div id="content-header">
 	<h2><?php echo $this->title; ?></h2>
 </div><!-- / #content-header -->
 <div id="content-header-extra">
     <ul id="useroptions">
-    	<li><a class="btn icon-browse" href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=browse'); ?>"><?php echo JText::_('COM_PROJECTS_BROWSE_PUBLIC_PROJECTS'); ?></a></li>
+    	<li><a class="btn icon-browse" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=browse'); ?>"><?php echo JText::_('COM_PROJECTS_BROWSE_PUBLIC_PROJECTS'); ?></a></li>
 	</ul>
 </div><!-- / #content-header-extra -->
 <div class="clear"></div>
@@ -43,21 +47,21 @@ $setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
 	if ($this->getError()) {
 		echo ('<p class="witherror">' . $this->getError().'</p>');
 	}
-	else if($this->msg) {
+	else if ($this->msg) {
 		echo ('<p>' . $this->msg . '</p>');
 	} ?>
 </div>
 <?php } ?>
 <div class="clear block">&nbsp;</div>
-<div id="introduction" class="section">
+<section id="introduction" class="section">
  <div id="introbody">
-	<div class="subject">
-		<div class="two columns first">
+	<div class="grid">
+		<div class="col span5">
 			<h3><?php echo JText::_('COM_PROJECTS_INTRO_COLLABORATION_MADE_EASY'); ?></h3>
 			<p><?php echo JText::_('COM_PROJECTS_INTRO_COLLABORATION_HOW'); ?></p>
-			<p><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=start'); ?>" id="projects-intro-start" class="btn btn-success icon-next"><?php echo JText::_('COM_PROJECTS_START_PROJECT'); ?></a></p>
+			<p><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=start'); ?>" id="projects-intro-start" class="btn icon-next"><?php echo JText::_('COM_PROJECTS_START_PROJECT'); ?></a></p>
 		</div>
-		<div class="two columns second">
+		<div class="col span4 omega">
 			<h3><?php echo JText::_('COM_PROJECTS_INTRO_WHAT_YOU_GET'); ?></h3>
 			<ul>
 				<li><?php echo JText::_('COM_PROJECTS_INTRO_GET_REPOSITORY'); ?></li>
@@ -71,28 +75,26 @@ $setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
 			<p><a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=features'); ?>" id="projects-intro-features" class="btn"><?php echo JText::_('COM_PROJECTS_LEARN_MORE'); ?></a></p>
 		</div>
 	</div>
-	<div class="clear"></div>
  </div>
-</div><!-- / #introduction.section -->
+</section><!-- / #introduction.section -->
 
 <div class="clear"></div>
-<div class="section myprojects">
-	<div class="four columns first">
+<section class="section myprojects">
+	<div class="grid">
+	<div class="col span2">
 		<h2><?php echo JText::_('COM_PROJECTS_MY_PROJECTS'); ?></h2>
-	</div><!-- / .four columns first -->
-	<div class="four columns second third fourth">
+	</div>
+	<div class="col span10 omega">
 		<?php
-		if(count($this->rows) > 0) { 	?>
+		if (count($this->rows) > 0) { 	?>
 			<ul class="flow">
-				<?php foreach($this->rows as $row) {
-				$goto  = 'alias=' . $row->alias;
-				$thumb = ProjectsHtml::getThumbSrc($row->id, $row->alias, $row->picture, $this->config);
+				<?php foreach ($this->rows as $row) {
 				$setup = ($row->setup_stage < $setup_complete) ? JText::_('COM_PROJECTS_COMPLETE_SETUP') : '';
 				?>
-				<li <?php if($setup) { echo 'class="s-dev"'; } else if($row->state == 0) { echo 'class="s-inactive"'; } else if($row->state == 5) { echo 'class="s-pending"'; } ?>>
-					<?php  if(!$setup && $row->private) { ?><span class="s-private">&nbsp;</span><?php }  ?>
-					<a href="<?php echo JRoute::_('index.php?option='.$this->option.a.'task=view'.a.$goto); ?>"><img src="<?php echo $thumb; ?>" alt="" /><span class="block"><?php echo \Hubzero\Utility\String::truncate(ProjectsHtml::cleanText($row->title), 30); ?></span></a><?php if($setup) { ?><span class="s-complete"><?php echo JText::_('COM_PROJECTS_COMPLETE_SETUP'); ?></span><?php } else if($row->state == 0) { ?><span class="s-suspended"><?php echo JText::_('COM_PROJECTS_STATUS_INACTIVE'); ?></span> <?php } else if($row->state == 5) { ?><span class="s-suspended"><?php echo JText::_('COM_PROJECTS_STATUS_PENDING'); ?></span> <?php } ?>
-				<?php if($row->newactivity && $row->state == 1 && !$setup) { ?><span class="s-new"><?php echo $row->newactivity; ?></span><?php } ?>
+				<li <?php if ($setup) { echo 'class="s-dev"'; } else if ($row->state == 0) { echo 'class="s-inactive"'; } else if ($row->state == 5) { echo 'class="s-pending"'; } ?>>
+					<?php  if (!$setup && $row->private) { ?><span class="s-private">&nbsp;</span><?php }  ?>
+					<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=view&alias=' . $row->alias); ?>"><img src="<?php echo JRoute::_('index.php?option=' . $this->option . '&alias=' . $row->alias . '&task=media'); ?>" alt="" /><span class="block"><?php echo \Hubzero\Utility\String::truncate(ProjectsHtml::cleanText($row->title), 30); ?></span></a><?php if ($setup) { ?><span class="s-complete"><?php echo JText::_('COM_PROJECTS_COMPLETE_SETUP'); ?></span><?php } else if ($row->state == 0) { ?><span class="s-suspended"><?php echo JText::_('COM_PROJECTS_STATUS_INACTIVE'); ?></span> <?php } else if ($row->state == 5) { ?><span class="s-suspended"><?php echo JText::_('COM_PROJECTS_STATUS_PENDING'); ?></span> <?php } ?>
+				<?php if ($row->newactivity && $row->state == 1 && !$setup) { ?><span class="s-new"><?php echo $row->newactivity; ?></span><?php } ?>
 				</li>
 				<?php }	?>
 			</ul>
@@ -100,7 +102,7 @@ $setup_complete = $this->config->get('confirm_step', 0) ? 3 : 2;
 			<div class="noresults"><?php echo ($this->guest) ? JText::_('COM_PROJECTS_PLEASE').' <a href="'.JRoute::_('index.php?option='.$this->option.a.'task=intro').'/?action=login" id="projects-intro-login">'.JText::_('COM_PROJECTS_LOGIN').'</a> '.JText::_('COM_PROJECTS_TO_VIEW_YOUR_PROJECTS') : JText::_('COM_PROJECTS_YOU_DONT_HAVE_PROJECTS'); ?></div>
 		<?php }	?>
 	</div>
-	<div class="clear"></div>
 </div>
+</section>
 <div class="clear"></div>
 

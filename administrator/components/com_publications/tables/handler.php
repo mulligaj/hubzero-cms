@@ -33,7 +33,7 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Table class for available publication handlers
  */
-class PublicationHanlder extends JTable
+class PublicationHandler extends JTable
 {
 	/**
 	 * int(11) Primary key
@@ -122,6 +122,31 @@ class PublicationHanlder extends JTable
 			$this->setError( $this->_db->getErrorMsg() );
 			return false;
 		}
+	}
+
+	/**
+	 * Get connections
+	 *
+	 * @param      integer 	$vid		pub version id
+	 * @param      array 	$find
+	 * @return     object
+	 */
+	public function getHandlers ( $vid = NULL, $elementid = 0 )
+	{
+		if (!$vid)
+		{
+			$vid = $this->publication_version_id;
+		}
+
+		$query  = "SELECT H.*, IFNULL(A.id, 0) as assigned, IFNULL(A.ordering, 0) as ordering,
+				A.params as assigned_params  FROM $this->_tbl as H ";
+		$query .= "LEFT JOIN #__publication_handler_assoc as A ON H.id=A.handler_id ";
+		$query .= " AND A.publication_version_id=" . $vid . " AND A.element_id=" . $elementid;
+		$query .= " WHERE H.status = 1";
+		$query .= " ORDER BY A.ordering ASC";
+
+		$this->_db->setQuery( $query );
+		return $this->_db->loadObjectList();
 	}
 
 	/**

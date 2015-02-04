@@ -471,11 +471,10 @@ class PublicationTags extends TagsHandler
 	}
 
 /**
-	 * Get a tag cloud for an object
+	 * Get a tag cloud of top publication tags
 	 *
-	 * @param      integer $showsizes Show tag size based on use?
-	 * @param      integer $admin     Show admin tags?
-	 * @param      integer $objectid  Object ID
+	 * @param      integer $limit
+	 * @param      string $tagstring
 	 * @return     mixed Return description (if any) ...
 	 */
 	public function getTopTagCloud($limit, $tagstring='')
@@ -485,18 +484,18 @@ class PublicationTags extends TagsHandler
 	}
 
 	/**
-	 * Get a tag cloud for an object
+	 * Get top publication tags
 	 *
-	 * @param      integer $showsizes Show tag size based on use?
-	 * @param      integer $admin     Show admin tags?
-	 * @param      integer $objectid  Object ID
+	 * @param      integer $limit
 	 * @return     mixed Return description (if any) ...
 	 */
 	public function getTopTags($limit)
 	{
+		$tj = new TagsTableObject($this->_db);
+
 		$sql  = "SELECT t.tag, t.raw_tag, t.admin, tj.tagid, tj.objectid, COUNT(tj.tagid) AS tcount ";
 		$sql .= "FROM #__tags AS t  ";
-		$sql .= "JOIN #__tags_object AS tj ON t.id=tj.tagid ";
+		$sql .= "JOIN " . $tj->getTableName() . " AS tj ON t.id=tj.tagid ";
 		$sql .= "LEFT JOIN #__publication_versions AS V ON V.publication_id=tj.objectid AND tj.tbl='publications' ";
 		$sql .= "WHERE t.id=tj.tagid AND t.admin=0 ";
 		$sql .= "AND tj.tbl=" . $this->_db->Quote($this->_tbl) . " ";
@@ -650,3 +649,4 @@ class PublicationTags extends TagsHandler
 		return $html;
 	}
 }
+

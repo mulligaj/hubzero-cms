@@ -82,26 +82,7 @@ class PublicationsModelHandlerImageViewer extends PublicationsModelHandler
 			)
 		);
 
-		// Load config from db
-		$obj = new PublicationHanlder($this->_parent->_db);
-		$savedConfig = $obj->getConfig($this->_name);
-
-		if ($savedConfig)
-		{
-			foreach ($configs as $configName => $configValue)
-			{
-				if ($configName == 'params')
-				{
-					foreach ($configValue as $paramName => $paramValue)
-					{
-						$configs['params'][$paramName] = isset($savedConfig['params'][$paramName]) && $savedConfig['params'][$paramName] ? $savedConfig['params'][$paramName] : $paramValue;
-					}
-				}
-			}
-		}
-
-		$this->_config = json_decode(json_encode($configs), FALSE);
-
+		$this->_config = json_decode(json_encode($this->_parent->parseConfig($this->_name, $configs)), FALSE);
 		return $this->_config;
 	}
 
@@ -301,17 +282,18 @@ class PublicationsModelHandlerImageViewer extends PublicationsModelHandler
 				$ext = strtolower(end($ext));
 
 				$title = $attach->title ? $attach->title : basename($attach->path);
+				$fpath = JRoute::_('index.php?option=com_publications&id=' . $pub->id . '&v=' . $pub->version_id) . '/Image:' . basename($fpath);
 				if ($ext == 'swf' || $ext == 'mov')
 				{
 					$g++;
 					$els .= ' <a class="video"  href="' . $fpath . '" title="' . $title . '">';
-					$els .= '<img src="' . $thumbPath . '" alt="' . $title . '" /></a>';
+					$els .= '<img src="' . JRoute::_('index.php?option=com_publications&id=' . $pub->id . '&v=' . $pub->version_id) . '/Image:' . $thumbName . '" alt="' . $title . '" /></a>';
 				}
 				else
 				{
 					$k++;
 					$els .= ' <a rel="lightbox" href="' . $fpath . '" title="' . $title . '">';
-					$els .= '<img src="' . $thumbPath . '" alt="' . $title . '" class="thumbima" /></a>';
+					$els .= '<img src="' . JRoute::_('index.php?option=com_publications&id=' . $pub->id . '&v=' . $pub->version_id) . '/Image:' . $thumbName . '" alt="' . $title . '" class="thumbima" /></a>';
 				}
 				$i++;
 			}
@@ -333,49 +315,6 @@ class PublicationsModelHandlerImageViewer extends PublicationsModelHandler
 
 	}
 
-	/**
-	 * Side controls for handler
-	 *
-	 * @return  void
-	 */
-	public function drawControls($pub, $elementid, $attachments)
-	{
-		// Make sure we got config
-		if (!$this->_config)
-		{
-			$this->getConfig();
-		}
-
-		$html = '<div class="' . $this->_name . '">';
-		$html.= '<h5>' . $this->_config->label . '</h5>';
-		$html.= '<p>' . $this->_config->title . '</p>';
-		$html.= '<p class="hint">' . $this->_config->about . '</p>';
-
-		$html.= '</div>';
-
-		return $html;
-	}
-
-	/**
-	 * Side controls for handler
-	 *
-	 * @return  void
-	 */
-	public function drawSelectedHandler($pub, $elementid, $attachments)
-	{
-		// Make sure we got config
-		if (!$this->_config)
-		{
-			$this->getConfig();
-		}
-
-		$html = '<div class="handler-' . $this->_name . '">';
-		$html.= '<h3>' . JText::_('Presentation') . ': ' . $this->_config->label . '</h3>';
-		$html.= '<p>' . $this->_config->about . '</p>';
-		$html.= '</div>';
-
-		return $html;
-	}
 
 	/**
 	 * Draw list of included files
@@ -417,19 +356,16 @@ class PublicationsModelHandlerImageViewer extends PublicationsModelHandler
 				$this->_config->params->thumbSuffix,
 				$this->_config->params->thumbFormat
 			);
-			$thumbPath = dirname($fpath) . DS . $thumbName;
-			$thumbPath = str_replace(JPATH_ROOT, '', $thumbPath);
-
 			$title 		= $attach->title ? $attach->title : $attConfigs->title;
 			$title 		= $title ? $title : basename($attach->path);
 
 			$params = new JParameter( $attach->params );
 
 			$html .= '<li>';
-			$html .= ' <a rel="lightbox" href="' . $fpath . '">';
+			$html .= ' <a rel="lightbox" href="/publications' . DS . $pub->id . DS . $pub->version_id . '/Image:' . basename($fpath) . '">';
 			$html .= '<span class="item-image';
 			$html .= $params->get('pubThumb', NULL) && $authorized == 'administrator' ? ' starred' : '';
-			$html .= '"><img src="' . $thumbPath . '" alt="' . $title . '" class="thumbima" /></span>';
+			$html .= '"><img src="/publications' . DS . $pub->id . DS . $pub->version_id . '/Image:' . $thumbName . '" alt="' . $title . '" class="thumbima" /></span>';
 			$html .= '<span class="item-title">' . $title . '<span class="details">' . $attach->path . '</span></span>';
 			$html .= '</a>';
 			$html .= '<span class="clear"></span>';

@@ -33,14 +33,14 @@ defined('_JEXEC') or die('Restricted access');
 $canDo = CollectionsHelperPermissions::getActions('post');
 
 JToolBarHelper::title(JText::_('COM_COLLECTIONS') . ': ' . JText::_('COM_COLLECTIONS_POSTS'), 'collection.png');
-/*if ($canDo->get('core.create'))
+if ($canDo->get('core.create'))
 {
 	JToolBarHelper::addNew();
 }
 if ($canDo->get('core.edit'))
 {
 	JToolBarHelper::editList();
-}*/
+}
 if ($canDo->get('core.delete'))
 {
 	JToolBarHelper::deleteList();
@@ -62,8 +62,6 @@ function submitbutton(pressbutton)
 
 <form action="index.php" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
-		<p class="warning">Posts are currently not editable via the adminitrator interface.</p>
-
 		<label for="filter_search"><?php echo JText::_('JSEARCH_FILTER'); ?>:</label>
 		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('COM_COLLECTIONS_FILTER_SEARCH_PLACEHOLDER'); ?>" />
 
@@ -76,17 +74,30 @@ function submitbutton(pressbutton)
 
 	<table class="adminlist">
 		<thead>
+			<?php if ($this->filters['collection_id']) { ?>
+				<tr>
+					<th colspan="6">
+						<?php $collection = new CollectionsModelCollection($this->filters['collection_id']); ?>
+						(<?php echo $this->escape(stripslashes($collection->get('alias'))); ?>)
+						<?php echo $this->escape(stripslashes($collection->get('title'))); ?>
+					</th>
+				</tr>
+			<?php } ?>
 			<tr>
 				<th scope="col"><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->rows->total(); ?>);" /></th>
-				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_TITLE', 'title', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_DESCRIPTION', 'description', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_POSTED', 'created', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_POSTEDBY', 'created_by', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_ITEM_ID', 'item_id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+			<?php if (!$this->filters['collection_id']) { ?>
+				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_COLLECTION_ID', 'collection_id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+			<?php } ?>
 				<th scope="col"><?php echo JHTML::_('grid.sort', 'COM_COLLECTIONS_COL_ORIGINAL', 'original', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
 			<tr>
-				<td colspan="5">
+				<td colspan="<?php echo ($this->filters['collection_id'] ? '6' : '7'); ?>">
 					<?php
 					jimport('joomla.html.pagination');
 					$pageNav = new JPagination(
@@ -120,7 +131,7 @@ foreach ($this->rows as $row)
 		break;
 	}
 
-	if (!($content = $row->item()->description('clean', 75)))
+	if (!($content = $row->description('clean', 75)))
 	{
 		$content = JText::_('COM_COLLECTIONS_NONE');
 	}
@@ -130,15 +141,15 @@ foreach ($this->rows as $row)
 					<input type="checkbox" name="id[]" id="cb<?php echo $i; ?>" value="<?php echo $row->get('id'); ?>" onclick="isChecked(this.checked, this);" />
 				</td>
 				<td>
-				<?php /*if ($canDo->get('core.edit')) { ?>
-					<a href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=edit&amp;id=<?php echo $row->get('id'); ?>">
+				<?php if ($canDo->get('core.edit')) { ?>
+					<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=edit&id=' . $row->get('id')); ?>">
 						<span><?php echo $content; ?></span>
 					</a>
-				<?php } else {*/ ?>
+				<?php } else { ?>
 					<span>
 						<span><?php echo $content; ?></span>
 					</span>
-				<?php //} ?>
+				<?php } ?>
 				</td>
 				<td>
 					<time datetime="<?php echo $row->get('created'); ?>"><?php echo $row->get('created'); ?></time>
@@ -149,15 +160,23 @@ foreach ($this->rows as $row)
 					</span>
 				</td>
 				<td>
-				<?php if ($canDo->get('core.edit.state')) { ?>
-					<a class="state <?php echo $class; ?>" href="index.php?option=<?php echo $this->option ?>&amp;controller=<?php echo $this->controller; ?>&amp;task=<?php echo $task; ?>&amp;id=<?php echo $row->get('id'); ?>" title="<?php echo JText::sprintf('COM_COLLECTIONS_SET_TASK', $task);?>">
+					<?php echo $this->escape($row->get('item_id')); ?>
+				</td>
+			<?php if (!$this->filters['collection_id']) { ?>
+				<td>
+					<?php echo $this->escape($row->get('collection_id')); ?>
+				</td>
+			<?php } ?>
+				<td>
+				<?php /*if ($canDo->get('core.edit.state')) { ?>
+					<a class="state <?php echo $class; ?>" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=' . $task . '&id=' . $row->get('id')); ?>" title="<?php echo JText::sprintf('COM_COLLECTIONS_SET_TASK', $task);?>">
 						<span><?php echo $alt; ?></span>
 					</a>
-				<?php } else { ?>
+				<?php } else {*/ ?>
 					<span class="state <?php echo $class; ?>">
 						<span><?php echo $alt; ?></span>
 					</span>
-				<?php } ?>
+				<?php //} ?>
 				</td>
 			</tr>
 <?php

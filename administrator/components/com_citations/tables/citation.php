@@ -538,6 +538,7 @@ class CitationsCitation extends JTable
 		}
 
 		$this->_db->setQuery($query);
+
 		return $this->_db->loadResult();
 	}
 
@@ -569,6 +570,16 @@ class CitationsCitation extends JTable
 			//	$query .= " OR LOWER(u.username) = " . $this->_db->Quote(strtolower($filter['search'])) . "
 			//				OR r.uid = " . $this->_db->Quote($filter['search']);
 			//}
+		}
+
+		// scope & scope Id
+		if (isset($filter['scope']) && $filter['scope'] != '')
+		{
+			$query .= " AND r.scope=" . $this->_db->quote($filter['scope']);
+		}
+		if (isset($filter['scope_id']) && $filter['scope_id'] != NULL)
+		{
+			$query .= " AND r.scope_id=". $this->_db->quote($filter['scope_id']);
 		}
 
 		//tag search
@@ -893,7 +904,7 @@ class CitationsCitation extends JTable
 	{
 		if (isset($filter['tag']) && $filter['tag'] != '')
 		{
-			$query  = "SELECT DISTINCT r.*, CS.sec_cits_cnt AS sec_cnt, CS.search_string, u.username, COUNT(DISTINCT tag.tag) AS uniques
+			$query  = "SELECT DISTINCT r.*, CS.sec_cits_cnt AS sec_cnt, CS.search_string, CS.link1_title, CS.link1_url, CS.link2_title, CS.link2_url, CS.link3_title, CS.link3_url, u.username, COUNT(DISTINCT tag.tag) AS uniques
 						FROM $this->_tbl AS r
 						LEFT JOIN #__users AS u ON u.id = r.uid
 						LEFT JOIN #__citations_secondary as CS ON r.id=CS.cid
@@ -902,7 +913,7 @@ class CitationsCitation extends JTable
 		}
 		else
 		{
-			$query  = "SELECT DISTINCT r.*, CS.sec_cits_cnt AS sec_cnt, CS.search_string, u.username
+			$query  = "SELECT DISTINCT r.*, CS.sec_cits_cnt AS sec_cnt, CS.search_string, CS.link1_title, CS.link1_url, CS.link2_title, CS.link2_url, CS.link3_title, CS.link3_url, u.username
 						FROM $this->_tbl AS r
 						LEFT JOIN #__users AS u ON u.id = r.uid
 						LEFT JOIN #__citations_secondary as CS ON r.id=CS.cid";
@@ -939,6 +950,7 @@ class CitationsCitation extends JTable
 		}
 
 		$query .= $this->buildQuery($filter, $admin);
+
 		$this->_db->setQuery($query);
 		return $this->_db->loadObjectList();
 	}
@@ -1040,6 +1052,17 @@ class CitationsCitation extends JTable
 			$this->setError( $this->_db->getErrorMsg() );
 			return false;
 		}
+	}
+
+	public function getEarliestYear()
+	{
+		//get the earliest year we have citations for
+		$query = "SELECT c.year FROM " . $this->_tbl . " as c WHERE c.published=1 AND c.year <> 0 AND c.year IS NOT NULL ORDER BY c.year ASC LIMIT 1";
+		$this->_db->setQuery( $query );
+		$earliest_year = $this->_db->loadResult();
+		$earliest_year = ($earliest_year) ? $earliest_year : 1990;
+
+		return $earliest_year;
 	}
 
 	/**

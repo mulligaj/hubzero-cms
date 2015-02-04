@@ -30,7 +30,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$canDo = BlogHelper::getActions('entry');
+$canDo = BlogHelperPermissions::getActions('entry');
 
 $text = ($this->task == 'edit' ? JText::_('JACTION_EDIT') : JText::_('JACTION_CREATE'));
 JToolBarHelper::title(JText::_('COM_BLOG_TITLE') . ': ' . $text, 'blog.png');
@@ -74,46 +74,25 @@ Joomla.submitbutton = function(pressbutton) {
 			<div class="col width-50 fltlft">
 				<div class="input-wrap" data-hint="<?php echo JText::_('COM_BLOG_FIELD_SCOPE_HINT'); ?>">
 					<label for="field-scope"><?php echo JText::_('COM_BLOG_FIELD_SCOPE'); ?>:</label><br />
-					<select name="fields[scope]" id="field-scope">
-						<option value="site"<?php if ($this->row->get('scope') == 'site' || $this->row->get('scope') == '') { echo ' selected="selected"'; } ?>>site</option>
-						<option value="member"<?php if ($this->row->get('scope') == 'member') { echo ' selected="selected"'; } ?>>member</option>
-						<option value="group"<?php if ($this->row->get('scope') == 'group') { echo ' selected="selected"'; } ?>>group</option>
-					</select>
+					<?php if (!$this->row->exists()) { ?>
+						<select name="fields[scope]" id="field-scope">
+							<option value="site"<?php if ($this->row->get('scope') == 'site' || $this->row->get('scope') == '') { echo ' selected="selected"'; } ?>>site</option>
+							<option value="member"<?php if ($this->row->get('scope') == 'member') { echo ' selected="selected"'; } ?>>member</option>
+							<option value="group"<?php if ($this->row->get('scope') == 'group') { echo ' selected="selected"'; } ?>>group</option>
+						</select>
+					<?php } else { ?>
+						<input type="text" name="fields[scope]" id="field-scope" disabled="disabled" value="<?php echo $this->escape(stripslashes($this->row->get('scope'))); ?>" />
+					<?php } ?>
 				</div>
 			</div>
 			<div class="col width-50 fltrt">
 				<div class="input-wrap">
-					<label for="field-group_id"><?php echo JText::_('COM_BLOG_FIELD_GROUP'); ?>:</label><br />
-					<?php
-					$filters = array();
-					$filters['authorized'] = 'admin';
-					$filters['fields']     = array('cn','description','published','gidNumber','type');
-					$filters['type']       = array(1, 3);
-					$filters['sortby']     = 'description';
-					$groups = \Hubzero\User\Group::find($filters);
-
-					$html  = '<select name="fields[group_id]" id="field-group_id">'."\n";
-					$html .= '<option value="0"';
-					if ($this->row->get('group_id') == 0)
-					{
-						$html .= ' selected="selected"';
-					}
-					$html .= '>'.JText::_('JNONE').'</option>'."\n";
-					if ($groups)
-					{
-						foreach ($groups as $group)
-						{
-							$html .= ' <option value="'.$group->gidNumber.'"';
-							if ($this->row->get('group_id') == $group->gidNumber)
-							{
-								$html .= ' selected="selected"';
-							}
-							$html .= '>' . $this->escape(stripslashes($group->description)) . '</option>'."\n";
-						}
-					}
-					$html .= '</select>'."\n";
-					echo $html;
-					?>
+					<label for="field-scope_id"><?php echo JText::_('COM_BLOG_FIELD_SCOPE_ID'); ?>:</label><br />
+					<?php if (!$this->row->exists()) { ?>
+						<input type="text" name="fields[scope_id]" id="field-scope_id" value="<?php echo $this->escape(stripslashes($this->row->get('scope_id'))); ?>" />
+					<?php } else { ?>
+						<input type="text" name="fields[scope_id]" id="field-scope_id" disabled="disabled" value="<?php echo $this->escape(stripslashes($this->row->get('scope_id'))); ?>" />
+					<?php } ?>
 				</div>
 			</div>
 			<div class="clr"></div>
@@ -203,6 +182,7 @@ Joomla.submitbutton = function(pressbutton) {
 	<div class="clr"></div>
 
 	<input type="hidden" name="fields[id]" value="<?php echo $this->row->get('id'); ?>" />
+	<input type="hidden" name="fields[access]" value="<?php echo $this->row->get('access', 0); ?>" />
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="save" />

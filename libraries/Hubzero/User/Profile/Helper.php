@@ -39,13 +39,10 @@ use Hubzero\Image\Identicon;
 class Helper
 {
 	/**
-	 * Short description for 'iterate_profiles'
+	 * Run a callback across all profiles
 	 *
-	 * Long description (if any) ...
-	 *
-	 * @param      unknown $func Parameter description (if any) ...
-	 * @param      string $storage Parameter description (if any) ...
-	 * @return     boolean Return description (if any) ...
+	 * @param   object   $func  Anonymous function
+	 * @return  boolean
 	 */
 	public static function iterate_profiles($func)
 	{
@@ -71,8 +68,8 @@ class Helper
 	/**
 	 * Find a username by email address
 	 *
-	 * @param      string $email Email address to look up
-	 * @return     mixed False if not found, string if found
+	 * @param   string  $email  Email address to look up
+	 * @return  mixed   False if not found, string if found
 	 */
 	public static function find_by_email($email)
 	{
@@ -97,11 +94,12 @@ class Helper
 	/**
 	 * Get member picture
 	 *
-	 * @param      mixed $member Parameter description (if any) ...
-	 * @param      integer $anonymous Parameter description (if any) ...
-	 * @return     string Return description (if any) ...
+	 * @param   mixed    $member     Member to get picture for
+	 * @param   integer  $anonymous  Anonymous user?
+	 * @param   boolean  $thumbit    Display thumbnail (default) or full image?
+	 * @return  string   Image URL
 	 */
-	public static function getMemberPhoto($member, $anonymous=0, $thumbit=true)
+	public static function getMemberPhoto($member, $anonymous=0, $thumbit=true, $serveFile=true)
 	{
 		static $dfthumb;
 		static $dffull;
@@ -122,20 +120,21 @@ class Helper
 			}
 		}
 
+		// lets make sure we have a profile object
+		if ($member instanceof \JUser)
+		{
+			$member = Profile::getInstance($member->get('id'));
+		}
+		else if (is_numeric($member) || is_string($member))
+		{
+			$member = Profile::getInstance($member);
+		}
+
 		$paths = array();
 
 		// If not anonymous
 		if (!$anonymous)
 		{
-			if ($member instanceof \JUser)
-			{
-				$member = Profile::getInstance($member->get('id'));
-			}
-			else if (is_numeric($member) || is_string($member))
-			{
-				$member = Profile::getInstance($member);
-			}
-
 			// If we have a member
 			if (is_object($member))
 			{
@@ -221,6 +220,31 @@ class Helper
 		{
 			if ($path && file_exists(JPATH_ROOT . $path))
 			{
+				if (!$anonymous)
+				{
+					// build base path (ex. /site/members/12345)
+					$baseMemberPath  = DS . trim($config->get('webpath', '/site/members'), DS);
+					$baseMemberPath .= DS . self::niceidformat($member->get('uidNumber'));
+
+					// if we want to serve file & path is within /site
+					if ($serveFile && strpos($path, $baseMemberPath) !== false)
+					{
+						// get picture name (allows to pics in subfolder)
+						$pic = trim(str_replace($baseMemberPath, '', $path), DS);
+
+						// build serve link
+						if (\JFactory::getApplication()->isAdmin())
+						{
+							$link = \JRoute::_('index.php?option=com_members&controller=members&task=picture&id=' . $member->get('uidNumber') . '&image=' . $pic);
+						}
+						else
+						{
+							$link = \JRoute::_('index.php?option=com_members&id=' . $member->get('uidNumber')) . DS . 'Image:' . $pic;
+						}
+						return $link;
+					}
+				}
+
 				return str_replace('/administrator', '', rtrim(\JURI::getInstance()->base(true), DS)) . $path;
 			}
 		}
@@ -230,8 +254,8 @@ class Helper
 	 * Generate a thumbnail file name format
 	 * example.jpg -> example_thumb.jpg
 	 *
-	 * @param      string $thumb Filename to get thumbnail of
-	 * @return     string
+	 * @param   string  $thumb  Filename to get thumbnail of
+	 * @return  string
 	 */
 	public static function thumbit($thumb)
 	{
@@ -245,8 +269,8 @@ class Helper
 	 * Pad a user ID with zeros
 	 * ex: 123 -> 00123
 	 *
-	 * @param      integer $someid
-	 * @return     integer
+	 * @param   integer  $someid
+	 * @return  integer
 	 */
 	public static function niceidformat($someid)
 	{

@@ -62,10 +62,11 @@ class GenericRenderer
 
 	protected function date()
 	{
-		if (isset($this->item['publicationyear']))
+		if (isset($this->item['publicationyear'])) 
 		{
 			return array('<td>', h($this->item['publicationyear']), '</td>');
 		}
+
 		if (isset($this->item['date']))
 		{
 			if (preg_match('/^\s*(\d{4})\/01\/01\s*00:00:00/', $this->item['date'], $ma))
@@ -87,18 +88,14 @@ class GenericRenderer
 		);
 	}
 
-	protected function isbn()
-	{
-		if (isset($this->item['isbn']))
-		{
+	protected function isbn() {
+		if (isset($this->item['isbn'])) {
 			return array('<td>ISBN: ', $this->item['isbn'], '</td>');
 		}
 	}
 
-	protected function publicationDetails()
-	{
-		if (isset($this->item['publisher'])) 
-		{
+	protected function publicationDetails() {
+		if (isset($this->item['publisher'])) {
 			return array(
 				'<td>',
 				(isset($this->item['placeofpublication']) ? h($this->item['placeofpublication']) . ' ' : ''),
@@ -142,21 +139,16 @@ class GenericRenderer
 		}
 	}
 
-	protected function extraDetails()
-	{
+	protected function extraDetails() {
 		$rv = array();
 		$nums = array();
-		foreach (array('totalnoofpages', 'volumeno', 'issuenomonth', 'pagenumbers') as $k)
-		{
-			if (isset($this->item[$k]))
-			{
+		foreach (array('totalnoofpages', 'volumeno', 'issuenomonth', 'pagenumbers') as $k) {
+			if (isset($this->item[$k])) {
 				$nums[] = $k == 'issuenomonth' ? '('.$this->item[$k].')' : $this->item[$k];
 			}
 		}
-		foreach (array('publication_title', 'booktitle', 'journaltitle', $this->item['type'] == 'Books' ? 'title' : '') as $k)
-		{
-			if (isset($this->item[$k]) && trim($this->item[$k]))
-			{
+		foreach (array('publication_title', 'booktitle', 'journaltitle', $this->item['type'] == 'Books' ? 'title' : '') as $k) {
+			if (isset($this->item[$k]) && trim($this->item[$k])) {
 				$rv[] = array(
 					'<td>', 
 					$this->item[$k], $nums ? ', '.str_replace(', (', '(', implode(', ', $nums)) : NULL,  
@@ -185,26 +177,21 @@ class GenericRenderer
 		return '<a class="related" data-domain="'.a($this->item['domain']).'" data-id="'.a($this->item['id']).'">Show related results</a>';
 	}
 
-	protected function language()
-	{
+	protected function language() {
 		$lang = array();
 		if (isset($this->item['language'])) {
 			$lang[] = $this->item['language'];
 		}
-		if (isset($this->item['additionallanguage']) && trim($this->item['additionallanguage']))
-		{
+		if (isset($this->item['additionallanguage']) && trim($this->item['additionallanguage'])) {
 			$lang[] = implode(', ', preg_split('/[^-\w]+/', $this->item['additionallanguage']));
 		}
-		if ($lang)
-		{
+		if ($lang) {
 			return array('<td>', implode(', ', $lang), '</td>');
 		}
 	}
 	
-	protected function doi()
-	{
-		if (isset($this->item['doi']) && $this->item['doi'])
-		{
+	protected function doi() {
+		if (isset($this->item['doi']) && $this->item['doi']) {
 			return array('<td><a href="http://dx.doi.org/', $this->item['doi'], '">DOI: ', $this->item['doi'], '</a></td>');
 		}
 	}
@@ -356,21 +343,17 @@ class CitationsRenderer extends GenericRenderer
 	protected function extraDetails()
 	{
 		$rv = array();
-		foreach (array('publication_title', 'booktitle') as $k)
-		{
-			if (isset($this->item[$k]) && trim($this->item[$k])) 
-			{
+		foreach (array('publication_title', 'booktitle') as $k) {
+			if (isset($this->item[$k]) && trim($this->item[$k])) {
 				$rv[] = array('<td>', h($this->item[$k]), '</td>');
 				break;
 			}
 		}
 		$parts = array();
-		if (isset($this->item['chapter'])) 
-		{
+		if (isset($this->item['chapter'])) {
 			$parts[] = 'ch. '.$this->item['chapter'];
 		}
-		if (isset($this->item['pages'])) 
-		{
+		if (isset($this->item['pages'])) {
 			$parts[] = 'pp. '.$this->item['pages'];
 		}
 		if ($parts) {

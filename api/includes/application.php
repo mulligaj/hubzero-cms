@@ -519,6 +519,43 @@ class Hubzero_API extends JApplication
 					$this->_authn['user_id'] = $user_id;
 				}
 			}
+
+			// tool session authentication
+			$toolSessionId    = JRequest::getInt('sessionnum', null, 'POST');
+			$toolSessionToken = JRequest::getCmd('sessiontoken', null, 'POST');
+
+			// use request headers as backup method to post vars
+			if (!$toolSessionId && !$toolSessionToken)
+			{
+				$headers          = apache_request_headers();
+				$toolSessionId    = (isset($headers['sessionnum'])) ? $headers['sessionnum'] : null;
+				$toolSessionToken = (isset($headers['sessiontoken'])) ? $headers['sessiontoken'] : null;
+			}
+
+			// if we have a session id & token lets use those to authenticate
+			if ($toolSessionId && $toolSessionToken)
+			{
+				// include neede libs
+				require_once JPATH_ROOT . DS . 'components' . DS . 'com_tools' . DS . 'helpers' . DS . 'utils.php';
+
+				// instantiate middleware database
+				$mwdb = ToolsHelperUtils::getMWDBO();
+
+				// attempt to load session from db
+				$query = "SELECT * FROM `session` WHERE `sessnum`= " . $mwdb->quote($toolSessionId) . " AND `sesstoken`=" . $mwdb->quote($toolSessionToken);
+				$mwdb->setQuery($query);
+
+				// only continue if a valid session was found
+				if ($session = $mwdb->loadObject())
+				{
+					// check users IP against the session execution host IP
+					if (JRequest::ip() == gethostbyname($session->exechost))
+					{
+						$profile = \Hubzero\User\Profile::getInstance($session->username);
+						$this->_authn['user_id'] = $profile->get('uidNumber');
+					}
+				}
+			}
 		}
 
 		$this->request->validApiKey = !empty($this->_authn['consumer_key']);
@@ -829,7 +866,7 @@ class Hubzero_API extends JApplication
 
 		$config = JFactory::getConfig();
 		$options['mode'] = $config->getValue('config.sef');
-		$router =& parent::getRouter('api', $options);
+		$router = parent::getRouter('api', $options);
 		return $router;
 	}
 

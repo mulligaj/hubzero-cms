@@ -30,13 +30,15 @@ defined('_JEXEC') or die( 'Restricted access' );
 </div>
 <div id="team-horiz" class="public-list-wrap">
 	<?php
-	if(count($this->team) > 0) { 	?>
+	if (count($this->team) > 0) { 	?>
 		<ul>
-			<?php foreach($this->team as $owner)
+			<?php foreach ($this->team as $owner)
 			{
 				// Get profile thumb image
 				$profile = \Hubzero\User\Profile::getInstance($owner->userid);
-				$thumb = $profile->getPicture();
+				$juser 	 = JFactory::getUser();
+				$actor   = \Hubzero\User\Profile::getInstance($juser->get('id'));
+				$thumb   = $profile ? $profile->getPicture() : $actor->getPicture(true);
 			?>
 			<li>
 				<img width="50" height="50" src="<?php echo $thumb; ?>" alt="<?php echo $owner->fullname; ?>" />

@@ -265,9 +265,9 @@ class WishlistControllerWishes extends \Hubzero\Component\AdminController
 		$this->view->plan = $plan ? $plan[0] : $objPlan;
 
 		// Get tags on this wish
-		include_once(JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'helpers' . DS . 'tags.php');
-		$tagging = new WishTags($this->database);
-		$this->view->tags = $tagging->get_tag_string($this->view->row->id);
+		include_once(JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'models' . DS . 'tags.php');
+		$tagging = new WishlistModelTags($this->view->row->id);
+		$this->view->tags = $tagging->render('string');
 
 		// Set any errors
 		if ($this->getError())
@@ -337,6 +337,10 @@ class WishlistControllerWishes extends \Hubzero\Component\AdminController
 			$this->editTask($row);
 			return;
 		}
+
+		include_once(JPATH_ROOT . DS . 'components' . DS . $this->_option . DS . 'models' . DS . 'tags.php');
+		$tagging = new WishlistModelTags($row->id);
+		$tagging->setTags($fields['tags'], $this->juser->get('id'));
 
 		$plan = JRequest::getVar('plan', array(), 'post', 'none', 2);
 		$plan['create_revision'] = isset($plan['create_revision']) ? $plan['create_revision'] : 0;
@@ -530,7 +534,7 @@ class WishlistControllerWishes extends \Hubzero\Component\AdminController
 	 *
 	 * @return     void
 	 */
-	public function publishTask()
+	public function grantTask()
 	{
 		$this->stateTask(1);
 	}
@@ -540,7 +544,7 @@ class WishlistControllerWishes extends \Hubzero\Component\AdminController
 	 *
 	 * @return     void
 	 */
-	public function unpublishTask()
+	public function pendingTask()
 	{
 		$this->stateTask(0);
 	}
@@ -587,13 +591,13 @@ class WishlistControllerWishes extends \Hubzero\Component\AdminController
 		switch ($state)
 		{
 			case '-1':
-				$message = JText::sprintf('COM_WISHLIST_ARCHIVED', count($ids));
+				$message = JText::sprintf('COM_WISHLIST_TRASHED', count($ids));
 			break;
 			case '1':
-				$message = JText::sprintf('COM_WISHLIST_PUBLISHED', count($ids));
+				$message = JText::sprintf('COM_WISHLIST_ITEMS_GRANTED', count($ids));
 			break;
 			case '0':
-				$message = JText::sprintf('COM_WISHLIST_UNPUBLISHED', count($ids));
+				$message = JText::sprintf('COM_WISHLIST_ITEMS_PENDING', count($ids));
 			break;
 		}
 

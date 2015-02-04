@@ -257,7 +257,7 @@ class Wish extends JTable
 
 		$sql = "SELECT ws.id FROM #__wishlist_item AS ws ";
 
-		if ($filters['tag'])
+		if (isset($filters['tag']) && $filters['tag'])
 		{
 			$sql .= "\n LEFT JOIN #__tags_object AS RTA ON RTA.objectid=ws.id AND RTA.tbl='wishlist' ";
 			$sql .= "\n LEFT JOIN #__tags AS TA ON RTA.tagid=TA.id ";
@@ -322,12 +322,12 @@ class Wish extends JTable
 			$sql .="\n AND ws.private='0'";
 		}
 
-		if ($filters['tag'])
+		if (isset($filters['tag']) && $filters['tag'])
 		{
-			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'helpers' . DS . 'tags.php');
+			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'tags.php');
 
-			$tagging = new WishTags($this->_db);
-			$tags = $tagging->_parse_tags($filters['tag']);
+			$tagging = new WishlistModelTags($this->_db);
+			$tags = $tagging->parseTags($filters['tag']);
 
 			$sql .= " AND (RTA.objectid=ws.id AND (RTA.tbl='wishlist') AND (TA.tag IN ('" . implode("','", $tags) . "') OR TA.raw_tag IN ('" . implode("','", $tags) . "')))";
 			$sql .= " GROUP BY ws.id ";
@@ -366,7 +366,7 @@ class Wish extends JTable
 
 		$filters['tag'] = isset($filters['tag']) ? $filters['tag'] : '';
 
-		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'helpers' . DS . 'tags.php');
+		require_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'tags.php');
 
 		$sort = 'ws.status ASC, ws.proposed DESC';
 		// list  sorting
@@ -521,8 +521,8 @@ class Wish extends JTable
 		}
 		if ($fullinfo && $filters['tag'])
 		{
-			$tagging = new WishTags($this->_db);
-			$tags = $tagging->_parse_tags($filters['tag']);
+			$tagging = new WishlistModelTags();
+			$tags = $tagging->parseTags($filters['tag']);
 
 			$sql .= " AND (RTA.objectid=ws.id AND (RTA.tbl='wishlist') AND (TA.tag IN ('" . implode("','", $tags) . "') OR TA.raw_tag IN ('" . implode("','", $tags) . "')))";
 			$sql .= " GROUP BY ws.id ";
@@ -627,9 +627,9 @@ class Wish extends JTable
 		$juser = JFactory::getUser();
 
 		// Remove all tags
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'helpers' . DS . 'tags.php');
-		$wt = new WishTags($this->_db);
-		$wt->tag_object($juser->get('id'), $oid, '', 1, 1);
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_wishlist' . DS . 'models' . DS . 'tags.php');
+		$wt = new WishlistModelTags($oid);
+		$wt->setTags('', $juser->get('id'), 1);
 
 		// Delete the wish
 		return parent::delete($oid);
@@ -802,8 +802,8 @@ class Wish extends JTable
 		}
 		if (isset($filters['tag']) && $filters['tag']!='')
 		{
-			$tagging = new WishTags($this->_db);
-			$tags = $tagging->_parse_tags($filters['tag']);
+			$tagging = new WishlistModelTags();
+			$tags = $tagging->parseTags($filters['tag']);
 
 			$query .= " AND (RTA.objectid=ws.id AND (RTA.tbl='wishlist') AND (TA.tag IN ('" . implode("','", $tags) . "') OR TA.raw_tag IN ('" . implode("','", $tags) . "')))";
 			$query .= " GROUP BY ws.id ";

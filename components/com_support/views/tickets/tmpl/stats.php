@@ -530,7 +530,7 @@ function getMonthName($month)
 								hoverable: false
 							}
 						});
-				    });
+					});
 				}
 				</script>
 			</div><!-- / .col span-half omega -->

@@ -62,14 +62,14 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		if (isset($this->view->section))
 		{
 			$pathway->addItem(
-				stripslashes($this->view->section->get('title')),
+				\Hubzero\Utility\String::truncate(stripslashes($this->view->section->get('title')), 100, array('exact' => true)),
 				'index.php?option=' . $this->_option . '&section=' . $this->view->section->get('alias')
 			);
 		}
 		if (isset($this->view->category))
 		{
 			$pathway->addItem(
-				stripslashes($this->view->category->get('title')),
+				\Hubzero\Utility\String::truncate(stripslashes($this->view->category->get('title')), 100, array('exact' => true)),
 				'index.php?option=' . $this->_option . '&section=' . $this->view->section->get('alias') . '&category=' . $this->view->category->get('alias')
 			);
 		}
@@ -85,11 +85,11 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		$this->_title = JText::_(strtoupper($this->_option));
 		if (isset($this->view->section))
 		{
-			$this->_title .= ': ' . stripslashes($this->view->section->get('title'));
+			$this->_title .= ': ' . \Hubzero\Utility\String::truncate(stripslashes($this->view->section->get('title')), 100, array('exact' => true));
 		}
 		if (isset($this->view->category))
 		{
-			$this->_title .= ': ' . stripslashes($this->view->category->get('title'));
+			$this->_title .= ': ' . \Hubzero\Utility\String::truncate(stripslashes($this->view->category->get('title')), 100, array('exact' => true));
 		}
 		$document = JFactory::getDocument();
 		$document->setTitle($this->_title);
@@ -115,7 +115,9 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 			'scope'      => $this->model->get('scope'),
 			'scope_id'   => $this->model->get('scope_id'),
 			'state'      => 1,
-			'parent'     => 0
+			'parent'     => 0,
+			// Show based on if logged in or not
+			'access'     => ($this->juser->get('guest') ? 0 : array(0, 1))
 		);
 
 		$this->view->filters['sortby']   = JRequest::getWord('sortby', 'activity');
@@ -123,23 +125,23 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 		{
 			case 'title':
 				$this->view->filters['sort'] = 'c.sticky DESC, c.title';
-				$this->view->filters['sort_Dir'] = 'ASC';
+				$this->view->filters['sort_Dir'] = strtoupper(JRequest::getVar('sortdir', 'ASC'));
 			break;
 
 			case 'replies':
 				$this->view->filters['sort'] = 'c.sticky DESC, replies';
-				$this->view->filters['sort_Dir'] = 'DESC';
+				$this->view->filters['sort_Dir'] = strtoupper(JRequest::getVar('sortdir', 'DESC'));
 			break;
 
 			case 'created':
 				$this->view->filters['sort'] = 'c.sticky DESC, c.created';
-				$this->view->filters['sort_Dir'] = 'DESC';
+				$this->view->filters['sort_Dir'] = strtoupper(JRequest::getVar('sortdir', 'DESC'));
 			break;
 
 			case 'activity':
 			default:
 				$this->view->filters['sort'] = 'c.sticky DESC, activity';
-				$this->view->filters['sort_Dir'] = 'DESC';
+				$this->view->filters['sort_Dir'] = strtoupper(JRequest::getVar('sortdir', 'DESC'));
 			break;
 		}
 
@@ -202,12 +204,14 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 			'search'     => JRequest::getVar('q', ''),
 			'scope'      => $this->model->get('scope'),
 			'scope_id'   => $this->model->get('scope_id'),
-			'state'      => 1
+			'state'      => 1,
+			// Show based on if logged in or not
+			'access'     => ($this->juser->get('guest') ? 0 : array(0, 1))
 		);
 
 		$this->view->section = $this->model->section(0);
 		$this->view->section->set('scope', $this->model->get('scope'));
-		$this->view->section->set('title', JText::_('Posts'));
+		$this->view->section->set('title', JText::_('COM_FORUM_POSTS'));
 		$this->view->section->set('alias', str_replace(' ', '-', $this->view->section->get('title')));
 		$this->view->section->set('alias', preg_replace("/[^a-zA-Z0-9\-]/", '', strtolower($this->view->section->get('title'))));
 
@@ -222,7 +226,7 @@ class ForumControllerCategories extends \Hubzero\Component\SiteController
 
 		$this->view->category = $this->view->section->category(0);
 		$this->view->category->set('scope', $this->model->get('scope'));
-		$this->view->category->set('title', JText::_('Search'));
+		$this->view->category->set('title', JText::_('COM_FORUM_SEARCH'));
 		$this->view->category->set('alias', str_replace(' ', '-', $this->view->category->get('title')));
 		$this->view->category->set('alias', preg_replace("/[^a-zA-Z0-9\-]/", '', strtolower($this->view->category->get('title'))));
 

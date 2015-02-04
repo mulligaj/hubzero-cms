@@ -25,15 +25,6 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-$dateFormat = '%b %d, %Y';
-$tz = null;
-
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'M d, Y';
-	$tz = false;
-}
-
 $juri 	 = JURI::getInstance();
 $jconfig = JFactory::getConfig();
 $base 	 = rtrim($juri->base(), DS);
@@ -58,12 +49,15 @@ if ($this->project->provisioned == 1)
 }
 
 $message .= ')' . "\n";
+if (!$this->project->provisioned)
+{
 $message .= ucfirst(JText::_('COM_PROJECTS_CREATED')) . ' '
-		 . JHTML::_('date', $this->project->created, $dateFormat, $tz) . ' '
+		 . JHTML::_('date', $this->project->created, 'M d, Y') . ' '
 		 . JText::_('COM_PROJECTS_BY') . ' ';
 $message .= $this->project->owned_by_group
 			? $this->nativegroup->cn . ' ' . JText::_('COM_PROJECTS_GROUP')
 			: $this->project->fullname;
+}
 $message .= "\n";
 
 if ($this->project->private == 0)

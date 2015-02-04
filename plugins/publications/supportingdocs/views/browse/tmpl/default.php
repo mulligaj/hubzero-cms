@@ -28,10 +28,9 @@ defined('_JEXEC') or die( 'Restricted access' );
 $database  = JFactory::getDBO();
 $useBlocks = $this->config->get('curation', 0);
 
-// Add stylesheet
-$document = JFactory::getDocument();
-$document->addStyleSheet('plugins' . DS . 'publications' . DS
-	. 'supportingdocs' . DS . 'assets' . DS . 'css' . DS . 'supportingdocs.css');
+$this->css('assets/css/supportingdocs.css');
+
+$pubParams = new JParameter( $this->publication->params );
 
 ?>
 <div class="supportingdocs">
@@ -41,7 +40,7 @@ $document->addStyleSheet('plugins' . DS . 'publications' . DS
 </h3>
 
 <?php
-if ($useBlocks)
+if ($useBlocks && $pubParams->get('curated') != 2)
 {
 	// Get elements in primary and supporting role
 	$prime    = $this->publication->_curationModel->getElements(1);
@@ -59,7 +58,7 @@ if ($useBlocks)
 			$this->publication,
 			$this->authorized
 		);
-		echo $list;
+		echo $list ? $list : '<p class="noresults">' . JText::_('PLG_PUBLICATION_SUPPORTINGDOCS_NONE_FOUND') . '</p>';
 	}
 	else
 	{

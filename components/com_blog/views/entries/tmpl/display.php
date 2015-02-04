@@ -38,7 +38,7 @@ $juser = JFactory::getUser();
 
 $filters = array(
 	'scope'      => $this->filters['scope'],
-	'group_id'   => $this->filters['group_id'],
+	'scope_id'   => $this->filters['scope_id'],
 	'state'      => $this->filters['state'],
 	'authorized' => $this->filters['authorized']
 );
@@ -77,7 +77,9 @@ $first = $this->model->entries('first', $filters);
 			<div class="container data-entry">
 				<input class="entry-search-submit" type="submit" value="<?php echo JText::_('COM_BLOG_SEARCH'); ?>" />
 				<fieldset class="entry-search">
-					<input type="text" name="search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('COM_BLOG_SEARCH_PLACEHOLDER'); ?>" />
+					<legend><?php echo JText::_('COM_BLOG_SEARCH_LEGEND'); ?></legend>
+					<label for="entry-search-field"><?php echo JText::_('COM_BLOG_SEARCH_LABEL'); ?></label>
+					<input type="text" name="search" id="entry-search-field" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo JText::_('COM_BLOG_SEARCH_PLACEHOLDER'); ?>" />
 					<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 				</fieldset>
 			</div><!-- / .container -->
@@ -149,9 +151,13 @@ $first = $this->model->entries('first', $filters);
 								</dd>
 							<?php if ($this->config->get('show_authors')) { ?>
 								<dd class="author">
-									<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $row->get('created_by')); ?>">
+									<?php if ($row->creator()->get('public')) { ?>
+										<a href="<?php echo JRoute::_($row->creator()->getLink()); ?>">
+											<?php echo $this->escape(stripslashes($row->get('name'))); ?>
+										</a>
+									<?php } else { ?>
 										<?php echo $this->escape(stripslashes($row->get('name'))); ?>
-									</a>
+									<?php } ?>
 								</dd>
 							<?php } ?>
 							<?php if ($row->get('allow_comments') == 1) { ?>

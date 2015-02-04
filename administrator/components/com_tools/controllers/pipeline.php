@@ -88,8 +88,7 @@ class ToolsControllerPipeline extends \Hubzero\Component\AdminController
 			'int'
 		);
 		// In case limit has been changed, adjust limitstart accordingly
-		/*
-		$this->view->filters['start'] = ($this->view->filters['limit'] != 0 ? (floor($this->view->filters['start'] / $this->view->filters['limit']) * $this->view->filters['limit']) : 0);*/
+		$this->view->filters['start'] = ($this->view->filters['limit'] != 0 ? (floor($this->view->filters['start'] / $this->view->filters['limit']) * $this->view->filters['limit']) : 0);
 
 		// Get a record count
 		$this->view->total = ToolsModelTool::getToolCount($this->view->filters, true);
@@ -366,15 +365,17 @@ class ToolsControllerPipeline extends \Hubzero\Component\AdminController
 	}
 
 	/**
-	 * Temp function to ensure jos_doi_mapping table is updated
+	 * Temp function to ensure #__doi_mapping table is updated
 	 *
-	 * @return     boolean Return description (if any) ...
+	 * @return  boolean
 	 */
 	public function setupdoiTask()
 	{
-		$fields = $this->database->getTableFields('jos_doi_mapping');
+		$config = JFactory::getConfig();
 
-		if (!array_key_exists('versionid', $fields['jos_doi_mapping']))
+		$fields = $this->database->getTableFields($config->get('dbprefix') . 'doi_mapping');
+
+		if (!array_key_exists('versionid', $fields[$config->get('dbprefix') . 'doi_mapping']))
 		{
 			$this->database->setQuery("ALTER TABLE `#__doi_mapping` ADD `versionid` int(11) default '0'");
 			if (!$this->database->query())
@@ -383,7 +384,7 @@ class ToolsControllerPipeline extends \Hubzero\Component\AdminController
 				return false;
 			}
 		}
-		if (!array_key_exists('doi', $fields['jos_doi_mapping']))
+		if (!array_key_exists('doi', $fields[$config->get('dbprefix') . 'doi_mapping']))
 		{
 			$this->database->setQuery("ALTER TABLE `#__doi_mapping` ADD `doi` varchar(50) default NULL");
 			if (!$this->database->query())
@@ -392,6 +393,6 @@ class ToolsControllerPipeline extends \Hubzero\Component\AdminController
 				return false;
 			}
 		}
-		return;
+		return true;
 	}
 }

@@ -30,13 +30,14 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$canDo = KbHelper::getActions('article');
+$canDo = KbHelperPermissions::getActions('article');
 
 $text = ($this->task == 'edit' ? JText::_('COM_KB_EDIT') : JText::_('COM_KB_NEW'));
 
 JToolBarHelper::title(JText::_('COM_KB') . ': ' . JText::_('COM_KB_ARTICLE') . ': ' . $text, 'kb.png');
 if ($canDo->get('core.edit'))
 {
+	JToolBarHelper::apply();
 	JToolBarHelper::save();
 }
 JToolBarHelper::cancel();
@@ -51,6 +52,7 @@ var categories = new Array;
 	$i = 0;
 	foreach ($this->sections as $section)
 	{
+		echo 'categories[' . $i++ . "] = new Array( '" . $section->get('id') . "','0','" . addslashes(JText::_('COM_KB_NONE')) . "' );\n\t\t";
 		foreach ($section->children('list', array('state' => -1, 'access' => -1, 'empty' => true)) as $v)
 		{
 			echo 'categories[' . $i++ . "] = new Array( '" . $section->get('id') . "','" . addslashes($v->get('id')) . "','" . addslashes($v->get('title')) . "' );\n\t\t";
@@ -93,7 +95,7 @@ function submitbutton(pressbutton)
 			<div class="col width-50 fltlft">
 				<div class="input-wrap">
 					<label for="field-section"><?php echo JText::_('COM_KB_CATEGORY'); ?>: <span class="required"><?php echo JText::_('JOPTION_REQUIRED'); ?></span></label><br />
-					<select name="fields[section]" id="field-section" onchange="changeDynaList('fieldcategory', categories, document.getElementById('field-section').options[document.getElementById('field-section').selectedIndex].value, 0, 0);">
+					<select name="fields[section]" id="field-section" onchange="changeDynaList('fieldcategory', categories, document.getElementById('field-section').options[document.getElementById('field-section').selectedIndex].value, 0, 0);if (jQuery.uniform) { $.uniform.update('#fieldcategory'); }">
 					<?php foreach ($this->sections as $section) { ?>
 						<?php
 						if ($this->row->get('section') == $section->get('id'))

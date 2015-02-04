@@ -207,21 +207,14 @@ $this->css()
 				<label for="field_comment">
 					<?php echo JText::_('PLG_GROUPS_FORUM_FIELD_COMMENTS'); ?> <span class="required"><?php echo JText::_('PLG_GROUPS_FORUM_REQUIRED'); ?></span>
 					<?php
-					echo \JFactory::getEditor()->display('fields[comment]', '', '', '', 35, 15, false, 'fieldcomment', null, null, array('class' => 'minimal no-footer'));
+					echo $this->editor('fields[comment]', '', 35, 15, 'fieldcomment', array('class' => 'minimal no-footer'));
 					?>
 				</label>
 
 				<label>
 					<?php echo JText::_('PLG_GROUPS_FORUM_FIELD_YOUR_TAGS'); ?>:
 					<?php
-						JPluginHelper::importPlugin('hubzero');
-						$dispatcher = JDispatcher::getInstance();
-						$tf = $dispatcher->trigger( 'onGetMultiEntry', array(array('tags', 'tags', 'actags', '', $this->thread->tags('string'))) );
-						if (count($tf) > 0) {
-							echo $tf[0];
-						} else {
-							echo '<input type="text" name="tags" value="' . $this->escape($this->thread->tags('string')) . '" />';
-						}
+						echo $this->autocompleter('tags', 'tags', $this->escape($this->thread->tags('string')), 'actags');
 					?>
 				</label>
 
@@ -260,6 +253,7 @@ $this->css()
 			<input type="hidden" name="fields[parent]" value="<?php echo $this->escape($this->thread->get('id')); ?>" />
 			<input type="hidden" name="fields[thread]" value="<?php echo $this->escape($this->thread->get('id')); ?>" />
 			<input type="hidden" name="fields[state]" value="1" />
+			<input type="hidden" name="fields[access]" value="<?php echo $this->thread->get('access', 0); ?>" />
 			<input type="hidden" name="fields[scope]" value="<?php echo $this->escape($this->model->get('scope')); ?>" />
 			<input type="hidden" name="fields[scope_id]" value="<?php echo $this->escape($this->model->get('scope_id')); ?>" />
 			<input type="hidden" name="fields[id]" value="" />

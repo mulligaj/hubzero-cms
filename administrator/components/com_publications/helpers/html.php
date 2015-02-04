@@ -383,7 +383,9 @@ class PublicationsAdminHtml
 	}
 
 	/**
-	 * Authors list
+	 * Short description for 'selectAuthorsNoEdit'
+	 *
+	 * Long description (if any) ...
 	 *
 	 * @param      array $authnames Parameter description (if any) ...
 	 * @param      string $option Parameter description (if any) ...

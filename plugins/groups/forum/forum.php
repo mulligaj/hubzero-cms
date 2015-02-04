@@ -154,6 +154,8 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			$p = new \Hubzero\Plugin\Params($this->database);
 			$this->params = $p->getParams($this->group->get('gidNumber'), 'groups', $this->_name);
 
+			$this->params->set('access-plugin', $group_plugin_acl);
+
 			//option and paging vars
 			$this->option = $option;
 			//$this->name = substr($option, 4, strlen($option));
@@ -176,6 +178,10 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 					else if ($bits[0] == 'settings' || $bits[0] == 'savesettings')
 					{
 						$action = $bits[0];
+					}
+					else if ($bits[0] == 'unsubscribe')
+					{
+						$action = 'unsubscribe';
 					}
 					else
 					{
@@ -272,6 +278,8 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 
 				case 'download':       $arr['html'] .= $this->download();       break;
 				case 'search':         $arr['html'] .= $this->search();         break;
+
+				case 'unsubscribe':    $arr['html'] .= $this->unsubscribe();    break;
 
 				default: $arr['html'] .= $this->sections(); break;
 			}
@@ -463,8 +471,17 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			'scope_id'   => $this->model->get('scope_id'),
 			'search'     => JRequest::getVar('q', ''),
 			//'section_id' => 0,
-			'state'      => 1
+			'state'      => 1,
+			'access'     => 0
 		);
+		if (!$this->juser->get('guest'))
+		{
+			$this->view->filters['access'] = array(0, 1, 3);
+		}
+		if (in_array($this->juser->get('id'), $this->members))
+		{
+			$this->view->filters['access'] = array(0, 1, 3, 4);
+		}
 
 		$this->view->edit = JRequest::getVar('section', '');
 
@@ -672,31 +689,40 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			'scope'      => $this->model->get('scope'),
 			'scope_id'   => $this->model->get('scope_id'),
 			'state'      => 1,
-			'parent'     => 0
+			'parent'     => 0,
+			'access'     => 0
 		);
+		if (!$this->juser->get('guest'))
+		{
+			$this->view->filters['access'] = array(0, 1, 3);
+		}
+		if (in_array($this->juser->get('id'), $this->members))
+		{
+			$this->view->filters['access'] = array(0, 1, 3, 4);
+		}
 
 		$this->view->filters['sortby']   = JRequest::getWord('sortby', 'activity');
 		switch ($this->view->filters['sortby'])
 		{
 			case 'title':
 				$this->view->filters['sort'] = 'c.sticky DESC, c.title';
-				$this->view->filters['sort_Dir'] = 'ASC';
+				$this->view->filters['sort_Dir'] = strtoupper(JRequest::getVar('sortdir', 'ASC'));
 			break;
 
 			case 'replies':
 				$this->view->filters['sort'] = 'c.sticky DESC, replies';
-				$this->view->filters['sort_Dir'] = 'DESC';
+				$this->view->filters['sort_Dir'] = strtoupper(JRequest::getVar('sortdir', 'DESC'));
 			break;
 
 			case 'created':
 				$this->view->filters['sort'] = 'c.sticky DESC, c.created';
-				$this->view->filters['sort_Dir'] = 'DESC';
+				$this->view->filters['sort_Dir'] = strtoupper(JRequest::getVar('sortdir', 'DESC'));
 			break;
 
 			case 'activity':
 			default:
 				$this->view->filters['sort'] = 'c.sticky DESC, activity';
-				$this->view->filters['sort_Dir'] = 'DESC';
+				$this->view->filters['sort_Dir'] = strtoupper(JRequest::getVar('sortdir', 'DESC'));
 			break;
 		}
 
@@ -760,8 +786,17 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			'search'     => JRequest::getVar('q', ''),
 			'scope'      => $this->model->get('scope'),
 			'scope_id'   => $this->model->get('scope_id'),
-			'state'      => 1
+			'state'      => 1,
+			'access'     => 0
 		);
+		if (!$this->juser->get('guest'))
+		{
+			$this->view->filters['access'] = array(0, 1, 3);
+		}
+		if (in_array($this->juser->get('id'), $this->members))
+		{
+			$this->view->filters['access'] = array(0, 1, 3, 4);
+		}
 
 		$this->view->section = $this->model->section(0);
 		$this->view->section->set('title', JText::_('Posts'));
@@ -1032,7 +1067,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			'section'  => JRequest::getVar('section', ''),
 			'category' => JRequest::getCmd('category', ''),
 			'parent'   => JRequest::getInt('thread', 0),
-			'state'    => 1
+			'state'    => 1,
 		);
 
 		$this->view->section  = $this->model->section($this->view->filters['section'], $this->model->get('scope'), $this->model->get('scope_id'));
@@ -1058,6 +1093,44 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 		$this->_authorize('category', $this->view->category->get('id'));
 		$this->_authorize('thread', $this->view->thread->get('id'));
 		$this->_authorize('post');
+
+		// If the access is anything beyond public, 
+		// make sure they're logged in.
+		if ($this->view->thread->get('access') > 0)
+		{
+			if ($this->juser->get('guest'))
+			{
+				$return = JRoute::_($this->base);
+				$this->setRedirect(
+					JRoute::_('index.php?option=com_users&view=login&return=' . base64_encode($return))
+				);
+				return;
+			}
+
+			/*if ($this->view->thread->get('access') == 1)
+			{
+				$this->params->set('access-create-thread', true);
+			}*/
+		}
+
+		// If the access is private,
+		// make sure they're a member
+		//if ($this->view->thread->get('access') == 4 && !in_array($this->juser->get('id'), $this->members))
+		if ($this->view->thread->get('access') == 4 && !$this->params->get('access-view-thread'))
+		{
+			JError::raiseError(403, JText::_('PLG_GROUPS_FORUM_NOT_AUTHORIZED'));
+			return;
+		}
+
+		// If the access is protected,
+		// disable editing and posting capabilities
+		if ($this->view->thread->get('access') == 3 && !$this->params->get('access-view-thread'));
+		{
+			$this->params->get('access-create-thread', false);
+			$this->params->get('access-edit-thread', false);
+			$this->params->get('access-delete-thread', false);
+			$this->params->get('access-manage-thread', false);
+		}
 
 		$this->view->filters['state'] = array(1, 3);
 
@@ -1368,6 +1441,11 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 				$token = $encryptor->buildEmailToken(1, 2, $userID, $parent);
 
 				$subject = ' - ' . $this->group->get('cn') . ' - ' . $posttitle;
+
+				// add unsubscribe link
+				$unsubscribeToken = $encryptor->buildEmailToken(1, 3, $userID, $this->group->get('gidNumber'));
+				$unsubscribeLink = rtrim($juri->base(), DS) . DS . ltrim(JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') .'&active=forum&action=unsubscribe&t=' . $unsubscribeToken), DS);
+				$forum_message  .= "\r\n" . JText::_('Unsubscribe: ') . "\r\n" . $unsubscribeLink;
 
 				$from = array();
 				$from['name']  = $jconfig->getValue('config.sitename') . ' ';
@@ -1858,6 +1936,73 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 		$this->redirect(
 			JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=' . $this->_name . '&action=settings'),
 			JText::_('PLG_GROUPS_FORUM_SETTINGS_SAVED')
+		);
+	}
+
+	/**
+	 * Unsubscribe user from forum emails
+	 * 
+	 * @return void
+	 */
+	public function unsubscribe()
+	{
+		// get the token
+		$token = JRequest::getCmd('t', '');
+
+		//token is required
+		if ($token == '')
+		{
+			$this->redirect(
+				JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=' . $this->_name),
+				JText::_('PLG_GROUPS_FORUM_UNSUBSCRIBE_MISSING_TOKEN'),
+				'error'
+			);
+		}
+
+		// get the token lib
+		$encryptor = new \Hubzero\Mail\Token();
+
+		// get token details
+		$tokenDetails = $encryptor->decryptEmailToken($token);
+
+		// make sure token details are good
+		if (empty($tokenDetails) || !isset($tokenDetails[1]) || $this->group->get('gidNumber') != $tokenDetails[1])
+		{
+			$this->redirect(
+				JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=' . $this->_name),
+				JText::_('PLG_GROUPS_FORUM_UNSUBSCRIBE_INVALID_TOKEN'),
+				'error'
+			);
+		}
+
+		// neede member option lib
+		include_once(JPATH_ROOT . DS . 'plugins' . DS . 'groups' . DS . 'memberoptions' . DS . 'memberoption.class.php');
+
+		// Find the user's group settings, do they want to get email (0 or 1)?
+		$groupMemberOption = new GroupsTableMemberoption($this->database);
+		$groupMemberOption->loadRecord(
+			$this->group->get('gidNumber'),
+			$tokenDetails[0],
+			GROUPS_MEMBEROPTION_TYPE_DISCUSSION_NOTIFICIATION
+		);
+
+		// mark that they dont want to be received anymore.
+		$groupMemberOption->optionvalue = 0;
+
+		// attempt to update
+		if (!$groupMemberOption->save($groupMemberOption))
+		{
+			$this->redirect(
+				JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=' . $this->_name),
+				JText::_('PLG_GROUPS_FORUM_UNSUBSCRIBE_UNABLE_TO_UNSUBSCRIBE'),
+				'error'
+			);
+		}
+
+		// success
+		$this->redirect(
+			JRoute::_('index.php?option=com_groups&cn=' . $this->group->get('cn') . '&active=' . $this->_name),
+			JText::_('PLG_GROUPS_FORUM_UNSUBSCRIBE_SUCCESSFULLY_UNSUBSCRIBED')
 		);
 	}
 }

@@ -212,6 +212,7 @@ class Publication extends JTable
 			$query .= ", #__publication_authors as A ";
 		}
 		$query .= ", $this->_tbl AS C ";
+
 		$query .= "LEFT JOIN #__publication_categories AS t ON t.id=C.category ";
 		$query .= " WHERE V.publication_id=C.id AND MT.id=C.master_type AND PP.id = C.project_id ";
 
@@ -255,6 +256,18 @@ class Publication extends JTable
 					$query .= $coauthor ? " AND 2=1" : " AND C.created_by=".intval($filters['mine']);
 				}
 			}
+			// Individual assigned curator?
+			if (isset($filters['curator']))
+			{
+				if ($filters['curator'] == 'owner')
+				{
+					$query .=" AND V.curator = " . $juser->get('id');
+				}
+				if ($filters['curator'] == 'other')
+				{
+					$query .=" AND V.curator != " . $juser->get('id');
+				}
+			}
 		}
 		else
 		{
@@ -287,7 +300,6 @@ class Publication extends JTable
 				$query .= " AND t.url_alias='".$filters['category']."' ";
 			}
 		}
-
 		if (isset($filters['author']) && intval($filters['author']))
 		{
 			$query .= " AND A.publication_version_id=V.id AND A.user_id=" . $filters['author'];
@@ -305,16 +317,21 @@ class Publication extends JTable
 					$tquery .= "'".$type."',";
 				}
 				$tquery = substr($tquery,0,strlen($tquery) - 1);
-				$query .= " AND (C.master_type IN (" . $tquery . ") ) ";
+				$query .= " AND ((C.master_type IN (" . $tquery . ") ) ";
 			}
 			elseif (is_numeric($filters['master_type']))
 			{
-				$query .= " AND C.master_type=".$filters['master_type']." ";
+				$query .= " AND (C.master_type=".$filters['master_type']." ";
+			}
+			elseif (is_string($filters['master_type']))
+			{
+				$query .= " AND (MT.alias='".$filters['master_type']."' ";
 			}
 			else
 			{
-				$query .= " AND MT.alias='".$filters['master_type']."' ";
+				$query .= " AND (1=1";
 			}
+			$query .= " OR V.curator = " . $juser->get('id') . ") ";
 		}
 
 		if (isset($filters['minranking']) && $filters['minranking'] != '' && $filters['minranking'] > 0)
@@ -457,6 +474,10 @@ class Publication extends JTable
 				case 'random':
 					$query .= "RAND()";
 					break;
+
+				case 'submitted':
+					$query .= "V.submitted ".$sortdir;
+					break;
 			}
 		}
 
@@ -495,12 +516,13 @@ class Publication extends JTable
 	{
 		$sql  = "SELECT V.*, C.id as id, C.category, C.project_id, C.access as master_access,
 				C.checked_out, C.checked_out_time, C.rating as master_rating,
-				C.group_owner,
+				C.group_owner, C.master_type,
 				C.ranking as master_ranking, C.times_rated as master_times_rated,
 				C.alias, V.id as version_id, t.name AS cat_name, t.alias as cat_alias,
 				t.url_alias as cat_url, PP.alias as project_alias, PP.title as project_title,
-				PP.state as project_status, PP.provisioned as project_provisioned, MT.alias as base";
-		$sql .= ", (SELECT vv.version_label FROM #__publication_versions as vv WHERE vv.publication_id=C.id AND vv.state=3 LIMIT 1) AS dev_version_label ";
+				PP.state as project_status, PP.private as project_private,
+				PP.provisioned as project_provisioned, MT.alias as base";
+		$sql .= ", (SELECT vv.version_label FROM #__publication_versions as vv WHERE vv.publication_id=C.id AND vv.state=3 ) AS dev_version_label ";
 		$sql .= ", (SELECT COUNT(*) FROM #__publication_versions WHERE publication_id=C.id AND state!=3 ) AS versions ";
 
 		$sortby  = isset($filters['sortby']) ? $filters['sortby'] : 'title';
@@ -572,7 +594,6 @@ class Publication extends JTable
 			return false;
 		}
 
-		$juser = JFactory::getUser();
 		$now = JFactory::getDate()->toSql();
 		$alias = str_replace( ':', '-', $alias );
 
@@ -582,13 +603,14 @@ class Publication extends JTable
 				C.ranking as master_ranking, C.times_rated as master_times_rated,
 				C.alias, V.id as version_id, C.group_owner,
 				t.name AS cat_name, t.alias as cat_alias, t.url_alias as cat_url,
-				MT.alias as base, PP.alias as project_alias,
+				MT.alias as base, MT.curatorgroup, PP.alias as project_alias,
 				PP.title as project_title, PP.state as project_status,
 				PP.provisioned as project_provisioned,
+				PP.private as project_private,
 				PP.owned_by_group as project_group ";
 
 		$sql .= ",(SELECT vv.version_label FROM #__publication_versions as vv
-				WHERE vv.publication_id=C.id AND (vv.state = 3 OR vv.state = 5) LIMIT 1) AS dev_version_label ";
+				WHERE vv.publication_id=C.id AND (vv.state = 3 OR vv.state = 5)) AS dev_version_label ";
 		$sql .= ",(SELECT vv.state FROM #__publication_versions as vv WHERE vv.publication_id=C.id AND vv.main=1)
 				AS default_version_status ";
 		$sql .= ",(SELECT COUNT(*) FROM #__publication_versions WHERE publication_id=C.id AND state!=3 ) AS versions ";

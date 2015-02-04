@@ -133,7 +133,7 @@ class SupportModelConditions extends JObject
 			foreach ($xgroups as $xgroup)
 			{
 				$xgroup->description = trim($xgroup->description) ?: $xgroup->cn;
-				$items[] = $this->_value($xgroup->cn, ' &nbsp; ' . stripslashes($this->escape($xgroup->description)), false);
+				$items[] = $this->_value($xgroup->cn, stripslashes($this->escape($xgroup->description)), false);
 			}
 		}
 		$conditions->group = $this->_expression(

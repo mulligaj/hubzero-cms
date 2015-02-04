@@ -52,7 +52,7 @@ defined('_JEXEC') or die('Restricted access');
 			foreach ($this->rows1 as $row)
 			{
 				$when = JHTML::_('date.relative', $row->proposed);
-				$title = $this->escape(strip_tags($row->about)) ? $this->escape(stripslashes($row->subject)) . ' :: ' . \Hubzero\Utility\String::truncate($this->escape(strip_tags($row->about)), 160) : '';
+				$title = strip_tags($row->about) ? $this->escape(stripslashes($row->subject)) . ' :: ' . \Hubzero\Utility\String::truncate($this->escape(strip_tags($row->about)), 160) : NULL;
 			?>
 			<li class="wishlist">
 				<a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=wish&id=' . $row->wishlist . '&wishid=' . $row->id); ?>" class="tooltips" title="<?php echo $title; ?>">
@@ -92,7 +92,7 @@ defined('_JEXEC') or die('Restricted access');
 			foreach ($this->rows2 as $row)
 			{
 				$when = JHTML::_('date.relative', $row->proposed);
-				$title = $this->escape(strip_tags($row->about)) ? $this->escape(stripslashes($row->subject)) . ' :: ' . \Hubzero\Utility\String::truncate($this->escape(strip_tags($row->about)), 160) : '';
+				$title = strip_tags($row->about) ? $this->escape(stripslashes($row->subject)) . ' :: ' . \Hubzero\Utility\String::truncate($this->escape(strip_tags($row->about)), 160) : NULL;
 			?>
 			<li class="wishlist">
 				<a href="<?php echo JRoute::_('index.php?option=com_wishlist&task=wish&id=' . $row->wishlist . '&wishid=' . $row->id); ?>" class="tooltips" title="<?php echo $title; ?>">

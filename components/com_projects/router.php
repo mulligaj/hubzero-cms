@@ -47,7 +47,7 @@ function ProjectsBuildRoute(&$query)
 		$segments[] = $query['controller'];
 		unset($query['controller']);
 	}
-    if (!empty($query['alias']))
+	if (!empty($query['alias']))
 	{
 		$segments[] = $query['alias'];
 		unset($query['alias']);
@@ -102,23 +102,23 @@ function ProjectsBuildRoute(&$query)
 		$segments = array();
 		$scope = 1;
 		$parts = explode ( '/', $query['scope'] );
-		if(count($parts) >= 3)
+		if (count($parts) >= 3)
 		{
 			$segments[] = $parts[1]; // alias
 			$segments[] = 'notes'; // active
 
-			for( $i = 3; $i < count($parts); $i++ )
+			for ( $i = 3; $i < count($parts); $i++ )
 			{
 				$segments[] = $parts[$i]; // inlcude parent page names
 			}
 		}
-        unset($query['scope']);
-    }
+		unset($query['scope']);
+	}
 	if (!empty($query['pagename']))
 	{
 		$segments[] = $query['pagename'];
-        unset($query['pagename']);
-    }
+		unset($query['pagename']);
+	}
 	if (!empty($query['action']))
 	{
 		$segments[] = $query['action'];
@@ -127,10 +127,15 @@ function ProjectsBuildRoute(&$query)
 	elseif ($scope == 1)
 	{
 		$segments[] = !empty($query['task']) ? $query['task'] : 'view'; // wiki action
-		if(!empty($query['task']))
+		if (!empty($query['task']))
 		{
 			unset($query['task']);
 		}
+	}
+	if (!empty($query['media']))
+	{
+		$segments[] = $query['media'];
+		unset($query['media']);
 	}
 
 	return $segments;
@@ -149,12 +154,11 @@ function ProjectsParseRoute($segments)
 	// Valid tasks
 	$tasks = array(	'start', 'setup', 'edit',
 		'browse', 'intro', 'features', 'auth',
-		'deleteimg', 'img', 'wikipreview', 'fixownership',
-		'stats', 'reports', 'get'
+		'wikipreview', 'fixownership','stats'
 	);
 
 	// Valid tasks
-	$mediaTasks = array( 'img', 'deleteimg', 'upload');
+	$mediaTasks = array( 'img', 'deleteimg', 'upload', 'media', 'thumb' );
 
 	// Views (plugins or view panels)
 	$views = array('feed', 'info', 'team',
@@ -171,7 +175,7 @@ function ProjectsParseRoute($segments)
 		'rename', 'saverename', 'history',
 		'compare', 'comments', 'editcomment',
 		'addcomment', 'savecomment', 'removecomment',
-		'reportcomment', 'deleterevision'
+		'reportcomment', 'deleterevision', 'pdf'
 	);
 
 	// App actions
@@ -193,10 +197,6 @@ function ProjectsParseRoute($segments)
 		if (empty($segments[1]))
 		{
 			$vars['task'] = 'view';
-			if (in_array($vars['task'], $mediaTasks))
-			{
-				$vars['controller'] = 'media';
-			}
 			return $vars;
 		}
 	}
@@ -204,6 +204,11 @@ function ProjectsParseRoute($segments)
 	// Alias?
 	if (!is_numeric($segments[0]))
 	{
+		if ($segments[0] == 'get')
+		{
+			$vars['controller'] = 'get';
+			return $vars;
+		}
 		if ($segments[0] == 'reports')
 		{
 			$vars['controller'] = 'reports';
@@ -219,6 +224,20 @@ function ProjectsParseRoute($segments)
 			if (in_array($vars['task'], $mediaTasks))
 			{
 				$vars['controller'] = 'media';
+			}
+			return $vars;
+		}
+		elseif ($segments[0] == 'media')
+		{
+			$vars['task'] = 'media';
+			$vars['controller'] = 'media';
+			if (!empty($segments[1]))
+			{
+				$vars['alias']  = $segments[1];
+			}
+			if (!empty($segments[2]))
+			{
+				$vars['media']  = $segments[2];
 			}
 			return $vars;
 		}
@@ -390,6 +409,14 @@ function ProjectsParseRoute($segments)
 	if (in_array($vars['task'], $mediaTasks))
 	{
 		$vars['controller'] = 'media';
+		if ($vars['task'] == 'thumb')
+		{
+			$vars['task'] = 'media';
+		}
+		if (!empty($segments[2]))
+		{
+			$vars['media'] = $segments[2];
+		}
 	}
 
 	return $vars;

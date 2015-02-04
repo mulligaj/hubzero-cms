@@ -130,6 +130,13 @@ class SupportControllerMedia extends \Hubzero\Component\SiteController
 			$filename .= rand(10, 99);
 		}
 
+		//make sure that file is acceptable type
+		if (!in_array(strtolower($ext), explode(',', $this->config->get('file_ext'))))
+		{
+			echo json_encode(array('error' => JText::_('COM_SUPPORT_ERROR_INCORRECT_FILE_TYPE')));
+			return;
+		}
+
 		$file = $path . DS . $filename . '.' . $ext;
 
 		if ($stream)
@@ -151,8 +158,7 @@ class SupportControllerMedia extends \Hubzero\Component\SiteController
 			move_uploaded_file($_FILES['qqfile']['tmp_name'], $file);
 		}
 
-		exec("clamscan -i --no-summary --block-encrypted $file", $output, $status);
-		if ($status == 1)
+		if (!JFile::isSafe($file))
 		{
 			if (JFile::delete($file))
 			{
@@ -267,6 +273,14 @@ class SupportControllerMedia extends \Hubzero\Component\SiteController
 			$filename .= rand(10, 99);
 		}
 
+		//make sure that file is acceptable type
+		if (!in_array($ext, explode(',', $this->config->get('file_ext'))))
+		{
+			$this->setError(JText::_('COM_SUPPORT_ERROR_INCORRECT_FILE_TYPE'));
+			echo $this->getError();
+			return;
+		}
+
 		$filename .= '.' . $ext;
 
 		// Upload new files
@@ -278,8 +292,8 @@ class SupportControllerMedia extends \Hubzero\Component\SiteController
 		else
 		{
 			$fle = $path . DS . $filename;
-			exec("clamscan -i --no-summary --block-encrypted $fle", $output, $status);
-			if ($status == 1)
+
+			if (!JFile::isSafe($file))
 			{
 				if (JFile::delete($file))
 				{

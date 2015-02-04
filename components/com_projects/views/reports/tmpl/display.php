@@ -25,6 +25,9 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
+$this->css('reports')
+	 ->css('css/impact.css', 'projects', 'publications');
+
 // Common options for js charts
 $options = "
 xaxis: { ticks: xticks },
@@ -74,7 +77,7 @@ tooltip: true,
 		if ($this->getError()) {
 			echo ('<p class="witherror">' . $this->getError().'</p>');
 		}
-		else if($this->msg) {
+		else if ($this->msg) {
 			echo ('<p>' . $this->msg . '</p>');
 		} ?>
 	</div>
@@ -155,7 +158,7 @@ tooltip: true,
 
 							for (var k = 0; k < points.length; k++)
 							{
-								for(var m = 0; m < points[k].data.length; m++)
+								for (var m = 0; m < points[k].data.length; m++)
 								{
 									if (points[k].data[m][0] != null && points[k].data[m][1] != null)
 									{
@@ -206,11 +209,11 @@ tooltip: true,
 						<?php echo JText::_('new projects this month'); ?></li>
 					<li><span class="stats-num-small"><?php echo $this->stats['general']['public']; ?></span>
 						<?php echo JText::_('public projects'); ?></li>
-					<?php if($this->config->get('grantinfo', 0)) { ?>
+					<?php if ($this->config->get('grantinfo', 0)) { ?>
 					<li><span class="stats-num-small"><?php echo $this->stats['general']['sponsored']; ?></span>
 					<?php echo JText::_('grant-sponsored projects'); ?></li>
 					<?php } ?>
-					<?php if($this->config->get('restricted_data', 0)) { ?>
+					<?php if ($this->config->get('restricted_data', 0)) { ?>
 					<li><span class="stats-num-small"><?php echo $this->stats['general']['sensitive']; ?></span>
 						<?php echo JText::_('projects with sensitive data'); ?></li>
 					<?php } ?>
@@ -289,9 +292,8 @@ tooltip: true,
 				<?php if (!empty($this->stats['topActiveProjects'])) { ?>
 				<ul>
 					<?php foreach ($this->stats['topActiveProjects'] as $topProject) {
-						$thumb = ProjectsHtml::getThumbSrc($topProject->id, $topProject->alias, $topProject->picture, $this->config);
 						?>
-					<li><span class="stats-ima-small"><img src="<?php echo $thumb; ?>" alt="" /></span>
+					<li><span class="stats-ima-small"><img src="<?php echo JRoute::_('index.php?option=' . $this->option . '&alias=' . $topProject->alias . '&task=media'); ?>" alt="" /></span>
 						<?php if (!$topProject->private) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . a . 'task=view' . a . 'alias=' . $topProject->alias); ?>"> <?php } ?>
 						<?php echo $topProject->title; ?><?php if (!$topProject->private) { ?></a> <?php } ?>
 					</li>
@@ -372,10 +374,8 @@ tooltip: true,
 			<td class="stats-more">
 				<?php if (!empty($this->stats['topTeamProjects'])) { ?>
 				<ul>
-					<?php foreach ($this->stats['topTeamProjects'] as $topProject) {
-						$thumb = ProjectsHtml::getThumbSrc($topProject->id, $topProject->alias, $topProject->picture, $this->config);
-						?>
-					<li><span class="stats-ima-small"><img src="<?php echo $thumb; ?>" alt="" /></span>
+					<?php foreach ($this->stats['topTeamProjects'] as $topProject) {?>
+					<li><span class="stats-ima-small"><img src="<?php echo JRoute::_('index.php?option=' . $this->option . '&alias=' . $topProject->alias . '&task=media'); ?>" alt="" /></span>
 						<?php if (!$topProject->private) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . a . 'task=view' . a . 'alias=' . $topProject->alias); ?>"> <?php } ?>
 						<?php echo $topProject->title . ' (' . $topProject->team . ' ' . JText::_('members') . ')'; ?><?php if (!$topProject->private) { ?></a> <?php } ?>
 					</li>

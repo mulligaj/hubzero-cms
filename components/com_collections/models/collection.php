@@ -337,6 +337,14 @@ class CollectionsModelCollection extends CollectionsModelAbstract
 		{
 			$filters['access'] = (JFactory::getUser()->get('guest') ? 0 : array(0, 1));
 		}
+		if (!isset($filters['sort']))
+		{
+			if ($sort = $this->get('sort', 'created'))
+			{
+				$filters['sort'] = 'p.' . $sort;
+			}
+			$filters['sort_Dir'] = ($this->get('sort', 'created') == 'ordering' ? 'asc' : 'desc');
+		}
 
 		if (isset($filters['count']) && $filters['count'])
 		{
@@ -362,7 +370,7 @@ class CollectionsModelCollection extends CollectionsModelAbstract
 				$assets = $ba->getRecords(array('item_id' => $ids));
 
 				// Get all the tags for this list of items
-				$bt = new CollectionsTags($this->_db);
+				$bt = new CollectionsModelTags();
 				$tags = $bt->getTagsForIds($ids);
 
 				// Loop through all the items and push assets and tags

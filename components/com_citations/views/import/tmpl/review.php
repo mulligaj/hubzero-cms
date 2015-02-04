@@ -85,10 +85,9 @@ $no_show = array("errors","duplicate");
 							$type_title = $type[0]['type_title'];
 
 							//get citations tags
-							$th = new TagsHandler($database);
-							$th->_tbl = "citations";
-							$tags = $th->get_tag_string($cc->id, 0, 0, NULL, 0, "");
-							$badges = $th->get_tag_string($cc->id, 0, 0, NULL, 0, "badges");
+							$th = new CitationTags($cc->id);
+							$tags = $th->render('string');
+							$badges = $th->render('string', array('label' => 'badges'), true);
 						?>
 						<tr>
 							<!--<td>&nbsp;&nbsp;&nbsp;&nbsp;</td>-->
@@ -233,6 +232,9 @@ $no_show = array("errors","duplicate");
 		</p>
 
 		<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
+		<?php if (isset($this->group) && $this->group != ''): ?>
+			<input type="hidden" name="group" value="<?php echo $this->group; ?>" />
+		<?php endif; ?>
 		<input type="hidden" name="task" value="import_save" />
 	</form>
 </section><!-- / .section -->

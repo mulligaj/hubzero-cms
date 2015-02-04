@@ -31,35 +31,19 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-jimport( 'joomla.plugin.plugin' );
-
 /**
  * Short description for 'plgPublicationsShare'
  *
  * Long description (if any) ...
  */
-class plgPublicationsShare extends JPlugin
+class plgPublicationsShare extends \Hubzero\Plugin\Plugin
 {
-
 	/**
-	 * Short description for 'plgPublicationsShare'
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
 	 *
-	 * Long description (if any) ...
-	 *
-	 * @param      unknown &$subject Parameter description (if any) ...
-	 * @param      unknown $config Parameter description (if any) ...
-	 * @return     void
+	 * @var    boolean
 	 */
-	public function plgPublicationsShare(&$subject, $config)
-	{
-		parent::__construct($subject, $config);
-
-		// load plugin parameters
-		$this->_plugin = JPluginHelper::getPlugin( 'publications', 'share' );
-		$this->_params = new JParameter( $this->_plugin->params );
-
-		$this->loadLanguage();
-	}
+	protected $_autoloadLanguage = true;
 
 	/**
 	 * Short description for 'onPublicationsAreas'
@@ -95,33 +79,25 @@ class plgPublicationsShare extends JPlugin
 		);
 
 		// Hide if version not published
-		if ($publication->state == 4 || $publication->state == 5 || $publication->state == 6)
+		if (!$extended || $publication->state == 4 || $publication->state == 5 || $publication->state == 6)
 		{
 			return $arr;
 		}
 
 		$juri = JURI::getInstance();
 		$sef = JRoute::_('index.php?option='.$option.'&id='.$publication->id);
-		if (substr($sef,0,1) == '/')
-		{
-			$sef = substr($sef,1,strlen($sef));
-		}
-		$url = $juri->base().$sef;
+		$url = $juri->base() . trim($sef, DS);
 		$url = $url . DS . '?v=' . $publication->version_number;
+
+		$mediaUrl = $juri->base() . trim($sef, DS) . DS . $publication->version_id . DS . 'Image:master';
 
 		// Incoming action
 		$sharewith = JRequest::getVar('sharewith', '');
-		if ($sharewith && $sharewith != 'email') {
-			$this->share($sharewith, $url, $publication, $version);
+		if ($sharewith && $sharewith != 'email')
+		{
+			$this->share($sharewith, $url, $mediaUrl, $publication, $version);
 			return;
 		}
-
-		// Add stylesheet and js
-		$document = JFactory::getDocument();
-		$document->addStyleSheet('plugins' . DS . 'publications' . DS
-			. 'share' . DS . 'assets' . DS . 'css' . DS . 'share.css');
-		$document->addScript('plugins' . DS . 'publications' . DS
-			. 'share' . DS . 'assets' . DS . 'js' . DS . 'share.js');
 
 		// Build the HTML meant for the "about" tab's metadata overview
 		if ($rtrn == 'all' || $rtrn == 'metadata')
@@ -139,7 +115,7 @@ class plgPublicationsShare extends JPlugin
 			$view->option 		= $option;
 			$view->publication 	= $publication;
 			$view->version 		= $version;
-			$view->_params 		= $this->_params;
+			$view->_params 		= $this->params;
 			$view->url 			= $url;
 			if ($this->getError())
 			{
@@ -163,51 +139,49 @@ class plgPublicationsShare extends JPlugin
 	 * @param      mixed $publication Parameter description (if any) ...
 	 * @return     void
 	 */
-	public function share($with, $url, $publication, $version)
+	public function share($with, $url, $mediaUrl, $publication, $version)
 	{
 		$jconfig = JFactory::getConfig();
 
 		$link = '';
+		$description = $publication->abstract
+			? \Hubzero\Utility\String::truncate(stripslashes($publication->abstract), 250) : '';
+		$description = urlencode($description);
+		$title = stripslashes($publication->title);
+		$title = urlencode($title);
+
 		switch ($with)
 		{
 			case 'facebook':
-				$link = 'http://www.facebook.com/sharer.php?u='.$url;
+				$link = 'https://www.facebook.com/sharer/sharer.php?u=' . $url . '&t=' . $title;
 				break;
 
 			case 'twitter':
 				$link = 'http://twitter.com/home?status=' . urlencode(JText::sprintf('PLG_PUBLICATION_SHARE_VIEWING',
 						$jconfig->getValue('config.sitename'),
-						stripslashes($publication->title)).' '.$url);
+						stripslashes($publication->title) . ' ' . $url));
 				break;
 
 			case 'google':
-				$link = 'https://plus.google.com/share?url='.$url
-					.'&title='.$jconfig->getValue('config.sitename').': '
-					.JText::_('PLG_PUBLICATION_SHARE_RESOURCE').' '.$publication->id
-					.' - '.stripslashes($publication->title).'&labels='.$jconfig->getValue('config.sitename');
-				break;
-
-			case 'digg':
-				$link = 'http://digg.com/submit?phase=2&url='.$url
-				.'&title='.$jconfig->getValue('config.sitename').': '
-				.JText::_('PLG_PUBLICATION_SHARE_RESOURCE').' '.$publication->id
-				.' - '.stripslashes($publication->title);
-				break;
-
-			case 'technorati':
-				$link = 'http://www.technorati.com/faves?add='.$url;
+				$link = 'https://plus.google.com/share?url=' . $url;
 				break;
 
 			case 'delicious':
-				$link = 'http://del.icio.us/post?url='.$url.'&title='
-				.$jconfig->getValue('config.sitename').': '.JText::_('PLG_PUBLICATION_SHARE_RESOURCE')
-				.' '.$publication->id.' - '.stripslashes($publication->title);
+				$link = 'http://del.icio.us/post?url=' . $url . '&title=' . $title;
 				break;
 
 			case 'reddit':
-				$link = 'http://reddit.com/submit?url='.$url.'&title='
-				.$jconfig->getValue('config.sitename').': '.JText::_('PLG_PUBLICATION_SHARE_RESOURCE')
-				.' '.$publication->id.' - '.stripslashes($publication->title);
+				$link = 'http://reddit.com/submit?url=' . $url . '&title=' . $title;
+				break;
+
+			case 'linkedin':
+				$link = 'https://www.linkedin.com/shareArticle?mini=true&url=' . $url . '&title='
+				. $title . '&summary=' . $description;
+				break;
+
+			case 'pinterest':
+				$link = 'https://pinterest.com/pin/create/button/?url=' . $url . '&media='
+				. $mediaUrl . '&description=' . $title . ': ' . $description;
 				break;
 		}
 

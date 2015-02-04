@@ -31,32 +31,31 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die( 'Restricted access' );
 
-jimport( 'joomla.plugin.plugin' );
-
 /**
  * Projects team
  */
-class plgProjectsTeam extends JPlugin
+class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Constructor
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
 	 *
-	 * @param      object &$subject Event observer
-	 * @param      array  $config   Optional config values
-	 * @return     void
+	 * @var    boolean
 	 */
-	public function plgProjectsTeam (&$subject, $config)
-	{
-		parent::__construct($subject, $config);
+	protected $_autoloadLanguage = true;
 
-		// load plugin parameters
-		$this->_plugin = JPluginHelper::getPlugin( 'projects', 'team' );
-		$this->_params = new JParameter( $this->_plugin->params );
+	/**
+	 * Store redirect URL
+	 *
+	 * @var	   string
+	 */
+	protected $_referer = NULL;
 
-		// Output collectors
-		$this->_referer = '';
-		$this->_message = array();
-	}
+	/**
+	 * Store output message
+	 *
+	 * @var	   array
+	 */
+	protected $_message = NULL;
 
 	/**
 	 * Event call to determine if this plugin should return data
@@ -119,8 +118,10 @@ class plgProjectsTeam extends JPlugin
 		$this->_area = $this->onProjectAreas();
 
 		// Check if our area is in the array of areas we want to return results for
-		if (is_array( $areas )) {
-			if (empty($this->_area) || !in_array($this->_area['name'], $areas)) {
+		if (is_array( $areas ))
+		{
+			if (empty($this->_area) || !in_array($this->_area['name'], $areas))
+			{
 				return;
 			}
 		}
@@ -134,9 +135,6 @@ class plgProjectsTeam extends JPlugin
 		// Are we returning HTML?
 		if ($returnhtml)
 		{
-			// Load language file
-			$this->loadLanguage();
-
 			// Load component configs
 			$this->_config = JComponentHelper::getParams( 'com_projects' );
 
@@ -161,35 +159,11 @@ class plgProjectsTeam extends JPlugin
 				$this->setError($error);
 			}
 
-			// Add CSS and JS
-			$document = JFactory::getDocument();
-			\Hubzero\Document\Assets::addPluginScript('projects', 'team');
-			\Hubzero\Document\Assets::addPluginStylesheet('projects', 'team');
-
 			switch ($this->_task)
 			{
 				case 'edit':
 				case 'setup':
-
-					// Do we need to incule extra scripts?
-					$plugin 		= JPluginHelper::getPlugin( 'system', 'jquery' );
-					$p_params 		= $plugin ? new JParameter($plugin->params) : NULL;
-
-					if (!$plugin || $p_params->get('noconflictSite'))
-					{
-						$document->addScript('plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'observer.js');
-						$document->addScript('plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'textboxlist.js');
-						$document->addScript('plugins' . DS . 'hubzero' . DS . 'autocompleter' . DS . 'autocompleter.js');
-						$document->addStyleSheet('plugins' . DS . 'hubzero' . DS . 'autocompleter'
-							. DS . 'autocompleter.css');
-					}
-
-					$arr['html'] = $this->view( 1 );
-					break;
-
-				case 'invite':
-				case 'sendinvite':
-					$arr['html'] = $this->invite();
+					$arr['html'] = $this->display( 1 );
 					break;
 
 				case 'delete':
@@ -216,7 +190,7 @@ class plgProjectsTeam extends JPlugin
 
 				case 'view':
 				default:
-					$arr['html'] = $this->view();
+					$arr['html'] = $this->display();
 					break;
 
 				case 'select':
@@ -249,7 +223,7 @@ class plgProjectsTeam extends JPlugin
 	 *
 	 * @return     string
 	 */
-	public function view( $edit = 0 )
+	public function display( $edit = 0 )
 	{
 		$layout = $edit ? 'edit' : 'view';
 		$setup  = $this->_task == 'setup' ? 1 : 0;
@@ -265,7 +239,7 @@ class plgProjectsTeam extends JPlugin
 
 		// Instantiate project owner
 		$objO = new ProjectOwner($this->_database);
-		$view->filters['limit']    =  intval($this->_params->get('limit', 0));
+		$view->filters['limit']    =  intval($this->params->get('limit', 0));
 		$view->filters['start']    = JRequest::getInt( 't_limitstart', 0);
 		$view->filters['sortby']   = JRequest::getVar( 't_sortby', 'name');
 		$view->filters['sortdir']  = JRequest::getVar( 't_sortdir', 'ASC');
@@ -407,8 +381,7 @@ class plgProjectsTeam extends JPlugin
 		// Get css
 		if (!$ajax)
 		{
-			$document = JFactory::getDocument();
-			$document->addStyleSheet('plugins' . DS . 'projects' . DS . 'team' . DS . 'css' . DS . 'selector.css');
+			\Hubzero\Document\Assets::addPluginStylesheet('projects', 'team','css/selector');
 		}
 
 		// Instantiate project owner
@@ -1192,10 +1165,6 @@ class plgProjectsTeam extends JPlugin
 		$version 	= JRequest::getVar( 'version', 'default' );
 		$pid 		= JRequest::getInt( 'pid', 0 );
 		$ajax 		= JRequest::getInt('ajax', 0);
-
-		// Load language file
-		$lang = JFactory::getLanguage();
-		$lang->load('plg_projects_publications');
 
 		// Load publication & version classes
 		$objP = new Publication($this->_database);

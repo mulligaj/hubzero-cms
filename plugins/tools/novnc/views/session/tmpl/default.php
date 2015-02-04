@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2013 Purdue University. All rights reserved.
+ * Copyright 2005-2015 Purdue University. All rights reserved.
  *
  * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
  *
@@ -24,7 +24,7 @@
  *
  * @package   hubzero-cms
  * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2013 Purdue University. All rights reserved.
+ * @copyright Copyright 2005-2015 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
@@ -35,18 +35,11 @@ $juser = JFactory::getUser();
 
 if (!$this->app->sess)
 {
-	echo '<p class="error"><strong>' . JText::_('ERROR') . '</strong><br />' . implode('<br />', $this->output) . '</p>';
+	echo '<p class="error"><strong>' . JText::_('PLG_TOOLS_NOVNC_ERROR') . '</strong><br />' . implode('<br />', $this->output) . '</p>';
 }
 else
 {
-	// This allows for touch events to be translated to click events on mobile devices
-	/*\Hubzero\Document\Assets::addComponentScript('com_tools', 'assets/novnc/jquery.ui.touch-punch.min.js');
-
 	// Invlude NoVNC
-	\Hubzero\Document\Assets::addComponentScript('com_tools', 'assets/novnc/util');
-	\Hubzero\Document\Assets::addComponentScript('com_tools', 'assets/novnc/ui-hubzero');
-	\Hubzero\Document\Assets::addComponentStylesheet('com_tools', 'assets/novnc/base');*/
-
 	$this->css('./novnc/base.css')
 	     ->js('./novnc/jquery.ui.touch-punch.min.js') // This allows for touch events to be translated to click events on mobile devices
 	     ->js('./novnc/util.js')
@@ -56,31 +49,31 @@ else
 
 	$img = $base . '/plugins/tools/novnc/assets/novnc/images';
 ?>
-	<div id="noVNC-control-bar">
+	<div id="noVNC-control-bar" class="hidden">
 		<!--noVNC Mobile Device only Buttons-->
 		<div class="noVNC-buttons-left">
-			<input type="image" src="<?php echo $img; ?>/drag.png" id="noVNC_view_drag_button" class="noVNC_status_button" title="Move/Drag Viewport" onclick="UI.setViewDrag();" />
+			<input type="image" src="<?php echo $img; ?>/drag.png" id="noVNC_view_drag_button" class="noVNC_status_button" title="<?php echo JText::_('PLG_TOOLS_NOVNC_MOVE_VIEWPORT'); ?>" onclick="UI.setViewDrag();" />
 			<div id="noVNC_mobile_buttons">
 				<input type="image" src="<?php echo $img; ?>/mouse_none.png" id="noVNC_mouse_button0" class="noVNC_status_button" onclick="UI.setMouseButton(1);" />
 				<input type="image" src="<?php echo $img; ?>/mouse_left.png" id="noVNC_mouse_button1" class="noVNC_status_button" onclick="UI.setMouseButton(2);" />
 				<input type="image" src="<?php echo $img; ?>/mouse_middle.png" id="noVNC_mouse_button2" class="noVNC_status_button" onclick="UI.setMouseButton(4);" />
 				<input type="image" src="<?php echo $img; ?>/mouse_right.png" id="noVNC_mouse_button4" class="noVNC_status_button" onclick="UI.setMouseButton(0);" />
-				<input type="image" src="<?php echo $img; ?>/keyboard.png" id="showKeyboard" class="noVNC_status_button" value="Keyboard" title="Show Keyboard" onclick="UI.showKeyboard()" />
+				<input type="image" src="<?php echo $img; ?>/keyboard.png" id="showKeyboard" class="noVNC_status_button" value="<?php echo JText::_('PLG_TOOLS_NOVNC_KEYBOARD'); ?>" title="<?php echo JText::_('PLG_TOOLS_NOVNC_SHOW_KEYBOARD'); ?>" onclick="UI.showKeyboard()" />
 				<input type="email" autocapitalize="off" autocorrect="off" id="keyboardinput" class="noVNC_status_button" onKeyDown="onKeyDown(event);" onblur="UI.keyInputBlur();" />
 			</div>
 		</div>
 
 		<!--noVNC Buttons-->
 		<div class="noVNC-buttons-right">
-			<input type="image" src="<?php echo $img; ?>/ctrlaltdel.png" id="sendCtrlAltDelButton" class="noVNC_status_button" title="Send Ctrl-Alt-Del" onclick="UI.sendCtrlAltDel();" />
-			<input type="image" src="<?php echo $img; ?>/clipboard.png" id="clipboardButton" class="noVNC_status_button" title="Clipboard" onclick="UI.toggleClipboardPanel();" />
+			<input type="image" src="<?php echo $img; ?>/ctrlaltdel.png" id="sendCtrlAltDelButton" class="noVNC_status_button" title="<?php echo JText::_('PLG_TOOLS_NOVNC_CTRLALTDEL'); ?>" onclick="UI.sendCtrlAltDel();" />
+			<input type="image" src="<?php echo $img; ?>/clipboard.png" id="clipboardButton" class="noVNC_status_button" title="<?php echo JText::_('PLG_TOOLS_NOVNC_CLIPBOARD'); ?>" onclick="UI.toggleClipboardPanel();" />
 		</div>
 
 		<!-- Clipboard Panel -->
 		<div id="noVNC_clipboard" class="triangle-right top">
 			<textarea id="noVNC_clipboard_text" rows="5" onfocus="UI.displayBlur();" onblur="UI.displayFocus();" onchange="UI.clipSend();"></textarea>
 			<br />
-			<input id="noVNC_clipboard_clear_button" type="button" value="Clear" onclick="UI.clipClear();" />
+			<input id="noVNC_clipboard_clear_button" type="button" value="<?php echo JText::_('PLG_TOOLS_NOVNC_CLEAR'); ?>" onclick="UI.clipClear();" />
 		</div>
 	</div> <!-- End of noVNC-control-bar -->
 
@@ -88,11 +81,11 @@ else
 		<div id="noVNC_screen_pad"></div>
 
 		<div id="noVNC_status_bar" class="noVNC_status_bar">
-			<div id="noVNC_status">Loading</div>
+			<div id="noVNC_status"><?php echo JText::_('PLG_TOOLS_NOVNC_LOADING'); ?></div>
 		</div>
 
 		<div id="noVNC_container">
-			<canvas id="noVNC_canvas" width="<?php echo $this->output->width; ?>" height="<?php echo $this->output->height; ?>">Canvas not supported.</canvas>
+			<canvas id="noVNC_canvas" width="<?php echo $this->output->width; ?>" height="<?php echo $this->output->height; ?>"><?php echo JText::_('PLG_TOOLS_NOVNC_ERROR_NO_CANVAS'); ?></canvas>
 		</div>
 	</div>
 
@@ -114,20 +107,36 @@ else
 		var hPadding = 5;
 
 		UI.normalStateAchieved = function() {
-			var app = $('#noVNC_canvas');
+			var app = $('#noVNC_canvas'),
+				appfooter = $('#app-footer'),
+				appcontent = $('#app-content'),
+				appcontainer = $('#noVNC_container'),
+				footermenu = $('<ul></ul>');
 
-			if (!app.hasClass('no-resize') && !$('#app-btn-resizehandle').length) {
-				var appfooter = $('#app-footer'),
-					appcontent = $('#app-content'),
-					appcontainer = $('#noVNC_container'),
-					footermenu = $('<ul></ul>'),
-					li = $('<li></li>');
+			$('#noVNC-control-bar').removeClass('hidden');
 
-				$('<a class="resize" id="app-btn-resizehandle" alt="Resize" title="Resize"><span id="app-size">' + app.attr('width').toString() + ' x ' + app.attr('height').toString() + '</span></a>')
+			if (!app.hasClass('no-refresh')) {
+				var li = $('<li></li>');
+				$('<a class="refresh" id="app-btn-refresh" alt="<?php echo JText::_('PLG_TOOLS_NOVNC_REFRESH'); ?>" title="<?php echo JText::_('PLG_TOOLS_NOVNC_REFRESH'); ?>"><span><?php echo JText::_('PLG_TOOLS_NOVNC_REFRESH'); ?></span></a>')
+					.on('click', function(event) {
+						//UI.requestRefresh();
+						var w = parseFloat(appcontent.width()),
+							h = parseFloat(appcontent.height());
+						appcontent.trigger("resize");
+						doResize(w, h + 1);
+						doResize(w, h);
+					})
 					.appendTo(li);
 				li.appendTo(footermenu);
+			}
 
-				footermenu.appendTo(appfooter);
+			footermenu.appendTo(appfooter);
+
+			if (!app.hasClass('no-resize') && !$('#app-btn-resizehandle').length) {
+				var li = $('<li></li>');
+				$('<a class="resize" id="app-btn-resizehandle" alt="<?php echo JText::_('PLG_TOOLS_NOVNC_RESIZE'); ?>" title="<?php echo JText::_('PLG_TOOLS_NOVNC_RESIZE'); ?>"><span id="app-size">' + app.attr('width').toString() + ' x ' + app.attr('height').toString() + '</span></a>')
+					.appendTo(li);
+				li.appendTo(footermenu);
 
 				appcontent.resizable({
 					minHeight: 200,

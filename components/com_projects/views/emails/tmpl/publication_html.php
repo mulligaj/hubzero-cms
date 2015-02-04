@@ -53,6 +53,7 @@ else
 $link 		= rtrim($base, DS) . DS . trim($sef, DS);
 $projectUrl = $link;
 $browseLink = rtrim($base, DS) . DS . trim($sef_browse, DS);
+$thumb 		= rtrim($base, DS) . DS . 'projects/' . $this->project->alias . '/media';
 
 // Page title
 $title = $hubShortName . ' ' . JText::_('COM_PROJECTS_PROJECTS');
@@ -115,23 +116,20 @@ if ($this->config->get('sdata_group', 0) && $this->reviewer == 'sensitive')
 	$comment .= $browseLink . '?reviewer=sensitive' . '</p>';
 }
 
+
 // Project owner
-$owner   = $this->project->owned_by_group
-		 ? $this->nativegroup->cn . ' ' . JText::_('COM_PROJECTS_GROUP')
-		 : $this->project->fullname;
-
-$showThumb = $config->get('showthumbemail', 0);
-if ($this->project->provisioned == 1)
+if ($this->project->provisioned)
 {
-	$showThumb = false;
+	$owner = NULL;
+}
+else
+{
+	$owner   = $this->project->owned_by_group
+			 ? $this->nativegroup->cn . ' ' . JText::_('COM_PROJECTS_GROUP')
+			 : $this->project->fullname;
 }
 
-// Get project thumbnail
-if ($showThumb)
-{
-	$thumb = ProjectsHtml::getThumbSrc($this->project->id, $this->project->alias, $this->project->picture, $config);
-	$thumb = rtrim($base, DS) . DS . trim($thumb, DS);
-}
+$showThumb = $this->project->provisioned == 1 ? false : $config->get('showthumbemail', 0);
 
 ?>
 
@@ -343,10 +341,12 @@ if ($showThumb)
 																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap; vertical-align: top;" align="right">Created:</th>
 																	<td style="text-align: left; padding: 0 0.5em;" align="left">@ <?php echo JHTML::_('date', $this->project->created, JText::_('TIME_FORMAT_HZ1')); ?> on <?php echo JHTML::_('date', $this->project->created, JText::_('DATE_FORMAT_HZ1')); ?></td>
 																</tr>
+																<?php if ($owner) { ?>
 																<tr>
 																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap; vertical-align: top;" align="right">Owner:</th>
 																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo $owner; ?></td>
 																</tr>
+																<?php } ?>
 																<tr>
 																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap; vertical-align: top;" align="right">URL:</th>
 																	<td style="text-align: left; padding: 0 0.5em;" align="left"><a href="<?php echo $link; ?>"><?php echo $projectUrl; ?></a></td>
