@@ -317,8 +317,6 @@ class Git
 	/**
 	 * Pull the latest updates
 	 *
-	 * You should probably call isEligibleForUpdate beforehand, althought it isn't required.
-	 *
 	 * @param  (bool)   $dryRun     - whether or not to do the run, or just check what's incoming
 	 * @param  (bool)   $allowNonFf - whether or not to allow non fast forward pulls (i.e. merges)
 	 * @param  (string) $source     - where this repository should pull from (this should be a valid git remote/branch)
@@ -375,23 +373,24 @@ class Git
 			$response  = trim($response);
 			$return    = array();
 
-			if (empty($response))
-			{
-				$return['status'] = 'success';
-			}
-			else if (stripos($response, 'fatal') !== false)
+			if (substr($response, 0, 5) == 'fatal')
 			{
 				$return['status']  = 'fatal';
 				$return['message'] = trim(substr($response, stripos($response, 'fatal') + 6));
 			}
-			else if (stripos($response, 'error') !== false)
+			else if (substr($response, 0, 5) == 'error')
 			{
 				$return['status']  = 'fatal';
 				$return['message'] = trim(substr($response, stripos($response, 'error') + 6));
 			}
+			else if (stripos($response, 'automatic merge failed') !== false)
+			{
+				$return['status']  = 'fatal';
+				$return['message'] = $response;
+			}
 			else
 			{
-				$return['status'] = 'unknown';
+				$return['status'] = 'success';
 			}
 
 			// Include the raw return for all calls
@@ -515,7 +514,7 @@ class Git
 		$tagname = 'cmsrollbackpoint-'.$rollbackPoint;
 
 		// Make sure the tag exists first
-		if (stripos($this->call('show', array($tagname)), 'fatal'))
+		if (substr($this->call('show', array($tagname)), 0, 5 == 'fatal'))
 		{
 			return false;
 		}
@@ -539,15 +538,40 @@ class Git
 	}
 
 	/**
-	 * Check to see if the repo is clear and eligible for an update
+	 * Check to see if the repo is clean, at least as far as this mechanism is concerned
 	 *
 	 * @return boolean
 	 **/
-	public function isEligibleForUpdate()
+	public function isClean()
 	{
-		$status = $this->status();
+		$status   = $this->status();
+		$eligible = true;
 
-		return (empty($status)) ? true : false;
+		if (!empty($status) && is_array($status))
+		{
+			foreach ($status as $type => $files)
+			{
+				if ($type != 'untracked' && !empty($files))
+				{
+					$eligible = false;
+					break;
+				}
+			}
+		}
+
+		return $eligible;
+	}
+
+	/**
+	 * Stash local changes
+	 *
+	 * @return boolean
+	 **/
+	public function stash()
+	{
+		$this->call('stash');
+
+		return true;
 	}
 
 	/**

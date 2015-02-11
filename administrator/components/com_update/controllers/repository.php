@@ -147,7 +147,7 @@ class UpdateControllerRepository extends \Hubzero\Component\AdminController
 		$message    = 'Update complete!';
 		$type       = 'success';
 
-		if (!empty($response))
+		if (!empty($response) && stripos($response, 'fix conflicts and then commit the result') === false)
 		{
 			$type    = 'error';
 			$message = ucfirst($response);
@@ -156,11 +156,20 @@ class UpdateControllerRepository extends \Hubzero\Component\AdminController
 		{
 			// Also check status again to make sure it's clean (merge conflicts will show up here)
 			$status = json_decode(cli::status());
+
 			if (!empty($status))
 			{
-				$type    = 'error';
-				$message = 'Update failed. Rolling back changes.';
-				$this->rollbackTask();
+				foreach ($status as $type => $files)
+				{
+					// If anything is left over besides untracked files, something went wrong
+					if ($type != 'untracked' && !empty($files))
+					{
+						$type    = 'error';
+						$message = 'Update failed. Rolling back changes.';
+						$this->rollbackTask();
+						break;
+					}
+				}
 			}
 		}
 
