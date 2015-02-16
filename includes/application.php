@@ -44,6 +44,31 @@ final class JSite extends JApplication
 	public function __construct($config = array())
 	{
 		$config['clientId'] = 0;
+
+		\Hubzero\Console\Event::register('application.onBeforeSessionCreate', function($app)
+		{
+			// This must be done before the session is read, otherwise it will overwrite
+			// the existing session with a guest non-https session prior to redirecting to https
+			// NOTE: we're including a cli check here because the console currently uses the 'site'
+			// application.  This should be remedied in the new framework.
+			if ($app->getCfg('force_ssl') == 2 && php_sapi_name() != 'cli')
+			{
+				$uri = JURI::getInstance();
+
+				if (strtolower($uri->getScheme()) != 'https')
+				{
+					// We also can't use the Application::redirect method here as
+					// it tries to use JFactory::getDocument, which doesn't work
+					// prior to application initialization
+					$uri->setScheme('https');
+					header('HTTP/1.1 303 See other');
+					header('Location: ' . (string)$uri);
+					header('Content-Type: text/html;');
+					$app->close();
+				}
+			}
+		});
+
 		parent::__construct($config);
 	}
 

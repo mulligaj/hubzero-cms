@@ -468,7 +468,7 @@ class CitationsControllerCitations extends \Hubzero\Component\SiteController
 		);
 
 		//get the users id to make lookup
-		$userIp = $this->getIP();
+		$userIp = JRequest::ip();
 
 		//get the param for ip regex to use machine ip
 		$ipRegex = array('10.\d{2,5}.\d{2,5}.\d{2,5}');
@@ -569,7 +569,7 @@ class CitationsControllerCitations extends \Hubzero\Component\SiteController
 		//are we allowing user to add citation
 		$allowImport = $this->config->get('citation_import', 1);
 		if ($allowImport == 0
-		 || ($allowImport == 2 && $this->juser->get('usertype') != 'Super Administrator'))
+		|| ($allowImport == 2 && $this->juser->get('usertype') == 'Super Administrator'))
 		{
 			// Redirect
 			$this->setRedirect(

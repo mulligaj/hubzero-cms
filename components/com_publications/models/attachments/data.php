@@ -122,10 +122,6 @@ class PublicationsModelAttachmentData extends PublicationsModelAttachment
 			// Serve individually
 			foreach ($attachments as $attach)
 			{
-				if ($attach->type == 'data')
-				{
-					continue;
-				}
 				$itemUrl 	= $url . '&a=' . $attach->id;
 				$title 		= $attach->title ? $attach->title : $configs->title;
 				$title 		= $title ? $title : $attach->path;
@@ -133,7 +129,7 @@ class PublicationsModelAttachmentData extends PublicationsModelAttachment
 
 				$html .= '<li>';
 				$html .= $authorized === 'administrator' ? '[' . $this->_name . '] ' : '';
-				$html .= '<a href="' . $itemUrl . '" title="' . $pop . '" target="_blank">' . $title . '</a>';
+				$html .= '<a href="' . $itemUrl . '" title="' . $pop . '" target="_blank" class="data-type">' . $title . '</a>';
 				$html .='</li>';
 			}
 		}
