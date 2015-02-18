@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2014 Purdue University. All rights reserved.
  *
  * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
  *
@@ -23,18 +23,33 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Nicholas J. Kisseberth <nkissebe@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
+ * @author    Sam Wilson <samwilson@purdue.edu>
+ * @copyright Copyright 2005-2014 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
-?>
-<?php echo $this->xprofile->get('name');
-if ($this->xprofile->get('orginization')) {
-	echo ' / ' . $this->xprofile->get('orginization');
-} ?> (<?php echo $this->xprofile->get('email'); ?>) has requested the new account '<?php echo $this->xprofile->get('username'); ?>' on <?php echo $this->sitename; ?>.
+namespace Modules\Users;
 
-Click the following link to review this user's account:
-<?php echo $this->baseURL . JRoute::_($this->xprofile->getLink()); ?>
+use Hubzero\Module\Module;
+
+/**
+ * Module class for com_users data
+ */
+class Helper extends Module
+{
+	/**
+	 * Display module contents
+	 *
+	 * @return     void
+	 */
+	public function display()
+	{
+		$database = \JFactory::getDBO();
+
+		$database->setQuery("SELECT * FROM `#__users` WHERE `approved` = 0");
+		$this->unapproved = $database->loadObjectList();
+
+		// Get the view
+		parent::display();
+	}
+}

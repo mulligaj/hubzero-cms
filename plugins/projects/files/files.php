@@ -650,6 +650,7 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		$view->items = NULL;
 		if ($this->_project->id)
 		{
+			$this->minimal = true;
 			$view->items = $this->getList();
 		}
 
@@ -4777,7 +4778,7 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 			$entry['fpath']		= $fpath;
 			$e 					= $norecurse ? $entry['name'] : $entry['fpath'];
 			$entry['bytes']		= filesize($this->prefix . $fullpath . DS . $e);
-			$entry['size']		= ProjectsHtml::formatSize($entry['bytes']);
+			$entry['size']		= $entry['bytes'] ? ProjectsHtml::formatSize($entry['bytes']) : 'unknown';
 			$entry['ext']		= ProjectsHtml::getFileAttribs( $e, $fullpath, 'ext', $this->prefix );
 
 			// Get last commit data
@@ -4795,13 +4796,22 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 			$entry['message'] 	= isset($gitData['message']) ? $gitData['message'] : NULL;
 
 			// SFTP?
-			if (preg_match("/[SFTP]/", $entry['message']))
+			if (strpos($entry['message'], '[SFTP]') !== false)
 			{
-				$profile = \Hubzero\User\Profile::getInstance( trim($entry['author']) );
-				if ($profile)
+				if (isset($this->_profileAssoc) && isset($this->_profileAssoc[trim($entry['author'])]))
 				{
-					$entry['author'] = $profile->get('name');
-					$entry['email'] = $profile->get('email');
+					$entry['author'] = $this->_profileAssoc[trim($entry['author'])]->get('name');
+					$entry['email']  = $this->_profileAssoc[trim($entry['author'])]->get('email');
+				}
+				else
+				{
+					$profile = \Hubzero\User\Profile::getInstance( trim($entry['author']) );
+					if ($profile)
+					{
+						$entry['author'] = $profile->get('name');
+						$entry['email'] = $profile->get('email');
+						$this->_profileAssoc[trim($entry['author'])] = $profile;
+					}
 				}
 			}
 
@@ -6904,6 +6914,10 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		{
 			$base = substr($base, 0, strlen($base)-13);
 		}
+		if (substr($base, -3) == 'api')
+		{
+			$base = substr($base, 0, strlen($base)-3);
+		}
 		$this->base = $base;
 
 		// File actions
@@ -7038,6 +7052,8 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		{
 			foreach ($docs as $file)
 			{
+				$file = $this->subdir ? substr($file, strlen($this->subdir) +1) : $file;
+
 				$metadata = $this->getItemMetadata(trim($file));
 				if ($metadata)
 				{
@@ -7087,44 +7103,130 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 	}
 
 	/**
-	 * Insert file(s) into project via upload or copy (TBD)
+	 * Insert file(s) into project via upload or local copy
 	 *
 	 * @return     returns array with inserted file(s) info
 	 */
 	public function insertFile()
 	{
 		// Incoming
-		$dataUrl  = isset($this->_data->dataUrl)
-					? $this->_data->dataUrl
-					: JRequest::getVar( 'dataUrl', '' ); // path to local file to copy from
+		$dataPath  = isset($this->_data->dataPath)
+					? $this->_data->dataPath
+					: JRequest::getVar( 'data_path', '' ); // path to local or remote file to copy
 		$results  = array();
 		$assets   = array();
 
-		// Via local copy
-		if ($dataUrl && is_file($dataUrl))
+		// Via remote/local copy
+		if ($dataPath)
 		{
-			$file 		= ProjectsHtml::makeSafeFile(basename($dataUrl));
+			$dataPath = urldecode($dataPath);
+
+			// Figure destination
+			$file 		= ProjectsHtml::makeSafeFile(basename($dataPath));
 			$localPath	= $this->subdir ? $this->subdir . DS . $file : $file;
 			$fullPath	= $this->prefix . $this->path . DS . $localPath;
 
-			if (!JFile::copy($dataUrl, $fullPath))
+			// Are we updating?
+			$newFile = is_file($fullPath) ? false : true;
+
+			$tempPath = NULL;
+
+			// Local file not found? Try to download as remote
+			if (!is_file($dataPath))
 			{
-				$this->setError(JText::_('Error inserting file into project'));
+				$ch = curl_init();
+				curl_setopt($ch, $dataPath);
+
+				$tempPath = $this->getProjectPath ($this->_project->alias, 'temp') . DS . $file; // temp
+				$tempFile = fopen($tempPath, 'w+');
+
+				if (!$tempFile)
+				{
+					$this->setError(JText::_('There was a problem creating a temp file for remote data'));
+					return false;
+				}
+
+				// Download file to a temp directory
+				if (curl_setopt($ch, CURLOPT_URL, $dataPath))
+				{
+					curl_setopt($ch, CURLOPT_FILE, $tempFile);
+					curl_exec ($ch);
+					$success = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+					if ($success !== 200)
+					{
+						$this->setError(JText::_('Error: failed to download data file'));
+						unlink($tempPath);
+					}
+				}
+				else
+				{
+					$this->setError(JText::_('Error: failed to locate or access data path.'));
+				}
+
+				// Close connections
+				curl_close ($ch);
+				fclose($tempFile);
+			}
+
+			$dataPath = $tempPath && is_file($tempPath) ? $tempPath : $dataPath;
+
+			// Have file?
+			if (!is_file($dataPath))
+			{
+				$this->setError(JText::_('Error: source data file not found.'));
 				return false;
 			}
 
-			// Git add & commit
-			$commitMsg 		= '';
-			$this->_git->gitAdd($this->path, $localPath, $commitMsg);
-			$this->_git->gitCommit($this->path, $commitMsg);
+			// Destination directory exists?
+			if ($this->subdir && !is_dir($this->prefix . $this->path . DS . $this->subdir))
+			{
+				// Create directory
+				if (!JFolder::create( $this->prefix . $this->path . DS . $this->subdir ))
+				{
+					// Failed to create directory
+					$this->setError( JText::_('COM_PROJECTS_FILES_ERROR_DIR_CREATE') );
+				}
+				else
+				{
+					// Success
+					$created = $this->_git->makeEmptyFolder($this->path, $this->subdir);
+					$commitMsg = JText::_('COM_PROJECTS_CREATED_DIRECTORY') . '  ' . escapeshellarg($this->subdir);
+					if ($this->_git->gitCommit($this->path, $commitMsg))
+					{
+						$assets[] = $this->subdir;
+					}
+				}
+			}
 
-			// Store in session
-			$this->registerUpdate('uploaded', $localPath);
+			// Proceed with copy if no error
+			if (!$this->getError())
+			{
+				if (!JFile::copy($dataPath, $fullPath))
+				{
+					$this->setError(JText::_('Error inserting file into project'));
+					return false;
+				}
+				elseif ($tempPath && is_file($tempPath))
+				{
+					unlink($tempPath);
+				}
 
-			// After upload actions
-			$this->onAfterUpdate();
+				// Git add & commit
+				$commitMsg 		= '';
+				$this->_git->gitAdd($this->path, $localPath, $commitMsg, $newFile);
 
-			$assets[] = $localPath;
+				if ($this->_git->gitCommit($this->path, $commitMsg))
+				{
+					// Store in session
+					$updateType = $newFile ? 'uploaded' : 'updated';
+					$this->registerUpdate($updateType, $localPath);
+				}
+
+				// After upload actions
+				$this->onAfterUpdate();
+			}
+
+			$assets[] = $file;
 		}
 		else
 		{
@@ -7252,7 +7354,7 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		$obj->type			= 'file';
 		$obj->name			= basename($file);
 		$obj->localPath		= $this->subdir ? $this->subdir . DS . $file : $file;
-		$fullPath			= $this->prefix . $this->path . DS . $file;
+		$fullPath			= $this->prefix . $this->path . DS . $obj->localPath;
 
 		// Dir path
 		$obj->dirname 		= dirname($obj->localPath) == '.' ? NULL : dirname($obj->localPath);
@@ -7280,6 +7382,17 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		$ext   		= count($parts) > 1 ? array_pop($parts) : '';
 		$obj->ext   = strtolower($ext);
 
+		if (isset($this->minimal) && $this->minimal == true)
+		{
+			return $obj;
+		}
+		// Mime type
+		if (isset($this->mt))
+		{
+			$mTypeParts = explode(';', $this->mt->getMimeType($fullPath));
+			$obj->mimeType   = ProjectsHtml::fixUpMimeType($obj->name, $mTypeParts[0]);
+		}
+
 		// Get last commit data
 		if (isset($this->_fileinfo) && $this->_fileinfo && isset($this->_fileinfo[$obj->localPath]))
 		{
@@ -7297,12 +7410,12 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		$obj->date			= isset($gitData['date']) ? $gitData['date'] : NULL;
 		$obj->author 		= isset($gitData['author']) ? $gitData['author'] : NULL;
 		$obj->email 		= isset($gitData['email']) ? $gitData['email'] : NULL;
-		$obj->md5hash		= hash_file('md5', $fullPath);
 		$obj->commitHash 	= $hash ? $hash : $gitData['hash'];
 
 		// Get public link
 		if ($this->_audience == 'external')
 		{
+			$obj->md5hash		= hash_file('md5', $fullPath);
 			require_once( JPATH_ROOT . DS . 'administrator' . DS . 'components'.DS
 				.'com_projects' . DS . 'tables' . DS . 'project.public.stamp.php');
 
@@ -7328,13 +7441,6 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		else
 		{
 			$obj->fullPath = $fullPath;
-		}
-
-		// Mime type
-		if (isset($this->mt))
-		{
-			$mTypeParts = explode(';', $this->mt->getMimeType($fullPath));
-			$obj->mimeType   = ProjectsHtml::fixUpMimeType($obj->name, $mTypeParts[0]);
 		}
 
 		return $obj;
@@ -7376,6 +7482,16 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		{
 			$this->setError( JText::_('COM_PROJECTS_UNABLE_TO_GET_PROJECT_PATH') );
 			return false;
+		}
+
+		// When running gc from admin
+		if (!isset($this->_config))
+		{
+			$this->_config = JComponentHelper::getParams('com_projects');
+			$this->prefix  = $this->_config->get('offroot', 0) ? '' : JPATH_ROOT;
+
+			// Include Git Helper
+			$this->getGitHelper();
 		}
 
 		// Build upload path for project files

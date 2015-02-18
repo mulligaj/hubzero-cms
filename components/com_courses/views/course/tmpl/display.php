@@ -48,8 +48,8 @@ else
 		'available' => true,
 		'state'     => 1,
 		'sort'      => 'publish_up',
-		'sort_Dir'  => 'DESC',
-		'limit'     => ($this->course->isStudent() ? 0 : 1)
+		'sort_Dir'  => 'DESC'/*,
+		'limit'     => ($this->course->isStudent() ? 0 : 1)*/
 	);
 }
 $offerings = $this->course->offerings($filters, true);
@@ -395,7 +395,28 @@ $this->css('course.css')
 								</td>
 							</tr>
 						<?php } ?>
-						<?php if ($this->course->certificate()->exists()) { ?>
+						<?php
+						$cert = false;
+						if ($this->course->certificate()->exists())
+						{
+							foreach ($offerings as $offering)
+							{
+								$sections = $offering->sections(array(
+									'state'      => 1,
+									'available'  => true
+								));
+								foreach ($sections as $section)
+								{
+									if ($section->params('certificate'))
+									{
+										$cert = true;
+										break;
+									}
+								}
+							}
+						}
+						if ($cert) {
+						?>
 							<tr>
 								<th scope="row">
 									<?php echo JText::_('COM_COURSES_COURSE_CERTIFICATE'); ?>:
@@ -525,6 +546,8 @@ $this->css('course.css')
 								     ->set('section', $dflt)
 								     ->set('sections', $sections)
 								     ->display();
+
+								$c++;
 							}
 							else
 							{
@@ -540,9 +563,13 @@ $this->css('course.css')
 									</a>
 								</p>
 								<?php
-							}
+								$c++;
 
-							$c++;
+								if (!$this->course->isManager())
+								{
+									break;
+								}
+							}
 						}
 					}
 				}
