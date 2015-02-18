@@ -582,14 +582,14 @@ if ($this->model->attribs->get('location', '')) {
 // Tags
 if ($this->model->params->get('show_assocs')) {
 	$tags = $this->model->tags();
-	//$tagCloud = $this->helper->getTagCloud($this->authorized);
+	
 	if ($tags) {
-		$tagger = new ResourcesTags($this->database);
+		$tagger = new ResourcesTags($this->model->resource->id);
 ?>
 <tr>
 			<th><?php echo JText::_('PLG_RESOURCES_ABOUT_TAGS'); ?></th>
 			<td class="resource-content">
-				<?php echo $tagger->buildCloud($tags); ?>
+				<?php echo $tagger->render('cloud', ($this->model->access('edit') ? array() : array('admin' => 0))); ?>
 			</td>
 			</tr>
 <?php
@@ -598,17 +598,13 @@ if ($this->model->params->get('show_assocs')) {
 ?>
 			<?php
 				$tagger = new ResourcesTags($this->database);
-				$allTags = $tagger->getTags($this->model->resource->id, 0, 0, 1);
-				$badges = array_filter($allTags, function($tag)
-				{
-					return ($tag->admin == 1 && $tag->label == 'badge');
-				});
+				$badges = $tagger->render('array', array('label' => 'badge'));
 			?>
 			<?php if (count($badges) > 0) : ?>
 				<tr>
 					<th>Badges</th>
 					<td class="badges-list">
-						<?php echo $tagger->buildCloud($badges); ?>
+						<?php echo $tagger->render('cloud', (array('label' => 'badge'))); ?>
 					</td>
 				</tr>
 			<?php endif; ?>
