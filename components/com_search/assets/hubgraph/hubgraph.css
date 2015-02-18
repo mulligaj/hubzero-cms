@@ -351,7 +351,6 @@
 	.complete .tags li button:hover {
 		border: 1px solid #444;
 		background: #444;
-		color: #fff;
 	}
 
 /* Domains */
@@ -484,6 +483,8 @@
 		list-style: none;
 		margin: 0;
 		padding: 0;
+		max-height: 24em;
+		overflow: auto;
 		line-height: 1em;
 	}
 	.facets ol.timeframe {
@@ -504,6 +505,7 @@
 		border: 0;
 		color: #0888ab;
 		font-style: oblique;
+		text-align: left;
 		background: transparent;
 		padding-right: 0;
 		padding-left: 0.2em;
