@@ -41,7 +41,7 @@ $url .= (strstr($url, '?') ? '&' : '?') . 'tryto=collect';
 ?>
 
 <p class="collector"<?php if ($this->params->get('id')) { echo ' id="' . $this->params->get('id') . '"'; } ?>>
-	<a class="icon-collect btn collect-this" href="<?php echo $url; ?>">
+	<a id="collectBtn" class="icon-collect btn collect-this" href="<?php echo $url; ?>">
 		<?php echo JText::_('MOD_COLLECT_ACTION'); ?>
 	</a>
 </p>

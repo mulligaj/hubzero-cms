@@ -319,7 +319,7 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 
 	/**
 	 * Actually Run Import
-	 * 
+	 *
 	 * @return  string JSON encoded records that just got inserted or would be
 	 */
 	public function doRunTask()
@@ -368,7 +368,7 @@ class ResourcesControllerImport extends \Hubzero\Component\AdminController
 
 	/**
 	 * Get progress of import task
-	 * 
+	 *
 	 * @return  string JSON encoded total and position
 	 */
 	public function progressTask()

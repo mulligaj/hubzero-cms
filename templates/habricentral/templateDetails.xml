@@ -185,6 +185,7 @@
 		<position>introblock</position>
 		<position>notices</position>
 		<position>search</position>
+		<position>collectBtn</position>
 	</positions>
 	<params>
 	</params>

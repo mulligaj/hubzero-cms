@@ -36,13 +36,13 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 			<script type="text/javascript" src="<?php echo $this->baseurl ?>/templates/<?php echo $this->template; ?>/js/ie.js"></script>
 		<![endif]-->
 	</head>
-	
+
 	<body<?php if ($this->countModules( 'banner or welcome' )) : echo ' id="frontpage"'; endif; ?>>
 		<jdoc:include type="modules" name="notices" />
-		
+
 		<jdoc:include type="modules" name="helppane" />
 		<div id="afterclear">&nbsp;</div>
-		
+
 		<div id="header">
 		<?php if ($this->countModules( 'accessibility' )) : ?>
 		<jdoc:include type="modules" name="accessibility" /> <?php endif; ?>
@@ -51,6 +51,10 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					<?php echo $config->getValue('config.sitename'); ?>
 				</a>
 			</h1>
+
+			<?php if ($this->countModules( 'banner or welcome' )): ?>
+				<jdoc:include type="modules" name="collectBtn" />
+			<?php endif; ?>
 
 			<ul id="toolbar" class="<?php if (!$juser->get('guest')) { echo 'loggedin'; } else { echo 'loggedout'; } ?>">
 				<?php
@@ -72,7 +76,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 			</ul>
 
 			<jdoc:include type="modules" name="search" />
-			
+
 			<?php if ($this->countModules( 'helppane' )) : ?>
 				<p id="tab">
 					<a href="/support" title="<?php echo JText::_('Need help? Send a trouble report to our support team.'); ?>">
@@ -89,7 +93,6 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 			<div class="clear"></div>
 		</div><!-- / #nav -->
 
-
 		<?php if ($this->countModules( 'banner' )) : ?>
 			<div id="home-banner">
 				<jdoc:include type="modules" name="banner" />
@@ -97,7 +100,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 		<?php endif; ?>
 
 		<?php if (!$this->countModules( 'banner' )) : ?>
-			<div id="trail">You are here: 
+			<div id="trail">You are here:
 				<?php
 					$app = JFactory::getApplication();
 					$pathway = $app->getPathway();
@@ -105,7 +108,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					$items = $pathway->getPathWay();
 					$l = array();
 
-					foreach ($items as $item) 
+					foreach ($items as $item)
 					{
 						$text = trim(stripslashes($item->name));
 						if (strlen($text) > 50) {
@@ -120,11 +123,16 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					}
 					echo implode(' &rsaquo; ',$l);
 				?>
-			</div><!-- / #trail -->
+		</div><!-- / #trail -->
+
 		<?php endif; ?>
 
 		<div id="wrap">
 			<div id="content" class="<?php echo JRequest::getVar('option', ''); ?>">
+			<?php if (!$this->countModules( 'banner or welcome' )): ?>
+				<jdoc:include type="modules" name="collectBtn" />
+			<?php endif; ?>
+
 				<?php if ($this->countModules( 'left' )) : ?>
 					<div class="main section withleft">
 						<div class="aside">
@@ -139,7 +147,7 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 						</div><!-- / .aside -->
 						<div class="subject">
 				<?php endif; ?>
-			
+
 				<?php if ($this->getBuffer('message')) : ?>
 					<jdoc:include type="message" />
 				<?php endif; ?>
@@ -152,10 +160,10 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 					</div><!-- / .main section -->
 				<?php endif; ?>
 			</div><!-- / #content -->
-			
+
 			<jdoc:include type="modules" name="footer" />
 		</div><!-- / #wrap -->
-
 		<jdoc:include type="modules" name="endpage" />
+
 	</body>
 </html>

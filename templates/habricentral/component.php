@@ -18,7 +18,7 @@ $template = 'habricentral';
 		<jdoc:include type="head" />
 
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo \Hubzero\Document\Assets::getSystemStylesheet(array('reset', 'fontcons', 'columns', 'notifications', 'layout')); /* reset MUST come before all others except fontcons */ ?>" />
-		
+
 		<!-- <link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/system/css/general.css" /> -->
 <?php if ($this->direction == 'rtl' && (!file_exists(JPATH_THEMES . DS . $template . DS . 'css/component_rtl.css') || !file_exists(JPATH_THEMES . DS . $template . DS . 'css/component.css'))) : ?>
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/system/css/template_rtl.css" />
