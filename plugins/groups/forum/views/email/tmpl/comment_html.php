@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 Purdue University. All rights reserved.
  *
  * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
  *
@@ -23,38 +23,30 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Nicholas J. Kisseberth <nkissebe@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
+ * @author    Shawn Rice <zooley@purdue.edu>
+ * @copyright Copyright 2005-2015 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-$juri    = JURI::getInstance();
+$juri = JURI::getInstance();
 $jconfig = JFactory::getConfig();
 
-// get the group
-$group = \Hubzero\User\Group::getInstance( $this->announcement->scope_id );
-$groupLink = rtrim($juri->base(), DS) . DS . 'groups' . DS . $group->get('cn');
+$base = rtrim($juri->base(), DS);
+$sef  = JRoute::_($this->thread->link());
+$link = $base . DS . trim($sef, DS);
 
-// define color
-$bgcolor = '#FBF1BE';
-$bdcolor = '#E9E1BC';
-
-// if high priority
-if ($this->announcement->priority == 1)
-{
-	$bgcolor = '#ffd3d4';
-	$bdcolor = '#e9bcbc';
-}
+$bgcolor = '#f1f1f1';
+$bdcolor = '#e1e1e1';
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en" style="background-color: #fff; margin: 0; padding: 0;">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-		<title>Group Announcements</title>
+		<title><?php echo JText::_('COM_GROUPS'); ?></title>
 		<style type="text/css">
 		/* Client-specific Styles */
 		body { width: 100% !important; font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, sans-serif !important; background-color: #ffffff !important; margin: 0 !important; padding: 0 !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
@@ -153,7 +145,26 @@ if ($this->announcement->priority == 1)
 											</tr>
 										</table>
 										<!-- End Header Spacer -->
+<?php if ($this->delimiter) { ?>
+										<!-- Start Header Spacer -->
+										<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px dashed #b5c6b5;">
+											<tr style="border-collapse: collapse;">
+												<td height="30" style="border-collapse: collapse; color: #9bac9b;">
+													<div style="height: 0px; overflow: hidden; color: #fff; visibility: hidden;"><?php echo $this->delimiter; ?></div>
+													<div style="text-align: center; font-size: 90%; display: block; padding: 1em;"><?php echo JText::_('PLG_GROUPS_FORUM_EMAIL_REPLY_ABOVE'); ?></div>
+												</td>
+											</tr>
+										</table>
+										<!-- End Header Spacer -->
 
+										<!-- Start Header Spacer -->
+										<table width="100%" cellpadding="0" cellspacing="0" border="0">
+											<tr style="border-collapse: collapse;">
+												<td height="30" style="border-collapse: collapse;"></td>
+											</tr>
+										</table>
+										<!-- End Header Spacer -->
+<?php } ?>
 										<!-- Start Header -->
 										<table class="tbl-header" cellpadding="2" cellspacing="3" border="0" width="100%" style="border-collapse: collapse; border-bottom: 2px solid #e1e1e1;">
 											<tbody>
@@ -169,7 +180,7 @@ if ($this->announcement->priority == 1)
 														<span style="font-size: 0.85em; color: #666; -webkit-text-size-adjust: none;"><?php echo $jconfig->getValue('config.MetaDesc'); ?></span>
 													</td>
 													<td width="10%" nowrap="nowrap" align="right" valign="bottom" style="border-left: 1px solid #e1e1e1; font-size: 1.2em; color: #999; padding: 0 0 5px 10px; text-align: right; vertical-align: bottom;">
-														Group Announcement
+														<?php echo JText::_('COM_GROUPS'); ?>
 													</td>
 												</tr>
 											</tbody>
@@ -210,23 +221,69 @@ if ($this->announcement->priority == 1)
 											<thead class="mobilehide">
 												<tr>
 													<th style="font-weight: normal; border-bottom: 1px solid <?php echo $bdcolor; ?>; padding: 8px; text-align: left" align="left">
-														<strong><?php echo $group->get('description'); ?></strong>,
-														<a href="<?php echo $groupLink . DS . 'announcements'; ?>"><?php echo $groupLink . DS . 'announcements'; ?></a>
+														<?php echo $this->escape($this->thread->get('title')); ?>
 													</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr>
 													<td width="100%" style="padding: 8px;">
-														<table style="border-collapse: collapse;" cellpadding="0" cellspacing="0" border="0">
+														<div id="ticket-number" style="float: left; width: 5em; font-size: 2em; font-weight: bold; text-align: center; padding: 30px;" align="center">
+															<a href="<?php echo $link; ?>">#<?php echo $this->thread->get('id'); ?></a>
+														</div>
+														<table style="border-collapse: collapse; font-size: 0.9em;" cellpadding="0" cellspacing="0" border="0">
 															<tbody>
 																<tr>
-																	<td style="text-align: left; padding: 20px;" align="left">
-																		<?php echo $this->announcement->content; ?>
-																	</td>
+																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right"><?php echo JText::_('PLG_GROUPS_FORUM_DETAILS_THREAD'); ?>:</th>
+																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo JText::sprintf('PLG_GROUPS_FORUM_DETAILS_THREAD', $this->thread->get('id')); ?></td>
+																</tr>
+																<tr>
+																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right"><?php echo JText::_('PLG_GROUPS_FORUM_DETAILS_CREATED'); ?>:</th>
+																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo JText::sprintf('PLG_GROUPS_FORUM_CREATED', $this->thread->created('time'), $this->thread->created('date')); ?></td>
+																</tr>
+																<tr>
+																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right"><?php echo JText::_('PLG_GROUPS_FORUM_DETAILS_SECTION'); ?>:</th>
+																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo $this->escape($this->section->get('title')); ?></td>
+																</tr>
+																<tr>
+																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right"><?php echo JText::_('PLG_GROUPS_FORUM_DETAILS_CATEGORY'); ?>:</th>
+																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo $this->escape($this->category->get('title')); ?></td>
 																</tr>
 															</tbody>
 														</table>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+
+										<table width="100%" id="ticket-comments" style="border-collapse: collapse; margin: 2em 0 0 0; padding: 0" cellpadding="0" cellspacing="0" border="0">
+											<tbody>
+												<tr>
+													<th style="text-align: left;" align="left"><?php echo (!$this->post->get('anonymous') ? $this->post->creator('name') : JText::_('PLG_GROUPS_FORUM_ANONYMOUS')); ?></th>
+													<th class="timestamp" style="color: #999; text-align: right;" align="right"><span class="mobilehide"><?php echo JText::sprintf('PLG_GROUPS_FORUM_CREATED', $this->post->created('time'), $this->post->created('date')); ?></span></th>
+												</tr>
+												<tr>
+													<td colspan="2" style="padding: 0 2em;">
+														<p style="line-height: 1.6em; margin: 1em 0; padding: 0; text-align: left;"><?php echo $this->post->content('parsed'); ?></p>
+														<?php /*if ($this->post->attachments()->total()) { ?>
+															<div class="comment-attachments" style="margin: 2em 0 0 0; padding: 0; text-align: left;">
+																<?php
+																foreach ($this->post->attachments() as $attachment)
+																{
+																	if (!trim($attachment->get('description')))
+																	{
+																		$attachment->set('description', $attachment->get('filename'));
+																	}
+																	echo '<p class="attachment" style="margin: 0.5em 0; padding: 0; text-align: left;"><a class="' . ($attachment->isImage() ? 'img' : 'file') . '" data-filename="' . $attachment->get('filename') . '" href="' . $base . '/' . ltrim(JRoute::_($attachment->link()), '/') . '">' . $attachment->get('description') . '</a></p>';
+																}
+																?>
+															</div><!-- / .comment-body -->
+														<?php }*/ ?>
+													</td>
+												</tr>
+												<tr>
+													<td colspan="2" style="padding: 2em 0 0 0; font-size: 0.9em;">
+														<?php echo JText::_('PLG_GROUPS_FORUM_EMAIL_UNSUBSCRIBE'); ?>:<br /><a href="<?php echo $this->get('unsubscribe'); ?>"><?php echo $this->get('unsubscribe'); ?></a>
 													</td>
 												</tr>
 											</tbody>
@@ -240,17 +297,17 @@ if ($this->announcement->priority == 1)
 										</table>
 										<!-- End Footer Spacer -->
 
-										<!-- Start Footer -->
+										<!-- Start Header -->
 										<table width="100%" cellpadding="2" cellspacing="3" border="0" style="border-collapse: collapse; border-top: 2px solid #e1e1e1;">
 											<tbody>
 												<tr>
 													<td align="left" valign="bottom" style="line-height: 1; padding: 5px 0 0 0; ">
-														<span style="font-size: 0.85em; color: #666; -webkit-text-size-adjust: none;"><?php echo $jconfig->getValue('config.sitename'); ?> sent this email because you belong to the <a href="<?php echo $groupLink; ?>"><?php echo $group->get('description'); ?></a> group. Visit our <a href="<?php echo rtrim($juri->base(), DS); ?>/legal/privacy">Privacy Policy</a> and <a href="<?php echo rtrim($juri->base(), DS); ?>/support">Support Center</a> if you have any questions.</span>
+														<span style="font-size: 0.85em; color: #666; -webkit-text-size-adjust: none;"><?php echo JText::sprintf('PLG_GROUPS_FORUM_EMAIL_WHY_NOTFIED', $jconfig->getValue('config.sitename'), $link, JText::sprintf('PLG_GROUPS_FORUM_DETAILS_THREAD', $this->thread->get('id')), $base, $base); ?></span>
 													</td>
 												</tr>
 											</tbody>
 										</table>
-										<!-- End Footer -->
+										<!-- End Header -->
 
 										<!-- Start Footer Spacer -->
 										<table width="100%" cellpadding="0" cellspacing="0" border="0">
