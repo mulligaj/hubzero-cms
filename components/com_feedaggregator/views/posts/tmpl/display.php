@@ -82,7 +82,7 @@ $this->js('posts')
 								($post->status == "removed" AND $this->filters['filterby'] == "removed") OR
 								($this->task == "PostsById")): ?>
 						<tr id="row-<?php echo $post->id; ?>">
-							<td><a class="fancybox-inline" rel="group1" href="#content-fancybox<?php echo $post->id; ?>"><?php echo $post->shortTitle; ?></a></td>
+							<td><a class="fancybox-inline" rel="group1" href="#content-fancybox<?php echo $post->id; ?>"><?php echo (string) html_entity_decode(strip_tags($post->shortTitle)); ?></a></td>
 							<td><?php echo $post->created; ?>
 							<td><?php echo $post->name;?></td>
 							<td id="status-<?php echo $post->id; ?>">
@@ -118,8 +118,8 @@ $this->js('posts')
 								<input type="button" data-id="<?php echo $post->id; ?>" data-action="remove" class="removeBtn btn actionBtn <?php echo 'btnGrp' . $post->id; ?>" value="<?php echo JText::_('COM_FEEDAGGREGATOR_REMOVE'); ?>" id="remove-<?php echo $post->id;?>" <?php echo ($post->status == "removed" ? 'disabled' : ''); ?> />
 								<div class="postpreview-container">
 									<div class="postpreview" id="content-fancybox<?php echo $post->id; ?>">
-										<h1><?php echo $post->title; ?></h1>
-										<p class="description"><?php echo $post->description; ?></p>
+										<h1><?php echo (string) html_entity_decode(strip_tags($post->title)); ?></h1>
+										<p class="description"><?php echo (string) html_entity_decode(strip_tags($post->description)); ?></p>
 										<p><a target="_blank" href="<?php echo urldecode($post->link); ?>"><?php echo JText::_('COM_FEEDAGGREGATOR_LINK_ORIGINAL_POST'); ?></a></p>
 										<div class="button-container">
 											<hr />

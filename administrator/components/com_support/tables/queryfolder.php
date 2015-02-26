@@ -188,7 +188,7 @@ class SupportTableQueryFolder extends JTable
 	}
 
 	/**
-	 * Clone core folders and queries and assign 
+	 * Clone core folders and queries and assign
 	 * them to a given user ID
 	 *
 	 * @param   integer  $user_id  User ID
@@ -205,6 +205,52 @@ class SupportTableQueryFolder extends JTable
 		));
 
 		$sq = new SupportQuery($this->_db);
+
+		if (count($folders) <= 0)
+		{
+			$defaults = array(
+				1 => array('Common', 'Mine', 'Custom'),
+				2 => array('Common', 'Mine'),
+			);
+
+			foreach ($defaults as $iscore => $fldrs)
+			{
+				$i = 1;
+
+				foreach ($fldrs as $fldr)
+				{
+					$f = new SupportTableQueryFolder($this->_db);
+					$f->iscore = $iscore;
+					$f->title = $fldr;
+					$f->check();
+					$f->ordering = $i;
+					$f->user_id = 0;
+					$f->store();
+
+					switch ($f->alias)
+					{
+						case 'common':
+							$j = ($iscore == 1 ? $sq->populateDefaults('common', $f->id) : $sq->populateDefaults('commonnotacl', $f->id));
+						break;
+
+						case 'mine':
+							$sq->populateDefaults('mine', $f->id);
+						break;
+
+						default:
+							// Nothing for custom folder
+						break;
+					}
+
+					$i++;
+
+					if ($iscore == 1)
+					{
+						$folders[] = $f;
+					}
+				}
+			}
+		}
 
 		$user_id = $user_id ?: JFactory::getUser();
 		$fid = 0;

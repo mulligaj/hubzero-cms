@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2014 Purdue University. All rights reserved.
+ * Copyright 2005-2015 Purdue University. All rights reserved.
  *
  * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
  *
@@ -24,7 +24,7 @@
  *
  * @package   hubzero-cms
  * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2014 Purdue University. All rights reserved.
+ * @copyright Copyright 2005-2015 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
@@ -34,17 +34,19 @@ defined('_JEXEC') or die('Restricted access');
 $juri = JURI::getInstance();
 $jconfig = JFactory::getConfig();
 
-// Build link to wish
-$base = rtrim($juri->base(), '/');
-$base = rtrim(str_replace('/administrator', '', $base), '/');
-$link = $base . '/' . ltrim(JRoute::_($this->wish->link()), '/');
+$base = rtrim($juri->base(), DS);
+$sef  = JRoute::_($this->thread->link());
+$link = $base . DS . trim($sef, DS);
+
+$bgcolor = '#f1f1f1';
+$bdcolor = '#e1e1e1';
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en" style="background-color: #fff; margin: 0; padding: 0;">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-		<title>Questions &amp; Answers &mdash; New Question</title>
+		<title><?php echo JText::_('COM_GROUPS'); ?></title>
 		<style type="text/css">
 		/* Client-specific Styles */
 		body { width: 100% !important; font-family: 'Helvetica Neue', Helvetica, Verdana, Arial, sans-serif !important; background-color: #ffffff !important; margin: 0 !important; padding: 0 !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
@@ -91,6 +93,13 @@ $link = $base . '/' . ltrim(JRoute::_($this->wish->link()), '/');
 			td.tbl-body .mobilehide {
 				display: none !important;
 			}
+			#ticket-number {
+				float: none !important;
+				width: auto !important;
+			}
+			table#ticket-comments>tbody>tr>td {
+				padding: 0 !important;
+			}
 		}
 		@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
 			/* tablets, smaller screens, etc */
@@ -136,7 +145,26 @@ $link = $base . '/' . ltrim(JRoute::_($this->wish->link()), '/');
 											</tr>
 										</table>
 										<!-- End Header Spacer -->
+<?php if ($this->delimiter) { ?>
+										<!-- Start Header Spacer -->
+										<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px dashed #b5c6b5;">
+											<tr style="border-collapse: collapse;">
+												<td height="30" style="border-collapse: collapse; color: #9bac9b;">
+													<div style="height: 0px; overflow: hidden; color: #fff; visibility: hidden;"><?php echo $this->delimiter; ?></div>
+													<div style="text-align: center; font-size: 90%; display: block; padding: 1em;"><?php echo JText::_('PLG_GROUPS_FORUM_EMAIL_REPLY_ABOVE'); ?></div>
+												</td>
+											</tr>
+										</table>
+										<!-- End Header Spacer -->
 
+										<!-- Start Header Spacer -->
+										<table width="100%" cellpadding="0" cellspacing="0" border="0">
+											<tr style="border-collapse: collapse;">
+												<td height="30" style="border-collapse: collapse;"></td>
+											</tr>
+										</table>
+										<!-- End Header Spacer -->
+<?php } ?>
 										<!-- Start Header -->
 										<table class="tbl-header" cellpadding="2" cellspacing="3" border="0" width="100%" style="border-collapse: collapse; border-bottom: 2px solid #e1e1e1;">
 											<tbody>
@@ -152,135 +180,110 @@ $link = $base . '/' . ltrim(JRoute::_($this->wish->link()), '/');
 														<span style="font-size: 0.85em; color: #666; -webkit-text-size-adjust: none;"><?php echo $jconfig->getValue('config.MetaDesc'); ?></span>
 													</td>
 													<td width="10%" nowrap="nowrap" align="right" valign="bottom" style="border-left: 1px solid #e1e1e1; font-size: 1.2em; color: #999; padding: 0 0 5px 10px; text-align: right; vertical-align: bottom;">
-														<?php echo JText::_('COM_WISHLIST'); ?>
+														<?php echo JText::_('COM_GROUPS'); ?>
 													</td>
 												</tr>
 											</tbody>
 										</table>
 										<!-- End Header -->
+
 										<!-- Start Header Spacer -->
-										<table  width="100%" cellpadding="0" cellspacing="0" border="0">
-											<tr style="border-collapse: collapse;">
-												<td height="30" style="border-collapse: collapse;"></td>
-											</tr>
-										</table>
-										<!-- End Header Spacer -->
-										<!-- Start Header -->
-										<table width="100%" cellpadding="2" cellspacing="3" border="0" style="border-collapse: collapse;">
-											<tbody>
-												<tr>
-													<td align="left" valign="bottom" style="border-collapse: collapse; color: #666; line-height: 1; padding: 5px; text-align: center;">
-														<?php
-														switch ($this->action)
-														{
-															case 'assigned':
-																echo 'The following wish has been assigned to ' . $this->escape(stripslashes($this->wish->owner('name'))) . '.';
-															break;
-
-															case 'created':
-																echo 'A new wish has been submitted by ' . $this->escape(stripslashes($this->wish->proposer('name')));
-															break;
-
-															case 'moved':
-																echo 'Wish #' . $this->escape($this->wish->get('id')) . 'has been moved to a new list.';
-															break;
-
-															case 'updated':
-																echo 'Wish #' . $this->escape($this->wish->get('id')) . 'has been updated.';
-															break;
-														}
-														?>
-													</td>
-												</tr>
-											</tbody>
-										</table>
-										<!-- End Header -->
-										<!-- Start Header Spacer -->
-										<table  width="100%" cellpadding="0" cellspacing="0" border="0">
+										<table width="100%" cellpadding="0" cellspacing="0" border="0">
 											<tr style="border-collapse: collapse;">
 												<td height="30" style="border-collapse: collapse;"></td>
 											</tr>
 										</table>
 										<!-- End Header Spacer -->
 
-										<table id="question-info" width="100%"  cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; line-height: 1.6em;">
+										<table id="ticket-info" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; border: 1px solid <?php echo $bdcolor; ?>; background: <?php echo $bgcolor; ?>; font-size: 0.9em; line-height: 1.6em; background-image: -webkit-gradient(linear, 0 0, 100% 100%,
+																			color-stop(.25, rgba(255, 255, 255, .075)), color-stop(.25, transparent),
+																			color-stop(.5, transparent), color-stop(.5, rgba(255, 255, 255, .075)),
+																			color-stop(.75, rgba(255, 255, 255, .075)), color-stop(.75, transparent),
+																			to(transparent));
+										background-image: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, .075) 25%, transparent 25%,
+																		transparent 50%, rgba(255, 255, 255, .075) 50%, rgba(255, 255, 255, .075) 75%,
+																		transparent 75%, transparent);
+										background-image: -moz-linear-gradient(-45deg, rgba(255, 255, 255, .075) 25%, transparent 25%,
+																		transparent 50%, rgba(255, 255, 255, .075) 50%, rgba(255, 255, 255, .075) 75%,
+																		transparent 75%, transparent);
+										background-image: -ms-linear-gradient(-45deg, rgba(255, 255, 255, .075) 25%, transparent 25%,
+																		transparent 50%, rgba(255, 255, 255, .075) 50%, rgba(255, 255, 255, .075) 75%,
+																		transparent 75%, transparent);
+										background-image: -o-linear-gradient(-45deg, rgba(255, 255, 255, .075) 25%, transparent 25%,
+																		transparent 50%, rgba(255, 255, 255, .075) 50%, rgba(255, 255, 255, .075) 75%,
+																		transparent 75%, transparent);
+										background-image: linear-gradient(-45deg, rgba(255, 255, 255, .075) 25%, transparent 25%,
+																		transparent 50%, rgba(255, 255, 255, .075) 50%, rgba(255, 255, 255, .075) 75%,
+																		transparent 75%, transparent);
+																		-webkit-background-size: 30px 30px;
+																		-moz-background-size: 30px 30px;
+																		background-size: 30px 30px;">
+											<thead class="mobilehide">
+												<tr>
+													<th style="font-weight: normal; border-bottom: 1px solid <?php echo $bdcolor; ?>; padding: 8px; text-align: left" align="left">
+														<?php echo $this->escape($this->thread->get('title')); ?>
+													</th>
+												</tr>
+											</thead>
 											<tbody>
 												<tr>
-													<td class="mobilehide" style="font-size: 2.5em; font-weight: bold; text-align: center; padding: 0 30px 8px 0; vertical-align: top;" align="center" valing="top">
-														<p style="display: block; border: 1px solid #c8e3c2; background: #eafbe6; margin:0; padding: 1em;"><?php /* &#x1f4a1; */ ?>&#x2736;</p>
+													<td width="100%" style="padding: 8px;">
+														<div id="ticket-number" style="float: left; width: 5em; font-size: 2em; font-weight: bold; text-align: center; padding: 30px;" align="center">
+															<a href="<?php echo $link; ?>">#<?php echo $this->thread->get('id'); ?></a>
+														</div>
+														<table style="border-collapse: collapse; font-size: 0.9em;" cellpadding="0" cellspacing="0" border="0">
+															<tbody>
+																<tr>
+																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right"><?php echo JText::_('PLG_GROUPS_FORUM_DETAILS_THREAD'); ?>:</th>
+																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo JText::sprintf('PLG_GROUPS_FORUM_DETAILS_THREAD', $this->thread->get('id')); ?></td>
+																</tr>
+																<tr>
+																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right"><?php echo JText::_('PLG_GROUPS_FORUM_DETAILS_CREATED'); ?>:</th>
+																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo JText::sprintf('PLG_GROUPS_FORUM_CREATED', $this->thread->created('time'), $this->thread->created('date')); ?></td>
+																</tr>
+																<tr>
+																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right"><?php echo JText::_('PLG_GROUPS_FORUM_DETAILS_SECTION'); ?>:</th>
+																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo $this->escape($this->section->get('title')); ?></td>
+																</tr>
+																<tr>
+																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right"><?php echo JText::_('PLG_GROUPS_FORUM_DETAILS_CATEGORY'); ?>:</th>
+																	<td style="text-align: left; padding: 0 0.5em;" align="left"><?php echo $this->escape($this->category->get('title')); ?></td>
+																</tr>
+															</tbody>
+														</table>
 													</td>
-													<td width="100%" style="padding: 18px 8px 8px 8px; border-top: 2px solid #e9e9e9;">
-														<table width="100%" style="border-collapse: collapse; font-size: 0.9em;" cellpadding="0" cellspacing="0" border="0">
-															<tbody>
-																<tr>
-																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right">Wish:</th>
-																	<td style="text-align: left; padding: 0 0.5em;" width="100%" align="left"># <?php echo $this->wish->get('id'); ?></td>
-																</tr>
-																<tr>
-																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right">Created:</th>
-																	<td style="text-align: left; padding: 0 0.5em;" width="100%" align="left">@ <?php echo $this->wish->proposed('time'); ?> on <?php echo $this->wish->proposed('date'); ?></td>
-																</tr>
-																<tr>
-																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right">Creator:</th>
-																	<td style="text-align: left; padding: 0 0.5em;" width="100%" align="left"><?php echo $this->wish->get('anonymous') ? JText::_('COM_WISHLIST_ANONYMOUS') : $this->escape(stripslashes($this->wish->proposer('name'))); ?></td>
-																</tr>
-																<tr>
-																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right">Status:</th>
-																	<td style="text-align: left; padding: 0 0.5em;" width="100%" align="left"><?php echo $this->wish->status('text'); ?></td>
-																</tr>
-																<tr>
-																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap; vertical-align: top;" align="right">Tags:</th>
-																	<td style="text-align: left; padding: 0 0.5em;" width="100%" align="left"><?php echo $this->escape($this->wish->tags('string')); ?></td>
-																</tr>
-																<tr>
-																	<th style="text-align: right; padding: 0 0.5em; font-weight: bold; white-space: nowrap;" align="right">Link:</th>
-																	<td style="text-align: left; padding: 0 0.5em;" width="100%" align="left"><a href="<?php echo $link; ?>"><?php echo $link; ?></a></td>
-																</tr>
-															</tbody>
-														</table>
+												</tr>
+											</tbody>
+										</table>
 
-														<table width="100%" style="margin: 18px 0 0 0; border-top: 2px solid #e9e9e9; border-collapse: collapse; font-size: 1em;">
-															<tbody>
-																<tr>
-																	<td style="text-align: left; padding: 0 0.5em;" cellpadding="0" cellspacing="0" border="0">
-																		<div style="line-height: 1.6em; margin: 1em 0; padding: 0; text-align: left;"><?php echo $this->wish->get('subject'); ?></div>
-																	</td>
-																</tr>
-															<?php
-															switch ($this->action)
-															{
-																case 'assigned':
-																case 'created':
-																	?>
-																	<tr>
-																		<td style="text-align: left; padding: 0 0.5em;" cellpadding="0" cellspacing="0" border="0">
-																			<div style="line-height: 1.6em; margin: 1em 0; padding: 0; text-align: left;"><?php echo $this->wish->content('parsed'); ?></div>
-																		</td>
-																	</tr>
-																	<?php
-																break;
-																case 'moved':
-																	?>
-																	<tr>
-																		<td style="text-align: left; padding: 0 0.5em;" cellpadding="0" cellspacing="0" border="0">
-																			<?php echo JText::sprintf('Wish <span style="color: #4e7ac7;">moved</span> from %s to %s', '<b style="color: #333;">' . $this->escape($this->oldlist->get('title')) . '</b>', '<b style="color: #333;">' . $this->escape($this->wishlist->get('title')) . '</b>'); ?>
-																		</td>
-																	</tr>
-																	<?php
-																break;
-																case 'updated':
-																	?>
-																	<tr>
-																		<td style="text-align: left; padding: 0 0.5em;" cellpadding="0" cellspacing="0" border="0">
-																			<?php echo JText::sprintf('Wish <span style="color: #4e7ac7;">status</span> changed to %s', '<b style="color: #333;">' . $this->status . '</b>'); ?>
-																		</td>
-																	</tr>
-																	<?php
-																break;
-															}
-															?>
-															</tbody>
-														</table>
+										<table width="100%" id="ticket-comments" style="border-collapse: collapse; margin: 2em 0 0 0; padding: 0" cellpadding="0" cellspacing="0" border="0">
+											<tbody>
+												<tr>
+													<th style="text-align: left;" align="left"><?php echo (!$this->post->get('anonymous') ? $this->post->creator('name') : JText::_('PLG_GROUPS_FORUM_ANONYMOUS')); ?></th>
+													<th class="timestamp" style="color: #999; text-align: right;" align="right"><span class="mobilehide"><?php echo JText::sprintf('PLG_GROUPS_FORUM_CREATED', $this->post->created('time'), $this->post->created('date')); ?></span></th>
+												</tr>
+												<tr>
+													<td colspan="2" style="padding: 0 2em;">
+														<p style="line-height: 1.6em; margin: 1em 0; padding: 0; text-align: left;"><?php echo $this->post->content('parsed'); ?></p>
+														<?php /*if ($this->post->attachments()->total()) { ?>
+															<div class="comment-attachments" style="margin: 2em 0 0 0; padding: 0; text-align: left;">
+																<?php
+																foreach ($this->post->attachments() as $attachment)
+																{
+																	if (!trim($attachment->get('description')))
+																	{
+																		$attachment->set('description', $attachment->get('filename'));
+																	}
+																	echo '<p class="attachment" style="margin: 0.5em 0; padding: 0; text-align: left;"><a class="' . ($attachment->isImage() ? 'img' : 'file') . '" data-filename="' . $attachment->get('filename') . '" href="' . $base . '/' . ltrim(JRoute::_($attachment->link()), '/') . '">' . $attachment->get('description') . '</a></p>';
+																}
+																?>
+															</div><!-- / .comment-body -->
+														<?php }*/ ?>
+													</td>
+												</tr>
+												<tr>
+													<td colspan="2" style="padding: 2em 0 0 0; font-size: 0.9em;">
+														<?php echo JText::_('PLG_GROUPS_FORUM_EMAIL_UNSUBSCRIBE'); ?>:<br /><a href="<?php echo $this->get('unsubscribe'); ?>"><?php echo $this->get('unsubscribe'); ?></a>
 													</td>
 												</tr>
 											</tbody>
@@ -299,7 +302,7 @@ $link = $base . '/' . ltrim(JRoute::_($this->wish->link()), '/');
 											<tbody>
 												<tr>
 													<td align="left" valign="bottom" style="line-height: 1; padding: 5px 0 0 0; ">
-														<span style="font-size: 0.85em; color: #666; -webkit-text-size-adjust: none;"><?php echo $jconfig->getValue('config.sitename'); ?> sent this email because you were added to the list of recipients on <a href="<?php echo $link; ?>">wish #<?php echo $this->wish->get('id'); ?></a>. Visit our <a href="<?php echo rtrim($juri->base(), '/'); ?>/legal/privacy">Privacy Policy</a> and <a href="<?php echo rtrim($juri->base(), '/'); ?>/support">Support Center</a> if you have any questions.</span>
+														<span style="font-size: 0.85em; color: #666; -webkit-text-size-adjust: none;"><?php echo JText::sprintf('PLG_GROUPS_FORUM_EMAIL_WHY_NOTFIED', $jconfig->getValue('config.sitename'), $link, JText::sprintf('PLG_GROUPS_FORUM_DETAILS_THREAD', $this->thread->get('id')), $base, $base); ?></span>
 													</td>
 												</tr>
 											</tbody>

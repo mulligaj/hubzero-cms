@@ -125,7 +125,7 @@ class plgToolsJava extends \Hubzero\Plugin\Plugin
 			{
 				$allow = trim($allow);
 
-				if (preg_match('/(.+?),\s+([^\s]+)\s+(\d)\.(\d)/i', $allow, $matches))
+				if (preg_match('/(.+?),\s+([^\s]+)\s+(\d+)\.(\d+)/i', $allow, $matches))
 				{
 					$req = new stdClass;
 					$req->name  = strtolower(trim($matches[2]));
@@ -137,9 +137,11 @@ class plgToolsJava extends \Hubzero\Plugin\Plugin
 				}
 			}
 
+			$matched = false;
+
 			foreach ($browsers as $minimum)
 			{
-				if ($minimum->os != '*' && $minimum->os != strtolower($browser->os()))
+				if ($minimum->os != '*' && $minimum->os != strtolower($browser->platform()))
 				{
 					continue;
 				}
@@ -158,6 +160,13 @@ class plgToolsJava extends \Hubzero\Plugin\Plugin
 				{
 					return false;
 				}
+
+				$matched = true;
+			}
+
+			if (!$matched)
+			{
+				return false;
 			}
 		}
 
