@@ -2355,12 +2355,3 @@
 		margin: 0 0 30px 0;
 	}
 
-/* Collect Button Functionality */
-	#collectBtn {
-		margin: 10px 5px 5px 5px;
-		z-index: 1;
-	}
-
-	.com_content #collectBtn {
-		margin-top: -255px;
-	}

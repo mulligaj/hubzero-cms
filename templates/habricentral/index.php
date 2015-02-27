@@ -52,10 +52,6 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 				</a>
 			</h1>
 
-			<?php if ($this->countModules( 'banner or welcome' )): ?>
-				<jdoc:include type="modules" name="collectBtn" />
-			<?php endif; ?>
-
 			<ul id="toolbar" class="<?php if (!$juser->get('guest')) { echo 'loggedin'; } else { echo 'loggedout'; } ?>">
 				<?php
 					if (!$juser->get('guest')) {
@@ -99,7 +95,9 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 			</div>
 		<?php endif; ?>
 
+
 		<?php if (!$this->countModules( 'banner' )) : ?>
+
 			<div id="trail">You are here:
 				<?php
 					$app = JFactory::getApplication();
@@ -122,17 +120,18 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 						$l[] = '<a href="'.$url.'">'.$text.'</a>';
 					}
 					echo implode(' &rsaquo; ',$l);
+
+
 				?>
+
+			<jdoc:include type="modules" name="collectBtn" />
 		</div><!-- / #trail -->
 
 		<?php endif; ?>
 
-		<div id="wrap">
-			<div id="content" class="<?php echo JRequest::getVar('option', ''); ?>">
-			<?php if (!$this->countModules( 'banner or welcome' )): ?>
-				<jdoc:include type="modules" name="collectBtn" />
-			<?php endif; ?>
 
+	<div id="content" class="<?php echo JRequest::getVar('option', ''); ?>">
+		<div id="wrap">
 				<?php if ($this->countModules( 'left' )) : ?>
 					<div class="main section withleft">
 						<div class="aside">

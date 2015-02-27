@@ -1,0 +1,28 @@
+/* Collect Button Functionality */
+
+.trail {
+	position:absolute;
+}
+
+.collector {
+	position: relative;
+	top: -10px;
+	right: 30px;
+	margin: 0;
+	float: right;
+}
+
+.collector .icon-collect:before {
+	content: "\f005";
+	font-family: "Fontcons";
+	}
+
+#collectContainer{
+	padding:10px;
+}
+
+.or{
+	padding-left: 10px;
+	padding-top:20px;
+	font-weight: bolder;
+}
