@@ -667,7 +667,7 @@
 	Content
 ---------------------------------------------------------------*/
 	#content {
-		margin: 0 15px;
+		/*margin: 0 15px; -- removing as per habri ticket #551 */
 		padding: 0 0 2.5em 0;
 		position: relative;
 		min-height: 250px;
