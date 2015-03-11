@@ -418,9 +418,34 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 				}
 			}
 
-			array_push($events, $event);
-		}
+			// accounts for how humans keep time.
+			if ($event->allDay)
+			{
+				$end_day = strtotime($event->end . '+ 48 hours');
+				$down = date('Y-m-d H:i:s', $end_day);
+				$event->end = $down;
+			}
 
+
+			//daylight compensation
+			$dstCreated = date('I' , strtotime($rawEvent->get('created')));
+
+			if (!$dstCreated && date('I'))
+			{
+				if ((int) date('I', strtotime($event->end)))
+				{
+					$end = strtotime($event->end . '- 1 hour');
+					$event->end = date('Y-m-d H:i:s', $end);
+				}
+
+				if ((int) date('I', strtotime($event->start)))
+				{
+					$start = strtotime($event->start . '- 1 hour');
+					$event->start = date('Y-m-d H:i:s', $start);
+				}
+			}
+				array_push($events, $event);
+		}
 		// output events
 		echo json_encode($events);
 		exit();
@@ -655,14 +680,14 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 			return $this->edit();
 		}
 
-		//check to make sure end time is greater then start time
+		//check to make sure end time is greater than start time
 		if (isset($event['publish_down']) && $event['publish_down'] != '0000-00-00 00:00:00' && $event['publish_down'] != '')
 		{
 			$up     = strtotime($event['publish_up']);
 			$down   = strtotime($event['publish_down']);
 			$allday = (isset($event['allday']) && $event['allday'] == 1) ? true : false;
 
-			// make sure up greater then down when not all day
+			// make sure up greater than down when not all day
 			// when all day event up can equal down
 			if (($up >= $down && !$allday) || ($allday && $up > $down))
 			{

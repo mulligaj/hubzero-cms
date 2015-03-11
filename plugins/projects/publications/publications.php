@@ -1588,8 +1588,8 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 		$mt = new PublicationMasterType( $this->_database );
 		$choices = $mt->getTypes('alias', 1);
 
-		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files','/css/diskspace');
-		\Hubzero\Document\Assets::addPluginScript('projects', 'files','/js/diskspace');
+		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files','css/diskspace');
+		\Hubzero\Document\Assets::addPluginScript('projects', 'files','js/diskspace');
 
 		// Get used space
 		$helper 	   = new PublicationHelper($this->_database);
@@ -2098,6 +2098,7 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 				// Get Files JS
 				\Hubzero\Document\Assets::addPluginScript('projects', 'files');
 				\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files');
+				\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files','css/selector');
 				break;
 
 			case 'description':
@@ -2204,6 +2205,8 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 				$view->fpath = ProjectsHelper::getProjectPath($this->_project->alias,
 						$this->_config->get('webpath'), 1);
 				$view->prefix = $this->_config->get('offroot', 0) ? '' : JPATH_ROOT;
+
+				\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files','css/selector');
 				break;
 
 			case 'tags':
@@ -3697,9 +3700,6 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 			return;
 		}
 
-		// Instantiate project publication
-		$objP = new Publication( $this->_database );
-
 		// Check against quota
 		if ($this->_overQuota())
 		{
@@ -3903,6 +3903,37 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 			{
 				$this->setError(JText::_('PLG_PROJECTS_PUBLICATIONS_ERROR_DOI').' '.$doierr);
 			}
+
+			// Issue master DOI?
+			if ($state == 1 && $row->version_number == 1
+				&& $this->_pubconfig->get('master_doi') && !$pub->master_doi)
+			{
+				$jconfig = \JFactory::getConfig();
+				$juri = \JURI::getInstance();
+				$livesite = $jconfig->getValue('config.live_site')
+					? $jconfig->getValue('config.live_site')
+					: trim(preg_replace('/\/administrator/', '', $juri->base()), DS);
+
+				// Master DOI should link to /main
+				$metadata['url'] = $livesite . DS . 'publications'
+								. DS . $pub->id . DS . 'main';
+
+				// Register DOI with data from version being published
+				$masterDoi = PublicationUtilities::registerDoi(
+					$row,
+					$pub->_authors,
+					$this->_pubconfig,
+					$metadata,
+					$doierr,
+					1
+				);
+				// Save with publication record
+				if ($masterDoi && $objP->load($pub->id))
+				{
+					$objP->master_doi = $masterDoi;
+					$objP->store();
+				}
+			}
 		}
 
 		// Proceed if no error
@@ -3988,6 +4019,7 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 		$pubtitle = \Hubzero\Utility\String::truncate($row->title, 100);
 		$action .= ' ' . $row->version_label . ' ';
 		$action .=  JText::_('PLG_PROJECTS_PUBLICATIONS_OF_PUBLICATION') . ' "' . html_entity_decode($pubtitle).'"';
+		$emailAction = $action;
 		$action  = htmlentities($action, ENT_QUOTES, "UTF-8");
 
 		// Record activity
@@ -4010,7 +4042,7 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 		$juri 	 = JURI::getInstance();
 		$sef	 = 'publications' . DS . $row->publication_id . DS . $row->version_number;
 		$link 	 = rtrim($juri->base(), DS) . DS . trim($sef, DS);
-		$message = $actor . ' ' . html_entity_decode($action) . '  - ' . $link;
+		$message = $actor . ' ' . $emailAction . '  - ' . $link;
 
 		// Notify admin group
 		if ($notify)
@@ -4397,6 +4429,37 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 				if (!$doi || $doierr)
 				{
 					$this->setError(JText::_('PLG_PROJECTS_PUBLICATIONS_ERROR_DOI').' '.$doierr);
+				}
+
+				// Issue master DOI?
+				if ($state == 1 && $row->version_number == 1
+					&& $this->_pubconfig->get('master_doi') && !$pub->master_doi)
+				{
+					$jconfig = \JFactory::getConfig();
+					$juri = \JURI::getInstance();
+					$livesite = $jconfig->getValue('config.live_site')
+						? $jconfig->getValue('config.live_site')
+						: trim(preg_replace('/\/administrator/', '', $juri->base()), DS);
+
+					// Master DOI should link to /main
+					$metadata['url'] = $livesite . DS . 'publications'
+									. DS . $pid . DS . 'main';
+
+					// Register DOI with data from version being published
+					$masterDoi = PublicationUtilities::registerDoi(
+						$row,
+						$authors,
+						$this->_pubconfig,
+						$metadata,
+						$doierr,
+						1
+					);
+					// Save with publication record
+					if ($masterDoi && $objP->load($pid))
+					{
+						$objP->master_doi = $masterDoi;
+						$objP->store();
+					}
 				}
 			}
 
@@ -7163,8 +7226,8 @@ class plgProjectsPublications extends \Hubzero\Plugin\Plugin
 		);
 
 		// Include styling and js
-		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files','/css/diskspace');
-		\Hubzero\Document\Assets::addPluginScript('projects', 'files','/js/diskspace');
+		\Hubzero\Document\Assets::addPluginStylesheet('projects', 'files','css/diskspace');
+		\Hubzero\Document\Assets::addPluginScript('projects', 'files','js/diskspace');
 
 		$database = JFactory::getDBO();
 
