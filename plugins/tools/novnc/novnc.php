@@ -84,11 +84,11 @@ class plgToolsNovnc extends \Hubzero\Plugin\Plugin
 			return;
 		}
 
-		$session->rendered = true;
+		$session->rendered = $this->_name;
 
 		if (!$declared)
 		{
-			$us->set('tool_viewer', $this->_name);
+			//$us->set('tool_viewer', $this->_name);
 		}
 
 		$view = new \Hubzero\Plugin\View(array(

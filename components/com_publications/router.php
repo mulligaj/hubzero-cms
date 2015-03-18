@@ -104,7 +104,7 @@ function PublicationsBuildRoute(&$query)
 function PublicationsParseRoute($segments)
 {
 	$vars = array();
-	$vars['controller'] = 'publications';
+	//$vars['controller'] = 'publications';
 
 	// Valid tasks not requiring id
 	$tasks = array(	'browse', 'start', 'submit', 'edit', 'publication');
@@ -216,6 +216,7 @@ function PublicationsParseRoute($segments)
 			case 'feed.rss': $vars['task'] = 'feed';     break;
 			case 'feed':     $vars['task'] = 'feed';     break;
 			case 'license':  $vars['task'] = 'license';  break;
+			case 'main':     $vars['task'] = 'main';  break;
 
 			default:
 				if ($segments[0] == 'browse')

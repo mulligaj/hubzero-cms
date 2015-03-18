@@ -132,6 +132,18 @@ class Miner extends Object implements Provider
 	 */
 	public function records($filters = array())
 	{
+		if (isset($filters['set']) && $filters['set'])
+		{
+			if (!preg_match('/^publications\:(.+)/i', $filters['set'], $matches))
+			{
+				return '';
+			}
+
+			$set = trim($matches[1]);
+			$this->database->setQuery("SELECT t.id FROM `#__publication_master_types` AS t WHERE t.alias=" . $this->database->quote($set));
+			$this->set('type', $this->database->loadResult());
+		}
+
 		$query = "SELECT p.id, " . $this->database->quote($this->name()) . " AS `base`
 				FROM `#__publications` p, `#__publication_versions` pv
 				WHERE p.id = pv.publication_id
@@ -240,7 +252,7 @@ class Miner extends Object implements Provider
 		$this->database->setQuery(
 			"SELECT pa.name
 			FROM `#__publication_authors` pa, `#__publication_versions` pv, `#__publications` p
-			WHERE pa.publication_version_id = pv.id AND pv.publication_id = p.id AND p.id=" . $this->database->quote($id) . "
+			WHERE pa.publication_version_id = pv.id AND pa.role != 'submitter' AND pv.publication_id = p.id AND p.id=" . $this->database->quote($id) . "
 			ORDER BY pa.name"
 		);
 		$record->creator = $this->database->loadResultArray();
