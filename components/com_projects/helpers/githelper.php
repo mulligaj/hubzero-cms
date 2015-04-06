@@ -239,11 +239,14 @@ class ProjectsGitHelper extends JObject
 	 *
 	 * @return     string
 	 */
-	public function gitLogAll ($path = '', $subdir = '')
+	public function gitLogAll ($path = '', $subdir = '', $limit = 500)
 	{
-		return NULL; // disable
 		chdir($this->_prefix . $path);
-		$exec = ' log --diff-filter=AMR --pretty=format:">>>%ci||%an||%ae||%H||%s" --name-only ' . $subdir;
+		$limit = $subdir ? $limit : 2000;
+
+		$exec = ' log --diff-filter=AMR --pretty=format:">>>%ci||%an||%ae||%H||%f" --name-only';
+		$exec .= $limit ? ' --max-count=' . $limit : '';
+		$exec .= $subdir ? ' ' . escapeshellarg($subdir) : '';
 
 		// Exec command
 		exec($this->_gitpath . ' '. $exec . ' 2>&1', $out1);
@@ -251,6 +254,7 @@ class ProjectsGitHelper extends JObject
 		$collector = array();
 		$entry 	   = array();
 
+		$i = 0;
 		foreach ($out1 as $line)
 		{
 			if (substr($line, 0, 3) == '>>>')
@@ -263,7 +267,7 @@ class ProjectsGitHelper extends JObject
 				$entry['author'] 	= $data[1];
 				$entry['email'] 	= $data[2];
 				$entry['hash'] 		= $data[3];
-				$entry['message'] 	= $data[4];
+				$entry['message'] 	= substr($data[4], 0, 100);
 			}
 			elseif ($line != '' && !isset($collector[$line]))
 			{
@@ -297,7 +301,7 @@ class ProjectsGitHelper extends JObject
 		switch ( $return )
 		{
 			case 'combined':
-				$exec = ' log --diff-filter=AMR --pretty=format:"%ci||%an||%ae||%H||%s" --name-only --max-count=1 ';
+				$exec = ' log --diff-filter=AMR --pretty=format:"%ci||%an||%ae||%H||%f" --name-only --max-count=1 ';
 				break;
 
 			case 'date':
@@ -326,7 +330,7 @@ class ProjectsGitHelper extends JObject
 				break;
 
 			case 'message':
-				$exec = ' log --pretty=format:%s ';
+				$exec = ' log --pretty=format:%f ';
 				break;
 
 			case 'size':
@@ -486,6 +490,9 @@ class ProjectsGitHelper extends JObject
 
 		$date = $date ? ' --date="' . $date . '"' : '';
 		$author = $author ? $author : $this->getGitAuthor();
+
+		// Shorten commit message
+		$commitMsg = substr($commitMsg, 0, 250);
 
 		$this->callGit($path, ' commit -a -m "' . $commitMsg . '" --author="' . $author . '"' . $date . '  2>&1');
 
@@ -655,7 +662,7 @@ class ProjectsGitHelper extends JObject
 	{
 		$out = array();
 
-		$call = 'log --diff-filter=D --pretty=format:">>>%ct||%an||%ae||%H||%s" --name-only ';
+		$call = 'log --diff-filter=D --pretty=format:">>>%ct||%an||%ae||%H||%f" --name-only ';
 
 		chdir($this->_prefix . $path);
 		exec($this->_gitpath . ' ' . $call . '  2>&1', $out);
@@ -708,8 +715,8 @@ class ProjectsGitHelper extends JObject
 			}
 
 			// File renamed/moved - skip
-			if (strstr(strtolower($gitData['message']), 'moved file ')
-				|| strstr(strtolower($gitData['message']), 'moved folder '))
+			if (strstr(strtolower($gitData['message']), 'moved-file ')
+				|| strstr(strtolower($gitData['message']), 'moved-folder '))
 			{
 				continue;
 			}
@@ -1096,7 +1103,7 @@ class ProjectsGitHelper extends JObject
 				$content	= $binary ? NULL : $this->gitLog($path, $name, $hash, 'content');
 
 				// SFTP?
-				if (preg_match("/[SFTP]/", $message))
+				if (substr($message, 0, 5) == 'SFTP-')
 				{
 					$profile = \Hubzero\User\Profile::getInstance( trim($author) );
 					if ($profile)

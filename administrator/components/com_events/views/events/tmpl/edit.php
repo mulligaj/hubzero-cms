@@ -41,7 +41,7 @@ var HUB = {};
 			</div>
 
 			<div class="input-wrap">
-				<label for="catid"><?php echo JText::_('COM_EVENTS_CAL_LANG_EVENT_CATEGORY'); ?>:</label><br />
+				<label for="catid"><?php echo JText::_('COM_EVENTS_CAL_LANG_EVENT_CATEGORY'); ?>:<span class="required">required</span></label><br />
 				<?php echo EventsHtml::buildCategorySelect($this->row->catid, '', 0, $this->option);?></td>
 			</div>
 
@@ -87,7 +87,7 @@ var HUB = {};
 				?>
 			<div class="input-wrap">
 				<label for="field-tags"><?php echo JText::_('COM_EVENTS_CAL_LANG_EVENT_TAGS'); ?>:</label><br />
-				<input type="text" name="tags" id="field-tags" value="<?php echo $this->escape($this->tags); ?>" />
+				<input type="text" name="tags" id="field-tags" value="<?php echo (isset($this->tags) ? $this->escape($this->tags) : ''); ?>" />
 			</div>
 		</fieldset>
 		<fieldset class="adminform">
