@@ -392,7 +392,7 @@ class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 		{
 			if ($check == TRUE)
 			{
-				foreach($this->steps as $step => $name)
+				foreach ($this->steps as $step => $name)
 				{
 					if ($name == 'Attach')
 					{
@@ -842,6 +842,7 @@ class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 		// Strip any scripting there may be
 		if (trim($row->fulltxt))
 		{
+			$row->fulltxt   = ResourcesHtml::stripStyles($row->fulltxt);
 			$row->fulltxt   = $this->_txtClean($row->fulltxt);
 			//$row->fulltxt   = $this->_txtAutoP($row->fulltxt, 1);
 			$row->footertext = $this->_txtClean($row->footertext);
@@ -1236,7 +1237,7 @@ class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 			if ($this->config->get('autoapprove') == 1)
 			{
 				//checks if autoapproved content has children (configurable in options on backend)
-				if($this->config->get('autoapprove_content_check') == 1)
+				if ($this->config->get('autoapprove_content_check') == 1)
 				{
 					require_once(JPATH_COMPONENT . '/models/resource.php');
 					$item = new ResourcesModelResource($id);
