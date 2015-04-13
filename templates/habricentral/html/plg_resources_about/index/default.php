@@ -37,7 +37,7 @@ $sef = JRoute::_('index.php?option=' . $this->option . '&id=' . $this->model->re
 
 // Collect data for coins
 $coins = array(
-	'doi' => NULL, 'pages' => NULL, 'journaltitle' => NULL, 
+	'doi' => NULL, 'pages' => NULL, 'journaltitle' => NULL,
 	'category' => NULL, 'issn' => NULL, 'isbn' => NULL,
 	'volume' => NULL, 'number' => NULL, 'url' => NULL
 );
@@ -73,7 +73,7 @@ $type->load($this->model->resource->type);
 
 $data = array();
 preg_match_all("#<nb:(.*?)>(.*?)</nb:(.*?)>#s", $this->model->resource->fulltxt, $matches, PREG_SET_ORDER);
-if (count($matches) > 0) 
+if (count($matches) > 0)
 {
 	foreach ($matches as $match)
 	{
@@ -88,7 +88,7 @@ $elements = new ResourcesElements($data, $this->model->type->customFields);
 $schema = $elements->getSchema();
 
 // Set the document description
-if ($this->model->resource->introtext) 
+if ($this->model->resource->introtext)
 {
 	$document = JFactory::getDocument();
 	$abstract = strip_tags($this->model->resource->introtext);
@@ -278,7 +278,7 @@ else if ($typeAlias == 'journalarticles')
 		$document->setMetaData('citation_firstpage', $first);
 		$document->setMetaData('citation_lastpage', $last);
 	}
-	
+
 	// $document->setMetaData('eprints:abstract', 'eprints:abstract test');
 	// $document->setMetaData('prism:teaser', 'prism:teaser test');
 	// $document->setMetaData('og:description', 'og:description test');
@@ -393,7 +393,7 @@ else if ($typeAlias == 'reports')
 }
 else if ($typeAlias == 'softliteraturenarrative')
 {
-	// nothing	
+	// nothing
 }
 else if ($typeAlias == 'theses')
 {
@@ -464,7 +464,7 @@ if (!$this->model->access('view-all')) {
 			<th><?php echo JText::_('Submitter'); ?></th>
 			<td class="resource-content">
 				<span id="submitterlist">
-					<?php 
+					<?php
 					$view = new JView(array(
 						'base_path' => JPATH_ROOT . DS . 'components' . DS . 'com_resources',
 						'name'   => 'view',
@@ -490,13 +490,13 @@ if (!$this->model->access('view-all')) {
 			if ($field->name == 'citations') {
 				$citations = $data[$field->name];
 			} else if ($value = $elements->display($field->type, $data[$field->name])) {
-				
+
 				// Add to coins
 				$fname = $field->name == 'pagenumbers' ? 'pages' : $field->name;
 				$fname = $fname == 'volumeno' ? 'volume' : $fname;
 				$fname = $fname == 'issuenomonth' ? 'number' : $fname;
 				$fname = $fname == 'linktopublishedworkurl' ? 'url' : $fname;
-				
+
 				if (array_key_exists($fname, $coins))
 				{
 					$coins[$fname] = $value;
@@ -512,10 +512,10 @@ if (!$this->model->access('view-all')) {
 			}
 		}
 	}
-	
+
 	// Build our citation object
 	$juri = JURI::getInstance();
-	
+
 	$cite = new stdClass();
 	$cite->title = $this->model->resource->title;
 	$cite->year = JHTML::_('date', $thedate, $yearFormat, $tz);
@@ -529,7 +529,7 @@ if (!$this->model->access('view-all')) {
 		if ($this->model->params->get('show_citation') == 1 || $this->model->params->get('show_citation') == 2) {
 			// Citation instructions
 			//$this->helper->getUnlinkedContributors();
-			
+
 			if ($this->model->params->get('show_citation') == 2) {
 				$citations = '';
 			}
@@ -582,14 +582,16 @@ if ($this->model->attribs->get('location', '')) {
 // Tags
 if ($this->model->params->get('show_assocs')) {
 	$tags = $this->model->tags();
-	
+
 	if ($tags) {
 		$tagger = new ResourcesTags($this->model->resource->id);
 ?>
 <tr>
 			<th><?php echo JText::_('PLG_RESOURCES_ABOUT_TAGS'); ?></th>
 			<td class="resource-content">
-				<?php echo $tagger->render('cloud', ($this->model->access('edit') ? array() : array('admin' => 0))); ?>
+				<?php //echo $tagger->render('cloud', ($this->model->access('edit') ? array() : array('admin' => 0, 'label' => NULL))); ?>
+				<?php echo $tagger->render('cloud', (array('label' => ''))); ?>
+
 			</td>
 			</tr>
 <?php
@@ -597,7 +599,7 @@ if ($this->model->params->get('show_assocs')) {
 }
 ?>
 			<?php
-				$tagger = new ResourcesTags($this->database);
+				$tagger = new ResourcesTags($this->model->resource->id);
 				$badges = $tagger->render('array', array('label' => 'badge'));
 			?>
 			<?php if (count($badges) > 0) : ?>
@@ -612,57 +614,57 @@ if ($this->model->params->get('show_assocs')) {
 	</table><!-- / .resource -->
 </div><!-- / .subject -->
 <?php if (!$this->model->params->get('show_citation')) {
-	
+
 	// Show coins
 	include_once( JPATH_ROOT . DS . 'components' . DS . 'com_citations' . DS . 'helpers' . DS . 'format.php' );
 	include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_citations' . DS . 'tables' . DS . 'type.php' );
 	$cconfig  = JComponentHelper::getParams( 'com_citations' );
-	
+
 	$formatter = new CitationFormat();
 	$formatter->setTemplate('ieee');
-	
+
 	$cite->date_publish = date("Y-m-d", strtotime($this->model->resource->publish_up));
-	
+
 	/*
-	$cat = 'journal';	
+	$cat = 'journal';
 	switch ($this->model->type->alias)
 	{
 		case 'books':
 			$cat = "book";
 			break;
-			
+
 		case 'booksection':
 			$cat = "bookitem";
 			break;
-		
+
 		case 'reports':
 			$cat = "report";
 			break;
-			
+
 		case 'pamphlets':
 		case 'posters':
 		case 'governmentdocuments':
 			$cat = "document";
 			break;
-						
+
 		case 'conferenceproceedings':
 		case 'conferencepapers':
 			$cat = "proceeding";
 			break;
-			
+
 		case 'journalarticles':
 		case 'magazinearticle':
 		case 'newspaperarticle':
 			$cat = "article";
 			break;
-			
+
 		default:
 			$cat = "unknown";
-			break;	
+			break;
 	}
 	*/
 	$cite->type = $this->model->type->alias;
-	
+
 	foreach ($coins as $cname => $cvalue)
 	{
 		if ($cvalue)
@@ -670,8 +672,8 @@ if ($this->model->params->get('show_assocs')) {
 			$cite->$cname = $cvalue;
 		}
 	}
-	
+
 	//echo $formatter->formatCitation($cite, false, true, $cconfig, true);
-	
+
 } ?>
 <div class="clear"></div>
