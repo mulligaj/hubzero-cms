@@ -320,9 +320,15 @@ class EventsControllerEvents extends \Hubzero\Component\AdminController
 		$this->view->times['end_time'] = $end_time;
 		$this->view->times['end_pm'] = $end_pm;
 
-		// Get tags on this event
-		$rt = new EventsModelTags($this->view->row->id);
-		$this->view->tags = $rt->render('string');
+
+		// only load tags on existing events
+		if ($this->view->row->id != NULL)
+		{
+			// Get tags on this event
+			$rt = new EventsModelTags($this->view->row->id);
+			$this->view->tags = $rt->render('string');
+		}
+
 
 		// Set any errors
 		if ($this->getError())
@@ -498,11 +504,16 @@ class EventsControllerEvents extends \Hubzero\Component\AdminController
 		$params = JRequest::getVar('params', '', 'post');
 		if (is_array($params))
 		{
-			//email is reaquired
+			//email is required
 			$params['show_email'] = 1;
 			$p = new JParameter(null);
 			$p->loadArray($params);
 			$row->params = $p->toString();
+		}
+
+		if ($row->catid == 0)
+		{
+			JError::raiseError(500, 'EVENTS_REQUIRED_CATEGORY');
 		}
 
 		if (!$row->check())
