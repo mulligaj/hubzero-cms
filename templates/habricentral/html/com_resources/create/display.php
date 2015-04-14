@@ -36,8 +36,8 @@ $juser = JFactory::getUser();
 
 $submissions = null;
 if (!$juser->get('guest')) {
-	$query  = "SELECT DISTINCT R.id, R.title, R.type, R.logical_type AS logicaltype, 
-						AA.subtable, R.created, R.created_by, R.published, R.publish_up, R.standalone, 
+	$query  = "SELECT DISTINCT R.id, R.title, R.type, R.logical_type AS logicaltype,
+						AA.subtable, R.created, R.created_by, R.published, R.publish_up, R.standalone,
 						R.rating, R.times_rated, R.alias, R.ranking, rt.type AS typetitle ";
 	$query .= "FROM #__author_assoc AS AA, #__resource_types AS rt, #__resources AS R ";
 	$query .= "LEFT JOIN #__resource_types AS t ON R.logical_type=t.id ";
@@ -53,7 +53,6 @@ if (!$juser->get('guest')) {
 
 $this->css('introduction.css', 'system')
      ->css('create.css');
-	 
 ?>
 <div id="content-header" class="full">
 	<h2><?php echo $this->title; ?></h2>
@@ -147,7 +146,7 @@ $this->css('introduction.css', 'system')
 			<strong>You currently have no contributions in progress.</strong><br /><br />
 			Once you've started a new contribution, you can proceed at your leisure. Stop half-way through and watch a presentation, go to lunch, even close the browser and come back a different day! Your contribution will be waiting just as you left it, ready to continue at any time.
 		</p>
-<?php 
+<?php
 		}
 ?>
 	</div><!-- / .four columns second third fourth -->
@@ -167,7 +166,7 @@ $this->css('introduction.css', 'system')
 		</div>
 	</div><!-- / .four columns second third fourth -->
 	<div class="clear"></div>
-	
+
 <?php
 $t = new ResourcesType( $database );
 $categories = $t->getMajorTypes();
@@ -181,7 +180,7 @@ if ($categories) {
 <?php
 	$i = 0;
 	$clm = '';
-	/*if (count($categories)%3!=0) { 
+	/*if (count($categories)%3!=0) {
 	    ;
 	}*/
 	foreach ($categories as $category)
@@ -211,7 +210,7 @@ if ($categories) {
 		<div class="three columns <?php echo $clm; ?>">
 			<div class="<?php echo $cls; ?>">
 				<h3><a href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=draft&step=1&type='.$category->id); ?>"><?php echo stripslashes($category->type); ?></a></h3>
-				<p><?php echo $this->escape(stripslashes($category->description)); ?></p>
+				<p><?php echo $this->escape(stripslashes(strip_tags($category->description))); ?></p>
 			</div>
 		</div><!-- / .three columns <?php echo $clm; ?> -->
 <?php
