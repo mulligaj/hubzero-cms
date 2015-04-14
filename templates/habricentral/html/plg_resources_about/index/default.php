@@ -585,15 +585,16 @@ if ($this->model->params->get('show_assocs')) {
 
 	if ($tags) {
 		$tagger = new ResourcesTags($this->model->resource->id);
+		$tagCloudtags = $tagger->render('cloud', ($this->model->access('edit') ? array() : array('admin' => 0, 'label' => '')));
 ?>
+<?php if (count($tagCloudtags) > 0 && $tagCloudtags != "") : ?>
 <tr>
 			<th><?php echo JText::_('PLG_RESOURCES_ABOUT_TAGS'); ?></th>
 			<td class="resource-content">
-				<?php //echo $tagger->render('cloud', ($this->model->access('edit') ? array() : array('admin' => 0, 'label' => NULL))); ?>
-				<?php echo $tagger->render('cloud', (array('label' => ''))); ?>
-
+				<?php echo $tagger->render('cloud', ($this->model->access('edit') ? array() : array('admin' => 0, 'label' => ''))); ?>
 			</td>
-			</tr>
+</tr>
+<?php endif; ?>
 <?php
 	}
 }
