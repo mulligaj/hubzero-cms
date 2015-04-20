@@ -763,9 +763,7 @@ class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 		$row->access       = ($row->access ?: 0);
 
 		$row->fulltxt   = trim($row->fulltxt);
-		$row->introtext = $row->introtext
-						? \Hubzero\Utility\String::truncate(strip_tags($row->introtext), 500)
-						: \Hubzero\Utility\String::truncate(strip_tags($row->fulltxt), 500);
+		$row->introtext = \Hubzero\Utility\String::truncate(strip_tags($row->fulltxt), 500);
 		//$row->fulltxt   = $this->_txtAutoP($row->fulltxt, 1);
 
 		// Get custom areas, add wrapper tags, and compile into fulltxt
@@ -1822,8 +1820,8 @@ class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 		$text = str_replace("’","'", $text);
 		$text = str_replace("‘","'", $text);
 
-		$text = preg_replace('/{kl_php}(.*?){\/kl_php}/s', '', $text);
-		$text = preg_replace('/{.+?}/', '', $text);
+		//$text = preg_replace('/{kl_php}(.*?){\/kl_php}/s', '', $text);
+		//$text = preg_replace('/{.+?}/', '', $text);
 		$text = preg_replace("'<style[^>]*>.*?</style>'si", '', $text);
 		$text = preg_replace("'<script[^>]*>.*?</script>'si", '', $text);
 		$text = preg_replace('/<!--.+?-->/', '', $text);
