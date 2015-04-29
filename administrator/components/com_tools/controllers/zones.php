@@ -174,6 +174,8 @@ class ToolsControllerZones extends \Hubzero\Component\AdminController
 			$this->view->row->set('state', 'down');
 		}
 
+		$this->view->row->params = new \JRegistry($this->view->row->get('params'));
+
 		// Set any errors
 		if ($this->getError())
 		{
@@ -210,8 +212,11 @@ class ToolsControllerZones extends \Hubzero\Component\AdminController
 
 		// Incoming
 		$fields = JRequest::getVar('fields', array(), 'post');
+		$params = JRequest::getVar('zoneparams', array(), 'post');
+		$row    = new MiddlewareModelZone($fields['id']);
 
-		$row = new MiddlewareModelZone($fields['id']);
+		$fields['params'] = json_encode($params);
+
 		if (!$row->bind($fields))
 		{
 			$this->addComponentMessage($row->getError(), 'error');
@@ -765,5 +770,48 @@ class ToolsControllerZones extends \Hubzero\Component\AdminController
 
 		// Output the HTML
 		$this->view->display();
+	}
+
+	/**
+	 * Method to set the default property for a zone
+	 *
+	 * @return     void
+	 */
+	public function defaultTask()
+	{
+		// Get item to default from request
+		$id = JRequest::getVar('id', array(), '', 'array');
+
+		if (empty($id))
+		{
+			JError::raiseWarning(404, JText::_('COM_TOOLS_ERROR_MISSING_ID'));
+		}
+
+		// Get the middleware database
+		$mwdb = ToolsHelperUtils::getMWDBO();
+
+		$row = new MwZones($mwdb);
+		if ($row->load($id[0]))
+		{
+			// Get rid of the current default
+			$default = new MwZones($mwdb);
+			$default->load(array('is_default' => 1));
+			$default->is_default = 0;
+			if (!$default->store())
+			{
+				JError::raiseError(500, JText::_('COM_TOOLS_ERROR_DEFAULT_UPDATE_FAILED'));
+			}
+
+			// Set a new default
+			$row->is_default = 1;
+			if (!$row->store())
+			{
+				JError::raiseError(500, JText::_('COM_TOOLS_ERROR_DEFAULT_UPDATE_FAILED'));
+			}
+		}
+
+		$this->setRedirect(
+			'index.php?option=' . $this->_option . '&controller=' . $this->_controller
+		);
 	}
 }

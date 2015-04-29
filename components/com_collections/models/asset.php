@@ -114,7 +114,7 @@ class CollectionsModelAsset extends CollectionsModelAbstract
 	public function image()
 	{
 		jimport('joomla.filesystem.file');
-		$ext = strtolower(JFile::getExt($this->get('filename')));
+		$ext = strtolower(\JFile::getExt($this->get('filename')));
 
 		if (in_array($ext, array('jpg', 'jpe', 'jpeg', 'gif', 'png')))
 		{
@@ -122,6 +122,107 @@ class CollectionsModelAsset extends CollectionsModelAbstract
 		}
 
 		return false;
+	}
+
+	/**
+	 * Is an asset an image?
+	 *
+	 * @return  boolean True if image, false if not
+	 */
+	public function file($size = 'thumb')
+	{
+		if (!$this->image())
+		{
+			return $this->get('filename');
+		}
+
+		$path = $this->filespace() . DS . $this->get('item_id') . DS;
+		$file = ltrim($this->get('filename'), DS);
+
+		switch ($size)
+		{
+			case 't':
+			case 'tn':
+			case 'thumb':
+			case 'thumbnail':
+				jimport('joomla.filesystem.file');
+				$ext   = \JFile::getExt($file);
+				$thumb = \JFile::stripExt($file) . '_t.' . $ext;
+
+				if (!file_exists($path . $thumb))
+				{
+					if (!$this->resize($path . $file, $path . $thumb, 400))
+					{
+						$thumb = $file;
+					}
+				}
+
+				return $thumb;
+			break;
+
+			case 'm':
+			case 'med':
+			case 'medium':
+				jimport('joomla.filesystem.file');
+				$ext   = \JFile::getExt($file);
+				$thumb = \JFile::stripExt($file) . '_m.' . $ext;
+
+				if (!file_exists($path . $thumb))
+				{
+					if (!$this->resize($path . $file, $path . $thumb, 1024))
+					{
+						$thumb = $file;
+					}
+				}
+
+				return $thumb;
+			break;
+
+			case 'o':
+			case 'orig':
+			case 'original':
+			default:
+				return $file;
+			break;
+		}
+	}
+
+	/**
+	 * Resize an image
+	 *
+	 * @param   string   $orig
+	 * @param   string   $dest
+	 * @param   integer  $size
+	 * @return  boolean  True on success, false if errors
+	 */
+	private function resize($orig, $dest, $size)
+	{
+		if (!file_exists($dest))
+		{
+			list($originalWidth, $originalHeight) = getimagesize($orig);
+
+			if ($originalWidth > $size || $originalHeight > $size)
+			{
+				$useHeight = ($originalHeight > $originalWidth) ? true : false;
+
+				// Resize image
+				$processor = new \Hubzero\Image\Processor($orig);
+				if (!$processor->getErrors())
+				{
+					$processor->resize($size, $useHeight);
+					if (!$processor->save($dest))
+					{
+						return false;
+					}
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

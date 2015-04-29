@@ -409,9 +409,9 @@ class TagsTableTag extends JTable
 		{
 			$where[] = "tj.`label`=" . $this->_db->Quote((string) $filters['label']);
 		}
-		if (isset($filters['label']) && $filters['label'] == '')
+		if (isset($filters['label']) && $filters['label'] && $filters['label'] == '')
 		{
-			$where[] = "tj.`label` = ''";
+			$where[] = "tj.`label`= ''";
 		}
 		if (isset($filters['admin']) && $filters['admin'] !== null)
 		{
