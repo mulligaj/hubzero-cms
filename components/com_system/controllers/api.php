@@ -128,10 +128,17 @@ class SystemControllerApi extends \Hubzero\Component\ApiController
 			'server'      => $sf,
 			//'last_commit' => $commit,
 			'last_update' => null,
-			'last_core_update' => null
+			'last_core_update' => null,
+			'environment' => JFactory::getConfig()->get('application_env', 'production')
 		);
 
 		require_once JPATH_ROOT . DS . 'administrator/components/com_update' . DS . 'helpers' . DS . 'cli.php';
+
+		$source = JComponentHelper::getParams('com_update')->get('git_repository_source', null);
+
+		$response->system['status']    = (count(json_decode(cli::status())) > 0 ? 'dirty' : 'clean');
+		$response->system['upcoming']  = json_decode(cli::update(true, false, $source));
+		$response->system['migration'] = json_decode(cli::migration());
 
 		// Get the last update
 		$rows = json_decode(
@@ -188,11 +195,19 @@ class SystemControllerApi extends \Hubzero\Component\ApiController
 			$response->system = $data;
 		}
 
-		if ($values == 'all')
+		JPluginHelper::importPlugin('hubzero');
+		$results = JDispatcher::getInstance()->trigger('onSystemOverview', array($values));
+		if ($results)
 		{
-			JPluginHelper::importPlugin('hubzero');
-			$dispatcher = JDispatcher::getInstance();
-			$response->overview = $dispatcher->trigger('onSystemOverview');
+			$response->overview = array();
+
+			foreach ($results as $result)
+			{
+				if ($result)
+				{
+					$response->overview[] = $result;
+				}
+			}
 		}
 
 		$this->setMessage($response);
