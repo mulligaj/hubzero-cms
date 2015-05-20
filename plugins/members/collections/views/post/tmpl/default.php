@@ -109,13 +109,17 @@ $this->css()
 				<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($this->post->creator(), 0); ?>" alt="Profile picture of <?php echo $this->escape(stripslashes($this->post->creator()->get('name'))); ?>" />
 			</a>
 			<p>
-				<a href="<?php echo JRoute::_($this->post->creator()->getLink()); ?>">
-					<?php echo $this->escape(stripslashes($this->post->creator('name'))); ?>
-				</a>
-				onto
-				<a href="<?php echo JRoute::_($base . '&task=' . $this->collection->get('alias')); ?>">
-					<?php echo $this->escape(stripslashes($this->collection->get('title'))); ?>
-				</a>
+				<?php
+				$who = $this->escape(stripslashes($this->post->creator('name')));
+				if ($this->post->creator('public'))
+				{
+					$who = '<a href="' . JRoute::_($this->post->creator()->getLink()) . '">' . $name . '</a>';
+				}
+
+				$where = '<a href="' . JRoute::_($base . '&task=' . $this->collection->get('alias')) . '">' . $this->escape(stripslashes($this->collection->get('title'))) . '</a>';
+
+				echo JText::sprintf('PLG_MEMBERS_COLLECTIONS_ONTO', $who, $where);
+				?>
 				<br />
 				<span class="entry-date">
 					<span class="entry-date-at">@</span>
@@ -140,9 +144,7 @@ if ($item->get('comments'))
 					<img src="<?php echo \Hubzero\User\Profile\Helper::getMemberPhoto($cuser, $comment->anonymous); ?>" class="profile user_image" alt="Profile picture of <?php echo $this->escape(stripslashes($cuser->get('name'))); ?>" />
 				</a>
 				<p>
-					<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $comment->created_by); ?>"><?php echo $this->escape(stripslashes($cuser->get('name'))); ?></a>
-					said
-					<br />
+					<a href="<?php echo JRoute::_('index.php?option=com_members&id=' . $comment->created_by); ?>"><?php echo $this->escape(stripslashes($cuser->get('name'))); ?></a> said <br />
 					<span class="entry-date">
 						<span class="entry-date-at">@</span>
 						<span class="time"><time datetime="<?php echo $comment->created; ?>"><?php echo JHTML::_('date', $comment->created, JText::_('TIME_FORMAT_HZ1')); ?></time></span>
