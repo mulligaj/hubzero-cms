@@ -70,6 +70,8 @@ class plgContentAntispam extends JPlugin
 		$service = new \Hubzero\Antispam\Service(new \Plugins\Content\Antispam\Service\Provider);
 
 		$service->set('linkFrequency', $this->params->get('linkFrequency', 5))
+		        ->set('linkRatio', $this->params->get('linkRatio', 40))
+		        ->set('linkValidation', $this->params->get('linkValidation', 0))
 		        ->set('blacklist', $this->params->get('blacklist'))
 		        ->set('badwords', $this->params->get('badwords', 'viagra, pharmacy, xanax, phentermine, dating, ringtones, tramadol, hydrocodone, levitra, '
 				. 'ambien, vicodin, fioricet, diazepam, cash advance, free online, online gambling, online prescriptions, '
@@ -78,14 +80,24 @@ class plgContentAntispam extends JPlugin
 				. 'porno, videosex, sperm, hentai, internet gambling, kasino, kasinos, poker, lottery, texas hold em, '
 				. 'texas holdem, fisting'));
 
+		$ip = JRequest::ip();
+		$uid = JFactory::getUser()->get('id');
+		$username = JFactory::getUser()->get('username');
+		$fallback = 'option=' . JRequest::getCmd('option') . '&controller=' . JRequest::getCmd('controller') . '&task=' . JRequest::getCmd('task');
+		$from = JRequest::getVar('REQUEST_URI', $fallback, 'server');
+		$from = $from ?: $fallback;
+
 		if ($service->isSpam($content))
 		{
+			JFactory::getSpamLogger()->info('spam ' . $this->_name . ' ' . $ip . ' ' . $uid . ' ' . $username . ' ' . $from);
 			if ($message = $this->params->get('message'))
 			{
 				\JFactory::getApplication()->enqueueMessage($message, 'error');
 			}
 			return false;
 		}
+
+		JFactory::getSpamLogger()->info('ham ' . $this->_name . ' ' . $ip . ' ' . $uid . ' ' . $username . ' ' . $from);
 	}
 
 	/**
