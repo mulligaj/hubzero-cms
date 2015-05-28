@@ -117,7 +117,7 @@ $this->css('introduction.css', 'system')
 
 				$authors = $rc->getCount( $submission->id, 'resources' );
 
-				$tags = $rt->getTags( $submission->id );
+				$tags = $rt->tags( $submission->id );
 ?>
 				<tr class="<?php echo $cls; ?>">
 						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=1&id='.$submission->id); ?>"><?php } ?><?php echo stripslashes($submission->title); ?><?php if ($submission->published == 2) { ?></a><?php } ?><br /><span class="type"><?php echo stripslashes($submission->typetitle); ?></span></td>
