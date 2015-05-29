@@ -141,4 +141,8 @@ section.upperpane .subject, .upperpane .subject {
 #primary-document .btn {
 	padding: 1.25em 2em;
 	min-width: 50%;
+}
+.cc40-by { 
+	padding-left: 95px;
+	background: url("/components/com_resources/assets/img/logos/by.png") 0 0 no-repeat;
 }	
