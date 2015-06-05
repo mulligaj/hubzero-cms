@@ -44,6 +44,13 @@ class Provider extends AbstractAdapter
 	const URL_REGEX = "!((https?://)?([-\w]+\.[-\w\.]+)+\w(:\d+)?(/([-\w/_\.]*(\?\S+)?)?)*)!";
 
 	/**
+	 * Regex for word detection
+	 *
+	 * @var  string
+	 */
+	protected $regex;
+
+	/**
 	 * Constructor
 	 *
 	 * @param   mixed  $properties
@@ -89,12 +96,14 @@ class Provider extends AbstractAdapter
 		// Check the user's IP against the blacklist
 		if ($ips = $this->get('blacklist'))
 		{
+			$this->set('scope', 'ip_blacklist');
 			$spam = $this->blacklistedIp($ips);
 		}
 
 		// Bad words
 		if (!$spam && $this->get('badwords'))
 		{
+			$this->set('scope', 'word_blacklist');
 			$spam = $this->pottyMouth($this->getValue());
 		}
 
@@ -141,31 +150,30 @@ class Provider extends AbstractAdapter
 	 */
 	public function pottyMouth($text)
 	{
-		$badwords = explode(',', $this->get('badwords'));
-		array_map('trim', $badwords);
-
-		// Build an array of patterns to check againts
-		$patterns = array('/\[url=(.*?)\](.*?)\[\/url\]/s', '/\[url=(.*?)\[\/url\]/s');
-		foreach ($badwords as $badword)
+		if (!$this->regex)
 		{
-			if (!empty($badword))
+			$blackLists = explode(',', $this->get('badwords'));
+			$blackLists = array_map('trim', $blackLists);
+
+			$blackLists[] = '#\[url=(.*?)\](.*?)\[\/url\]#';
+			$blackLists[] = '#\[url=(.*?)\[\/url\]#';
+
+			$this->regex = sprintf('~%s~', implode('|', array_map(function ($value)
 			{
-				$patterns[] = '/(.*?)' . trim($badword) . '(.*?)/is';
-			}
+				if (isset($value[0]) && $value[0] == '#')
+				{
+					$value = substr($value, 1, -1);
+				}
+				else
+				{
+					$value = preg_quote($value);
+				}
+
+				return '(?:' . $value . ')';
+			}, $blackLists)));
 		}
 
-		// Check the text against bad words
-		foreach ($patterns as $pattern)
-		{
-			preg_match_all($pattern, $text, $matches);
-
-			if (count($matches[0]) >= 1)
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return (bool) preg_match($this->regex, $text);
 	}
 
 	/**
@@ -188,6 +196,7 @@ class Provider extends AbstractAdapter
 
 		if ($linkCount >= $this->get('linkFrequency'))
 		{
+			$this->set('scope', 'link_frequency');
 			// If the link count is more than the maximum allowed
 			// the string is automatically considered spam..
 			return true;
@@ -195,6 +204,8 @@ class Provider extends AbstractAdapter
 
 		if ($this->get('linkValidation'))
 		{
+			$this->set('scope', 'link_blacklist');
+
 			foreach ($matches[0] as $match)
 			{
 				if ($this->isBlacklistedLink($match))
@@ -203,6 +214,8 @@ class Provider extends AbstractAdapter
 				}
 			}
 		}
+
+		$this->set('scope', 'link_ratio');
 
 		// Get the ratio of words to link
 		$ratio = floor(($linkCount / $wordCount) * 100);

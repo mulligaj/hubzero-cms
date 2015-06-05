@@ -263,10 +263,22 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 			{
 				$path = str_replace($juri->base(true), '', $path);
 				$path = str_replace('index.php', '', $path);
-				$path = DS . trim($path, DS);
-				$path = str_replace('/groups/' . $this->group->get('cn') . '/' . $this->_name, '', $path);
-				$path = ltrim($path, DS);
-				$bits = explode('/', $path);
+				$path = trim($path, '/');
+				$parts = explode('/', $path);
+				$start = false;
+				$bits = array();
+				foreach ($parts as $p)
+				{
+					if ($p == $this->_name)
+					{
+						$start = true;
+						continue;
+					}
+					if ($start)
+					{
+						$bits[] = $p;
+					}
+				}
 
 				if (isset($bits[0]) && $bits[0])
 				{
@@ -521,6 +533,12 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		$count = array(
 			'count'  => true
 		);
+
+		if (!$this->params->get('access-manage-collection'))
+		{
+			$count['access'] = ($this->juser->get('guest') ? 0 : array(0, 1));
+			$filters['access'] = $count['access'];
+		}
 
 		$filters['count'] = true;
 		$view->total = $this->model->collections($filters);
@@ -1849,6 +1867,10 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		$row = new \Hubzero\Plugin\Params($this->database);
 		$row->loadPlugin($this->group->get('gidNumber'), $this->_type, $this->_name);
 
+		$row->object_id = $this->group->get('gidNumber');
+		$row->folder    = $this->_type;
+		$row->element   = $this->_name;
+
 		// Get parameters
 		$prms = JRequest::getVar('params', array(), 'post');
 
@@ -1912,8 +1934,10 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 			$this->params->merge($customParams);
 
 			// Set asset to viewable
+			$isMember = in_array($this->juser->get('id'), $this->members);
+
 			$this->params->set('access-view-' . $assetType, false);
-			if (in_array($this->juser->get('id'), $this->members))
+			if ($isMember)
 			{
 				$this->params->set('access-view-' . $assetType, true);
 			}
@@ -1934,7 +1958,7 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 						$this->params->set('access-edit-' . $assetType, true);
 						$this->params->set('access-view-' . $assetType, true);
 					}
-					if (!$this->params->get('create_collection', 1))
+					if (!$this->params->get('create_collection', 1) && $isMember)
 					{
 						$this->params->set('access-create-' . $assetType, true);
 						$this->params->set('access-delete-' . $assetType, true);
@@ -1952,7 +1976,7 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 						$this->params->set('access-edit-' . $assetType, true);
 						$this->params->set('access-view-' . $assetType, true);
 					}
-					if (!$this->params->get('create_post', 0))
+					if (!$this->params->get('create_post', 0) && $isMember)
 					{
 						$this->params->set('access-create-' . $assetType, true);
 						$this->params->set('access-delete-' . $assetType, true);
