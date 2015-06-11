@@ -91,6 +91,8 @@ if (!$this->app->sess) {
 		</p>
 	<?php endif; ?>
 
+	<?php echo implode("\n", $dispatcher->trigger('onToolSessionViewBefore', array($this->app, $this->output, $readOnly))); ?>
+
 	<div id="app-wrap">
 		<div id="app-header">
 			<h2 id="session-title" class="session-title item:name id:<?php echo $this->app->sess; ?> <?php if (is_object($this->app->owns)) : ?>editable<?php endif; ?>" rel="<?php echo $this->app->sess; ?>"><?php echo $this->app->caption; ?></h2>
@@ -243,6 +245,8 @@ if (!$this->app->sess) {
 		</div><!-- #app-zone -->
 	<?php } ?>
 	</div><!-- #app-wrap -->
+
+	<?php echo implode("\n", $dispatcher->trigger('onToolSessionViewAfter', array($this->app, $this->output, $readOnly))); ?>
 
 	<?php
 	// Are we on an iPad?
