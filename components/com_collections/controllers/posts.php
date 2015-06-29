@@ -450,6 +450,9 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 			return;
 		}
 
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		$collection_title = JRequest::getVar('collection_title', '');
 		$collection_id = JRequest::getInt('collection_id', 0);
 		$item_id       = JRequest::getInt('item_id', 0);
@@ -513,7 +516,7 @@ class CollectionsControllerPosts extends \Hubzero\Component\SiteController
 	public function reorderTask()
 	{
 		// Check for request forgeries
-		JRequest::checkToken('get') or JRequest::checkToken() or jexit('Invalid Token');
+		JRequest::checkToken(array('get', 'post')) or jexit('Invalid Token');
 
 		// Incoming
 		$posts = JRequest::getVar('post', array());

@@ -104,6 +104,9 @@ class Record extends \Hubzero\Content\Import\Model\Record
 
 			// Map tags
 			$this->_mapTagsData();
+
+			// Map groups
+			$this->_mapGroupsData();
 		}
 		catch (Exception $e)
 		{
@@ -175,6 +178,9 @@ class Record extends \Hubzero\Content\Import\Model\Record
 
 			// Save tags
 			$this->_saveTagsData();
+
+			// Save groups
+			$this->_saveGroupsData();
 		}
 		catch (Exception $e)
 		{
@@ -259,7 +265,7 @@ class Record extends \Hubzero\Content\Import\Model\Record
 		{
 			// Check if the username passed if the same for the record we're updating
 			$username = $this->record->entry->get('username');
-			if ($username && $username != $this->raw->username)
+			if ($username && isset($this->raw->username) && $username != $this->raw->username)
 			{
 				// Uh-oh. Notify the user.
 				array_push($this->record->notices, JText::_('Usernames for existing members cannot be changed at this time.'));
@@ -380,16 +386,16 @@ class Record extends \Hubzero\Content\Import\Model\Record
 
 		if ($password = $this->raw->password)
 		{
-			if ($isNew)
+			/*if ($isNew)
 			{
 				// We need to bypass any hashing
 				$this->raw->password = '*';
 				\Hubzero\User\Password::changePasshash($this->_profile->get('uidNumber'), $password);
 			}
 			else
-			{
+			{*/
 				\Hubzero\User\Password::changePassword($this->_profile->get('uidNumber'), $password);
-			}
+			//}
 		}
 
 		if ($isNew && $this->_options['emailnew'] == 1)
@@ -457,5 +463,45 @@ class Record extends \Hubzero\Content\Import\Model\Record
 		// save tags
 		$tags = new \MembersModelTags($this->_profile->get('uidNumber'));
 		$tags->setTags($this->record->tags, $this->_user->get('id'));
+	}
+
+	/**
+	 * Map groups
+	 *
+	 * @return  void
+	 */
+	private function _mapGroupsData()
+	{
+		if (isset($this->raw->groups))
+		{
+			$this->record->groups = $this->_multiValueField($this->raw->groups);
+		}
+	}
+
+	/**
+	 * Save groups
+	 *
+	 * @return  void
+	 */
+	private function _saveGroupsData()
+	{
+		if (!isset($this->record->groups) || !$this->record->groups)
+		{
+			return;
+		}
+
+		$id = $this->_profile->get('uidNumber');
+
+		foreach ($this->record->groups as $gid)
+		{
+			$group = \Hubzero\User\Group::getInstance($gid);
+			if (!$group || !$group->get('gidNumber'))
+			{
+				array_push($this->record->errors, Lang::txt('COM_MEMBERS_IMPORT_ERROR_GROUP_NOT_FOUND', $gid));
+			}
+
+			$group->add('members', array($id));
+			$group->update();
+		}
 	}
 }
