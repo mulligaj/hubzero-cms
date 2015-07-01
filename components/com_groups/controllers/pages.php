@@ -248,6 +248,9 @@ class GroupsControllerPages extends GroupsControllerAbstract
 	 */
 	public function saveTask($apply = false)
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Get the page vars being posted
 		$page    = JRequest::getVar('page', array(), 'post');
 		$version = JRequest::getVar('pageversion', array(), 'post', 'none', JREQUEST_ALLOWRAW);
@@ -702,6 +705,16 @@ class GroupsControllerPages extends GroupsControllerAbstract
 		// get reqest vars
 		$pageid  = JRequest::getInt('pageid', 0, 'get');
 		$version = JRequest::getInt('version', 0, 'get');
+
+		if (!$pageid)
+		{
+			throw new Exception(JText::_('COM_GROUPS_ERROR_NO_ID'), 404);
+		}
+
+		if ((string) $pageid !== (string) JRequest::getVar('pageid', 0, 'get'))
+		{
+			throw new Exception(JText::_('COM_GROUPS_ERROR_NO_ID'), 404);
+		}
 
 		// page object
 		$page = new GroupsModelPage( $pageid );
