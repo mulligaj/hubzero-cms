@@ -217,7 +217,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 
 			$path = str_replace($juri->base(true), '', $path);
 			$path = str_replace('index.php', '', $path);
-			$path = DS . trim($path, DS);
+			$path = '/' . trim($path, '/');
 
 			$blog = '/members/' . $this->member->get('uidNumber') . '/' . $this->_name;
 
@@ -227,8 +227,9 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 				return $path;
 			}
 
-			$path = ltrim($path, DS);
+			$path = ltrim($path, '/');
 			$path = explode('/', $path);
+			$path = array_map('urldecode', $path);
 
 			/*while ($path[0] != 'members' && !empty($path));
 			{
@@ -245,7 +246,7 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 				}
 				if ($start)
 				{
-					$paths[] = $bit;
+					$paths[] = preg_replace('/[^a-zA-Z0-9_\-\:]/', '', $bit);
 				}
 			}
 			/*if (count($paths) >= 1)
@@ -302,6 +303,14 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 
 			$view->filters['year']  = (isset($bits[0]) && is_numeric($bits[0])) ? $bits[0] : $view->filters['year'];
 			$view->filters['month'] = (isset($bits[1]) && is_numeric($bits[1])) ? $bits[1] : $view->filters['month'];
+		}
+		if ($view->filters['year'] > date("Y"))
+		{
+			$view->filters['year'] = 0;
+		}
+		if ($view->filters['month'] > 12)
+		{
+			$view->filters['month'] = 0;
 		}
 
 		// Check logged-in status
@@ -384,6 +393,14 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 
 			$filters['year']  = (isset($bits[0]) && is_numeric($bits[0])) ? $bits[0] : $filters['year'];
 			$filters['month'] = (isset($bits[1]) && is_numeric($bits[1])) ? $bits[1] : $filters['month'];
+		}
+		if ($filters['year'] > date("Y"))
+		{
+			$filters['year'] = 0;
+		}
+		if ($filters['month'] > 12)
+		{
+			$filters['month'] = 0;
 		}
 
 		// Build some basic RSS document information
@@ -620,6 +637,9 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 			return $this->_browse();
 		}
 
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		$entry = JRequest::getVar('entry', array(), 'post', 'none', 2);
 
 		if (isset($entry['publish_up']) && $entry['publish_up'] != '')
@@ -753,6 +773,9 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 			$this->setError(JText::_('MEMBERS_LOGIN_NOTICE'));
 			return $this->_login();
 		}
+
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Incoming
 		$comment = JRequest::getVar('comment', array(), 'post', 'none', 2);
@@ -910,6 +933,9 @@ class plgMembersBlog extends \Hubzero\Plugin\Plugin
 			$this->setError(JText::_('PLG_MEMBERS_BLOG_NOT_AUTHORIZED'));
 			return $this->_browse();
 		}
+
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
 
 		$settings = JRequest::getVar('settings', array(), 'post');
 

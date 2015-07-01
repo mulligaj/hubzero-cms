@@ -171,10 +171,12 @@ class WishlistControllerWishlist extends \Hubzero\Component\SiteController
 	 */
 	public function wishlistTask()
 	{
+		$params = JFactory::getApplication()->getParams();
+
 		// Incoming
-		$id     = JRequest::getInt('id', 0);
-		$refid  = JRequest::getInt('rid', 1);
-		$cat   	= JRequest::getVar('category', 'general');
+		$id     = JRequest::getInt('id', $params->get('id', 0));
+		$refid  = JRequest::getInt('rid', $params->get('rid', 1));
+		$cat   	= JRequest::getVar('category', $params->get('category', 'general'));
 		$saved  = JRequest::getInt('saved', 0);
 
 		// are we viewing this from within a plugin?
@@ -2224,8 +2226,8 @@ class WishlistControllerWishlist extends \Hubzero\Component\SiteController
 	{
 		// Query filters defaults
 		$filters = array();
-		$filters['sortby']   = JRequest::getVar('sortby', '');
-		$filters['filterby'] = JRequest::getVar('filterby', 'all');
+		$filters['sortby']   = strtolower(JRequest::getVar('sortby', ''));
+		$filters['filterby'] = strtolower(JRequest::getVar('filterby', 'all'));
 		$filters['search']   = JRequest::getVar('search', '');
 		$filters['tag']      = JRequest::getVar('tags', '');
 
@@ -2237,6 +2239,16 @@ class WishlistControllerWishlist extends \Hubzero\Component\SiteController
 		{
 			$default = isset($this->banking) && $this->banking ? 'bonus' : 'date';
 			$filters['sortby'] = ($filters['sortby']) ? $filters['sortby'] : $default;
+		}
+
+		if (!in_array($filters['sortby'], array('date', 'submitter', 'feedback', 'ranking')))
+		{
+			$filters['sortby'] = 'date';
+		}
+
+		if (!in_array($filters['filterby'], array('all', 'open', 'accepted', 'rejected', 'granted', 'submitter', 'public', 'private')))
+		{
+			$filters['filterby'] = 'all';
 		}
 
 		// Get configuration

@@ -460,6 +460,10 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		if (!$this->params->get('access-manage-collection'))
 		{
 			$view->filters['access'] = ($this->juser->get('guest') ? 0 : array(0, 1));
+			if (in_array($this->juser->get('id'), $this->group->get('members')))
+			{
+				$view->filters['access'] = array(0, 1, 4);
+			}
 			$count['access'] = $view->filters['access'];
 		}
 
@@ -537,6 +541,10 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		if (!$this->params->get('access-manage-collection'))
 		{
 			$count['access'] = ($this->juser->get('guest') ? 0 : array(0, 1));
+			if (in_array($this->juser->get('id'), $this->group->get('members')))
+			{
+				$count['access'] = array(0, 1, 4);
+			}
 			$filters['access'] = $count['access'];
 		}
 
@@ -634,6 +642,10 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		if (!$this->params->get('access-manage-collection'))
 		{
 			$view->filters['access'] = ($this->juser->get('guest') ? 0 : array(0, 1));
+			if (in_array($this->juser->get('id'), $this->group->get('members')))
+			{
+				$view->filters['access'] = array(0, 1, 4);
+			}
 			$count['access'] = $view->filters['access'];
 		}
 		if ($this->authorized)
@@ -839,6 +851,10 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		if (!$this->params->get('access-manage-collection'))
 		{
 			$view->filters['access'] = ($this->juser->get('guest') ? 0 : array(0, 1));
+			if (in_array($this->juser->get('id'), $this->group->get('members')))
+			{
+				$view->filters['access'] = array(0, 1, 4);
+			}
 			$count['access'] = $view->filters['access'];
 		}
 		if ($this->authorized)
@@ -1023,7 +1039,7 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 			$view->collection = $this->model->collection(JRequest::getVar('board', 0));
 		}
 
-		$view->entry = $view->collection->post($id);
+		$view->entry = (is_object($entry) ? $entry : $view->collection->post($id));
 		if (!$view->collection->exists() && $view->entry->exists())
 		{
 			$view->collection = $this->model->collection($view->entry->get('collection_id'));
@@ -1035,6 +1051,11 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 			{
 				$view->setError($view->entry->item()->getError());
 			}
+		}
+
+		foreach ($this->getErrors() as $error)
+		{
+			$view->setError($error);
 		}
 
 		if ($no_html)
@@ -1114,17 +1135,21 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 			$post->set('original', 1);
 		}
 
-		$coltitle = JRequest::getVar('collection_title', '', 'post');
-		if (!$p['collection_id'] && $coltitle)
+		if (!isset($p['collection_id']))
 		{
-			$collection = new CollectionsModelCollection();
-			$collection->set('title', $coltitle);
-			$collection->set('object_id', $this->group->get('gidNumber'));
-			$collection->set('object_type', 'group');
-			$collection->set('access', $this->params->get('access-plugin'));
-			$collection->store();
+			$p['collection_id'] = 0;
 
-			$p['collection_id'] = $collection->get('id');
+			if ($coltitle = Request::getVar('collection_title', '', 'post'))
+			{
+				$collection = new CollectionsModelCollection();
+				$collection->set('title', $coltitle);
+				$collection->set('object_id', $this->group->get('gidNumber'));
+				$collection->set('object_type', 'group');
+				$collection->set('access', $this->params->get('access-plugin'));
+				$collection->store();
+
+				$p['collection_id'] = $collection->get('id');
+			}
 		}
 
 		$post->set('collection_id', $p['collection_id']);
@@ -1140,7 +1165,8 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		// Check for any errors
 		if ($this->getError())
 		{
-			return $this->_edit($row);
+			JRequest::setVar('post', $p['id']);
+			return $this->_edit($post->item()->bind($fields));
 		}
 
 		$this->redirect(
