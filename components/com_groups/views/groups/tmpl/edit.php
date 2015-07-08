@@ -152,7 +152,7 @@ else
 						?>
 					</label>
 				</fieldset>
-				
+
 				<?php if ($this->task != 'new') : ?>
 					<fieldset>
 						<legend><?php echo JText::_('COM_GROUPS_LOGO_FIELD_TITLE'); ?></legend>
@@ -331,8 +331,10 @@ else
 			<input class="btn btn-success" type="submit" value="<?php echo JText::_('COM_GROUPS_EDIT_SUBMIT_BTN_TEXT'); ?>" />
 		</p>
 
+		<?php echo JHTML::_('form.token'); ?>
+
 		<input type="hidden" name="published" value="<?php echo $this->group->get('published'); ?>" />
-		<input type="hidden" name="gidNumber" value="<?php echo $this->group->get('gidNumber'); ?>" />
+		<input type="hidden" name="gidNumber" value="<?php echo ($this->group->get('gidNumber') != '' ? $this->group->get('gidNumber') : 0); ?>" />
 		<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
 		<input type="hidden" name="task" value="save" />
 	</form>
