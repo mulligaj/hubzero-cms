@@ -1430,7 +1430,7 @@ class plgMembersCollections extends \Hubzero\Plugin\Plugin
 		$collection = $this->model->collection($post->get('collection_id'));
 
 		// Did they confirm delete?
-		if (!$process || !$confirmdel || !JRequest::checkToken())
+		if (!$process || !$confirmdel)
 		{
 			if ($process && !$confirmdel)
 			{
@@ -1469,6 +1469,8 @@ class plgMembersCollections extends \Hubzero\Plugin\Plugin
 			}
 			return $view->loadTemplate();
 		}
+
+		JRequest::checkToken() or jexit('Invalid Token');
 
 		$msg = JText::_('Post deleted.');
 		$type = 'passed';
@@ -1691,6 +1693,9 @@ class plgMembersCollections extends \Hubzero\Plugin\Plugin
 	 */
 	private function _savecollection()
 	{
+		// Check for request forgeries
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Login check
 		if ($this->juser->get('guest'))
 		{
@@ -1802,6 +1807,8 @@ class plgMembersCollections extends \Hubzero\Plugin\Plugin
 			}
 			return $view->loadTemplate();
 		}
+
+		JRequest::checkToken() or jexit('Invalid Token');
 
 		// Mark the entry as deleted
 		$collection->set('state', 2);
