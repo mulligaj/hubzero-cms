@@ -13,6 +13,7 @@ JHtml::_('behavior.keepalive');
 JHtml::_('behavior.tooltip');
 JHtml::_('behavior.calendar');
 JHtml::_('behavior.formvalidation');
+JHtml::_('script', 'system/core.js', false, true);
 
 // Create shortcut to parameters.
 $params = $this->state->get('params');
@@ -207,7 +208,7 @@ endif;
 
 		<input type="hidden" name="task" value="" />
 		<input type="hidden" name="return" value="<?php echo $this->return_page;?>" />
-		<?php if($this->params->get('enable_category', 0) == 1) :?>
+		<?php if ($this->params->get('enable_category', 0) == 1) :?>
 		<input type="hidden" name="jform[catid]" value="<?php echo $this->params->get('catid', 1);?>"/>
 		<?php endif;?>
 		<?php echo JHtml::_( 'form.token' ); ?>
