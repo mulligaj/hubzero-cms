@@ -286,7 +286,7 @@ $groupDefs = $groups->getAllGroups();
 			<p>
 				<button onclick="(function(that) {
 					var li = document.createElement('li');
-					var ol = that.previousSibling;
+					var ol = that.parentNode.previousSibling;
 					while (ol.tagName != 'OL') {
 						ol = ol.previousSibling;
 					}
