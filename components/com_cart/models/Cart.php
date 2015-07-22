@@ -302,8 +302,6 @@ abstract class CartModelCart
 		$warehouse = new StorefrontModelWarehouse();
 		$allSkuInfo = $warehouse->getSkusInfo(array($sId));
 
-		//print_r($allSkuInfo); die;
-
 		if (empty($allSkuInfo))
 		{
 			throw new Exception(JText::_('COM_STOREFRONT_SKU_NOT_FOUND'));
@@ -311,7 +309,6 @@ abstract class CartModelCart
 
 		$skuInfo = $allSkuInfo[$sId]['info'];
 		$skuName = $skuInfo->pName;
-
 		if (!empty($allSkuInfo[$sId]['options']) && count($allSkuInfo[$sId]['options']))
 		{
 			foreach ($allSkuInfo[$sId]['options'] as $oName)
@@ -412,7 +409,6 @@ abstract class CartModelCart
 		// keep the qty value if syncing
 
 		$this->_db->setQuery($sql);
-		//print_r($this->_db->replacePrefix($this->_db->getQuery())); die;
 		$this->_db->query();
 	}
 
