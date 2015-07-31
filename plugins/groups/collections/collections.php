@@ -1432,7 +1432,7 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 		$collection = $this->model->collection($post->get('collection_id'));
 
 		// Did they confirm delete?
-		if (!$process || !$confirmdel || !JRequest::checkToken())
+		if (!$process || !$confirmdel)
 		{
 			if ($process && !$confirmdel)
 			{
@@ -1471,6 +1471,8 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 			}
 			return $view->loadTemplate();
 		}
+
+		JRequest::checkToken() or jexit('Invalid Token');
 
 		$msg = JText::_('PLG_GROUPS_COLLECTIONS_POST_DELETED');
 		$type = 'passed';
@@ -1714,6 +1716,7 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 
 		// Incoming
 		$fields = JRequest::getVar('fields', array(), 'post', 'none', 2);
+		$fields['id'] = intval($fields['id']);
 
 		// Bind new content
 		$row = new CollectionsModelCollection();
@@ -1807,6 +1810,8 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 			return $view->loadTemplate();
 		}
 
+		JRequest::checkToken() or jexit('Invalid Token');
+
 		// Mark the entry as deleted
 		$collection->set('state', 2);
 		if (!$collection->store())
@@ -1841,8 +1846,7 @@ class plgGroupsCollections extends \Hubzero\Plugin\Plugin
 
 		if ($this->authorized != 'manager' && $this->authorized != 'admin')
 		{
-			$this->setError(JText::_('PLG_GROUPS_COLLECTIONS_NOT_AUTH'));
-			return $this->_browse();
+			JError::raiseError(403, JText::_('PLG_GROUPS_COLLECTIONS_NOT_AUTH'));
 		}
 
 		// Output HTML

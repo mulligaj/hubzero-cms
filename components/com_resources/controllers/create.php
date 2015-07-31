@@ -251,6 +251,11 @@ class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 		$preprocess = 'step_' . strtolower($steps[$pre]) . '_process';
 		$activestep = 'step_' . strtolower($steps[$step]);
 
+		if (!method_exists($this, $activestep))
+		{
+			JError::raiseError(404, JText::_('Unknown step.'));
+		}
+
 		// Set the layout to the current step
 		$this->setView('steps', strtolower($steps[$step]));
 
@@ -265,6 +270,11 @@ class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 		// If so, it means we're at least past step 1
 		if (isset($_POST['step']))
 		{
+			if (!method_exists($this, $preprocess))
+			{
+				JError::raiseError(404, JText::_('Unknown step.'));
+			}
+
 			// Perform any preprocessing
 			$this->$preprocess();
 		}
@@ -959,7 +969,7 @@ class ResourcesControllerCreate extends \Hubzero\Component\SiteController
 		$row->group_owner = JRequest::getVar('group_owner', '');
 		$row->access = JRequest::getInt('access', 0);
 
-		if ($row->access > 0 && !$row->group_owner)
+		if ($row->access > 2 && !$row->group_owner)
 		{
 			$this->setError(JText::_('Please select a group to restrict access to.'));
 			$this->step--;

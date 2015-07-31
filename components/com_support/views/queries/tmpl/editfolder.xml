@@ -2,7 +2,7 @@
 
 <!--
 @package        hubzero-cms
-@file           components/com_forum/models/forms/category.xml
+@file           components/com_support/views/ticket/tmpl/default.xml
 @copyright      Copyright 2005-2011 Purdue University. All rights reserved.
 @license        http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
 
@@ -27,9 +27,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 HUBzero is a registered trademark of Purdue University.
 -->
 
-<form>
-	<fieldset>
-		<field name="asset_id" type="hidden" filter="unset"/>
-		<field name="rules" type="rules" label="JFIELD_RULES_LABEL" translate_label="false" class="inputbox" filter="rules" component="com_forum" section="category" validate="rules" />
-	</fieldset>
-</form>
+<metadata>
+	<layout title="Edit Query Folder">
+		<message>
+			<![CDATA[Edit Query Folder]]>
+		</message>
+	</layout>
+	<state>
+		<name>Edit Query Folder</name>
+		<description>Edit Query Folder</description>
+		<params>
+		</params>
+	</state>
+</metadata>

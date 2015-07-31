@@ -32,26 +32,26 @@ defined('_JEXEC') or die('Restricted access');
 
 
 /**
- * Product type handler. Parent class for all type handlers.
+ * Custom handler. Parent class for all custom handlers.
  */
 class Custom_Handler
 {
-    // Database instance
-    var $db = NULL;
+	// Database instance
+	var $db = NULL;
 
-    // Item info
-    var $item;
+	// Item info
+	var $item;
 
-    // Cart ID
-    var $crtId;
+	// Cart ID
+	var $crtId;
 
-    /**
-     * Constructor
-     *
-     */
-    public function __construct($item, $crtId)
-    {
-        $this->item = $item;
-        $this->crtId = $crtId;
-    }
+	/**
+	 * Constructor
+	 *
+	 */
+	public function __construct($item, $crtId)
+	{
+		$this->item = $item;
+		$this->crtId = $crtId;
+	}
 }

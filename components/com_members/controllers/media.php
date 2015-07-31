@@ -75,6 +75,11 @@ class MembersControllerMedia extends \Hubzero\Component\SiteController
 		//load profile from id
 		$this->view->profile = \Hubzero\User\Profile::getInstance($id);
 
+		if (!$this->view->profile)
+		{
+			JError::raiseError(404, JText::_('MEMBERS_NO_ID'));
+		}
+
 		//instantiate view and pass needed vars
 		$this->view->setLayout('upload');
 		$this->view->config = $this->config;
@@ -96,7 +101,7 @@ class MembersControllerMedia extends \Hubzero\Component\SiteController
 	public function doajaxuploadTask()
 	{
 		// Check for request forgeries
-		JRequest::checkToken(array('get', 'post')) or jexit('Invalid Token');
+		//JRequest::checkToken(array('get', 'post')) or jexit('Invalid Token');
 
 		//allowed extensions for uplaod
 		$allowedExtensions = array('png', 'jpe', 'jpeg', 'jpg', 'gif');
@@ -247,7 +252,7 @@ class MembersControllerMedia extends \Hubzero\Component\SiteController
 	public function ajaxuploadsaveTask()
 	{
 		// Check for request forgeries
-		JRequest::checkToken(array('get', 'post')) or jexit('Invalid Token');
+		JRequest::checkToken() or jexit('Invalid Token');
 
 		//get the user id
 		$id = JRequest::getInt('id', 0);

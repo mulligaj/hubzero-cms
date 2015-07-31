@@ -30,7 +30,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_ROOT . DS . 'components' . DS . 'com_cart' . DS . 'models' . DS . 'Cart.php');
+require_once(PATH_CORE . DS . 'components' . DS . 'com_cart' . DS . 'models' . DS . 'Cart.php');
 
 /**
  * Current user shopping cart
@@ -69,17 +69,14 @@ class CartModelCurrentCart extends CartModelCart
 		$cart = $this->liftSessionCart();
 
 		// If no session cart, try to locate a cookie cart (only for not logged in users)
-		if (!$cart && $juser->get('guest'))
-		{
+		if (!$cart && $juser->get('guest')) {
 			$cart = $this->liftCookie();
 		}
 
-		if ($cart)
-		{
+		if ($cart) {
 			// If cart found and user is logged in, verify if the cart is linked to the user cart in the DB
 			if (!$juser->get('guest')) {
-				if (empty($this->cart->linked) || !$this->cart->linked)
-				{
+				if (empty($this->cart->linked) || !$this->cart->linked) {
 					// link carts if not linked (this should only happen when user logs in with a cart created while not logged in)
 					// if linking fails create a new cart
 					if (!$this->linkCarts()) {
@@ -87,22 +84,18 @@ class CartModelCurrentCart extends CartModelCart
 					}
 				}
 			} // Make sure cart is marked as unlinked is the user is not logged in
-			else
-			{
+			else {
 				$this->cart->linked = 0;
 			}
 		} // If no session & cookie cart found, but user is logged in
-		elseif (!$juser->get('guest'))
-		{
+		elseif (!$juser->get('guest')) {
 			// Try to get the saved cart in the DB
-			if (!$this->liftUserCart($juser->id))
-			{
+			if (!$this->liftUserCart($juser->id)) {
 				// If no session, no cookie, no DB cart -- create a brand new cart
 				$this->createCart();
 			}
 		} // No session, no cookie -- create new cart
-		else
-		{
+		else {
 			$this->createCart();
 		}
 	}
@@ -210,8 +203,7 @@ class CartModelCurrentCart extends CartModelCart
 
 		$cartItems = $this->cart->items;
 
-		foreach ($items as $item)
-		{
+		foreach ($items as $item) {
 			// Build item name
 			$itemName = false;
 			if (!empty($cartItems[$item->sId]['info']->pName))
@@ -240,11 +232,9 @@ class CartModelCurrentCart extends CartModelCart
 
 			if (!empty($item->crtiOldQty) && $item->crtiOldQty > $item->crtiQty)
 			{
-				if ($item->crtiQty)
-				{
+				if ($item->crtiQty) {
 					$changes[] = array($itemName . ' inventory reduced from ' . $item->crtiOldQty . ' to ' . $item->crtiQty, 'info');
-				} else
-				{
+				} else {
 					$changes[] = array($itemName . ' is no longer in stock', 'info');
 				}
 			}
@@ -259,8 +249,7 @@ class CartModelCurrentCart extends CartModelCart
 		$this->cart->hasChanges = false;
 
 		// Reset all messages
-		if (!empty($changes))
-		{
+		if (!empty($changes)) {
 			// Delete zero inventory items and unavailable SKUs
 			$sql = "DELETE FROM `#__cart_cart_items` WHERE (`crtiQty` = 0  OR `crtiAvailable` = 0) AND `crtId` = {$this->crtId}";
 			$this->_db->setQuery($sql);
@@ -360,11 +349,11 @@ class CartModelCurrentCart extends CartModelCart
 	{
 		if ($where == 'home')
 		{
-			$redirect_url  = JRoute::_('index.php?option=' . 'com_cart');
+			$redirect_url  = Route::url('index.php?option=' . 'com_cart');
 		}
 		else
 		{
-			$redirect_url  = JRoute::_('index.php?option=' . 'com_cart') . '/checkout/' . $where;
+			$redirect_url  = Route::url('index.php?option=' . 'com_cart') . '/checkout/' . $where;
 		}
 
 		$app  =  JFactory::getApplication();
@@ -382,23 +371,16 @@ class CartModelCurrentCart extends CartModelCart
 	public function getNextCheckoutStep()
 	{
 		// Get DB steps for this transaction
-		$sql = "SELECT `tsStep`, `tsMeta` FROM `#__cart_transaction_steps` ts WHERE ts.`tId` = {$this->cart->tId} AND ts.`tsStatus` < 1 ORDER BY tsId DESC";
+		$sql = "SELECT `tsStep` FROM `#__cart_transaction_steps` ts WHERE ts.`tId` = {$this->cart->tId} AND ts.`tsStatus` < 1 ORDER BY tsId DESC";
 		$this->_db->setQuery($sql);
-		$nextStep = $this->_db->loadObject();
+		$nextStep = $this->_db->loadResult();
 
-		// Intitialize stepInfo
-		$stepInfo = new stdClass();
-
-		if (empty($nextStep))
+		if (!$nextStep)
 		{
-			$stepInfo->step = 'summary';
-		}
-		else {
-			$stepInfo->step = $nextStep->tsStep;
-			$stepInfo->meta = $nextStep->tsMeta;
+			$nextStep = 'summary';
 		}
 
-		return $stepInfo;
+		return $nextStep;
 	}
 
 	/**
@@ -517,18 +499,18 @@ class CartModelCurrentCart extends CartModelCart
 
 		foreach ($requiredFields as $field)
 		{
-			$fieldValue = JRequest::getVar($field, false, 'post');
+			$fieldValue = Request::getVar($field, false, 'post');
 			if (empty($fieldValue))
 			{
-				$errors[] = JText::_('COM_CART_FILL_REQUIRED_FIELDS');
+				$errors[] = Lang::txt('COM_CART_FILL_REQUIRED_FIELDS');
 				break;
 			}
 		}
 
 		// Check values
-		if (empty($errors) && !Cart_Helper::validZip(JRequest::getVar('shippingZip', false, 'post', 'string')))
+		if (empty($errors) && !Cart_Helper::validZip(Request::getVar('shippingZip', false, 'post', 'string')))
 		{
-			$errors[] = JText::_('COM_CART_INCORRECT_ZIP');
+			$errors[] = Lang::txt('COM_CART_INCORRECT_ZIP');
 		}
 
 		// Init return object
@@ -537,12 +519,12 @@ class CartModelCurrentCart extends CartModelCart
 		if (empty($errors))
 		{
 			// save shipping info
-			$shippingToFirst = Cart_Helper::escapeDb(JRequest::getVar('shippingToFirst', false, 'post', 'string'));
-			$shippingToLast = Cart_Helper::escapeDb(JRequest::getVar('shippingToLast', false, 'post', 'string'));
-			$shippingAddress = Cart_Helper::escapeDb(JRequest::getVar('shippingAddress', false, 'post', 'string'));
-			$shippingCity = Cart_Helper::escapeDb(JRequest::getVar('shippingCity', false, 'post', 'string'));
-			$shippingState = Cart_Helper::escapeDb(JRequest::getVar('shippingState', false, 'post', 'string'));
-			$shippingZip = Cart_Helper::escapeDb(JRequest::getVar('shippingZip', false, 'post', 'string'));
+			$shippingToFirst = Cart_Helper::escapeDb(Request::getVar('shippingToFirst', false, 'post', 'string'));
+			$shippingToLast = Cart_Helper::escapeDb(Request::getVar('shippingToLast', false, 'post', 'string'));
+			$shippingAddress = Cart_Helper::escapeDb(Request::getVar('shippingAddress', false, 'post', 'string'));
+			$shippingCity = Cart_Helper::escapeDb(Request::getVar('shippingCity', false, 'post', 'string'));
+			$shippingState = Cart_Helper::escapeDb(Request::getVar('shippingState', false, 'post', 'string'));
+			$shippingZip = Cart_Helper::escapeDb(Request::getVar('shippingZip', false, 'post', 'string'));
 
 			if ($this->debug)
 			{
@@ -559,7 +541,7 @@ class CartModelCurrentCart extends CartModelCart
 			$this->_db->setQuery($sql);
 			$this->_db->query();
 
-			$saveAddress = Cart_Helper::escapeDb(JRequest::getVar('saveAddress', false, 'post', 'string'));
+			$saveAddress = Cart_Helper::escapeDb(Request::getVar('saveAddress', false, 'post', 'string'));
 			// Save the address for future use if requested
 			if ($saveAddress)
 			{
@@ -599,7 +581,7 @@ class CartModelCurrentCart extends CartModelCart
 
 		if (empty($this->tInfo))
 		{
-			throw new Exception(JText::_('No transaction info.'));
+			throw new Exception(Lang::txt('No transaction info.'));
 		}
 
 		$shippingDiscountAmount = 0;
@@ -635,24 +617,6 @@ class CartModelCurrentCart extends CartModelCart
 				`tiShipping` = " . $this->_db->quote($shippingCost) . ",
 				`tiShippingDiscount` = " . $this->_db->quote($shippingDiscountAmount) . "
 				WHERE `tId` = " . $this->_db->quote($this->cart->tId);
-
-		$this->_db->setQuery($sql);
-		$this->_db->query();
-	}
-
-	/**
-	 * Set the meta information for a given transaction item
-	 *
-	 * @param int 		sId		SKU id of the item that needs to e updated
-	 * @param mixed		meta	Meta info
-	 * @return void
-	 */
-	public function setTransactionItemMeta($sId, $meta)
-	{
-		$sql = "UPDATE `#__cart_transaction_items` SET
-				`tiMeta` = " . $this->_db->quote($meta) . "
-				WHERE `tId` = " . $this->_db->quote($this->cart->tId) . "
-				AND `sId` = " . $this->_db->quote($sId);
 
 		$this->_db->setQuery($sql);
 		$this->_db->query();
@@ -724,8 +688,7 @@ class CartModelCurrentCart extends CartModelCart
 
 		$affectedRows = $this->_db->getAffectedRows();
 
-		if (!$affectedRows)
-		{
+		if (!$affectedRows) {
 			return false;
 		}
 
@@ -743,7 +706,7 @@ class CartModelCurrentCart extends CartModelCart
 		// check if the address correct
 		if (!Cart_Helper::isNonNegativeInt($saId))
 		{
-			throw new Exception(JText::_('COM_CART_INCORRECT_SAVED_SHIPPING_ADDRESS'));
+			throw new Exception(Lang::txt('COM_CART_INCORRECT_SAVED_SHIPPING_ADDRESS'));
 		}
 
 		$sql = "SELECT * FROM `#__cart_saved_addresses` WHERE `saId` = " . $this->_db->quote($saId);
@@ -752,7 +715,7 @@ class CartModelCurrentCart extends CartModelCart
 
 		if ($this->_db->getNumRows() < 1)
 		{
-			throw new Exception(JText::_('COM_CART_INCORRECT_SAVED_SHIPPING_ADDRESS'));
+			throw new Exception(Lang::txt('COM_CART_INCORRECT_SAVED_SHIPPING_ADDRESS'));
 		}
 
 		$sql = "UPDATE `#__cart_transaction_info` ti, (SELECT * FROM `#__cart_saved_addresses` WHERE `saId` = " . $this->_db->quote($saId) . ") sa
@@ -781,7 +744,7 @@ class CartModelCurrentCart extends CartModelCart
 	{
 		if (empty($this->tInfo))
 		{
-			throw new Exception(JText::_(COM_CART_NO_TRANSACTION_FOUND));
+			throw new Exception(Lang::txt(COM_CART_NO_TRANSACTION_FOUND));
 		}
 
 		return md5(parent::$securitySalt . $this->tInfo->tId);
@@ -799,7 +762,7 @@ class CartModelCurrentCart extends CartModelCart
 		{
 			if (empty($this->tInfo))
 			{
-				throw new Exception(JText::_(COM_CART_NO_TRANSACTION_FOUND));
+				throw new Exception(Lang::txt(COM_CART_NO_TRANSACTION_FOUND));
 			}
 			$tId = $this->tInfo->tId;
 		}
@@ -817,7 +780,7 @@ class CartModelCurrentCart extends CartModelCart
 	{
 		if (empty($this->tInfo))
 		{
-			throw new Exception(JText::_(COM_CART_NO_TRANSACTION_FOUND));
+			throw new Exception(Lang::txt(COM_CART_NO_TRANSACTION_FOUND));
 		}
 
 		$tiTotal = $this->tInfo->tiSubtotal + $this->tInfo->tiShipping - $this->tInfo->tiShippingDiscount - $this->tInfo->tiDiscounts;
@@ -834,19 +797,21 @@ class CartModelCurrentCart extends CartModelCart
 	 * Mark step for current transaction as completed (default) or not-completed
 	 *
 	 * @param 	string Step
-	 * @param 	mixed Meta key to match the step among multiple of the same type (eg transaction can have multiple EULA steps for each SKU)
 	 * @param 	bool Completed (true) ar not completed (false)
 	 * @return 	bool
 	 */
-	public function setStepStatus($step, $meta = '', $status = true)
+	public function setStepStatus($step, $status = true)
 	{
+		$allowedSteps = array('shipping');
+
+		if (!in_array($step, $allowedSteps))
+		{
+			return false;
+		}
+
 		$sql = "UPDATE `#__cart_transaction_steps`
 				SET `tsStatus` = " .  $this->_db->quote($status) . "
 				WHERE `tId` = {$this->cart->tId} AND `tsStep` = '{$step}'";
-		if (!empty($meta))
-		{
-			$sql .= "AND `tsMeta` = '{$meta}'";
-		}
 		$this->_db->setQuery($sql);
 		$this->_db->query();
 
@@ -871,9 +836,8 @@ class CartModelCurrentCart extends CartModelCart
 		$this->cartCoupons = $this->getCoupons();
 
 		// Check if coupon has already been applied
-		if ($this->isCouponApplied($couponCode))
-		{
-			throw new Exception(JText::_('COM_CART_COUPON_ALREADY_APPLIED'));
+		if ($this->isCouponApplied($couponCode)) {
+			throw new Exception(Lang::txt('COM_CART_COUPON_ALREADY_APPLIED'));
 		}
 
 		$cnId = $coupons->isValid($couponCode);
@@ -966,7 +930,7 @@ class CartModelCurrentCart extends CartModelCart
 		}
 
 		// Coupon is not applicable
-		throw new Exception(JText::_('COM_CART_CANNOT_APPLY_COUPON'));
+		throw new Exception(Lang::txt('COM_CART_CANNOT_APPLY_COUPON'));
 	}
 
 	/**
@@ -1105,7 +1069,7 @@ class CartModelCurrentCart extends CartModelCart
 				case 'shipping':
 					break;
 				default:
-					throw new Exception(JText::_('Invalid coupon. Invalid object type.'));
+					throw new Exception(Lang::txt('Invalid coupon. Invalid object type.'));
 			}
 
 			// Get coupon action in case we need to apply it.
@@ -1129,12 +1093,12 @@ class CartModelCurrentCart extends CartModelCart
 				// make sure discount is numeric
 				if (!is_numeric($couponDiscount))
 				{
-					throw new Exception(JText::_('Invalid coupon. Invalid discount amount ' . $couponDiscount . '.'));
+					throw new Exception(Lang::txt('Invalid coupon. Invalid discount amount ' . $couponDiscount . '.'));
 				}
 
 			}
 			else {
-				throw new Exception(JText::_('Invalid coupon. Invalid action type.'));
+				throw new Exception(Lang::txt('Invalid coupon. Invalid action type.'));
 			}
 
 			// Check if we need to match against the object type to make sure the coupon is applicable
@@ -1143,7 +1107,7 @@ class CartModelCurrentCart extends CartModelCart
 				// check if there are options available
 				if (empty($coupon->objects))
 				{
-					throw new Exception(JText::_('Invalid coupon. No object found.'));
+					throw new Exception(Lang::txt('Invalid coupon. No object found.'));
 				}
 
 				// Go through each coupon object and try to find a match in a cart
@@ -1212,7 +1176,7 @@ class CartModelCurrentCart extends CartModelCart
 							}
 							else
 							{
-								throw new Exception(JText::_('Invalid coupon. Only discounts are available for SKUs and products'));
+								throw new Exception(Lang::txt('Invalid coupon. Only discounts are available for SKUs and products'));
 							}
 
 							if ($couponObjectType == 'sku')
@@ -1233,8 +1197,7 @@ class CartModelCurrentCart extends CartModelCart
 			}
 			// Coupon is generic, not item based and not shipping.
 			// All item coupons have been processed by this time, save to calculate total discounts
-			elseif ($couponObjectType != 'shipping')
-			{
+			elseif ($couponObjectType != 'shipping') {
 				// Initialize the perk
 				unset($perk);
 				$perk = new stdClass();
@@ -1394,7 +1357,7 @@ class CartModelCurrentCart extends CartModelCart
 				$itemInfo = $item['info'];
 
 				// Get product type
-				require_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Warehouse.php');
+				require_once(PATH_CORE . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Warehouse.php');
 				$warehouse = new StorefrontModelWarehouse();
 				$pType = $warehouse->getProductTypeInfo($itemInfo->ptId);
 				$type = $pType['ptName'];
@@ -1671,7 +1634,7 @@ class CartModelCurrentCart extends CartModelCart
 		}
 
 		// If cookie exists, check if this is not pointing to a members' cart and load it.
-		$crtId = JRequest::getVar('cartId', '', 'COOKIE');
+		$crtId = Request::getVar('cartId', '', 'COOKIE');
 
 		if (!empty($crtId) && !$this->cartIsLinked($crtId))
 		{
@@ -1824,7 +1787,7 @@ class CartModelCurrentCart extends CartModelCart
 		else
 		{
 			// Get a static instance of the users' cart
-			require_once(JPATH_ROOT . DS . 'components' . DS . 'com_cart' . DS . 'models' . DS . 'UserCart.php');
+			require_once(PATH_CORE . DS . 'components' . DS . 'com_cart' . DS . 'models' . DS . 'UserCart.php');
 			$userCart = new CartModelUserCart($userCartId);
 			// Get items from the user's cart to see if it is empty or nor
 			$userCartItems = $userCart->getCartItems();
@@ -1832,7 +1795,7 @@ class CartModelCurrentCart extends CartModelCart
 			// If both session and user carts are not empty notify the user that items are being combined
 			if (!$this->isEmpty() && !empty($userCartItems))
 			{
-				$this->cart->messages[] = array(JText::_('COM_CART_ITEMS_COMBINED'), 'info');
+				$this->cart->messages[] = array(Lang::txt('COM_CART_ITEMS_COMBINED'), 'info');
 				$this->cart->hasMessages = true;
 			}
 
@@ -1961,16 +1924,13 @@ class CartModelCurrentCart extends CartModelCart
 		// Add cart items to transaction
 		$sqlValues = '';
 
-		// Initialize required steps, split it into logical parts
-		$preSteps = array();
-		$postSteps = array();
+		// Initialize required steps
+		$steps = array();
 
 		require_once(JPATH_BASE . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Warehouse.php');
 		$warehouse = new StorefrontModelWarehouse();
 
 		$transactionSubtotalAmount = 0;
-
-		//print_r($cartItems); die;
 
 		foreach ($cartItems as $sId => $skuInfo)
 		{
@@ -1982,32 +1942,10 @@ class CartModelCurrentCart extends CartModelCart
 
 			$transactionSubtotalAmount += ($skuInfo['info']->sPrice * $skuInfo['cartInfo']->qty);
 
-			/* Steps */
-
-			// EULA: for software, license agreement may be needed, if so, add the step for each product
-
-			// get product type
-			$productInfo = $warehouse->getProductInfo($skuInfo['info']->pId);
-			// if soft, check if EULA is needed
-			if ($productInfo->ptModel == 'software')
+			// check steps
+			if ($skuInfo['info']->ptId == 1 && !in_array('shipping', $steps))
 			{
-				$productMeta = $warehouse->getProductMeta($skuInfo['info']->pId);
-				// If EULA is needed, add step, note the EULA required for each SKU, so for multiple SKUs of the same product, multiple EULA will be required
-				if (!empty($productMeta['eulaRequired']) && $productMeta['eulaRequired']->pmValue)
-				{
-					$step = new stdClass();
-					$step->name = 'eula';
-					$step->meta = $sId;
-					$preSteps[] = $step;
-				}
-			}
-
-			// shipping: if any of the products require shipping, add the shipping step
-			if ($skuInfo['info']->ptId == 1 && !in_array('shipping', $postSteps))
-			{
-				$step = new stdClass();
-				$step->name = 'shipping';
-				$postSteps[] = $step;
+				$steps[] = 'shipping';
 			}
 
 			// lock items
@@ -2019,13 +1957,10 @@ class CartModelCurrentCart extends CartModelCart
 		$this->_db->setQuery($sql);
 		$this->_db->query();
 
-		// merge pre- and post- steps to ensure the correct order
-		$steps = array_merge($preSteps, $postSteps);
 		// populate steps
 		foreach ($steps as $step)
 		{
-			$sql = "INSERT INTO `#__cart_transaction_steps` (`tId`, `tsStep`, `tsMeta`)
-					VALUES ({$this->cart->tId}, '{$step->name}', '{$step->meta}')";
+			$sql = "INSERT INTO `#__cart_transaction_steps` (`tId`, `tsStep`) VALUES ({$this->cart->tId}, '{$step}')";
 			$this->_db->setQuery($sql);
 			$this->_db->query();
 		}

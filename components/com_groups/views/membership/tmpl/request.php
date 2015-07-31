@@ -48,7 +48,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 
 <section class="main section">
 	<?php
-		foreach($this->notifications as $notification)
+		foreach ($this->notifications as $notification)
 		{
 			echo "<p class=\"{$notification['type']}\">{$notification['message']}</p>";
 		}
@@ -72,6 +72,7 @@ defined('_JEXEC') or die( 'Restricted access' );
 			<input type="hidden" name="controller" value="membership" />
 			<input type="hidden" name="cn" value="<?php echo $this->group->get('cn'); ?>" />
 			<input type="hidden" name="task" value="dorequest" />
+			<?php echo JHTML::_('form.token'); ?>
 		</fieldset>
 		<div class="clear"></div>
 
