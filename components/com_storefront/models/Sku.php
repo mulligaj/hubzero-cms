@@ -51,6 +51,7 @@ class StorefrontModelSku
 	 */
 	public function __construct()
 	{
+		$this->data = new stdClass();
 	}
 
 	/**
@@ -98,7 +99,7 @@ class StorefrontModelSku
 
 	public function verify()
 	{
-		if (empty($this->data->price))
+		if (!isset($this->data->price) || !is_numeric($this->data->price))
 		{
 			throw new Exception(JText::_('No SKU price'));
 		}
@@ -234,7 +235,10 @@ class StorefrontModelSku
 
 	public function getMeta()
 	{
-		return $this->data->meta;
+		if (!empty($this->data->meta))
+		{
+			return $this->data->meta;
+		}
 	}
 
 	/*
