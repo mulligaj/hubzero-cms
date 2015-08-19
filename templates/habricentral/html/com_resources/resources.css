@@ -59,7 +59,8 @@ section.upperpane .subject, .upperpane .subject {
 .com_resources .col.span-third .governmentdocument:before {
 	content: "\f068";
 }
-.com_resources .col.span-third .video:before {
+.com_resources .col.span-third .video:before,
+.com_resources .col.span-third .vid:before {
 	content: "\f008";
 }
 .com_resources .col.span-third .these:before {

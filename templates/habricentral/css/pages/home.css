@@ -258,6 +258,66 @@
 		margin: 1em 0;
 	}
 
+	/* Feed */	
+	ul.feed {
+		margin: 1em 0;
+		padding: 0;
+		list-style: none;
+	}
+	
+	ul.feed li .item {
+		background: #efefef;
+		border: 1px solid #d3d3d3;
+		-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		-moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		-webkit-border-radius: 0.25em;
+		-moz-border-radius: 0.25em;
+		border-radius: 0.25em;
+		margin: 0;
+		padding: 0;
+	}
+	ul.feed li .item h4 {
+		background: #fff;
+		margin: 0;
+		padding-left: 1.618em;
+		padding-right: 1.618em;
+		font-weight: normal;
+	}
+	.item h4:last-of-type {
+		border-bottom: 1px solid #d3d3d3;
+		padding-bottom: 1.618em;
+	}
+	.item h4:first-child {
+		padding-top: 1.618em;
+		padding-bottom: 0.6em;
+	}
+	
+	ul.feed li .item .new-date {
+		display: block;
+		font-size: 90%;
+		color: #999;
+	}
+	
+	ul.feed li .item p {
+		margin: 0;
+		padding: 1.618em;
+	}
+	ul.feed li .item .new-date {
+		display: block;
+		font-size: 90%;
+		color: #999;
+	}
+	ul.feed li .item .new-details a {
+		color: #666;
+		border: none;
+		font-weight: bold;
+	}
+	ul.feed li .item .new-details a:hover {
+		color: #333;
+		border-bottom: 1px solid #333;
+	}
+
 /* Items list */
 	ul.new {
 		margin: 1em 0;

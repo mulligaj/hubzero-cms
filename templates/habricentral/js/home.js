@@ -19,6 +19,7 @@ if (jQuery) {
 
 		var section = $('div.highlight-section');
 		if (section.length > 0) {
+			console.log(section);
 			section.find('li').hide();
 
 			var cols = section.find('div.col'),

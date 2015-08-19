@@ -1,0 +1,28 @@
+@import url("/modules/mod_newsletter/mod_newsletter.css");
+
+.newsletter-subscribe .item {
+	background: #fff;
+	border: 1px solid #d3d3d3;
+	-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	-moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	-webkit-border-radius: 0.25em;
+	-moz-border-radius: 0.25em;
+	border-radius: 0.25em;
+	margin: 1em 0 0 0;
+	padding: 1.618em;
+}
+
+.newsletter-subscribe .item span {
+	color: #aaa;
+}
+
+.newsletter-subscribe .item input {
+	-webkit-box-sizing: content-box;
+	-moz-box-sizing: content-box;
+	box-sizing: content-box;
+}
+
+.newsletter-subscribe .item .btn {
+	margin-top: 1em;
+}
