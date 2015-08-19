@@ -474,10 +474,15 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			'state'      => 1,
 			'access'     => 0
 		);
-		if (!$this->juser->get('guest'))
-		{
-			$this->view->filters['access'] = array(0, 1, 3);
-		}
+
+		/*
+		 * See ticket Qubes #311
+		 * Kevin Wojkovich - 8/12/2015
+		 */
+		//if (!$this->juser->get('guest'))
+		//{
+		//	$this->view->filters['access'] = array(0, 1, 3);
+		//}
 		if (in_array($this->juser->get('id'), $this->members))
 		{
 			$this->view->filters['access'] = array(0, 1, 3, 4);
@@ -485,7 +490,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 
 		$this->view->edit = JRequest::getVar('section', '');
 
-		$this->view->sections = $this->model->sections('list', array('state' => 1));
+		$this->view->sections = $this->model->sections('list', $this->view->filters);
 
 		$this->view->model = $this->model;
 
@@ -797,6 +802,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			'state'      => 1,
 			'access'     => 0
 		);
+
 		if (!$this->juser->get('guest'))
 		{
 			$this->view->filters['access'] = array(0, 1, 3);
