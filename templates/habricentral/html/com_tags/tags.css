@@ -37,11 +37,12 @@
 	}
 	
 	.related .tags {
-		margin:10px !important;
-		}
+		padding:10px !important;
+		background: #fff;
+	}
 	.related .tags a {
 		margin-right:5px;
-		}
+	}
 	.tag-description {
 		padding:1em;
 	}
@@ -49,7 +50,14 @@
 	.results .title {
 		padding-right: 200px;
 	}
-	
+	.container-block {
+		padding: 0;
+	}
+	.related ol.tags,
+	.container .results {
+		border: 2px solid #e9e9e9;
+		border-top: none;
+	}
 	.container .results p.title {
 		margin-left: 10px;
 	}
