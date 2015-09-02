@@ -30,7 +30,7 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-JToolBarHelper::title(JText::_('COM_STOREFRONT') . ': Delete Products', 'kb.png');
+JToolBarHelper::title(JText::_('COM_STOREFRONT') . ': Delete SKU', 'kb.png');
 JToolBarHelper::cancel();
 
 ?>
@@ -48,31 +48,32 @@ function submitbutton(pressbutton)
 <form action="<?php echo JRoute::_('index.php?option=' . $this->option  . '&controller=' . $this->controller . '&task=' . $this->task . '&step=2'); ?>" method="post" name="adminForm" id="adminForm">
 	<table class="adminlist">
 		<thead>
-		<tr>
-			<th><?php echo JText::_('Are you sure you want to delete all selected SKUs?'); ?></th>
-		</tr>
+			<tr>
+				<th><?php echo JText::_('Are you sure you want to delete all selected options?'); ?></th>
+			</tr>
 		</thead>
 		<tbody>
-		<tr>
-			<td>
-				<input type="checkbox" name="delete" value="delete"
-					   id="field-delete">
-				<label for="field-delete">I'm positive. Go ahead and do the delete.</label>
-			</td>
-		</tr>
-		<tr>
-			<td><input type="submit" name="Submit" value="<?php echo JText::_('COM_STOREFRONT_NEXT'); ?>" /></td>
-		</tr>
+			<tr>
+				<td>
+					<input type="checkbox" name="delete" value="delete"
+						   id="field-delete">
+					<label for="field-delete">I'm positive. Go ahead and do the delete.</label>
+				</td>
+			</tr>
+			<tr>
+				<td><input type="submit" name="Submit" value="<?php echo JText::_('COM_STOREFRONT_NEXT'); ?>" /></td>
+			</tr>
 		</tbody>
 	</table>
 
 	<input type="hidden" name="task" value="<?php echo $this->task; ?>" />
 	<?php
-	foreach ($this->pIds as $pId)
-	{
-		echo '<input type="hidden" name="pIds[]" value="' . $pId . '" />';
-	}
+		foreach ($this->oId as $oId)
+		{
+			echo '<input type="hidden" name="oId[]" value="' . $oId . '" />';
+		}
 	?>
+	<input type="hidden" name="ogId" value="<?php echo $this->ogId; ?>">
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>">
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>">
 
