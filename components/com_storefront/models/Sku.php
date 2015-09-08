@@ -40,8 +40,8 @@ include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'mode
  */
 class StorefrontModelSku
 {
-
 	var $data;
+	private $db;
 
 	/**
 	 * Contructor
@@ -52,6 +52,7 @@ class StorefrontModelSku
 	public function __construct()
 	{
 		$this->data = new stdClass();
+		$this->db = JFactory::getDBO();
 	}
 
 	/**
@@ -60,21 +61,62 @@ class StorefrontModelSku
 	 * @param	double		price
 	 * @return	bool		true on success, exception otherwise
 	 */
-	public function setPrice($productPrice)
+	public function setPrice($price)
 	{
-		if (!is_numeric($productPrice))
+		if (!is_numeric($price))
 		{
-			throw new Exception(JText::_('Price must be numeric'));
+			$price = 0;
+			//throw new Exception(JText::_('Price must be numeric'));
 		}
 
-		$this->data->price = $productPrice;
+		$this->data->price = $price;
 		return true;
 	}
 
 	public function getPrice()
 	{
+		if (empty($this->data->price))
+		{
+			return NULL;
+		}
 		return $this->data->price;
 	}
+
+	public function setName($skuName)
+	{
+		$this->data->name = $skuName;
+		return true;
+	}
+
+	public function getName()
+	{
+		if (empty($this->data->name))
+		{
+			return NULL;
+		}
+		return $this->data->name;
+	}
+
+	public function setWeight($weight)
+	{
+		if (!is_numeric($weight))
+		{
+			throw new Exception(JText::_('Weight must be numeric'));
+		}
+
+		$this->data->weight = $weight;
+		return true;
+	}
+
+	public function getWeight()
+	{
+		if (empty($this->data->weight))
+		{
+			return NULL;
+		}
+		return $this->data->weight;
+	}
+
 
 	/**
 	 * Set ID
@@ -97,12 +139,136 @@ class StorefrontModelSku
 		return $this->data->id;
 	}
 
+	public function setProductId($pId)
+	{
+		if (!is_numeric($pId))
+		{
+			throw new Exception(JText::_('Price must be numeric'));
+		}
+		$this->data->pId = $pId;
+		return true;
+	}
+
+	public function getProductId()
+	{
+		if (empty($this->data->pId))
+		{
+			return NULL;
+		}
+		return $this->data->pId;
+	}
+
 	public function verify()
 	{
 		if (!isset($this->data->price) || !is_numeric($this->data->price))
 		{
 			throw new Exception(JText::_('No SKU price'));
 		}
+		if (!isset($this->data->pId) || !is_numeric($this->data->pId))
+		{
+			throw new Exception(JText::_('No SKU Product Set'));
+		}
+	}
+
+	// TODO: Move saving logic here from warehouse
+	public function save()
+	{
+		$this->verify();
+
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Warehouse.php');
+		$warehouse = new StorefrontModelWarehouse();
+
+		$sId = $warehouse->saveSku($this);
+		$this->setId($sId);
+
+		// Save options
+		if (isset($this->data->options))
+		{
+			$sql = 'DELETE FROM `#__storefront_sku_options` WHERE `sId` = ' . $this->db->quote($this->getId());
+			$this->db->setQuery($sql);
+			$this->db->query();
+
+			foreach ($this->data->options as $oId)
+			{
+				if ($oId && $oId > 0)
+				{
+					$sql = 'INSERT INTO `#__storefront_sku_options` (`sId`, `oId`)
+						VALUES (' . $this->db->quote($this->getId()) . ', ' . $this->db->quote($oId) . ')';
+					$this->db->setQuery($sql);
+					$this->db->query();
+				}
+			}
+		}
+
+		return $sId;
+	}
+
+	/**
+	 * Delete a SKU and everything related to it
+	 *
+	 * @param	void
+	 * @return	bool	true on success, exception otherwise
+	 */
+	public function delete()
+	{
+		$this->verify();
+
+		// Delete the SKU record
+		$sql = 'DELETE FROM `#__storefront_skus` WHERE `sId` = ' . $this->db->quote($this->getId());
+		$this->db->setQuery($sql);
+		//print_r($this->db->replacePrefix($this->db->getQuery()));
+		$this->db->query();
+
+		// Delete the SKU-related files
+		//	-- SKU image
+		$imgWebPath = DS . 'site' . DS . 'storefront' . DS . 'products' . DS . $this->getProductId() . DS . $this->getId();
+		$dir = JPATH_ROOT . $imgWebPath;
+
+		if (file_exists($dir))
+		{
+			$it = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
+			$files = new RecursiveIteratorIterator($it,
+				RecursiveIteratorIterator::CHILD_FIRST);
+			foreach ($files as $file)
+			{
+				if ($file->isDir())
+				{
+					rmdir($file->getRealPath());
+				}
+				else
+				{
+					unlink($file->getRealPath());
+				}
+			}
+			rmdir($dir);
+		}
+
+		//	-- SKU downloadFile (?)
+		if ($this->getMeta('downloadFile'))
+		{
+			// Path and file name
+			$dir = JPATH_ROOT . DS . 'media' . DS . 'software';
+			$file = $dir . DS . $this->getMeta('downloadFile');
+
+			if (file_exists($file))
+			{
+				// unlink($file);
+			}
+		}
+
+		// Delete the SKU meta
+		$sql = 'DELETE FROM `#__storefront_sku_meta` WHERE `sId` = ' . $this->db->quote($this->getId());
+		$this->db->setQuery($sql);
+		$this->db->query();
+
+		// Delete the SKU options
+		$sql = 'DELETE FROM `#__storefront_sku_options` WHERE `sId` = ' . $this->db->quote($this->getId());
+		$this->db->setQuery($sql);
+		$this->db->query();
+
+		// TODO Check if the parent product has any SKUs left and mark it unpublished if needed (?)
+
+		return true;
 	}
 
 	public function setAllowMultiple($allowMultiple)
@@ -153,7 +319,7 @@ class StorefrontModelSku
 
 	public function setInventoryLevel($inventoryLevel)
 	{
-		if (!is_numeric($inventoryLevel))
+		if (!is_numeric($inventoryLevel) && $inventoryLevel != 'DEFAULT')
 		{
 			throw new Exception(JText::_('Bad inventory level value'));
 		}
@@ -233,12 +399,21 @@ class StorefrontModelSku
 		$this->data->meta[$key] = $val;
 	}
 
-	public function getMeta()
+	public function getMeta($key = false)
 	{
-		if (!empty($this->data->meta))
+		if (!isset($this->data->meta))
 		{
-			return $this->data->meta;
+			return NULL;
 		}
+		if (!empty($key))
+		{
+			if (!empty($this->data->$key))
+			{
+				return $this->data->key;
+			}
+			return false;
+		}
+		return $this->data->meta;
 	}
 
 	/*
@@ -262,6 +437,24 @@ class StorefrontModelSku
 		}
 
 		return false;
+	}
+
+	public function getOptions()
+	{
+		if (!isset($this->data->options))
+		{
+			$sql = 'SELECT oId';
+			$sql .= ' FROM `#__storefront_sku_options` WHERE `sId` = ' . $this->db->quote($this->getId());
+			$this->db->setQuery($sql);
+			$this->data->options = $this->db->loadColumn();
+		}
+		return $this->data->options;
+	}
+
+	// Overwrites all options
+	public function setOptions($options)
+	{
+		$this->data->options = $options;
 	}
 
 }

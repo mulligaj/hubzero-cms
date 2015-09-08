@@ -43,6 +43,7 @@ class StorefrontModelProduct
 {
 	// Product data container
 	var $data;
+	private $db;
 
 	// Product SKUs
 	var $skus = array();
@@ -59,6 +60,7 @@ class StorefrontModelProduct
 		JFactory::getLanguage()->load('com_storefront');
 
 		$this->data = new stdClass();
+		$this->db = JFactory::getDBO();
 	}
 
 	/**
@@ -98,6 +100,10 @@ class StorefrontModelProduct
 	 */
 	public function getType()
 	{
+		if (empty($this->data->type))
+		{
+			return false;
+		}
 		return $this->data->type;
 	}
 
@@ -121,7 +127,28 @@ class StorefrontModelProduct
 	 */
 	public function getCollections()
 	{
+		if (empty($this->data->collections))
+		{
+			return array();
+		}
 		return $this->data->collections;
+	}
+
+	/**
+	 * Set product collections
+	 *
+	 * @param	array		collection IDs
+	 * @return	void
+	 */
+	public function setCollections($collections)
+	{
+		// Reset old collections
+		$this->data->collections = array();
+
+		foreach ($collections as $cId)
+		{
+			$this->addToCollection($cId);
+		}
 	}
 
 	public function addSku($sku)
@@ -211,6 +238,10 @@ class StorefrontModelProduct
 	 */
 	public function getName()
 	{
+		if (empty($this->data->name))
+		{
+			return false;
+		}
 		return $this->data->name;
 	}
 
@@ -227,14 +258,45 @@ class StorefrontModelProduct
 	}
 
 	/**
-	 * Get product description
+	 * Get product features
 	 *
 	 * @param	void
 	 * @return	string		Product description
 	 */
 	public function getDescription()
 	{
+		if (empty($this->data->description))
+		{
+			return false;
+		}
 		return $this->data->description;
+	}
+
+	/**
+	 * Set product Features
+	 *
+	 * @param	string		Product Features
+	 * @return	bool		true
+	 */
+	public function setFeatures($productFeatures)
+	{
+		$this->data->features = $productFeatures;
+		return true;
+	}
+
+	/**
+	 * Get product Features
+	 *
+	 * @param	void
+	 * @return	string		Product Features
+	 */
+	public function getFeatures()
+	{
+		if (empty($this->data->features))
+		{
+			return false;
+		}
+		return $this->data->features;
 	}
 
 	/**
@@ -262,6 +324,33 @@ class StorefrontModelProduct
 			return NULL;
 		}
 		return $this->data->tagline;
+	}
+
+	/**
+	 * Set product multiple flag
+	 *
+	 * @param	int			allowMultiple
+	 * @return	bool		true
+	 */
+	public function setAllowMultiple($productAllowMiltiple)
+	{
+		$this->data->allowMiltiple = $productAllowMiltiple;
+		return true;
+	}
+
+	/**
+	 * Get product multiple flag
+	 *
+	 * @param	void
+	 * @return	int		allowMultiple
+	 */
+	public function getAllowMultiple()
+	{
+		if (empty($this->data->allowMiltiple))
+		{
+			return NULL;
+		}
+		return $this->data->allowMiltiple;
 	}
 
 	/**
@@ -299,6 +388,12 @@ class StorefrontModelProduct
 	 */
 	public function setActiveStatus($activeStatus)
 	{
+		// This is to accommodate admin's 'trashed' value
+		// TODO redo it properly to allow trashing
+		if ($activeStatus == 2)
+		{
+			$this->data->activeStatus = 0;
+		}
 		if ($activeStatus)
 		{
 			$this->data->activeStatus = 1;
@@ -363,7 +458,9 @@ class StorefrontModelProduct
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Warehouse.php');
 		$warehouse = new StorefrontModelWarehouse();
 
-		return($warehouse->addProduct($this));
+		$productAdded = $warehouse->addProduct($this);
+		$this->setId($productAdded->pId);
+		return($productAdded);
 	}
 
 	/**
@@ -374,10 +471,77 @@ class StorefrontModelProduct
 	 */
 	public function update()
 	{
+		$this->verify();
+
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Warehouse.php');
 		$warehouse = new StorefrontModelWarehouse();
 
 		return($warehouse->updateProduct($this));
+	}
+
+	/**
+	 * Delete the product
+	 *
+	 * @param	void
+	 * @return 	true on success, throws exception on failure
+	 */
+	public function delete()
+	{
+		$this->verify();
+
+		// Delete product record
+		$sql = 'DELETE FROM `#__storefront_products` WHERE `pId` = ' . $this->db->quote($this->getId());
+		$this->db->setQuery($sql);
+		//print_r($this->db->replacePrefix($this->db->getQuery()));
+		$this->db->query();
+
+		// Delete product-related files (product image)
+		$imgWebPath = DS . 'site' . DS . 'storefront' . DS . 'products' . DS . $this->getId();
+		$dir = JPATH_ROOT . $imgWebPath;
+
+		if (file_exists($dir))
+		{
+			$it = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
+			$files = new RecursiveIteratorIterator($it,
+				RecursiveIteratorIterator::CHILD_FIRST);
+			foreach ($files as $file)
+			{
+				if ($file->isDir())
+				{
+					rmdir($file->getRealPath());
+				}
+				else
+				{
+					unlink($file->getRealPath());
+				}
+			}
+			rmdir($dir);
+		}
+
+		// Delete all SKUs
+		$skus = $this->getSkus();
+		foreach ($skus as $sku)
+		{
+			//print_r($sku);
+			$sku->delete();
+		}
+
+		// Delete product-collection relations
+		$sql = 'DELETE FROM `#__storefront_product_collections` WHERE `pId` = ' . $this->db->quote($this->getId());
+		$this->db->setQuery($sql);
+		$this->db->query();
+
+		// Delete product meta
+		$sql = 'DELETE FROM `#__storefront_product_meta` WHERE `pId` = ' . $this->db->quote($this->getId());
+		$this->db->setQuery($sql);
+		$this->db->query();
+
+		// Delete prduct-option groups relations
+		$sql = 'DELETE FROM `#__storefront_product_option_groups` WHERE `pId` = ' . $this->db->quote($this->getId());
+		$this->db->setQuery($sql);
+		$this->db->query();
+
+		//
 	}
 
 	/* ************************************* Static functions ***************************************************/
@@ -413,6 +577,24 @@ class StorefrontModelProduct
 			$meta = $db->loadObjectList();
 		}
 		return $meta;
+	}
+
+	public static function setMeta($pId, $meta)
+	{
+		$db = JFactory::getDBO();
+
+		foreach ($meta as $key => $val)
+		{
+			if ($key != 'pId')
+			{
+				$sql  = "	INSERT INTO `#__storefront_product_meta` (`pmKey`, `pmValue`, `pId`)
+							VALUES (" . $db->quote($key) . ", " . $db->quote($val) . ", " . $db->quote($pId) . ")
+	  						ON DUPLICATE KEY UPDATE `pmValue` = " . $db->quote($val);
+				$db->setQuery($sql);
+				//print_r($db->replacePrefix($db->getQuery()));
+				$db->query();
+			}
+		}
 	}
 
 }
