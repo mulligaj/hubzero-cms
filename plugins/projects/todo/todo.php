@@ -344,7 +344,7 @@ class plgProjectsTodo extends \Hubzero\Plugin\Plugin
 	public function save()
 	{
 		// Check for request forgeries
-		JRequest::checkToken() or jexit('Invalid Token');
+		JRequest::checkToken(array('get', 'post')) or jexit('Invalid Token');
 
 		// Incoming
 		$listcolor	= JRequest::getVar('list', '');
