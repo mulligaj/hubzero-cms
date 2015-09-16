@@ -98,7 +98,7 @@ jQuery(document).ready(function($) {
 			if (dv_settings.serverside) {
 				$('.dv_header_select_all').each(function() {
 					var id = $(this).val();
-					if(dv.selected_cells[id]) {
+					if (typeof dv.selected_cells !== 'undefined' && dv.selected_cells[id]) {
 						for (i=0; i<dv.selected_cells[id].length; i++) {
 							$('.' + id + ':checkbox[value="' + dv.selected_cells[id][i] + '"]').prop('checked', true);
 						}
@@ -760,7 +760,8 @@ jQuery(document).ready(function($) {
 
 	// Show filter dialog
 	var filters = [];
-	var tpl_title = '<li><a href="' + window.location.href + '#dv-filter-tab-{id}">{name}</a></li>';
+	var page_url = window.location.href.replace( /#.*/, "");
+	var tpl_title = '<li><a href="' + page_url + '#dv-filter-tab-{id}">{name}</a></li>';
 	var tpl_field = '<tr><td>{field_name}</td><td><input type="text" class="filter_dialog_field" data-column-index="{idx}" data-column-id="{col_id}" data-filter_hint="{hint}" /></td></tr>';
 
 
