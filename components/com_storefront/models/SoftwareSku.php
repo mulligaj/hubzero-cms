@@ -23,7 +23,7 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
+ * @author    Hubzero
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
@@ -31,26 +31,40 @@
 // Check to ensure this file is included in Joomla!
 defined('_JEXEC') or die('Restricted access');
 
-require_once(JPATH_COMPONENT_SITE . DS . 'helpers' . DS . 'html.php');
-require_once(JPATH_COMPONENT_SITE . DS . 'helpers' . DS . 'date.php');
-require_once(JPATH_COMPONENT_SITE . DS . 'models' . DS . 'tags.php');
-require_once(JPATH_COMPONENT_SITE . DS . 'tables' . DS . 'event.php');
-require_once(JPATH_COMPONENT_SITE . DS . 'tables' . DS . 'category.php');
-require_once(JPATH_COMPONENT_SITE . DS . 'tables' . DS . 'config.php');
-include_once(JPATH_COMPONENT_SITE . DS . 'tables' . DS . 'page.php');
-include_once(JPATH_COMPONENT_SITE . DS . 'tables' . DS . 'respondent.php');
-include_once(JPATH_ROOT . DS . 'libraries' . DS . 'Hubzero' . DS . 'View' . DS .'Helper' . DS . 'Autolink.php');
+include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Sku.php');
 
-$controllerName = JRequest::getCmd('controller', 'events');
-if (!file_exists(JPATH_COMPONENT_SITE . DS . 'controllers' . DS . $controllerName . '.php'))
+/**
+ *
+ * Storefront SKU class
+ *
+ */
+class StorefrontModelSoftwareSku extends StorefrontModelSku
 {
-	$controllerName = 'events';
+	/**
+	 * Contructor
+	 *
+	 * @param  void
+	 * @return void
+	 */
+	public function __construct($sId)
+	{
+		parent::__construct($sId);
+	}
+
+	public function verify()
+	{
+		parent::verify();
+
+		// Check if the download file really exists
+		$params = JComponentHelper::getParams('com_storefront');
+		$downloadFolder = $params->get('downloadFolder');
+		$dir = JPATH_ROOT . $downloadFolder;
+		$file = $dir . DS . $this->data->meta['downloadFile'];
+
+		if (!file_exists($file))
+		{
+			throw new Exception(JText::_('Download file doesn\'t exist'));
+		}
+	}
+
 }
-require_once(JPATH_COMPONENT_SITE . DS . 'controllers' . DS . $controllerName . '.php');
-$controllerName = 'EventsController' . ucfirst(strtolower($controllerName));
-
-// Instantiate controller
-$controller = new $controllerName();
-$controller->execute();
-$controller->redirect();
-

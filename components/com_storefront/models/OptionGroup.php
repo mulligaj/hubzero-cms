@@ -53,7 +53,7 @@ class StorefrontModelOptionGroup
 		$this->data = new stdClass();
 		$this->db = JFactory::getDBO();
 
-		if (isset($ogId) && is_numeric($ogId))
+		if (isset($ogId) && is_numeric($ogId) && $ogId)
 		{
 			$this->load($ogId);
 		}
@@ -76,6 +76,10 @@ class StorefrontModelOptionGroup
 			$this->setId($ogInfo->ogId);
 			$this->setName($ogInfo->ogName);
 			$this->setActiveStatus($ogInfo->ogActive);
+		}
+		else
+		{
+			throw new Exception(JText::_('Error loading option group'));
 		}
 	}
 
