@@ -1,5 +1,13 @@
 @import url("/components/com_tags/assets/css/tags.css");
 
+	#introduction li:before {
+		content: "";
+		display: none;
+	}
+	#content .grid h2 {
+		padding-bottom: 0.5em;
+	}
+
 /* Entries */
 	.entries tbody td a.entry-title {
 		font-size: 1em !important;
