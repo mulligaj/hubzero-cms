@@ -75,7 +75,6 @@ class StorefrontControllerProducts extends \Hubzero\Component\AdminController
 			0,
 			'int'
 		);
-
 		//print_r($this->view->filters);
 
 		$obj = new StorefrontModelArchive();
@@ -152,7 +151,7 @@ class StorefrontControllerProducts extends \Hubzero\Component\AdminController
 	 *
 	 * @return  void
 	 */
-	public function editTask($row=null)
+	public function editTask($row = null)
 	{
 		JRequest::setVar('hidemainmenu', 1);
 
@@ -186,16 +185,24 @@ class StorefrontControllerProducts extends \Hubzero\Component\AdminController
 			$this->view->row = $obj->product($id);
 		}
 
-		// Get product active groups
+		// Get product option groups
 		$this->view->productOptionGroups = $this->view->row->getOptionGroups();
+		$this->view->config = $this->config;
+
+		// Check if meta is needed for this product
+		$pType = $this->view->row->getType();
+		$this->view->metaNeeded = false;
+		// Only software needs meta
+		if ($pType == 30)
+		{
+			$this->view->metaNeeded = true;
+		}
 
 		// Set any errors
 		foreach ($this->getErrors() as $error)
 		{
 			$this->view->setError($error);
 		}
-
-		$this->view->config = $this->config;
 
 		// Output the HTML
 		$this->view
@@ -231,7 +238,53 @@ class StorefrontControllerProducts extends \Hubzero\Component\AdminController
 
 		// Save product
 		try {
-			$product = $obj->updateProduct($fields['pId'], $fields);
+			$product = new StorefrontModelProduct($fields['pId']);
+
+			if (isset($fields['pName']))
+			{
+				$product->setName($fields['pName']);
+			}
+			if (isset($fields['pAlias']))
+			{
+				$product->setAlias($fields['pAlias']);
+			}
+			if (isset($fields['pDescription'])) {
+				$product->setDescription($fields['pDescription']);
+			}
+			if (isset($fields['pFeatures'])) {
+				$product->setFeatures($fields['pFeatures']);
+			}
+			if (isset($fields['pTagline']))
+			{
+				$product->setTagline($fields['pTagline']);
+			}
+			if (isset($fields['access']))
+			{
+				$product->setAccessLevel($fields['access']);
+			}
+			if (isset($fields['state']))
+			{
+				$product->setActiveStatus($fields['state']);
+			}
+			if (isset($fields['ptId']))
+			{
+				$product->setType($fields['ptId']);
+			}
+			if (isset($fields['pAllowMultiple']))
+			{
+				$product->setAllowMultiple($fields['pAllowMultiple']);
+			}
+
+			if (!isset($fields['collections'])) {
+				$fields['collections'] = array();
+			}
+			$product->setCollections($fields['collections']);
+
+			if (!isset($fields['optionGroups'])) {
+				$fields['optionGroups'] = array();
+			}
+			$product->setOptionGroups($fields['optionGroups']);
+			$product->save();
 		}
 		catch (Exception $e)
 		{
@@ -242,29 +295,14 @@ class StorefrontControllerProducts extends \Hubzero\Component\AdminController
 			return;
 		}
 
-		// when saving product need to check all active product SKUs and disable those that do not verify anymore
-		$skus = $product->getSkus();
-		$skusDisabled = false;
-		foreach ($skus as $sku)
-		{
-			if ($sku->getActiveStatus())
-			{
-				try
-				{
-					$sku->verify();
-				}
-				catch (Exception $e)
-				{
-					$sku->unpublish();
-					$skusDisabled = true;
-				}
-			}
-		}
+		$warnings = $product->getMessages();
 
-		$disabledSkuMessage = 'Some product SKUs were unpublished because of the recent product update. Check each SKU to fix the issues.';
-		if ($skusDisabled && !$redirect)
+		if ($warnings && !$redirect)
 		{
-			JFactory::getApplication()->enqueueMessage($disabledSkuMessage, 'warning');
+			foreach ($warnings as $warning)
+			{
+				JFactory::getApplication()->enqueueMessage($warning, 'warning');
+			}
 		}
 
 		if ($redirect)
@@ -275,9 +313,12 @@ class StorefrontControllerProducts extends \Hubzero\Component\AdminController
 				JText::_('COM_STOREFRONT_PRODUCT_SAVED')
 			);
 
-			if ($skusDisabled)
+			if ($warnings)
 			{
-				JFactory::getApplication()->enqueueMessage($disabledSkuMessage, 'warning');
+				foreach ($warnings as $warning)
+				{
+					JFactory::getApplication()->enqueueMessage($warning, 'warning');
+				}
 			}
 			return;
 		}
@@ -505,7 +546,9 @@ class StorefrontControllerProducts extends \Hubzero\Component\AdminController
 		{
 			// Save product
 			try {
-				$obj->updateProduct($pId, array('state' => $state));
+				$product = new StorefrontModelProduct($pId);
+				$product->setActiveStatus($state);
+				$productSaveResponse = $product->save();
 			}
 			catch (Exception $e)
 			{

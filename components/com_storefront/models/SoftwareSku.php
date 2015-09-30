@@ -55,6 +55,12 @@ class StorefrontModelSoftwareSku extends StorefrontModelSku
 	{
 		parent::verify();
 
+		// Check if the download file is set
+		if (empty($this->data->meta['downloadFile']) || !$this->data->meta['downloadFile'])
+		{
+			throw new Exception(JText::_('Download file must be set'));
+		}
+
 		// Check if the download file really exists
 		$params = JComponentHelper::getParams('com_storefront');
 		$downloadFolder = $params->get('downloadFolder');
@@ -65,6 +71,11 @@ class StorefrontModelSoftwareSku extends StorefrontModelSku
 		{
 			throw new Exception(JText::_('Download file doesn\'t exist'));
 		}
+	}
+
+	public function getGlobalDownloadLimit()
+	{
+
 	}
 
 }

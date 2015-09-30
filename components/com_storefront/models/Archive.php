@@ -89,81 +89,7 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 	 */
 	public function product($pId)
 	{
-		$warehouse = new StorefrontModelWarehouse();
-
-		if ($pId)
-		{
-			//$product = $warehouse->getProduct($pId, 'product', false);
-		}
-		else {
-			//$product = $warehouse->newProduct();
-		}
-
 		$product = new StorefrontModelProduct($pId);
-
-		return $product;
-	}
-
-	/**
-	 * Update product info
-	 *
-	 * @param      int 		$pId Product ID
-	 * @param      array 	$fields New info
-	 * @return     Product
-	 */
-	public function updateProduct($pId, $fields)
-	{
-		if (!empty($pId) && $pId)
-		{
-			$product = new StorefrontModelProduct($pId);
-		}
-		else {
-			$product = new StorefrontModelProduct();
-		}
-
-		if (isset($fields['pName']))
-		{
-			$product->setName($fields['pName']);
-		}
-		if (isset($fields['pDescription'])) {
-			$product->setDescription($fields['pDescription']);
-		}
-		if (isset($fields['pFeatures'])) {
-			$product->setFeatures($fields['pFeatures']);
-		}
-		if (isset($fields['pTagline']))
-		{
-			$product->setTagline($fields['pTagline']);
-		}
-		if (isset($fields['access']))
-		{
-			$product->setAccessLevel($fields['access']);
-		}
-		if (isset($fields['state']))
-		{
-			$product->setActiveStatus($fields['state']);
-		}
-		if (isset($fields['ptId']))
-		{
-			$product->setType($fields['ptId']);
-		}
-		if (isset($fields['pAllowMultiple']))
-		{
-			$product->setAllowMultiple($fields['pAllowMultiple']);
-		}
-
-		if (!isset($fields['collections'])) {
-			$fields['collections'] = array();
-		}
-		$product->setCollections($fields['collections']);
-
-		if (!isset($fields['optionGroups'])) {
-			$fields['optionGroups'] = array();
-		}
-		$product->setOptionGroups($fields['optionGroups']);
-
-
-		$product->save();
 		return $product;
 	}
 
@@ -272,6 +198,7 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 	public function sku($sId)
 	{
 		$warehouse = new StorefrontModelWarehouse();
+
 		if ($sId)
 		{
 			$skuInfo = $warehouse->getSkuInfo($sId);
@@ -331,12 +258,10 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 				$checkIntegrity = false;
 			}
 		}
-
-		if (!isset($fields['options']))
+		if (isset($fields['options']))
 		{
-			$fields['options'] = array();
+			$sku->setOptions($fields['options']);
 		}
-		$sku->setOptions($fields['options']);
 
 		// Meta
 		if (isset($fields['meta']))
@@ -346,9 +271,6 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 				$sku->addMeta($metaKey, $metaVal);
 			}
 		}
-
-		//print_r($sku); die;
-		//throw new Exception('wow');
 
 		// Before saving SKU, check the for possible conflicts (integrity check) except when the SKU gets unpublished
 		if ($checkIntegrity)
@@ -363,7 +285,6 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 				{
 					$errorMessage .= '<br>' . $error;
 				}
-
 				throw new Exception($errorMessage);
 			}
 		}
@@ -497,17 +418,6 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 		}
 	}
 
-	/**
-	 * Get collection
-	 */
-	public function collection($cId)
-	{
-		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Collection.php');
-		$collection = new StorefrontModelCollection($cId);
-
-		return $collection;
-	}
-
 	public function collections($rtrn='list', $filters=array())
 	{
 		if (!isset($filters['sort']))
@@ -621,10 +531,10 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 
 	public function getProductOptions($pId)
 	{
-		$sql = "SELECT * FROM
+		$sql = "SELECT og.*, o.oId, o.oName, o.oActive FROM
 				`#__storefront_product_option_groups` pog
 				JOIN `#__storefront_option_groups` og on pog.ogId = og.ogId
-				JOIN `#__storefront_options` o on o.ogId = og.ogId
+				LEFT JOIN `#__storefront_options` o on o.ogId = og.ogId
 				WHERE pog.pId = {$pId}
 				-- AND (ogActive IS NULL OR ogActive = 1)
 				ORDER BY og.ogName, o.oName";
@@ -641,6 +551,7 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 
 		foreach ($res as $option)
 		{
+			//print_r($option); die;
 			if ($og != $option->ogId) {
 				$og = $option->ogId;
 				$optionGroups[$og] = new stdClass();
@@ -649,14 +560,21 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 				$optionGroups[$og]->options = array();
 			}
 
-			$opt = new stdClass();
-			$opt->oId = $option->oId;
-			$opt->oName = $option->oName;
-			$opt->oActive = $option->oActive;
+			if ($option->oId)
+			{
+				$opt = new stdClass();
+				$opt->oId = $option->oId;
+				$opt->oName = $option->oName;
+				$opt->oActive = $option->oActive;
 
-			$optionGroups[$og]->options[] = $opt;
+				$optionGroups[$og]->options[] = $opt;
+			}
+			else {
+				$optionGroups[$og]->options = array();
+			}
+
+
 		}
-
 		return $optionGroups;
 	}
 
@@ -671,34 +589,6 @@ class StorefrontModelArchive extends \Hubzero\Base\Object
 		$warehouse = new StorefrontModelWarehouse();
 		$cInfo = $warehouse->getCollectionInfo($cId, true);
 		return $cInfo;
-	}
-
-	/**
-	 * Update category info
-	 *
-	 * @param      int 		$cId Category ID
-	 * @param      array 	$fields New info
-	 * @return     throws exception
-	 */
-	public function updateCategory($cId, $fields)
-	{
-		$warehouse = new StorefrontModelWarehouse();
-		$collection = $warehouse->getCollection($cId);
-
-		if (isset($fields['cName']))
-		{
-			$collection->setName($fields['cName']);
-		}
-		if (isset($fields['state']))
-		{
-			$collection->setActiveStatus($fields['state']);
-		}
-
-		$collection->setType('category');
-
-		$collection->update();
-
-		//print_r($fields);die;
 	}
 
 }
