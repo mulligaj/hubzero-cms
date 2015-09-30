@@ -32,60 +32,74 @@ require_once(JPATH_BASE . DS . 'components' . DS . 'com_cart' . DS . 'models' . 
 
 class BaseAuditor {
 
-    public function __construct($type, $pId = NULL, $crtId = NULL)
-    {
-        $this->type = $type;
-        $this->pId = $pId;
-        $this->crtId = $crtId;
+	public function __construct($type, $pId = NULL, $crtId = NULL)
+	{
+		$this->type = $type;
+		$this->pId = $pId;
+		$this->crtId = $crtId;
 
-        // Get user, if any
-        $this->uId = CartModelCart::getCartUser($crtId);
+		// Get user, if any
+		$this->uId = CartModelCart::getCartUser($crtId);
 
-        // Set up the default empty ok
-        $this->response = new stdClass();
-        $this->response->status = 'ok';
-        $this->response->messages = array();
-        $this->response->notices = array();
-        $this->response->errors = array();
-    }
+		// Set up the default empty ok
+		$this->response = new stdClass();
+		$this->response->status = 'ok';
+		$this->response->messages = array();
+		$this->response->notices = array();
+		$this->response->errors = array();
+	}
 
-    public function audit()
-    {
-        return($this->getResponse());
-    }
+	public function setSku($sId)
+	{
+		$this->sId = $sId;
+	}
 
-    protected function setResponseStatus($status)
-    {
-        $this->response->status = $status;
-    }
+	public function getSku()
+	{
+		if (!empty($this->sId) && $this->sId)
+		{
+			return $this->sId;
+		}
+		return false;
+	}
 
-    protected function setResponseMessage($msg)
-    {
-        $this->response->messages[] = $msg;
-    }
+	public function audit()
+	{
+		return($this->getResponse());
+	}
 
-    protected function setResponseNotice($msg)
-    {
-        $this->response->notices[] = $msg;
-    }
+	protected function setResponseStatus($status)
+	{
+		$this->response->status = $status;
+	}
 
-    // ok, notice, error
-    protected function setResponseError($msg)
-    {
-        $this->response->errors[] = $msg;
-    }
+	protected function setResponseMessage($msg)
+	{
+		$this->response->messages[] = $msg;
+	}
 
-    public function getResponseError()
-    {
-        if (sizeof($this->response->errors) > 0)
-        {
-            return $this->response->errors[0];
-        }
-        return false;
-    }
+	protected function setResponseNotice($msg)
+	{
+		$this->response->notices[] = $msg;
+	}
 
-    protected function getResponse()
-    {
-        return $this->response;
-    }
+	// ok, notice, error
+	protected function setResponseError($msg)
+	{
+		$this->response->errors[] = $msg;
+	}
+
+	public function getResponseError()
+	{
+		if (sizeof($this->response->errors) > 0)
+		{
+			return $this->response->errors[0];
+		}
+		return false;
+	}
+
+	protected function getResponse()
+	{
+		return $this->response;
+	}
 }

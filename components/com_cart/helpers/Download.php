@@ -23,40 +23,41 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
+ * @author    Ilya Shunko <ishunko@purdue.edu>
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
-
-/**
- * Knowledgebase helper class for HTML
- */
-class KbHelperHtml
+class CartDownload
 {
-	/**
-	 * Outputs a <select> element with a specific value chosen
-	 *
-	 * @param      array  $categories Data to populate list with
-	 * @param      mixed  $value      Chosen value
-	 * @param      string $name       Field name
-	 * @return     string HTML <select>
-	 */
-	public static function sectionSelect($categories, $val, $name, $id='')
+	public static function countProductDownloads($pId)
 	{
-		$out  = '<select name="' . $name . '" id="' . ($id ? $id : str_replace(array('[', ']'), '', $name)) . '">';
-		$out .= '<option value="">' . JText::_('COM_KB_SELECT_CATEGORY') . '</option>';
-		foreach ($categories as $category)
+		$db = JFactory::getDBO();
+		$sql = 'SELECT COUNT(*) FROM `#__cart_downloads` d
+				LEFT JOIN `#__storefront_skus` s ON d.`sId` = s.`sId`
+				WHERE s.pId = ' . $db->quote($pId);
+		$db->setQuery($sql);
+		$downloadsCount = $db->loadResult();
+		return $downloadsCount;
+	}
+
+	public static function countSkuDownloads($sId, $uId = false)
+	{
+		$db = JFactory::getDBO();
+		$sql = 'SELECT COUNT(*) FROM `#__cart_downloads`
+				WHERE sId = ' . $db->quote($sId);
+		if ($uId)
 		{
-			$selected = ($category->get('id') == $val)
-					  ? ' selected="selected"'
-					  : '';
-			$out .= '<option value="' . $category->get('id') . '"' . $selected . '>' . stripslashes($category->get('title')) . '</option>';
+			$sql .= 'AND `uId` = ' . $db->quote($uId);
 		}
-		$out .= '</select>';
-		return $out;
+		$db->setQuery($sql);
+		$downloadsCount = $db->loadResult();
+		return $downloadsCount;
+	}
+
+	public static function countUserSkuDownloads($sId, $uId)
+	{
+		return 666;
+		return CartDownload::countSkuDownloads($sId, $uId);
 	}
 }
-

@@ -41,7 +41,6 @@ include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'mode
 class StorefrontModelSku
 {
 	var $data;
-	private $db;
 
 	/**
 	 * Contructor
@@ -49,10 +48,53 @@ class StorefrontModelSku
 	 * @param  void
 	 * @return void
 	 */
-	public function __construct()
+	public function __construct($sId = false)
 	{
 		$this->data = new stdClass();
-		$this->db = JFactory::getDBO();
+		if (isset($sId) && is_numeric($sId) && $sId)
+		{
+			$this->load($sId);
+		}
+	}
+
+	/**
+	 * Load existing SKU
+	 *
+	 * @param	int			SKU ID
+	 * @return	bool		true on success, exception otherwise
+	 */
+	public function load($sId)
+	{
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Warehouse.php');
+		$warehouse = new StorefrontModelWarehouse();
+		$skuInfo = $warehouse->getSkuInfo($sId);
+		//print_r($skuInfo); die;
+
+		if ($skuInfo)
+		{
+			$this->setId($sId);
+			$this->setProductId($skuInfo['info']->pId);
+			$this->setName($skuInfo['info']->sSku);
+			$this->setPrice($skuInfo['info']->sPrice);
+			$this->setAllowMultiple($skuInfo['info']->sAllowMultiple);
+			$this->setTrackInventory($skuInfo['info']->sTrackInventory);
+			$this->setInventoryLevel($skuInfo['info']->sInventory);
+			$this->setEnumerable($skuInfo['info']->sEnumerable);
+			$this->setActiveStatus($skuInfo['info']->sActive);
+
+			// Set meta
+			if (!empty($skuInfo['meta']))
+			{
+				foreach ($skuInfo['meta'] as $key => $val)
+				{
+					$this->addMeta($key, $val);
+				}
+			}
+		}
+		else
+		{
+			throw new Exception(JText::_('Error loading SKU'));
+		}
 	}
 
 	/**
@@ -162,19 +204,65 @@ class StorefrontModelSku
 	{
 		if (!isset($this->data->price) || !is_numeric($this->data->price))
 		{
-			throw new Exception(JText::_('No SKU price'));
+			throw new Exception(JText::_('No SKU price set'));
 		}
 		if (!isset($this->data->pId) || !is_numeric($this->data->pId))
 		{
 			throw new Exception(JText::_('No SKU Product Set'));
 		}
+
+		// Verify that the SKU has all options set (one option from each option group assigned to the parent product)
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Product.php');
+		$product = new StorefrontModelProduct($this->getProductId());
+		$productOptionGroups = $product->getOptionGroups();
+
+		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Option.php');
+
+		// Init the set options array()
+		$optionGroupOptionsSet = array();
+		// Init the flag whether the extra/useless options are set
+		$extraOptionsSet = false;
+		foreach ($this->getOptions() as $oId)
+		{
+			$option = new StorefrontModelOption($oId);
+			$optionGroupId = $option->getOptionGroupId();
+
+			if (in_array($optionGroupId, $productOptionGroups))
+			{
+				$optionGroupOptionsSet[] = $optionGroupId;
+			}
+			else {
+				// There are some options set that are from option groups not applied to this product
+				// (most likely due to the removal of the option group from the product.)
+				$extraOptionsSet = true;
+			}
+		}
+
+		// At this point option groups options set must be the same as the product options groups, throw exception if not
+		$missingOptions = array_diff($productOptionGroups, $optionGroupOptionsSet);
+		if (!empty($missingOptions))
+		{
+			throw new Exception(JText::_('Not all product options are set'));
+		}
+
+		if ($extraOptionsSet)
+		{
+			throw new Exception(JText::_('Extra options are set'));
+		}
+
+		return true;
 	}
 
 	// TODO: Move saving logic here from warehouse
 	public function save()
 	{
-		$this->verify();
+		if ($this->getActiveStatus())
+		{
+			// verify SKU if it gets published
+			$this->verify();
+		}
 
+		$db = JFactory::getDBO();
 		include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Warehouse.php');
 		$warehouse = new StorefrontModelWarehouse();
 
@@ -184,22 +272,21 @@ class StorefrontModelSku
 		// Save options
 		if (isset($this->data->options))
 		{
-			$sql = 'DELETE FROM `#__storefront_sku_options` WHERE `sId` = ' . $this->db->quote($this->getId());
-			$this->db->setQuery($sql);
-			$this->db->query();
+			$sql = 'DELETE FROM `#__storefront_sku_options` WHERE `sId` = ' . $db->quote($this->getId());
+			$db->setQuery($sql);
+			$db->query();
 
 			foreach ($this->data->options as $oId)
 			{
 				if ($oId && $oId > 0)
 				{
 					$sql = 'INSERT INTO `#__storefront_sku_options` (`sId`, `oId`)
-						VALUES (' . $this->db->quote($this->getId()) . ', ' . $this->db->quote($oId) . ')';
-					$this->db->setQuery($sql);
-					$this->db->query();
+						VALUES (' . $db->quote($this->getId()) . ', ' . $db->quote($oId) . ')';
+					$db->setQuery($sql);
+					$db->query();
 				}
 			}
 		}
-
 		return $sId;
 	}
 
@@ -211,13 +298,13 @@ class StorefrontModelSku
 	 */
 	public function delete()
 	{
-		$this->verify();
+		$db = JFactory::getDBO();
 
 		// Delete the SKU record
-		$sql = 'DELETE FROM `#__storefront_skus` WHERE `sId` = ' . $this->db->quote($this->getId());
-		$this->db->setQuery($sql);
-		//print_r($this->db->replacePrefix($this->db->getQuery()));
-		$this->db->query();
+		$sql = 'DELETE FROM `#__storefront_skus` WHERE `sId` = ' . $db->quote($this->getId());
+		$db->setQuery($sql);
+		//print_r($db->replacePrefix($db->getQuery()));
+		$db->query();
 
 		// Delete the SKU-related files
 		//	-- SKU image
@@ -257,16 +344,14 @@ class StorefrontModelSku
 		}
 
 		// Delete the SKU meta
-		$sql = 'DELETE FROM `#__storefront_sku_meta` WHERE `sId` = ' . $this->db->quote($this->getId());
-		$this->db->setQuery($sql);
-		$this->db->query();
+		$sql = 'DELETE FROM `#__storefront_sku_meta` WHERE `sId` = ' . $db->quote($this->getId());
+		$db->setQuery($sql);
+		$db->query();
 
 		// Delete the SKU options
-		$sql = 'DELETE FROM `#__storefront_sku_options` WHERE `sId` = ' . $this->db->quote($this->getId());
-		$this->db->setQuery($sql);
-		$this->db->query();
-
-		// TODO Check if the parent product has any SKUs left and mark it unpublished if needed (?)
+		$sql = 'DELETE FROM `#__storefront_sku_options` WHERE `sId` = ' . $db->quote($this->getId());
+		$db->setQuery($sql);
+		$db->query();
 
 		return true;
 	}
@@ -379,6 +464,12 @@ class StorefrontModelSku
 		return true;
 	}
 
+	public function unPublish()
+	{
+		$this->setActiveStatus(false);
+		$this->save();
+	}
+
 	/**
 	 * Get SKU active status
 	 *
@@ -407,9 +498,9 @@ class StorefrontModelSku
 		}
 		if (!empty($key))
 		{
-			if (!empty($this->data->$key))
+			if (!empty($this->data->meta[$key]))
 			{
-				return $this->data->key;
+				return $this->data->meta[$key];
 			}
 			return false;
 		}
@@ -443,10 +534,12 @@ class StorefrontModelSku
 	{
 		if (!isset($this->data->options))
 		{
+			$db = JFactory::getDBO();
+
 			$sql = 'SELECT oId';
-			$sql .= ' FROM `#__storefront_sku_options` WHERE `sId` = ' . $this->db->quote($this->getId());
-			$this->db->setQuery($sql);
-			$this->data->options = $this->db->loadColumn();
+			$sql .= ' FROM `#__storefront_sku_options` WHERE `sId` = ' . $db->quote($this->getId());
+			$db->setQuery($sql);
+			$this->data->options = $db->loadColumn();
 		}
 		return $this->data->options;
 	}

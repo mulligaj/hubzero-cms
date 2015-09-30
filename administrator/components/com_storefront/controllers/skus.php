@@ -51,6 +51,10 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 		$pId = JRequest::getVar('id', array(0));
 		$this->view->pId = $pId;
 
+		// Get product
+		$product = new StorefrontModelProduct($pId);
+		$this->view->product = $product;
+
 		// Get filters
 		$this->view->filters = array(
 			'access' => -1
@@ -79,7 +83,6 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 			0,
 			'int'
 		);
-		//print_r($this->view->filters);
 
 		$obj = new StorefrontModelArchive();
 
@@ -88,7 +91,6 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 
 		// Get records
 		$this->view->rows = $obj->skus('list', $pId, $this->view->filters);
-		//print_r($this->view->rows); die;
 
 		// Initiate paging
 		jimport('joomla.html.pagination');
@@ -108,7 +110,6 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 		}
 
 		// Output the HTML
-		//print_r($this->view); die;
 		$this->view->display();
 	}
 
@@ -155,18 +156,11 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 				$id = $id[0];
 			}
 
-			// Get SKU
-			$row = $obj->sku($id);
+			// Get corrent SKU instance
+			$pId = JRequest::getVar('pId');
+			$row = $this->instantiateSkuForProduct($id, $pId);
 			$this->view->row = $row;
-
-			// If this is a new SKU, set product ID
-			if (!$id)
-			{
-				$pId = JRequest::getVar('pId');
-				$row->setProductId($pId);
-			}
 		}
-
 		//print_r($row); die;
 
 		// Get product's info
@@ -219,35 +213,21 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 		$fields = JRequest::getVar('fields', array(), 'post');
 		//print_r($fields); die;
 
-		// Get SKU
-		$obj = new StorefrontModelArchive();
-		$sku = $obj->sku($fields['sId']);
-
-		// If this is a new SKU, set product ID
-		if (!$fields['sId'])
-		{
-			$pId = JRequest::getVar('pId');
-			$sku->setProductId($pId);
-		}
+		// Get the proper SKU
+		$pId = JRequest::getVar('pId');
+		$sku = $this->instantiateSkuForProduct($fields['sId'], $pId);
 
 		// Save SKU
+		$obj = new StorefrontModelArchive();
 		try {
 			$sku = $obj->updateSku($sku, $fields);
 		}
 		catch (Exception $e)
 		{
-			//echo $e->getMessage(); die;
 			JFactory::getApplication()->enqueueMessage($e->getMessage(), 'error');
 			// Get the sku
-			$sku = $obj->sku($fields['sId']);
-			//print_r($sku); die;
 			$this->editTask($sku);
 			return;
-		}
-
-		if (!isset($fields['access']))
-		{
-			//$row->set('access', JRequest::getInt('access', 0, 'post'));
 		}
 
 		if ($redirect)
@@ -255,7 +235,7 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 			// Redirect
 			$this->setRedirect(
 				'index.php?option='.$this->_option . '&controller=' . $this->_controller . '&task=display&id=' . JRequest::getInt('pId', 0),
-				JText::_('COM_STOREFRONT_PRODUCT_SAVED')
+				JText::_('COM_STOREFRONT_SKU_SAVED')
 			);
 			return;
 		}
@@ -335,7 +315,7 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 						// Delete SKU
 						try
 						{
-							$sku = $obj->sku($sId);
+							$sku = $this->instantiateSkuForProduct($sId, $pId);
 							$sku->delete();
 						}
 						catch (Exception $e)
@@ -415,13 +395,12 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 			// Save SKU
 			try
 			{
-				$sku = $obj->sku($sId);
+				$sku = $this->instantiateSkuForProduct($sId, $pId);
 				$obj->updateSku($sku, array('state' => $state));
 			}
 			catch (Exception $e)
 			{
-				JFactory::getApplication()->enqueueMessage($e->getMessage(), 'error');
-				return;
+				$error = true;
 			}
 		}
 
@@ -439,10 +418,33 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 			break;
 		}
 
+		$type = 'message';
+
+		if (isset($error) && $error)
+		{
+			switch ($state)
+			{
+				case '1':
+					$action = 'published';
+					break;
+				case '0':
+					$action = 'unpublished';
+					break;
+			}
+
+			$message = 'SKU could not be ' . $action;
+			if (sizeof($ids) > 1)
+			{
+				$message = 'Some SKUs could not be ' . $action;
+			}
+			$type = 'error';
+		}
+
 		// Redirect
 		$this->setRedirect(
 			'index.php?option='.$this->_option . '&controller=' . $this->_controller . '&task=display&id=' . $pId,
-			$message
+			$message,
+			$type
 		);
 	}
 
@@ -457,6 +459,48 @@ class StorefrontControllerSkus extends \Hubzero\Component\AdminController
 		$this->setRedirect(
 			'index.php?option='.$this->_option . '&controller=' . $this->_controller . '&task=display&id=' . JRequest::getInt('pId', 0)
 		);
+	}
+
+	/**
+	 * Instantiate the correct Sku for a given product
+	 *
+	 * @return     StorefrontModelProduct
+	 */
+	private function instantiateSkuForProduct($sId, $pId)
+	{
+		$warehouse = new StorefrontModelWarehouse();
+
+		// If existing SKU, load the SKU, find the product, get the product type
+		if ($sId)
+		{
+			$skuInfo = $warehouse->getSkuInfo($sId);
+			$productType = $warehouse->getProductTypeInfo($skuInfo['info']->ptId)['ptName'];
+		}
+		// For the new SKU load the product the SKU is being created for, get the product type
+		else {
+			$product = new StorefrontModelProduct($pId);
+			$productType = $warehouse->getProductTypeInfo($product->getType())['ptName'];
+		}
+
+		// Initialize the correct SKU based on the product type
+		if (!empty($productType) && $productType == 'Software Download')
+		{
+			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'SoftwareSku.php');
+			$sku = new StorefrontModelSoftwareSku($sId);
+		}
+		else
+		{
+			include_once(JPATH_ROOT . DS . 'components' . DS . 'com_storefront' . DS . 'models' . DS . 'Sku.php');
+			$sku = new StorefrontModelSku($sId);
+		}
+
+		// If this is a new SKU, set the product ID
+		if (!$sId)
+		{
+			$sku->setProductId($pId);
+		}
+
+		return $sku;
 	}
 }
 

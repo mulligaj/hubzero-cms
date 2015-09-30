@@ -124,7 +124,7 @@ class StorefrontControllerProduct extends \Hubzero\Component\SiteController
 		require_once(JPATH_BASE . DS . 'components' . DS . 'com_cart' . DS . 'helpers' . DS . 'Audit.php');
 		$auditor = Audit::getAuditor($product, $cart->getCartInfo()->crtId);
 		$auditorResponse = $auditor->audit();
-		//print_r($auditor); die;
+		//print_r($auditorResponse); die;
 
 		if (!empty($auditorResponse) && $auditorResponse->status != 'ok')
 		{
@@ -141,6 +141,7 @@ class StorefrontControllerProduct extends \Hubzero\Component\SiteController
 
 		// Get option groups with options and SKUs
 		$data = $this->warehouse->getProductOptions($pId);
+
 		if ($data)
 		{
 			//JError::raiseError(404 , JText::_('COM_STOREFRONT_PRODUCT_ERROR'));
@@ -221,6 +222,7 @@ class StorefrontControllerProduct extends \Hubzero\Component\SiteController
 			$doc->addScriptDeclaration($js);
 		}
 
+		/*
 		// Get images (if any), gets all images from /site/storefront/products/$pId
 		$allowedImgExt = array('jpg', 'gif', 'png');
 		$productImg = array();
@@ -250,6 +252,9 @@ class StorefrontControllerProduct extends \Hubzero\Component\SiteController
 			$productImg[] = DS . 'site' . DS . 'storefront' . DS . 'products' . DS . 'noimage.png';
 		}
 		$this->view->productImg = $productImg;
+		*/
+
+		$this->view->config = $this->config;
 
 		$this->view->productAvailable = $productAvailable;
 
