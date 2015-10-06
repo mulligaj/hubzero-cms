@@ -207,8 +207,52 @@ class GenericRenderer
 	{
 		if (isset($this->item['doi']) && $this->item['doi'])
 		{
-			return array('<td><a href="http://dx.doi.org/', $this->item['doi'], '">DOI: ', $this->item['doi'], '</a></td>');
+			return array(
+				'<td><a href="http://dx.doi.org/', $this->item['doi'], '">DOI: ', $this->item['doi'], '</a></td>'
+	 		);
 		}
+	}
+
+	protected function coinsMeta() {
+		$meta = [
+			'ctx_ver'     => 'Z39.88-2004',
+			'rft_val_fmt' => 'info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal',
+			'rft.atitle'  => urlencode(preg_replace('/<.*?>/', '', $this->item['title']))
+		];
+		if (isset($this->item['doi']) && $this->item['doi']) {
+			$meta['rft_id'] = 'info:doi/'.urlencode($this->item['doi']);
+		}
+		foreach ([
+			'publicationyear' => 'date',
+			'journaltitle'    => 'jtitle',
+			'volumeno'        => 'volume',
+			'issuenomonth'    => 'issue',
+			'pages'           => 'pages',
+			'pagenumbers'     => 'pages',
+			'isbn'            => 'isbn',
+			'authors'         => 'au'
+		] as $local=>$rft) {
+			if (isset($this->item[$local]) && $this->item[$local]) {
+				$meta['rft.'.$rft] = urlencode($this->item[$local]);
+			}
+		}
+		if (!isset($meta['date']) && isset($this->item['date'])) {
+			if (preg_match('/^\s*(\d{4})\/01\/01\s*00:00:00/', $this->item['date'], $ma)) {
+				$meta['rft.date'] = $ma[1];
+			}
+			else {
+				$meta['rft.date'] = urlencode(date(self::DATE_FORMAT, strtotime($this->item['date'])));
+			}
+		}
+		if (!isset($meta['au']) && isset($this->item['contributor_ids'][0]) && ($c = self::getContext('contributors', $this->item['contributor_ids'][0])) && $c[0]) {
+			$meta['rft.au'] = urlencode($c[0]);
+		}
+
+		$str = [];
+		foreach ($meta as $k=>$v) {
+			$str[] = $k.'='.$v;
+		}
+		return '<span class="Z3988" title="'.implode('&amp;', $str).'" />';
 	}
 
 	protected function metadata()
@@ -222,7 +266,8 @@ class GenericRenderer
 			$this->language(),
 			$this->doi(),
 			'</tr></tbody></table>',
-			$this->tags(), 
+			$this->tags(),
+			$this->coinsMeta(),
 			$this->related()
 		);
 	}
