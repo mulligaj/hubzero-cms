@@ -128,7 +128,7 @@ class ModIncrementalRegistrationController
 		$media  = new ModIncrementalRegistrationMediaPath;
 		$groups = new ModIncrementalRegistrationGroups;
 
-		$hasCurl = file_exists(JPATH_BASE . '/media/media/images/bigcurl.png');
+		$hasCurl = file_exists(dirname(__FILE__). '/images/bigcurl.png');
 		if (($row = $groups->getActiveColumns($uid)) || $hasCurl)
 		{
 			if (!isset($_SESSION['return']) && !preg_match('/[.]/', $uri))

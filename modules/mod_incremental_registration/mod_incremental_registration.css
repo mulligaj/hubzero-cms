@@ -49,10 +49,10 @@
 	}
 	#curl-inner #opt-out-link {
 		font-size: 12px;
-		right: 4px; 
+		right: 4px;
 		font-style: italic;
 		bottom: 115px;
-		opacity: 0.8; 
+		opacity: 0.8;
 	}
 	#curl-inner #profile-link {
 		top: 15px;
@@ -110,7 +110,7 @@
 	}
 	#questions p.submit {
 		position: fixed;
-		bottom: 20px;
+		bottom: 36px;
 		right: 45px;
 	}
 	#questions p.submit button {
