@@ -51,14 +51,14 @@ body {
 			color: #4379CA; 
 			}
 		.help { 
-			background: #f6efff url("/templates/habricentral/images/icons/help_purple.png") 10px 10px no-repeat;
+			background: #f6efff url("/app/templates/habricentral/images/icons/help_purple.png") 10px 10px no-repeat;
 			border: 1px solid #d7c2ef; 
 			color: #8a42cd;
 			}
 		.low,
 		.info,
 		.information { 
-			background: #EFF7FF url("/templates/habricentral/images/icons/information.gif") 10px 10px no-repeat;
+			background: #EFF7FF url("/app/templates/habricentral/images/icons/information.gif") 10px 10px no-repeat;
 			}
 		.help a,
 		.info a {
@@ -76,39 +76,39 @@ body {
 		.warning { 
 			border: 1px solid #EFEAC2; 
 			color: #CC6633; 
-			background: #FFFDEF url("/templates/habricentral/images/icons/warning.gif") 10px 10px no-repeat;
+			background: #FFFDEF url("/app/templates/habricentral/images/icons/warning.gif") 10px 10px no-repeat;
 			}
 		.high,
 		.failed,
 		.error { 
 			border: 1px solid #EFCCC2; 
 			color: #CC0000;
-			background: #FFF2EF url("/templates/habricentral/images/icons/error.gif") 10px 10px no-repeat; 
+			background: #FFF2EF url("/app/templates/habricentral/images/icons/error.gif") 10px 10px no-repeat; 
 			}
 		.passed { 
 			border: 1px solid #CDDECA; 
 			color: #7AAB69;
-			background: #F3FDF0 url("/templates/habricentral/images/icons/accept.gif") 10px 10px no-repeat; 
+			background: #F3FDF0 url("/app/templates/habricentral/images/icons/accept.gif") 10px 10px no-repeat; 
 			}
 		.archive { 
 			border: 1px solid #ccc; 
 			color: #777;
-			background: #efefef url("/templates/habricentral/images/icons/archive.gif") 10px 10px no-repeat;
+			background: #efefef url("/app/templates/habricentral/images/icons/archive.gif") 10px 10px no-repeat;
 			}
 		.locked { 
 			border: 1px solid #EFEAC2; 
 			color: #CC6633; 
-			background: #FFFDEF url("/templates/habricentral/images/icons/lock.png") 10px 10px no-repeat;
+			background: #FFFDEF url("/app/templates/habricentral/images/icons/lock.png") 10px 10px no-repeat;
 			}
 		.timed { 
 			border: 1px solid #e9dab3; 
 			color: #ad733f; 
-			background: #f5efe2 url("/templates/habricentral/images/icons/hourglass.png") 10px 10px no-repeat;
+			background: #f5efe2 url("/app/templates/habricentral/images/icons/hourglass.png") 10px 10px no-repeat;
 			}
 		.flagged { 
 			border: 1px solid #EFCCC2; 
 			color: #CC0000;
-			background: #FFF2EF url("/templates/habricentral/images/icons/flag_red.png") 10px 10px no-repeat;
+			background: #FFF2EF url("/app/templates/habricentral/images/icons/flag_red.png") 10px 10px no-repeat;
 			}
 		.archive h4,
 		.passed h4,
@@ -172,7 +172,7 @@ body {
 			font-weight: bold;
 			border: 1px solid #C2D6EF; 
 			color: #4379CA; 
-			background: #EFF7FF url("/templates/habricentral/images/icons/information.gif") 10px 10px no-repeat;
+			background: #EFF7FF url("/app/templates/habricentral/images/icons/information.gif") 10px 10px no-repeat;
 			border-bottom: none;
 		}
 		#system-message dd {
@@ -192,7 +192,7 @@ body {
 
 		#system-message dt.error {
 			color: #CC0000;
-			background: #FFF2EF url("/templates/habricentral/images/icons/error.gif") 10px 10px no-repeat;
+			background: #FFF2EF url("/app/templates/habricentral/images/icons/error.gif") 10px 10px no-repeat;
 			border-color: #EFCCC2; 
 		}
 		#system-message dd.error {
@@ -203,7 +203,7 @@ body {
 		#system-message dt.warning {
 			border-color: #EFEAC2; 
 			color: #CC6633; 
-			background: #FFFDEF url("/templates/habricentral/images/icons/warning.gif") 10px 10px no-repeat;
+			background: #FFFDEF url("/app/templates/habricentral/images/icons/warning.gif") 10px 10px no-repeat;
 		}
 		#system-message dd.warning {
 			border-color: #EFEAC2; 
