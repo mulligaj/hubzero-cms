@@ -18,7 +18,7 @@
 		position:relative;
 	}
 	.banner, .slide {
-		height:230px;
+		min-height:230px;
 		width:100%;
 		overflow:hidden;
 	}

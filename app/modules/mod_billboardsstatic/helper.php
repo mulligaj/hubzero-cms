@@ -2,84 +2,43 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+namespace Modules\BillboardsStatic;
+
+use Hubzero\Module\Module;
 
 /**
  * Mod_Billboards helper class, used to query for billboards and contains the display method
  */
-class modBillboardsStatic
+class Helper extends Module
 {
-
-	/**
-	 * Attributes
-	 * 
-	 * @var array
-	 */
-	private $attributes = array();
-
-	/**
-	 * construct method
-	 * 
-	 * @param  $params
-	 * @return void
-	 */
-	public function __construct($params)
-	{
-		$this->params = $params;
-	}
-
-	/**
-	 * set method
-	 * 
-	 * @param  $property
-	 * @param  $value
-	 * @return void
-	 */
-	public function __set($property, $value)
-	{
-		$this->attributes[$property] = $value;
-	}
-
-	/**
-	 * get method
-	 *
-	 * @param   $property
-	 * @return  array
-	 */
-	public function __get($property)
-	{
-		if (isset($this->attributes[$property])) 
-		{
-			return $this->attributes[$property];
-		}
-	}
+	private static $multiple_instances = 0;
 
 	/**
 	 * Get the list of billboads in the selected collection
@@ -88,7 +47,7 @@ class modBillboardsStatic
 	 */
 	private function _getList()
 	{
-		$db = JFactory::getDBO();
+		$db = \App::get('db');
 
 		// Get the correct billboards collection to display from the parameters
 		$collection = (int) $this->params->get('collection', 1);
@@ -96,7 +55,7 @@ class modBillboardsStatic
 		// Query to grab all the buildboards associated with the selected collection
 		// Make sure we only grab published billboards
 		$query = 'SELECT b.*, c.*' .
-			' FROM #__billboards as b, #__billboard_collection as c' .
+			' FROM #__billboards_billboards as b, #__billboards_collections as c' .
 			' WHERE c.id = b.collection_id' .
 			' AND published = 1' .
 			' AND b.collection_id = ' . $collection .
@@ -115,20 +74,20 @@ class modBillboardsStatic
 	 */
 	public function display()
 	{
-		$jdocument = JFactory::getDocument();
-
 		// Check if we have multiple instances of the module running
 		// If so, we only want to push the CSS and JS to the template once
-		if (!$this->multiple_instances)
+		if (!self::$multiple_instances)
 		{
 			// Push some CSS to the template
-			\Hubzero\Document\Assets::addModuleStylesheet('mod_billboards');
-			if(!JPluginHelper::isEnabled('system', 'jquery'))
+			$this->css('mod_billboards.css', 'mod_billboards');
+			if (!\Plugin::isEnabled('system', 'jquery'))
 			{
-				$jdocument->addScript('https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js');
+				\Document::addScript('https://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js');
 			}
-			$jdocument->addScript('/modules/mod_billboards/mod_billboards.js');
+			$this->js('mod_billboards.js', 'mod_billboards');
 		}
+
+		self::$multiple_instances++;
 
 		// Get the billboard slides
 		$this->slides = $this->_getList();
@@ -142,11 +101,15 @@ class modBillboardsStatic
 		$this->pager      = $this->params->get('pager', 'pager');
 
 		// Get the billboard background location from the billboards parameters
-		$params = JComponentHelper::getParams('com_billboards');
+		$params = \Component::params('com_billboards');
 		$image_location = $params->get('image_location', '/site/media/images/billboards/');
+		if ($image_location == '/site/media/images/billboards/')
+		{
+			$image_location = '/app'. $image_location;
+		}
 
 		// Add the CSS to the template for each billboard
-		foreach($this->slides as $slide)
+		foreach ($this->slides as $slide)
 		{
 			$background = (!empty($slide->background_img)) ? "background: url('$image_location$slide->background_img') no-repeat 0 0;" : '';
 			$padding    = (!empty($slide->padding)) ? "padding: $slide->padding;" : '';
@@ -158,8 +121,8 @@ class modBillboardsStatic
 				#$slide->alias p {
 					$padding
 					}";
-			$jdocument->addStyleDeclaration($css);
-			$jdocument->addStyleDeclaration($slide->css);
+			$this->css($css);
+			$this->css($slide->css);
 		}
 
 		// Add the CSS to give the pager a unique ID per billboard collection
@@ -173,7 +136,7 @@ class modBillboardsStatic
 				".slider #$this->pager a.activeSlide {
 					opacity:1.0;
 					}";
-			$jdocument->addStyleDeclaration($pager);
+			$this->css($pager);
 		}
 		else 
 		{
@@ -182,7 +145,7 @@ class modBillboardsStatic
 
 		// Add the javascript ready function with variables based on this specific billboard
 		// Pause: true - means the billbaord stops scrolling on hover
-		/*if(!JPluginHelper::isEnabled('system', 'jquery'))
+		/*if(!\Plugin::isEnabled('system', 'jquery'))
 		{
 			$js = '
 				var $jQ = jQuery.noConflict();
@@ -235,6 +198,8 @@ class modBillboardsStatic
 				});';
 		}
 
-		$jdocument->addScriptDeclaration($js);*/
+		$this->js($js);*/
+
+		parent::display();
 	}
 }
