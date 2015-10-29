@@ -1,4 +1,4 @@
-@import url("/components/com_resources/assets/css/create.css");
+@import url("/core/components/com_resources/site/assets/css/create.css");
 
 .com_resources .type-button a:before {
 	content: "\270D";

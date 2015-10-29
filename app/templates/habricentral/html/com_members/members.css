@@ -1,7 +1,7 @@
-@import url("/components/com_members/assets/css/members.css");
+@import url("/core/components/com_members/site/assets/css/members.css");
 
 #sbox-content .hub-mail .cont {
-	background:#FFF url('/templates/habricentral/html/com_members/send-mail-hc.png') no-repeat 98% 4%;
+	background:#FFF url('/app/templates/habricentral/html/com_members/send-mail-hc.png') no-repeat 98% 4%;
 	border:1px solid #efefef;
  	}
 #page_menu li a {

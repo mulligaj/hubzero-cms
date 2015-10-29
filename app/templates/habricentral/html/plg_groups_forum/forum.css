@@ -1,4 +1,4 @@
-@import url("/plugins/groups/forum/forum.css");
+@import url("/core/plugins/groups/forum/assets/css/forum.css");
 
 .group_forum .entry-description {
 	word-break: none;

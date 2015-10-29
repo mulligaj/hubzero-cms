@@ -2,34 +2,34 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_HZEXEC_') or die();
 
 if (isset($this->error) && $this->error)
 {
@@ -44,7 +44,7 @@ else
 	<?php
 	if ($this->events)
 	{
-		$database = JFactory::getDBO();
+		$database = App::get('db');
 		$cls = 'even';
 		foreach ($this->events as $dayEvent)
 		{
@@ -54,7 +54,7 @@ else
 			//foreach ($daysEvents as $dayEvent)
 			//{
 				// Get the title and start time
-				$startDate = $dayEvent->publish_up;
+				/*$startDate = $dayEvent->publish_up;
 				$eventDate = mktime(substr($startDate, 11, 2), substr($startDate, 14, 2), substr($startDate, 17, 2), date('m'), date('d') + $relDay, date('Y'));
 				$startDate = mktime(substr($startDate, 11, 2), substr($startDate, 14, 2), substr($startDate, 17, 2), substr($startDate, 5, 2), substr($startDate, 8, 2), substr($startDate, 0, 4));
 				$endDate = $dayEvent->publish_down;
@@ -62,27 +62,27 @@ else
 
 				$year  = date('Y', $startDate);
 				$month = date('m', $startDate);
-				$day   = date('d', $startDate);
+				$day   = date('d', $startDate);*/
 
 				$cls = ($cls == 'even') ? 'odd' : 'even';
 
-				if ($dayEvent->announcement == 1)
+				/*if ($dayEvent->announcement == 1)
 				{
 					$cls .= ' announcement';
-				}
+				}*/
 				if (!isset($dayEvent->category) || !$dayEvent->category)
 				{
-					$database->setQuery("SELECT title FROM #__categories WHERE id=" . $dayEvent->catid);
+					$database->setQuery("SELECT title FROM `#__categories` WHERE id=" . $dayEvent->catid);
 					$dayEvent->category = $database->loadResult();
 				}
 	?>
 			<li class="<?php echo $cls; ?>">
 				<div class="item">
 					<h4 class="event-title">
-						<a href="<?php echo JRoute::_('index.php?option=com_events&task=details&id=' . $dayEvent->id); ?>"><?php echo stripslashes($dayEvent->title); ?></a>
+						<a href="<?php echo Route::url('index.php?option=com_events&task=details&id=' . $dayEvent->id); ?>"><?php echo stripslashes($dayEvent->title); ?></a>
 					</h4>
 					<p>
-						<span class="event-date"><span class="month"><?php echo date('M', $eventDate); ?></span><span class="day"><?php echo date('d', $eventDate); ?></span></span>
+						<span class="event-date"><span class="month"><?php echo Date::of($dayEvent->publish_up)->toLocal('M'); ?></span><span class="day"><?php echo Date::of($dayEvent->publish_up)->toLocal('d'); ?></span></span>
 						<span class="category"><strong>Category</strong><br /><?php echo $dayEvent->category; ?></span>
 					</p>
 				</div>
@@ -95,12 +95,11 @@ else
 	{
 	?>
 			<li class="odd">
-				<p class="mod_events_latest_noevents"><?php echo JText::_('MOD_EVENTS_LATEST_NONE_FOUND'); ?></p>
+				<p class="mod_events_latest_noevents"><?php echo Lang::txt('MOD_EVENTS_LATEST_NONE_FOUND'); ?></p>
 			</li>
 	<?php
 	}
 	?>
 	</ul>
-<?php 
+<?php
 }
-?>

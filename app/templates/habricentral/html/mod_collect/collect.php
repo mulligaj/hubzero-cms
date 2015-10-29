@@ -2,36 +2,36 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+defined('_HZEXEC_') or die();
 
-$url  = JRequest::getVar('REQUEST_URI', '', 'server');
+$url  = Request::getVar('REQUEST_URI', '', 'server');
 ?>
 
 <div id="collectContainer">
@@ -39,16 +39,16 @@ $url  = JRequest::getVar('REQUEST_URI', '', 'server');
 	<p class="error"><?php echo $this->getError(); ?></p>
 <?php } ?>
 
-<form action="<?php echo JRoute::_($url); ?>" method="post" id="hubForm" class="full">
+<form action="<?php echo Route::url($url); ?>" method="post" id="hubForm" class="full">
 	<fieldset>
-		<legend><?php echo JText::_('MOD_COLLECT'); ?></legend>
+		<legend><?php echo Lang::txt('MOD_COLLECT'); ?></legend>
 
 		<?php if ($this->collections) { ?>
 			<div class="grid in-collections">
-				<p><?php echo JText::_('MOD_COLLECT_ALREADY_COLLECTED'); ?></p>
+				<p><?php echo Lang::txt('MOD_COLLECT_ALREADY_COLLECTED'); ?></p>
 				<ul>
 					<?php foreach ($this->collections as $collection) { ?>
-						<li><a href="<?php echo JRoute::_($collection->link()); ?>"><?php echo $this->escape(stripslashes($collection->get('title'))); ?></a></li>
+						<li><a href="<?php echo Route::url($collection->link()); ?>"><?php echo $this->escape(stripslashes($collection->get('title'))); ?></a></li>
 					<?php } ?>
 				</ul>
 			</div>
@@ -57,10 +57,10 @@ $url  = JRequest::getVar('REQUEST_URI', '', 'server');
 		<div class="grid">
 			<div class="col span-third">
 				<label for="field-collection">
-					<?php echo JText::_('MOD_COLLECT_SELECT_COLLECTION'); ?>
+					<?php echo Lang::txt('MOD_COLLECT_SELECT_COLLECTION'); ?>
 					<select name="collectible[collection_id]" id="field-collection">
-						<option value="0"><?php echo JText::_('MOD_COLLECT_SELECT'); ?></option>
-						<optgroup label="<?php echo JText::_('MOD_COLLECT_MY_COLLECTIONS'); ?>">
+						<option value="0"><?php echo Lang::txt('MOD_COLLECT_SELECT'); ?></option>
+						<optgroup label="<?php echo Lang::txt('MOD_COLLECT_MY_COLLECTIONS'); ?>">
 						<?php
 						$i = 0;
 						if ($this->myboards)
@@ -101,29 +101,29 @@ $url  = JRequest::getVar('REQUEST_URI', '', 'server');
 				</label>
 			</div>
 			<div class="col span2">
-				<p class="or"><?php echo JText::_('MOD_COLLECT_OR'); ?></p>
+				<p class="or"><?php echo Lang::txt('MOD_COLLECT_OR'); ?></p>
 			</div>
 			<div class="col span4 offset1 omega">
 				<label for="field-collection_title">
-					<?php echo JText::_('MOD_COLLECT_CREATE_COLLECTION'); ?>
+					<?php echo Lang::txt('MOD_COLLECT_CREATE_COLLECTION'); ?>
 					<input type="text" name="collectible[title]" id="field-collection_title" />
 				</label>
 			</div>
 		</div>
 
 		<label for="field_description">
-			<?php echo JText::_('MOD_COLLECT_ADD_DESCRIPTION'); ?>
-			<?php echo \JFactory::getEditor()->display('collectible[description]', '', '', '', 35, 5, false, 'field_description', null, null, array('class' => 'minimal no-footer')); ?>
+			<?php echo Lang::txt('MOD_COLLECT_ADD_DESCRIPTION'); ?>
+			<?php echo $this->editor('collectible[description]', '', 35, 5, 'field_description', array('class' => 'minimal no-footer')); ?>
 		</label>
 	</fieldset>
 
 	<input type="hidden" name="collectible[item_id]" value="<?php echo $this->escape($this->item->get('id')); ?>" />
 	<input type="hidden" name="tryto" value="collect" />
 
-	<?php echo JHTML::_('form.token'); ?>
+	<?php echo Html::input('token'); ?>
 
 	<p class="submit">
-		<input type="submit" value="<?php echo JText::_('MOD_COLLECT_SAVE'); ?>" />
+		<input type="submit" value="<?php echo Lang::txt('MOD_COLLECT_SAVE'); ?>" />
 	</p>
 </form>
 </div>

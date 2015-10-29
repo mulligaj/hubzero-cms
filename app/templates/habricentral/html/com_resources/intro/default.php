@@ -2,33 +2,34 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// no direct access
-defined('_JEXEC') or die('Restricted access');
+defined('_HZEXEC_') or die();
 
 $this->css('introduction.css', 'system')
      ->css()
@@ -39,8 +40,8 @@ $this->css('introduction.css', 'system')
 
 	<div id="content-header-extra">
 		<p>
-			<a class="icon-add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=new'); ?>">
-				<?php echo JText::_('Submit a resource'); ?>
+			<a class="icon-add btn" href="<?php echo Route::url('index.php?option=' . $this->option . '&task=new'); ?>">
+				<?php echo Lang::txt('Submit a resource'); ?>
 			</a>
 		</p>
 	</div><!-- / #content-header -->
@@ -51,24 +52,24 @@ $this->css('introduction.css', 'system')
 		<div class="col span9">
 			<div class="grid">
 				<div class="col span6">
-					<h3><?php echo JText::_('What are resources?'); ?></h3>
-					<p><?php echo JText::_('Resources are user-submitted pieces of content that range from video presentations to publications to simulation tools.'); ?></p>
+					<h3><?php echo Lang::txt('What are resources?'); ?></h3>
+					<p><?php echo Lang::txt('Resources are user-submitted pieces of content that range from video presentations to publications to simulation tools.'); ?></p>
 				</div>
 				<div class="col span6 omega">
-					<h3><?php echo JText::_('Who can submit a resource?'); ?></h3>
-					<p><?php echo JText::_('Anyone can submit a resource! Resources must be relevant to the community and may undergo a short approval process to ensure all appropriate files and information are included.'); ?></p>
+					<h3><?php echo Lang::txt('Who can submit a resource?'); ?></h3>
+					<p><?php echo Lang::txt('Anyone can submit a resource! Resources must be relevant to the community and may undergo a short approval process to ensure all appropriate files and information are included.'); ?></p>
 				</div>
 			</div>
 		</div>
 		<div class="col span3 omega">
 			<p>
-				<a class="popup" href="<?php echo JRoute::_('index.php?option=com_help&component=resources&page=index'); ?>">
-					<?php echo JText::_('Need Help?'); ?>
+				<a class="popup" href="<?php echo Route::url('index.php?option=com_help&component=resources&page=index'); ?>">
+					<?php echo Lang::txt('Need Help?'); ?>
 				</a>
 			</p>
 			<p>
 				<a class="" href="mailto:repository@habricentral.org">
-					<?php echo JText::_('Contact the Digital Repository Specialist'); ?>
+					<?php echo Lang::txt('Contact the Digital Repository Specialist'); ?>
 				</a>
 			</p>
 		</div>
@@ -79,26 +80,26 @@ $this->css('introduction.css', 'system')
 
 	<div class="grid">
 		<div class="col span3">
-			<h2><?php echo JText::_('Find a resource'); ?></h2>
+			<h2><?php echo Lang::txt('Find a resource'); ?></h2>
 		</div><!-- / .col span3 -->
 		<div class="col span9 omega">
 			<div class="grid">
 				<div class="col span-half">
-					<form action="<?php echo JRoute::_('index.php?option=com_search'); ?>" method="get" class="search">
+					<form action="<?php echo Route::url('index.php?option=com_search'); ?>" method="get" class="search">
 						<fieldset>
 							<p>
-								<label for="rsearch"><?php echo JText::_('Keyword or phrase:'); ?></label>
+								<label for="rsearch"><?php echo Lang::txt('Keyword or phrase:'); ?></label>
 								<input type="text" name="terms" id="rsearch" value="" />
 								<input type="hidden" name="domains[]" value="resources" />
 								<input type="hidden" name="section" value="resources" />
-								<input type="submit" value="<?php echo JText::_('Search'); ?>" />
+								<input type="submit" value="<?php echo Lang::txt('Search'); ?>" />
 							</p>
 						</fieldset>
 					</form>
 				</div><!-- / .col span-half -->
 				<div class="col span-half omega">
 					<div class="browse">
-						<p><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=browse'); ?>"><?php echo JText::_('Browse the list of available resources'); ?></a></p>
+						<p><a href="<?php echo Route::url('index.php?option=' . $this->option . '&task=browse'); ?>"><?php echo Lang::txt('Browse the list of available resources'); ?></a></p>
 					</div><!-- / .browse -->
 				</div><!-- / .col span-half -->
 			</div><!-- / .grid -->
@@ -110,7 +111,7 @@ if ($this->categories) {
 ?>
 	<div class="grid">
 		<div class="col span3">
-			<h2><?php echo JText::_('Categories'); ?></h2>
+			<h2><?php echo Lang::txt('Categories'); ?></h2>
 		</div><!-- / .col span3 -->
 		<div class="col span9 omega">
 			<div class="grid">
@@ -120,7 +121,7 @@ if ($this->categories) {
 
 			foreach ($this->categories as $category)
 			{
-				if ($category->id == 7 && !JComponentHelper::isEnabled('com_tools', true))
+				if ($category->id == 7 && !Component::isEnabled('com_tools', true))
 				{
 					continue;
 				}
@@ -146,7 +147,7 @@ if ($this->categories) {
 				<div class="col span-third <?php echo $clm; ?>">
 					<div class="resource-type <?php echo $cls; ?>">
 						<h3>
-							<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&type=' . $category->alias); ?>">
+							<a href="<?php echo Route::url('index.php?option=' . $this->option . '&type=' . $category->alias); ?>">
 								<?php echo $this->escape(strip_tags(stripslashes($category->type))); ?>
 							</a>
 						</h3>
@@ -154,8 +155,8 @@ if ($this->categories) {
 							<?php echo $this->escape(strip_tags(stripslashes($category->description))); ?>
 						</p>
 						<p>
-							<a class="read-more" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&type=' . $category->alias); ?>" title="<?php echo JText::sprintf('Browse %s', $this->escape(stripslashes($category->type))); ?>">
-								<?php echo JText::sprintf('Browse <span>%s </span>&rsaquo;', $this->escape(stripslashes($category->type))); ?>
+							<a class="read-more" href="<?php echo Route::url('index.php?option=' . $this->option . '&type=' . $category->alias); ?>" title="<?php echo Lang::txt('Browse %s', $this->escape(stripslashes($category->type))); ?>">
+								<?php echo Lang::txt('Browse <span>%s </span>&rsaquo;', $this->escape(stripslashes($category->type))); ?>
 							</a>
 						</p>
 					</div>

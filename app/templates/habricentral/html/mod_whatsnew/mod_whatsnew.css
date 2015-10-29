@@ -1,5 +1,5 @@
 
-@import url("/modules/mod_whatsnew/mod_whatsnew.css");
+@import url("/core/modules/mod_whatsnew/assets/css/mod_whatsnew.css");
 
 ul.new li .item {
 		background: #efefef;

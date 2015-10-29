@@ -2068,13 +2068,13 @@
 		background-color: #eef0e7;
 	}
 	.entry-search input {
-		background: #fff url("/templates/habricentral/images/search.png") 5px 50% no-repeat;
+		background: #fff url("../images/search.png") 5px 50% no-repeat;
 		padding: 7px 6px 7px 20px !important;
 		font-size: 1em
 	}
 	.entry-search ul.textboxlist-holder,
 	.entry-search ul.token-input-list-act {
-		background: #fff url("/components/com_tags/assets/img/tags.png") 5px 50% no-repeat;
+		background: #fff url("/core/components/com_tags/site/assets/img/tags.png") 5px 50% no-repeat;
 		padding-left: 23px;
 	}
 	.entry-search ul.token-input-list-act li input,

@@ -1,4 +1,4 @@
-@import url("/modules/mod_newsletter/mod_newsletter.css");
+@import url("/core/modules/mod_newsletter/assets/css/mod_newsletter.css");
 
 .newsletter-subscribe .item {
 	background: #fff;

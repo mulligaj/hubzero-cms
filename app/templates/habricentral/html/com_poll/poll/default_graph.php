@@ -1,11 +1,43 @@
-<?php // no direct access
-defined('_JEXEC') or die('Restricted access'); ?>
+<?php
+/**
+ * HUBzero CMS
+ *
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * HUBzero is a registered trademark of Purdue University.
+ *
+ * @package   hubzero-cms
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
+ */
+
+// No direct access.
+defined('_HZEXEC_') or die();
+?>
 <br />
 <table class="pollstableborder" cellspacing="0" cellpadding="0" border="0">
 <thead>
 	<tr>
 		<th colspan="3" class="sectiontableheader">
-			<img src="<?php echo $this->baseurl; ?>/components/com_poll/assets/poll.png" align="middle" border="0" width="12" height="14" alt="" />
+			<img src="<?php echo $this->baseurl; ?>/core/components/com_poll/assets/img/poll.png" align="middle" border="0" width="12" height="14" alt="" />
 			<?php echo $this->poll->title; ?>
 		</th>
 	</tr>
@@ -36,7 +68,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 <tbody>
 	<tr>
 		<td class="smalldark">
-			<?php echo JText::_( 'Number of Voters' ); ?>
+			<?php echo Lang::txt( 'Number of Voters' ); ?>
 		</td>
 		<td class="smalldark">
 			&nbsp;:&nbsp;
@@ -45,7 +77,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 	</tr>
 	<tr>
 		<td class="smalldark">
-			<?php echo JText::_( 'First Vote' ); ?>
+			<?php echo Lang::txt( 'First Vote' ); ?>
 		</td>
 		<td class="smalldark">
 			&nbsp;:&nbsp;
@@ -54,7 +86,7 @@ defined('_JEXEC') or die('Restricted access'); ?>
 	</tr>
 	<tr>
 		<td class="smalldark">
-			<?php echo JText::_( 'Last Vote' ); ?>
+			<?php echo Lang::txt( 'Last Vote' ); ?>
 		</td>
 		<td class="smalldark">
 			&nbsp;:&nbsp;

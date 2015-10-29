@@ -2,34 +2,34 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+defined('_HZEXEC_') or die();
 
 //citation params
 $label = $this->config->get("citation_label", "number");
@@ -62,19 +62,19 @@ if ($label == "none") {
 	<ul id="useroptions">
 		<?php if ($this->allow_import == 1 || ($this->allow_import == 2 && $this->isAdmin)) : ?>
 			<li class="last">
-				<a class="add btn" href="<?php echo JRoute::_('index.php?option=com_citations&task=add'); ?>"><?php echo JText::_('Submit a Citation'); ?></a>
+				<a class="add btn" href="<?php echo Route::url('index.php?option=com_citations&task=add'); ?>"><?php echo Lang::txt('Submit a Citation'); ?></a>
 			</li>
 		<?php endif; ?>
 	</ul>
 </div>
 
 <div class="main section">
-	<form action="<?php echo JRoute::_('index.php?option='.$this->option.'&controller=citations&task=browse'); ?>" id="citeform" method="GET" class="<?php if ($batch_download) { echo " withBatchDownload"; } ?>">
+	<form action="<?php echo Route::url('index.php?option='.$this->option.'&controller=citations&task=browse'); ?>" id="citeform" method="GET" class="<?php if ($batch_download) { echo " withBatchDownload"; } ?>">
 		<div class="aside">
 			<fieldset>
 				<h4>Refine Your Search</h4>
 				<label>
-					<?php echo JText::_('Resource Type'); ?>:
+					<?php echo Lang::txt('Resource Type'); ?>:
 					<select name="type" id="type">
 						<option value="">All</option>
 						<?php foreach($this->types as $t) : ?>
@@ -84,11 +84,9 @@ if ($label == "none") {
 					</select>
 				</label>
 				<label>
-					<?php echo JText::_('Tags (topic)'); ?>:
+					<?php echo Lang::txt('Tags (topic)'); ?>:
 					<?php 
-						JPluginHelper::importPlugin('hubzero');
-						$dispatcher = JDispatcher::getInstance();
-						$tf = $dispatcher->trigger('onGetMultiEntry', array(array('tags', 'tag', 'actags', '', $this->filters['tag'])));  // type, field name, field id, class, value
+						$tf = Event::trigger('hubzero.onGetMultiEntry', array(array('tags', 'tag', 'actags', '', $this->filters['tag'])));  // type, field name, field id, class, value
 						if (count($tf) > 0) : ?>
 							<?php echo $tf[0]; ?>
 						<?php else: ?>
@@ -96,21 +94,21 @@ if ($label == "none") {
 						<?php endif; ?>
 				</label>
 				<label>
-					<?php echo JText::_('Authored By'); ?>:
+					<?php echo Lang::txt('Authored By'); ?>:
 					<input type="text" name="author" value="<?php echo $this->filters['author']; ?>" />
 				</label>
 				<label>
-					<?php echo JText::_('Published In'); ?>:
+					<?php echo Lang::txt('Published In'); ?>:
 					<input type="text" name="publishedin" value="<?php echo $this->filters['publishedin']; ?>" />
 				</label>
 				<label for="year_start">
-					<?php echo JText::_('Year'); ?>:<br />
+					<?php echo Lang::txt('Year'); ?>:<br />
 					<input type="text" name="year_start" class="half" value="<?php echo $this->filters['year_start']; ?>" />
 					to
 					<input type="text" name="year_end" class="half" value="<?php echo $this->filters['year_end']; ?>" />
 				</label>
 				<label>
-					<?php echo JText::_('Sort by'); ?>:
+					<?php echo Lang::txt('Sort by'); ?>:
 					<select name="sort" id="sort" class="">
 						<?php foreach($this->sorts as $k => $v) : ?>
 							<?php if($k == 'sec_cnt DESC' || $k == 'created DESC') continue; ?>
@@ -127,8 +125,8 @@ if ($label == "none") {
 			
 			<?php if ($batch_download) : ?>
 				<fieldset id="download-batch">
-					<strong><?php echo JText::_('Export Multiple Citations'); ?></strong>
-					<p><?php echo JText::_('Check the citations that you would like to have exported.'); ?></p>
+					<strong><?php echo Lang::txt('Export Multiple Citations'); ?></strong>
+					<p><?php echo Lang::txt('Check the citations that you would like to have exported.'); ?></p>
 					
 					<input type="submit" name="download" class="download-endnote" value="EndNote" /> 
 					| 
@@ -176,27 +174,27 @@ if ($label == "none") {
 						$new_tags = array_diff($old_tags, array("peerreviewed", "evidencebased"));
 					?>
 					<li>
-						<a <?php if($this->filters['tag'] == '') { echo 'class="active"'; } ?> href="<?php echo JRoute::_('index.php?option=com_citations&task=browse'.$queryString.'&tag='.implode(",",$new_tags)); ?>">All</a>
+						<a <?php if($this->filters['tag'] == '') { echo 'class="active"'; } ?> href="<?php echo Route::url('index.php?option=com_citations&task=browse'.$queryString.'&tag='.implode(",",$new_tags)); ?>">All</a>
 					</li>
 					<?php 
 						$new_tags[] = "peerreviewed"; 
 					?>
 					<li>
-						<a <?php if(strstr($this->filters['tag'], "peerreviewed")) { echo 'class="active"'; } ?> href="<?php echo JRoute::_('index.php?option=com_citations&task=browse'.$queryString.'&tag='.implode(",",$new_tags)); ?>">Peer Reviewed</a>
+						<a <?php if(strstr($this->filters['tag'], "peerreviewed")) { echo 'class="active"'; } ?> href="<?php echo Route::url('index.php?option=com_citations&task=browse'.$queryString.'&tag='.implode(",",$new_tags)); ?>">Peer Reviewed</a>
 					</li>
 					<?php 
 						$new_tags = array_diff($new_tags, array("peerreviewed"));
 						$new_tags[] = "evidencebased"; 
 					?>
 					<li>
-						<a <?php if(strstr($this->filters['tag'], "evidencebased")) { echo 'class="active"'; } ?> href="<?php echo JRoute::_('index.php?option=com_citations&task=browse'.$queryString.'&tag='.implode(",",$new_tags)); ?>">Evidence Based</a>
+						<a <?php if(strstr($this->filters['tag'], "evidencebased")) { echo 'class="active"'; } ?> href="<?php echo Route::url('index.php?option=com_citations&task=browse'.$queryString.'&tag='.implode(",",$new_tags)); ?>">Evidence Based</a>
 					</li>
 				</ul>
 				<div class="clearfix"></div>
 					
 				<?php if(count($this->citations) > 0) : ?>
 					<?php
-						$formatter = new CitationFormat();
+						$formatter = new \Components\Citations\Helpers\Format();
 						$formatter->setTemplate($template);
 
 						$counter = 1;
@@ -254,7 +252,7 @@ if ($label == "none") {
 										<?php if ($rollover == "yes" && $cite->abstract != "") : ?>
 											<div class="citation-notes">
 												<?php
-													$cs = new CitationsSponsor($this->database);
+													$cs = new \Components\Citations\Tables\Sponsor($this->database);
 													$sponsors = $cs->getCitationSponsor($cite->id);
 													$final = "";
 													if ($sponsors)
@@ -283,11 +281,11 @@ if ($label == "none") {
 										<?php //echo $formatter->citationDetails($cite, $this->database, $this->config, $this->openurl); ?>
 
 										<?php if ($this->config->get("citation_show_badges","no") == "yes") : ?>
-											<?php echo CitationFormat::citationBadges($cite, $this->database); ?>
+											<?php echo \Components\Citations\Helpers\Format::citationBadges($cite, $this->database); ?>
 										<?php endif; ?>
 
 										<?php if ($this->config->get("citation_show_tags","no") == "yes") : ?>
-											<?php echo CitationFormat::citationTags($cite, $this->database); ?>
+											<?php echo \Components\Citations\Helpers\Format::citationTags($cite, $this->database); ?>
 										<?php endif; ?>
 									</td>
 								</tr>
@@ -296,7 +294,7 @@ if ($label == "none") {
 						</tbody>
 					</table>
 				<?php else : ?>
-					<p class="warning"><?php echo JText::_('COM_CITATIONS_NO_CITATIONS_FOUND'); ?></p>
+					<p class="warning"><?php echo Lang::txt('COM_CITATIONS_NO_CITATIONS_FOUND'); ?></p>
 				<?php endif; ?>
 				<?php 
 					$this->pageNav->setAdditionalUrlParam('task', 'browse');

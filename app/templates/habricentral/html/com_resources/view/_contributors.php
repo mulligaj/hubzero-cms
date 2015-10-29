@@ -1,36 +1,37 @@
-<?php 
+<?php
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   GNU General Public License, version 2 (GPLv2) 
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+defined('_HZEXEC_') or die();
 
-$database = JFactory::getDBO();
+$database = App::get('db');
 
 if ($this->contributors) 
 {
@@ -49,12 +50,12 @@ if ($this->contributors)
 		{
 			continue;
 		}
-		
+
 		// Build the user's name and link to their profile
 		if ($contributor->name) 
 		{
 			$name = $this->escape(stripslashes($contributor->name));
-		} 
+		}
 		else if ($contributor->surname || $contributor->givenName) 
 		{
 			$name = $this->escape(stripslashes($contributor->givenName)) . ' ';
@@ -63,8 +64,8 @@ if ($this->contributors)
 				$name .= $this->escape(stripslashes($contributor->middleName)) . ' ';
 			}
 			$name .= $this->escape(stripslashes($contributor->surname));
-		} 
-		else 
+		}
+		else
 		{
 			$name = $this->escape(stripslashes($contributor->xname));
 		}
@@ -85,7 +86,7 @@ if ($this->contributors)
 		//$name = str_replace('"', '&quot;', $name);
 		if ($contributor->id)
 		{
-			$link  = '<a href="' . JRoute::_('index.php?option=com_members&id=' . $contributor->id) . '" rel="contributor" title="View the profile of ' . $name . '">' . $name . '</a>';
+			$link  = '<a href="' . Route::url('index.php?option=com_members&id=' . $contributor->id) . '" rel="contributor" title="View the profile of ' . $name . '">' . $name . '</a>';
 		}
 		else 
 		{
@@ -96,8 +97,8 @@ if ($this->contributors)
 			if (trim($contributor->org) != '' && !in_array(trim($contributor->org), $orgs)) 
 			{
 				$orgs[$i-1] = trim($contributor->org);
-				$orgsln 	.= $i . '. ' . trim($contributor->org) . ' ';
-				$orgsln_s 	.= trim($contributor->org).' ';
+				$orgsln    .= $i . '. ' . trim($contributor->org) . ' ';
+				$orgsln_s  .= trim($contributor->org).' ';
 				$k = $i;
 				$i++;
 			} 
@@ -115,25 +116,23 @@ if ($this->contributors)
 		$names[] = $link;
 	}
 
+	if (count($names) > 0) 
+	{
+		$html = '<p>'.ucfirst(Lang::txt('By')).' ';
+		//$html .= count($orgs) > 1  ? implode(', ', $names) : implode(', ', $names_s);
+		$html .= count($this->contributors) > 1 ? implode(', ', $names) : implode(', ', $names_s);
+		$html .= '</p>';
+	}
 
-		if (count($names) > 0) 
-		{
-			$html = '<p>'.ucfirst(JText::_('By')).' ';
-			//$html .= count($orgs) > 1  ? implode(', ', $names) : implode(', ', $names_s);
-			$html .= count($this->contributors) > 1 ? implode(', ', $names) : implode(', ', $names_s);
-			$html .= '</p>';
-		}
-
-		if (count($orgs) > 0) 
-		{
-			$html .= '<p class="orgs">';
-			//$html .= count($orgs) > 1 ? $orgsln : $orgsln_s;
-			$html .= count($this->contributors) > 1 ? $orgsln : $orgsln_s;
-			$html .= '</p>';
-		}
-
-} 
-else 
+	if (count($orgs) > 0) 
+	{
+		$html .= '<p class="orgs">';
+		//$html .= count($orgs) > 1 ? $orgsln : $orgsln_s;
+		$html .= count($this->contributors) > 1 ? $orgsln : $orgsln_s;
+		$html .= '</p>';
+	}
+}
+else
 {
 	$html = '';
 }

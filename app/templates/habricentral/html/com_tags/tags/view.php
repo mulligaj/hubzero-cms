@@ -2,45 +2,45 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_HZEXEC_') or die();
 
 $this->css();
 
-$name  = JText::_('COM_TAGS_ALL_CATEGORIES');
+$name  = Lang::txt('COM_TAGS_ALL_CATEGORIES');
 $total = $this->total;
 $here  = 'index.php?option=' . $this->option . '&tag=' . $this->tagstring . ($this->filters['sort'] ? '&sort=' . $this->filters['sort'] : '');
 
 // Add the "all" category
 $all = array(
 	'name'    => '',
-	'title'   => JText::_('COM_TAGS_ALL_CATEGORIES'),
+	'title'   => Lang::txt('COM_TAGS_ALL_CATEGORIES'),
 	'total'   => $this->total,
 	'results' => null,
 	'sql'     => ''
@@ -50,7 +50,6 @@ array_unshift($cats, $all);
 
 // An array for storing all the links we make
 $links = array();
-$pathway = JFactory::getApplication()->getPathway();
 
 // Loop through each category
 foreach ($cats as $cat)
@@ -68,7 +67,7 @@ foreach ($cats as $cat)
 		$blob = $cat['name'];
 	}
 
-	$sef = JRoute::_($here . ($blob ? '&area=' . stripslashes($blob) : ''));
+	$sef = Route::url($here . ($blob ? '&area=' . stripslashes($blob) : ''));
 	$sef = str_replace('%20', ',', $sef);
 	$sef = str_replace(' ', ',', $sef);
 	$sef = str_replace('+', ',', $sef);
@@ -82,7 +81,7 @@ foreach ($cats as $cat)
 		$name  = $cat['title'];
 		$total = $cat['total'];
 
-		$pathway->addItem($cat['title'], $here . '&area=' . stripslashes($blob));
+		Pathway::append($cat['title'], $here . '&area=' . stripslashes($blob));
 	}
 
 	// Build the HTML
@@ -111,11 +110,11 @@ foreach ($cats as $cat)
 					$name  = $cat['title'];
 					$total = $cat['total'];
 
-					$pathway->addItem($subcat['title'], $here . '&area=' . stripslashes($blob));
+					Pathway::append($subcat['title'], $here . '&area=' . stripslashes($blob));
 				}
 
 				// Build the HTML
-				$sef = JRoute::_($here . '&area='. stripslashes($blob));
+				$sef = Route::url($here . '&area='. stripslashes($blob));
 				$sef = str_replace('%20', ',', $sef);
 				$sef = str_replace(' ', ',', $sef);
 				$sef = str_replace('+', ',', $sef);
@@ -143,26 +142,25 @@ foreach ($cats as $cat)
 	<div id="content-header-extra">
 		<ul id="useroptions">
 			<li class="last">
-				<a class="icon-tag tag btn" href="<?php echo JRoute::_('index.php?option=' . $this->option); ?>">
-					<?php echo JText::_('COM_TAGS_MORE_TAGS'); ?>
+				<a class="icon-tag tag btn" href="<?php echo Route::url('index.php?option=' . $this->option); ?>">
+					<?php echo Lang::txt('COM_TAGS_MORE_TAGS'); ?>
 				</a>
 			</li>
 		</ul>
 	</div><!-- / #content-header-extra -->
 </header><!-- / #content-header -->
 
-<form action="<?php echo JRoute::_('index.php?option=' . $this->option); ?>" method="get">
+<form action="<?php echo Route::url('index.php?option=' . $this->option); ?>" method="get">
 	<section class="main section">
 		<div class="subject">
 			<div class="container data-entry">
-				<input class="entry-search-submit" type="submit" value="<?php echo JText::_('COM_TAGS_SEARCH'); ?>" />
+				<input class="entry-search-submit" type="submit" value="<?php echo Lang::txt('COM_TAGS_SEARCH'); ?>" />
 				<fieldset class="entry-search">
 					<?php
-					JPluginHelper::importPlugin('hubzero');
-					$tf = JDispatcher::getInstance()->trigger( 'onGetMultiEntry', array(array('tags', 'tag', 'actags','',$this->search)) );
+					$tf = Event::trigger( 'hubzero.onGetMultiEntry', array(array('tags', 'tag', 'actags','',$this->search)) );
 					?>
 					<label for="actags">
-						<?php echo JText::_('COM_TAGS_SEARCH_WITH_TAGS'); ?>
+						<?php echo Lang::txt('COM_TAGS_SEARCH_WITH_TAGS'); ?>
 					</label>
 					<?php if (count($tf) > 0) {
 						echo $tf[0];
@@ -173,7 +171,7 @@ foreach ($cats as $cat)
 			</div><!-- / .container -->
 
 			<?php
-				$dbh = JFactory::getDBO();
+				$dbh = App::get('db');
 
 				$ids = implode(', ', array_map(create_function('$a', 'return $a->get(\'id\');'), $this->tags));
 
@@ -207,7 +205,7 @@ foreach ($cats as $cat)
 				<?php if ($tagobj->get('description') != '') { ?>
 					<div class="container">
 						<div class="container-block">
-							<h4><?php echo JText::_('COM_TAGS_DESCRIPTION'); ?></h4>
+							<h4><?php echo Lang::txt('COM_TAGS_DESCRIPTION'); ?></h4>
 							<div class="tag-description">
 								<?php echo stripslashes($tagobj->get('description')); ?>
 								<div class="clearfix"></div>
@@ -221,24 +219,24 @@ foreach ($cats as $cat)
 				<ul class="entries-menu">
 					<li>
 						<a<?php echo ($this->filters['sort'] == 'title') ? ' class="active"' : ''; ?> href="<?php
-							$sef = JRoute::_('index.php?option='.$this->option.'&tag='.$this->tagstring.'&area='.$this->active.'&sort=title');
+							$sef = Route::url('index.php?option='.$this->option.'&tag='.$this->tagstring.'&area='.$this->active.'&sort=title');
 							$sef = str_replace('%20',',',$sef);
 							$sef = str_replace(' ',',',$sef);
 							$sef = str_replace('+',',',$sef);
 							echo $sef;
-						?>" title="<?php echo JText::_('COM_TAGS_OPT_SORT_BY_TITLE'); ?>">
-							<?php echo JText::_('COM_TAGS_OPT_TITLE'); ?>
+						?>" title="<?php echo Lang::txt('COM_TAGS_OPT_SORT_BY_TITLE'); ?>">
+							<?php echo Lang::txt('COM_TAGS_OPT_TITLE'); ?>
 						</a>
 					</li>
 					<li>
 						<a<?php echo ($this->filters['sort'] == 'date' || $this->filters['sort'] == '') ? ' class="active"' : ''; ?> href="<?php
-							$sef = JRoute::_('index.php?option='.$this->option.'&tag='.$this->tagstring.'&area='.$this->active.'&sort=date');
+							$sef = Route::url('index.php?option='.$this->option.'&tag='.$this->tagstring.'&area='.$this->active.'&sort=date');
 							$sef = str_replace('%20',',',$sef);
 							$sef = str_replace(' ',',',$sef);
 							$sef = str_replace('+',',',$sef);
 							echo $sef;
-						?>" title="<?php echo JText::_('COM_TAGS_OPT_SORT_BY_DATE'); ?>">
-							<?php echo JText::_('COM_TAGS_OPT_DATE'); ?>
+						?>" title="<?php echo Lang::txt('COM_TAGS_OPT_SORT_BY_DATE'); ?>">
+							<?php echo Lang::txt('COM_TAGS_OPT_DATE'); ?>
 						</a>
 					</li>
 				</ul>
@@ -251,9 +249,9 @@ foreach ($cats as $cat)
 							$ttl = $total;
 						}
 
-						$base = rtrim(JURI::base(), '/');
+						$base = rtrim(Request::base(), '/');
 
-						$html  = '<h3>' . $this->escape(stripslashes($name)) . ' <span>(' . JText::sprintf('%s-%s of %s', ($this->filters['start'] + 1), $ttl, $total) . ')</span></h3>'."\n";
+						$html  = '<h3>' . $this->escape(stripslashes($name)) . ' <span>(' . Lang::txt('%s-%s of %s', ($this->filters['start'] + 1), $ttl, $total) . ')</span></h3>'."\n";
 
 						if ($this->results)
 						{
@@ -270,7 +268,7 @@ foreach ($cats as $cat)
 								{
 									if (strstr($row->href, 'index.php'))
 									{
-										$row->href = JRoute::_($row->href);
+										$row->href = Route::url($row->href);
 									}
 
 									$html .= "\t".'<li>'."\n";
@@ -287,14 +285,13 @@ foreach ($cats as $cat)
 						}
 						else
 						{
-							$html = '<p class="warning">' . JText::_('COM_TAGS_NO_RESULTS') . '</p>';
+							$html = '<p class="warning">' . Lang::txt('COM_TAGS_NO_RESULTS') . '</p>';
 						}
 						echo $html;
 					?>
 				</div><!-- / .container-block -->
 				<?php
-					jimport('joomla.html.pagination');
-					$pageNav = new JPagination(
+					$pageNav = $this->pagination(
 						$this->total,
 						$this->filters['start'],
 						$this->filters['limit']
@@ -304,13 +301,13 @@ foreach ($cats as $cat)
 					$pageNav->setAdditionalUrlParam('active', $this->active);
 					$pageNav->setAdditionalUrlParam('sort', $this->filters['sort']);
 
-					echo $pageNav->getListFooter() . '<div class="clearfix"></div>';
+					echo $pageNav->render() . '<div class="clearfix"></div>';
 				?>
 			</div><!-- / .container -->
 		</div><!-- / .subject -->
 		<aside class="aside">
 			<div class="container">
-				<h3><?php echo JText::_('COM_TAGS_CATEGORIES'); ?></h3>
+				<h3><?php echo Lang::txt('COM_TAGS_CATEGORIES'); ?></h3>
 				<?php
 				// Do we actually have any links?
 				// NOTE: this method prevents returning empty list tags "<ul></ul>"
@@ -331,7 +328,7 @@ foreach ($cats as $cat)
 				echo $html;
 				?>
 				<p class="info">
-					<?php echo JText::_('COM_TAGS_RESULTS_NOTE'); ?>
+					<?php echo Lang::txt('COM_TAGS_RESULTS_NOTE'); ?>
 				</p>
 			</div>
 		</aside><!-- / .aside -->

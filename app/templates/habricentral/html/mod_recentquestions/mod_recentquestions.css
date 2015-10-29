@@ -1,5 +1,5 @@
 
-@import url("/modules/mod_recentquestions/mod_recentquestions.css");
+@import url("/core/modules/mod_recentquestions/assets/css/mod_recentquestions.css");
 
 ul.questions {
 	margin:0;
@@ -14,7 +14,7 @@ ul.questions li {
 	}
 .questions h4 a {
 	display:block;
-	background: url("/components/com_answers/images/bullets_medium.gif") no-repeat 0px -133px;
+	background: url("/core/components/com_answers/site/assets/img/bullets_medium.gif") no-repeat 0px -133px;
 	border-bottom:none;
 	padding-left:20px;
 	}

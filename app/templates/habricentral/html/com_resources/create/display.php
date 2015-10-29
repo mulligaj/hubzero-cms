@@ -2,46 +2,46 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_HZEXEC_') or die();
 
-$database = JFactory::getDBO();
-$juser = JFactory::getUser();
+$database = App::get('db');
 
 $submissions = null;
-if (!$juser->get('guest')) {
+if (!User::get('guest'))
+{
 	$query  = "SELECT DISTINCT R.id, R.title, R.type, R.logical_type AS logicaltype,
 						AA.subtable, R.created, R.created_by, R.published, R.publish_up, R.standalone,
 						R.rating, R.times_rated, R.alias, R.ranking, rt.type AS typetitle ";
 	$query .= "FROM #__author_assoc AS AA, #__resource_types AS rt, #__resources AS R ";
 	$query .= "LEFT JOIN #__resource_types AS t ON R.logical_type=t.id ";
-	$query .= "WHERE AA.authorid = ". $juser->get('id') ." ";
+	$query .= "WHERE AA.authorid = ". User::get('id') ." ";
 	$query .= "AND R.id = AA.subid ";
 	$query .= "AND AA.subtable = 'resources' ";
 	$query .= "AND R.standalone=1 AND R.type=rt.id AND (R.published=2 OR R.published=3) AND R.type!=7 ";
@@ -72,7 +72,7 @@ $this->css('introduction.css', 'system')
 		</div>
 		<div class="col span3 omega">
 			<p id="getstarted">
-				<a class="btn btn-primary" href="<?php echo JRoute::_('index.php?option='.$option.'&task=draft'); ?>">Get Started ›</a>
+				<a class="btn btn-primary" href="<?php echo Route::url('index.php?option='.$option.'&task=draft'); ?>">Get Started ›</a>
 			</p>
 		</div><!-- / .aside -->
 	</div>
@@ -80,27 +80,27 @@ $this->css('introduction.css', 'system')
 
 <div class="section">
 
-<?php if (!$juser->get('guest')) { ?>
+<?php if (!User::get('guest')) { ?>
 	<div class="four columns first">
-		<h2><?php echo JText::_('In Progress'); ?></h2>
+		<h2><?php echo Lang::txt('In Progress'); ?></h2>
 	</div><!-- / .four columns first -->
 	<div class="four columns second third fourth">
 <?php
 		if ($submissions) {
 ?>
-		<table id="submissions" summary="<?php echo JText::_('Contributions in progress'); ?>">
+		<table id="submissions" summary="<?php echo Lang::txt('Contributions in progress'); ?>">
 			<thead>
 				<tr>
-					<th scope="col"><?php echo JText::_('Title'); ?></th>
-					<th scope="col" colspan="3"><?php echo JText::_('Associations'); ?></th>
-					<th scope="col" colspan="2"><?php echo JText::_('Status'); ?></th>
+					<th scope="col"><?php echo Lang::txt('Title'); ?></th>
+					<th scope="col" colspan="3"><?php echo Lang::txt('Associations'); ?></th>
+					<th scope="col" colspan="2"><?php echo Lang::txt('Status'); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 <?php
-			$ra = new ResourcesAssoc( $database );
-			$rc = new ResourcesContributor( $database );
-			$rt = new ResourcesTags( $database );
+			$ra = new \Components\Resources\Tables\Assoc( $database );
+			$rc = new \Components\Resources\Tables\Contributor( $database );
+			$rt = new \Components\Resources\Tables\Tags( $database );
 			$cls = 'even';
 			foreach ($submissions as $submission)
 			{
@@ -120,19 +120,19 @@ $this->css('introduction.css', 'system')
 				$tags = $rt->tags( $submission->id );
 ?>
 				<tr class="<?php echo $cls; ?>">
-						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=1&id='.$submission->id); ?>"><?php } ?><?php echo stripslashes($submission->title); ?><?php if ($submission->published == 2) { ?></a><?php } ?><br /><span class="type"><?php echo stripslashes($submission->typetitle); ?></span></td>
-						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=2&id='.$submission->id); ?>"><?php } ?><?php echo $attachments; ?> attachment(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
-						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=3&id='.$submission->id); ?>"><?php } ?><?php echo $authors; ?> author(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
-						<td><?php if ($submission->published == 2) { ?><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=4&id='.$submission->id); ?>"><?php } ?><?php echo count($tags); ?> tag(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
+						<td><?php if ($submission->published == 2) { ?><a href="<?php echo Route::url('index.php?option=' . $this->option . '&task=draft&step=1&id='.$submission->id); ?>"><?php } ?><?php echo stripslashes($submission->title); ?><?php if ($submission->published == 2) { ?></a><?php } ?><br /><span class="type"><?php echo stripslashes($submission->typetitle); ?></span></td>
+						<td><?php if ($submission->published == 2) { ?><a href="<?php echo Route::url('index.php?option=' . $this->option . '&task=draft&step=2&id='.$submission->id); ?>"><?php } ?><?php echo $attachments; ?> attachment(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
+						<td><?php if ($submission->published == 2) { ?><a href="<?php echo Route::url('index.php?option=' . $this->option . '&task=draft&step=3&id='.$submission->id); ?>"><?php } ?><?php echo $authors; ?> author(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
+						<td><?php if ($submission->published == 2) { ?><a href="<?php echo Route::url('index.php?option=' . $this->option . '&task=draft&step=4&id='.$submission->id); ?>"><?php } ?><?php echo count($tags); ?> tag(s)<?php if ($submission->published == 2) { ?></a><?php } ?></td>
 						<td>
 							<span class="<?php echo $state; ?> status"><?php echo $state; ?></span>
 							<?php if ($submission->published == 2) { ?>
-							<br /><a class="review" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft&step=5&id='.$submission->id); ?>"><?php echo JText::_('Review &amp; Submit &rsaquo;'); ?></a>
+							<br /><a class="review" href="<?php echo Route::url('index.php?option=' . $this->option . '&task=draft&step=5&id='.$submission->id); ?>"><?php echo Lang::txt('Review &amp; Submit &rsaquo;'); ?></a>
 							<?php } elseif ($submission->published == 3) { ?>
-							<br /><a class="retract" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=retract&id='.$submission->id); ?>"><?php echo JText::_('&lsaquo; Retract'); ?></a>
+							<br /><a class="retract" href="<?php echo Route::url('index.php?option=' . $this->option . '&task=retract&id='.$submission->id); ?>"><?php echo Lang::txt('&lsaquo; Retract'); ?></a>
 							<?php } ?>
 						</td>
-						<td><a class="icon-delete" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=discard&id='.$submission->id); ?>" title="<?php echo JText::_('Delete'); ?>"><?php echo JText::_('Delete'); ?></a></td>
+						<td><a class="icon-delete" href="<?php echo Route::url('index.php?option=' . $this->option . '&task=discard&id='.$submission->id); ?>" title="<?php echo Lang::txt('Delete'); ?>"><?php echo Lang::txt('Delete'); ?></a></td>
 					</tr>
 <?php
 			}
@@ -168,7 +168,7 @@ $this->css('introduction.css', 'system')
 	<div class="clear"></div>
 
 <?php
-$t = new ResourcesType( $database );
+$t = new \Components\Resources\Tables\Type( $database );
 $categories = $t->getMajorTypes();
 if ($categories) {
 ?>
@@ -209,7 +209,7 @@ if ($categories) {
 ?>
 		<div class="three columns <?php echo $clm; ?>">
 			<div class="<?php echo $cls; ?>">
-				<h3><a href="<?php echo JRoute::_('index.php?option='.$this->option.'&task=draft&step=1&type='.$category->id); ?>"><?php echo stripslashes($category->type); ?></a></h3>
+				<h3><a href="<?php echo Route::url('index.php?option='.$this->option.'&task=draft&step=1&type='.$category->id); ?>"><?php echo stripslashes($category->type); ?></a></h3>
 				<p><?php echo $this->escape(stripslashes(strip_tags($category->description))); ?></p>
 			</div>
 		</div><!-- / .three columns <?php echo $clm; ?> -->

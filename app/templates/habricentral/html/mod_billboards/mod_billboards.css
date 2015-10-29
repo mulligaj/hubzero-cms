@@ -22,7 +22,7 @@
 		height: 460px;
 		width: 100%;
 		overflow: hidden;
-		background: transparent url("/site/media/images/billboards/panes-bg.png") 0 0 repeat;
+		background: transparent url("/app/site/media/images/billboards/panes-bg.png") 0 0 repeat;
 	}
 	.banner div {
 		width: 100%;
@@ -49,19 +49,19 @@
 		-moz-border-radius:5px;
 		border-radius:5px;
 		border:2px solid transparent;
-		background:url("/site/media/images/billboards/pane-not-active.png") no-repeat 50% 50%;
+		background:url("/app/site/media/images/billboards/pane-not-active.png") no-repeat 50% 50%;
 	}
 	.slider .pager a:hover {
 		border:2px solid #efefef;
 	}
 	.slider .pager a.activeSlide {
-		background: url("/site/media/images/billboards/pane-active.png") no-repeat 50% 50%;
+		background: url("/app/site/media/images/billboards/pane-active.png") no-repeat 50% 50%;
 		border:2px solid transparent
 	}
 /* Standard billboard styling (could override here, or on a per-billboard basis) */
 	.slide {
 		background-size: cover !important;
-		-ms-behavior: url(/templates/habricentral/html/mod_billboards/backgroundsize.min.htc);
+		-ms-behavior: url(/app/templates/habricentral/html/mod_billboards/backgroundsize.min.htc);
 	}
 	.slide h3 {
 		text-transform: uppercase;

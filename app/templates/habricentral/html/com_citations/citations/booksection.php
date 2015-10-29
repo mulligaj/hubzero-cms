@@ -2,34 +2,34 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+defined('_HZEXEC_') or die();
 
 //remove $this 
 $juser = $this->juser;
@@ -38,15 +38,15 @@ $database = $this->database;
 $citation = $this->citation;
 
 //load user profile
-$profile = \Hubzero\User\Profile::getInstance( $citation->uid );
+$profile = \Hubzero\User\Profile::getInstance($citation->uid);
 
 //get citation type
-$ct = new CitationsType($database);
+$ct = new \Components\Citations\Tables\Type($database);
 $type = $ct->getType( $citation->type );
 
 //get citation sponsors
-$cs = new CitationsSponsor($database);
-$sponsors = $cs->getSponsorsForCitationWithId( $citation->id );
+$cs = new \Components\Citations\Tables\Sponsor($database);
+$sponsors = $cs->getSponsorsForCitationWithId($citation->id);
 
 //determine the separator
 $urlSeparator = PHP_EOL;
@@ -78,22 +78,22 @@ $citationUrlFormatString = $config->get("citation_custom_url", '');
 if ($citationUrlFormatString != '')
 {
 	preg_match_all('/\{(\w+)\}/', $citationUrlFormatString, $matches, PREG_SET_ORDER);
-	if($matches)
+	if ($matches)
 	{
 		foreach($matches as $match)
 		{
 			$field = strtolower($match[1]);
 			$replace = $match[0];
 			$replaceWith = '';
-			if(property_exists($citation, $field))
+			if (property_exists($citation, $field))
 			{
-				if(strstr($citation->$field, 'http'))
+				if (strstr($citation->$field, 'http'))
 				{
 					$customUrl = $citation->$field;
 				}
 				else
 				{
-					if($citation->$field != '')
+					if ($citation->$field != '')
 					{
 						$replaceWith = $citation->$field;
 						$customUrl = str_replace($replace, $replaceWith, $citationUrlFormatString);
@@ -135,34 +135,34 @@ $showBadges	= $config->get('citation_show_badges', 'yes');
 $associationLinks = array();
 foreach($this->associations as $a)
 {
-	if($a->tbl == 'resource')
+	if ($a->tbl == 'resource')
 	{
-		$sql = "SELECT * FROM #__resources WHERE id=".$a->oid;
+		$sql = "SELECT * FROM `#__resources` WHERE id=".$a->oid;
 		$database->setQuery($sql);
 		$resource = $database->loadObject();
 		
-		if(is_object($resource))
+		if (is_object($resource))
 		{
-			$associationLinks[] = '<a href="'.JRoute::_('index.php?option=com_resources&id='.$a->oid).'">'.$resource->title.'</a>';
+			$associationLinks[] = '<a href="'.Route::url('index.php?option=com_resources&id='.$a->oid).'">'.$resource->title.'</a>';
 		}
 	}
 }
 
 //get the sub area we are trying to load
-$area = JRequest::getVar('area', 'about');
+$area = Request::getVar('area', 'about');
 ?>
 
 <div id="content-header" class="half">
 	<div class="content-header-left">
 		<h2>
 			<?php echo html_entity_decode($citation->title); ?>
-			<?php if($juser->get('id') == $citation->uid) : ?>
-				<a class="edit" href="<?php echo JRoute::_('index.php?option=com_citations&task=edit&id=' . $citation->id); ?>">Edit</a>
+			<?php if (User::get('id') == $citation->uid) : ?>
+				<a class="edit" href="<?php echo Route::url('index.php?option=com_citations&task=edit&id=' . $citation->id); ?>">Edit</a>
 			<?php endif; ?>
 		</h2>
 	
 		<div class="citation-author">
-			<?php if($citation->author) : ?>
+			<?php if ($citation->author) : ?>
 				<span>By:</span>
 				<?php
 					$a = array();
@@ -177,7 +177,7 @@ $area = JRequest::getVar('area', 'about');
 								$user =& JUser::getInstance($matches[1]);
 								if (is_object($user)) 
 								{
-									$a[] = '<a rel="external" href="' . JRoute::_('index.php?option=com_members&id=' . $matches[1]) . '">' . str_replace($matches[0], '', $author) . '</a>';
+									$a[] = '<a rel="external" href="' . Route::url('index.php?option=com_members&id=' . $matches[1]) . '">' . str_replace($matches[0], '', $author) . '</a>';
 								} 
 								else 
 								{
@@ -195,13 +195,13 @@ $area = JRequest::getVar('area', 'about');
 			<?php endif; ?>
 		</div>
 		
-		<?php if($citation->abstract && $showThisAbstract) : ?>
+		<?php if ($citation->abstract && $showThisAbstract) : ?>
 			 <div class="citation-abstract">
 				<?php
 					$max = 1000;
 					$abstract = nl2br($citation->abstract);
 					
-				 	if(strlen($abstract) > $max)
+				 	if (strlen($abstract) > $max)
 					{
 						echo substr($abstract, 0, $max) . ' <span class="show-more-hellip">&hellip;</span> ';
 						echo '<a id="show-more-button" href="javascript:void(0);">show more</a>';
@@ -217,37 +217,37 @@ $area = JRequest::getVar('area', 'about');
 		
 		<div class="citation-citation">
 			<?php
-				$cf = new CitationFormat();
+				$cf = new \Components\Citations\Helpers\Format();
 				$cf->setTemplate($this->config->get("citation_format", ""));
 				echo strip_tags($cf->formatCitation($citation, null, false, $config));
 			?>
 			<div class="download">
-				<a class="" href="<?php echo JRoute::_('index.php?option=com_citations&task=download&format=bibtex&id=' . $citation->id . '&no_html=1'); ?>" title="Download in BibTex Format">Export to BibTex</a> | 
-				<a class="" href="<?php echo JRoute::_('index.php?option=com_citations&task=download&format=endnote&id=' . $citation->id . '&no_html=1'); ?>" title="Download in Endnote Format">Export to Endnote</a>
+				<a class="" href="<?php echo Route::url('index.php?option=com_citations&task=download&format=bibtex&id=' . $citation->id . '&no_html=1'); ?>" title="Download in BibTex Format">Export to BibTex</a> | 
+				<a class="" href="<?php echo Route::url('index.php?option=com_citations&task=download&format=endnote&id=' . $citation->id . '&no_html=1'); ?>" title="Download in Endnote Format">Export to Endnote</a>
 			</div>
 		</div>
 		
 	</div>
 	
 	<div class="content-header-extra">
-		<?php if($citationURL != '') : ?>
+		<?php if ($citationURL != '') : ?>
 			<a class="primary <?php echo $primaryButtonClass; ?>" rel="external" href="<?php echo $citationURL; ?>">
 				View Article
 			</a>
 			<ul class="secondary">
 				<li>
-					<a class="locate" rel="" href="<?php echo JRoute::_('index.php?option=com_citations&task=view&id='.$citation->id.'&area=find#find'); ?>">
+					<a class="locate" rel="" href="<?php echo Route::url('index.php?option=com_citations&task=view&id='.$citation->id.'&area=find#find'); ?>">
 						Find this Text
 					</a>
 				</li>
 			</ul>
 		<?php else : ?>
-			<a class="primary" rel="" href="<?php echo JRoute::_('index.php?option=com_citations&task=view&id='.$citation->id.'&area=find#find'); ?>">
+			<a class="primary" rel="" href="<?php echo Route::url('index.php?option=com_citations&task=view&id='.$citation->id.'&area=find#find'); ?>">
 				Find this Text
 			</a>
 		<?php endif; ?>
 		
-		<?php if(count($sponsors) > 0) : ?>
+		<?php if (count($sponsors) > 0) : ?>
 			<div id="citation-sponsors" class="container">
 				<h3>Sponsored By</h3>
 				<ul class="citation-sponsor">
@@ -276,16 +276,16 @@ $area = JRequest::getVar('area', 'about');
 		?>
 		
 		<?php foreach($menu as $k => $v) : ?>
-			<?php 
-				if($k == 'resources' && count($associationLinks) < 1) 
-				{ 
-					continue; 
+			<?php
+				if ($k == 'resources' && count($associationLinks) < 1)
+				{
+					continue;
 				}
-				
+
 				$cls = ($k == $area) ? 'active' : '';
 			?>
 			<li class="<?php echo $cls; ?>">
-				<a class="tab" href="<?php echo JRoute::_('index.php?option=com_citations&task=view&id='.$citation->id.'&area='.$k.'#'.$k); ?>">
+				<a class="tab" href="<?php echo Route::url('index.php?option=com_citations&task=view&id='.$citation->id.'&area='.$k.'#'.$k); ?>">
 					<span><?php echo $v; ?></span>
 				</a>
 			</li>
@@ -302,76 +302,76 @@ $area = JRequest::getVar('area', 'about');
 				<tr>
 					<th>Type</th>
 					<td>
-						<a href="<?php echo JRoute::_('index.php?option=com_citations&task=browse&type='.$type[0]['id']); ?>"><?php echo $type[0]['type_title']; ?></a>
+						<a href="<?php echo Route::url('index.php?option=com_citations&task=browse&type='.$type[0]['id']); ?>"><?php echo $type[0]['type_title']; ?></a>
 					</td>
 				</tr>
-			
-				<?php if($citation->editor) : ?>
-					 <tr>
-						<th><?php echo JText::_('Editor(s)'); ?></th>
+
+				<?php if ($citation->editor) : ?>
+					<tr>
+						<th><?php echo Lang::txt('Editor(s)'); ?></th>
 						<td><?php echo $citation->editor; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->booktitle) : ?>
-					 <tr>
-						<th><?php echo JText::_('Book Title'); ?></th>
+
+				<?php if ($citation->booktitle) : ?>
+					<tr>
+						<th><?php echo Lang::txt('Book Title'); ?></th>
 						<td><?php echo $citation->booktitle; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->address) : ?>
-					 <tr>
-						<th><?php echo JText::_('Place Published'); ?></th>
+
+				<?php if ($citation->address) : ?>
+					<tr>
+						<th><?php echo Lang::txt('Place Published'); ?></th>
 						<td><?php echo $citation->address; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->publisher) : ?>
-					 <tr>
-						<th><?php echo JText::_('Publisher'); ?></th>
+
+				<?php if ($citation->publisher) : ?>
+					<tr>
+						<th><?php echo Lang::txt('Publisher'); ?></th>
 						<td><?php echo $citation->publisher; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->year) : ?>
-					 <tr>
-						<th><?php echo JText::_('Year'); ?></th>
+
+				<?php if ($citation->year) : ?>
+					<tr>
+						<th><?php echo Lang::txt('Year'); ?></th>
 						<td><?php echo $citation->year; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->edition) : ?>
-					 <tr>
-						<th><?php echo JText::_('Edition'); ?></th>
+
+				<?php if ($citation->edition) : ?>
+					<tr>
+						<th><?php echo Lang::txt('Edition'); ?></th>
 						<td><?php echo $citation->edition; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->pages) : ?>
-					 <tr>
-						<th><?php echo JText::_('Pages'); ?></th>
+
+				<?php if ($citation->pages) : ?>
+					<tr>
+						<th><?php echo Lang::txt('Pages'); ?></th>
 						<td><?php echo $citation->pages; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->series) : ?>
-					 <tr>
-						<th><?php echo JText::_('Series'); ?></th>
+
+				<?php if ($citation->series) : ?>
+					<tr>
+						<th><?php echo Lang::txt('Series'); ?></th>
 						<td><?php echo $citation->series; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->isbn) : ?>
-					 <tr>
-						<th><?php echo JText::_('ISBN/ISSN'); ?></th>
+
+				<?php if ($citation->isbn) : ?>
+					<tr>
+						<th><?php echo Lang::txt('ISBN/ISSN'); ?></th>
 						<td><?php echo nl2br($citation->isbn); ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->doi) : ?>
-					 <tr>
-						<th><?php echo JText::_('DOI'); ?></th>
+
+				<?php if ($citation->doi) : ?>
+					<tr>
+						<th><?php echo Lang::txt('DOI'); ?></th>
 						<td>
 							<a href="http://dx.doi.org/<?php echo $citation->doi; ?>">
 								<?php echo $citation->doi; ?>
@@ -379,35 +379,35 @@ $area = JRequest::getVar('area', 'about');
 						</td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if($citation->language && strtolower($citation->language) != 'english') : ?>
-					 <tr>
-						<th><?php echo JText::_('Language'); ?></th>
+
+				<?php if ($citation->language && strtolower($citation->language) != 'english') : ?>
+					<tr>
+						<th><?php echo Lang::txt('Language'); ?></th>
 						<td><?php echo $citation->language; ?></td>
 					</tr>
 				<?php endif;?>
-			
-				<?php if(is_array($tags) && count($tags) > 0 && $showTags == 'yes') : ?>
+
+				<?php if (is_array($tags) && count($tags) > 0 && $showTags == 'yes') : ?>
 					<tr>
-						<th><?php echo JText::_('Tags'); ?></th>
+						<th><?php echo Lang::txt('Tags'); ?></th>
 						<td>
-							<?php echo CitationFormat::citationTags($citation, JFactory::getDBO()); ?>
+							<?php echo \Components\Citations\Helpers\Format::citationTags($citation, $database); ?>
 						</td>
 					</tr>
 				<?php endif; ?>
-			
-				<?php if(is_array($badges) && count($badges) > 0 && $showBadges == 'yes') : ?>
+
+				<?php if (is_array($badges) && count($badges) > 0 && $showBadges == 'yes') : ?>
 					<tr>
-						<th><?php echo JText::_('Badges'); ?></th>
+						<th><?php echo Lang::txt('Badges'); ?></th>
 						<td>
-							<?php echo CitationFormat::citationBadges($citation, JFactory::getDBO()); ?>
+							<?php echo \Components\Citations\Helpers\Format::citationBadges($citation, $database); ?>
 						</td>
 					</tr>
 				<?php endif; ?>
-			
-				<?php if(isset($citation->created) && $citation->created != '0000-00-00 00:00:00') : ?>
+
+				<?php if (isset($citation->created) && $citation->created != '0000-00-00 00:00:00') : ?>
 					<tr>
-						<th><?php echo JText::_('Submitted'); ?></th>
+						<th><?php echo Lang::txt('Submitted'); ?></th>
 						<td><?php echo date("l, F d, Y @ g:ia", strtotime($citation->created)); ?></td>
 					</tr>
 				<?php endif; ?>
@@ -420,7 +420,7 @@ $area = JRequest::getVar('area', 'about');
 	<div class="main section citation-section hide">
 		<a name="resources"></a>
 		<h3>Cited Resources</h3>
-		<?php if(count($associationLinks) > 0) : ?>
+		<?php if (count($associationLinks) > 0) : ?>
 			<p>Below is a list of resources that this citation is associated with.</p>
 			<ul class="">
 				<li>
@@ -438,15 +438,12 @@ $area = JRequest::getVar('area', 'about');
 		<a name="reviews"></a>
 		<h3>Reviews</h3>
 		<?php
-			JPluginHelper::importPlugin('hubzero');
-			$dispatcher = JDispatcher::getInstance();
-			
 			$params = array(
 				$citation,
 				$this->option,
-				JRoute::_('index.php?option='.$this->option.'&task=view&id='.$citation->id.'&area=reviews#reviews')
+				Route::url('index.php?option='.$this->option.'&task=view&id='.$citation->id.'&area=reviews#reviews')
 			);
-			$comments = $dispatcher->trigger( 'onAfterDisplayContent', $params );
+			$comments = Event::trigger('hubzero.onAfterDisplayContent', $params);
 			echo $comments[0];
 		?>
 	</div>
@@ -459,9 +456,9 @@ $area = JRequest::getVar('area', 'about');
 		<p>Below you can find links that may assist you in locating a copy of this item:</p>
 		<table class="citation">
 			<tbody>
-				<?php if($citation->doi) : ?>
+				<?php if ($citation->doi) : ?>
 					 <tr>
-						<th><?php echo JText::_('DOI Resolver'); ?></th>
+						<th><?php echo Lang::txt('DOI Resolver'); ?></th>
 						<td>
 							<a rel="external" href="http://dx.doi.org/<?php echo $citation->doi; ?>">
 								http://dx.doi.org/<?php echo $citation->doi; ?>
@@ -469,16 +466,16 @@ $area = JRequest::getVar('area', 'about');
 						</td>
 					</tr>
 				<?php endif;?>
-				<?php if($config->get('citation_openurl', 1)) : ?>
+				<?php if ($config->get('citation_openurl', 1)) : ?>
 					<tr>
 						<th>Local Library</th>
 						<td>
 							<p style="margin-top:0">If you are a member of this institution, you may be able to access this item through them either in print or perhaps online. If this is a public library or land-grant university, you may be able to at least access this item when you visit the library.</p>
 							<p>If your local public or college library does not have this item in its collection, you may be able to request a copy through a service called "Interlibrary Loan." Why not give them a call to see if they can help you?</p>
 							<ul class="secondary openurl">
-								<?php if($this->openUrl) : ?>
+								<?php if ($this->openUrl) : ?>
 									<li>
-										<?php echo CitationFormat::citationOpenUrl($this->openUrl, $citation); ?>
+										<?php echo \Components\Citations\Helpers\Format::citationOpenUrl($this->openUrl, $citation); ?>
 									</li>
 								<?php endif; ?>
 							</ul>
@@ -501,7 +498,7 @@ $area = JRequest::getVar('area', 'about');
 						}
 						?>
 						<a target="_blank" title="Google Scholar Search Results" href="http://scholar.google.com/scholar?q=<?php echo $query; ?>">
-							<img src="/components/com_citations/assets/img/googlescholar.gif" alt="Google Scholar Search Results" width="100" />
+							<img src="/core/components/com_citations/assets/img/googlescholar.gif" alt="Google Scholar Search Results" width="100" />
 						</a>
 					</td>
 				</tr>
@@ -529,9 +526,8 @@ $area = JRequest::getVar('area', 'about');
 	 */
 	
 	//get hub url and name
-	$jconfig = JFactory::getConfig();
-	$hubName = $jconfig->getValue('config.sitename');
-	$hubUrl = rtrim(JURI::base(), '/');
+	$hubName = Config::get('sitename');
+	$hubUrl = rtrim(Request::base(), '/');
 	
 	//get the type of resource for coins 
 	switch (strtolower($type[0]['type_title']))
@@ -567,49 +563,49 @@ $area = JRequest::getVar('area', 'about');
 	);
 	
 	//add doi to coins
-	if($citation->doi)
+	if ($citation->doi)
 	{
 		$coinsData[] = 'rft_id=info:doi/' . $citation->doi;
 	}
 	
 	//add isbn/issn to coins
-	if($citation->isbn)
+	if ($citation->isbn)
 	{
 		$coinsData[] = ($coinsType == 'book') ? 'rft.isbn='.$citation->isbn : 'rft.issn='.$citation->isbn;
 	}
 	
 	//add url to coins
-	if($citation->url)
+	if ($citation->url)
 	{
 		$coinsData[] = 'rft_id=' . htmlentities($citation->url);
 	}
 	
 	//add volume to coins
-	if($citation->volume)
+	if ($citation->volume)
 	{
 		$coinsData[] = 'rft.volume=' . $citation->volume;
 	}
 	
 	//add issue to coins
-	if($citation->number)
+	if ($citation->number)
 	{
 		$coinsData[] = 'rft.issue=' . $citation->number;
 	}
 	
 	//add pages to coins
-	if($citation->pages)
+	if ($citation->pages)
 	{
 		$coinsData[] = 'rft.pages=' . $citation->pages;
 	}
 
 	//add journal to coins
-	if($citation->journal)
+	if ($citation->journal)
 	{
 		$coinsData[] = 'rft.jtitle=' . $citation->journal;
 	}
 	
 	//add authors to coins
-	if($citation->author)
+	if ($citation->author)
 	{
 		$authors = array_filter(array_values(explode(";", $citation->author)));
 		foreach($authors as $a)
@@ -622,9 +618,9 @@ $area = JRequest::getVar('area', 'about');
 	$chars = array(' ', '/', ':', '"', '&amp;');
 	$replace = array("%20", "%2F", "%3A", "%22", "%26");
 	$coinsData = str_replace($chars, $replace, implode('&', $coinsData));
-	
+
 	//echo coins tag to doc
-	if($config->get('citation_coins', 1))
+	if ($config->get('citation_coins', 1))
 	{
 		echo '<span class="Z3988" title="'.$coinsData.'"></span>';
 	}

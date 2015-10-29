@@ -1,16 +1,46 @@
 <?php
-defined( '_JEXEC' ) or die( 'Restricted access' );
+/**
+ * HUBzero CMS
+ *
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * HUBzero is a registered trademark of Purdue University.
+ *
+ * @package   hubzero-cms
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
+ */
 
-$config = JFactory::getConfig();
-$juser = JFactory::getUser();
+defined('_HZEXEC_') or die();
 
-$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js?v=' . filemtime(JPATH_ROOT . '/templates/' . $this->template . '/js/hub.js'));
+Html::behavior('framework', true);
+Html::behavior('modal');
+
+$this->addScript($this->baseurl . '/templates/' . $this->template . '/js/hub.js?v=' . filemtime(__DIR__ . '/js/hub.js'));
 
 $browser = new \Hubzero\Browser\Detector();
 $b = $browser->name();
 $v = $browser->major();
 
-$this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle());
+$this->setTitle(Config::get('sitename') . ' - ' . $this->getTitle());
 ?>
 <!DOCTYPE html>
 <!--[if lt IE 7 ]> <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie6"> <![endif]-->
@@ -47,26 +77,26 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 		<?php if ($this->countModules( 'accessibility' )) : ?>
 		<jdoc:include type="modules" name="accessibility" /> <?php endif; ?>
 			<h1>
-				<a href="<?php echo $this->baseurl ?>" title="<?php echo $config->getValue('config.sitename'); ?>">
-					<?php echo $config->getValue('config.sitename'); ?>
+				<a href="<?php echo $this->baseurl ?>" title="<?php echo Config::get('sitename'); ?>">
+					<?php echo Config::get('sitename'); ?>
 				</a>
 			</h1>
 
-			<ul id="toolbar" class="<?php if (!$juser->get('guest')) { echo 'loggedin'; } else { echo 'loggedout'; } ?>">
+			<ul id="toolbar" class="<?php if (!User::get('guest')) { echo 'loggedin'; } else { echo 'loggedout'; } ?>">
 				<?php
-					if (!$juser->get('guest')) {
+					if (!User::get('guest')) {
 						// Find the user's most recent support tickets
-						$database = JFactory::getDBO();
+						$database = App::get('db');
 						$recipient = new \Hubzero\Message\Recipient( $database );
-						$rows = $recipient->getUnreadMessages( $juser->get('id'), 0 );
+						$rows = $recipient->getUnreadMessages( User::get('id'), 0 );
 
-						echo "\t\t\t".'<li id="myaccount"><a href="/members/'.$juser->get('id').'"><span>'.$juser->get('name').'</span></a></li>'."\n";
+						echo "\t\t\t".'<li id="myaccount"><a href="/members/'.User::get('id').'"><span>'.User::get('name').'</span></a></li>'."\n";
 						echo "\t\t\t".'<li class="sep">|</li>'."\n";
-						echo "\t\t\t".'<li id="logout"><a href="/logout"><span>'.JText::_('Logout').'</span></a></li>'."\n";
+						echo "\t\t\t".'<li id="logout"><a href="/logout"><span>'.Lang::txt('Logout').'</span></a></li>'."\n";
 					} else {
-						echo "\t\t\t".'<li id="login"><a href="/login" title="'.JText::_('Login').'">'.JText::_('Login').'</a></li>'."\n";
+						echo "\t\t\t".'<li id="login"><a href="/login" title="'.Lang::txt('Login').'">'.Lang::txt('Login').'</a></li>'."\n";
 						echo "\t\t\t".'<li class="sep">|</li>'."\n";
-						echo "\t\t\t".'<li id="register"><a href="/register" title="'.JText::_('Sign up for a free account').'">'.JText::_('Register').'</a></li>'."\n";
+						echo "\t\t\t".'<li id="register"><a href="/register" title="'.Lang::txt('Sign up for a free account').'">'.Lang::txt('Register').'</a></li>'."\n";
 					}
 				?>
 			</ul>
@@ -75,8 +105,8 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 
 			<?php if ($this->countModules( 'helppane' )) : ?>
 				<p id="tab">
-					<a href="/support" title="<?php echo JText::_('Need help? Send a trouble report to our support team.'); ?>">
-						<span><?php echo JText::_('Need Help?'); ?></span>
+					<a href="/support" title="<?php echo Lang::txt('Need help? Send a trouble report to our support team.'); ?>">
+						<span><?php echo Lang::txt('Need Help?'); ?></span>
 					</a>
 				</p>
 			<?php endif; ?>
@@ -89,21 +119,16 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 			<div class="clear"></div>
 		</div><!-- / #nav -->
 
-		<?php if ($this->countModules( 'banner' )) : ?>
+		<?php if ($this->countModules('banner')) : ?>
 			<div id="home-banner">
 				<jdoc:include type="modules" name="banner" />
 			</div>
 		<?php endif; ?>
 
-
-		<?php if (!$this->countModules( 'banner' )) : ?>
-
+		<?php if (!$this->countModules('banner')) : ?>
 			<div id="trail">You are here:
 				<?php
-					$app = JFactory::getApplication();
-					$pathway = $app->getPathway();
-
-					$items = $pathway->getPathWay();
+					$items = Pathway::items();
 					$l = array();
 
 					foreach ($items as $item)
@@ -115,23 +140,20 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 							$text = substr($text,0,strrpos($text,' '));
 							$text = $text.' &#8230;';
 						}
-						$url = JRoute::_($item->link);
+						$url = Route::url($item->link);
 						$url = str_replace('%20','+',$url);
 						$l[] = '<a href="'.$url.'">'.$text.'</a>';
 					}
 					echo implode(' &rsaquo; ',$l);
-
-
 				?>
 
-			<jdoc:include type="modules" name="collectBtn" />
-		</div><!-- / #trail -->
-
+				<jdoc:include type="modules" name="collectBtn" />
+			</div><!-- / #trail -->
 		<?php endif; ?>
 
 
-	<div id="content" class="<?php echo JRequest::getVar('option', ''); ?>">
-		<div id="wrap">
+		<div id="content" class="<?php echo Request::getVar('option', ''); ?>">
+			<div id="wrap">
 				<?php if ($this->countModules( 'left' )) : ?>
 					<div class="main section withleft">
 						<div class="aside">
@@ -158,11 +180,11 @@ $this->setTitle($config->getValue('config.sitename') . ' - ' . $this->getTitle()
 						<div class="clear"></div>
 					</div><!-- / .main section -->
 				<?php endif; ?>
-			</div><!-- / #content -->
+			</div><!-- / #wrap -->
 
 			<jdoc:include type="modules" name="footer" />
-		</div><!-- / #wrap -->
-		<jdoc:include type="modules" name="endpage" />
+		</div><!-- / #content -->
 
+		<jdoc:include type="modules" name="endpage" />
 	</body>
 </html>

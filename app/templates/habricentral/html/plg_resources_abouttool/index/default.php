@@ -2,39 +2,39 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+defined('_HZEXEC_') or die();
 
 if ($this->model->resource->alias) {
-	$sef = JRoute::_('index.php?option=' . $this->option . '&alias=' . $this->model->resource->alias);
+	$sef = Route::url('index.php?option=' . $this->option . '&alias=' . $this->model->resource->alias);
 } else {
-	$sef = JRoute::_('index.php?option=' . $this->option . '&id=' . $this->model->resource->id);
+	$sef = Route::url('index.php?option=' . $this->option . '&id=' . $this->model->resource->id);
 }
 
 // Set the display date
@@ -138,16 +138,16 @@ if ($shots) {
 		<tbody>
 		
 		<tr>
-			<th><?php echo JText::_('Category'); ?></th>
+			<th><?php echo Lang::txt('Category'); ?></th>
 			<td class="resource-content">
-				<a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&type=' . $this->model->type->alias); ?>">
+				<a href="<?php echo Route::url('index.php?option=' . $this->option . '&type=' . $this->model->type->alias); ?>">
 					<?php echo $this->escape(stripslashes($this->model->type->type)); ?>
 				</a>
 			</td>
 		</tr>
 <?php if ($thedate) { ?>
 		<tr>
-			<th><?php echo JText::_('Published on'); ?></th>
+			<th><?php echo Lang::txt('Published on'); ?></th>
 			<td class="resource-content">
 				<time datetime="<?php echo $thedate; ?>"><?php echo JHTML::_('date', $thedate, $dateFormat, $tz); ?></time>
 			</td>
@@ -155,7 +155,7 @@ if ($shots) {
 <?php } ?>
 <?php if ($this->model->resource->revision == 'dev' or !$this->model->resource->toolpublished) { ?>
 		<tr>
-			<th><?php echo JText::_('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
+			<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
 			<td class="resource-content">
 				<?php echo $maintext; ?>
 			</td>
@@ -164,7 +164,7 @@ if ($shots) {
 	// Protected - only show the introtext
 ?>
 		<tr>
-			<th><?php echo JText::_('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
+			<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
 			<td class="resource-content">
 				<?php echo $this->escape($introtext); ?>
 			</td>
@@ -174,7 +174,7 @@ if ($shots) {
 	if (trim($maintext)) {
 ?>
 		<tr>
-			<th><?php echo JText::_('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
+			<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
 			<td class="resource-content">
 				<?php echo $maintext; ?>
 			</td>
@@ -185,7 +185,7 @@ if ($shots) {
 	if ($this->model->contributors('submitter')) {
 ?>
 		<tr>
-			<th><?php echo JText::_('PLG_RESOURCES_ABOUT_CONTRIBUTOR'); ?></th>
+			<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_CONTRIBUTOR'); ?></th>
 			<td class="resource-content">
 				<span id="submitterlist">
 					<?php 
@@ -274,7 +274,7 @@ if ($shots) {
 		$citeinstruct .= ResourcesHtml::citationCOins($cite, $this->model); //->resource, $this->model->params, $this->helper);
 ?>
 		<tr>
-			<th><a name="citethis"></a><?php echo JText::_('PLG_RESOURCES_ABOUT_CITE_THIS'); ?></th>
+			<th><a name="citethis"></a><?php echo Lang::txt('PLG_RESOURCES_ABOUT_CITE_THIS'); ?></th>
 			<td class="resource-content">
 				<?php echo $citeinstruct; ?>
 			</td>
@@ -292,7 +292,7 @@ if (!$this->thistool && $this->revision != 'dev') {
 			$tagger = new ResourcesTags($this->database);
 ?>
 		<tr>
-			<th><?php echo JText::_('PLG_RESOURCES_ABOUT_TAGS'); ?></th>
+			<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_TAGS'); ?></th>
 			<td class="resource-content">
 				<?php echo $tagger->buildCloud($tags); ?>
 			</td>

@@ -2,34 +2,34 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access');
+defined('_HZEXEC_') or die();
 ?>
 <div id="content-header" class="full">
 	<h2><?php //echo $this->title; ?>Bibliography</h2>
@@ -44,10 +44,10 @@ defined('_JEXEC') or die( 'Restricted access');
 <div id="introduction" class="section">
 	<div class="aside">
 		<?php if ($this->allow_import == 1 || ($this->allow_import == 2 && $this->isAdmin)) : ?>
-			<p><a href="<?php echo JRoute::_('index.php?option='.$option.'&task=add'); ?>" class="add-citation primary">Submit a Citation</a></p>
+			<p><a href="<?php echo Route::url('index.php?option='.$option.'&task=add'); ?>" class="add-citation primary">Submit a Citation</a></p>
 		<?php endif; ?>
 		<?php if ($this->allow_bulk_import == 1 || ($this->allow_bulk_import == 2 && $this->isAdmin)) : ?>
-			<p><a href="<?php echo JRoute::_('index.php?option='.$option.'&task=import'); ?>" class="import-citation primary">Import Citations</a></p>
+			<p><a href="<?php echo Route::url('index.php?option='.$option.'&task=import'); ?>" class="import-citation primary">Import Citations</a></p>
 		<?php endif; ?>
 		<p>
 			&rsaquo; <a href="/kb/bibliography">Bibliography FAQ</a><br />
@@ -61,7 +61,7 @@ defined('_JEXEC') or die( 'Restricted access');
 		</div>
 		<div class="two columns second">
 			<h3>Can I submit a citation?</h3>
-			<p>Yes! You can submit a citation for a journal article, book, conference paper, thesis, or other publication relevant to human-animal bond, either in print or online, by <a href="<?php echo JRoute::_('index.php?option='.$option.'&task=add'); ?>">clicking here</a>.  However, please search or browse the existing bibliography to ensure no duplicate entries.</p>
+			<p>Yes! You can submit a citation for a journal article, book, conference paper, thesis, or other publication relevant to human-animal bond, either in print or online, by <a href="<?php echo Route::url('index.php?option='.$option.'&task=add'); ?>">clicking here</a>.  However, please search or browse the existing bibliography to ensure no duplicate entries.</p>
 		</div>
 		<div class="clear"></div>
 	</div><!-- / .subject -->
@@ -75,7 +75,7 @@ defined('_JEXEC') or die( 'Restricted access');
 	</div><!-- / .four columns first -->
 	<div class="four columns second third fourth">
 		<div class="two columns first">
-			<form action="<?php echo JRoute::_('index.php?option='.$option.'&task=browse'); ?>" method="get" class="search">
+			<form action="<?php echo Route::url('index.php?option='.$option.'&task=browse'); ?>" method="get" class="search">
 				<fieldset>
 					<p>
 						<label for="csearch">Keyword or phrase:</label>
@@ -87,7 +87,7 @@ defined('_JEXEC') or die( 'Restricted access');
 		</div><!-- / .two columns first -->
 		<div class="two columns second">
 			<div class="browse">
-				<p><a href="<?php echo JRoute::_('index.php?option='.$option.'&task=browse'); ?>">Browse the bibliography</a></p>
+				<p><a href="<?php echo Route::url('index.php?option='.$option.'&task=browse'); ?>">Browse the bibliography</a></p>
 			</div><!-- / .browse -->
 		</div><!-- / .two columns second -->
 	</div><!-- / .four columns second third fourth -->
@@ -119,19 +119,19 @@ foreach ($yearlystats as $year=>$amt)
 	$tot += (intval($amt['affiliate']) + intval($amt['non-affiliate']));
 }
 
-$html  = '<table summary="'.JText::_('CITATIONS_TABLE_METRICS_YEAR').'">'."\n";
-$html .= "\t".'<caption>'.JText::_('CITATIONS_TABLE_METRICS_YEAR').'</caption>'."\n";
+$html  = '<table summary="'.Lang::txt('CITATIONS_TABLE_METRICS_YEAR').'">'."\n";
+$html .= "\t".'<caption>'.Lang::txt('CITATIONS_TABLE_METRICS_YEAR').'</caption>'."\n";
 $html .= "\t".'<thead>'."\n";
 $html .= "\t\t".'<tr>'."\n";
-$html .= "\t\t\t".'<th scope="col" class="textual-data">'.JText::_('CITATIONS_YEAR').'</th>'."\n";
-$html .= "\t\t\t".'<th scope="col" class="numerical-data"><sup><a href="#fn-1">1</a></sup> '.JText::_('CITATIONS_AFFILIATED').'</th>'."\n";
-$html .= "\t\t\t".'<th scope="col" class="numerical-data"><sup><a href="#fn-1">1</a></sup> '.JText::_('CITATIONS_NONAFFILIATED').'</th>'."\n";
-$html .= "\t\t\t".'<th scope="col" class="numerical-data">'.JText::_('COM_CITATIONS_TOTAL').'</th>'."\n";
+$html .= "\t\t\t".'<th scope="col" class="textual-data">'.Lang::txt('CITATIONS_YEAR').'</th>'."\n";
+$html .= "\t\t\t".'<th scope="col" class="numerical-data"><sup><a href="#fn-1">1</a></sup> '.Lang::txt('CITATIONS_AFFILIATED').'</th>'."\n";
+$html .= "\t\t\t".'<th scope="col" class="numerical-data"><sup><a href="#fn-1">1</a></sup> '.Lang::txt('CITATIONS_NONAFFILIATED').'</th>'."\n";
+$html .= "\t\t\t".'<th scope="col" class="numerical-data">'.Lang::txt('COM_CITATIONS_TOTAL').'</th>'."\n";
 $html .= "\t\t".'</tr>'."\n";
 $html .= "\t".'</thead>'."\n";
 $html .= "\t".'<tfoot>'."\n";
 $html .= "\t\t".'<tr class="summary">'."\n";
-$html .= "\t\t\t".'<th class="numerical-data" colspan="3">'.JText::_('COM_CITATIONS_TOTAL').'</th>'."\n";
+$html .= "\t\t\t".'<th class="numerical-data" colspan="3">'.Lang::txt('COM_CITATIONS_TOTAL').'</th>'."\n";
 $html .= "\t\t\t".'<td class="numerical-data highlight">'.$tot.'</td>'."\n";
 $html .= "\t\t".'</tr>'."\n";
 $html .= "\t".'</tfoot>'."\n";
@@ -214,18 +214,18 @@ for ($i=0, $n=count($data_arr['text']); $i < $n; $i++)
 
 $html = "";
 
-$html .= '<table summary="'.JText::_('CITATIONS_TABLE_METRICS_TYPE').'">'."\n";
-$html .= "\t".'<caption>'.JText::_('Table 1: Citations by type').'</caption>'."\n";
+$html .= '<table summary="'.Lang::txt('CITATIONS_TABLE_METRICS_TYPE').'">'."\n";
+$html .= "\t".'<caption>'.Lang::txt('Table 1: Citations by type').'</caption>'."\n";
 $html .= "\t".'<thead>'."\n";
 $html .= "\t\t".'<tr>'."\n";
-$html .= "\t\t\t".'<th scope="col" class="textual-data">'.JText::_('COM_CITATIONS_TYPE').'</th>'."\n";
-$html .= "\t\t\t".'<th scope="col" class="textual-data">'.JText::_('COM_CITATIONS_PERCENT').'</th>'."\n";
-$html .= "\t\t\t".'<th scope="col" class="numerical-data">'.JText::_('COM_CITATIONS_TOTAL').'</th>'."\n";
+$html .= "\t\t\t".'<th scope="col" class="textual-data">'.Lang::txt('COM_CITATIONS_TYPE').'</th>'."\n";
+$html .= "\t\t\t".'<th scope="col" class="textual-data">'.Lang::txt('COM_CITATIONS_PERCENT').'</th>'."\n";
+$html .= "\t\t\t".'<th scope="col" class="numerical-data">'.Lang::txt('COM_CITATIONS_TOTAL').'</th>'."\n";
 $html .= "\t\t".'</tr>'."\n";
 $html .= "\t".'</thead>'."\n";
 $html .= "\t".'<tfoot>'."\n";
 $html .= "\t\t".'<tr class="summary">'."\n";
-$html .= "\t\t\t".'<th class="text-data">'.JText::_('COM_CITATIONS_TOTAL').'</th>'."\n";
+$html .= "\t\t\t".'<th class="text-data">'.Lang::txt('COM_CITATIONS_TOTAL').'</th>'."\n";
 $html .= "\t\t\t".'<td class="textual-data">100%</td>'."\n";
 $html .= "\t\t\t".'<td class="numerical-data">'.$sumval.'</td>'."\n";
 $html .= "\t\t".'</tr>'."\n";

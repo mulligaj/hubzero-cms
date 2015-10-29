@@ -2,36 +2,36 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+defined('_HZEXEC_') or die();
 
-$sef = JRoute::_('index.php?option=' . $this->option . '&id=' . $this->model->resource->id);
+$sef = Route::url('index.php?option=' . $this->option . '&id=' . $this->model->resource->id);
 
 // Set the display date
 switch ($this->model->params->get('show_date'))
@@ -42,24 +42,18 @@ switch ($this->model->params->get('show_date'))
 	case 3: $thedate = $this->model->resource->publish_up; break;
 }
 
-$dateFormat = '%d %b %Y';
-$yearFormat = '%Y';
-$timeFormat = '%I:%M %p';
-$tz = 0;
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'd M Y';
-	$yearFormat = 'Y';
-	$timeFormat = 'h:M a';
-	$tz = true;
-}
+
+$dateFormat = 'd M Y';
+$yearFormat = 'Y';
+$timeFormat = 'h:M a';
+$tz = true;
 
 $this->model->resource->introtext = stripslashes($this->model->resource->introtext);
 $this->model->resource->fulltxt = stripslashes($this->model->resource->fulltxt);
 $this->model->resource->fulltxt = ($this->model->resource->fulltxt) ? trim($this->model->resource->fulltxt) : trim($this->model->resource->introtext);
 
 // Parse for <nb:field> tags
-$type = new ResourcesType($this->database);
+$type = new \Components\Resources\Tables\Type($this->database);
 $type->load($this->model->resource->type);
 
 $data = array();
@@ -74,15 +68,14 @@ if (count($matches) > 0)
 $this->model->resource->fulltxt = preg_replace("#<nb:(.*?)>(.*?)</nb:(.*?)>#s", '', $this->model->resource->fulltxt);
 $this->model->resource->fulltxt = trim($this->model->resource->fulltxt);
 
-include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'models' . DS . 'elements.php');
-$elements = new ResourcesElements($data, $type->customFields);
+include_once(PATH_CORE . DS . 'components' . DS . 'com_resources' . DS . 'models' . DS . 'elements.php');
+$elements = new \Components\Resources\Models\Elements($data, $type->customFields);
 $schema = $elements->getSchema();
 
 // Set the document description
 if ($this->model->resource->introtext) 
 {
-	$document =& JFactory::getDocument();
-	$document->setDescription(ResourcesHtml::encode_html(strip_tags($this->model->resource->introtext)));
+	Document::setDescription(\Components\Resources\Helpers\Html::encode_html(strip_tags($this->model->resource->introtext)));
 }
 
 // Check if there's anything left in the fulltxt after removing custom fields
@@ -93,15 +86,15 @@ $maintext = str_replace('<blink>', '', $maintext);
 $maintext = str_replace('</blink>', '', $maintext);
 ?>
 <div class="subject abouttab">
-	<table class="resource" summary="<?php echo JText::_('RESOURCE_TBL_SUMMARY'); ?>">
+	<table class="resource" summary="<?php echo Lang::txt('RESOURCE_TBL_SUMMARY'); ?>">
 		<tbody>
 			<tr>
-				<th><?php echo JText::_('Category'); ?></th>
-				<td><a href="<?php echo JRoute::_('index.php?option=' . $this->option . '&type=' . $this->model->resource->_type->alias); ?>"><?php echo stripslashes($this->model->resource->_type->type); ?></a></td>
+				<th><?php echo Lang::txt('Category'); ?></th>
+				<td><a href="<?php echo Route::url('index.php?option=' . $this->option . '&type=' . $this->model->resource->_type->alias); ?>"><?php echo stripslashes($this->model->resource->_type->type); ?></a></td>
 			</tr>
 			<tr>
-				<th><?php echo JText::_('Published'); ?></th>
-				<td><?php echo JHTML::_('date', $thedate, $dateFormat, $tz); ?></a></td>
+				<th><?php echo Lang::txt('Published'); ?></th>
+				<td><?php echo Date::of($thedate)->toLocal($tz); ?></a></td>
 			</tr>
 <?php
 // Check how much we can display
@@ -109,7 +102,7 @@ if ($this->model->resource->access == 3 && (!in_array($this->model->resource->gr
 	// Protected - only show the introtext
 ?>
 			<tr>
-				<th><?php echo JText::_('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
+				<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
 				<td><?php echo $this->escape($this->model->resource->introtext); ?></td>
 			</tr>
 <?php
@@ -117,7 +110,7 @@ if ($this->model->resource->access == 3 && (!in_array($this->model->resource->gr
 	if (trim($maintext)) {
 ?>
 			<tr>
-				<th><?php echo JText::_('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
+				<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_ABSTRACT'); ?></th>
 				<td><?php echo $maintext; ?></td>
 			</tr>
 <?php
@@ -126,7 +119,7 @@ if ($this->model->resource->access == 3 && (!in_array($this->model->resource->gr
 	if ($this->helper->contributors && $this->helper->contributors != '<br />') {
 ?>
 			<tr>
-				<th><?php echo JText::_('Submitter'); ?></th>
+				<th><?php echo Lang::txt('Submitter'); ?></th>
 				<td>
 					<span id="authorslist">
 						<?php echo $this->helper->contributors; ?>
@@ -158,13 +151,11 @@ if ($this->model->resource->access == 3 && (!in_array($this->model->resource->gr
 			$this->helper->getUnlinkedContributors();
 
 			// Build our citation object
-			$juri =& JURI::getInstance();
-			
 			$cite = new stdClass();
 			$cite->title = $this->model->resource->title;
-			$cite->year = JHTML::_('date', $thedate, $yearFormat, $tz);
-			$cite->location = $juri->base() . ltrim($sef, DS);
-			$cite->date = date( "Y-m-d H:i:s" );
+			$cite->year = Date::of($thedate)->toLocal($yearFormat);
+			$cite->location = Request::base() . ltrim($sef, '/');
+			$cite->date = gmdate("Y-m-d H:i:s");
 			$cite->url = '';
 			$cite->type = '';
 			$cite->author = $this->helper->ul_contributors;
@@ -176,11 +167,11 @@ if ($this->model->resource->access == 3 && (!in_array($this->model->resource->gr
 			$cite = null;
 		}
 
-		$citeinstruct  = ResourcesHtml::citation( $this->option, $cite, $this->model->resource->id, $citations, $this->model->resource->type, 0 );
-		$citeinstruct .= ResourcesHtml::citationCOins($cite, $this->model->resource, $this->config, $this->helper);
+		$citeinstruct  = \Components\Resources\Helpers\Html::citation( $this->option, $cite, $this->model->resource->id, $citations, $this->model->resource->type, 0 );
+		$citeinstruct .= \Components\Resources\Helpers\Html::citationCOins($cite, $this->model->resource, $this->config, $this->helper);
 ?>
 			<tr>
-				<th><a name="citethis"></a><?php echo JText::_('PLG_RESOURCES_ABOUT_CITE_THIS'); ?></th>
+				<th><a name="citethis"></a><?php echo Lang::txt('PLG_RESOURCES_ABOUT_CITE_THIS'); ?></th>
 				<td><?php echo $citeinstruct; ?></td>
 			</tr>
 <?php
@@ -191,18 +182,15 @@ if ($this->model->resource->access == 3 && (!in_array($this->model->resource->gr
 		// Citation instructions
 		$this->helper->getUnlinkedContributors();
 
-		// Build our citation object
-		$juri =& JURI::getInstance();
-		
 		$cite = new stdClass();
 		$cite->title = $this->model->resource->title;
-		$cite->year = JHTML::_('date', $thedate, $yearFormat, $tz);
-		$cite->location = $juri->base() . ltrim($sef, DS);
+		$cite->year = Date::of($thedate)->format($yearFormat);
+		$cite->location = Request::base() . ltrim($sef, '/');
 		$cite->date = date( "Y-m-d H:i:s" );
 		$cite->url = '';
 		$cite->type = '';
 		$cite->author = $this->helper->ul_contributors;
-		$coins = ResourcesHtml::citationCOins($cite, $this->model->resource, $this->config, $this->helper);
+		$coins = \Components\Resources\Helpers\Html::citationCOins($cite, $this->model->resource, $this->config, $this->helper);
 		?>
 		<tr>
 			<td colspan="2"><?php echo $coins; ?></td>
@@ -219,14 +207,14 @@ if ($this->attribs->get('timeof', '')) {
 	}
 	if (substr($this->attribs->get('timeof', ''), 4, 1) == '-') {
 		$seminarTime = ($this->attribs->get('timeof', '') != '0000-00-00 00:00:00' || $this->attribs->get('timeof', '') != '')
-					  ? JHTML::_('date', $this->attribs->get('timeof', ''), $exp)
+					  ? Date::of($this->attribs->get('timeof', ''))->format($exp)
 					  : '';
 	} else {
 		$seminarTime = $this->attribs->get('timeof', '');
 	}
 ?>
 			<tr>
-				<th><?php echo JText::_('PLG_RESOURCES_ABOUT_TIME'); ?></th>
+				<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_TIME'); ?></th>
 				<td><?php echo $this->escape($seminarTime); ?></td>
 			</tr>
 <?php
@@ -235,7 +223,7 @@ if ($this->attribs->get('timeof', '')) {
 if ($this->attribs->get('location', '')) {
 ?>
 			<tr>
-				<th><?php echo JText::_('PLG_RESOURCES_ABOUT_LOCATION'); ?></th>
+				<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_LOCATION'); ?></th>
 				<td><?php echo $this->escape($this->attribs->get('location', '')); ?></td>
 			</tr>
 <?php
@@ -247,7 +235,7 @@ if ($this->model->params->get('show_assocs')) {
 	if ($tagCloud) {
 ?>
 			<tr>
-				<th><?php echo JText::_('PLG_RESOURCES_ABOUT_TAGS'); ?></th>
+				<th><?php echo Lang::txt('PLG_RESOURCES_ABOUT_TAGS'); ?></th>
 				<td><?php echo $tagCloud; ?></td>
 			</tr>
 <?php

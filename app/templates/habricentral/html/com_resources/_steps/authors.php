@@ -2,79 +2,77 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+// No direct access.
+defined('_HZEXEC_') or die();
 
 $accesses = array('Public','Registered','Special','Protected','Private');
 ?>
-<div id="content-header">
+<header id="content-header">
 	<h2><?php echo $this->title; ?></h2>
-</div><!-- / #content-header -->
 
-<div id="content-header-extra">
-	<p>
-		<a class="add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft'); ?>">
-			<?php echo JText::_('COM_CONTRIBUTE_NEW_SUBMISSION'); ?>
-		</a>
-	</p>
-</div><!-- / #content-header -->
+	<div id="content-header-extra">
+		<p>
+			<a class="add btn" href="<?php echo Route::url('index.php?option=' . $this->option . '&task=draft'); ?>">
+				<?php echo Lang::txt('COM_CONTRIBUTE_NEW_SUBMISSION'); ?>
+			</a>
+		</p>
+	</div><!-- / #content-header -->
+</header><!-- / #content-header -->
 
-<div class="main section">
-<?php
-	$view = new JView(array(
-		'name'   => 'steps',
-		'layout' => 'steps'
-	));
-	$view->option = $this->option;
-	$view->step = $this->step;
-	$view->steps = $this->steps;
-	$view->id = $this->id;
-	$view->resource = $this->row;
-	$view->progress = $this->progress;
-	$view->display();
-?>
+<section class="main section">
+	<?php
+		$this->view('steps')
+		     ->set('option', $this->option)
+		     ->set('step', $this->step)
+		     ->set('steps', $this->steps)
+		     ->set('id', $this->id)
+		     ->set('resource', $this->row)
+		     ->set('progress', $this->progress)
+		     ->display();
+	?>
 <?php if ($this->getError()) { ?>
 	<p class="warning"><?php echo $this->getError(); ?></p>
 <?php } ?>
 	<form action="index.php" method="post" id="hubForm">
 		<div class="explaination">
-			<h4><?php echo JText::_('COM_CONTRIBUTE_GROUPS_HEADER'); ?></h4>
-			<p><?php echo JText::_('COM_CONTRIBUTE_GROUPS_EXPLANATION'); ?></p>
+			<h4><?php echo Lang::txt('COM_CONTRIBUTE_GROUPS_HEADER'); ?></h4>
+			<p><?php echo Lang::txt('COM_CONTRIBUTE_GROUPS_EXPLANATION'); ?></p>
 		</div>
 		<fieldset>
-			<legend><?php echo JText::_('COM_CONTRIBUTE_GROUPS_OWNERSHIP'); ?></legend>
+			<legend><?php echo Lang::txt('COM_CONTRIBUTE_GROUPS_OWNERSHIP'); ?></legend>
 <?php if ($this->groups && count($this->groups) > 0) { ?>
 			<div class="group">
 			<label for="group_owner">
-				<?php echo JText::_('COM_CONTRIBUTE_GROUPS_GROUP'); ?>: <span class="optional"><?php echo JText::_('COM_CONTRIBUTE_OPTIONAL'); ?></span>
+				<?php echo Lang::txt('COM_CONTRIBUTE_GROUPS_GROUP'); ?>: <span class="optional"><?php echo Lang::txt('COM_CONTRIBUTE_OPTIONAL'); ?></span>
 				<select name="group_owner" id="group_owner">
-					<option value=""><?php echo JText::_('COM_CONTRIBUTE_SELECT_GROUP'); ?></option>
+					<option value=""><?php echo Lang::txt('COM_CONTRIBUTE_SELECT_GROUP'); ?></option>
 <?php
 				if ($this->groups && count($this->groups) > 0) {
 					foreach ($this->groups as $group)
@@ -88,14 +86,14 @@ $accesses = array('Public','Registered','Special','Protected','Private');
 				</select>
 			</label>
 			<label for="access">
-				<?php echo JText::_('COM_CONTRIBUTE_GROUPS_ACCESS_LEVEL'); ?>: <span class="optional"><?php echo JText::_('COM_CONTRIBUTE_OPTIONAL'); ?></span>
+				<?php echo Lang::txt('COM_CONTRIBUTE_GROUPS_ACCESS_LEVEL'); ?>: <span class="optional"><?php echo Lang::txt('COM_CONTRIBUTE_OPTIONAL'); ?></span>
 				<select name="access" id="access">
 <?php
 				for ($i=0, $n=count( $accesses ); $i < $n; $i++)
 				{
 					if ($accesses[$i] != 'Registered' && $accesses[$i] != 'Special') {
 ?>
-					<option value="<?php echo $i; ?>"<?php if ($this->row->access == $i) { echo ' selected="selected"'; } ?>><?php echo JText::_('COM_CONTRIBUTE_ACCESS_'.strtoupper($accesses[$i])); ?></option>
+					<option value="<?php echo $i; ?>"<?php if ($this->row->access == $i) { echo ' selected="selected"'; } ?>><?php echo Lang::txt('COM_CONTRIBUTE_ACCESS_'.strtoupper($accesses[$i])); ?></option>
 <?php
 					}
 				}
@@ -104,9 +102,9 @@ $accesses = array('Public','Registered','Special','Protected','Private');
 			</label>
 			</div>
 			<p>
-				<strong><?php echo JText::_('COM_CONTRIBUTE_ACCESS_PUBLIC'); ?></strong> = <?php echo JText::_('COM_CONTRIBUTE_ACCESS_PUBLIC_EXPLANATION'); ?><br />
-				<strong><?php echo JText::_('COM_CONTRIBUTE_ACCESS_PROTECTED'); ?></strong> = <?php echo JText::_('COM_CONTRIBUTE_ACCESS_PROTECTED_EXPLANATION'); ?><br />
-				<strong><?php echo JText::_('COM_CONTRIBUTE_ACCESS_PRIVATE'); ?></strong> = <?php echo JText::_('COM_CONTRIBUTE_ACCESS_PRIVATE_EXPLANATION'); ?>
+				<strong><?php echo Lang::txt('COM_CONTRIBUTE_ACCESS_PUBLIC'); ?></strong> = <?php echo Lang::txt('COM_CONTRIBUTE_ACCESS_PUBLIC_EXPLANATION'); ?><br />
+				<strong><?php echo Lang::txt('COM_CONTRIBUTE_ACCESS_PROTECTED'); ?></strong> = <?php echo Lang::txt('COM_CONTRIBUTE_ACCESS_PROTECTED_EXPLANATION'); ?><br />
+				<strong><?php echo Lang::txt('COM_CONTRIBUTE_ACCESS_PRIVATE'); ?></strong> = <?php echo Lang::txt('COM_CONTRIBUTE_ACCESS_PRIVATE_EXPLANATION'); ?>
 			</p>
 <?php } else { ?>
 			<p class="information">
@@ -114,17 +112,16 @@ $accesses = array('Public','Registered','Special','Protected','Private');
 			</p>
 <?php } ?>
 		</fieldset><div class="clear"></div>
-		
+
 		<div class="explaination">
 			<h4>What if an author doesn't have an account?</h4>
 			<p>If the author you are trying to add isn't already in the HABRI Central database, add "Additional Authors" and a HABRI Central administrator will add them after the resource has been submitted.</p>
-			
+
 			<h4>What if I'm not an &#8220;author&#8221;?</h4>
 			<p>If you're not to be listed as an author on a resource—for instance, if you're uploading content for someone else—you will retain full editing capabilities but won't be listed in the authors list. If you wish to be credited for the submission, add yourself to the author list with a role of 'Submitter'.</p>
-			
 		</div>
 		<fieldset>
-			<legend><?php echo JText::_('COM_CONTRIBUTE_AUTHORS_AUTHORS'); ?></legend>
+			<legend><?php echo Lang::txt('COM_CONTRIBUTE_AUTHORS_AUTHORS'); ?></legend>
 			<div class="field-wrap">
 				<iframe width="100%" height="400" frameborder="0" name="authors" id="authors" scrolling="auto" src="/index.php?option=<?php echo $this->option; ?>&amp;controller=authors&amp;id=<?php echo $this->id; ?>&amp;tmpl=component"></iframe>
 			</div>
@@ -133,9 +130,9 @@ $accesses = array('Public','Registered','Special','Protected','Private');
 			<input type="hidden" name="step" value="<?php echo $this->next_step; ?>" />
 			<input type="hidden" name="id" value="<?php echo $this->id; ?>" />
 		</fieldset><div class="clear"></div>
-		
+
 		<div class="submit">
-			<input type="submit" value="<?php echo JText::_('COM_CONTRIBUTE_NEXT'); ?>" />
+			<input type="submit" value="<?php echo Lang::txt('COM_CONTRIBUTE_NEXT'); ?>" />
 		</div>
 	</form>
-</div><!-- / .main section -->
+</section><!-- / .main section -->

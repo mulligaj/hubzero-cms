@@ -1,45 +1,39 @@
 <?php
 /**
- * @package     hubzero-cms
- * @author      Shawn Rice <zooley@purdue.edu>
- * @copyright   Copyright 2005-2011 Purdue University. All rights reserved.
- * @license     http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * HUBzero CMS
  *
- * Copyright 2005-2011 Purdue University. All rights reserved.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
+ *
+ * @package   hubzero-cms
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die( 'Restricted access' );
+defined('_HZEXEC_') or die();
 
-$juser = JFactory::getUser();
-$jconfig = JFactory::getConfig();
-
-$paramsClass = 'JRegistry';
-if (version_compare(JVERSION, '1.6', 'lt'))
-{
-	$paramsClass = 'JParameter';
-}
 
 // Get parameters
-$rparams = new $paramsClass($this->resource->params);
+$rparams = new \Hubzero\Config\Registry($this->resource->params);
 $params = $this->config;
 $params->merge($rparams);
 ?>
@@ -49,18 +43,15 @@ $params->merge($rparams);
 
 <div id="content-header-extra">
 	<p>
-		<a class="add btn" href="<?php echo JRoute::_('index.php?option=' . $this->option . '&task=draft'); ?>">
-			<?php echo JText::_('COM_CONTRIBUTE_NEW_SUBMISSION'); ?>
+		<a class="add btn" href="<?php echo Route::url('index.php?option=' . $this->option . '&task=draft'); ?>">
+			<?php echo Lang::txt('COM_CONTRIBUTE_NEW_SUBMISSION'); ?>
 		</a>
 	</p>
 </div><!-- / #content-header -->
 
 <div class="main section">
 <?php
-	$view = new JView(array(
-		'name'   => 'steps',
-		'layout' => 'steps'
-	));
+	$view = $this->view('steps', 'steps');
 	$view->option = $this->option;
 	$view->step = $this->step;
 	$view->steps = $this->steps;
@@ -84,18 +75,18 @@ if ($this->progress['submitted'] == 1) {
 		<?php*/
 	} else {
 		?>
-		<form action="<?php echo JRoute::_('index.php?option='.$this->option); ?>" method="post" id="hubForm">
+		<form action="<?php echo Route::url('index.php?option='.$this->option); ?>" method="post" id="hubForm">
 			<div class="explaination">
 				<h4>What happens after I submit?</h4>
 				<p>Your submission will be reviewed. If it is accepted, the submission will be given a "live" status and will appear 
-				in our <a href="<?php echo JRoute::_('index.php?option=com_resources'); ?>">resources</a> and at the top of our <a href="<?php echo JRoute::_('index.php?option=com_whatsnew'); ?>">What's New</a> listing.</p>
+				in our <a href="<?php echo Route::url('index.php?option=com_resources'); ?>">resources</a> and at the top of our <a href="<?php echo Route::url('index.php?option=com_whatsnew'); ?>">What's New</a> listing.</p>
 			</div>
 			<fieldset>
 				<h3>Licensing</h3>
 				<label for="license">
-					<?php echo JText::_('Additional License'); ?>
+					<?php echo Lang::txt('Additional License'); ?>
 					<select name="license" id="license">
-						<option value=""><?php echo JText::_('Select license...'); ?></option>
+						<option value=""><?php echo Lang::txt('Select license...'); ?></option>
 <?php 
 				$l = array();
 				$c = false;
@@ -104,7 +95,7 @@ if ($this->progress['submitted'] == 1) {
 					if (substr($license->name, 0, 6) == 'custom') 
 					{
 					?>
-						<option value="custom"<?php if ($params->get('license') == $license->name) { echo ' selected="selected"'; } ?>><?php echo JText::_('Custom'); ?></option>
+						<option value="custom"<?php if ($params->get('license') == $license->name) { echo ' selected="selected"'; } ?>><?php echo Lang::txt('Custom'); ?></option>
 					<?php 
 						$l[] = '<input type="hidden" id="license-custom" value="' . $this->escape(nl2br($license->text)) . '" />';
 						$c = $this->escape(nl2br($license->text));
@@ -113,10 +104,10 @@ if ($this->progress['submitted'] == 1) {
 				if (!$c && $this->config->get('cc_license_custom'))
 				{
 					?>
-						<option value="custom"><?php echo JText::_('Custom'); ?></option>
+						<option value="custom"><?php echo Lang::txt('Custom'); ?></option>
 					<?php
-					$c = $this->escape(JText::_('[ENTER LICENSE HERE]'));
-					$l[] = '<input type="hidden" id="license-custom" value="' . $this->escape(JText::_('[ENTER LICENSE HERE]')) . '" />';
+					$c = $this->escape(Lang::txt('[ENTER LICENSE HERE]'));
+					$l[] = '<input type="hidden" id="license-custom" value="' . $this->escape(Lang::txt('[ENTER LICENSE HERE]')) . '" />';
 				}
 				foreach ($this->licenses as $license) 
 				{
@@ -136,7 +127,7 @@ if ($this->progress['submitted'] == 1) {
 				} 
 ?>
 					</select>
-					<div id="license-preview" style="display:none;"><?php echo JText::_('License preview.'); ?></div>
+					<div id="license-preview" style="display:none;"><?php echo Lang::txt('License preview.'); ?></div>
 					<?php echo implode("\n", $l); ?>
 				</label>
 				<?php if ($this->config->get('cc_license_custom')) { ?>
@@ -161,7 +152,7 @@ if ($this->progress['submitted'] == 1) {
 		<?php
 	}
 	?>
-	<p class="help">This contribution has already been submitted and passed review. <a href="<?php echo JRoute::_('index.php?option=com_resources&id='.$this->id); ?>">View it here</a></p>
+	<p class="help">This contribution has already been submitted and passed review. <a href="<?php echo Route::url('index.php?option=com_resources&id='.$this->id); ?>">View it here</a></p>
 	<?php
 } else {
 	?>
@@ -175,7 +166,7 @@ if ($this->progress['submitted'] == 1) {
 		<div class="explaination">
 			<h4>What happens after I submit?</h4>
 			<p>Your submission will be reviewed. If it is accepted, the submission will be given a "live" status and will appear 
-			in our <a href="<?php echo JRoute::_('index.php?option=com_resources'); ?>">resources</a> and at the top of our <a href="<?php echo JRoute::_('index.php?option=com_whatsnew'); ?>">What's New</a> listing.</p>
+			in our <a href="<?php echo Route::url('index.php?option=com_resources'); ?>">resources</a> and at the top of our <a href="<?php echo Route::url('index.php?option=com_whatsnew'); ?>">What's New</a> listing.</p>
 		</div>
 		<fieldset>
 			<h3>Authorization</h3>
@@ -187,15 +178,15 @@ if ($this->progress['submitted'] == 1) {
 			
 <?php if ($this->config->get('cc_license')) { ?>
 			<label for="license">
-				<?php echo JText::_('Additional License:'); ?> <span class="optional">optional</span>
+				<?php echo Lang::txt('Additional License:'); ?> <span class="optional">optional</span>
 				<select name="license" id="license">
-					<option value=""><?php echo JText::_('No additional license'); ?></option>
+					<option value=""><?php echo Lang::txt('No additional license'); ?></option>
 			<?php if ($this->config->get('cc_license_custom')) { ?>
-					<option value="custom"><?php echo JText::_('Custom'); ?></option>
+					<option value="custom"><?php echo Lang::txt('Custom'); ?></option>
 			<?php } ?>
 			<?php 
 			$l = array();
-			$l[] = '<input type="hidden" id="license-custom" value="' . $this->escape(JText::_('[ENTER LICENSE HERE]')) . '" />';
+			$l[] = '<input type="hidden" id="license-custom" value="' . $this->escape(Lang::txt('[ENTER LICENSE HERE]')) . '" />';
 			foreach ($this->licenses as $license) 
 			{ 
 				?>
@@ -205,11 +196,11 @@ if ($this->progress['submitted'] == 1) {
 			} 
 			?>
 				</select>
-				<div id="license-preview" style="display:none;"><?php echo JText::_('License preview.'); ?></div>
+				<div id="license-preview" style="display:none;"><?php echo Lang::txt('License preview.'); ?></div>
 				<?php echo implode("\n", $l); ?>
 			</label>
 			<?php if ($this->config->get('cc_license_custom')) { ?>
-				<textarea name="license-text" id="license-text" cols="35" rows="10" style="display:none;"><?php echo $this->escape(JText::_('[ENTER LICENSE HERE]')); ?></textarea>
+				<textarea name="license-text" id="license-text" cols="35" rows="10" style="display:none;"><?php echo $this->escape(Lang::txt('[ENTER LICENSE HERE]')); ?></textarea>
 			<?php } ?>
 <?php } ?>
 			
@@ -220,13 +211,13 @@ if ($this->progress['submitted'] == 1) {
 			<input type="hidden" name="published" value="0" />
 	 	</fieldset><div class="clear"></div>
 		<div class="submit">
-			<input type="submit" value="<?php echo JText::_('COM_CONTRIBUTE_SUBMIT_CONTRIBUTION'); ?>" />
+			<input type="submit" value="<?php echo Lang::txt('COM_CONTRIBUTE_SUBMIT_CONTRIBUTION'); ?>" />
 		</div>
 	</form>
 	
-	<h1 id="preview-header"><?php echo JText::_('COM_CONTRIBUTE_REVIEW_PREVIEW'); ?></h1>
+	<h1 id="preview-header"><?php echo Lang::txt('COM_CONTRIBUTE_REVIEW_PREVIEW'); ?></h1>
 	<div id="preview-pane">
-		<iframe id="preview-frame" name="preview-frame" width="100%" frameborder="0" src="<?php echo JRoute::_('index.php?option=com_resources&id=' . $this->id . '&tmpl=component&mode=preview'); ?>"></iframe>
+		<iframe id="preview-frame" name="preview-frame" width="100%" frameborder="0" src="<?php echo Route::url('index.php?option=com_resources&id=' . $this->id . '&tmpl=component&mode=preview'); ?>"></iframe>
 	</div>
 	<?php 
 }
