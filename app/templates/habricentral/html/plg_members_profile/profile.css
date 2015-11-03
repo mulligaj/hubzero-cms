@@ -1,4 +1,4 @@
-@import url('/plugins/members/profile/profile.css');
+@import url('/core/plugins/members/profile/assets/css/profile.css');
 
 .locate:before {
 	display: none;

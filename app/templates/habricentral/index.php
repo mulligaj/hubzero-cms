@@ -77,7 +77,7 @@ $this->setTitle(Config::get('sitename') . ' - ' . $this->getTitle());
 		<?php if ($this->countModules( 'accessibility' )) : ?>
 		<jdoc:include type="modules" name="accessibility" /> <?php endif; ?>
 			<h1>
-				<a href="<?php echo $this->baseurl ?>" title="<?php echo Config::get('sitename'); ?>">
+				<a href="<?php echo Request::base(); ?>" title="<?php echo Config::get('sitename'); ?>">
 					<?php echo Config::get('sitename'); ?>
 				</a>
 			</h1>

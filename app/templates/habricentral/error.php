@@ -81,7 +81,7 @@ $v = $browser->major();
 
 		<div id="header">
 			<h1>
-				<a href="<?php echo $this->baseurl ?>" title="<?php echo Config::get('sitename'); ?>">
+				<a href="<?php echo Request::base(); ?>" title="<?php echo Config::get('sitename'); ?>">
 					<?php echo Config::get('sitename'); ?>
 				</a>
 			</h1>

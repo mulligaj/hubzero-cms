@@ -1,4 +1,4 @@
-@import url('/components/com_groups/assets/css/groups.css');
+@import url('/core/components/com_groups/site/assets/css/groups.css');
 
 .com_groups #hubForm.full div > fieldset {
 	float: none;
