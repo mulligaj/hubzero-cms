@@ -126,27 +126,8 @@ $this->setTitle(Config::get('sitename') . ' - ' . $this->getTitle());
 		<?php endif; ?>
 
 		<?php if (!$this->countModules('banner')) : ?>
-			<div id="trail">You are here:
-				<?php
-					$items = Pathway::items();
-					$l = array();
-
-					foreach ($items as $item)
-					{
-						$text = trim(stripslashes($item->name));
-						if (strlen($text) > 50) {
-							$text = $text.' ';
-							$text = substr($text,0,50);
-							$text = substr($text,0,strrpos($text,' '));
-							$text = $text.' &#8230;';
-						}
-						$url = Route::url($item->link);
-						$url = str_replace('%20','+',$url);
-						$l[] = '<a href="'.$url.'">'.$text.'</a>';
-					}
-					echo implode(' &rsaquo; ',$l);
-				?>
-
+			<div id="trail">
+				<jdoc:include type="modules" name="breadcrumbs" />
 				<jdoc:include type="modules" name="collectBtn" />
 			</div><!-- / #trail -->
 		<?php endif; ?>

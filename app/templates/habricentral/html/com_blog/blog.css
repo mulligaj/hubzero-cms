@@ -11,7 +11,26 @@ div.entry dl.entry-meta dd.entry-options a.delete {
 	text-indent: 55em;
 	padding: 0;
 }*/
-
+ol.blog-entries {
+	list-style-type: none !important;
+	border: 2px solid #e9e9e9;
+	border-top: none;
+	background-color: #fff;
+	margin: 0;
+	padding: 0;
+}
+ol.blog-entries > li {
+	clear: left;
+	margin: 0 !important;
+	padding: 0 1em;
+	border-top: 1px solid #efefef;
+	position: relative;
+}
+.blog-entries article>*:first-child,
+ol.blog-entries h4 {
+	margin: 1em 0;
+	line-height: 1em;
+}
 .com_blog .below h3 {
 	margin: 1em 0;
 }
