@@ -83,7 +83,8 @@ class Media extends Base
 		}
 
 		// Check authorization
-		if ($this->_authorize() != 'manager' && !$this->_authorizedForTask('group.edit') && !$this->_authorizedForTask('group.pages'))
+		//if ($this->_authorize() != 'manager' && !$this->_authorizedForTask('group.edit') && !$this->_authorizedForTask('group.pages'))
+		if (!in_array(User::get('id'), $this->group->get('members')))
 		{
 			$this->_errorHandler(403, Lang::txt('COM_GROUPS_ERROR_NOT_AUTH'));
 		}
@@ -784,7 +785,7 @@ class Media extends Base
 	public function doMoveFileTask()
 	{
 		// Check for request forgeries
-		Request::checkToken();
+		Request::checkToken(['get', 'post']);
 
 		// get request vars
 		$file   = Request::getVar('file', '');
@@ -846,7 +847,7 @@ class Media extends Base
 	public function doRenameFileTask()
 	{
 		// Check for request forgeries
-		Request::checkToken();
+		Request::checkToken(['get', 'post']);
 
 		// get request vars
 		$file = Request::getVar('file', '');
@@ -922,7 +923,7 @@ class Media extends Base
 	 */
 	public function deletefileTask()
 	{
-		Request::checkToken();
+		Request::checkToken(['get', 'post']);
 
 		// Incoming file
 		$file = trim(Request::getVar('file', '', 'get'));
@@ -988,7 +989,7 @@ class Media extends Base
 	public function saveFolderTask()
 	{
 		// Check for request forgeries
-		Request::checkToken();
+		Request::checkToken(['get', 'post']);
 
 		//get request vars
 		$name   = Request::getCmd('name', '');
@@ -1054,7 +1055,7 @@ class Media extends Base
 	public function doRenameFolderTask()
 	{
 		// Check for request forgeries
-		Request::checkToken();
+		Request::checkToken(['get', 'post']);
 
 		// get request vars
 		$folder = Request::getVar('folder', '');
@@ -1144,7 +1145,7 @@ class Media extends Base
 	public function doMoveFolderTask()
 	{
 		// Check for request forgeries
-		Request::checkToken();
+		Request::checkToken(['get', 'post']);
 
 		// get request vars
 		$current = Request::getVar('current', '');
@@ -1189,7 +1190,7 @@ class Media extends Base
 	 */
 	public function deleteFolderTask()
 	{
-		Request::checkToken();
+		Request::checkToken(['get', 'post']);
 
 		//get request vars
 		$folder = Request::getVar('folder', '');

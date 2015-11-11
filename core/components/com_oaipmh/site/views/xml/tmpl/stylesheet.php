@@ -226,6 +226,24 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 		-ms-border-radius: 0.25em;
 		border-radius: 0.25em;
 	}
+	.errors {
+		color: #fff;
+		padding: 1.5em;
+		background-color: #dd5555;
+		border: 2px solid #e84c3d;
+		border: 2px solid rgba(0, 0, 0, 0.2);
+	}
+	.errors h2 {
+		margin-top: 0;
+		padding-top: 0;
+	}
+	.errors th.key,
+	.errors td.value {
+		border-color: #fff;
+		border-color: rgba(255, 255, 255, 0.2);
+		color: #fff;
+		color: rgba(255, 255, 255, 0.8);
+	}
 	<xsl:call-template name='xmlstyle' />
 </xsl:template>
 
@@ -631,9 +649,9 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 			<tr>
 				<th class="key">OAI Identifier</th>
 				<td class="value">
-					<a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=GetRecord&metadataPrefix=oai_dc&identifier={oai:identifier}'); ?>"><xsl:value-of select="oai:identifier"/></a>
+					<a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=GetRecord&metadataPrefix=&metadataPrefix=' . $mprefix . '&identifier={oai:identifier}'); ?>"><xsl:value-of select="oai:identifier"/></a>
 					<!--<span class="options">
-						<xsl:text> </xsl:text><a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=GetRecord&metadataPrefix=oai_dc&identifier={oai:identifier}'); ?>">oai_dc</a>
+						<xsl:text> </xsl:text><a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=GetRecord&metadataPrefix=&metadataPrefix=' . $mprefix . '&identifier={oai:identifier}'); ?>">oai_dc</a>
 						<xsl:text> </xsl:text><a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=ListMetadataFormats&identifier={oai:identifier}'); ?>">formats</a>
 					</span>-->
 				</td>
@@ -670,8 +688,8 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 		<td class="value">
 			<!--<xsl:value-of select="."/>-->
 			<span class="options">
-				<xsl:text> </xsl:text><a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=ListIdentifiers&metadataPrefix=oai_dc&set={.}'); ?>">Identifiers</a>
-				<xsl:text> </xsl:text><a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=ListRecords&metadataPrefix=oai_dc&set={.}'); ?>">Records</a>
+				<xsl:text> </xsl:text><a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=ListIdentifiers&metadataPrefix=' . $mprefix . '&set={.}'); ?>">Identifiers</a>
+				<xsl:text> </xsl:text><a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb=ListRecords&metadataPrefix=' . $mprefix . '&set={.}'); ?>">Records</a>
 			</span>
 		</td>
 	</tr>
@@ -688,7 +706,7 @@ echo '<?xml version="1.0" encoding="utf-8"?>';
 				<td class="value">
 					<xsl:value-of select="."/>
 					<xsl:text> </xsl:text>
-					<a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb={/oai:OAI-PMH/oai:request/@verb}&resumptionToken={.}'); ?>">Resume</a>
+					<a class="link" href="<?php echo Route::url('index.php?option=' . $this->option . '&verb={/oai:OAI-PMH/oai:request/@verb}&metadataPrefix=' . $mprefix . '&resumptionToken={.}'); ?>">Resume</a>
 				</td>
 			</tr>
 		</tbody>
