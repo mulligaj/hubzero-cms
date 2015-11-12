@@ -51,24 +51,17 @@ switch ($this->model->params->get('show_date'))
 	case 3: $thedate = $this->model->resource->publish_up; break;
 }
 
-$dateFormat = '%d %b %Y';
-$yearFormat = '%Y';
-$timeFormat = '%I:%M %p';
-$tz = 0;
-if (version_compare(JVERSION, '1.6', 'ge'))
-{
-	$dateFormat = 'd M Y';
-	$yearFormat = 'Y';
-	$timeFormat = 'h:M a';
-	$tz = true;
-}
+$dateFormat = 'd M Y';
+$yearFormat = 'Y';
+$timeFormat = 'h:M a';
+$tz = true;
 
 $this->model->resource->introtext = stripslashes($this->model->resource->introtext);
 $this->model->resource->fulltxt = stripslashes($this->model->resource->fulltxt);
 $this->model->resource->fulltxt = ($this->model->resource->fulltxt) ? trim($this->model->resource->fulltxt) : trim($this->model->resource->introtext);
 
 // Parse for <nb:field> tags
-$type = new ResourcesType($this->database);
+$type = new \Components\Resources\Tables\Type($this->database);
 $type->load($this->model->resource->type);
 
 $data = array();
@@ -83,16 +76,15 @@ if (count($matches) > 0)
 $this->model->resource->fulltxt = preg_replace("#<nb:(.*?)>(.*?)</nb:(.*?)>#s", '', $this->model->resource->fulltxt);
 $this->model->resource->fulltxt = trim($this->model->resource->fulltxt);
 
-include_once(JPATH_ROOT . DS . 'components' . DS . 'com_resources' . DS . 'models' . DS . 'elements.php');
-$elements = new ResourcesElements($data, $this->model->type->customFields);
+include_once(PATH_CORE . DS . 'components' . DS . 'com_resources' . DS . 'models' . DS . 'elements.php');
+$elements = new \Components\Resources\Models\Elements($data, $this->model->type->customFields);
 $schema = $elements->getSchema();
 
 // Set the document description
 if ($this->model->resource->introtext)
 {
-	$document = JFactory::getDocument();
 	$abstract = strip_tags($this->model->resource->introtext);
-	$document->setDescription($this->escape($abstract));
+	Document::setDescription($this->escape($abstract));
 }
 
 // Check if there's anything left in the fulltxt after removing custom fields
@@ -111,7 +103,7 @@ $maintext = str_replace('</blink>', '', $maintext);
 |
 */
 // get doc
-$document = JFactory::getDocument();
+$document = App::get('document');
 
 // set title
 $document->setMetaData('citation_title', trim($this->model->resource->title));
@@ -465,8 +457,8 @@ if (!$this->model->access('view-all')) {
 			<td class="resource-content">
 				<span id="submitterlist">
 					<?php
-					$view = new JView(array(
-						'base_path' => JPATH_ROOT . DS . 'components' . DS . 'com_resources',
+					$view = new \Hubzero\Component\View(array(
+						'base_path' => PATH_CORE . DS . 'components' . DS . 'com_resources' . DS . 'site',
 						'name'   => 'view',
 						'layout' => '_submitters',
 					));
@@ -514,12 +506,10 @@ if (!$this->model->access('view-all')) {
 	}
 
 	// Build our citation object
-	$juri = JURI::getInstance();
-
 	$cite = new stdClass();
 	$cite->title = $this->model->resource->title;
-	$cite->year = JHTML::_('date', $thedate, $yearFormat, $tz);
-	$cite->location = $juri->base() . ltrim($sef, DS);
+	$cite->year = Date::of($thedate)->toLocal($yearFormat);
+	$cite->location = Request::base() . ltrim($sef, DS);
 	$cite->date = date("Y-m-d H:i:s");
 	$cite->url = '';
 	$cite->type = '';
@@ -537,8 +527,8 @@ if (!$this->model->access('view-all')) {
 			$cite = null;
 		}
 
-		$citeinstruct  = ResourcesHtml::citation($this->option, $cite, $this->model->resource->id, $citations, $this->model->resource->type, 0);
-		$citeinstruct .= ResourcesHtml::citationCOins($cite, $this->model); //->resource, $this->model->params, $this->helper);
+		$citeinstruct  = \Components\Resources\Helpers\Html::citation($this->option, $cite, $this->model->resource->id, $citations, $this->model->resource->type, 0);
+		$citeinstruct .= \Components\Resources\Helpers\Html::citationCOins($cite, $this->model); //->resource, $this->model->params, $this->helper);
 ?>
 <tr>
 			<th><a name="citethis"></a><?php echo Lang::txt('PLG_RESOURCES_ABOUT_CITE_THIS'); ?></th>
@@ -558,7 +548,7 @@ if ($this->model->attribs->get('timeof', '')) {
 	}
 	if (substr($this->model->attribs->get('timeof', ''), 4, 1) == '-') {
 		$seminarTime = ($this->model->attribs->get('timeof', '') != '0000-00-00 00:00:00' || $this->model->attribs->get('timeof', '') != '')
-					  ? JHTML::_('date', $this->model->attribs->get('timeof', ''), $exp)
+					  ? Date::of($this->model->attribs->get('timeof', ''))->toLocal($exp)
 					  : '';
 	} else {
 		$seminarTime = $this->model->attribs->get('timeof', '');
@@ -584,7 +574,7 @@ if ($this->model->params->get('show_assocs')) {
 	$tags = $this->model->tags();
 
 	if ($tags) {
-		$tagger = new ResourcesTags($this->model->resource->id);
+		$tagger = new \Components\Resources\Helpers\Tags($this->model->resource->id);
 		$tagCloudtags = $tagger->render('cloud', ($this->model->access('edit') ? array() : array('admin' => 0, 'label' => '')));
 ?>
 <?php if (count($tagCloudtags) > 0 && $tagCloudtags != "") : ?>
@@ -600,7 +590,7 @@ if ($this->model->params->get('show_assocs')) {
 }
 ?>
 			<?php
-				$tagger = new ResourcesTags($this->model->resource->id);
+				$tagger = new \Components\Resources\Helpers\Tags($this->model->resource->id);
 				$badges = $tagger->render('array', array('label' => 'badge'));
 			?>
 			<?php if (count($badges) > 0) : ?>
@@ -617,11 +607,11 @@ if ($this->model->params->get('show_assocs')) {
 <?php if (!$this->model->params->get('show_citation')) {
 
 	// Show coins
-	include_once( JPATH_ROOT . DS . 'components' . DS . 'com_citations' . DS . 'helpers' . DS . 'format.php' );
-	include_once( JPATH_ROOT . DS . 'administrator' . DS . 'components' . DS . 'com_citations' . DS . 'tables' . DS . 'type.php' );
-	$cconfig  = JComponentHelper::getParams( 'com_citations' );
+	include_once(PATH_CORE . DS . 'components' . DS . 'com_citations' . DS . 'helpers' . DS . 'format.php' );
+	include_once(PATH_CORE . DS . 'components' . DS . 'com_citations' . DS . 'tables' . DS . 'type.php' );
+	$cconfig  = Component::params( 'com_citations' );
 
-	$formatter = new CitationFormat();
+	$formatter = new \Components\Citations\Helpers\Format();
 	$formatter->setTemplate('ieee');
 
 	$cite->date_publish = date("Y-m-d", strtotime($this->model->resource->publish_up));
