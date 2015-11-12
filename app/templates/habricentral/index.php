@@ -132,9 +132,8 @@ $this->setTitle(Config::get('sitename') . ' - ' . $this->getTitle());
 			</div><!-- / #trail -->
 		<?php endif; ?>
 
-
-		<div id="content" class="<?php echo Request::getVar('option', ''); ?>">
-			<div id="wrap">
+		<div id="wrap">
+			<div id="content" class="<?php echo Request::getVar('option', ''); ?>">
 				<?php if ($this->countModules( 'left' )) : ?>
 					<div class="main section withleft">
 						<div class="aside">
@@ -161,10 +160,10 @@ $this->setTitle(Config::get('sitename') . ' - ' . $this->getTitle());
 						<div class="clear"></div>
 					</div><!-- / .main section -->
 				<?php endif; ?>
-			</div><!-- / #wrap -->
+			</div><!-- / #content -->
 
 			<jdoc:include type="modules" name="footer" />
-		</div><!-- / #content -->
+		</div><!-- / #wrap -->
 
 		<jdoc:include type="modules" name="endpage" />
 	</body>
