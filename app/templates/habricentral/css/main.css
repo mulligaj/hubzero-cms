@@ -1669,20 +1669,28 @@
 /*---------------------------------------------------------------
 	5 star Reviews
 ---------------------------------------------------------------*/
-	.avgrating span {
-		padding-right: 75px;
+	.avgrating {
+		padding-left: 0;
 	}
-	.no-stars        { background: url("../images/stars/stars.gif") right 0 no-repeat; }
-	.half-stars      { background: url("../images/stars/stars.gif") right -40px no-repeat; }
-	.one-stars       { background: url("../images/stars/stars.gif") right -80px no-repeat; }
-	.onehalf-stars   { background: url("../images/stars/stars.gif") right -120px no-repeat; }
-	.two-stars       { background: url("../images/stars/stars.gif") right -160px no-repeat; }
-	.twohalf-stars   { background: url("../images/stars/stars.gif") right -200px no-repeat; }
-	.three-stars     { background: url("../images/stars/stars.gif") right -240px no-repeat; }
-	.threehalf-stars { background: url("../images/stars/stars.gif") right -280px no-repeat; }
-	.four-stars      { background: url("../images/stars/stars.gif") right -320px no-repeat; }
-	.fourhalf-stars  { background: url("../images/stars/stars.gif") right -360px no-repeat; }
-	.five-stars      { background: url("../images/stars/stars.gif") right -400px no-repeat; }
+	.avgrating span {
+		padding-left: 1em;
+	}
+	.avgrating:before {
+		font-family: 'Fontcons';
+		font-size: 1em;
+		line-height: 1;
+	}
+	.no-stars:before        { content: "\2606\2606\2606\2606\2606"; }
+	.half-stars:before      { content: "\f089\2606\2606\2606\2606"; }
+	.one-stars:before       { content: "\2605\2606\2606\2606\2606"; }
+	.onehalf-stars:before   { content: "\2605\f089\2606\2606\2606"; }
+	.two-stars:before       { content: "\2605\2605\2606\2606\2606"; }
+	.twohalf-stars:before   { content: "\2605\2605\f089\2606\2606"; }
+	.three-stars:before     { content: "\2605\2605\2605\2606\2606"; }
+	.threehalf-stars:before { content: "\2605\2605\2605\f089\2606"; }
+	.four-stars:before      { content: "\2605\2605\2605\2605\2606"; }
+	.fourhalf-stars:before  { content: "\2605\2605\2605\2605\f089"; }
+	.five-stars:before      { content: "\2605\2605\2605\2605\2605"; }
 
 /*---------------------------------------------------------------
 	Tooltips
@@ -1848,6 +1856,26 @@
 	.results .private .title {
 		background: url("../images/icons/lock.png") 0 0 no-repeat;
 		padding-left: 20px;
+	}
+	.container .results {
+		background: #fff;
+		border: none;
+		clear: left;
+		border: 2px solid #e9e9e9;
+	}
+	.container h3 + .results {
+		border-top: none;
+	}
+	.container .results li {
+		padding: 0.5em 1em;
+		border-top: 1px solid #efefef;
+		border-bottom: none;
+	}
+	.container-block>.results {
+		margin: 0 -15px;
+	}
+	.container-block>.results li {
+		padding: 0.5em 1em 0.5em 2em;
 	}
 /* Misc. */
 	.moreresults {

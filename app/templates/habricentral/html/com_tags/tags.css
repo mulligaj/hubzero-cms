@@ -43,7 +43,7 @@
 	.entries tbody td a.entry-title:hover:before {
 		display: none;
 	}
-	
+
 	.related .tags {
 		padding:10px !important;
 		background: #fff;
@@ -55,10 +55,31 @@
 		padding:1em;
 	}
 
+	.subject .container-block h3 {
+		margin: 0 -15px;
+	}
+	.subject .container-block:before {
+		content: "";
+		display: table;
+		clear: both;
+		line-height: 0;
+	}
+	.subject .related .container-block {
+		padding: 0;
+	}
+	.subject .related h3 {
+		margin: 0;
+	}
+	.subject .related ol.tags {
+		border: 2px solid #e9e9e9;
+		border-top: none;
+		margin: 0 -15px;
+	}
+
 	.results .title {
 		padding-right: 200px;
 	}
-	.container-block {
+		/*.container-block {
 		padding: 0;
 	}
 	.related ol.tags,
@@ -68,4 +89,4 @@
 	}
 	.container .results p.title {
 		margin-left: 10px;
-	}
+	}*/
