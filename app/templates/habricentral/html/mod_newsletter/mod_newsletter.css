@@ -26,3 +26,7 @@
 .newsletter-subscribe .item .btn {
 	margin-top: 1em;
 }
+
+.mailinglist-signup input[type=text] {
+	width: auto;	
+}

@@ -42,7 +42,7 @@ defined('_HZEXEC_') or die();
 			<?php echo nl2br($this->mailinglist->description); ?>
 		</span>
 	</div-->
-	<div class="item">
+	<div class="item cf">
 		<form class="mailinglist-signup" action="index.php" method="post">
 			<?php if (is_object($this->subscription)) : ?>
 				<span>It seems you are already subscribed to this mailing list. <a href="<?php echo Route::url('index.php?option=com_newsletter&task=subscribe'); ?>">Click here</a> to manage your newsletter mailing list subscriptions.</span>
