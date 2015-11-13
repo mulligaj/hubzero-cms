@@ -26,3 +26,8 @@
 	content: "\f014";
 	font-family: "Fontcons";
 }
+
+.message-member a {
+	height: auto;
+	width: auto;
+}
