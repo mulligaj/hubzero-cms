@@ -72,7 +72,7 @@ $this->css('introduction.css', 'system')
 		</div>
 		<div class="col span3 omega">
 			<p id="getstarted">
-				<a class="btn btn-primary" href="<?php echo Route::url('index.php?option='.$option.'&task=draft'); ?>">Get Started ›</a>
+				<a class="btn btn-primary" href="<?php echo Route::url('index.php?option='.$this->option.'&task=draft'); ?>">Get Started ›</a>
 			</p>
 		</div><!-- / .aside -->
 	</div>
@@ -100,7 +100,6 @@ $this->css('introduction.css', 'system')
 <?php
 			$ra = new \Components\Resources\Tables\Assoc( $database );
 			$rc = new \Components\Resources\Tables\Contributor( $database );
-			$rt = new \Components\Resources\Tables\Tags( $database );
 			$cls = 'even';
 			foreach ($submissions as $submission)
 			{
@@ -117,6 +116,7 @@ $this->css('introduction.css', 'system')
 
 				$authors = $rc->getCount( $submission->id, 'resources' );
 
+				$rt = new \Components\Resources\Helpers\Tags($submission->id);
 				$tags = $rt->tags( $submission->id );
 ?>
 				<tr class="<?php echo $cls; ?>">
