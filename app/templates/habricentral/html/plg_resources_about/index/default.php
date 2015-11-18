@@ -376,7 +376,7 @@ else if ($typeAlias == 'reports')
 	{
 		$document->setMetaData('citation_issue', trim($data['issueno']));
 	}
-	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '')
+	if (isset($data['pagenumbers']) && $data['pagenumbers'] != '' && strstr($data['pagenumbers'], '-'))
 	{
 		list($first, $last) = array_map('trim', explode('-', $data['pagenumbers']));
 		$document->setMetaData('citation_firstpage', $first);
