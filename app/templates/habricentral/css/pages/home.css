@@ -437,3 +437,7 @@
 	p.more a {
 		color:#48487b;
 	}
+
+#system-message {
+	margin: 0;
+}

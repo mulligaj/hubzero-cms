@@ -120,6 +120,9 @@ $this->setTitle(Config::get('sitename') . ' - ' . $this->getTitle());
 		</div><!-- / #nav -->
 
 		<?php if ($this->countModules('banner')) : ?>
+			<?php if ($this->getBuffer('message')) : ?>
+				<jdoc:include type="message" />
+			<?php endif; ?>
 			<div id="home-banner">
 				<jdoc:include type="modules" name="banner" />
 			</div>
@@ -149,8 +152,10 @@ $this->setTitle(Config::get('sitename') . ' - ' . $this->getTitle());
 						<div class="subject">
 				<?php endif; ?>
 
-				<?php if ($this->getBuffer('message')) : ?>
-					<jdoc:include type="message" />
+				<?php if (!$this->countModules('banner')) : ?>
+					<?php if ($this->getBuffer('message')) : ?>
+						<jdoc:include type="message" />
+					<?php endif; ?>
 				<?php endif; ?>
 
 				<jdoc:include type="component" />
