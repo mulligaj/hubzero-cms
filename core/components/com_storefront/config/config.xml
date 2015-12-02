@@ -2,7 +2,7 @@
 
 <!--
 @package        hubzero-cms
-@file           core/plugins/members/todo.xml
+@file           components/com_storefront/config.xml
 @copyright      Copyright 2005-2015 HUBzero Foundation, LLC.
 @license        http://opensource.org/licenses/MIT MIT
 
@@ -29,26 +29,9 @@ THE SOFTWARE.
 HUBzero is a registered trademark of Purdue University.
 -->
 
-<extension version="1.5" type="plugin" group="members">
-	<name>Members - Todo</name>
-	<author>HUBzero</author>
-	<creationDate>June 2015</creationDate>
-	<copyright>Copyright 2005-2015 HUBzero Foundation, LLC.</copyright>
-	<license>http://opensource.org/licenses/MIT MIT</license>
-	<authorEmail>alisa@purdue.edu</authorEmail>
-	<version>1.5</version>
-	<description>Display to do items from member projects</description>
-	<files>
-		<filename plugin="todo">todo.php</filename>
-	</files>
-	<languages>
-		<language tag="en-GB">en-GB.plg_members_todo.ini</language>
-	</languages>
-	<config>
-		<fields name="params">
-			<fieldset name="basic">
-				<field name="display_limit" type="text" menu="hide" label="Display limit" default="50" description="Number of items to return" />
-			</fieldset>
-		</fields>
-	</config>
-</extension>
+<config>
+    <fieldset name="basic">
+        <field name="downloadFolder" type="text" menu="hide" default="/media/software" label="COM_STORFRONT_CONFIG_DOWNLOAD_FOLDER_LABEL" description="COM_STORFRONT_CONFIG_DOWNLOAD_FOLDER_DESC" size="50" />
+        <field name="imagesFolder" type="text" menu="hide" default="/site/storefront/products" label="COM_STORFRONT_CONFIG_IMAGES_FOLDER_LABEL" description="COM_STORFRONT_CONFIG_IMAGES_FOLDER_DESC" size="50" />
+    </fieldset>
+</config>

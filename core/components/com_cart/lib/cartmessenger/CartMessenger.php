@@ -58,7 +58,8 @@ class CartMessenger
 	{
 		setlocale(LC_MONETARY, 'en_US.UTF-8');
 
-		$this->logFile = PATH_APP . DS . 'logs' . DS . 'cart.log';
+		$logPath = Config::get('log_path', PATH_APP . DS . 'logs');
+		$this->logFile = $logPath  . DS . 'cart.log';
 		$this->caller = $caller;
 	}
 
@@ -74,9 +75,16 @@ class CartMessenger
 
 	public function log($loggingLevel = 2)
 	{
-		if (!is_writable($this->logFile))
+		if (!file_exists($this->logFile))
 		{
-			Filesystem::write($this->logFile, '');
+			try
+			{
+				Filesystem::write($this->logFile, '');
+			}
+			catch (\Exception $e)
+			{
+				$this->emailError($this->logFile, 'NO_LOG');
+			}
 		}
 
 		if (is_writable($this->logFile))
@@ -317,6 +325,11 @@ class CartMessenger
 		{
 			$mailSubject = ': Error logging payment postback information.';
 			$mailMessage = 'Log file is not writable.' . "\n\n";
+		}
+		elseif ($errorType == 'NO_LOG')
+		{
+			$mailSubject = ': Error logging payment postback information.';
+			$mailMessage = 'Log file does not exist' . "\n\n";
 		}
 		else
 		{
