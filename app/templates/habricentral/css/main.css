@@ -678,7 +678,8 @@
 /*---------------------------------------------------------------
 	Content header
 ---------------------------------------------------------------*/
-	#content-header {
+	#content-header,
+	.content-header {
 		padding-right: 250px;
 		padding: 0 0 1em 0;
 		position: relative;
@@ -691,6 +692,7 @@
 		padding: 0
 	}
 	#content-header h2,
+	.content-header h2,
 	.contentpaneopen .contentheading {
 		margin: 0 0 0 15px;
 		padding: 10px 0 0 0;
