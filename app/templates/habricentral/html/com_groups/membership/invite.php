@@ -87,6 +87,7 @@ defined('_HZEXEC_') or die();
 		<input type="hidden" name="task" value="doinvite" />
 		<input type="hidden" name="cn" value="<?php echo $this->group->get('cn'); ?>" />
 		<input type="hidden" name="return" value="<?php echo $this->return; ?>" />
+		<?php echo Html::input('token'); ?>
 		<p class="submit">
 			<input type="submit" value="<?php echo Lang::txt('COM_GROUPS_INVITE_BTN_TEXT'); ?>" />
 		</p>
