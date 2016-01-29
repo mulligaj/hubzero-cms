@@ -221,7 +221,7 @@ HUB.Base = {
 					$(".fancybox-inner").prepend("<div id=\"sbox-window-cover\"></div>");
 					$(".fancybox-inner").find("iframe").css("height", "99%"); //iframe being same height of lightbox causes scrollbar to appear
 				}
-				else if (iframe.attr('src').indexOf('/templates/habricentral/viewer/') != -1)
+				else if (iframe.attr('src').indexOf('/app/templates/habricentral/viewer/') != -1)
 				{
 					this.width = '100%';
 					this.height = '100%';

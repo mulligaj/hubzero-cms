@@ -145,7 +145,7 @@ $html = '';
 			if (strtolower($type) == 'pdf')
 			{
 				$sef = Route::url('index.php?option=com_resources&id='.$this->activechild->id.'&task=download&file='.basename($this->activechild->path));
-				$html .= '<iframe src="/templates/habricentral/viewer/#'.$sef.'" width="100%" height="100%" allowfullscreen webkitallowfullscreen></iframe>';
+				$html .= '<iframe src="app/templates/habricentral/viewer/#'.$sef.'" width="100%" height="100%" allowfullscreen webkitallowfullscreen></iframe>';
 			}
 			else
 			{
