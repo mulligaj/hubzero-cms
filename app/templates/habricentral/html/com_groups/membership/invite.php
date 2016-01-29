@@ -59,7 +59,7 @@ defined('_HZEXEC_') or die();
 			<br />
 			<h4><?php echo Lang::txt('COM_GROUPS_INVITE_SIDEBAR_HELP_TITLE'); ?></h4>
 			<p><?php echo Lang::txt('COM_GROUPS_INVITE_SIDEBAR_HELP_DESC'); ?></p>
-			<p><img src="/components/com_groups/assets/img/invite_example.jpg" alt="Example Auto-Completer" width="100%" style="border:3px solid #aaa;" />
+			<p><img src="core/components/com_groups/site/assets/img/invite_example.jpg" alt="Example Auto-Completer" width="100%" style="border:3px solid #aaa;" />
 		</div>
 		<fieldset>
 			<legend><?php echo Lang::txt('COM_GROUPS_INVITE_SECTION_TITLE'); ?></legend>
