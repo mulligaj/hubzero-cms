@@ -87,7 +87,16 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 		<?php echo Lang::txt('PLG_MEMBERS_PROFILE'); ?>
 	</h3>
 
-	<?php if (count($update_missing) > 0) : ?>
+	<?php if (count($invalid) > 0) : ?>
+		<div class="error member-update-missing">
+			<strong><?php echo Lang::txt('PLG_MEMBERS_PROFILE_USER_INVALID'); ?></strong>
+			<ul>
+				<?php foreach ($invalid as $i) : ?>
+					<li><?php echo $i; ?></li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+	<?php elseif (count($update_missing) > 0) : ?>
 		<?php if (count($update_missing) == 1 && in_array("usageAgreement",array_keys($update_missing))) : ?>
 		<?php else: ?>
 			<div class="error member-update-missing">
@@ -99,17 +108,6 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 				</ul>
 			</div>
 		<?php endif; ?>
-	<?php endif; ?>
-
-	<?php if (count($invalid) > 0) : ?>
-		<div class="error member-update-missing">
-			<strong><?php echo Lang::txt('PLG_MEMBERS_PROFILE_USER_INVALID'); ?></strong>
-			<ul>
-				<?php foreach ($invalid as $i) : ?>
-					<li><?php echo $i; ?></li>
-				<?php endforeach; ?>
-			</ul>
-		</div>
 	<?php endif; ?>
 
 	<?php if ($isUser) : ?>
@@ -195,6 +193,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 				<input type="hidden" name="usageAgreement" value="1" />
 				<input type="hidden" name="field_to_check[]" value="usageAgreement" />
 				<input type="hidden" name="option" value="com_members" />
+				<input type="hidden" name="controller" value="profiles" />
 				<input type="hidden" name="id" value="<?php echo User::get("id"); ?>" />
 				<input type="hidden" name="task" value="save" />
 				<?php echo Html::input('token'); ?>
@@ -265,6 +264,7 @@ $isIncrementalEnabled = $incrOpts->isEnabled($uid);
 									<input type="submit" class="section-edit-submit" value="Save" />
 									<input type="reset" class="section-edit-cancel" value="Cancel" />
 									<input type="hidden" name="option" value="com_members" />
+									<input type="hidden" name="controller" value="profiles" />
 									<input type="hidden" name="id" value="<?php echo $this->profile->get('uidNumber'); ?>" />
 									<input type="hidden" name="task" value="changepassword" />
 									<input type="hidden" name="no_html" value="1" />

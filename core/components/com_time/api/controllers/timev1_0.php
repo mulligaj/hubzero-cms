@@ -584,10 +584,13 @@ class Timev1_0 extends ApiController
 		$this->requiresAuthentication();
 		$this->authorizeOrFail();
 
+		$start = Date::of(Request::getVar('start'), Config::get('offset'))->toSql();
+		$end   = Date::of(Request::getVar('end'), Config::get('offset'))->toSql();
+
 		// Create object and get records
 		$records = Record::whereEquals('user_id', App::get('authn')['user_id'])
-                         ->where('date', '>=', Date::of(strtotime('today'))->toSql())
-                         ->where('date', '<', Date::of(strtotime('today+1day'))->toSql());
+                         ->where('date', '>=', $start)
+                         ->where('date', '<', $end);
 
 		// Restructure response into the format that the calendar plugin expects
 		$response = [];
@@ -595,7 +598,7 @@ class Timev1_0 extends ApiController
 		{
 			$response[] = [
 				'id'          => $r->id,
-				'title'       => $r->task->name,
+				'title'       => $r->task->name . ' [' . $r->task->hub->name . ']',
 				'start'       => Date::of($r->date)->toLocal(DATE_RFC2822),
 				'end'         => Date::of($r->end)->toLocal(DATE_RFC2822),
 				'description' => $r->description,
@@ -634,7 +637,7 @@ class Timev1_0 extends ApiController
 		$response = [];
 		foreach ($records as $r)
 		{
-			$dayOfWeek = Date::of($r->date)->format('N') - 1;
+			$dayOfWeek = Date::of($r->date)->toLocal('N') - 1;
 			$response[$dayOfWeek][] = $r->time;
 		}
 

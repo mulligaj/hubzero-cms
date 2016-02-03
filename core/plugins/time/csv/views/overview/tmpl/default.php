@@ -35,8 +35,8 @@ use Components\Time\Models\Hub;
 // No direct access
 defined('_HZEXEC_') or die();
 
-\Hubzero\Document\Assets::addSystemScript('jquery.fancyselect');
-\Hubzero\Document\Assets::addSystemStylesheet('jquery.fancyselect');
+\Hubzero\Document\Assets::addSystemScript('select2');
+\Hubzero\Document\Assets::addSystemStylesheet('select2');
 \Hubzero\Document\Assets::addSystemStylesheet('jquery.ui');
 
 $this->css()
@@ -169,7 +169,7 @@ foreach (Request::query() as $key => $value)
 						<?php endif; ?>
 						<?php if ($date) : ?>
 							<div class="preview-field date">
-								<?php echo $record->date; ?>
+								<?php echo Date::of($record->date)->toLocal(); ?>
 							</div>
 						<?php endif; ?>
 						<?php if ($time) : ?>

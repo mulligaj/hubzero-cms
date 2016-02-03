@@ -72,9 +72,8 @@ class plgTimeCsv extends \Hubzero\Plugin\Plugin
 		$view->start  = Request::getCmd('start_date', Date::of(strtotime('today - 1 month'))->format('Y-m-d'));
 		$view->end    = Request::getCmd('end_date', Date::format('Y-m-d'));
 		$records      = Record::all()->where('date', '>=', $view->start)
-		                              ->where('date', '<=', $view->end);
-		                              // @FIXME: order by non-native field
-		                              //->order('h.name', 'asc');
+		                              ->where('date', '<=', Date::of(strtotime($view->end . ' + 1 day'))->format('Y-m-d'))
+		                              ->order('date', 'asc');
 
 		if (isset($view->hub_id) && $view->hub_id > 0)
 		{
@@ -97,15 +96,14 @@ class plgTimeCsv extends \Hubzero\Plugin\Plugin
 	public static function download()
 	{
 		// Load language
-		Lang::load('plg_time_csv', JPATH_ADMINISTRATOR);
+		Lang::load('plg_time_csv', __DIR__);
 
 		$hub_id    = Request::getInt('hub_id', null);
 		$start     = Request::getCmd('start_date', Date::of(strtotime('today - 1 month'))->format('Y-m-d'));
 		$end       = Request::getCmd('end_date', Date::format('Y-m-d'));
 		$records   = Record::all()->where('date', '>=', $start)
-		                           ->where('date', '<=', $end);
-		                           // @FIXME: order by non-native field
-		                           //->order('h.name', 'asc');
+		                           ->where('date', '<=', Date::of(strtotime($end . ' + 1 day'))->format('Y-m-d'))
+		                           ->order('date', 'asc');
 
 		if (isset($hub_id) && $hub_id > 0)
 		{
@@ -115,7 +113,7 @@ class plgTimeCsv extends \Hubzero\Plugin\Plugin
 		}
 
 		$all  = true;
-		foreach (Request::get('GET') as $key => $value)
+		foreach (Request::query() as $key => $value)
 		{
 			if (strpos($key, 'fields-') !== false)
 			{
@@ -184,7 +182,7 @@ class plgTimeCsv extends \Hubzero\Plugin\Plugin
 				}
 				if ($date)
 				{
-					$row[] = $record->date;
+					$row[] = Date::of($record->date)->toLocal();
 				}
 				if ($time)
 				{

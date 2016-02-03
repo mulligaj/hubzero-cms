@@ -41,10 +41,10 @@ $this->css()
      ->css('fullcalendar')
      ->js('overview');
 
-\Hubzero\Document\Assets::addSystemStylesheet('jquery.fancyselect.css');
+\Hubzero\Document\Assets::addSystemStylesheet('select2.css');
 \Hubzero\Document\Assets::addSystemScript('flot/jquery.flot.min');
 \Hubzero\Document\Assets::addSystemScript('flot/jquery.flot.pie.min');
-\Hubzero\Document\Assets::addSystemScript('jquery.fancyselect');
+\Hubzero\Document\Assets::addSystemScript('select2');
 \Hubzero\Document\Assets::addSystemScript('moment.min');
 \Hubzero\Document\Assets::addSystemScript('jquery.fullcalendar.min');
 
@@ -66,7 +66,6 @@ $end   = Date::of(strtotime($now . ' + 1 hour'))->toLocal(Lang::txt('G'));
 	<?php $this->view('menu', 'shared')->display(); ?>
 	<section class="com_time_content com_time_overview">
 		<div class="overview-container">
-			<div class="section-header"><h3><?php echo Lang::txt('COM_TIME_OVERVIEW_TODAY'); ?></h3></div>
 			<div class="calendar"></div>
 			<div class="details">
 				<div class="details-inner">
@@ -145,7 +144,7 @@ $end   = Date::of(strtotime($now . ' + 1 hour'))->toLocal(Lang::txt('G'));
 				</div>
 			</div>
 			<div class="week-overview-wrap">
-				<div class="section-header"><h3><?php echo Lang::txt('COM_TIME_OVERVIEW_ENTRIES_THIS_WEEK'); ?></h3></div>
+				<div class="section-header"><h3><?php echo Lang::txt('COM_TIME_OVERVIEW_DAILY_HOURS'); ?></h3></div>
 				<div class="week-overview"></div>
 			</div>
 		</div>

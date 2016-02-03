@@ -15,15 +15,10 @@ jQuery(document).ready(function ( jq ) {
 			calendar = $('.calendar'),
 			explain  = $('.details-explanation'),
 			data     = $('.details-data'),
-			fancy    = function ( selector, removePrevious ) {
-				if (removePrevious) {
-					$(selector).prev('.fs-dropdown').remove();
-				}
-
-				$(selector).HUBfancyselect({
-					'showSearch'          : true,
-					'searchPlaceholder'   : 'search...',
-					'maxHeightWithSearch' : 250
+			fancy    = function ( selector ) {
+				$(selector).select2({
+					placeholder : "search...",
+					width       : "100%"
 				});
 			},
 			showDetails = function ( ) {
@@ -48,11 +43,11 @@ jQuery(document).ready(function ( jq ) {
 				}
 				if (event.task_id) {
 					$('#task_id').val(event.task_id);
-					fancy('#task_id', true);
+					fancy('#task_id');
 				}
 				if (event.hub_id) {
 					$('#hub_id').val(event.hub_id);
-					fancy('#hub_id', true);
+					fancy('#hub_id');
 				}
 				if (event.description) {
 					$('#description').val(event.description);
@@ -70,8 +65,8 @@ jQuery(document).ready(function ( jq ) {
 					cache: false,
 					success: function ( json ) {
 						$.each(json, function ( i, val ) {
-							points[i] = [i, parseInt(val.length, 10)];
-							total += val.reduce(function(a, b) { return parseInt(a, 10) + parseInt(b, 10); }, 0);
+							points[i] = [i, val.reduce(function(a, b) { return parseFloat(a) + parseFloat(b); }, 0)];
+							total += Math.round(val.reduce(function(a, b) { return parseFloat(a) + parseFloat(b); }, 0));
 						});
 
 						$('.hours').html(total + 'hr' + ((total != 1) ? 's' : ''));
@@ -156,10 +151,11 @@ jQuery(document).ready(function ( jq ) {
 
 		calendar.fullCalendar({
 			header         : {
-				left       :   '',
+				left       : 'title',
 				center     : '',
-				right      :  ''
+				right      : 'today,prev,next'
 			},
+			titleFormat    : 'ddd, MMM D, YYYY',
 			timezone       : 'local',
 			defaultView    : 'agendaDay',
 			contentHeight  : 370,
@@ -193,6 +189,9 @@ jQuery(document).ready(function ( jq ) {
 				data.submit();
 			},
 			eventAfterAllRender : function ( view ) {
+				// Set height of input box (minus margin and borders)
+				$('.details-inner').height(calendar.height() - 32);
+
 				graphs();
 			},
 			events : '/api/time/today'
@@ -243,6 +242,11 @@ jQuery(document).ready(function ( jq ) {
 				data: "hid="+$(this).val()+"&pactive=1",
 				dataType: "json",
 				cache: false,
+				statusCode: {
+					404: function() {
+						location.reload();
+					}
+				},
 				success: function ( json ) {
 					// If success, update the list of tasks based on the chosen hub
 					var options = '';
@@ -263,7 +267,7 @@ jQuery(document).ready(function ( jq ) {
 						options = '<option value="">No tasks for this hub</option>';
 					}
 					task.html(options);
-					fancy('#task_id', true);
+					fancy('#task_id');
 				}
 			});
 		});

@@ -437,6 +437,7 @@ class plgGroupsCitations extends \Hubzero\Plugin\Plugin
 
 		// Incoming - expecting an array id[]=4232
 		$id = Request::getInt('id', 0);
+		$id = ($id < 0 ? 0 : $id);
 
 		// Pub author
 		$pubAuthor = false;
@@ -503,7 +504,7 @@ class plgGroupsCitations extends \Hubzero\Plugin\Plugin
 		{
 			if ($view->row->relatedAuthors->count())
 			{
-				$view->authors = $view->row->relatedAuthors;
+				$view->authors = $view->row->relatedAuthors()->order('ordering', 'asc');
 			}
 			elseif ($view->row->relatedAuthors->count() == 0 && $view->row->author != '')
 			{
@@ -616,6 +617,7 @@ class plgGroupsCitations extends \Hubzero\Plugin\Plugin
 				'url' => Request::getVar('uri'),
 				'eprint' => Request::getVar('eprint'),
 				'abstract' => Request::getVar('abstract'),
+				'note' => Request::getVar('note'),
 				'keywords' => Request::getVar('keywords'),
 				'research_notes' => Request::getVar('research_notes'),
 				'language' => Request::getVar('language'),
@@ -630,8 +632,7 @@ class plgGroupsCitations extends \Hubzero\Plugin\Plugin
 		if (!$citation->save())
 		{
 			$this->setError($citation->getError());
-			$this->_edit();
-			return;
+			return $this->_edit();
 		}
 
 		$authorCount = $citation->relatedAuthors()->count();
@@ -680,6 +681,27 @@ class plgGroupsCitations extends \Hubzero\Plugin\Plugin
 		// check if we are allowing badges
 		$ct2 = new \Components\Tags\Models\Cloud($citation->id, 'citations');
 		$ct2->setTags($badges, User::get('id'), 0, 1, 'badge');
+
+		// save links
+		$links = Request::getVar('links', array(), 'post');
+		if ($links)
+		{
+			foreach ($links as $link)
+			{
+				$link['citation_id'] = $citation->id;
+
+				$l = \Components\Citations\Models\Link::oneOrNew($link['id']);
+				if ($link['url'] && $link['title'])
+				{
+					$l->set($link);
+					$l->save();
+				}
+				else if ($l->id)
+				{
+					$l->destroy();
+				}
+			}
+		}
 
 		// redirect after save
 		App::redirect(

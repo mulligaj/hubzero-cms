@@ -47,7 +47,7 @@ defined('_HZEXEC_') or die();
 			</tr>
 		</thead>
 		<tbody>
-			<?php foreach ($this->config as $key=>$value):?>
+			<?php foreach ($this->config as $key => $value):?>
 				<tr>
 					<td>
 						<?php echo $key;?>
