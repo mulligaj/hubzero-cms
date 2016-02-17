@@ -98,7 +98,7 @@ class Question extends \JTable
 			}
 			else
 			{
-				$query .= ", #__tags_object AS RTA ";
+				$query .= " INNER JOIN #__tags_object AS RTA ";
 			}
 			$query .= "INNER JOIN #__tags AS TA ON TA.id=RTA.tagid ";
 		}
@@ -106,7 +106,7 @@ class Question extends \JTable
 		{
 			$query .= "FROM $this->_tbl AS C ";
 		}
-		$query .= ", #__users AS U ";
+		$query .= " LEFT JOIN #__users AS U ON U.id=C.created_by ";
 
 		switch ($filters['filterby'])
 		{
@@ -117,7 +117,7 @@ class Question extends \JTable
 			case 'none':   $query .= "WHERE 1=2 ";        break;
 			default:       $query .= "WHERE C.state!=2 "; break;
 		}
-		$query .= "AND U.id=C.created_by ";
+		//$query .= "AND U.id=C.created_by ";
 		if (isset($filters['q']) && $filters['q'] != '')
 		{
 			$words   = explode(' ', $filters['q']);

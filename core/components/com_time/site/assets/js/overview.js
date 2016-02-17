@@ -22,6 +22,11 @@ jQuery(document).ready(function ( jq ) {
 				});
 			},
 			showDetails = function ( ) {
+				if ($('.details-id').val()) {
+					$('.details-delete').show();
+				} else {
+					$('.details-delete').hide();
+				}
 				explain.fadeOut();
 				data.fadeIn();
 			},
@@ -55,13 +60,14 @@ jQuery(document).ready(function ( jq ) {
 					$('#description').val('');
 				}
 			},
-			graphs = function ( ) {
+			graphs = function ( today ) {
 				var points = [[0,0], [1,0], [2,0], [3,0], [4,0], [5,0], [6,0]],
 					total  = 0;
 
 				$.ajax({
 					url: "/api/time/week",
 					dataType: "json",
+					data: "today=" + today,
 					cache: false,
 					success: function ( json ) {
 						$.each(json, function ( i, val ) {
@@ -167,11 +173,11 @@ jQuery(document).ready(function ( jq ) {
 			unselectCancel : '.details-inner',
 			selectHelper   : true,
 			select : function ( start, end, jsEvent, view ) {
-				showDetails();
 				setData({
 					start : start,
 					end   : end
 				});
+				showDetails();
 			},
 			unselect : function ( view, jsEvent ) {
 				hideDetails();
@@ -192,7 +198,15 @@ jQuery(document).ready(function ( jq ) {
 				// Set height of input box (minus margin and borders)
 				$('.details-inner').height(calendar.height() - 32);
 
-				graphs();
+				// Be sure not to modify the actual start date moment
+				var today = view.start.clone();
+				graphs(today.format());
+
+				var dayOfWeek = parseInt(today.format('d'), 10) === 0 ? 6 : parseInt(today.format('d'), 10) - 1;
+				var monday    = today.subtract(dayOfWeek, 'days').format('M/D');
+				var sunday    = today.add(dayOfWeek, 'days').add((6-dayOfWeek), 'day').format('M/D');
+
+				$('.date-range').html('(' + monday + ' - ' + sunday + ')');
 			},
 			events : '/api/time/today'
 		});
@@ -231,6 +245,27 @@ jQuery(document).ready(function ( jq ) {
 			}
 		});
 
+		$('.details').on('focus', '.select2-container', function ( e ) {
+			$(this).prev().select2('open');
+		});
+
+		$('.details-delete').on('click', function ( e ) {
+			e.preventDefault();
+
+			$('.error-message').fadeOut();
+			$.ajax({
+				url      : '/api/time/records/' + $('.details-id').val(),
+				method   : 'DELETE',
+				dataType : "json",
+				cache    : false,
+				success  : function ( json ) {
+					calendar.fullCalendar( 'unselect' );
+					calendar.fullCalendar( 'refetchEvents' );
+					hideDetails();
+				}
+			});
+		});
+
 		// Add change event to hub select box (filter tasks list by selected hub)
 		$('#hub_id').change(function ( event ) {
 			// First, grab the currently select task
@@ -266,8 +301,18 @@ jQuery(document).ready(function ( jq ) {
 					} else {
 						options = '<option value="">No tasks for this hub</option>';
 					}
+					var focused = false;
+
+					if (task.next().hasClass('select2-container--open')) {
+						focused = true;
+					}
+
 					task.html(options);
 					fancy('#task_id');
+
+					if (focused) {
+						task.select2('open');
+					}
 				}
 			});
 		});
