@@ -248,17 +248,6 @@ class Repo extends Object
 	}
 
 	/**
-	 * Get file list (retrieve and sort), *new method
-	 *
-	 * @param   array  $params
-	 * @return  array
-	 */
-	public function filelistNew($params = array())
-	{
-		return $this->call('filelistnew', $params);
-	}
-
-	/**
 	 * Get changes for sync
 	 *
 	 * @param      array	$params
@@ -1019,6 +1008,7 @@ class Repo extends Object
 
 		$file         = Filesystem::clean(basename($dataPath));
 		$localPath    = $dirPath ? $dirPath . DS . $file : $file;
+		$tempPath     = false;
 
 		$where  = $target . DS . $file;
 		$exists = is_file($where) ? true : false;
