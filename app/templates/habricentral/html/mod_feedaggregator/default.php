@@ -63,7 +63,10 @@ defined('_HZEXEC_') or die;
 					<div class="item">
 						<h5 class="feed-link" style="padding: 15px;">
 							<a href="<?php echo $currItem->link; ?>" target="_blank">
-							<?php echo preg_replace("/[^A-Za-z0-9 ]/", '', 	$currItem->title); ?>
+								<?php
+								$currItem->title = html_entity_decode($currItem->title);
+								$currItem->title = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $currItem->title);
+								echo preg_replace("/[^A-Za-z0-9'\"_\- ]/", '', $currItem->title); ?>
 							</a>
 						</h5>
 
@@ -73,7 +76,8 @@ defined('_HZEXEC_') or die;
 					{
 						// item description
 						$text = $currItem->description;
-						$text = str_replace('&apos;', "'", $text);
+						$text = html_entity_decode($text);
+						$text = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $text);
 						$text = strip_tags($text);
 						// word limit check
 						if ($words)
@@ -92,7 +96,7 @@ defined('_HZEXEC_') or die;
 						}
 						?>
 
-							<h4 style="padding-top:10px;"><?php echo preg_replace("/[^A-Za-z0-9 ]/", '',$text); ?></h4>
+							<h4 style="padding-top:10px;"><?php echo preg_replace("/[^A-Za-z0-9'\"_\- ]/", '',$text); ?></h4>
 
 						<?php
 					}
