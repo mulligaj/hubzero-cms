@@ -528,8 +528,9 @@ class Publications extends SiteController
 		// Last public release
 		$lastPubRelease = $this->model->lastPublicRelease();
 
-		// Version invalid but publication exists?
-		if ($this->model->masterExists() && !$this->model->exists())
+		// Version invalid but publication exists or no version specified?
+		if ($this->model->masterExists() && !$this->model->exists()
+			|| ($this->_version == 'default' && isset($lastPubRelease->id)))
 		{
 			if ($lastPubRelease && $lastPubRelease->id)
 			{
@@ -752,6 +753,30 @@ class Publications extends SiteController
 					$this->model->logAccess('primary');
 				}
 				$this->model->_curationModel->serveBundle();
+				return;
+			}
+			else
+			{
+				throw new Exception(Lang::txt('COM_PUBLICATIONS_ERROR_FINDING_ATTACHMENTS'), 404);
+				return;
+			}
+		}
+
+		// Bundle requested?
+		if ($render == 'showcontents')
+		{
+			// Produce archival package
+			if ($this->model->_curationModel->package())
+			{
+				// Build the HTML of the "about" tab
+				$view = new \Hubzero\Component\View([
+					'name'   => 'view',
+					'layout' => '_contents'
+				]);
+				$view->model  = $this->model;
+				$view->option = $this->_option;
+				$view->display();
+
 				return;
 			}
 			else
