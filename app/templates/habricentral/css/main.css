@@ -1133,6 +1133,14 @@
 	#page_content section.section {
 		padding: 0;
 	}
+
+	.com_search .pane-filters {
+		width: 19em;
+		min-width: 19em;
+	}
+	.com_search .results ol.tags li a {
+		color: #666;
+	}
 /*---------------------------------------------------------------
 	Flexible Columns
 ---------------------------------------------------------------*/
@@ -2232,9 +2240,7 @@
 	body #planform fieldset:after {
 		display: none;
 	}
-	body #page_container {
-		margin: 0 -15px;
-	}
+
 	body #introduction {
 		padding: 25px 15px 25px 120px;
 		background: #fbf8ea;
