@@ -81,7 +81,7 @@ $this->css('media.css');
 					<tr>
 						<td width="100%">
 							<a class="icon-folder folder" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&dir=' . urlencode($k) . '&gidNumber=' . $this->group->get('gidNumber') . '&tmpl=component&' . Session::getFormToken() . '=1'); ?>" target="media">
-								<?php echo $k; ?>
+								<?php echo trim($k, DS); ?>
 							</a>
 						</td>
 						<td>
@@ -94,11 +94,11 @@ $this->css('media.css');
 				<?php foreach ($this->docs as $k => $doc) { ?>
 					<tr>
 						<td width="100%">
-							<span class="icon-file file <?php echo Filesystem::extension($doc); ?>">
+							<a download target="_blank" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&gidNumber=' . $this->group->get('gidNumber') . '&task=download&file=' . urlencode(substr($k, strlen(PATH_ROOT))) . '&' . Session::getFormToken() . '=1'); ?>" class="icon-file file <?php echo Filesystem::extension($doc); ?>">
 								<?php
 								$k = substr($k, strlen($this->path));
-								echo $this->escape($k); ?>
-							</span>
+								echo $this->escape(trim($k, DS)); ?>
+							</a>
 						</td>
 						<td>
 							<a class="icon-delete delete" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=deletefile&file=' . urlencode($k) . '&gidNumber=' . $this->group->get('gidNumber') . '&tmpl=component&' . Session::getFormToken() . '=1'); ?>" target="media" onclick="return deleteFile('<?php echo basename($doc); ?>');" title="<?php echo Lang::txt('JACTION_DELETE'); ?>">
