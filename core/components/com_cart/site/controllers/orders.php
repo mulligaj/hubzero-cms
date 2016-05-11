@@ -28,15 +28,18 @@
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-namespace Components\Storefront\Site\Controllers;
+namespace Components\Cart\Site\Controllers;
 
-use Components\Storefront\Models\Warehouse;
+use Request;
+use User;
+use Components\Cart\Models\CurrentCart;
 
+require_once dirname(dirname(__DIR__)) . DS . 'models' . DS . 'CurrentCart.php';
 
 /**
- * Courses controller class
+ * Cart controller class
  */
-class Storefront extends ComponentController
+class Orders extends ComponentController
 {
 	/**
 	 * Execute a task
@@ -45,8 +48,6 @@ class Storefront extends ComponentController
 	 */
 	public function execute()
 	{
-		$this->warehouse = new Warehouse();
-
 		// Get the task
 		$this->_task  = Request::getVar('task', '');
 
@@ -54,6 +55,12 @@ class Storefront extends ComponentController
 		{
 			$this->_task = 'home';
 			$this->registerTask('__default', $this->_task);
+		}
+
+		// Check if they're logged in
+		if (User::isGuest())
+		{
+			Request::setVar('task', 'login');
 		}
 
 		parent::execute();
@@ -66,9 +73,32 @@ class Storefront extends ComponentController
 	 */
 	public function homeTask()
 	{
-		// get categories
-		$categories = $this->warehouse->getRootCategories();
-		$this->view->categories = $categories;
+		// Incoming
+		$this->view->filters = array(
+			'limit'  => Request::getInt('limit', Config::get('list_limit')),
+			'start'  => Request::getInt('limitstart', 0),
+		);
+
+		$cart = new CurrentCart();
+
+		// Get all completed transactions count
+		$this->view->total = $cart->getAllTransactions(array('count' => true));
+
+		// Get all completed transactions
+		$transactions = $cart->getAllTransactions($this->view->filters);
+
+		// Get transactions' info
+		if ($transactions)
+		{
+			foreach ($transactions as $transaction)
+			{
+				$transactionInfo = $cart->getTransactionFacts($transaction->tId);
+				$transaction->tInfo = $transactionInfo;
+			}
+		}
+
+		$this->view->transactions = $transactions;
+
 
 		if (Pathway::count() <= 0)
 		{
@@ -76,10 +106,29 @@ class Storefront extends ComponentController
 					Lang::txt(strtoupper($this->_option)),
 					'index.php?option=' . $this->_option
 			);
+			Pathway::append(
+				Lang::txt('COM_CART_ORDERS'),
+				'index.php?option=' . $this->_option
+			);
 		}
+
+		//print_r($transactions); die;
 
 		$this->view->display();
 	}
 
+	/**
+	 * Redirect to the login page with the return set
+	 *
+	 * @return     void
+	 */
+	public function loginTask()
+	{
+		$rtrn = Request::getVar('REQUEST_URI', Route::url('index.php?option=' . $this->_controller), 'server');
+		App::redirect(
+			Route::url('index.php?option=com_users&view=login&return=' . base64_encode($rtrn))
+		);
+		return;
+	}
 }
 

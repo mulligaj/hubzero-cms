@@ -29,82 +29,14 @@
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Components\Groups\Models\Member;
+// No direct access.
+defined('_HZEXEC_') or die();
 
-use Hubzero\Database\Relational;
-use Hubzero\User\Profile;
-
-/**
- * Group member role
- */
-class Role extends Relational
-{
-	/**
-	 * The table namespace
-	 *
-	 * @var string
-	 */
-	protected $namespace = 'xgroups_member';
-
-	/**
-	 * Default order by for model
-	 *
-	 * @var string
-	 */
-	public $orderBy = 'name';
-
-	/**
-	 * Default order direction for select queries
-	 *
-	 * @var  string
-	 */
-	public $orderDir = 'asc';
-
-	/**
-	 * Fields and their validation criteria
-	 *
-	 * @var  array
-	 */
-	protected $rules = array(
-		'roleid'    => 'positive|nonzero',
-		'uidNumber' => 'positive|nonzero'
-	);
-
-	/**
-	 * Get associated role
-	 *
-	 * @return  object
-	 */
-	public function role()
-	{
-		return $this->belongsToOne('\Components\Groups\Models\Role', 'roleid');
-	}
-
-	/**
-	 * Member profile
-	 *
-	 * @return  object
-	 */
-	public function member()
-	{
-		if ($profile = Profile::getInstance($this->get('uidNumber')))
-		{
-			return $profile;
-		}
-		return new Profile;
-	}
-
-	/**
-	 * Member profile
-	 *
-	 * @return  object
-	 */
-	public static function oneByUserAndRole($uidNumber, $roleid)
-	{
-		return self::all()
-			->whereEquals('uidNumber', $uidNumber)
-			->whereEquals('roleid', $roleid)
-			->row();
-	}
-}
-
+$task = strtolower(Request::getCmd('task', ''));
+?>
+<nav role="navigation" class="sub sub-navigation">
+	<ul>
+		<li><a<?php if (!$task) { echo ' class="active"'; } ?> href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>"><?php echo Lang::txt('COM_CART_DOWNLOADS_REPORT_ALL'); ?></a></li>
+		<li><a<?php if ($task == 'sku') { echo ' class="active"'; } ?> href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=sku'); ?>"><?php echo Lang::txt('COM_CART_DOWNLOADS_REPORT_SKU'); ?></a></li>
+	</ul>
+</nav><!-- / .sub-navigation -->

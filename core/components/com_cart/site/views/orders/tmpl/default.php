@@ -23,40 +23,55 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Shawn Rice <zooley@purdue.edu>
+ * @author    HUBzero
  * @copyright Copyright 2005-2011 Purdue University. All rights reserved.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
 
-namespace Components\Cart\Admin;
+// Check to ensure this file is included in Joomla!
+defined('_JEXEC') or die( 'Restricted access' );
 
-$option = 'com_cart';
+$this->css()
+	->js()
 
-if (!\User::authorise('core.manage', $option))
-{
-	return \App::abort(404, \Lang::txt('JERROR_ALERTNOAUTHOR'));
-}
+?>
 
-require_once(__DIR__ . DS . 'helpers' . DS . 'permissions.php');
+<header id="content-header">
+	<h2><?php echo Lang::txt('COM_CART_ORDERS') ?></h2>
+</header>
 
-$scope = \Request::getCmd('scope', 'site');
-$controllerName = \Request::getCmd('controller', 'downloads');
+<form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" id="ordersform" method="get">
+<section class="main section">
+	<div class="section-inner">
 
-\Submenu::addEntry(
-		Lang::txt('COM_CART_SOFTWARE_DOWNLOADS'),
-		\Route::url('index.php?option=com_cart&controller=downloads'),
-		$controllerName == 'downloads'
-);
+		<?php
+			if (!$this->transactions)
+			{
+				echo '<p class="no-results">You have not placed any orders yet. Is it time to <a href="/storefront">start shopping?</a>';
+			}
+			else {
+				echo '<ol class="entries">';
+				foreach ($this->transactions as $transaction)
+				{
+					// Instantiate a new view
+					$this->view('transaction', 'orders')
+						->set('transaction', $transaction)
+						->display();
+				}
+				echo '</ol>';
+			}
+		?>
 
-if (!file_exists(__DIR__ . DS . 'controllers' . DS . $controllerName . '.php'))
-{
-	$controllerName = 'downloads';
-}
-require_once(__DIR__ . DS . 'controllers' . DS . $controllerName . '.php');
-$controllerName = __NAMESPACE__ . '\\Controllers\\' . ucfirst($controllerName);
+	</div>
 
-// Instantiate controller
-$controller = new $controllerName();
-
-$controller->execute();
-$controller->redirect();
+	<?php
+	// Initiate paging
+	$pageNav = $this->pagination(
+		$this->total,
+		$this->filters['start'],
+		$this->filters['limit']
+	);
+	echo $pageNav->render();
+	?>
+</section>
+</form>
