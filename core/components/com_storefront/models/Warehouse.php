@@ -37,6 +37,7 @@ use Components\Storefront\Models\CourseOffering;
 use Components\Storefront\Models\Sku;
 use Components\Storefront\Models\Coupon;
 use Components\Storefront\Models\Collection;
+use Lang;
 
 require_once(__DIR__ . DS . 'Product.php');
 require_once(__DIR__ . DS . 'Course.php');
@@ -59,6 +60,9 @@ class Warehouse extends \Hubzero\Base\Object
 
 	// Access levels scope (what is allowed to display)
 	var $accessLevelsScope = false;
+
+	// User scope (what user is trying to get the info)
+	var $userScope = false;
 
 	// Database instance
 	var $db = NULL;
@@ -113,7 +117,16 @@ class Warehouse extends \Hubzero\Base\Object
 		$this->accessLevelsScope = array_merge(array('NULL', 0), $accessLevels);
 	}
 
-
+	/**
+	 * Add user level scope for entities having user permission property (currently SKUs only)
+	 *
+	 * @param  int user ID
+	 * @return void
+	 */
+	public function addUserScope($uId)
+	{
+		$this->userScope = $uId;
+	}
 
 	/* ------------------------------------- Main working functions ----------------------------------------------- */
 
@@ -367,7 +380,12 @@ class Warehouse extends \Hubzero\Base\Object
 			$lookupField = 'pAlias';
 		}
 
-		$sql = "SELECT `pId`, `access` FROM `#__storefront_products` p WHERE p.`{$lookupField}` = " . $this->_db->quote($product);
+		$sql = "SELECT `pId`, `access`";
+		$sql .= ", IF(";
+		$sql .= " (`publish_up` IS NULL OR `publish_up` <= NOW())";
+		$sql .= " AND (`publish_down` IS NULL OR `publish_down` = '0000-00-00 00:00:00' OR `publish_down` > NOW()";
+		$sql .= "), 1, 0) AS isPublished";
+		$sql .= " FROM `#__storefront_products` p WHERE p.`{$lookupField}` = " . $this->_db->quote($product);
 		if (!$showInactive)
 		{
 			$sql .= " AND p.`pActive` = 1";
@@ -397,6 +415,15 @@ class Warehouse extends \Hubzero\Base\Object
 				$response->message = 'COM_STOREFRONT_PRODUCT_ACCESS_NOT_AUTHORIZED';
 				return $response;
 			}
+		}
+
+		// Check if the product is published
+		if (!$pInfo->isPublished)
+		{
+			$response->status = 0;
+			$response->errorCode = 403;
+			$response->message = 'COM_STOREFRONT_PRODUCT_ACCESS_NOT_AUTHORIZED';
+			return $response;
 		}
 
 		$response->pId = $pInfo->pId;
@@ -435,6 +462,10 @@ class Warehouse extends \Hubzero\Base\Object
 		if ($showOnlyActive)
 		{
 			$sql .= " AND `pActive` = 1";
+
+			// check the publish times
+			$sql .= " AND (`publish_up` IS NULL OR `publish_up` <= NOW())";
+			$sql .= " AND (`publish_down` IS NULL OR `publish_down` = '0000-00-00 00:00:00' OR `publish_down` > NOW())";
 		}
 
 		// Filter by collections
@@ -491,7 +522,7 @@ class Warehouse extends \Hubzero\Base\Object
 		}
 
 		$this->_db->setQuery($sql);
-		//print_r($this->_db->replacePrefix($this->_db->getQuery()));
+		//print_r($this->_db->toString()); die;
 		$this->_db->execute();
 		if ($return == 'count')
 		{
@@ -518,6 +549,10 @@ class Warehouse extends \Hubzero\Base\Object
 		if (!$showInactive)
 		{
 			$sql .= " AND `pActive` = 1";
+
+			// check publish up and down
+			$sql .= " AND (p.`publish_up` IS NULL OR p.`publish_up` <= NOW())";
+			$sql .= " AND (p.`publish_down` IS NULL OR p.`publish_down` = '0000-00-00 00:00:00' OR p.`publish_down` > NOW())";
 		}
 
 		$this->_db->setQuery($sql);
@@ -593,15 +628,31 @@ class Warehouse extends \Hubzero\Base\Object
 		$sql .= "	FROM `#__storefront_skus` s
 					LEFT JOIN `#__storefront_sku_options` so ON s.`sId` = so.`sId`
 					LEFT JOIN `#__storefront_options` o ON so.`oId` = o.`oId`
-					LEFT JOIN `#__storefront_option_groups` og ON o.`ogId` = og.`ogId`
+					LEFT JOIN `#__storefront_option_groups` og ON o.`ogId` = og.`ogId`";
 
-					WHERE s.`pId` = {$pId} AND s.`sActive` = 1 AND (s.`sInventory` > 0 OR s.`sTrackInventory` = 0)
+		// check user scope if needed
+		if ($this->userScope)
+		{
+			$sql .= " LEFT JOIN #__storefront_permissions pr ON pr.`scope_id` = s.sId";
+		}
 
-					ORDER BY og.`ogId`, o.`oId`";
+		$sql .= "	WHERE s.`pId` = {$pId} AND s.`sActive` = 1";
+		$sql .= " 	AND (s.`publish_up` IS NULL OR s.`publish_up` <= NOW())";
+		$sql .= " 	AND (s.`publish_down` IS NULL OR s.`publish_down` = '0000-00-00 00:00:00' OR s.`publish_down` > NOW())";
+		$sql .= "   AND (s.`sInventory` > 0 OR s.`sTrackInventory` = 0)";
+		if ($this->userScope)
+		{
+			$sql .= " AND (s.`sRestricted` = 0 OR (pr.scope = 'sku' AND pr.uId = '{$this->userScope}'))";
+		}
+		else
+		{
+			$sql .= " AND s.`sRestricted` = 0";
+		}
+		$sql .= "	ORDER BY og.`ogId`, o.`oId`";
 
 		$this->_db->setQuery($sql);
+		//print_r($this->_db->toString()); die;
 		$this->_db->query();
-		//print_r($this->_db->replacePrefix( (string) $sql )); die;
 		if (!$this->_db->getNumRows())
 		{
 			return false;
@@ -899,6 +950,13 @@ class Warehouse extends \Hubzero\Base\Object
 			$sql .= "
 				AND p.`pActive` = 1
 				AND s.`sActive` = 1 ";
+
+			// check publish up and down
+			$sql .= " AND (p.`publish_up` IS NULL OR p.`publish_up` <= NOW())";
+			$sql .= " AND (p.`publish_down` IS NULL OR p.`publish_down` = '0000-00-00 00:00:00' OR p.`publish_down` > NOW())";
+
+			$sql .= " AND (s.`publish_up` IS NULL OR s.`publish_up` <= NOW())";
+			$sql .= " AND (s.`publish_down` IS NULL OR s.`publish_down` = '0000-00-00 00:00:00' OR s.`publish_down` > NOW())";
 		}
 
 		// Filter by filters
@@ -1577,6 +1635,9 @@ class Warehouse extends \Hubzero\Base\Object
 						`sTrackInventory` = " . $sku->getTrackInventory() . ",
 						`sInventory` = " . $sku->getInventoryLevel() . ",
 						`sEnumerable` = " . $sku->getEnumerable() . ",
+						`publish_up` = " . $this->_db->quote($sku->getPublishTime()->publish_up) . ",
+						`publish_down` = " . $this->_db->quote($sku->getPublishTime()->publish_down) . ",
+						`sRestricted` = " . $sku->getRestricted() . ",
 						`sActive` = " . $sku->getActiveStatus();
 
 		if (!empty($sId))

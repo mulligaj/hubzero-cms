@@ -34,6 +34,7 @@ use Pathway;
 use Components\Storefront\Models\Warehouse;
 use Components\Cart\Models\CurrentCart;
 use Components\Cart\Helpers\Audit;
+use Exception;
 
 require_once PATH_CORE . DS. 'components' . DS . 'com_cart' . DS . 'models' . DS . 'CurrentCart.php';
 require_once PATH_CORE . DS. 'components' . DS . 'com_cart' . DS . 'helpers' . DS . 'Audit.php';
@@ -54,7 +55,10 @@ class Product extends \Hubzero\Component\SiteController
 		$this->warehouse = new Warehouse();
 		$user = User::getRoot();
 		$this->warehouse->addAccessLevels($user->getAuthorisedViewLevels());
-
+		if (is_numeric($user->get('id')))
+		{
+			$this->warehouse->addUserScope($user->get('id'));
+		}
 		parent::execute();
 	}
 
@@ -145,6 +149,8 @@ class Product extends \Hubzero\Component\SiteController
 		// Get option groups with options and SKUs
 		$data = $this->warehouse->getProductOptions($pId);
 
+		//print_r($data); die;
+
 		if ($data)
 		{
 			//App::abort(404 , Lang::txt('COM_STOREFRONT_PRODUCT_ERROR'));
@@ -222,8 +228,6 @@ class Product extends \Hubzero\Component\SiteController
 		// Add custom page JS
 		if ($data && (count($data->options) > 0 || count($data->skus) > 1)) {
 			$js = $this->getDisplayJs($data->options, $data->skus, $productIdentifier);
-			//$doc =& JFactory::getDocument();
-			//$doc->addScriptDeclaration($js);
 			Document::addScriptDeclaration($js);
 		}
 

@@ -52,6 +52,8 @@ JToolBarHelper::cancel();
 JToolBarHelper::spacer();
 JToolBarHelper::help('category');
 
+$this->css();
+
 ?>
 <script type="text/javascript">
 function submitbutton(pressbutton)
@@ -205,6 +207,10 @@ function submitbutton(pressbutton)
 						<input type="hidden" name="pId" id="pid" value="<?php echo $this->escape($this->pInfo->pId); ?>" />
 					</td>
 				</tr>
+				<?php
+				if ($this->pInfo->ptModel == 'software')
+				{
+				?>
 				<tr>
 					<th class="key"><?php echo Lang::txt('COM_STOREFRONT_DOWNLOADED'); ?>:</th>
 					<td>
@@ -214,12 +220,16 @@ function submitbutton(pressbutton)
 						{
 							echo(' times');
 						}
-						else {
+						else
+						{
 							echo 'time';
 						}
 						?>
 					</td>
 				</tr>
+				<?php
+				}
+				?>
 				<tr>
 					<th class="key"><?php echo Lang::txt('COM_STOREFRONT_DIRECT_URL'); ?>:</th>
 					<td>
@@ -279,10 +289,10 @@ function submitbutton(pressbutton)
 		</fieldset>
 
 		<fieldset class="adminform">
-			<legend><span><?php echo Lang::txt('COM_STOREFRONT_PARAMETERS'); ?></span></legend>
+			<legend><span><?php echo Lang::txt('COM_STOREFRONT_PUBLISH_OPTIONS'); ?></span></legend>
 
 			<div class="input-wrap">
-				<label for="field-state"><?php echo Lang::txt('COM_STOREFRONT_PUBLISH'); ?>:</label>
+				<label for="field-state"><?php echo Lang::txt('COM_STOREFRONT_STATE'); ?>:</label>
 				<select name="fields[state]" id="field-state">
 					<option value="0"<?php if ($this->row->getActiveStatus() == 0) { echo ' selected="selected"'; } ?>><?php echo Lang::txt('JUNPUBLISHED'); ?></option>
 					<option value="1"<?php if ($this->row->getActiveStatus() == 1) { echo ' selected="selected"'; } ?>><?php echo Lang::txt('JPUBLISHED'); ?></option>
@@ -290,6 +300,36 @@ function submitbutton(pressbutton)
 				</select>
 			</div>
 
+			<div class="input-wrap">
+				<label for="field-publish_up"><?php echo Lang::txt('COM_STOREFRONT_FIELD_PUBLISH_UP'); ?>:</label><br />
+				<?php echo Html::input('calendar', 'fields[publish_up]', ($this->row->getPublishTime()->publish_up != '0000-00-00 00:00:00' ? $this->escape(Date::of($this->row->getPublishTime()->publish_up)->toLocal('Y-m-d H:i:s')) : ''), array('id' => 'field-publish_up')); ?>
+			</div>
+
+			<div class="input-wrap">
+				<label for="field-publish_down"><?php echo Lang::txt('COM_STOREFRONT_FIELD_PUBLISH_DOWN'); ?>:</label><br />
+				<?php echo Html::input('calendar', 'fields[publish_down]', ($this->row->getPublishTime()->publish_down != '0000-00-00 00:00:00' ? $this->escape(Date::of($this->row->getPublishTime()->publish_down)->toLocal('Y-m-d H:i:s')) : ''), array('id' => 'field-publish_down')); ?>
+			</div>
+		</fieldset>
+
+		<fieldset class="adminform">
+			<legend><span><?php echo Lang::txt('Restrictions'); ?></span></legend>
+
+			<div class="input-wrap">
+				<label for="field-restricted"><?php echo Lang::txt('Restrict by users'); ?>:</label>
+				<select name="fields[restricted]" id="field-restricted">
+					<option value="0"<?php if ($this->row->getRestricted() == 0) { echo ' selected="selected"'; } ?>><?php echo Lang::txt('COM_STOREFRONT_NO'); ?></option>
+					<option value="1"<?php if ($this->row->getRestricted() == 1) { echo ' selected="selected"'; } ?>><?php echo Lang::txt('COM_STOREFRONT_YES'); ?></option>
+				</select>
+			</div>
+
+			<?php
+			if ($this->row->getRestricted()) {
+				?>
+				<p>
+					<a class="options-link" href="<?php echo 'index.php?option=' . $this->option . '&controller=restrictions&id=' . $this->row->getId(); ?>">Manage restrictions</a></p>
+				<?php
+			}
+			?>
 		</fieldset>
 
 	</div>
