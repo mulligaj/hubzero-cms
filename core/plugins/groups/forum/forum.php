@@ -1365,9 +1365,8 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			$new_category = $fields['category_id'];
 			if ($new_category != $old->category_id)
 			{
-					$moving = true;
+				$moving = true;
 			}
-
 		}
 
 		if (($fields['id'] && !$this->params->get('access-edit-thread'))
@@ -1386,6 +1385,10 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 
 		// Bind data
 		$model = new \Components\Forum\Tables\Post($this->database);
+		if ($fields['id'])
+		{
+			$model->load($fields['id']);
+		}
 
 		if (!$model->bind($fields))
 		{
@@ -1464,10 +1467,15 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			$thread = $model->id;
 		}
 
+		// Disable notifications
+		if ($fields['id'] && !Request::getInt('notify', 0))
+		{
+			$moving = true;
+		}
+
 		$params = Component::params('com_groups');
 
 		// Email the group and insert email tokens to allow them to respond to group posts via email
-
 		if ($params->get('email_comment_processing') && (isset($moving) && $moving == false))
 		{
 			$esection = new \Components\Forum\Models\Section($sectionTbl);
@@ -1516,7 +1524,17 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 				}
 			}
 
-			$encryptor = new \Hubzero\Mail\Token();
+			// We need to wrap this in a try/catch because
+			// it throws an exception if it can't find a
+			// needed config file.
+			$encryptor = null;
+			try
+			{
+				$encryptor = new \Hubzero\Mail\Token();
+			}
+			catch (Exception $e)
+			{
+			}
 
 			$from = array(
 				'name'  => Config::get('sitename'),
@@ -1526,13 +1544,23 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			// Email each group member separately, each needs a user specific token
 			foreach ($userIDsToEmail as $userID)
 			{
-				// Construct User specific Email ThreadToken
-				// Version, type, userid, xforumid
-				$token = $encryptor->buildEmailToken(1, 2, $userID, $parent);
+				$unsubscribeLink = '';
+				$delimiter = '';
 
-				// add unsubscribe link
-				$unsubscribeToken = $encryptor->buildEmailToken(1, 3, $userID, $this->group->get('gidNumber'));
-				$unsubscribeLink  = rtrim(Request::base(), '/') . '/' . ltrim(Route::url('index.php?option=com_groups&cn=' . $this->group->get('cn') .'&active=forum&action=unsubscribe&t=' . $unsubscribeToken), DS);
+				if ($encryptor)
+				{
+					$delimiter = '~!~!~!~!~!~!~!~!~!~!';
+
+					// Construct User specific Email ThreadToken
+					// Version, type, userid, xforumid
+					$token = $encryptor->buildEmailToken(1, 2, $userID, $parent);
+
+					// add unsubscribe link
+					$unsubscribeToken = $encryptor->buildEmailToken(1, 3, $userID, $this->group->get('gidNumber'));
+					$unsubscribeLink  = rtrim(Request::base(), '/') . '/' . ltrim(Route::url('index.php?option=com_groups&cn=' . $this->group->get('cn') .'&active=forum&action=unsubscribe&t=' . $unsubscribeToken), DS);
+
+					$from['replytoemail'] = 'hgm-' . $token . '@' . $_SERVER['HTTP_HOST'];
+				}
 
 				$msg = array();
 
@@ -1545,7 +1573,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 
 				// plain text
 				$eview
-					->set('delimiter', '~!~!~!~!~!~!~!~!~!~!')
+					->set('delimiter', $delimiter)
 					->set('unsubscribe', $unsubscribeLink)
 					->set('group', $this->group)
 					->set('section', $esection)
@@ -1562,8 +1590,6 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 				$msg['multipart'] = str_replace("\n", "\r\n", $html);
 
 				$subject = ' - ' . $this->group->get('cn') . ' - ' . $posttitle;
-
-				$from['replytoemail'] = 'hgm-' . $token . '@' . $_SERVER['HTTP_HOST'];
 
 				if (!Event::trigger('xmessage.onSendMessage', array('group_message', $subject, $msg, $from, array($userID), $this->option, null, '', $this->group->get('gidNumber'))))
 				{
@@ -1683,19 +1709,40 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			return;
 		}
 
+		// Incoming
+		$description = trim(Request::getVar('description', ''));
+
+		$row = new \Components\Forum\Tables\Attachment($this->database);
+		$row->loadByPost($post_id);
+		if (!$row)
+		{
+			$row = new \Components\Forum\Tables\Attachment($this->database);
+		}
+		$row->description = $description;
+		$row->post_id = $post_id;
+		$row->parent = $listdir;
+
 		// Incoming file
 		$file = Request::getVar('upload', '', 'files', 'array');
 		if (!$file || !isset($file['name']) || !$file['name'])
 		{
+			// This means we're just updating the file description
+			if ($row->id)
+			{
+				if (!$row->check())
+				{
+					$this->setError($row->getError());
+				}
+				if (!$row->store())
+				{
+					$this->setError($row->getError());
+				}
+			}
 			return;
 		}
 
-		// Incoming
-		$description = trim(Request::getVar('description', ''));
-
 		// Construct our file path
 		$path = PATH_APP . DS . trim($this->params->get('filepath', '/site/forum'), DS) . DS . $listdir;
-
 		if ($post_id)
 		{
 			$path .= DS . $post_id;
@@ -1724,16 +1771,27 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 		}
 		else
 		{
+			// Perform the upload
+			if (!Filesystem::isSafe($path . DS . $file['name']))
+			{
+				$this->setError(Lang::txt('COM_FORUM_ERROR_UPLOADING'));
+				return;
+			}
+
+			// Remove previous file
+			if ($row->filename)
+			{
+				if (!Filesystem::delete($path . DS . $row->filename))
+				{
+					$this->setError(Lang::txt('PLG_GROUPS_FORUM_ERROR_UPLOADING'));
+					return;
+				}
+			}
+
 			// File was uploaded
 			// Create database entry
-			$row = new \Components\Forum\Tables\Attachment($this->database);
-			$row->bind(array(
-				'id' => 0,
-				'parent' => $listdir,
-				'post_id' => $post_id,
-				'filename' => $file['name'],
-				'description' => $description
-			));
+			$row->filename = $file['name'];
+
 			if (!$row->check())
 			{
 				$this->setError($row->getError());
