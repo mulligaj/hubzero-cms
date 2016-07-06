@@ -287,21 +287,60 @@ class plgCronResources extends \Hubzero\Plugin\Plugin
 
 		// Get records needing to be processed
 		$db = App::get('db');
-		$db->setQuery(
-			"SELECT r.*
+		/*$db->setQuery(
+			"SELECT DISTINCT(r.id), r.*
 			FROM `#__resources` AS r
 			LEFT JOIN `#__audit_results` AS a ON a.scope_id=r.id
 			WHERE (a.scope=" . $db->quote('resource') . " OR a.scope='' OR a.scope IS NULL)
 			AND (DATE_ADD(a.processed, INTERVAL " . $interval . ") < " . $db->quote($now) . " OR a.processed = '0000-00-00 00:00:00' OR a.processed IS NULL)
-			GROUP BY r.id
-			ORDER BY r.id ASC
+			LIMIT 0," . $limit
+		);
+		$data = $db->loadAssocList();*/
+
+		// Get records that haven't been processed
+		$db->setQuery(
+			"SELECT r.*
+			FROM `#__resources` AS r
+			WHERE r.id NOT IN (
+				SELECT a.scope_id
+				FROM `#__audit_results` AS a
+				WHERE a.scope=" . $db->quote('resource') . "
+			)
 			LIMIT 0," . $limit
 		);
 		$data = $db->loadAssocList();
 
+		$unprocessed = count($data);
+
+		// If we didn't reach the limit
+		// Get records that need to be re-processed
+		if ($unprocessed < $limit)
+		{
+			$nlimit = ($limit - $unprocessed);
+			$nlimit = ($nlimit > 0 ? $nlimit : 1);
+
+			$db->setQuery(
+				"SELECT r.*
+				FROM `#__resources` AS r
+				WHERE r.id IN (
+					SELECT a.scope_id
+					FROM `#__audit_results` AS a
+					WHERE a.scope=" . $db->quote('resource') . "
+					AND DATE_ADD(a.processed, INTERVAL " . $interval . ") < " . $db->quote($now) . "
+				)
+				LIMIT 0," . $nlimit
+			);
+			if ($data2 = $db->loadAssocList())
+			{
+				$data = $data + $data2;
+			}
+		}
+
 		// Process records
 		if (count($data) > 0)
 		{
+			//$nxt = Date::of('now')->modify('+' . $interval)->toSql();
+
 			include_once(PATH_CORE . '/components/com_resources/helpers/tests/links.php');
 
 			$auditor = new \Hubzero\Content\Auditor('resource');
@@ -315,6 +354,12 @@ class plgCronResources extends \Hubzero\Plugin\Plugin
 				// Loop through each test result and save to the database
 				foreach ($reportcard['tests'] as $result)
 				{
+					$prev = Hubzero\Content\Auditor\Result::oneByScope($result->get('scope'), $result->get('scope_id'));
+					if ($prev->get('id'))
+					{
+						$result->set('id', $prev->get('id'));
+					}
+					//$result->set('next_process', $nxt);
 					$result->save();
 				}
 			}
