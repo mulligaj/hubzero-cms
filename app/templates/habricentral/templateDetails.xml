@@ -167,11 +167,11 @@
 		<filename>js/troublereport.js</filename>
 	</files>
 	<languages>
-		<language tag="en-GB">en-GB.tpl_zepar.ini</language>
+		<language tag="en-GB">en-GB.tpl_habricentral.ini</language>
 	</languages>
 	<administration>
 		<languages folder="admin">
-			<language tag="en-GB">en-GB.tpl_zepar.ini</language>
+			<language tag="en-GB">en-GB.tpl_habricentral.ini</language>
 		</languages>
 	</administration>
 	<positions>
