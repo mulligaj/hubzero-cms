@@ -59,7 +59,7 @@ $c = 0;
 						</h4>
 						by
 						<a href="<?php echo Route::url('index.php?option=com_members&id=' . $post->get('created_by')); ?>">
-							<?php echo $this->escape(stripslashes($post->creator('name'))); ?>
+							<?php echo $this->escape(stripslashes($post->creator()->get('name'))); ?>
 						</a>
 					</li>
 				<?php 

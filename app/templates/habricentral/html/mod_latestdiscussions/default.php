@@ -34,7 +34,7 @@ defined('_HZEXEC_') or die();
 $c = 0;
 ?>
 <div class="latest_discussions_module <?php echo $this->params->get('moduleclass_sfx'); ?>">
-	<?php if ($this->posts->count() > 0) : ?>
+	<?php if (is_object($this->posts) && $this->posts->count() > 0) : ?>
 		<ul class="discussions">
 			<?php foreach ($this->posts as $post) : ?>
 					<?php
