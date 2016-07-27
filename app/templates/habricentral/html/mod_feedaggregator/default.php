@@ -54,15 +54,14 @@ defined('_HZEXEC_') or die;
 	<ul class="feed">
 			<?php
 			$words = $params->def('word_count', 0);
-			for ($j = 0; $j < $totalItems; $j ++)
+			foreach ($posts as $currItem)
 			{
-				$currItem = $posts[$j];
 				// item title
 				?>
 				<li class="newsfeed-item">
 					<div class="item">
 						<h5 class="feed-link" style="padding: 15px;">
-							<a href="<?php echo $currItem->url; ?>" target="_blank">
+							<a href="<?php echo $currItem->link; ?>" target="_blank">
 								<?php
 								$currItem->title = html_entity_decode($currItem->title);
 								$currItem->title = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $currItem->title);
