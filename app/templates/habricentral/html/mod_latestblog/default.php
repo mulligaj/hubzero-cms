@@ -48,23 +48,24 @@ $c = 0;
 								<?php 
 									if ($this->pullout && $c == 0)
 									{
-										echo $post->content('clean', $this->params->get('pulloutlimit', 500));
+										echo \Hubzero\Utility\String::truncate(strip_tags($post->content), $this->params->get('pulloutlimit', 500));
 									}
 									else
 									{
-										echo $post->content('clean', $this->params->get('charlimit', 100));
+										echo \Hubzero\Utility\String::truncate(strip_tags($post->content), $this->params->get('charlimit', 100));
 									}
 								?>
 							</a>
 						</h4>
 						by
 						<a href="<?php echo Route::url('index.php?option=com_members&id=' . $post->get('created_by')); ?>">
-							<?php echo $this->escape(stripslashes($post->creator()->get('name'))); ?>
+							<?php echo $this->escape(stripslashes($post->creator->get('name'))); ?>
 						</a>
 					</li>
 				<?php 
 			}
 			$c++;
+			echo $c;
 		}
 		?>
 		</ul>
