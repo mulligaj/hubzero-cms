@@ -29,54 +29,17 @@
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Components\Wiki\Models;
+namespace Components\Projects\Models\Orm;
 
 use Hubzero\Database\Relational;
 
 /**
- * Model for wiki math conversions
+ * Projects database model
+ *
+ * @uses  \Hubzero\Database\Relational
  */
-class Formula extends Relational
+class Microblog extends Relational
 {
-	/**
-	 * The table namespace
-	 *
-	 * @var  string
-	 */
-	protected $namespace = 'wiki';
-
-	/**
-	 * Default order by for model
-	 *
-	 * @var  string
-	 */
-	public $orderBy = 'id';
-
-	/**
-	 * Default order direction for select queries
-	 *
-	 * @var  string
-	 */
-	public $orderDir = 'asc';
-
-	/**
-	 * Fields and their validation criteria
-	 *
-	 * @var  array
-	 */
-	protected $rules = array(
-		'inputhash'  => 'notempty',
-		'outputhash' => 'notempty'
-	);
-
-	/**
-	 * Load a record by inputhash and bind to $this
-	 *
-	 * @param   string  $inputhash  Hash to load
-	 * @return  object
-	 */
-	public static function oneByInputhash($inputhash)
-	{
-		return self::blank()->whereEquals('inputhash', $inputhash)->row();
-	}
+	protected $table = '#__project_microblog';
 }
+

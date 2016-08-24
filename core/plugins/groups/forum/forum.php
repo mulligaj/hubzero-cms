@@ -492,7 +492,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			'scope'      => $this->forum->get('scope'),
 			'scope_id'   => $this->forum->get('scope_id'),
 			'search'     => Request::getVar('q', ''),
-			'state'      => 1,
+			'state'      => Section::STATE_PUBLISHED,
 			'access'     => array(1),
 			'sort'       => 'ordering',
 			'sort_Dir'   => 'ASC'
@@ -659,6 +659,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			->whereEquals('alias', Request::getVar('section'))
 			->whereEquals('scope', $this->forum->get('scope'))
 			->whereEquals('scope_id', $this->forum->get('scope_id'))
+			->where('state', '!=', Section::STATE_DELETED)
 			->row();
 
 		if (!$section->get('id'))
@@ -776,6 +777,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			->whereEquals('alias', $filters['section'])
 			->whereEquals('scope', $this->forum->get('scope'))
 			->whereEquals('scope_id', $this->forum->get('scope_id'))
+			->where('state', '!=', Section::STATE_DELETED)
 			->row();
 		if (!$section->get('id'))
 		{
@@ -786,6 +788,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			->whereEquals('alias', $filters['category'])
 			->whereEquals('scope', $this->forum->get('scope'))
 			->whereEquals('scope_id', $this->forum->get('scope_id'))
+			->where('state', '!=', Category::STATE_DELETED)
 			->row();
 		if (!$category->get('id'))
 		{
@@ -916,6 +919,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			->whereEquals('alias', Request::getVar('section', ''))
 			->whereEquals('scope', $this->forum->get('scope'))
 			->whereEquals('scope_id', $this->forum->get('scope_id'))
+			->where('state', '!=', Section::STATE_DELETED)
 			->row();
 
 		// Incoming
@@ -925,6 +929,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 				->whereEquals('alias', Request::getVar('category', ''))
 				->whereEquals('scope', $this->forum->get('scope'))
 				->whereEquals('scope_id', $this->forum->get('scope_id'))
+				->where('state', '!=', Category::STATE_DELETED)
 				->row();
 		}
 
@@ -1057,6 +1062,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			->whereEquals('alias', Request::getVar('category', ''))
 			->whereEquals('scope', $this->forum->get('scope'))
 			->whereEquals('scope_id', $this->forum->get('scope_id'))
+			->where('state', '!=', Category::STATE_DELETED)
 			->row();
 
 		// Incoming
@@ -1149,6 +1155,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			->whereEquals('alias', $filters['section'])
 			->whereEquals('scope', $this->forum->get('scope'))
 			->whereEquals('scope_id', $this->forum->get('scope_id'))
+			->where('state', '!=', Section::STATE_DELETED)
 			->row();
 		if (!$section->get('id'))
 		{
@@ -1159,6 +1166,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			->whereEquals('alias', $filters['category'])
 			->whereEquals('scope', $this->forum->get('scope'))
 			->whereEquals('scope_id', $this->forum->get('scope_id'))
+			->where('state', '!=', Category::STATE_DELETED)
 			->row();
 		if (!$category->get('id'))
 		{
@@ -1493,7 +1501,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 			}
 
 			$from = array(
-				'name'  => (!$post->get('anonymous') ? $post->creator()->get('name', Lang::txt('PLG_GROUPS_FORUM_UNKNOWN')) : Lang::txt('PLG_GROUPS_FORUM_ANONYMOUS')) . ' @ ' . Config::get('sitename'),
+				'name'  => (!$post->get('anonymous') ? $post->creator->get('name', Lang::txt('PLG_GROUPS_FORUM_UNKNOWN')) : Lang::txt('PLG_GROUPS_FORUM_ANONYMOUS')) . ' @ ' . Config::get('sitename'),
 				'email' => Config::get('mailfrom'),
 				'replytoname'  => Config::get('sitename'),
 				'replytoemail' => Config::get('mailfrom')
@@ -1602,6 +1610,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 				'action'      => ($fields['id'] ? 'updated' : 'created'),
 				'scope'       => 'forum.' . $type,
 				'scope_id'    => $post->get('id'),
+				'anonymous'   => $post->get('anonymous', 0),
 				'description' => $desc,
 				'details'     => array(
 					'thread' => $post->get('thread'),
@@ -1660,7 +1669,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 		// Check if user is authorized to delete entries
 		$this->_authorize('thread', $id);
 
-		if (!$this->params->get('access-delete-thread'))
+		if (!$this->params->get('access-delete-thread') && $post->get('created_by') != User::get('id'))
 		{
 			App::redirect(
 				$redirect,
@@ -1690,7 +1699,7 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 				$recipients[] = ['user', $recipient];
 			}
 
-			$url  = $post->link();
+			$url = $post->link();
 
 			Event::trigger('system.logActivity', [
 				'activity' => [
@@ -1831,7 +1840,11 @@ class plgGroupsForum extends \Hubzero\Plugin\Plugin
 		// Ensure the user is authorized to view this file
 		if (!$this->params->get('access-view-thread'))
 		{
-			App::abort(403, Lang::txt('PLG_GROUPS_FORUM_NOT_AUTH_FILE'));
+			$thread = Post::oneOrFail($post->get('thread'));
+			if (!in_array($thread->get('access'), User::getAuthorisedViewLevels()))
+			{
+				App::abort(403, Lang::txt('PLG_GROUPS_FORUM_NOT_AUTH_FILE'));
+			}
 		}
 
 		// Get the configured upload path

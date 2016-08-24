@@ -330,14 +330,14 @@ class MathRenderer
 			}
 			else if ($retval == 'X')
 			{
-				$this->html = NULL;
-				$this->mathml = substr ($contents, 33);
+				//$this->html = NULL;
+				$this->mathml = substr($contents, 33);
 				$this->conservativeness = 0;
 			}
 			else if ($retval == '+')
 			{
-				$this->html = NULL;
-				$this->mathml = NULL;
+				//$this->html = NULL;
+				//$this->mathml = NULL;
 				$this->conservativeness = 0;
 			}
 			else
@@ -396,14 +396,15 @@ class MathRenderer
 			$outmd5_sql = $this->hash; //pack('H32', $this->hash);
 			$md5_sql    = $this->md5; //pack('H32', $this->md5); // Binary packed, not hex
 
-			$wm = \Components\Wiki\Models\Forumla::oneByInputhash($md5_sql);
+			$wm = \Components\Wiki\Models\Formula::oneByInputhash($md5_sql);
 			if (!$wm->get('id'))
 			{
 				$wm->set('inputhash', $this->_encodeBlob($md5_sql));
 				$wm->set('outputhash', $this->_encodeBlob($outmd5_sql));
-				$wm->set('conservativeness', $this->conservativeness);
-				$wm->set('html', $this->html);
-				$wm->set('mathml', $this->mathml);
+				$wm->set('conservativeness', (int)$this->conservativeness);
+				$wm->set('html', (string)$this->html);
+				$wm->set('mathml', (string)$this->mathml);
+
 				if (!$wm->save())
 				{
 					return $wm->getError();
@@ -438,7 +439,7 @@ class MathRenderer
 	{
 		$this->md5 = md5($this->tex);
 
-		$wm = \Components\Wiki\Models\Forumla::oneByInputhash($this->_encodeBlob($this->md5));
+		$wm = \Components\Wiki\Models\Formula::oneByInputhash($this->_encodeBlob($this->md5));
 
 		if ($wm->get('id'))
 		{

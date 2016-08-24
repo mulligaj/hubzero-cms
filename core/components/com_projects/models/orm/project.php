@@ -55,4 +55,9 @@ class Project extends Relational
 	{
 		return $this->oneToMany('Description', 'project_id');
 	}
+
+	public function team()
+	{
+		return $this->oneToMany('Owner', 'projectid');
+	}
 }
