@@ -58,9 +58,11 @@ $v = $browser->major();
 		<script type="text/javascript" src="/core/assets/js/jquery.js"></script>
 		<script type="text/javascript" src="/core/assets/js/jquery.ui.js"></script>
 		<script type="text/javascript" src="/core/assets/js/jquery.fancybox.js"></script>
-		<script type="text/javascript" src="/core/assets/js/jquery.tools.js"></script>
-		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/hub.jquery.js"></script>
-		<script type="text/javascript" src="/core/modules/mod_reportproblems/assets/js/mod_reportproblems.jquery.js"></script>
+		<script type="text/javascript" src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/hub.js"></script>
+		<script type="text/javascript" src="/core/modules/mod_reportproblems/assets/js/mod_reportproblems.js"></script>
+		<script type="text/javascript">
+		jQuery(document).ready(function(jq) { HUB.Modules.ReportProblems.initialize("#tab"); });
+		</script>
 
 		<!--[if IE 8]>
 			<link rel="stylesheet" type="text/css" media="screen" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/ie8win.css" />
@@ -121,26 +123,8 @@ $v = $browser->major();
 			<div class="clear"></div>
 		</div><!-- / #nav -->
 
-		<div id="trail">You are here:
-			<?php
-				$items = Pathway::items();
-				$l = array();
-				foreach ($items as $item) 
-				{
-					$text = trim(stripslashes($item->name));
-					if (strlen($text) > 50)
-					{
-						$text = $text.' ';
-						$text = substr($text,0,50);
-						$text = substr($text,0,strrpos($text,' '));
-						$text = $text.' &#8230;';
-					}
-					$url = Route::url($item->link);
-					$url = str_replace('%20','+',$url);
-					$l[] = '<a href="'.$url.'">'.$text.'</a>';
-				}
-				echo implode(' &rsaquo; ',$l);
-			?>
+		<div id="trail">
+			<?php \Hubzero\Module\Helper::displayModules('breadcrumbs'); ?>
 		</div><!-- / #trail -->
 
 		<div id="wrap">

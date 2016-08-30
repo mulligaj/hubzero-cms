@@ -136,7 +136,7 @@ $this->setTitle(Config::get('sitename') . ' - ' . $this->getTitle());
 		<?php endif; ?>
 
 		<div id="wrap">
-			<div id="content" class="<?php echo Request::getVar('option', ''); ?>">
+			<div id="content" class="<?php echo Request::getCmd('option', ''); ?>">
 				<?php if ($this->countModules( 'left' )) : ?>
 					<div class="main section withleft">
 						<div class="aside">
