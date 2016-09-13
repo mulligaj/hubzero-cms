@@ -34,7 +34,7 @@ defined('_HZEXEC_') or die();
 $c = 0;
 ?>
 <div class="latest_discussions_module <?php echo $this->params->get('moduleclass_sfx'); ?>">
-	<?php if (is_object($this->posts) && $this->posts->count() > 0) : ?>
+	<?php if (count($this->posts)) : ?>
 		<ul class="discussions">
 			<?php foreach ($this->posts as $post) : ?>
 					<?php
@@ -50,7 +50,7 @@ $c = 0;
 					<li class="blog">
 						<h4>
 							<a href="<?php echo Route::url($post->link()); ?>">
-								<?php echo $post->content('clean', $this->charlimit); ?>
+								<?php echo \Hubzero\Utility\String::truncate(strip_tags($post->get('comment')), $this->charlimit); ?>
 							</a>
 						</h4>
 							by 
@@ -58,7 +58,7 @@ $c = 0;
 								if ($post->get('anonymous')) {
 									echo '<em>' . Lang::txt('MOD_LATESTDISCUSSIONS_ANONYMOUS') . '</em>';
 								} else {
-									echo '<a href="' . Route::url('index.php?option=com_members&id=' . $post->creator('id')) . '">' . $this->escape(stripslashes($post->creator('name'))) . '</a>';
+									echo '<a href="' . Route::url('index.php?option=com_members&id=' . $post->creator('id')) . '">' . $this->escape(stripslashes($post->creator->get('name'))) . '</a>';
 								}
 							?>
 					</li>
