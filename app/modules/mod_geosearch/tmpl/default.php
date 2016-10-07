@@ -33,7 +33,7 @@
 // no direct access
 defined('_HZEXEC_') or die();
 
-$this->js('https://maps.googleapis.com/maps/api/js?v=3.exp');
+$this->js('https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDHTnxh0QnMGX5w0ZnpRKElKQOAq4YjEBM');
 $this->js("geosearch.jquery.js");
 $this->js('oms.min.js');
 $this->css('geosearch.css');
