@@ -61,7 +61,7 @@ defined('_HZEXEC_') or die;
 				<li class="newsfeed-item">
 					<div class="item">
 						<h5 class="feed-link" style="padding: 15px;">
-							<a href="<?php echo $currItem->link; ?>" target="_blank">
+							<a href="<?php echo $currItem->url; ?>" target="_blank">
 								<?php
 								$currItem->title = html_entity_decode($currItem->title);
 								$currItem->title = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $currItem->title);
