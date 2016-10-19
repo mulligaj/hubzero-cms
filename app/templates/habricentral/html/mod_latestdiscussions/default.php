@@ -58,7 +58,7 @@ $c = 0;
 								if ($post->get('anonymous')) {
 									echo '<em>' . Lang::txt('MOD_LATESTDISCUSSIONS_ANONYMOUS') . '</em>';
 								} else {
-									echo '<a href="' . Route::url('index.php?option=com_members&id=' . $post->creator('id')) . '">' . $this->escape(stripslashes($post->creator->get('name'))) . '</a>';
+									echo '<a href="' . Route::url('index.php?option=com_members&id=' . $post->creator->get('id')) . '">' . $this->escape(stripslashes($post->creator->get('name'))) . '</a>';
 								}
 							?>
 					</li>
