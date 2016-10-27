@@ -165,7 +165,7 @@ foreach ($cats as $cat)
 					<?php if (count($tf) > 0) {
 						echo $tf[0];
 					} else { ?>
-					<input type="text" name="tag" id="actags" value="<?php echo $this->escape($this->search); ?>" />
+						<input type="text" name="tag" id="actags" value="<?php echo $this->escape($this->search); ?>" />
 					<?php } ?>
 				</fieldset>
 			</div><!-- / .container -->
@@ -175,19 +175,27 @@ foreach ($cats as $cat)
 
 				$ids = implode(', ', array_map(create_function('$a', 'return $a->get(\'id\');'), $this->tags));
 
-				$dbh->setQuery('SELECT tag, raw_tag FROM #__tags_object jto INNER JOIN #__tags jt ON jt.id = jto.objectid WHERE jto.label = \'parent\' AND jto.tbl = \'tags\' AND jto.tagid IN ('.$ids.') AND jt.id NOT IN ('.$ids.')');
+				$admin = 'jt.admin=0 AND';
+				if (User::authorise('core.manage', $this->option))
+				{
+					$admin = '';
+				}
+
+				$dbh->setQuery('SELECT tag, raw_tag, admin FROM `#__tags_object` jto INNER JOIN `#__tags` jt ON jt.id = jto.objectid WHERE ' . $admin . ' jto.label = \'parent\' AND jto.tbl = \'tags\' AND jto.tagid IN ('.$ids.') AND jt.id NOT IN ('.$ids.')');
 				$children = $dbh->loadAssocList('tag');
 
-				$dbh->setQuery('SELECT tag, raw_tag FROM #__tags_object jto INNER JOIN #__tags jt ON jt.id = jto.tagid WHERE jto.label = \'parent\' AND jto.tbl = \'tags\' AND jto.objectid IN ('.$ids.') AND jt.id NOT IN ('.$ids.')');
+				$dbh->setQuery('SELECT tag, raw_tag, admin FROM `#__tags_object` jto INNER JOIN `#__tags` jt ON jt.id = jto.tagid WHERE ' . $admin . ' jto.label = \'parent\' AND jto.tbl = \'tags\' AND jto.objectid IN ('.$ids.') AND jt.id NOT IN ('.$ids.')');
 				$parents = $dbh->loadAssocList('tag');
 
-				$dbh->setQuery('SELECT jt.id ,tag, raw_tag FROM #__tags_object jto LEFT JOIN #__tags_object jto2 ON jto2.tbl = jto.tbl AND jto2.objectid = jto.objectid AND jto2.label = \'\' AND jto2.tagid NOT IN ('.$ids.') INNER JOIN #__tags jt ON jt.id = jto2.tagid WHERE jto.label = \'\' AND jto.tagid IN ('.$ids.') AND jt.id NOT IN ('.$ids.') GROUP BY tag, raw_tag ORDER BY count(*) DESC LIMIT 5');
-				$related = array_filter($dbh->loadAssocList(), function($tag) use($parents, $children) {
+				$dbh->setQuery('SELECT jt.id, tag, raw_tag, admin FROM `#__tags_object` jto LEFT JOIN `#__tags_object` jto2 ON jto2.tbl = jto.tbl AND jto2.objectid = jto.objectid AND jto2.label = \'\' AND jto2.tagid NOT IN ('.$ids.') INNER JOIN `#__tags` jt ON jt.id = jto2.tagid WHERE ' . $admin . ' jto.label = \'\' AND jto.tagid IN ('.$ids.') AND jt.id NOT IN ('.$ids.') GROUP BY tag, raw_tag ORDER BY count(*) DESC LIMIT 5');
+				$related = array_filter($dbh->loadAssocList(), function($tag) use ($parents, $children)
+				{
 					return !isset($parents[$tag['tag']]) && !isset($children[$tag['tag']]);
 				});
 				$baseTags = $this->tagstring;
-				$linkTag = function($tag) use($baseTags) {
-					echo '<a onclick="var tags = []; $(\'.token-input-token-act p\').each(function(_idx, el) { tags.push($(el).text().toLowerCase().replace(/[^-_a-z0-9]/g, \'\')); }); tags.push(\''.$tag['tag'].'\'); this.setAttribute(\'href\', \'/tags/view?tag=\' + tags.join(\',\')); return true;" href="/tags/view?tag='.$baseTags.','.$tag['tag'].'">'.stripslashes($tag['raw_tag']).'</a></li>';
+				$linkTag = function($tag) use ($baseTags)
+				{
+					echo '<li><a class="tag' . ($tag['admin'] ? ' admin' : '') . '" onclick="var tags = []; $(\'.token-input-token-act p\').each(function(_idx, el) { tags.push($(el).text().toLowerCase().replace(/[^-_a-z0-9]/g, \'\')); }); tags.push(\''.$tag['tag'].'\'); this.setAttribute(\'href\', \'/tags/view?tag=\' + tags.join(\',\')); return true;" href="/tags/view?tag='.$baseTags.','.$tag['tag'].'">'.stripslashes($tag['raw_tag']).'</a></li>';
 				};
 			?>
 
