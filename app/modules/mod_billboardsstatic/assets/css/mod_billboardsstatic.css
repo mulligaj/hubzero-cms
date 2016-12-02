@@ -16,6 +16,7 @@
 /* Container Styling */
 	.slider {
 		position:relative;
+		z-index: 10;
 	}
 	.banner, .slide {
 		min-height:230px;
