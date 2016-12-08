@@ -42,26 +42,26 @@ $c = 0;
 			if ($c < $this->limit) 
 			{
 				?>
-					<li class="blog">
-						<h4>
-							<a href="<?php echo Route::url($post->link()); ?>">
-								<?php 
-									if ($this->pullout && $c == 0)
-									{
-										echo \Hubzero\Utility\String::truncate(strip_tags($post->content), $this->params->get('pulloutlimit', 500));
-									}
-									else
-									{
-										echo \Hubzero\Utility\String::truncate(strip_tags($post->content), $this->params->get('charlimit', 100));
-									}
-								?>
-							</a>
-						</h4>
-						by
-						<a href="<?php echo Route::url('index.php?option=com_members&id=' . $post->get('created_by')); ?>">
-							<?php echo $this->escape(stripslashes($post->creator->get('name'))); ?>
+				<li class="blog"<?php if ($c > 0) { echo ' style="display:none;"'; } ?>>
+					<h4>
+						<a href="<?php echo Route::url($post->link()); ?>">
+							<?php 
+								if ($this->pullout && $c == 0)
+								{
+									echo \Hubzero\Utility\String::truncate(strip_tags($post->content), $this->params->get('pulloutlimit', 500));
+								}
+								else
+								{
+									echo \Hubzero\Utility\String::truncate(strip_tags($post->content), $this->params->get('charlimit', 100));
+								}
+							?>
 						</a>
-					</li>
+					</h4>
+					by
+					<a href="<?php echo Route::url('index.php?option=com_members&id=' . $post->get('created_by')); ?>">
+						<?php echo $this->escape(stripslashes($post->creator->get('name'))); ?>
+					</a>
+				</li>
 				<?php 
 			}
 			$c++;
@@ -72,7 +72,7 @@ $c = 0;
 	<?php else : ?>
 		<p><?php echo Lang::txt('MOD_LATESTBLOG_NO_RESULTS'); ?></p>
 	<?php endif; ?>
-	
+
 	<?php if ($more = $this->params->get('morelink', '')) : ?>
 		<p class="more">
 			<a href="<?php echo $more; ?>"><?php echo Lang::txt('MOD_LATESTBLOG_MORE_RESULTS'); ?></a>

@@ -34,72 +34,53 @@ defined('_HZEXEC_') or die();
 if (isset($this->error) && $this->error)
 {
 	?>
-		<p class="error"><?php echo $this->error; ?></p>
-	<?php 
+	<p class="error"><?php echo $this->error; ?></p>
+	<?php
 }
 else
 {
-?>
+	?>
 	<ul class="new latest_events_tbl">
-	<?php
-	if ($this->events)
-	{
-		$database = App::get('db');
-		$cls = 'even';
-		foreach ($this->events as $dayEvent)
+		<?php
+		if ($this->events)
 		{
-			//reset($daysEvents);
-
-			// Get all of the events for this day
-			//foreach ($daysEvents as $dayEvent)
-			//{
-				// Get the title and start time
-				/*$startDate = $dayEvent->publish_up;
-				$eventDate = mktime(substr($startDate, 11, 2), substr($startDate, 14, 2), substr($startDate, 17, 2), date('m'), date('d') + $relDay, date('Y'));
-				$startDate = mktime(substr($startDate, 11, 2), substr($startDate, 14, 2), substr($startDate, 17, 2), substr($startDate, 5, 2), substr($startDate, 8, 2), substr($startDate, 0, 4));
-				$endDate = $dayEvent->publish_down;
-				$endDate = mktime(substr($endDate, 11, 2), substr($endDate, 14, 2), substr($endDate, 17, 2), substr($endDate, 5, 2), substr($endDate, 8, 2), substr($endDate, 0, 4));
-
-				$year  = date('Y', $startDate);
-				$month = date('m', $startDate);
-				$day   = date('d', $startDate);*/
-
+			$c = 0;
+			$database = App::get('db');
+			$cls = 'even';
+			foreach ($this->events as $dayEvent)
+			{
 				$cls = ($cls == 'even') ? 'odd' : 'even';
 
-				/*if ($dayEvent->announcement == 1)
-				{
-					$cls .= ' announcement';
-				}*/
 				if (!isset($dayEvent->category) || !$dayEvent->category)
 				{
 					$database->setQuery("SELECT title FROM `#__categories` WHERE id=" . $dayEvent->catid);
 					$dayEvent->category = $database->loadResult();
 				}
-	?>
-			<li class="<?php echo $cls; ?>">
-				<div class="item">
-					<h4 class="event-title">
-						<a href="<?php echo Route::url('index.php?option=com_events&task=details&id=' . $dayEvent->id); ?>"><?php echo stripslashes($dayEvent->title); ?></a>
-					</h4>
-					<p>
-						<span class="event-date"><span class="month"><?php echo Date::of($dayEvent->publish_up)->toLocal('M'); ?></span><span class="day"><?php echo Date::of($dayEvent->publish_up)->toLocal('d'); ?></span></span>
-						<span class="category"><strong>Category</strong><br /><?php echo $dayEvent->category; ?></span>
-					</p>
-				</div>
-			</li>
-	<?php 
-			//}
+				?>
+				<li class="<?php echo $cls; ?>"<?php if ($c > 0) { echo ' style="display:none;"'; } ?>>
+					<div class="item">
+						<h4 class="event-title">
+							<a href="<?php echo Route::url('index.php?option=com_events&task=details&id=' . $dayEvent->id); ?>"><?php echo stripslashes($dayEvent->title); ?></a>
+						</h4>
+						<p>
+							<span class="event-date"><span class="month"><?php echo Date::of($dayEvent->publish_up)->toLocal('M'); ?></span><span class="day"><?php echo Date::of($dayEvent->publish_up)->toLocal('d'); ?></span></span>
+							<span class="category"><strong>Category</strong><br /><?php echo $dayEvent->category; ?></span>
+						</p>
+					</div>
+				</li>
+				<?php
+				$c++;
+			}
 		}
-	}
-	else
-	{
-	?>
+		else
+		{
+			?>
 			<li class="odd">
 				<p class="mod_events_latest_noevents"><?php echo Lang::txt('MOD_EVENTS_LATEST_NONE_FOUND'); ?></p>
 			</li>
-	<?php
-	}
-	?>
+			<?php
+		}
+		?>
 	</ul>
-<?php
+	<?php
 }

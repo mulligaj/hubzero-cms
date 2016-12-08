@@ -1,34 +1,26 @@
 //-----------------------------------------------------------
 //  Javascript for older IE
 //-----------------------------------------------------------
-HUB.Base.IE = {
-	menu: function() {
-		$$('#nav li').each(function(li) {
-			li.addEvent('mouseover', function(e) {
-				this.addClass('sfhover');
-				var uls = $(this).getElementsByTagName('ul');
+jQuery(document).ready(function(jq){
+	var $ = jq;
+
+	$('#nav li').each(function(i, li) {
+		$(li)
+			.on('mouseover', function(e) {
+				$(this).addClass('sfhover');
+				var uls = $(this).find('ul');
 				for (var i=0; i<uls.length; i++)
 				{
-					$(uls[i]).setStyle('visibility', 'visible');
+					$(uls[i]).css('visibility', 'visible');
 				}
-			});
-			li.addEvent('mouseout', function(e) {
-				this.removeClass('sfhover');
-				var uls = $(this).getElementsByTagName('ul');
+			})
+			.on('mouseout', function(e) {
+				$(this).removeClass('sfhover');
+				var uls = $(this).find('ul');
 				for (var i=0; i<uls.length; i++)
 				{
-					$(uls[i]).setStyle('visibility', 'hidden');
+					$(uls[i]).css('visibility', 'hidden');
 				}
 			});
-		});
-	},
-
-	// launch functions
-	initialize: function() {
-		HUB.Base.IE.menu();
-	}
-}
-
-//----------------------------------------------------------
-
-window.addEvent('domready', HUB.Base.IE.initialize);
+	});
+});

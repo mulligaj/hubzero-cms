@@ -37,31 +37,31 @@ $c = 0;
 	<?php if (count($this->posts)) : ?>
 		<ul class="discussions">
 			<?php foreach ($this->posts as $post) : ?>
-					<?php
-						if ($c >= $this->limit)
-						{
-							break;
-						}
-						$c++;
+				<?php
+					if ($c >= $this->limit)
+					{
+						break;
+					}
+					$c++;
 
-						$post->set('section', $this->categories[$post->get('category_id')]->section);
-						$post->set('category', $this->categories[$post->get('category_id')]->alias);
-					?>
-					<li class="blog">
-						<h4>
-							<a href="<?php echo Route::url($post->link()); ?>">
-								<?php echo \Hubzero\Utility\String::truncate(strip_tags($post->get('comment')), $this->charlimit); ?>
-							</a>
-						</h4>
-							by 
-							<?php 
-								if ($post->get('anonymous')) {
-									echo '<em>' . Lang::txt('MOD_LATESTDISCUSSIONS_ANONYMOUS') . '</em>';
-								} else {
-									echo '<a href="' . Route::url('index.php?option=com_members&id=' . $post->creator->get('id')) . '">' . $this->escape(stripslashes($post->creator->get('name'))) . '</a>';
-								}
-							?>
-					</li>
+					$post->set('section', $this->categories[$post->get('category_id')]->section);
+					$post->set('category', $this->categories[$post->get('category_id')]->alias);
+				?>
+				<li class="blog"<?php if ($c > 1) { echo ' style="display:none;"'; } ?>>
+					<h4>
+						<a href="<?php echo Route::url($post->link()); ?>">
+							<?php echo \Hubzero\Utility\String::truncate(strip_tags($post->get('comment')), $this->charlimit); ?>
+						</a>
+					</h4>
+						by 
+						<?php 
+							if ($post->get('anonymous')) {
+								echo '<em>' . Lang::txt('MOD_LATESTDISCUSSIONS_ANONYMOUS') . '</em>';
+							} else {
+								echo '<a href="' . Route::url('index.php?option=com_members&id=' . $post->creator->get('id')) . '">' . $this->escape(stripslashes($post->creator->get('name'))) . '</a>';
+							}
+						?>
+				</li>
 			<?php endforeach; ?>
 		</ul>
 	<?php else : ?>

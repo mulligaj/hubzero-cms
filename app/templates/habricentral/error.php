@@ -39,10 +39,10 @@ $v = $browser->major();
 
 ?>
 <!DOCTYPE html>
-<!--[if lt IE 7 ]> <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie6"> <![endif]-->
-<!--[if IE 7 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie7"> <![endif]-->
-<!--[if IE 8 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie8"> <![endif]-->
-<!--[if IE 9 ]>    <html dir="<?php echo  $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="ie9"> <![endif]-->
+<!--[if lt IE 7 ]> <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie9"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>" class="<?php echo $b . ' ' . $b . $v; ?>"> <!--<![endif]-->
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
@@ -89,22 +89,15 @@ $v = $browser->major();
 			</h1>
 
 			<ul id="toolbar" class="<?php if (!User::get('guest')) { echo 'loggedin'; } else { echo 'loggedout'; } ?>">
-				<?php
-					if (!User::get('guest')) {
-						// Find the user's most recent support tickets
-						$database = App::get('db');
-						$recipient = new \Hubzero\Message\Recipient($database);
-						$rows = $recipient->getUnreadMessages( User::get('id'), 0 );
-
-						echo "\t\t\t".'<li id="myaccount"><a href="/members/'.User::get('id').'"><span>'.User::get('name').'</span></a></li>'."\n";
-						echo "\t\t\t".'<li class="sep">|</li>'."\n";
-						echo "\t\t\t".'<li id="logout"><a href="/logout"><span>'.Lang::txt('Logout').'</span></a></li>'."\n";
-					} else {
-						echo "\t\t\t".'<li id="login"><a href="/login" title="'.Lang::txt('Login').'">'.Lang::txt('Login').'</a></li>'."\n";
-						echo "\t\t\t".'<li class="sep">|</li>'."\n";
-						echo "\t\t\t".'<li id="register"><a href="/register" title="'.Lang::txt('Sign up for a free account').'">'.Lang::txt('Register').'</a></li>'."\n";
-					}
-				?>
+				<?php if (!User::get('guest')) : ?>
+					<li id="myaccount"><a href="/members/<?php echo User::get('id'); ?>"><span><?php echo User::get('name'); ?></span></a></li>
+					<li class="sep">|</li>
+					<li id="logout"><a href="/logout"><span><?php echo Lang::txt('Logout'); ?></span></a></li>
+				<?php else : ?>
+					<li id="login"><a href="/login" title="<?php echo Lang::txt('Login'); ?>"><?php echo Lang::txt('Login'); ?></a></li>
+					<li class="sep">|</li>
+					<li id="register"><a href="/register" title="<?php echo Lang::txt('Sign up for a free account'); ?>"><?php echo Lang::txt('Register'); ?></a></li>
+				<?php endif; ?>
 			</ul>
 
 			<?php \Hubzero\Module\Helper::displayModules('search'); ?>
@@ -117,7 +110,7 @@ $v = $browser->major();
 		</div><!-- / #header -->
 
 		<div id="nav">
-			<h2>Navigation</h2>
+			<h2><?php echo Lang::txt('Navigation'); ?></h2>
 			<?php \Hubzero\Module\Helper::displayModules('user3'); ?>
 			<?php \Hubzero\Module\Helper::displayModules('introblock'); ?>
 			<div class="clear"></div>
@@ -141,11 +134,10 @@ $v = $browser->major();
 								<li><?php echo Lang::txt('A mis-typed address.'); ?></li>
 								<li><?php echo Lang::txt('The requested resource was not found.'); ?></li>
 							<?php endif; ?>
-							
 							<li><?php echo Lang::txt('This page may belong to a group with restricted access.  Only members of the group can view the contents.'); ?></li>
 							<li><?php echo Lang::txt('An error has occurred while processing your request.'); ?></li>
 						</ol>
-						
+
 						<?php if ($this->error->getCode() != 403) : ?>
 							<p><?php echo Lang::txt('If difficulties persist, please contact the system administrator of this site.'); ?></p>
 						<?php else : ?>

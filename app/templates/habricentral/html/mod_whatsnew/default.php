@@ -33,28 +33,33 @@ defined('_HZEXEC_') or die();
 
 $rows = $this->rows;
 
+$option = Request::getCmd('option');
+$c = 0;
 ?>
 
-<?php if(count($rows) > 0) : ?>
+<?php if (count($rows) > 0) : ?>
 	<ul class="new">
-		<?php foreach($rows as $row) : ?>
-			<li><div class="item">
-				<h4 class="new-title">
-					<a href="<?php echo Route::url($row->href); ?>"><?php echo Hubzero\Utility\String::truncate(stripslashes($row->title), 200); ?></a>
-				</h4>
-				<p>
-				<span class="new-details">
-					<?php 
-						if($row->area) {
-							echo "<a href=\"" . Route::url('index.php?option=com_resources&type=' . str_replace(" ", "", strtolower($row->area))) . "\">" . Lang::txt($row->area) . "</a>";
-						} else {
-							echo Lang::txt(strtoupper($row->section));
-						} 
-					?>
-				</span>
-				<span class="new-date"><?php echo date("F jS, Y", strtotime($row->publish_up)); ?></span>
-				</p>
-			</div></li>
+		<?php foreach ($rows as $row) : ?>
+			<li<?php if ($option == 'com_content' && $c > 0) { echo ' style="display:none;"'; } ?>>
+				<div class="item">
+					<h4 class="new-title">
+						<a href="<?php echo Route::url($row->href); ?>"><?php echo Hubzero\Utility\String::truncate(stripslashes($row->title), 200); ?></a>
+					</h4>
+					<p>
+						<span class="new-details">
+							<?php 
+							if ($row->area) {
+								echo "<a href=\"" . Route::url('index.php?option=com_resources&type=' . str_replace(' ', '', strtolower($row->area))) . "\">" . Lang::txt($row->area) . "</a>";
+							} else {
+								echo Lang::txt(strtoupper($row->section));
+							}
+							?>
+						</span>
+						<span class="new-date"><?php echo date("F jS, Y", strtotime($row->publish_up)); ?></span>
+					</p>
+				</div>
+			</li>
+			<?php $c++; ?>
 		<?php endforeach; ?>
 	</ul>
 <?php else : ?>
@@ -68,7 +73,7 @@ $rows = $this->rows;
 	<a href="<?php echo Route::url('index.php?option=com_whatsnew&period='.$this->area.':'.$this->period); ?>">More Resources &rsaquo;</a>
 </p>
 
-<?php if($this->feed) : ?>
+<?php if ($this->feed) : ?>
 	<a class="newsfeed" href="<?php echo $this->feedlink; ?>" title="<?php echo Lang::txt('MOD_WHATSNEW_SUBSCRIBE'); ?>">
 		<?php echo Lang::txt('MOD_WHATSNEW_NEWS_FEED'); ?>
 	</a>

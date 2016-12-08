@@ -19,7 +19,6 @@ if (jQuery) {
 
 		var section = $('div.highlight-section');
 		if (section.length > 0) {
-			console.log(section);
 			section.find('li').hide();
 
 			var cols = section.find('div.col'),
@@ -44,25 +43,5 @@ if (jQuery) {
 				}, i*eT);
 			});
 		}
-	});
-} else {
-	window.addEvent('domready', function(){
-		var max_height = 0,
-			columns = $$("#home-right-top .home-column-inner"); 
-
-		columns[4] = $("home-left");
-
-		//get the tallest column
-		columns.each(function (el,i) {
-			h = el.getSize().size.y;
-			if(h > max_height) {
-				max_height = h;
-			}
-		});
-
-		//make all columns same height
-		columns.each(function (el,i) {
-			el.setStyle("height", max_height);
-		});
 	});
 }

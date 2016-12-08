@@ -33,78 +33,81 @@
 
 // no direct access
 defined('_HZEXEC_') or die;
-?>
 
-<?php if ($posts != false): ?>
-<div class="news-feed">
+if ($posts != false): ?>
+	<div class="news-feed">
+		<?php
+		$actualItems = count($posts);
+		$setItems    = $params->get('itemcount', 5);
 
-<?php
-	$actualItems = count($posts);
-	$setItems    = $params->get('itemcount', 5);
-
-	if ($setItems > $actualItems)
-	{
-		$totalItems = $actualItems;
-	}
-	else
-	{
-		$totalItems = $setItems;
-	}
-	?>
-	<ul class="feed">
+		if ($setItems > $actualItems)
+		{
+			$totalItems = $actualItems;
+		}
+		else
+		{
+			$totalItems = $setItems;
+		}
+		?>
+		<ul class="feed">
 			<?php
 			$words = $params->def('word_count', 0);
+			$c = 0;
 			foreach ($posts as $currItem)
 			{
+				if ($c > $setItems)
+				{
+					break;
+				}
 				// item title
 				?>
-				<li class="newsfeed-item">
+				<li class="newsfeed-item"<?php if ($c > 0) { echo ' style="display:none;"'; } ?>>
 					<div class="item">
 						<h5 class="feed-link" style="padding: 15px;">
 							<a href="<?php echo $currItem->url; ?>" target="_blank">
 								<?php
 								$currItem->title = html_entity_decode($currItem->title);
 								$currItem->title = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $currItem->title);
-								echo preg_replace("/[^A-Za-z0-9'\"_\- ]/", '', $currItem->title); ?>
+								echo preg_replace("/[^A-Za-z0-9'\"_\- ]/", '', $currItem->title);
+								?>
 							</a>
 						</h5>
 
-					<?php
-					// item description
-					if ($params->get('showdescription', 1))
-					{
+						<?php
 						// item description
-						$text = $currItem->description;
-						$text = html_entity_decode($text);
-						$text = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $text);
-						$text = strip_tags($text);
-						// word limit check
-						if ($words)
+						if ($params->get('showdescription', 1))
 						{
-							$texts = explode(' ', $text);
-							$count = count($texts);
-							if ($count > $words)
+							// item description
+							$text = $currItem->description;
+							$text = html_entity_decode($text);
+							$text = preg_replace_callback("/(&#[0-9]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $text);
+							$text = strip_tags($text);
+							// word limit check
+							if ($words)
 							{
-								$text = '';
-								for ($i = 0; $i < $words; $i ++)
+								$texts = explode(' ', $text);
+								$count = count($texts);
+								if ($count > $words)
 								{
-									$text .= ' '.$texts[$i];
+									$text = '';
+									for ($i = 0; $i < $words; $i ++)
+									{
+										$text .= ' ' . $texts[$i];
+									}
+									$text .= '...';
 								}
-								$text .= '...';
 							}
+							?>
+							<h4 style="padding-top:10px;"><?php echo preg_replace("/[^A-Za-z0-9'\"_\- ]/", '', $text); ?></h4>
+							<?php
 						}
 						?>
-
-							<h4 style="padding-top:10px;"><?php echo preg_replace("/[^A-Za-z0-9'\"_\- ]/", '',$text); ?></h4>
-
-						<?php
-					}
-					?>
 					</div>
 				</li>
 				<?php
+				$c++;
 			}
 			?>
-			</ul>
+		</ul>
 	</div>
-<?php endif; ?>
+<?php endif;
