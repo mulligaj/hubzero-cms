@@ -545,7 +545,9 @@ class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 		{
 			if (!$setup)
 			{
-				$this->setError(Lang::txt('PLG_PROJECTS_TEAM_NO_NAMES_SUPPLIED'));
+				// Temporarily disabling this as it can throw a message at times we don't want one.
+				// @TODO: Better error handling? Completely new UI?
+				//$this->setError(Lang::txt('PLG_PROJECTS_TEAM_NO_NAMES_SUPPLIED'));
 			}
 			else
 			{
@@ -942,6 +944,10 @@ class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 			if ($group != $this->model->get('owned_by_group'))
 			{
 				$this->model->set('owned_by_group', $group);
+				if (!$group)
+				{
+					$this->model->set('sync_group', 0);
+				}
 				$this->model->store();
 
 				// Make sure project lead is affiliated with group
