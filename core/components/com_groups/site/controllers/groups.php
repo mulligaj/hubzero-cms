@@ -483,7 +483,7 @@ class Groups extends Base
 
 			// Check authorization
 			// Published = 2 = archived. Archived is a read-only mode.
-			if ($group->published == 2 || ($this->_authorize() != 'manager' && !$this->_authorizedForTask('group.edit')))
+			if ($this->view->group->published == 2 || ($this->_authorize() != 'manager' && !$this->_authorizedForTask('group.edit')))
 			{
 				$this->_errorHandler(403, Lang::txt('COM_GROUPS_ERROR_NOT_AUTH'));
 			}
@@ -603,13 +603,6 @@ class Groups extends Base
 
 		$g_discussion_email_autosubscribe = Request::getInt('discussion_email_autosubscribe', 0, 'post');
 
-		// Check authorization
-		// Published = 2 = archived. Archived is a read-only mode.
-		if ($group->published == 2 || ($this->_authorize() != 'manager' && $g_gidNumber != 0 && !$this->_authorizedForTask('group.edit')))
-		{
-			$this->_errorHandler(403, Lang::txt('COM_GROUPS_ERROR_NOT_AUTH'));
-		}
-
 		// Are we editing or creating?
 		if ($g_gidNumber)
 		{
@@ -622,6 +615,13 @@ class Groups extends Base
 			$this->_task = 'new';
 			$group  = new Group();
 			$before = new Group();
+		}
+
+		// Check authorization
+		// Published = 2 = archived. Archived is a read-only mode.
+		if ($group->published == 2 || ($this->_authorize() != 'manager' && $g_gidNumber != 0 && !$this->_authorizedForTask('group.edit')))
+		{
+			$this->_errorHandler(403, Lang::txt('COM_GROUPS_ERROR_NOT_AUTH'));
 		}
 
 		// Check for any missing info
@@ -652,8 +652,8 @@ class Groups extends Base
 		$logo = '';
 		if (isset($customization['logo']))
 		{
-			$logo_path = PATH_APP . DS . trim($this->config->get('uploadpath', '/site/groups'), DS) . DS . $group->get('gidNumber') . DS . 'uploads';
-			$logo_path = substr($logo_path, strlen(PATH_ROOT));
+			$logo_path = PATH_APP . DS . trim($this->config->get('uploadpath', '/site/groups'), DS) . DS . $group->get('gidNumber') . DS . 'uploads' . DS;
+			$logo_path = substr($logo_path, strlen(PATH_APP));
 			$logo = substr($customization['logo'], strlen($logo_path));
 		}
 
