@@ -120,6 +120,17 @@ class Projects extends AdminController
 				'search',
 				''
 			)),
+			'filterby' => Request::getState(
+				$this->_option . '.projects.filterby',
+				'filterby',
+				''
+			),
+			'private' => Request::getState(
+				$this->_option . '.projects.private',
+				'private',
+				-1,
+				'int'
+			),
 			'sortby' => Request::getState(
 				$this->_option . '.projects.sort',
 				'filter_order',
@@ -136,6 +147,11 @@ class Projects extends AdminController
 			'quota'      => Request::getVar('quota', 'all', 'post')
 		);
 
+		if (!in_array($this->view->filters['filterby'], array('active', 'archived')))
+		{
+			$this->view->filters['filterby'] = '';
+		}
+
 		$this->view->limit = $this->view->filters['limit'];
 		$this->view->start = $this->view->filters['start'];
 
@@ -149,10 +165,10 @@ class Projects extends AdminController
 		$obj = new Tables\Project($this->database);
 
 		// Get records
-		$this->view->rows = $obj->getRecords($this->view->filters, true, 0, 1);
+		$this->view->rows = $obj->getRecords($this->view->filters, 'admin', 0, 1);
 
 		// Get a record count
-		$this->view->total = $obj->getCount($this->view->filters, true, 0, 1);
+		$this->view->total = $obj->getCount($this->view->filters, 'admin', 0, 1);
 
 		// Filtering by quota
 		if ($this->view->filters['quota'] != 'all' && $this->view->rows)
@@ -457,6 +473,9 @@ class Projects extends AdminController
 		// Change ownership
 		$this->_changeOwnership();
 
+		// Allow plugins to respond to changes
+		Event::trigger('projects.onProjectAfterSave', array($this->model));
+
 		// Send message
 		if ($this->config->get('messaging', 0) && $sendmail && count($managers) > 0)
 		{
@@ -619,7 +638,6 @@ class Projects extends AdminController
 		{
 			// Update record(s)
 			$model = new Models\Project($id);
-			$model->set('private', $private);
 
 			if (!$model->exists())
 			{
@@ -627,11 +645,16 @@ class Projects extends AdminController
 				continue;
 			}
 
+			$model->set('private', $private);
+
 			if (!$model->store())
 			{
 				Notify::error($model->getError());
 				continue;
 			}
+
+			// Allow plugins to respond to changes
+			Event::trigger('projects.onProjectAfterSave', array($model));
 
 			$i++;
 		}
@@ -673,7 +696,6 @@ class Projects extends AdminController
 			{
 				// Update record(s)
 				$model = new Models\Project($id);
-				$model->set('state', 3);
 
 				if (!$model->exists())
 				{
@@ -681,11 +703,16 @@ class Projects extends AdminController
 					continue;
 				}
 
+				$model->set('state', 3);
+
 				if (!$model->store())
 				{
 					Notify::error($model->getError());
 					continue;
 				}
+
+				// Allow plugins to respond to changes
+				Event::trigger('projects.onProjectAfterSave', array($model));
 
 				$i++;
 			}
@@ -694,6 +721,66 @@ class Projects extends AdminController
 			if ($i)
 			{
 				Notify::success(Lang::txt('COM_PROJCTS_SUCCESS_ARCHIVED', $i));
+			}
+		}
+
+		$this->cancelTask();
+	}
+
+	/**
+	 * Unarchive one or more projects
+	 *
+	 * @return  void
+	 */
+	public function unarchiveTask()
+	{
+		// Check for request forgeries
+		Request::checkToken(['get', 'post']);
+
+		if (!User::authorise('core.edit.state', $this->_option))
+		{
+			App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+		}
+
+		// Incoming
+		$ids = Request::getVar('id', array());
+		$ids = (!is_array($ids) ? array($ids) : $ids);
+
+		$i = 0;
+
+		// Do we have any IDs?
+		if (!empty($ids))
+		{
+			//foreach group id passed in
+			foreach ($ids as $id)
+			{
+				// Update record(s)
+				$model = new Models\Project($id);
+
+				if (!$model->exists())
+				{
+					Notify::error(Lang::txt('COM_PROJECTS_NOTICE_ID_NOT_FOUND'));
+					continue;
+				}
+
+				$model->set('state', 1);
+
+				if (!$model->store())
+				{
+					Notify::error($model->getError());
+					continue;
+				}
+
+				// Allow plugins to respond to changes
+				Event::trigger('projects.onProjectAfterSave', array($model));
+
+				$i++;
+			}
+
+			// Output messsage and redirect
+			if ($i)
+			{
+				Notify::success(Lang::txt('COM_PROJCTS_SUCCESS_UNARCHIVED', $i));
 			}
 		}
 

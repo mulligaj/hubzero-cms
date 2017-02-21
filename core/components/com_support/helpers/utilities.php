@@ -58,7 +58,7 @@ class Utilities
 		}
 
 		$message = new Message();
-		$message->setSubject($subject)
+		$message->setSubject(Config::get('sitename') . ' ' . $subject)
 		        ->addFrom($from['email'], $from['name'])
 		        ->addTo($email);
 
@@ -253,7 +253,7 @@ class Utilities
 						'none'      => 2,
 						'tool'      => 3
 					);
-					if (in_array($pieces[1],$allowed))
+					if (in_array($pieces[1], $allowed))
 					{
 						$pieces[1] = $allowed[$pieces[1]];
 					}
@@ -326,4 +326,3 @@ class Utilities
 		return $lifetime;
 	}
 }
-

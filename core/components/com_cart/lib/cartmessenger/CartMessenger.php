@@ -30,29 +30,45 @@
 // No direct access
 defined('_HZEXEC_') or die('Restricted access');
 
-class LoggingLevel
-{
-	const INFO = 2;
-	const WARN = 1;
-	const ERROR = 0;
-}
+include_once __DIR__ . '/LoggingLevel.php';
 
 /**
  * Logs cart activity and sends emails out as necessary
- *
- * Long description (if any) ...
  */
 class CartMessenger
 {
+	/**
+	 * Log file
+	 *
+	 * @var  string
+	 */
 	private $logFile;
+
+	/**
+	 * Caller
+	 *
+	 * @var  string
+	 */
 	private $caller;
 
+	/**
+	 * Message
+	 *
+	 * @var  string
+	 */
 	private $message;
+
+	/**
+	 * Post information
+	 *
+	 * @var  array
+	 */
 	private $postback;
 
 	/**
 	 * Constructor
 	 *
+	 * @param   string  $caller
 	 * @return  void
 	 */
 	public function __construct($caller)
@@ -60,20 +76,39 @@ class CartMessenger
 		setlocale(LC_MONETARY, 'en_US.UTF-8');
 
 		$logPath = Config::get('log_path', PATH_APP . DS . 'logs');
+
 		$this->logFile = $logPath  . DS . 'cart.log';
-		$this->caller = $caller;
+		$this->caller  = $caller;
 	}
 
+	/**
+	 * Set postback
+	 *
+	 * @param   array  $postback
+	 * @return  void
+	 */
 	public function setPostback($postback)
 	{
 		$this->postback = $postback;
 	}
 
+	/**
+	 * Set a message
+	 *
+	 * @param   string  $msg
+	 * @return  void
+	 */
 	public function setMessage($msg = '')
 	{
 		$this->message = $msg;
 	}
 
+	/**
+	 * Log information
+	 *
+	 * @param   integer  $loggingLevel
+	 * @return  mixed
+	 */
 	public function log($loggingLevel = 2)
 	{
 		if (!file_exists($this->logFile))
@@ -129,12 +164,17 @@ class CartMessenger
 		}
 	}
 
+	/**
+	 * Email completeed order
+	 *
+	 * @param   object  $transactionInfo
+	 * @return  void
+	 */
 	public function emailOrderComplete($transactionInfo)
 	{
-		$params =  Component::params(Request::getVar('option'));
+		$params = Component::params(Request::getVar('option'));
 
 		$items = unserialize($transactionInfo->tiItems);
-		//print_r($items); die;
 
 		// Build emails
 
@@ -193,8 +233,6 @@ class CartMessenger
 			$itemInfo = $item['info'];
 			$cartInfo = $item['cartInfo'];
 			$itemMeta = $item['meta'];
-
-			//print_r($item); die;
 
 			$productType = $warehouse->getProductTypeInfo($itemInfo->ptId)['ptName'];
 
@@ -289,10 +327,6 @@ class CartMessenger
 				}
 			}
 		}
-		//print_r($summary); die;
-
-		// Get message plugin
-		JPluginHelper::importPlugin('xmessage');
 
 		// "from" info
 		$from = array();
@@ -303,9 +337,34 @@ class CartMessenger
 		$clientEmail = 'Thank you for your order at ' . Config::get('sitename') . "!\n\n";
 		$clientEmail .= $summary;
 
-		require_once(dirname(dirname(__DIR__)) . DS . 'models' . DS . 'Cart.php');
-		$to = array(\Components\Cart\Models\Cart::getCartUser($transactionInfo->crtId));
-		Event::trigger('onSendMessage', array('store_notifications', 'Your order at ' . $from['name'], $clientEmail, $from, $to, '', null, '', 0, true));
+		// Plain text email
+		$plain = $clientEmail;
+
+		$message = new \Hubzero\Mail\Message();
+		$message->setSubject('Your order at ' . $from['name']);
+		// Find out where to send it from
+		if ($params->get('sendOrderInfoFromEmail') && \Hubzero\Utility\Validate::email($params->get('sendOrderInfoFromEmail')))
+		{
+			$sendFromEmail = $params->get('sendOrderInfoFromEmail');
+		}
+		else
+		{
+			$sendFromEmail = Config::get('mailfrom');
+		}
+		$message->addFrom(
+			$sendFromEmail,
+			Config::get('sitename')
+		);
+		$message->setSender(Config::get('mailfrom'));
+		$message->addPart($plain, 'text/plain');
+
+		// Get user's email address
+		require_once dirname(dirname(__DIR__)) . DS . 'models' . DS . 'Cart.php';
+		$uId = \Components\Cart\Models\Cart::getCartUser($transactionInfo->crtId);
+		$usr = \Hubzero\User\Profile::getInstance($uId);
+		$message->addTo($usr->get('email'));
+		$message->setBody($plain);
+		$message->send();
 
 		// Email notifications
 		$notifyTo = $params->get('sendNotificationTo');
@@ -315,18 +374,8 @@ class CartMessenger
 
 			$notifyEmail = 'There is a new online store order at ' . Config::get('sitename') . "\n\n";
 			$notifyEmail .= $summary;
-			// Plain text email
-			$eview = new \Hubzero\Component\View(array(
-				'name' => 'emails',
-				'layout' => 'order_notify'
-			));
-			//$eview->option     = $this->_option;
-			//$eview->controller = $this->_controller;
-			$eview->message = $notifyEmail;
 
-			$plain = $eview->loadTemplate();
-			$plain = str_replace("\n", "\r\n", $plain);
-
+			$plain = $notifyEmail;
 			$message = new \Hubzero\Mail\Message();
 			$message->setSubject('ORDER NOTIFICATION: New order at ' . $from['name']);
 			$message->addFrom(
@@ -357,8 +406,7 @@ class CartMessenger
 				));
 				$eview->message = $lowInventoryNotifySummary;
 
-				$plain = $eview->loadTemplate();
-				$plain = str_replace("\n", "\r\n", $plain);
+				$plain = $lowInventoryNotifySummary;
 
 				$message = new \Hubzero\Mail\Message();
 				$message->setSubject('LOW INVENTORY NOTIFICATION: low inventory levels at ' . $from['name']);
@@ -380,7 +428,14 @@ class CartMessenger
 		}
 	}
 
-	private function emailError($error, $errorType = NULL)
+	/**
+	 * Email error to store admin
+	 *
+	 * @param   string  $error
+	 * @param   string  $errorType
+	 * @return  void
+	 */
+	private function emailError($error, $errorType = null)
 	{
 		$params = Component::params(Request::getVar('option'));
 

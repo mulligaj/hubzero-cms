@@ -252,12 +252,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ezyang/htmlpurifier.git",
-                "reference": "d516e2f8de435ea78cc6152abc425d3ff2c4d289"
+                "reference": "v4.5.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ezyang/htmlpurifier/zipball/d516e2f8de435ea78cc6152abc425d3ff2c4d289",
-                "reference": "d516e2f8de435ea78cc6152abc425d3ff2c4d289",
+                "url": "https://api.github.com/repos/ezyang/htmlpurifier/zipball/v4.5.0",
+                "reference": "v4.5.0",
                 "shasum": ""
             },
             "require": {
@@ -968,12 +968,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/hubzero/framework.git",
-                "reference": "ab7c4124cda7fd24a39fe1e1ff88248bc84c3704"
+                "reference": "55c0dbbda5ada4a0eef286da01d42a1d5caf33e6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hubzero/framework/zipball/ab7c4124cda7fd24a39fe1e1ff88248bc84c3704",
-                "reference": "ab7c4124cda7fd24a39fe1e1ff88248bc84c3704",
+                "url": "https://api.github.com/repos/hubzero/framework/zipball/55c0dbbda5ada4a0eef286da01d42a1d5caf33e6",
+                "reference": "55c0dbbda5ada4a0eef286da01d42a1d5caf33e6",
                 "shasum": ""
             },
             "require": {
@@ -1006,7 +1006,7 @@
                 "hubzero",
                 "php"
             ],
-            "time": "2016-12-09 00:55:14"
+            "time": "2017-02-17 16:00:26"
         },
         {
             "name": "hubzero/orcid-php",
@@ -2274,9 +2274,7 @@
             "authors": [
                 {
                     "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com",
-                    "homepage": "http://fabien.potencier.org",
-                    "role": "Lead Developer"
+                    "email": "fabien@symfony.com"
                 },
                 {
                     "name": "Chris Corbyn"

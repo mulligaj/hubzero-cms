@@ -35,11 +35,19 @@ defined('_HZEXEC_') or die();
 
 switch ($this->which)
 {
-	case 'group': $title = Lang::txt('PLG_GROUPS_PROJECTS_SHOW_GROUP'); break;
-	case 'owned': $title = Lang::txt('PLG_GROUPS_PROJECTS_SHOW_OWNED'); break;
-	case 'other': $title = Lang::txt('PLG_GROUPS_PROJECTS_SHOW_OTHER'); break;
+	case 'group':
+		$title = Lang::txt('PLG_GROUPS_PROJECTS_SHOW_GROUP');
+		break;
+	case 'owned':
+		$title = Lang::txt('PLG_GROUPS_PROJECTS_SHOW_OWNED');
+		break;
+	case 'other':
+		$title = Lang::txt('PLG_GROUPS_PROJECTS_SHOW_OTHER');
+		break;
 	default:
-	case 'all':   $title = Lang::txt('PLG_GROUPS_PROJECTS_SHOW_ALL');   break;
+	case 'all':
+		$title = Lang::txt('PLG_GROUPS_PROJECTS_SHOW_ALL');
+		break;
 }
 ?>
 
@@ -64,7 +72,7 @@ switch ($this->which)
 					? ($row->access('manager') ? Lang::txt('PLG_GROUPS_PROJECTS_STATUS_MANAGER') : Lang::txt('PLG_GROUPS_PROJECTS_STATUS_COLLABORATOR'))
 					: Lang::txt('PLG_GROUPS_PROJECTS_STATUS_NOTMEMBER');
 
-				$role = $row->access('readonly')
+				$role = $row->access('readonly') && !$row->isArchived()
 					? Lang::txt('PLG_GROUPS_PROJECTS_STATUS_REVIEWER')
 					: $role;
 
@@ -113,15 +121,20 @@ switch ($this->which)
 							{
 								$html .= '<span class="setup"><a href="' . Route::url($row->link('setup')) . '" title="' . Lang::txt('PLG_GROUPS_PROJECTS_CONTINUE_SETUP') . '">&raquo; ' . Lang::txt('PLG_GROUPS_PROJECTS_STATUS_SETUP') . '</a></span> ';
 							}
-							else if ($row->isInactive())
-							{
-								$html .= '<span class="suspended">' . Lang::txt('PLG_GROUPS_PROJECTS_STATUS_SUSPENDED') . '</span> ';
-							}
-							else if ($row->isPending())
-							{
-								$html .= '<span class="pending">' . Lang::txt('PLG_GROUPS_PROJECTS_STATUS_PENDING') . '</span> ';
-							}
 						}
+						if ($row->isInactive())
+						{
+							$html .= '<span class="suspended">' . Lang::txt('PLG_GROUPS_PROJECTS_STATUS_SUSPENDED') . '</span> ';
+						}
+						else if ($row->isPending())
+						{
+							$html .= '<span class="pending">' . Lang::txt('PLG_GROUPS_PROJECTS_STATUS_PENDING') . '</span> ';
+						}
+						else if ($row->isArchived())
+						{
+							$html .= '<span class="archived">' . Lang::txt('PLG_GROUPS_PROJECTS_STATUS_ARCHIVED') . '</span> ';
+						}
+
 						echo $html;
 						?>
 					</td>

@@ -81,9 +81,12 @@
 	}
 	.group .group-details {
 		padding: 1em;
-		height: 6.5em;
+		height: 6.7em;
 		text-align: center;
 		overflow: hidden;
+	}
+	.firefox .groups-container .group-details {
+		height: 6.9em;
 	}
 	.group img {
 		height: 100%;
@@ -267,7 +270,7 @@
 		margin-left: 0;
 	}
 }
-@media (min-width: 50em) {
+@media (min-width: 60em) {
 	.group,
 	.group:nth-child(2n+1) {
 		width: 31.18279569892473%;
@@ -277,7 +280,7 @@
 		margin-left: 0;
 	}
 }
-@media (min-width: 70em) {
+@media (min-width: 80em) {
 	.group,
 	.group:nth-child(2n+1),
 	.group:nth-child(3n+1) {
