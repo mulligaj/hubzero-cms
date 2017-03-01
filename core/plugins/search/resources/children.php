@@ -25,49 +25,65 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
+ * @author    Steve Snyder <snyder13@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Bootstrap\Api\Providers;
-
-use Hubzero\Database\Driver;
-use Hubzero\Base\ServiceProvider;
+// No direct access
+defined('_HZEXEC_') or die();
 
 /**
- * Database service provider
+ * Short description for 'ResourceChildSorter'
+ *
+ * Long description (if any) ...
  */
-class DatabaseServiceProvider extends ServiceProvider
+class ResourceChildSorter
 {
 	/**
-	 * Register the service provider
+	 * Description for 'order'
 	 *
-	 * @return  void
+	 * @var array
 	 */
-	public function register()
+	private $order;
+
+	/**
+	 * Short description for '__construct'
+	 *
+	 * Long description (if any) ...
+	 *
+	 * @param      unknown $order Parameter description (if any) ...
+	 * @return     void
+	 */
+	public function __construct($order)
 	{
-		$this->app['db'] = function($app)
+		$this->order = $order;
+	}
+
+	/**
+	 * Short description for 'sort'
+	 *
+	 * Long description (if any) ...
+	 *
+	 * @param      object $a Parameter description (if any) ...
+	 * @param      object $b Parameter description (if any) ...
+	 * @return     integer Return description (if any) ...
+	 */
+	public function sort($a, $b)
+	{
+		$a_id = $a->get('id');
+		$b_id = $b->get('id');
+		$sec_diff = strcmp($a->get_section(), $b->get_section());
+		if ($sec_diff < 0)
 		{
-			// @FIXME: this isn't pretty, but it will shim the removal of the old mysql_* calls from php
-			$driver = ($app['config']->get('dbtype') == 'mysql') ? 'pdo' : $app['config']->get('dbtype');
-
-			$options = [
-				'driver'   => $driver,
-				'host'     => $app['config']->get('host'),
-				'user'     => $app['config']->get('user'),
-				'password' => $app['config']->get('password'),
-				'database' => $app['config']->get('db'),
-				'prefix'   => $app['config']->get('dbprefix')
-			];
-
-			$driver = Driver::getInstance($options);
-
-			if ($app['config']->get('debug'))
-			{
-				$driver->enableDebugging();
-			}
-
-			return $driver;
-		};
+			return -1;
+		}
+		if ($sec_diff > 0)
+		{
+			return 1;
+		}
+		$a_ord = $this->order[$a_id];
+		$b_ord = $this->order[$b_id];
+		return $a_ord == $b_ord ? 0 : $a_ord < $b_ord ? -1 : 1;
 	}
 }

@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
+ * Copyright 2005-2016 HUBzero Foundation, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,49 +25,48 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @copyright Copyright 2005-2016 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Bootstrap\Api\Providers;
+// No direct access
+defined('_HZEXEC_') or die();
 
-use Hubzero\Database\Driver;
-use Hubzero\Base\ServiceProvider;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Aws\S3\S3Client;
+use League\Flysystem\AwsS3v2\AwsS3Adapter;
+use League\Flysystem\Filesystem;
 
 /**
- * Database service provider
+ * Plugin class for AWS S3 filesystem connectivity
  */
-class DatabaseServiceProvider extends ServiceProvider
+class plgFilesystemAWSS3 extends \Hubzero\Plugin\Plugin
 {
 	/**
-	 * Register the service provider
+	 * Initializes the AWS S3 connection
 	 *
-	 * @return  void
-	 */
-	public function register()
+	 * @param   array   $params  Any connection params needed
+	 * @return  object
+	 **/
+	public static function init($params = [])
 	{
-		$this->app['db'] = function($app)
-		{
-			// @FIXME: this isn't pretty, but it will shim the removal of the old mysql_* calls from php
-			$driver = ($app['config']->get('dbtype') == 'mysql') ? 'pdo' : $app['config']->get('dbtype');
+		// Get the params
+		$pparams = Plugin::params('filesystem', 'awss3');
 
-			$options = [
-				'driver'   => $driver,
-				'host'     => $app['config']->get('host'),
-				'user'     => $app['config']->get('user'),
-				'password' => $app['config']->get('password'),
-				'database' => $app['config']->get('db'),
-				'prefix'   => $app['config']->get('dbprefix')
-			];
+		$app_id = $params['app_id'];
+		$app_secret = $params['app_secret'];
+		$bucket = $params['bucket'];
+		$directory = isset($params['directory']) ? $params['directory'] : '';
 
-			$driver = Driver::getInstance($options);
+		$client = S3Client::factory([
+			'key'			=> $app_id,
+			'secret'	=> $app_secret,
+			'region'	=> 'us-east-2',
+			'signature'=> 'v4'
+		]);
 
-			if ($app['config']->get('debug'))
-			{
-				$driver->enableDebugging();
-			}
-
-			return $driver;
-		};
+		$adapter = new AwsS3Adapter($client, $bucket, $directory);
+		return $adapter;
 	}
 }
