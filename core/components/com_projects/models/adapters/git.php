@@ -91,8 +91,7 @@ class Git extends Models\Adapter
 	public function count($params = array())
 	{
 		$cmd  = 'cd ' . escapeshellarg($this->_path) . ' && ';
-		$cmd .='find . \(-path ./.git -o -name ".gitignore" \) -prune -o -type f -print | wc -l';
-
+		$cmd .='find . \( -path "./.git" -or -name ".gitignore" \) -prune -o -type f -print | wc -l';
 		return shell_exec($cmd);
 	}
 
@@ -113,11 +112,12 @@ class Git extends Models\Adapter
 		$sortby        = isset($params['sortby']) ? $params['sortby'] : 'name';
 		$files         = isset($params['files']) && is_array($params['files']) ? $params['files'] : [];
 		$dirsOnly      = isset($params['dirsOnly']) ? $params['dirsOnly'] : false;
+		$showAll       = isset($params['showAll']) ? $params['showAll'] : false;
 
 		if (!$dirsOnly)
 		{
 			// Get a list of files from the git repository
-			$files = empty($files) ? $this->_git->getFiles($dirPath) : $files;
+			$files = empty($files) ? $this->_git->getFiles($dirPath, $showAll) : $files;
 
 			// Add untracked?
 			$untracked = $showUntracked ? $this->_git->getUntrackedFiles($dirPath) : [];
@@ -173,6 +173,7 @@ class Git extends Models\Adapter
 			// Load basic file metadata
 			$file = new Models\File($item, $this->_path);
 
+
 			// Untracked?
 			if (in_array($file->get('localPath'), $untracked))
 			{
@@ -185,6 +186,10 @@ class Git extends Models\Adapter
 				continue;
 			}
 
+			// Moved setting date to this location so that the date always shows even if modified was not selected as the sorting mechanism.
+			// Need to get extra metadata (slower)
+			$file->set('date', $this->_file($file, $dirPath, 'date'));
+
 			// Check for remote connections
 			$syncRecord = null;
 			if (isset($remotes[$file->get('localPath')]))
@@ -192,8 +197,15 @@ class Git extends Models\Adapter
 				// Pick up data from sync record
 				$syncRecord = $remotes[$file->get('localPath')];
 				$file->set('remote', $syncRecord->service);
+				$file->set('remoteid', $syncRecord->remote_id);
 				$file->set('author', $syncRecord->remote_author);
-				$file->set('date', date ('c', strtotime($syncRecord->remote_modified . ' UTC')));
+
+				// Added this conditional so that the local repo date takes priority.  Otherwise the date will always show the day Google Drive was connected which is not helpful.
+				if (empty($file->get('date')))
+				{
+					$file->set('date', date ('c', strtotime($syncRecord->remote_modified . ' UTC')));
+				}
+
 				$file->set('mimeType', $syncRecord->remote_format);
 				$file->set('converted', $syncRecord->remote_editing);
 			}
@@ -211,8 +223,7 @@ class Git extends Models\Adapter
 					break;
 
 					case 'modified':
-						// Need to get extra metadata (slower)
-						$sorting[] = $this->_file($file, $dirPath, 'date');
+						$sorting[] = $file->get('date');
 					break;
 
 					case 'localpath':

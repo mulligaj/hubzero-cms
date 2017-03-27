@@ -559,6 +559,13 @@ class Project extends Model
 				// Allow public view access
 				$this->params->set('access-view-project', true);
 			}
+			// If an open project
+			if ($this->get('private') < 0)
+			{
+				// Allow read-only mode for everything
+				$this->params->set('access-member-project', true);
+				$this->params->set('access-readonly-project', true);
+			}
 		}
 		else
 		{
@@ -1045,10 +1052,12 @@ class Project extends Model
 		$showDeleted = $admin ? true : false;
 		$setupComplete = $this->config()->get('confirm_step') ? 3 : 2;
 
+		$filters['uid'] = isset($filters['uid']) ? $filters['uid'] : User::get('id');
+
 		switch (strtolower($rtrn))
 		{
 			case 'count':
-				return (int) $this->_tbl->getCount($filters, $admin, User::get('id'), $showDeleted, $setupComplete);
+				return (int) $this->_tbl->getCount($filters, $admin, $filters['uid'], $showDeleted, $setupComplete);
 			break;
 
 			case 'group':
@@ -1062,7 +1071,7 @@ class Project extends Model
 			break;
 
 			default:
-			$results = $this->_tbl->getRecords($filters, $admin, User::get('id'), $showDeleted, $setupComplete);
+			$results = $this->_tbl->getRecords($filters, $admin, $filters['uid'], $showDeleted, $setupComplete);
 			break;
 		}
 

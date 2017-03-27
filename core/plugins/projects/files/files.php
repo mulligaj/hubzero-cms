@@ -449,7 +449,7 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 
 		// Load member params
 		$member = $this->model->member(true);
-		$view->oparams = new \Hubzero\Config\Registry($member->params);
+		$view->oparams = new \Hubzero\Config\Registry($member ? $member->params : '');
 
 		// Sync active?
 		$remotes = array();
@@ -2324,9 +2324,9 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 			// Output HTML
 			$view = new \Hubzero\Plugin\View(
 				array(
-					'folder'  =>'projects',
-					'element' =>'files',
-					'name'    =>'share'
+					'folder'  => 'projects',
+					'element' => 'files',
+					'name'    => 'share'
 				)
 			);
 
@@ -2634,14 +2634,12 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 			if ($this->params->get('project_quota'))
 			{
 				// Report usage only with current files and not with history
-				$view->totalspace = $this->repo->call('getDiskUsage', $params = array('working' => true, 'history' => false)   
-			);
+				$view->totalspace = $this->repo->call('getDiskUsage', $params = array('working' => true, 'history' => false));
 			}
 			else
 			{
 				// Original Code
-				$view->totalspace = $this->repo->call('getDiskUsage', $params = array('working' => false, 'history' => true)   
-			);				
+				$view->totalspace = $this->repo->call('getDiskUsage', $params = array('working' => false, 'history' => true));
 			}
 
 			$view->dirsize = $view->totalspace;
@@ -2691,9 +2689,9 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 		// Output HTML
 		$view = new \Hubzero\Plugin\View(
 			array(
-				'folder'  =>'projects',
-				'element' =>'files',
-				'name'    =>'trash'
+				'folder'  => 'projects',
+				'element' => 'files',
+				'name'    => 'trash'
 			)
 		);
 
@@ -2804,7 +2802,7 @@ class plgProjectsFiles extends \Hubzero\Plugin\Plugin
 
 		// Get connection details for user
 		$member = $this->model->member(true);
-		$view->oparams = new \Hubzero\Config\Registry($member->params);
+		$view->oparams = new \Hubzero\Config\Registry($member ? $member->params : '');
 
 		// Get messages	and errors
 		$view->msg = $this->_msg;

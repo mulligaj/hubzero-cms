@@ -524,10 +524,16 @@ class Questions extends SiteController
 
 		switch ($filters['sortby'])
 		{
-			case 'rewards': $order = 'reward';  break;
-			case 'votes':   $order = 'helpful'; break;
+			case 'rewards':
+				$order = 'reward';
+				break;
+			case 'votes':
+				$order = 'helpful';
+				break;
 			case 'date':
-			default:        $order = 'created'; break;
+			default:
+				$order = 'created';
+				break;
 		}
 
 		$results = $records
@@ -562,6 +568,13 @@ class Questions extends SiteController
 		}
 
 		$question = Question::oneOrFail($id);
+
+		// Check session if this is a newly submitted entry. Trigger a proper event if so.
+		if (Session::get('newsubmission.question')) {
+			// Unset the new submission session flag
+			Session::set('newsubmission.question');
+			Event::trigger('content.onAfterContentSubmission', array('Question'));
+		}
 
 		$this->view
 			->set('question', $question)
@@ -758,6 +771,9 @@ class Questions extends SiteController
 			],
 			'recipients' => $recipients
 		]);
+
+		// Set the session flag indicating the new submission
+		Session::set('newsubmission.question', true);
 
 		// Redirect to the question
 		App::redirect(
