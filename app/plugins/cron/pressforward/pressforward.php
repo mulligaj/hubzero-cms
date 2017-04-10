@@ -36,8 +36,8 @@ class plgCronPressforward extends \Hubzero\Plugin\Plugin
 	 */
 	public function checkForFeedUpdates(\Components\Cron\Models\Job $job)
 	{
-		require_once Component::path('com_pressforward') . '/helpers/wordpress.php');
-		require_once Component::path('com_pressforward') . '/helpers/pressforward.php');
+		require_once Component::path('com_pressforward') . '/helpers/wordpress.php';
+		require_once Component::path('com_pressforward') . '/helpers/pressforward.php';
 		require_once Component::path('com_pressforward') . '/models/post.php';
 
 		// Get the list of feeds
