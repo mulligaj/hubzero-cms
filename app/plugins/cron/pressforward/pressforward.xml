@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="1.7" type="plugin" group="cron">
+	<name>Cron - PressForward</name>
+	<author>HUBzero</author>
+	<copyright>Copyright 2005-2015 HUBzero Foundation, LLC.</copyright>
+	<license>http://opensource.org/licenses/MIT MIT</license>
+	<description>PLG_CRON_PRESSFORWARD_XML_DESCRIPTION</description>
+	<files>
+		<filename plugin="pressforward">pressforward.php</filename>
+	</files>
+	<languages>
+		<language tag="en-GB">en-GB.plg_cron_pressforward.ini</language>
+		<language tag="en-GB">en-GB.plg_cron_pressforward.sys.ini</language>
+	</languages>
+</extension>
