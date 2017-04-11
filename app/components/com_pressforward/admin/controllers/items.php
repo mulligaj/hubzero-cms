@@ -14,7 +14,7 @@ use Date;
 use App;
 
 /**
- * PressForward controller for content
+ * PressForward controller for items
  */
 class Items extends AdminController
 {
@@ -93,7 +93,8 @@ class Items extends AdminController
 		$p = Post::blank()->getTableName();
 		$r = Relationship::blank()->getTableName();
 
-		$record = Post::items();
+		$record = Post::items()
+			->select($p . '.*');
 
 		if (!$filters['status'])
 		{
@@ -139,10 +140,16 @@ class Items extends AdminController
 			}
 		}
 
-		/*if ($filters['status'])
+		if ($filters['folder'])
 		{
-			$record->whereEquals($p . '.post_status', $filters['status']);
-		}*/
+			$tr = \Components\PressForward\Models\Folder\Relationship::blank()->getTableName();
+			$t  = \Components\PressForward\Models\Folder\Taxonomy::blank()->getTableName();
+
+			$record
+				->joinRaw($tr, $tr . '.object_id IN (' . $p . '.ID, ' . $p . '.post_parent)', 'inner')
+				->join($t, $t . '.term_taxonomy_id', $tr . '.term_taxonomy_id', 'inner')
+				->whereEquals($t . '.term_id', $filters['folder']);
+		}
 
 		if ($search = $filters['search'])
 		{
@@ -277,7 +284,7 @@ class Items extends AdminController
 					'user_id' => User::get('id'),
 					'item_id' => $entry->get('ID'),
 					'relationship_type' => Relationship::stringToInteger('archive'),
-					'value'   => 1
+					'value' => 1
 				]);
 
 			if (!$relationship->save())
@@ -335,7 +342,7 @@ class Items extends AdminController
 					'user_id' => User::get('id'),
 					'item_id' => $entry->get('ID'),
 					'relationship_type' => Relationship::stringToInteger('read'),
-					'value'   => 1
+					'value' => 1
 				]);
 
 			if (!$relationship->save())
@@ -357,7 +364,7 @@ class Items extends AdminController
 	}*/
 
 	/**
-	 * Mark one or more entries as being read
+	 * Set a state value
 	 *
 	 * @return  void
 	 */
@@ -393,7 +400,7 @@ class Items extends AdminController
 					'user_id' => User::get('id'),
 					'item_id' => $entry->get('ID'),
 					'relationship_type' => Relationship::stringToInteger($this->getTask()),
-					'value'   => 1
+					'value' => 1
 				]);
 
 			if (!$relationship->save())
@@ -497,7 +504,7 @@ class Items extends AdminController
 	}
 
 	/**
-	 * Nominate one or more entries
+	 * Un-set a state value
 	 *
 	 * @return  void
 	 */
@@ -557,7 +564,7 @@ class Items extends AdminController
 	}
 
 	/**
-	 * Mark one or more entries as being read
+	 * Mark one or more entries as draft
 	 *
 	 * @return  void
 	 */
@@ -593,7 +600,7 @@ class Items extends AdminController
 					'user_id' => User::get('id'),
 					'item_id' => $entry->get('ID'),
 					'relationship_type' => Relationship::stringToInteger($this->getTask()),
-					'value'   => 1
+					'value' => 1
 				]);
 
 			if (!$relationship->save())
@@ -651,7 +658,7 @@ class Items extends AdminController
 	}
 
 	/**
-	 * Mark one or more entries as being read
+	 * Mark one or more entries as denominated
 	 *
 	 * @return  void
 	 */

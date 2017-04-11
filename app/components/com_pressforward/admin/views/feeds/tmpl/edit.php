@@ -65,17 +65,20 @@ jQuery(document).ready(function($){
 
 		$.post($(this).attr('data-action'), {
 			'folder[name]': title.val(),
+			'folder[term_id]': 0,
 			'taxonomy[parent]': parent.val(),
+			'taxonomy[term_taxonomy_id]': 0,
 			'no_html': 1,
-			task: 'save'
+			task: 'save',
+			'<?php echo Session::getFormToken(); ?>': 1
 		}, function(data){
 			//var response = jQuery.parseJSON(data);
-			var response = $('<li>' + data + '</li>');
+			var response = $(data);
 
 			if (parent.val()) {
-
+				$('#all-pf_feed_category-' + parent.val() + ' > ul').append(data);
 			} else {
-				$('#pf_feed_categorychecklist').append(response);
+				$('#pf_feed_categorychecklist').append(data);
 			}
 		});
 	});
@@ -165,8 +168,8 @@ jQuery(document).ready(function($){
 							</td>
 						</tr>
 						<?php
+						$i++;
 					}
-					$i++;
 					?>
 				</tbody>
 			</table>
@@ -274,7 +277,7 @@ jQuery(document).ready(function($){
 			</div>
 
 			<div class="input-wrap misc-pub-section">
-				<select id="pf_forward_to_origin_single" name="fields[forward_to_origin]">
+				<select id="pf_forward_to_origin_single" name="pf_meta[forward_to_origin]">
 					<option value="forward"<?php if ($this->row->get('forward_to_origin') == 'forward') { echo ' selected="selected"'; } ?>>Forward</option>
 					<option value="no-forward"<?php if ($this->row->get('forward_to_origin') == 'no-forward') { echo ' selected="selected"'; } ?>>Don't Forward</option>
 				</select>
@@ -287,12 +290,12 @@ jQuery(document).ready(function($){
 
 			<div class="input-wrap">
 				<?php
-				$tf = Event::trigger('hubzero.onGetMultiEntry', array(array('tags', 'tags', 'actags', '', '')));
+				$tf = Event::trigger('hubzero.onGetMultiEntry', array(array('tags', 'tags', 'actags', '', $this->row->tags('string'))));
 
 				if (count($tf) > 0) {
 					echo implode("\n", $tf);
 				} else { ?>
-					<input type="text" name="tags" id="tags" value="<?php echo $this->escape(''); ?>" />
+					<input type="text" name="tags" id="tags" value="<?php echo $this->escape($this->row->tags('string')); ?>" />
 				<?php } ?>
 			</div>
 		</fieldset>
@@ -303,18 +306,40 @@ jQuery(document).ready(function($){
 			<?php echo Html::tabs('start', 'pf_feed_category-tabs'); ?>
 				<?php echo Html::tabs('panel', Lang::txt('All Folders'), 'all-details'); ?>
 				<?php
+				$selected = array();
+				foreach ($this->row->folders()->rows() as $f)
+				{
+					$selected[] = $f->get('term_taxonomy_id');
+				}
 				$this->view('_folders')
 					->set('folders', $this->folders)
+					->set('selected', $selected)
 					->set('depth', 0)
+					->set('prfx', 'all')
 					->set('id', 'pf_feed_categorychecklist')
 					->display();
 				?>
 
 				<?php echo Html::tabs('panel', Lang::txt('Most Used'), 'pop-details'); ?>
 				<?php
+				$record = Components\Pressforward\Models\Folder::all();
+
+				$a = $record->getTableName();
+				$b = Components\Pressforward\Models\Folder\Taxonomy::blank()->getTableName();
+
+				$folders = $record
+					->select($a . '.*,' . $b . '.*')
+					->join($b, $b . '.term_id', $a . '.term_id', 'inner')
+					->whereEquals($b . '.taxonomy', Components\Pressforward\Models\Folder\Taxonomy::$term_type)
+					->where($b . '.count', '>', 0)
+					->order($b . '.count', 'desc')
+					->limit(5)
+					->rows();
+
 				$this->view('_folders')
-					->set('folders', $this->folders)
+					->set('folders', $folders)
 					->set('depth', 0)
+					->set('prfx', 'popular')
 					->set('id', 'pf_feed_categorychecklist-pop')
 					->display();
 				?>
@@ -336,7 +361,7 @@ jQuery(document).ready(function($){
 						<select name="newpf_feed_category_parent" id="newpf_feed_category_parent" class="postform">
 							<option value="0">— Parent Category —</option>
 							<?php foreach (Components\PressForward\Models\Folder::listing() as $folder) { ?>
-								<option value="<?php echo $folder->get('id'); ?>"><?php echo $folder->get('treename') . $folder->get('name'); ?></option>
+								<option value="<?php echo $folder->get('term_taxonomy_id'); ?>"><?php echo $folder->get('treename') . $folder->get('name'); ?></option>
 							<?php } ?>
 						</select>
 					</div>

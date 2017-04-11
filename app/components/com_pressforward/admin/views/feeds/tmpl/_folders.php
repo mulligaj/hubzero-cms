@@ -31,17 +31,26 @@
 
 // No direct access
 defined('_HZEXEC_') or die();
+
+$prfx = (isset($this->prfx) ? $this->prfx : '');
 ?>
-<ul class="<?php echo ($this->depth <= 0 ? 'categorychecklist form-no-clear' : 'children'); ?>" id="<?php echo ($this->depth <= 0 ? (isset($this->id) ? $this->id : 'pf_feed_categorychecklist') : 'f' . $this->depth); ?>">
+<ul class="<?php echo ($this->depth <= 0 ? 'categorychecklist form-no-clear' : 'children'); ?>"<?php echo (isset($this->id) ? ' id="' . $this->id . '"' : ''); ?>>
 	<?php
 	if (isset($this->folders))
 	{
 		$this->depth++;
 
+		if (!isset($this->selected))
+		{
+			$this->selected = array();
+		}
+
 		foreach ($this->folders as $folder)
 		{
 			$this->view('_folder')
+				->set('prfx', $prfx)
 				->set('folder', $folder)
+				->set('selected', $this->selected)
 				->set('depth', $this->depth)
 				->display();
 		}

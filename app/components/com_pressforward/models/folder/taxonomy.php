@@ -114,7 +114,7 @@ class Taxonomy extends Relational
 	 */
 	public function children()
 	{
-		return $this->oneToMany('Taxonomy', 'parent');
+		return $this->oneToMany(__NAMESPACE__ . '\\Taxonomy', 'parent');
 	}
 
 	/**
@@ -124,7 +124,17 @@ class Taxonomy extends Relational
 	 */
 	public function parent()
 	{
-		return $this->oneToOne('Taxonomy', 'term_taxonomy_id', 'parent');
+		return $this->oneToOne(__NAMESPACE__ . '\\Taxonomy', 'term_taxonomy_id', 'parent');
+	}
+
+	/**
+	 * Get relationships
+	 *
+	 * @return  object
+	 */
+	public function relationships()
+	{
+		return $this->oneToMany(__NAMESPACE__ . '\\Relationship', 'term_taxonomy_id', 'term_taxonomy_id');
 	}
 
 	/**
@@ -134,12 +144,22 @@ class Taxonomy extends Relational
 	 */
 	public function destroy()
 	{
-		// Remove comments
+		// Remove children
 		foreach ($this->children()->rows() as $child)
 		{
 			if (!$child->destroy())
 			{
 				$this->addError($child->getError());
+				return false;
+			}
+		}
+
+		// Remove relationships
+		foreach ($this->relationships()->rows() as $relationship)
+		{
+			if (!$relationship->destroy())
+			{
+				$this->addError($relationship->getError());
 				return false;
 			}
 		}

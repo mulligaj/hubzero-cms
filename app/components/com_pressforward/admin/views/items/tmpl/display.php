@@ -96,6 +96,7 @@ $this
 				<?php
 				$this->view('_folders')
 					->set('folders', $this->folders)
+					->set('active', $this->filters['folder'])
 					->set('depth', 0)
 					->display();
 				?>

@@ -42,6 +42,7 @@ defined('_HZEXEC_') or die();
 		{
 			$this->view('_folder')
 				->set('folder', $folder)
+				->set('active', $this->active)
 				->set('depth', $this->depth)
 				->display();
 		}

@@ -10,6 +10,7 @@ include_once __DIR__ . '/postmeta.php';
 include_once __DIR__ . '/folder.php';
 include_once __DIR__ . '/comment.php';
 include_once __DIR__ . '/relationship.php';
+include_once __DIR__ . '/tags.php';
 
 /**
  * Model class for a post
@@ -161,7 +162,7 @@ class Post extends Relational
 	 */
 	public function meta()
 	{
-		return $this->oneToMany('Postmeta', 'post_id');
+		return $this->oneToMany(__NAMESPACE__ . '\\Postmeta', 'post_id');
 	}
 
 	/**
@@ -171,7 +172,7 @@ class Post extends Relational
 	 */
 	public function children()
 	{
-		return $this->oneToMany('Post', 'post_parent');
+		return $this->oneToMany(__NAMESPACE__ . '\\Post', 'post_parent');
 	}
 
 	/**
@@ -181,7 +182,7 @@ class Post extends Relational
 	 */
 	public function parent()
 	{
-		return $this->oneToOne('Post', 'id', 'post_parent');
+		return $this->oneToOne(__NAMESPACE__ . '\\Post', 'id', 'post_parent');
 	}
 
 	/**
@@ -191,7 +192,7 @@ class Post extends Relational
 	 */
 	public function comments()
 	{
-		return $this->oneToMany('Comment', 'comment_post_ID');
+		return $this->oneToMany(__NAMESPACE__ . '\\Comment', 'comment_post_ID');
 	}
 
 	/**
@@ -201,7 +202,29 @@ class Post extends Relational
 	 */
 	public function relationships()
 	{
-		return $this->oneToMany('Relationship', 'item_id');
+		return $this->oneToMany(__NAMESPACE__ . '\\Relationship', 'item_id');
+	}
+
+	/**
+	 * Get folders
+	 *
+	 * @return  object
+	 */
+	public function folders()
+	{
+		//return $this->oneToMany(__NAMESPACE__ . '\\Folder\\Relationship', 'object_id');
+		$record = Folder::all();
+
+		$a = $record->getTableName();
+		$b = Folder\Taxonomy::blank()->getTableName();
+		$r = Folder\Relationship::blank()->getTableName();
+
+		return $record
+			->select($a . '.*,' . $b . '.*')
+			->join($b, $b . '.term_id', $a . '.term_id', 'inner')
+			->join($r, $r . '.term_taxonomy_id', $b . '.term_taxonomy_id', 'inner')
+			->whereEquals($b . '.taxonomy', Folder\Taxonomy::$term_type)
+			->whereEquals($r . '.object_id', $this->get('ID'));
 	}
 
 	/**
@@ -494,5 +517,51 @@ class Post extends Relational
 		}
 
 		return $link;
+	}
+
+		/**
+	 * Get tags on an entry
+	 *
+	 * @param   string   $what   Data format to return (string, array, cloud)
+	 * @param   integer  $admin  Get admin tags? 0=no, 1=yes
+	 * @return  mixed
+	 */
+	public function tags($what='cloud', $admin=0)
+	{
+		if (!$this->get('ID'))
+		{
+			switch (strtolower($what))
+			{
+				case 'array':
+					return array();
+				break;
+
+				case 'string':
+				case 'cloud':
+				case 'html':
+				default:
+					return '';
+				break;
+			}
+		}
+
+		$cloud = new Tags($this->get('ID'));
+
+		return $cloud->render($what, array('admin' => $admin));
+	}
+
+	/**
+	 * Tag the entry
+	 *
+	 * @param   string   $tags     Tags to apply
+	 * @param   integer  $user_id  ID of tagger
+	 * @param   integer  $admin    Tag as admin? 0=no, 1=yes
+	 * @return  boolean
+	 */
+	public function tag($tags=null, $user_id=0, $admin=0)
+	{
+		$cloud = new Tags($this->get('ID'));
+
+		return $cloud->setTags($tags, $user_id, $admin);
 	}
 }

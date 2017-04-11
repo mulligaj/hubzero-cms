@@ -29,31 +29,21 @@
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-defined('_HZEXEC_') or die();
+namespace Components\PressForward\Models;
 
-if (!isset($this->selected))
+use Components\Tags\Models\Cloud;
+
+require_once \Component::path('com_tags') . DS . 'models' . DS . 'cloud.php';
+
+/**
+ * Tagging class
+ */
+class Tags extends Cloud
 {
-	$this->selected = array();
+	/**
+	 * Object type, used for linking objects (such as resources) to tags
+	 *
+	 * @var string
+	 */
+	protected $_scope = 'pf';
 }
-$prfx = (isset($this->prfx) ? $this->prfx : '');
-?>
-	<li id="<?php echo ($prfx ? $prfx . '-' : $prfx); ?>pf_feed_category-<?php echo $this->folder->get('term_id'); ?>">
-		<label>
-			<input value="<?php echo $this->folder->get('term_id'); ?>" type="checkbox" name="tax_input[pf_feed_category][]" <?php if (in_array($this->folder->get('term_taxonomy_id'), $this->selected)) { echo ' checked="checked"'; } ?> id="in-pf_feed_category-<?php echo $this->folder->get('term_id'); ?>" />
-			<?php echo $this->folder->get('name'); ?>
-		</label>
-
-		<?php
-		$folders = $this->folder->get('children', array());
-
-		//if (count($folders))
-		//{
-			$this->view('_folders')
-				->set('prfx', $prfx)
-				->set('folders', $folders)
-				->set('selected', $this->selected)
-				->set('depth', $this->depth)
-				->display();
-		//}
-		?>
-	</li>

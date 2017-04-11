@@ -38,13 +38,6 @@ class Feeds extends AdminController
 	public function displayTask()
 	{
 		// Get some incoming filters to apply to the entries list
-		//
-		// The Request::getState() method makes it easy to retain values of 
-		// certain variables across page accesses. This makes development much 
-		// simpler because we no longer has to worry about losing variable values 
-		// if it is left out of a form. The best example is that the form will
-		// retain the proper filters even after navigating to the edit entry form
-		// and back.
 		$filters = array(
 			'search' => urldecode(Request::getState(
 				$this->_option . '.' . $this->_controller . '.search',
@@ -567,6 +560,11 @@ class Feeds extends AdminController
 		$ids = array();
 		foreach ($metadata as $i => $data)
 		{
+			if (!$data['key'])
+			{
+				continue;
+			}
+
 			$meta = Postmeta::oneOrNew($data['id']);
 			$meta->set('post_id', $row->get('ID'));
 			$meta->set('meta_key', $data['key']);
@@ -582,7 +580,7 @@ class Feeds extends AdminController
 		}
 
 		// Remove any meta entries that didn't come from the posted data
-		// This emans the entries were deleted.
+		// This means the entries were deleted.
 		foreach ($row->meta as $meta)
 		{
 			if (!in_array($meta->get('meta_id'), $ids))
@@ -594,8 +592,62 @@ class Feeds extends AdminController
 			}
 		}
 
+		// Save categories
+		$tax_input = Request::getVar('tax_input', array(), 'post', 'none', 2);
+
+		$added = array();
+		foreach ($tax_input['pf_feed_category'] as $i => $tax)
+		{
+			if (!$tax)
+			{
+				continue;
+			}
+
+			$rel = Folder\Relationship::oneByObjectAndTerm($row->get('ID'), $tax);
+
+			if (!$rel->get('object_id'))
+			{
+				$rel->set('object_id', $row->get('ID'));
+				$rel->set('term_taxonomy_id', $tax);
+
+				if (!$rel->save())
+				{
+					Notify::error($meta->getError());
+					return $this->editTask($row);
+				}
+
+				// We need to update the usage count
+				$taxonomy = Folder\Taxonomy::oneOrFail($tax);
+				$taxonomy->set('count', $taxonomy->relationships()->total());
+				$taxonomy->save();
+			}
+
+			$added[] = $rel->get('term_taxonomy_id');
+		}
+
+		foreach ($row->folders()->rows() as $folder)
+		{
+			if (!in_array($folder->get('term_taxonomy_id'), $added))
+			{
+				$tax = $folder->get('term_taxonomy_id');
+
+				if (!$folder->destroy())
+				{
+					Notify::error($folder->getError());
+					return $this->editTask($row);
+				}
+
+				// We need to update the usage count
+				$taxonomy = Folder\Taxonomy::oneOrFail($tax);
+				$taxonomy->set('count', $taxonomy->relationships()->total());
+				$taxonomy->save();
+			}
+		}
+
+		// Notify user
 		Notify::success(Lang::txt('PF_FEED_SAVED'));
 
+		// Fall back to the edit form if needed
 		if ($this->getTask() == 'apply')
 		{
 			return $this->editTask($row);

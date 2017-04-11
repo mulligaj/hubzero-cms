@@ -40,7 +40,7 @@ if (!$this->folder->get('term_taxonomy_id'))
 }
 ?>
 	<li class="feed_folder" id="<?php echo $type; ?>-<?php echo $this->folder->get('term_id'); ?>">
-		<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&' . $type . '=' . $this->folder->get('term_id')); ?>" data-id="<?php echo $this->folder->get('term_id'); ?>" class="folder" title="<?php echo $this->folder->get('name'); ?>"><?php echo $this->folder->get('name'); ?></a>
+		<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&' . $type . '=' . $this->folder->get('term_id')); ?>" data-id="<?php echo $this->folder->get('term_id'); ?>" class="folder<?php if ($this->active == $this->folder->get('term_id')) { echo ' active'; } ?>" title="<?php echo $this->folder->get('name'); ?>"><?php echo $this->folder->get('name'); ?></a>
 		<?php
 		$folders = $this->folder->get('children');
 
@@ -48,6 +48,7 @@ if (!$this->folder->get('term_taxonomy_id'))
 		{
 			$this->view('_folders')
 				->set('folders', $folders)
+				->set('active', $this->active)
 				->set('depth', $this->depth)
 				->display();
 		}

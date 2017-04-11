@@ -1141,3 +1141,9 @@ background-clip: padding-box;
 background-color: #f5f5f5;
 z-index: 9996;
 }
+#feed-folders ul ul {
+  margin-left: 1.5em;
+}
+#feed-folders .folder.active {
+  font-weight: bold;
+}

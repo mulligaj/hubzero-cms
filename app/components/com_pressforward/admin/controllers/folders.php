@@ -11,7 +11,7 @@ use Lang;
 use App;
 
 /**
- * PressForward controller for content
+ * PressForward controller for folders
  */
 class Folders extends AdminController
 {
@@ -42,13 +42,6 @@ class Folders extends AdminController
 	public function displayTask()
 	{
 		// Get some incoming filters to apply to the entries list
-		//
-		// The Request::getState() method makes it easy to retain values of 
-		// certain variables across page accesses. This makes development much 
-		// simpler because we no longer has to worry about losing variable values 
-		// if it is left out of a form. The best example is that the form will
-		// retain the proper filters even after navigating to the edit entry form
-		// and back.
 		$filters = array(
 			'search' => urldecode(Request::getState(
 				$this->_option . '.' . $this->_controller . '.search',
@@ -304,6 +297,7 @@ class Folders extends AdminController
 
 		// Save taxonomy data
 		$taxonomy->set('term_id', $folder->get('term_id'));
+		$taxonomy->set('count', $taxonomy->relationships()->total());
 
 		if (!$taxonomy->save())
 		{
@@ -316,8 +310,10 @@ class Folders extends AdminController
 		{
 			$this->view
 				->setName('feeds')
-				->setLayout('folder')
+				->setLayout('_folder')
+				->set('prfx', 'all')
 				->set('folder', $folder)
+				->set('depth', 1)
 				->display();
 			return;
 		}
