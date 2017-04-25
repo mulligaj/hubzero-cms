@@ -296,13 +296,20 @@ if ($label == "none") {
 				<?php else : ?>
 					<p class="warning"><?php echo Lang::txt('COM_CITATIONS_NO_CITATIONS_FOUND'); ?></p>
 				<?php endif; ?>
-				<?php 
-					$this->pageNav->setAdditionalUrlParam('task', 'browse');
+				<?php
+					// Initiate paging
+					$pageNav = $this->pagination(
+						$this->total,
+						$this->filters['start'],
+						$this->filters['limit']
+					);
+					$pageNav->setAdditionalUrlParam('task', 'browse');
 					foreach ($this->filters as $key => $value)
 					{
 						switch ($key)
 						{
 							case 'limit':
+							case 'idlist';
 							case 'start':
 							break;
 
@@ -313,17 +320,17 @@ if ($label == "none") {
 								{
 									foreach ($value as $k => $v)
 									{
-										$this->pageNav->setAdditionalUrlParam($key . '[' . $k . ']', $v);
+										$pageNav->setAdditionalUrlParam($key . '[' . $k . ']', $v);
 									}
 								}
 							break;
 
 							default:
-								$this->pageNav->setAdditionalUrlParam($key, $value);
+								$pageNav->setAdditionalUrlParam($key, $value);
 							break;
 						}
 					}
-					echo $this->pageNav->getListFooter();
+					echo $pageNav->render();
 				?>
 				<div class="clearfix"></div>
 			</div><!-- /.container -->
