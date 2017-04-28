@@ -1031,12 +1031,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/hubzero/framework.git",
-                "reference": "5f80ead69020e32795cacc561c108797577d7385"
+                "reference": "53bbb0b387a513030abdca106727b0fd50841bf6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hubzero/framework/zipball/5f80ead69020e32795cacc561c108797577d7385",
-                "reference": "5f80ead69020e32795cacc561c108797577d7385",
+                "url": "https://api.github.com/repos/hubzero/framework/zipball/53bbb0b387a513030abdca106727b0fd50841bf6",
+                "reference": "53bbb0b387a513030abdca106727b0fd50841bf6",
                 "shasum": ""
             },
             "require": {
@@ -1069,7 +1069,7 @@
                 "hubzero",
                 "php"
             ],
-            "time": "2017-03-31 19:25:27"
+            "time": "2017-04-19 15:43:00"
         },
         {
             "name": "hubzero/orcid-php",
@@ -1437,6 +1437,7 @@
                 }
             ],
             "description": "Flysystem adapter for Dropbox",
+            "abandoned": "spatie/flysystem-dropbox",
             "time": "2016-04-25 18:51:39"
         },
         {
@@ -2740,12 +2741,12 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/padraic/mockery.git",
+                "url": "https://github.com/mockery/mockery.git",
                 "reference": "9e7b45359141a6735c6085edaa960ca07a329962"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/padraic/mockery/zipball/9e7b45359141a6735c6085edaa960ca07a329962",
+                "url": "https://api.github.com/repos/mockery/mockery/zipball/9e7b45359141a6735c6085edaa960ca07a329962",
                 "reference": "9e7b45359141a6735c6085edaa960ca07a329962",
                 "shasum": ""
             },

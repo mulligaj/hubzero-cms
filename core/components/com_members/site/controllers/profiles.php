@@ -97,11 +97,11 @@ class Profiles extends SiteController
 			return;
 		}
 
-		require_once dirname(dirname(__DIR__)) . '/tables/incremental/awards.php';
-		require_once dirname(dirname(__DIR__)) . '/tables/incremental/groups.php';
-		require_once dirname(dirname(__DIR__)) . '/tables/incremental/options.php';
+		require_once dirname(dirname(__DIR__)) . '/models/incremental/awards.php';
+		require_once dirname(dirname(__DIR__)) . '/models/incremental/groups.php';
+		require_once dirname(dirname(__DIR__)) . '/models/incremental/options.php';
 
-		$ia = new \ModIncrementalRegistrationAwards($profile);
+		$ia = new \Components\Members\Models\Incremental\Awards($profile);
 		$ia->optOut();
 
 		App::redirect(
@@ -230,10 +230,11 @@ class Profiles extends SiteController
 				$user = Member::blank()->set($row);
 
 				$obj = array();
-				$obj['id']      = $user->get('id');
-				$obj['name']    = $user->name;
-				$obj['org']     = (in_array($user->get('access'), User::getAuthorisedViewLevels()) ? $user->get('organization', '') : '');
-				$obj['picture'] = $user->picture();
+				$obj['id']       = $user->get('id');
+				$obj['name']     = $user->get('name');
+				$obj['username'] = $user->get('username');
+				$obj['org']      = (in_array($user->get('access'), User::getAuthorisedViewLevels()) ? $user->get('organization', '') : '');
+				$obj['picture']  = $user->picture();
 
 				$json[] = $obj;
 			}
@@ -314,24 +315,41 @@ class Profiles extends SiteController
 			->where($a . '.activation', '>', 0)
 			->where($a . '.approved', '>', 0);
 
-		// Take filters and apply them to the tasks
-		/*if ($filters['search'])
+		// Validate sorting vars
+		$sortFound = false;
+		switch ($filters['sortby'])
 		{
-			foreach ($filters['search'] as $term)
-			{
-				//$entries->where($a . '.name', 'LIKE', "%{$term}%");
+			case 'surname':
+			case 'name':
+				$filters['sort'] = 'surname';
+				$sortFound = true;
+				break;
 
-				$entries->whereLike($a . '.name', strtolower((string)$term), 1)
-					->orWhereLike($a . '.username', strtolower((string)$term), 1)
-					->orWhereLike($a . '.email', strtolower((string)$term), 1)
-					->resetDepth();
-			}
-		}*/
+			default:
+				$sorts = array('surname');
+				foreach (Filters::getFieldNames() as $column)
+				{
+					$sorts[] = $column['raw'];
+				}
+				$filters['sort'] = $filters['sortby'];
+				if (!in_array($filters['sortby'], $sorts))
+				{
+					$filters['sort'] = 'surname';
+				}
+				break;
+		}
+
+		// Make sure sort direction is valid
+		$filters['sort_Dir'] = strtolower(Request::getWord('sort_Dir', 'asc'));
+		if (!in_array($filters['sort_Dir'], array('asc', 'desc')))
+		{
+			$filters['sort_Dir'] = 'asc';
+		}
 
 		if ($filters['tags'])
 		{
 			$to = '#__tags_object';
-			$t = '#__tags';
+			$t  = '#__tags';
 
 			$tags = explode(',', $filters['tags']);
 			$tags = array_map('trim', $tags);
@@ -347,10 +365,11 @@ class Profiles extends SiteController
 			$entries->group($a . '.id');
 		}
 
+		$db = App::get('db');
+		$i = 1;
+
 		if ($filters['q'])
 		{
-			$db = App::get('db');
-			$i = 1;
 			foreach ($filters['q'] as $q)
 			{
 				if ($q['field'] == 'name')
@@ -385,22 +404,39 @@ class Profiles extends SiteController
 					$q['value'] = '%' . $q['value'] . '%';
 				}
 
-				$entries->joinRaw($b . ' AS t' . $i, 't' . $i . '.user_id=' . $a . '.id AND t' . $i . '.profile_key=' . $db->quote($q['field']) . ' AND t' . $i . '.profile_value ' . $q['o'] . ' ' . $db->quote($q['value']), 'inner');
+				if (in_array($q['o'], array('>', '>=', '<', '<=')) && is_numeric($q['value']))
+				{
+					$entries->joinRaw(
+						$b . ' AS t' . $i,
+						't' . $i . '.user_id=' . $a . '.id AND t' . $i . '.profile_key=' . $db->quote($q['field']) . ' AND t' . $i . '.profile_value ' . $q['o'] . ' ' . (int)$q['value'],
+						'inner'
+					);
+				}
+				else
+				{
+					$entries->joinRaw($b . ' AS t' . $i, 't' . $i . '.user_id=' . $a . '.id AND t' . $i . '.profile_key=' . $db->quote($q['field']) . ' AND t' . $i . '.profile_value ' . $q['o'] . ' ' . $db->quote($q['value']), 'inner');
+				}
+
+				if ($filters['sort'] == $q['field'])
+				{
+					$filters['sort'] = 't' . $i . '.profile_value';
+					$sortFound = true;
+				}
+
 				$entries->whereIn('t' . $i . '.access', User::getAuthorisedViewLevels());
 				$i++;
 			}
 		}
 
-		$entries->whereIn($a . '.access', User::getAuthorisedViewLevels());
-
-		switch ($filters['sortby'])
+		// If the sort value wasn't already an applied filter
+		// we need to join on the profiles table to be able to sort by that value
+		if (!$sortFound)
 		{
-			case 'name':
-			default:
-				$filters['sort'] = 'surname';
-				$filters['sort_Dir'] = 'asc';
-			break;
+			$entries->joinRaw($b . ' AS t' . $i, 't' . $i . '.user_id=' . $a . '.id AND t' . $i . '.profile_key=' . $db->quote($filters['sort']), 'inner');
+			$filters['sort'] = 't' . $i . '.profile_value';
 		}
+
+		$entries->whereIn($a . '.access', User::getAuthorisedViewLevels());
 
 		$rows = $entries
 			->order($filters['sort'], $filters['sort_Dir'])
@@ -597,7 +633,8 @@ class Profiles extends SiteController
 		}
 
 		// Make sure member is approved
-		if (!$profile->get('approved') || $profile->get('block'))
+		// Removed the !$profile->get('approved') check from conditional since the Unapproved System plugin will handle this check.
+		if ($profile->get('block'))
 		{
 			App::abort(404, Lang::txt('COM_MEMBERS_NOT_FOUND'));
 		}

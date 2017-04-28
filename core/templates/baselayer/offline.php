@@ -39,7 +39,7 @@ defined('_HZEXEC_') or die();
 <!--[if IE 7 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie7"> <![endif]-->
 <!--[if IE 8 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie8"> <![endif]-->
 <!--[if IE 9 ]>    <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>" class="ie9"> <![endif]-->
-<!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo  $this->language; ?>"> <!--<![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html dir="<?php echo $this->direction; ?>" lang="<?php echo $this->language; ?>"> <!--<![endif]-->
 	<head>
 		<jdoc:include type="head" />
 		<link rel="stylesheet" href="<?php echo $this->baseurl ?>/templates/system/css/offline.css" type="text/css" />
@@ -51,7 +51,6 @@ defined('_HZEXEC_') or die();
 	<body>
 		<jdoc:include type="message" />
 		<div id="frame" class="outline">
-			<img src="images/joomla_logo_black.jpg" alt="Joomla! Logo" align="middle" />
 			<h1>
 				<?php echo Config::get('sitename'); ?>
 			</h1>
@@ -61,7 +60,7 @@ defined('_HZEXEC_') or die();
 <?php if (Plugin::isEnabled('authentication', 'openid')) : ?>
 			<?php Html::asset('script', 'openid.js'); ?>
 <?php endif; ?>
-			<form action="index.php" method="post" name="login" id="form-login">
+			<form action="<?php echo Route::url('index.php?option=com_user'); ?>" method="post" name="login" id="form-login">
 				<fieldset class="input">
 					<p id="form-login-username">
 						<label for="username"><?php echo Lang::txt('Username') ?></label><br />
