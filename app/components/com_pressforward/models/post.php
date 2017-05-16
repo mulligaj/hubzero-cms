@@ -97,6 +97,13 @@ class Post extends Relational
 	public static $post_nomination = 'nomination';
 
 	/**
+	 * The name of draft and published items
+	 *
+	 * @var  string
+	 */
+	public static $post_draft = 'post';
+
+	/**
 	 * The slug for the taxonomy used by feed items
 	 *
 	 * @var  string

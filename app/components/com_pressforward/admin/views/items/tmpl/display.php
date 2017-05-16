@@ -156,6 +156,10 @@ $this
 							$isDrafted = true;
 						}
 					}
+					if ($row->get('post_type') == Components\PressForward\Models\Post::$post_nomination)
+					{
+						$isNominated = true;
+					}
 					?>
 					<article class="feed-item entry" id="<?php echo $item_id; ?>" pf-post-id="<?php echo $row->get('ID'); ?>" pf-feed-item-id="<?php echo $item_id; ?>" pf-item-post-id="<?php echo $row->get('ID'); ?>" data-url="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>">
 						<?php if ($canDo->get('core.manage')): ?>
@@ -274,7 +278,7 @@ $this
 								<?php if ($this->config->get('pf_comments_enable')) { ?>
 									<a role="button" class="btn btn-small <?php if ($row->comments()->total() > 0) { echo 'btn-info'; } ?> itemCommentModal comments-expander" data-toggle="modal" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=comments&post_id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" id="comments-expander-51" data-original-title="Comment"><span class="comments-expander-count"><?php echo $row->comments()->total(); ?></span><i class="icon-comment"></i></a>
 								<?php } ?>
-								<a role="button" class="btn btn-small <?php if ($isNominated) { echo 'btn-success'; } ?> nominate-now schema-actor schema-switchable" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=' . ($isNominated ? 'un' : '') . 'nominate&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" data-original-title="Nominate"><i class="icon-nominate"></i></a>
+								<a role="button" class="btn btn-small <?php if ($isNominated) { echo 'btn-success'; } ?> nominate-now schema-actor schema-switchable" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=' . ($isNominated ? 'un' : '') . 'nominate&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" data-original-title="<?php echo ($isNominated ? 'De-nominate' : 'Nominate'); ?>"><i class="icon-nominate"></i></a>
 								<!-- <button class="btn btn-small nominate-now schema-actor schema-switchable" pf-schema="nominate" pf-schema-class="btn-success" form="4c7cb99ec634c6054943d6bb70caae0f" data-original-title="Nominate"><i class="icon-nominate"></i></button>
 								<div class="dropdown btn-group amplify-group" role="group">
 									<button type="button" class="btn btn-default btn-small dropdown-toggle pf-amplify" data-toggle="dropdown" aria-expanded="true" id="amplify-4c7cb99ec634c6054943d6bb70caae0f" data-original-title=""><i class="icon-bullhorn"></i><span class="caret"></span></button>

@@ -66,6 +66,7 @@ $this->js('views.js');
 				<?php
 				$this->view('_folders')
 					->set('folders', $this->folders)
+					->set('active', $this->filters['folder'])
 					->set('depth', 0)
 					->display();
 				?>
@@ -90,6 +91,25 @@ $this->js('views.js');
 						$metadata[$meta->get('meta_key')] = $meta->get('meta_value');
 					endforeach;
 
+					if (!isset($metadata['pf_item_post_id']))
+					{
+						$metadata['pf_item_post_id'] = Components\PressForward\Models\Post::all()
+							->whereEquals('post_name', $row->get('post_name'))
+							->whereEquals('post_type', Components\PressForward\Models\Post::$post_type)
+							->where('ID', '!=', $row->get('ID'))
+							->row()
+							->get('ID');
+
+						if ($metadata['pf_item_post_id'])
+						{
+							$meta = Components\PressForward\Models\Postmeta::blank();
+							$meta->set('post_id', $row->get('ID'));
+							$meta->set('meta_key', 'pf_item_post_id');
+							$meta->set('meta_value', $metadata['pf_item_post_id']);
+							$meta->save();
+						}
+					}
+
 					$item_id = App::hash($row->get('ID'));
 
 					$relationships = $row->relationships()
@@ -98,8 +118,9 @@ $this->js('views.js');
 
 					$isRead = false;
 					$isStarred = false;
-					$isNominated = false;
+					$isNominated = true;
 					$isArchived = false;
+					$isDrafted = false;
 
 					foreach ($relationships as $rel)
 					{
@@ -137,7 +158,8 @@ $this->js('views.js');
 					$metadata['timestamp_item_posted'] = strtotime($metadata['item_date']);
 					$metadata['submitters'] = array();
 					$metadata['nom_id']    = $row->get('ID');
-					$nominations = $row->relationships()
+					$nominations = Components\PressForward\Models\Relationship::all()
+						->whereEquals('item_id', $metadata['pf_item_post_id'])
 						->whereEquals('relationship_type', Components\PressForward\Models\Relationship::stringToInteger('nominate'))
 						->rows();
 					$metadata['nom_count'] = count($nominations);
@@ -146,6 +168,9 @@ $this->js('views.js');
 						$metadata['submitters'][] = User::getInstance($nom->get('user_id'))->get('name');
 					}
 					$metadata['submitters'] = implode(', ', $metadata['submitters']);
+					$isDrafted = $row->relationships()
+						->whereEquals('relationship_type', Components\PressForward\Models\Relationship::stringToInteger('draft'))
+						->total();
 					?>
 					<article class="feed-item entry" id="<?php echo $item_id; ?>" pf-post-id="<?php echo $row->get('ID'); ?>" pf-feed-item-id="" pf-item-post-id="<?php echo $row->get('ID'); ?>" data-url="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>">
 						<?php if ($canDo->get('core.manage')): ?>
@@ -216,7 +241,7 @@ $this->js('views.js');
 									<?php
 									echo __('Number of nominations received', 'pf') . ': <span class="sortable_nom_count">' . $metadata['nom_count'] . '</span><br />';
 									echo __('First submitted by', 'pf') . ': <span class="first_submitter">' . $metadata['submitters'] . '</span><br />';
-									echo __('Nominated on', 'pf') . ': <span class="nominated_on">' . date('M j, Y; g:ia' , strtotime($metadata['date_nominated'])) . '</span><br />';
+									echo __('Nominated on', 'pf') . ': <span class="nominated_on">' . (isset($metadata['date_nominated']) ? date('M j, Y; g:ia' , strtotime($metadata['date_nominated'])) : 'n/a') . '</span><br />';
 									echo __('Nominated by', 'pf') . ': <span class="nominated_by">' . $metadata['submitters'] . '</span><br />';
 									?>
 								<?php endif; ?>
@@ -251,9 +276,9 @@ $this->js('views.js');
 								<?php if ($this->config->get('pf_comments_enable')) { ?>
 									<a role="button" class="btn btn-small <?php if ($row->comments()->total() > 0) { echo 'btn-info'; } ?> itemCommentModal comments-expander" data-toggle="modal" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=comments&post_id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" id="comments-expander-51" data-original-title="Comment"><span class="comments-expander-count"><?php echo $row->comments()->total(); ?></span><i class="icon-comment"></i></a>
 								<?php } ?>
-								<a role="button" class="btn btn-small <?php if ($isNominated) { echo 'btn-success'; } ?> nominate-now schema-actor schema-switchable" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=' . ($isNominated ? 'un' : '') . 'nominate&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" data-original-title="Nominate"><i class="icon-nominate"></i></a>
+								<a role="button" class="btn btn-small <?php if ($isNominated) { echo 'btn-info'; } ?> nom-count schema-actor schema-switchable" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=' . ($isNominated ? 'un' : '') . 'nominate&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" data-original-title="Nomination Count"><?php echo $metadata['nom_count']; ?><i class="icon-nominate"></i></a>
 								<a role="button" class="btn btn-small nom-to-archive schema-actor schema-switchable" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=archive&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" data-original-title="Archive"><i class="icon-archive"></i></a>
-								<a role="button" class="btn btn-small nom-to-draft schema-actor schema-switchable" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=draft&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" data-original-title="Draft"><i class="icon-draft"></i></a>
+								<a role="button" class="btn btn-small <?php if ($isDrafted) { echo 'btn-success'; } ?> nom-to-draft schema-actor schema-switchable" href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=draft&id=' . $row->get('ID') . '&' . Session::getFormToken() . '=1'); ?>" data-original-title="Draft"><i class="icon-draft"></i></a>
 								<!-- <button class="btn btn-small nominate-now schema-actor schema-switchable" pf-schema="nominate" pf-schema-class="btn-success" form="4c7cb99ec634c6054943d6bb70caae0f" data-original-title="Nominate"><i class="icon-nominate"></i></button>
 								<div class="dropdown btn-group amplify-group" role="group">
 									<button type="button" class="btn btn-default btn-small dropdown-toggle pf-amplify" data-toggle="dropdown" aria-expanded="true" id="amplify-4c7cb99ec634c6054943d6bb70caae0f" data-original-title=""><i class="icon-bullhorn"></i><span class="caret"></span></button>

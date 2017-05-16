@@ -468,10 +468,18 @@ jQuery(window).on('load', function() {
 		tooltipClass: 'tooltip'
 	});
 
-	/*jQuery('.pf_container').on('click', '.itemInfobutton', function(evt){
+	/*jQuery('.pf_container').on('click', function(evt){
+		$('.feed-item-info-box').hide();
+	});*/
+	jQuery('.pf_container').on('click', '.itemInfobutton', function(evt){
 		evt.preventDefault();
 
 		var popup = $('#' + $(this).attr('data-target'));
-		popup.show();
-	});*/
+
+		$('.feed-item-info-box').not(popup).hide();
+
+		popup.css('top', $(this).offset().top + 'px');
+		popup.css('left', $(this).offset().left + 'px');
+		popup.toggle();
+	});
 });

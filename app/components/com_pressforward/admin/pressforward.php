@@ -45,6 +45,11 @@ require_once(__DIR__ . DS . 'controllers' . DS . $controllerName . '.php');
 	($controllerName == 'items' && $task == 'nominated')
 );
 \Submenu::addEntry(
+	\Lang::txt('PF_POSTS'),
+	\Route::url('index.php?option=com_pressforward&controller=posts'),
+	($controllerName == 'posts')
+);
+\Submenu::addEntry(
 	\Lang::txt('PF_FEEDS'),
 	\Route::url('index.php?option=com_pressforward&controller=feeds'),
 	($controllerName == 'feeds')

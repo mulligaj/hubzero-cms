@@ -541,6 +541,12 @@ class Feeds extends AdminController
 		// Incoming
 		$fields = Request::getVar('fields', array(), 'post', 'none', 2);
 
+		if ($fields['visibility'] == 'private')
+		{
+			$fields['post_status'] = 'private';
+		}
+		unset($fields['visibility']);
+
 		// Initiate extended database class
 		$row = Post::oneOrNew($fields['ID'])->set($fields);
 		$row->set('post_type', 'pf_feed');
@@ -596,33 +602,36 @@ class Feeds extends AdminController
 		$tax_input = Request::getVar('tax_input', array(), 'post', 'none', 2);
 
 		$added = array();
-		foreach ($tax_input['pf_feed_category'] as $i => $tax)
+		if (isset($tax_input['pf_feed_category']))
 		{
-			if (!$tax)
+			foreach ($tax_input['pf_feed_category'] as $i => $tax)
 			{
-				continue;
-			}
-
-			$rel = Folder\Relationship::oneByObjectAndTerm($row->get('ID'), $tax);
-
-			if (!$rel->get('object_id'))
-			{
-				$rel->set('object_id', $row->get('ID'));
-				$rel->set('term_taxonomy_id', $tax);
-
-				if (!$rel->save())
+				if (!$tax)
 				{
-					Notify::error($meta->getError());
-					return $this->editTask($row);
+					continue;
 				}
 
-				// We need to update the usage count
-				$taxonomy = Folder\Taxonomy::oneOrFail($tax);
-				$taxonomy->set('count', $taxonomy->relationships()->total());
-				$taxonomy->save();
-			}
+				$rel = Folder\Relationship::oneByObjectAndTerm($row->get('ID'), $tax);
 
-			$added[] = $rel->get('term_taxonomy_id');
+				if (!$rel->get('object_id'))
+				{
+					$rel->set('object_id', $row->get('ID'));
+					$rel->set('term_taxonomy_id', $tax);
+
+					if (!$rel->save())
+					{
+						Notify::error($meta->getError());
+						return $this->editTask($row);
+					}
+
+					// We need to update the usage count
+					$taxonomy = Folder\Taxonomy::oneOrFail($tax);
+					$taxonomy->set('count', $taxonomy->relationships()->total());
+					$taxonomy->save();
+				}
+
+				$added[] = $rel->get('term_taxonomy_id');
+			}
 		}
 
 		foreach ($row->folders()->rows() as $folder)

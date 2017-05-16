@@ -3,6 +3,7 @@ namespace Components\PressForward\Admin\Controllers;
 
 use Hubzero\Component\AdminController;
 use Components\PressForward\Models\Post;
+use Components\PressForward\Models\Postmeta;
 use Components\PressForward\Models\Folder;
 use Components\PressForward\Models\Relationship;
 use Request;
@@ -93,8 +94,19 @@ class Items extends AdminController
 		$p = Post::blank()->getTableName();
 		$r = Relationship::blank()->getTableName();
 
-		$record = Post::items()
+		$record = Post::all()
 			->select($p . '.*');
+
+		if ($filters['status'] == 'drafted')
+		{
+			$record->whereEquals('post_type', Post::$post_nomination);
+		}
+		else
+		{
+			$record->whereEquals('post_type', Post::$post_type);
+		}
+		/*$record = Post::items()
+			->select($p . '.*');*/
 
 		if (!$filters['status'])
 		{
@@ -192,46 +204,102 @@ class Items extends AdminController
 		// Get some incoming filters to apply to the entries list
 		$filters = array(
 			'search' => urldecode(Request::getState(
-				$this->_option . '.' . $this->_controller . '.search',
+				$this->_option . '.' . $this->_controller . '.' . $this->_task . '.search',
 				'search',
 				''
 			)),
 			'status' => urldecode(Request::getState(
-				$this->_option . '.' . $this->_controller . '.status',
+				$this->_option . '.' . $this->_controller . '.' . $this->_task . '.status',
 				'status',
 				''
 			)),
+			'folder' => Request::getState(
+				$this->_option . '.' . $this->_controller . '.' . $this->_task . '.folder',
+				'folder',
+				0,
+				'int'
+			),
 			// Get sorting variables
 			//
 			// "sort" is the name of the table column to sort by
 			// "sort_Dir" is the direction to sort by [ASC, DESC]
 			'sort' => Request::getState(
-				$this->_option . '.' . $this->_controller . '.sort',
+				$this->_option . '.' . $this->_controller . '.' . $this->_task . '.sort',
 				'filter_order',
 				'post_date_gmt'
 			),
 			'sort_Dir' => Request::getState(
-				$this->_option . '.' . $this->_controller . '.sortdir',
+				$this->_option . '.' . $this->_controller . '.' . $this->_task . '.sortdir',
 				'filter_order_Dir',
 				'DESC'
 			)
 		);
 
-		// Get our model
-		$record = Post::nominations();
+		$p = Post::blank()->getTableName();
+		$r = Relationship::blank()->getTableName();
 
-		if ($filters['status'])
+		// Get our model
+		$record = Post::nominations()
+			->select($p . '.*');
+
+		/*if ($filters['status'])
 		{
 			$record->whereEquals('post_status', $filters['status']);
+		}*/
+		if ($filters['status'])
+		{
+			switch ($filters['status'])
+			{
+				case 'archived':
+					$record
+						->join($r, $r . '.item_id', $p . '.ID', 'inner')
+						->whereEquals($r . '.relationship_type', Relationship::stringToInteger('archive'))
+						->whereEquals($r . '.user_id', User::get('id'));
+					break;
+				case 'starred':
+					$record
+						->join($r, $r . '.item_id', $p . '.ID', 'inner')
+						->whereEquals($r . '.relationship_type', Relationship::stringToInteger('star'))
+						->whereEquals($r . '.user_id', User::get('id'));
+					break;
+				case 'nominated':
+					$record
+						->join($r, $r . '.item_id', $p . '.ID', 'inner')
+						->whereEquals($r . '.relationship_type', Relationship::stringToInteger('nominate'))
+						->whereEquals($r . '.user_id', User::get('id'));
+					break;
+				case 'unread':
+					$record
+						->joinRaw($r, $r . '.item_id=' . $p . '.ID AND ' . $r . '.user_id=' . User::get('id'), 'left')
+						->whereRaw($r . '.relationship_type IS NULL');
+					break;
+				case 'drafted':
+					$record
+						->join($r, $r . '.item_id', $p . '.ID', 'inner')
+						->whereEquals($r . '.relationship_type', Relationship::stringToInteger('draft'))
+						->whereEquals($r . '.user_id', User::get('id'));
+					break;
+			}
 		}
 
 		if ($search = $filters['search'])
 		{
-			$record->whereLike('post_title', $search);
+			$record->whereLike($p . '.post_title', $search);
+		}
+
+		if ($filters['folder'])
+		{
+			$tr = \Components\PressForward\Models\Folder\Relationship::blank()->getTableName();
+			$t  = \Components\PressForward\Models\Folder\Taxonomy::blank()->getTableName();
+
+			$record
+				->joinRaw($tr, $tr . '.object_id IN (' . $p . '.ID, ' . $p . '.post_parent)', 'inner')
+				->join($t, $t . '.term_taxonomy_id', $tr . '.term_taxonomy_id', 'inner')
+				->whereEquals($t . '.term_id', $filters['folder']);
 		}
 
 		$rows = $record
-			->order($filters['sort'], $filters['sort_Dir'])
+			->order($p . '.' . $filters['sort'], $filters['sort_Dir'])
 			->paginated('limitstart', 'limit')
 			->rows();
 
@@ -246,122 +314,6 @@ class Items extends AdminController
 			->set('config', $this->config)
 			->display();
 	}
-
-	/**
-	 * Archive one or more entries
-	 *
-	 * @return  void
-	 */
-	/*public function archiveTask()
-	{
-		// Check for request forgeries
-		Request::checkToken(['get', 'post']);
-
-		if (!User::authorise('core.edit.state', $this->_option))
-		{
-			App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
-		}
-
-		// Incoming
-		$ids = Request::getVar('id', array());
-		$ids = (!is_array($ids) ? array($ids) : $ids);
-
-		$archived = 0;
-
-		// Loop through all the IDs
-		foreach ($ids as $id)
-		{
-			$entry = Post::oneOrFail(intval($id));
-
-			if ($entry->isNew())
-			{
-				Notify::error('Post not found');
-				continue;
-			}
-
-			$relationship = Relationship::oneByUserAndItem(User::get('id'), $entry->get('ID'))
-				->set([
-					'user_id' => User::get('id'),
-					'item_id' => $entry->get('ID'),
-					'relationship_type' => Relationship::stringToInteger('archive'),
-					'value' => 1
-				]);
-
-			if (!$relationship->save())
-			{
-				Notify::error($relationship->getError());
-				continue;
-			}
-
-			$archived++;
-		}
-
-		if ($archived)
-		{
-			Notify::success(Lang::txt('PF_ITEM_ARCHIVED'));
-		}
-
-		// Set the redirect
-		$this->cancelTask();
-	}*/
-
-	/**
-	 * Mark one or more entries as being read
-	 *
-	 * @return  void
-	 */
-	/*public function markasreadTask()
-	{
-		// Check for request forgeries
-		Request::checkToken(['get', 'post']);
-
-		if (!User::authorise('core.edit.state', $this->_option))
-		{
-			App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
-		}
-
-		// Incoming
-		$ids = Request::getVar('id', array());
-		$ids = (!is_array($ids) ? array($ids) : $ids);
-
-		$read = 0;
-
-		// Loop through all the IDs
-		foreach ($ids as $id)
-		{
-			$entry = Post::oneOrFail(intval($id));
-
-			if ($entry->isNew())
-			{
-				Notify::error('Post not found');
-				continue;
-			}
-
-			$relationship = Relationship::oneByUserAndItem(User::get('id'), $entry->get('ID'))
-				->set([
-					'user_id' => User::get('id'),
-					'item_id' => $entry->get('ID'),
-					'relationship_type' => Relationship::stringToInteger('read'),
-					'value' => 1
-				]);
-
-			if (!$relationship->save())
-			{
-				Notify::error($relationship->getError());
-				continue;
-			}
-
-			$read++;
-		}
-
-		if ($read)
-		{
-			Notify::success(Lang::txt('PF_ITEM_MARKEDASREAD'));
-		}
-
-		// Set the redirect
-		$this->cancelTask();
-	}*/
 
 	/**
 	 * Set a state value
@@ -416,6 +368,7 @@ class Items extends AdminController
 				// This will be a clone of the original. If it doesn't exist, we'll make it.
 				$nomination = Post::all()
 					->whereEquals('post_name', $entry->get('post_name'))
+					->whereEquals('post_type', Post::$post_nomination)
 					->where('ID', '!=', $entry->get('ID'))
 					->row();
 
@@ -425,7 +378,7 @@ class Items extends AdminController
 
 					$entry->set('ID', 0);
 					$entry->set('post_status', 'draft');
-					$entry->set('post_type', 'nomination');
+					$entry->set('post_type', Post::$post_nomination);
 
 					if (!$entry->save())
 					{
@@ -476,6 +429,15 @@ class Items extends AdminController
 						'pf_item_post_id',
 						'pf_no_feed_alert'
 					);*/
+
+					$meta = Postmeta::blank();
+					$meta->set('post_id', $entry->get('ID'));
+					$meta->set('meta_key', 'pf_item_post_id');
+					$meta->set('meta_value', $id);
+					if (!$meta->save())
+					{
+						Notify::error($meta->getError());
+					}
 
 					$meta = Postmeta::blank();
 					$meta->set('post_id', $entry->get('ID'));
@@ -613,6 +575,8 @@ class Items extends AdminController
 			// This will be a clone of the nomination. If it doesn't exist, we'll make it.
 			$post = Post::all()
 				->whereEquals('post_name', $entry->get('post_name'))
+				->whereEquals('post_type', Post::$post_draft)
+				->whereEquals('post_status', 'draft')
 				->where('ID', '!=', $entry->get('ID'))
 				->row();
 
@@ -622,7 +586,7 @@ class Items extends AdminController
 
 				$entry->set('ID', 0);
 				$entry->set('post_status', 'draft');
-				$entry->set('post_type', 'post');
+				$entry->set('post_type', Post::$post_draft);
 
 				if (!$entry->save())
 				{
@@ -658,11 +622,11 @@ class Items extends AdminController
 	}
 
 	/**
-	 * Mark one or more entries as denominated
+	 * Mark one or more entries as not draft
 	 *
 	 * @return  void
 	 */
-	/*public function denominateTask()
+	public function undraftTask()
 	{
 		// Check for request forgeries
 		Request::checkToken(['get', 'post']);
@@ -676,7 +640,7 @@ class Items extends AdminController
 		$ids = Request::getVar('id', array());
 		$ids = (!is_array($ids) ? array($ids) : $ids);
 
-		$read = 0;
+		$success = 0;
 
 		// Loop through all the IDs
 		foreach ($ids as $id)
@@ -689,34 +653,59 @@ class Items extends AdminController
 				continue;
 			}
 
-			$relationship = Relationship::all()
-				->whereEquals('user_id', User::get('id'))
-				->whereEquals('item_id', $entry->get('ID'))
-				->whereEquals('relationship_type', Relationship::stringToInteger('nominate'))
-				->row();
+			// Remove the relationship to this user
+			$relationship = Relationship::oneByUserAndItem(User::get('id'), $entry->get('ID'), Relationship::stringToInteger('draft'));
 
-			if (!$relationship->get('id'))
+			if ($relationship->get('id'))
 			{
-				continue;
+				if (!$relationship->destroy())
+				{
+					Notify::error($relationship->getError());
+					continue;
+				}
 			}
 
-			if (!$relationship->destroy())
+			$drafts = $entry->relationships()
+				->whereEquals('relationship_type', Relationship::stringToInteger('draft'))
+				->total();
+
+			// Curent user was the only one to mark as draft
+			// So go ahead and remove the draft entry too
+			if (!$drafts)
 			{
-				Notify::error($relationship->getError());
-				continue;
+				// Check for a draft post
+				// This will be a clone of the nomination. If it exist, we'll make it.
+				$post = Post::all()
+					->whereEquals('post_name', $entry->get('post_name'))
+					->whereEquals('post_type', 'post')
+					->whereEquals('post_status', 'draft')
+					->where('ID', '!=', $entry->get('ID'))
+					->row();
+
+				if ($post->get('iD'))
+				{
+					if (!$post->destroy())
+					{
+						Notify::error($post->getError());
+						continue;
+					}
+				}
 			}
 
-			$read++;
+			$success++;
 		}
 
-		if ($read)
+		if ($success)
 		{
-			Notify::success(Lang::txt('PF_ITEM_MARKEDASREAD'));
+			Notify::success(Lang::txt('PF_SUCCESS_ITEM_' . strtoupper($this->getTask())));
 		}
 
-		// Set the redirect
-		$this->cancelTask();
-	}*/
+		if (!Request::getInt('no_html', 0))
+		{
+			// Set the redirect
+			$this->cancelTask();
+		}
+	}
 
 	/**
 	 * Delete one or more entries
