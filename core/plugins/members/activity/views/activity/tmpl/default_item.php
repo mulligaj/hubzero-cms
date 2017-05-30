@@ -152,16 +152,35 @@ $base = 'index.php?option=com_members&id=' . $this->member->get('id') . '&active
 					// For now, we can assume this is from a group. For now.
 					// @TODO: Find a better way to associate comments to their parent scope (group, projects)
 					$group = Hubzero\User\Group::getInstance($this->row->log->get('scope_id'));
+
 					if ($group)
 					{
 						?>
-						<div class="activity-source">
+						<div class="activity-source icon-group">
 							<a href="<?php echo Route::url('index.php?option=com_groups&cn=' . $group->get('cn') . '&active=activity'); ?>"><?php echo $group->get('description'); ?></a>
 						</div>
 						<?php
 					}
 				}
+				else if (substr($this->row->log->get('scope'), 0, strlen('project')) == 'project')
+				{
+					// For now, we can assume this is from a group. For now.
+					// @TODO: Find a better way to associate comments to their parent scope (group, projects)
+					require_once Component::path('com_projects') . '/models/project.php';
+
+					$project = new Components\Projects\Models\Project($this->row->log->get('scope_id'));
+
+					if ($project)
+					{
+						?>
+						<div class="activity-source icon-project">
+							<a href="<?php echo Route::url('index.php?option=com_projects&alias=' . $project->get('alias')); ?>"><?php echo $project->get('title'); ?></a>
+						</div>
+						<?php
+					}
+				}
 				?>
+
 				<?php
 				$content = $this->row->log->get('description');
 				$short = null;

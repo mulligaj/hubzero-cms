@@ -25,16 +25,45 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @author    Alissa Nedossekina <alisa@purdue.edu>
+ * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// no direct access
+// No direct access
 defined('_HZEXEC_') or die();
 ?>
-<div class="spotlightwrap">
-	<ul>
-		<?php echo $this->html; ?>
-	</ul>
+<div class="grid">
+	<div class="col span6">
+		<fieldset class="adminform">
+			<legend><span><?php echo Lang::txt('COM_CONFIG_API_RATELIMIT_SHORT'); ?></span></legend>
+
+			<?php
+			foreach ($this->form->getFieldset('rl_short') as $field):
+			?>
+				<div class="input-wrap">
+					<?php echo $field->label; ?>
+					<?php echo $field->input; ?>
+				</div>
+			<?php
+			endforeach;
+			?>
+		</fieldset>
+	</div>
+	<div class="col span6">
+		<fieldset class="adminform">
+			<legend><span><?php echo Lang::txt('COM_CONFIG_API_RATELIMIT_LONG'); ?></span></legend>
+
+			<?php
+			foreach ($this->form->getFieldset('rl_long') as $field):
+			?>
+				<div class="input-wrap">
+					<?php echo $field->label; ?>
+					<?php echo $field->input; ?>
+				</div>
+			<?php
+			endforeach;
+			?>
+		</fieldset>
+	</div>
 </div>
