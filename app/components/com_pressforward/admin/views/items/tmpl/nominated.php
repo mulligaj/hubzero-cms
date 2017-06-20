@@ -155,7 +155,7 @@ $this->js('views.js');
 					//UNIX datetime added to nominations.
 					$metadata['timestamp_unix_date_nomed'] = (isset($metadata['date_nominated']) ? strtotime($metadata['date_nominated']) : '');
 					//UNIX datetime item was posted to its home RSS.
-					$metadata['timestamp_item_posted'] = strtotime($metadata['item_date']);
+					$metadata['timestamp_item_posted'] = (isset($metadata['item_date']) ? strtotime($metadata['item_date']) : '');
 					$metadata['submitters'] = array();
 					$metadata['nom_id']    = $row->get('ID');
 					$nominations = Components\PressForward\Models\Relationship::all()
