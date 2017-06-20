@@ -492,10 +492,16 @@ class Post extends Relational
 	{
 		$base = 'index.php?option=com_pressforward';
 
+		$dt = $this->get('post_date_gmt');
+		if (!$dt || $dt == '0000-00-00 00:00:00')
+		{
+			$dt = $this->get('post_date');
+		}
+
 		$link  = $base;
-		$link .= '&year=' . Date::of($this->get('post_date'))->format('Y');
-		$link .= '&month=' . Date::of($this->get('post_date'))->format('m');
-		$link .= '&day=' . Date::of($this->get('post_date'))->format('d');
+		$link .= '&year=' . Date::of($dt)->format('Y');
+		$link .= '&month=' . Date::of($dt)->format('m');
+		$link .= '&day=' . Date::of($dt)->format('d');
 		$link .= '&alias=' . $this->get('post_name');
 
 		// If it doesn't exist or isn't published
