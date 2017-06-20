@@ -67,6 +67,15 @@ $first = Components\PressForward\Models\Post::all()
 	->order('post_date_gmt', 'asc')
 	->limit(1)
 	->row();
+
+$meta = new \Hubzero\Config\Registry();
+foreach ($this->row->meta as $metadata)
+{
+	if ($metadata->get('meta_key') == 'pf_meta')
+	{
+		$meta->parse($metadata->get('meta_value'));
+	}
+}
 ?>
 <header id="content-header">
 	<h2><?php echo Lang::txt('COM_PRESSFORWARD'); ?></h2>
@@ -136,9 +145,21 @@ $first = Components\PressForward\Models\Post::all()
 				<?php } ?>
 				</dl>
 
+				<?php if ($this->config->get('pf_source_statement_position') == 'top') { ?>
+					<p class="entry-source">
+						<?php echo Lang::txt('PF_SOURCE'); ?>: <a href="<?php echo $this->row->get('guid'); ?>"><?php echo $meta->get('source_title', $this->row->get('post_title')); ?></a>
+					</p>
+				<?php } ?>
+
 				<div class="entry-content">
 					<?php echo $this->row->get('post_content'); ?>
 				</div>
+
+				<?php if ($this->config->get('pf_source_statement_position') == 'bottom') { ?>
+					<p class="entry-source">
+						<?php echo Lang::txt('PF_SOURCE'); ?>: <a href="<?php echo $this->row->get('guid'); ?>"><?php echo $meta->get('source_title', $this->row->get('post_title')); ?></a>
+					</p>
+				<?php } ?>
 
 				<?php
 				/*if ($this->config->get('show_authors'))

@@ -13,28 +13,28 @@
 	</fieldset>
 	<fieldset name="site">
 		<field name="pf_link_to_source" type="text" default="0" label="Seconds to redirect user to source. (0 means no redirect)" description="PressForward makes use of canonical URLs. If you would like to redirect your readers automatically to the items aggregated by the feed reader and published to your site, this setting will determine how long to wait before redirecting." />
-		<field name="pf_use_advanced_user_roles" type="text" default="no" label="Use advanced user role management? (May be needed if you customize user roles or capabilities)." description="For sites that manage multiple users using special plugins, administrators can use this option to insure PressForward respects customized user roles and capacities.">
+		<field name="pf_use_advanced_user_roles" type="radio" default="no" label="Use advanced user role management? (May be needed if you customize user roles or capabilities)." description="For sites that manage multiple users using special plugins, administrators can use this option to insure PressForward respects customized user roles and capacities.">
 			<option value="no">JNO</option>
 			<option value="yes">JYES</option>
 		</field>
-		<field name="pf_present_author_as_primary" type="text" default="yes" label="Show item_author as source." description="When this preference is on, the name of the author in a PressFoward item will appear in the item_author custom field when the item is sent to Draft. This author will overwrite the creator of the post.">
+		<field name="pf_present_author_as_primary" type="radio" default="yes" label="Show item_author as source." description="When this preference is on, the name of the author in a PressFoward item will appear in the item_author custom field when the item is sent to Draft. This author will overwrite the creator of the post.">
 			<option value="no">JNO</option>
 			<option value="yes">JYES</option>
 		</field>
-		<field name="pf_source_statement_position" type="text" default="top" label="Source statement position." description="Choose the position for source title and link on published content.">
+		<field name="pf_source_statement_position" type="list" default="top" label="Source statement position." description="Choose the position for source title and link on published content.">
 			<option value="top">Top</option>
 			<option value="bottom">Bottom</option>
 		</field>
 		<field name="pf_retain_time" type="text" default="2" label="Months to retrieve and retain feed items." description="This number determines the number of previous months that PressForward will retrieve items for All Content from subscribed feeds and the number of months that items will remain in PressForward." />
 		<field name="pf_errors_until_alert" type="text" default="3" label="Number of errors before a feed is marked as malfunctioning." description="Feeds sometimes respond slowly or have errors that cause them to be unreadable. This setting determines the number of consecutive errors PressForward will allow from a feed before creating an alert and disabling it." />
 		<field name="pf_retrieval_frequency" type="text" default="30" label="Minutes between feed retrieval cycles." description="This setting is the frequency at which PressForward will attempt to start the process of retrieving all the feeds in your list. Warning: if you have a large number of feeds this setting should not go below 30 minutes." />
-		<field name="pf_draft_post_status" type="text" default="3" label="Post status for new content." description="This setting allows you to set a default post status that gets set when you send nominations to become posts.">
+		<field name="pf_draft_post_status" type="list" default="3" label="Post status for new content." description="This setting allows you to set a default post status that gets set when you send nominations to become posts.">
 			<option value="0">unpublished</option>
 			<option value="1">published</option>
 			<option value="2">archived</option>
 			<option value="3">draft</option>
 		</field>
-		<field name="pf_draft_post_type" type="text" default="post" label="Post type for new content." description="Your WordPress site may have more than one Post Type installed, this setting will allow you to send nominations to the post type of your choice.">
+		<field name="pf_draft_post_type" type="list" default="post" label="Post type for new content." description="Your WordPress site may have more than one Post Type installed, this setting will allow you to send nominations to the post type of your choice.">
 			<option value="post">post</option>
 		</field>
 	</fieldset>
