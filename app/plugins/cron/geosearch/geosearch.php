@@ -51,8 +51,8 @@ class plgCronGeosearch extends \Hubzero\Plugin\Plugin
 		$obj->plugin = $this->_name;
 		$obj->events = array(
 			array(
-				'name'	 => 'getLocationData',
-				'label'	=> Lang::txt('PLG_CRON_GEOSEARCH_GET_LOCATION_DATA'),
+				'name'   => 'getLocationData',
+				'label'  => Lang::txt('PLG_CRON_GEOSEARCH_GET_LOCATION_DATA'),
 				'params' => ''
 			)
 		);
@@ -94,8 +94,8 @@ class plgCronGeosearch extends \Hubzero\Plugin\Plugin
 		// jobs
 		$query = new Hubzero\Database\Query;
 		$jobs = $query->select('*')
-			->from('#__jobs_openings') 
-		  ->whereEquals('status', 1)
+			->from('#__jobs_openings')
+			->whereEquals('status', 1)
 			->whereRaw('(DATEDIFF(NOW(), added) < 180)')
 			->fetch();
 
@@ -109,9 +109,9 @@ class plgCronGeosearch extends \Hubzero\Plugin\Plugin
 		// Habricentral's definitiion of organization is a resource type.
 		$query = new Hubzero\Database\Query;
 		$resourceTypes = $query->select('id')
-		 ->from('#__resource_types')
-		 ->whereEquals('alias', 'organizations')
-		 ->fetch('column');
+			->from('#__resource_types')
+			->whereEquals('alias', 'organizations')
+			->fetch('column');
 
 		foreach ($resourceTypes as $type)
 		{
@@ -212,41 +212,44 @@ class plgCronGeosearch extends \Hubzero\Plugin\Plugin
 			array_push($markers, $obj);
 		}
 
+		$processed = array();
+		foreach ($existingMarkers as $e)
+		{
+			$processed[] = $e->scope . $e->scope_id;
+		}
+
 		foreach ($markers as &$marker)
 		{
+			// Try to avoid processing duplicates
+			if (in_array($marker['scope'] . $marker['scope_id'], $processed))
+			{
+				continue;
+			}
+
 			// Only mark non-existant things
-			$exists = false;
-			foreach ($existingMarkers as $e)
+			try 
 			{
-				if ($e->scope_id == $marker['scope_id'] && $e->scope == $marker['scope'])
-				{
-					$exists = true;
-				}
+				$geocode = new \Hubzero\Geocode\Geocode;
+				$marker['geolocate'] = $geocode->locate($marker['location']);
+			}
+			catch (\Exception $e)
+			{
+				$marker['geolocate'] = null;
 			}
 
-			if ($exists === false)
+			if ($marker['location'] != '' && $marker['location'] != null && $marker['geolocate'] != null)
 			{
-				try 
-				{
-					$geocode = new \Hubzero\Geocode\Geocode;
-					$marker['geolocate'] = $geocode->locate($marker['location']);
-				}
-				catch (\Exception $e)
-				{
-					$marker['geolocate'] = null;
-				}
-
-				if ($marker['location'] != '' && $marker['location'] != null && $marker['geolocate'] != null)
-				{
-					$m->addressLatitude = $marker['geolocate']->getLatitude();
-					$m->addressLongitude = $marker['geolocate']->getLongitude();
-					$m->title = $marker['title'];
-					$m->scope_id = $marker['scope_id'];
-					$m->scope = $marker['scope'];
-					$m->location = $marker['location'];
-					$m->store(true);
-				}
+				$m = new \Components\Geosearch\Tables\GeosearchMarkers($this->database);
+				$m->addressLatitude = $marker['geolocate']->getLatitude();
+				$m->addressLongitude = $marker['geolocate']->getLongitude();
+				//$m->title = $marker['title'];
+				$m->scope_id = $marker['scope_id'];
+				$m->scope = $marker['scope'];
+				//$m->location = $marker['location'];
+				$m->store(true);
 			}
+
+			$processed[] = $marker['scope'] . $marker['scope_id'];
 		}
 		return true;
 	}
