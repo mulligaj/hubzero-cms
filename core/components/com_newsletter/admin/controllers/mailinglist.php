@@ -106,8 +106,11 @@ class Mailinglist extends AdminController
 		$this->view->list->email_count = null;
 
 		// get request vars
-		$ids = Request::getVar('id', array());
-		$id = (isset($ids[0])) ? $ids[0] : null;
+		$id = Request::getVar('id', array());
+		if (is_array($id))
+		{
+			$id = (!empty($id) ? intval($id[0]) : 0);
+		}
 
 		// are we editing or adding a new list
 		if ($id)
@@ -310,7 +313,7 @@ class Mailinglist extends AdminController
 
 		// get current emails on list
 		$filters = array('status' => 'all');
-		$currentEmails = array_keys($newsletterMailinglist->getListEmails($this->mid, $key ='email', $filters));
+		$currentEmails = array_keys($newsletterMailinglist->getListEmails($this->mid, $key = 'email', $filters));
 
 		// get com_media params
 		$config = Component::params('com_media');
@@ -657,7 +660,7 @@ class Mailinglist extends AdminController
 	{
 		$email = Request::getVar('email', array(), 'post');
 
-		$mid = ($email['mid']) ? $email['mid'] : Request::getInt('mid');
+		$mid = (isset($email['mid']) && $email['mid']) ? $email['mid'] : Request::getInt('mid');
 
 		App::redirect(
 			Route::url('index.php?option=' . $this->_option . '&controller=' . $this->_controller . '&task=manage&id=' . $mid, false)
