@@ -3,7 +3,7 @@
  * @file        components/com_groups/assets/js/groups.jquery.js
  * @copyright   Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license     http://opensource.org/licenses/MIT MIT
- * @author			Kevin Wojkovich <kevinw@purdue.edu>
+ * @author      Kevin Wojkovich <kevinw@purdue.edu>
  */
 
 //-----------------------------------------------------------
@@ -84,10 +84,24 @@ HUB.Geosearch = {
 			} //end switch
 
 			$.ajax({
-				url:url,
-				data:data
+				url: url,
+				data: data
 			})
-			.done(function( data ) {
+			.done(function(data) {
+
+				var defaultUserImageSource = "https://qa.habricentral.org/data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0JyBzdHlsZT0nc3Ryb2tlLXdpZHRoOiAwcHg7IGJhY2tncm91bmQtY29sb3I6ICNmZmZmZmY7Jz48cGF0aCBmaWxsPScjZDlkOWQ5JyBkPSdNNjMuOSA2NHYtM2MtLjYtLjktMS0xLjgtMS40LTIuOGwtMS4yLTNjLS40LTEtLjktMS45LTEuNC0yLjhTNTguOCA1MC45IDU4IDUwYy0uOC0uOC0xLjUtMS4zLTIuNC0xLjUtLjYtLjItMS4xLS4zLTEuNy0uNC0uNiAwLTIuMS0uMy00LjQtLjZsLTguNC0xLjNjLS4yLS44LS40LTEuNS0uNS0yLjQtLjEtLjgtLjMtMS41LS42LTIuNC4zLS42LjctMSAxLjEtMS41LjQtLjYuOC0xIDEuMS0xLjUuNC0uNi43LTEuMyAxLTIuMi4zLS44LjgtMy41IDEuMy03LjhsLjQtM2MuMS0uOS4xLTEuNC4xLTEuNSAwLTIuOS0xLTUuNi0zLjEtOC0xLTEuMy0yLjQtMi40LTQuMS0zLjItMS44LS45LTMuNy0xLjQtNi0xLjQtMi4yIDAtNC4zLjQtNiAxLjMtMS44LjktMy4xIDItNC4yIDMuMi0xLjEgMS4zLTEuOCAyLjYtMi4zIDQuMS0uNiAxLjQtLjcgMi41LS43IDMuMiAwIC43IDAgMS41LjEgMi4zbC40IDIuOS40IDMuMS40IDMuM2MuMiAxLjEuNyAyLjQgMS41IDMuNy4zLjYuNyAxLjEgMS4xIDEuNWwxLjEgMS41Yy0uMi44LS40IDEuNS0uNiAyLjQtLjEuOC0uMyAxLjUtLjYgMi40bC01LjYuOC00LjYuOGMtMS4yLjItMi4xLjMtMi42LjQtLjYuMS0xLjEuMi0xLjcuNC0yLjEuOC00IDMuMS01LjcgNi44TC45IDU4LjVjLS40IDEtLjggMS45LTEuMyAyLjhWNjRoNjQuM3onLz48L3N2Zz4=";
+
+				var memberImageTag = function(thumb)
+				{
+					var imageTag = "";
+
+					if (thumb !== defaultUserImageSource)
+					{
+						imageTag = '<img src="' + thumb + '">';
+					}
+
+					return imageTag;
+				};
 
 				var html = '';
 				switch (marker.scope)
@@ -95,18 +109,18 @@ HUB.Geosearch = {
 					case "member":
 						var name = data.profile.name;
 						var organization = data.profile.organization;
-						var link = "/members/" + data.profile.id
+						var link = "/members/" + data.profile.id;
 						var thumb = data.profile.picture.full;
 
 						//contruct the popup view
 						html += '<div data-id="' + marker.id + '" class="popup member-popup">'; // classes for styling, because CSS
-						html += '<img src="' + thumb + '">';
+						html += memberImageTag(thumb);
 						html += '<h1>'+name+'</h1>';
 						html += '<p class="organization">'+organization+'</p>';
 						html += '<a href="'+link+'"><span class="link">'+data.profile.first_name+'\'s Profile</p></span>';
 						html += '</div>';
 
-					break;
+						break;
 					case "event":
 						// get the data for the popup view
 						var title = data.event.title;
@@ -124,7 +138,7 @@ HUB.Geosearch = {
 						html += '<p>'+content+'</p>';
 						html += '<a href="'+link+'"><span class="link">Event Details</p></span>';
 						html += '</div>';
-					break;
+						break;
 					case "job":
 						// get the data for the popup view
 						var title = data.job.title;
@@ -148,7 +162,7 @@ HUB.Geosearch = {
 						html += '<a class="link" href="'+link+'">View Full Job Posting</a>';
 						html += '</div>';
 
-					break;
+						break;
 					case "organization":
 						// organization table needs to be updated for searching by ID
 						var organizations = data.organizations;
@@ -165,12 +179,12 @@ HUB.Geosearch = {
 						html += '<h1>'+title+'</h1>';
 						html += '</div>';
 
-					break;
+						break;
 				} //end switch
 
 				infoWindow.setContent(html);
 			});
-			  infoWindow.open(map, marker);
+			infoWindow.open(map, marker);
 		});
 
 		// get markers
@@ -215,7 +229,7 @@ HUB.Geosearch = {
 						break;
 					case "organization":
 						var icon = "/app/components/com_geosearch/site/assets/img/icn_org.png";
-					break;
+						break;
 				}
 
 				//var loc = new map.LatLng(marker.addressLatitude, marker.addressLongitude);
