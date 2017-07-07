@@ -89,13 +89,13 @@ HUB.Geosearch = {
 			})
 			.done(function(data) {
 
-				var defaultUserImageSource = "https://qa.habricentral.org/data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgdmlld0JveD0nMCAwIDY0IDY0JyBzdHlsZT0nc3Ryb2tlLXdpZHRoOiAwcHg7IGJhY2tncm91bmQtY29sb3I6ICNmZmZmZmY7Jz48cGF0aCBmaWxsPScjZDlkOWQ5JyBkPSdNNjMuOSA2NHYtM2MtLjYtLjktMS0xLjgtMS40LTIuOGwtMS4yLTNjLS40LTEtLjktMS45LTEuNC0yLjhTNTguOCA1MC45IDU4IDUwYy0uOC0uOC0xLjUtMS4zLTIuNC0xLjUtLjYtLjItMS4xLS4zLTEuNy0uNC0uNiAwLTIuMS0uMy00LjQtLjZsLTguNC0xLjNjLS4yLS44LS40LTEuNS0uNS0yLjQtLjEtLjgtLjMtMS41LS42LTIuNC4zLS42LjctMSAxLjEtMS41LjQtLjYuOC0xIDEuMS0xLjUuNC0uNi43LTEuMyAxLTIuMi4zLS44LjgtMy41IDEuMy03LjhsLjQtM2MuMS0uOS4xLTEuNC4xLTEuNSAwLTIuOS0xLTUuNi0zLjEtOC0xLTEuMy0yLjQtMi40LTQuMS0zLjItMS44LS45LTMuNy0xLjQtNi0xLjQtMi4yIDAtNC4zLjQtNiAxLjMtMS44LjktMy4xIDItNC4yIDMuMi0xLjEgMS4zLTEuOCAyLjYtMi4zIDQuMS0uNiAxLjQtLjcgMi41LS43IDMuMiAwIC43IDAgMS41LjEgMi4zbC40IDIuOS40IDMuMS40IDMuM2MuMiAxLjEuNyAyLjQgMS41IDMuNy4zLjYuNyAxLjEgMS4xIDEuNWwxLjEgMS41Yy0uMi44LS40IDEuNS0uNiAyLjQtLjEuOC0uMyAxLjUtLjYgMi40bC01LjYuOC00LjYuOGMtMS4yLjItMi4xLjMtMi42LjQtLjYuMS0xLjEuMi0xLjcuNC0yLjEuOC00IDMuMS01LjcgNi44TC45IDU4LjVjLS40IDEtLjggMS45LTEuMyAyLjhWNjRoNjQuM3onLz48L3N2Zz4=";
+				var defaultUserImageSourceRegex = /^https:\/\/(qa.)?habricentral.org\/data:image\/svg\+xml;base64,PHN2ZyB4b/;
 
 				var memberImageTag = function(thumb)
 				{
 					var imageTag = "";
 
-					if (thumb !== defaultUserImageSource)
+					if (!thumb.match(defaultUserImageSourceRegex))
 					{
 						imageTag = '<img src="' + thumb + '">';
 					}
