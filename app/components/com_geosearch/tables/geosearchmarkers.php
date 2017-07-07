@@ -93,42 +93,82 @@ class GeosearchMarkers extends \JTable
 	 */
 	public function getMarkers($filters = array(), $format = 'json')
 	{
-		$query = "SELECT * FROM #__geosearch_markers";
+		$markers = array();
 
 		if (isset($filters['scope']))
 		{
-			$x = 0; // iterator to keep track
 			foreach ($filters['scope'] as $scope)
 			{
-				if ($x == 0)
-				{
-					$query .= ' WHERE scope like ' . $this->_db->quote($scope);
-				}
-				else
-				{
-					$query .= ' OR scope like ' . $this->_db->quote($scope);
-				}
+				$formattedScope = ucfirst($scope) . "Markers";
+				$getter = "get{$formattedScope}";
+				$scopeMarkers = $this->$getter();
 
-				$x++; //next!
+				$markers = array_merge($markers, $scopeMarkers);
 			}
 		}
 		elseif (isset($filters['review']))
 		{
-			$query .= ' WHERE review = TRUE';
+			$markers = $this->getReviewMarkers();
 		}
+
+		if ($format === 'json')
+		{
+			$markers = json_encode($markers);
+		}
+
+		return $markers;
+	}
+
+	protected function getEventMarkers()
+	{
+		$query = "SELECT markers.*, events.publish_up, events.publish_down
+			FROM (SELECT *
+			  FROM #__geosearch_markers
+			  WHERE scope = 'event') as markers
+			  LEFT JOIN #__events as events
+			  ON markers.scope_id = events.id
+			WHERE events.publish_down >= date_sub(curdate(), INTERVAL 1 month);";
 
 		$this->_db->setQuery($query);
 
-		$markers = $this->_db->LoadObjectList();
+		return $this->_db->LoadObjectList();
+	}
 
-		if ($format == 'json')
-		{
-			return json_encode($markers); //used in the map view
-		}
-		else
-		{
-			return $markers;
-		}
+	protected function getJobMarkers()
+	{
+		return $this->getMarkersByScope("job");
+	}
+
+	protected function getMemberMarkers()
+	{
+		return $this->getMarkersByScope("member");
+	}
+
+	protected function getOrganizationMarkers()
+	{
+		return $this->getMarkersByScope("organization");
+	}
+
+	protected function getMarkersByScope($scope)
+	{
+		$query = "SELECT *
+              FROM #__geosearch_markers
+              WHERE scope = '{$scope}';";
+
+		$this->_db->setQuery($query);
+
+		return $this->_db->LoadObjectList();
+	}
+
+	protected function getReviewMarkers()
+	{
+		$query = "SELECT *
+              FROM #__geosearch_markers
+              WHERE review = true;";
+
+		$this->_db->setQuery($query);
+
+		return $this->_db->LoadObjectList();
 	}
 
 	/**
@@ -348,7 +388,7 @@ class GeosearchMarkers extends \JTable
 	 * @param      float lat
 	 * @param      float lng
 	 * @param      string scope
-	 * @param      boolean flag 
+	 * @param      boolean flag
 	 * @return     null
 	 */
 	public function update($id=0,$lat='',$lng='',$scope='',$flag = false)
