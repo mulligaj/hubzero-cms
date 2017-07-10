@@ -77,9 +77,8 @@ HUB.Geosearch = {
 					var data = { jobcode : marker.scope_id}
 				break;
 				case "organization":
-					var url = "/api/members/organizations";
-					/* not supported yet */
-					//var data = { orgID : marker.scope_id};
+					var url = "/api/members/geolocatedorganizations";
+					var data = { id: marker.scope_id};
 				break;
 			} //end switch
 
@@ -164,19 +163,18 @@ HUB.Geosearch = {
 
 						break;
 					case "organization":
-						// organization table needs to be updated for searching by ID
-						var organizations = data.organizations;
-						var title = '';
-						$(organizations).each(function(org){
-							if (this.id == marker.scope_id)
-							{
-								title = this.organization;
-							}
-						});
+						data = data[0];
+						var title = data.title;
+						var description = data.description.trim() + "...";
+						var location = data.location;
+						var link = "/resources/" + data.id;
 
 						//contruct the popup view
 						html += '<div data-id="' + marker.id + '" class="popup org-popup">'; // classes for styling, because CSS
-						html += '<h1>'+title+'</h1>';
+						html += '<h1>' + title + '</h1>';
+						html += '<p>' + description + '</p>';
+						html += '<p>' + location + '</p>';
+						html += '<a class="link" href="' + link + '">View Organization Page</a>';
 						html += '</div>';
 
 						break;
