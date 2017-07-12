@@ -23,9 +23,11 @@ if (strpos($task, '.') !== false)
 }
 $defaultController = 'newcategories';
 $controllerName = Request::getCmd('controller', $defaultController);
+$extension = Request::getVar('extension');
+Lang::load($extension, \Component::path($extension) . '/admin', null, false, true);
 \Submenu::addEntry(
-    \Lang::txt('Articles'),
-    \Route::url('index.php?option=com_content&controller=newarticles')
+    \Lang::txt(strtoupper($extension) . '_ARTICLES'),
+    \Route::url('index.php?option=' . $extension)
 );
 
 \Submenu::addEntry(

@@ -14,9 +14,8 @@ $canDo = Components\Content\Admin\Helpers\Permissions::getActions('article');
 Html::behavior('tooltip');
 Html::behavior('formvalidation');
 Html::behavior('keepalive');
-$titleText = Lang::txt('COM_CONTENT_TITLE') . ': ';
-$titleText .= $this->task == 'edit' ? 'Edit' : 'Create';
-Toolbar::title($titleText, 'content');
+$lang = 'COM_CONTENT_PAGE_' . strtoupper($this->task) . '_ARTICLE';
+Toolbar::title(Lang::txt($lang), 'content');
 if ($canDo->get('core.edit'))
 {
     Toolbar::apply();
@@ -71,7 +70,7 @@ endif;
 				</div>
 
 				<div class="input-wrap">
-					<label for="categories-field"><?php echo Lang::txt('COM_CONTENT_FIELD_CATEGORIES'); ?></label>
+					<label for="categories-field"><?php echo Lang::txt('COM_CONTENT_CHOOSE_CATEGORY_LABEL'); ?></label>
 					<select id="categories-field" name="fields[catid]">
 						<?php foreach ($this->item->categories as $category): ?>
 							<?php 
@@ -134,34 +133,34 @@ endif;
 			<table class="meta">
 				<tbody>
 					<tr>
-						<td><?php echo Lang::txt('COM_CONTENT_FIELD_ID');?></td>
+						<td><?php echo Lang::txt('COM_CONTENT_FIELD_ID_LABEL');?></td>
 						<td><?php echo $this->item->get('id', 0);?>
 							<input type="hidden" name="id" value="<?php echo $this->item->get('id'); ?>" />
 						</td>
 					</tr>
 					<tr>
-						<td><?php echo Lang::txt('COM_CONTENT_FIELD_CREATOR'); ?></td>
+						<td><?php echo Lang::txt('COM_CONTENT_FIELD_CREATED_BY_LABEL'); ?></td>
 						<td>
 							<?php echo User::getInstance($this->item->createdBy)->get('name'); ?>
 							<input type="hidden" name="fields[created_by]" value="<?php echo $this->item->createdBy;?>" />
 						</td> 
 					</tr>
 					<tr>
-						<td><?php echo Lang::txt('COM_CONTENT_FIELD_CREATED');?></td>
+						<td><?php echo Lang::txt('COM_CONTENT_FIELD_CREATED_LABEL');?></td>
 						<td>
 							<?php echo $this->item->created; ?>
 						</td>
 					</tr>
 					<?php if ($this->item->get('modified_by', false)): ?>
 					<tr>
-						<td><?php echo Lang::txt('COM_CONTENT_FIELD_MODIFIER'); ?></td>
+						<td><?php echo Lang::txt('COM_CONTENT_FIELD_MODIFIER_LABEL'); ?></td>
 						<td>
 							<?php echo User::getInstance($this->item->modifiedBy)->get('name'); ?>
 							<input type="hidden" name="fields[modified_by]" value="<?php echo $this->item->modifiedBy;?>" />
 						</td> 
 					</tr>
 					<tr>
-						<td><?php echo Lang::txt('COM_CONTENT_FIELD_MODIFIED');?></td>
+						<td><?php echo Lang::txt('COM_CONTENT_FIELD_MODIFIED_LABEL');?></td>
 						<td>
 							<?php echo $this->item->modified; ?>
 						</td>

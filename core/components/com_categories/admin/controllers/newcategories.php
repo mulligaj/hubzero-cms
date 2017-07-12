@@ -32,6 +32,7 @@
 namespace Components\Categories\Admin\Controllers;
 
 use Hubzero\Component\AdminController;
+use Hubzero\Utility\Inflector;
 use Hubzero\Access\Access;
 use Hubzero\Access\Rules;
 use Hubzero\Access\Asset;
@@ -135,17 +136,27 @@ class Newcategories extends AdminController
 		$items = $categories->paginated('limitstart', 'limit');
 		$itemsArray = array();
 		$ordering = array();
-		$levels = array();
+		$levels = Category::all()
+			->whereEquals('extension', $filters['extension'])
+			->group('level')
+			->order('level', 'asc')
+			->rows();
+		$fLevels = array();
+		foreach ($levels as $level)
+		{
+			$level = $level->get('level');
+			$fLevels[$level] = $level;
+		}
 		foreach ($items as $item)
 		{
 			$itemsArray[] = $item;
 			$parentId = $item->get('parent_id', '0');
 			$ordering[$parentId][] = $item->get('id');
-			$level = $item->get('level');
-			$levels[$level] = $level;	
 		}
+		$extension = $filters['extension'];
+		
 		$this->view->set('pagination', $items->pagination);
-		$this->view->set('f_levels', $levels);
+		$this->view->set('f_levels', $fLevels);
 		$this->view->set('filters', $filters);
 		$this->view->set('ordering', $ordering);
 		$this->view->set('items', $itemsArray);
@@ -218,7 +229,9 @@ class Newcategories extends AdminController
 		}
 		else
 		{
-			Notify::success(Lang::txt('COM_CATEGORY_DELETE_SUCCESS'));
+			$count = (int) count($categories);
+			$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
+			Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_DELETED', $count, $title));
 		}
 		$this->cancelTask();
 	}
@@ -240,7 +253,9 @@ class Newcategories extends AdminController
 			}
 			else
 			{
-				Notify::success(Lang::txt('COM_CATEGORY_UNPUBLISH_SUCCESS'));
+				$count = (int) count($categories);
+				$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
+				Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_UNPUBLISHED', $count, $title));
 			}
 		}
 		else
@@ -267,7 +282,9 @@ class Newcategories extends AdminController
 			}
 			else
 			{
-				Notify::success(Lang::txt('COM_CATEGORY_PUBLISH_SUCCESS'));
+				$count = (int) count($categories);
+				$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
+				Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_PUBLISHED', $count, $title));
 			}
 		}
 		else
@@ -297,13 +314,14 @@ class Newcategories extends AdminController
 		$inc = ($this->getTask() == 'orderup') ? -1 : +1;
 
 		$success = 0;
+		$extension = Request::getState($this->_option . '.' . $this->_controller . '.extension', 'extension');
 
 		foreach ($ids as $id)
 		{
 			// Load the record and reorder it
 			$model = Category::oneOrFail(intval($id));
 
-			if (!$model->move($inc))
+			if (!$model->move($inc, $extension))
 			{
 				Notify::error(Lang::txt('JLIB_APPLICATION_ERROR_REORDER_FAILED', $model->getError()));
 				continue;
@@ -341,7 +359,8 @@ class Newcategories extends AdminController
 	{
 		Request::checkToken();
 		$ordering = Request::getVar('order', array());
-		if (!Category::saveorder($ordering))
+		$extension = Request::getState($this->_option . '.' . $this->_controller . '.extension', 'extension');
+		if (!Category::saveorder($ordering, $extension))
 		{
 			Notify::error(Lang::txt('COM_CONTENT_ORDERING_ERROR'));
 		}

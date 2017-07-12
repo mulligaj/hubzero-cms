@@ -228,7 +228,7 @@ class Category extends Nested
         return $form;
     }
 
-	public static function saveorder($ordering)
+	public static function saveorder($ordering, $extension)
 	{
 		if (empty($ordering) || !is_array($ordering))
 		{
@@ -238,7 +238,7 @@ class Category extends Nested
 		foreach ($ordering as $parentid => $order)
 		{
 			$existingOrderedRows = self::all()->whereEquals('parent_id', $parentid)
-											  ->whereEquals('extension', 'com_content')
+											  ->whereEquals('extension', $extension)
 											  ->order('lft', 'asc')
 											  ->rows();
 			if (count($existingOrderedRows) <= 1)
@@ -271,7 +271,7 @@ class Category extends Nested
 		return true;
 	}
 
-	public function move($delta, $where = '')
+	public function move($delta, $extension, $where = '')
 	{
 		// If the change is none, do nothing.
 		if (empty($delta))
@@ -282,7 +282,7 @@ class Category extends Nested
 		// Select the primary key and ordering values from the table.
 		$query = self::all()
 			->whereEquals('parent_id', $this->get('parent_id'))
-			->whereEquals('extension', 'com_content');
+			->whereEquals('extension', $extension);
 
 		// If the movement delta is negative move the row up.
 		if ($delta < 0)

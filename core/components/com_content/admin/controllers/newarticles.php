@@ -32,6 +32,7 @@
 namespace Components\Content\Admin\Controllers;
 
 use Hubzero\Component\AdminController;
+use Hubzero\Utility\Inflector;
 use Hubzero\Access\Access;
 use Hubzero\Access\Rules;
 use Hubzero\Access\Asset;
@@ -108,7 +109,6 @@ class Newarticles extends AdminController
 		);
 		$searchableFields = array(
 			'category_id' => 'catid',
-			'published' => 'state',
 			'access' => 'access'
 		);
 		$articles = Article::all();
@@ -119,6 +119,18 @@ class Newarticles extends AdminController
 				$articles->whereEquals($column, $filters[$index]);
 			}	
 		}
+		if (isset($filters['published']))
+		{
+			if ($filters['published'] == '')
+			{
+				$articles->where('state', '>=', 0);
+			}
+			elseif ($filters['published'] != '*')
+			{
+				$articles->whereEquals('state', $filters['published']);
+			}
+		}
+
 		$articles->including('accessLevel')
 				 ->including('category');
 		if (strtolower($filters['sort']) == 'ordering')
@@ -140,13 +152,6 @@ class Newarticles extends AdminController
 		$this->view->setLayout('default')->display();
 	}
 
-	public function assetTask()
-	{
-		$rules = Access::getAssetRules('com_content.article', false);
-		print_r($rules->getData());
-		exit();
-	}
-
 	public function editTask($article = null)
 	{
 		$id = Request::getInt('id', 0);
@@ -158,7 +163,7 @@ class Newarticles extends AdminController
 		{
 			$article->set('asset_id', 1);
 		}
-
+		$this->view->set('task', $this->_task);
 		$this->view->set('item', $article);
 		$this->view->set('form', $article->getForm());
 		$this->view->setLayout('edit');
@@ -186,7 +191,7 @@ class Newarticles extends AdminController
 			return $this->editTask($article);
 		}
 
-		Notify::success(Lang::txt('COM_CONTENT_ARTICLE_SAVED'));
+		Notify::success(Lang::txt('COM_CONTENT_SAVE_SUCCESS'));
 		if ($this->_task == 'apply')
 		{
 			return $this->editTask($article);
@@ -251,6 +256,86 @@ class Newarticles extends AdminController
 		else
 		{
 			Notify::success(Lang::txt('COM_CONTENT_ORDERING_SUCCESS'));
+		}
+		$this->cancelTask();
+	}
+
+	public function unpublishTask()
+	{
+		Request::checkToken();
+		$ids = Request::getArray('cid');
+		if (!empty($ids))
+		{
+			$articles = Article::all()->whereIn('id', $ids)->rows();
+			foreach ($articles as $article)
+			{
+				$article->set('state', '0');
+			}
+			if (!$articles->save())
+			{
+				Notify::error(Lang::txt('COM_CONTENT_UNPUBLISH_ERROR'));
+			}
+			else
+			{
+				$count = count($articles);
+				$title = Inflector::pluralize('article', $count);
+				Notify::success(Lang::txt('COM_CONTENT_N_ITEMS_UNPUBLISHED', $count, $title));
+			}
+		}
+		else
+		{
+			Notify::warning(Lang::txt('COM_CONTENT_NO_SELECTION'));
+		}
+		$this->cancelTask();
+	}
+
+	public function publishTask()
+	{
+		Request::checkToken();
+		$ids = Request::getArray('cid');
+		if (!empty($ids))
+		{
+			$articles = Article::all()->whereIn('id', $ids)->rows();
+			foreach ($articles as $article)
+			{
+				$article->set('state', '1');
+			}
+			if (!$articles->save())
+			{
+				Notify::error(Lang::txt('COM_CONTENT_PUBLISH_ERROR'));
+			}
+			else
+			{
+				$count = (int) count($articles);
+				$title = Inflector::pluralize('article', $count);
+				Notify::success(Lang::txt('COM_CONTENT_N_ITEMS_PUBLISHED', $count, $title));
+			}
+		}
+		else
+		{
+			Notify::warning(Lang::txt('COM_CONTENT_NO_SELECTION'));
+		}
+		$this->cancelTask();
+	}
+
+	public function deleteTask()
+	{
+		Request::checkToken();
+		$ids = Request::getArray('cid');
+		$articles = Article::all()->whereIn('id', $ids)->rows();
+		foreach ($articles as $article)
+		{
+			$article->set('state', '-2');
+		}
+		if (!$articles->save())
+		{
+			Notify::error(Lang::txt('COM_CONTENT_DELETE_ERROR'));	
+		}
+		else
+		{
+			$count = (int) count($articles);
+			$title = Inflector::pluralize('article', $count);
+			Notify::success(Lang::txt('COM_CONTENT_N_ITEMS_DELETED', $count, $title));
 		}
 		$this->cancelTask();
 	}

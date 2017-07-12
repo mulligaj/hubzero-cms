@@ -15,7 +15,6 @@ $canChangeState = User::authorise('core.edit.state', 'com_categories');
 $canDelete = User::authorise('core.delete', 'com_categories');
 Html::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 Html::behavior('multiselect');
-Toolbar::title(Lang::txt('COM_CATEGORIES_TITLE'), 'categories');
 
 if ($canAdmin)
 {
@@ -50,6 +49,7 @@ $listOrder = $this->filters['sort'];
 $listDirn  = $this->filters['sort_Dir'];
 $ordering  = ($listOrder == 'lft');
 $saveOrder = $listOrder == 'lft';
+Toolbar::title(Lang::txt('COM_CATEGORIES_CATEGORIES_TITLE', Lang::txt($extension)), 'categories');
 ?>
 <form action="<?php echo Route::url('index.php?option=com_categories&view=categories');?>" method="post" name="adminForm" id="adminForm">
 

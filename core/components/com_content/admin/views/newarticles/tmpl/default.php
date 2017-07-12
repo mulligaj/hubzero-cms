@@ -16,7 +16,7 @@ $canDelete = User::authorise('core.delete', 'com_content');
 
 Html::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 Html::behavior('multiselect');
-Toolbar::title(Lang::txt('COM_CONTENT_TITLE'), 'content');
+Toolbar::title(Lang::txt('COM_CONTENT_ARTICLES_TITLE'), 'content');
 
 if ($canAdmin)
 {
