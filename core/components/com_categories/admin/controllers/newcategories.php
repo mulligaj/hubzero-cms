@@ -53,6 +53,8 @@ class Newcategories extends AdminController
 	{
 		$this->registerTask('add', 'edit');
 		$this->registerTask('apply', 'save');
+		$this->registerTask('save2new', 'save');
+		$this->registerTask('save2copy', 'save');
 		$this->registerTask('publish', 'state');
 		$this->registerTask('unpublish', 'state');
 		$this->registerTask('orderup', 'reorder');
@@ -167,7 +169,7 @@ class Newcategories extends AdminController
 	{
 		$id = Request::getInt('id', 0);
 		$extension = Request::getCmd('extension');
-		if (!($category instanceof Article))
+		if (!($category instanceof Category))
 		{	
 			$category = Category::oneOrNew($id);
 		}
@@ -200,6 +202,10 @@ class Newcategories extends AdminController
 		}
 		unset($items['rules']);
 		$category->set($items);
+		if ($this->_task == 'save2copy')
+		{
+			$category->set('id', 0);
+		}
 		if (!$category->saveAsChildOf($items['parent_id']))
 		{
 			Notify::error($category->getError());
@@ -207,9 +213,59 @@ class Newcategories extends AdminController
 		}
 
 		Notify::success(Lang::txt('COM_CATEGORY_SAVED'));
-		if ($this->_task == 'apply')
+		if ($this->_task == 'apply' || $this->_task == 'save2copy')
 		{
 			return $this->editTask($category);
+		}
+		elseif ($this->_task == 'save2new')
+		{
+			Request::setVar('id', 0);
+			$this->editTask();
+		}
+		$this->cancelTask();
+	}
+
+	public function archiveTask()
+	{
+		Request::checkToken();
+		$ids = Request::getArray('cid');
+		$categories = Category::all()->whereIn('id', $ids)->rows();
+		foreach ($categories as $category)
+		{
+			$category->set('published', '2');
+		}
+		if (!$categories->save())
+		{
+			Notify::error($categories->getError());	
+		}
+		else
+		{
+			$count = (int) count($categories);
+			$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
+			Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_ARCHIVED', $count, $title));
+		}
+		$this->cancelTask();
+	}
+
+	public function checkinTask()
+	{
+		Request::checkToken();
+		$ids = Request::getArray('cid');
+		$categories = Category::all()->whereIn('id', $ids)->rows();
+		foreach ($categories as $category)
+		{
+			$category->set('checked_out', null);
+			$category->set('checked_out_time', null);
+		}
+		if (!$categories->save())
+		{
+			Notify::error($categories->getError());	
+		}
+		else
+		{
+			$count = (int) count($categories);
+			$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
+			Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_CHECKED_IN_MORE', $count, $title));
 		}
 		$this->cancelTask();
 	}

@@ -18,11 +18,13 @@ if ($this->canDo->get('core.edit'))
 {
     Toolbar::apply();
     Toolbar::save();
+	Toolbar::save2copy();
+	Toolbar::save2new();
     Toolbar::spacer();
 }
 Toolbar::cancel();
 Toolbar::spacer();
-Toolbar::help('article');
+Toolbar::help('category');
 ?>
 
 <script type="text/javascript">

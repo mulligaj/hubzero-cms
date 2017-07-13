@@ -16,10 +16,14 @@ Html::behavior('formvalidation');
 Html::behavior('keepalive');
 $lang = 'COM_CONTENT_PAGE_' . strtoupper($this->task) . '_ARTICLE';
 Toolbar::title(Lang::txt($lang), 'content');
-if ($canDo->get('core.edit'))
+if ($canDo->get('core.edit')
+	|| ($canDo->get('core.edit.own') && User::getInstance()->get('id') == $this->item->get('created_by'))
+	|| ($canDo->get('core.create')))
 {
     Toolbar::apply();
     Toolbar::save();
+	Toolbar::save2copy();
+	Toolbar::save2new();
     Toolbar::spacer();
 }
 Toolbar::cancel();

@@ -71,6 +71,7 @@ class Permissions
 			'core.create',
 			'core.edit',
 			'core.edit.state',
+			'core.edit.own',
 			'core.delete'
 		);
 

@@ -148,6 +148,11 @@ class Article extends Relational
 		return $this->belongsToOne('\Components\Categories\Models\Category', 'catid');
 	}
 
+	public function author()
+	{
+		return $this->belongsToOne('\Hubzero\User\User', 'created_by');
+	}
+
 	public function categories()
 	{
 		return \Components\Categories\Models\Category::all()->whereEquals('extension', 'com_content');

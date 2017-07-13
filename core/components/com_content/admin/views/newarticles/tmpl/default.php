@@ -18,28 +18,34 @@ Html::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 Html::behavior('multiselect');
 Toolbar::title(Lang::txt('COM_CONTENT_ARTICLES_TITLE'), 'content');
 
-if ($canAdmin)
+if ($canCreate)
 {
-    Toolbar::preferences($this->option, '550');
-    Toolbar::spacer();
+    Toolbar::addNew();
 }
+
+if ($canEdit)
+{
+    Toolbar::editList();
+}
+
+Toolbar::spacer();
 if ($canChangeState)
 {
     Toolbar::publishList();
     Toolbar::unpublishList();
     Toolbar::spacer();
+	Toolbar::archiveList();
+	Toolbar::checkin();
 }
 if ($canDelete)
 {
     Toolbar::deleteList('', 'delete');
 }
-if ($canEdit)
+
+if ($canAdmin)
 {
-    Toolbar::editList();
-}
-if ($canCreate)
-{
-    Toolbar::addNew();
+	Toolbar::spacer();
+    Toolbar::preferences($this->option, '550');
 }
 Toolbar::spacer();
 Toolbar::help('articles');
@@ -205,7 +211,7 @@ $saveOrder = $listOrder == 'ordering';
 						<?php echo $this->escape($item->author_name); ?>
 						<p class="smallsub"> <?php echo Lang::txt('JGLOBAL_LIST_ALIAS', $this->escape($item->created_by_alias)); ?></p>
 					<?php else : ?>
-						<?php echo $this->escape($item->author_name); ?>
+						<?php echo $this->escape($item->author->name); ?>
 					<?php endif; ?>
 				</td>
 				<td class="priority-5 center nowrap">

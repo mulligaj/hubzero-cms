@@ -16,31 +16,37 @@ $canDelete = User::authorise('core.delete', 'com_categories');
 Html::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 Html::behavior('multiselect');
 
-if ($canAdmin)
+if ($canCreate)
 {
-    Toolbar::preferences($this->option, '550');
-    Toolbar::spacer();
-}
-if ($canChangeState)
-{
-    Toolbar::publishList();
-    Toolbar::unpublishList();
-    Toolbar::spacer();
-}
-if ($canDelete)
-{
-    Toolbar::deleteList('', 'delete');
+    Toolbar::addNew();
 }
 if ($canEdit)
 {
     Toolbar::editList();
 }
-if ($canCreate)
-{
-    Toolbar::addNew();
-}
 Toolbar::spacer();
-Toolbar::help('articles');
+if ($canChangeState)
+{
+    Toolbar::publishList();
+    Toolbar::unpublishList();
+    Toolbar::spacer();
+	Toolbar::archiveList();
+	Toolbar::checkin();
+}
+
+if ($canDelete)
+{
+    Toolbar::deleteList('', 'delete');
+}
+
+if ($canAdmin)
+{
+    Toolbar::spacer();
+    Toolbar::preferences($this->option, '550');
+}
+
+Toolbar::spacer();
+Toolbar::help('categories');
 Html::behavior('tooltip');
 
 $userId    = User::get('id');
