@@ -77,7 +77,7 @@ HUB.Geosearch = {
 					var data = { jobcode : marker.scope_id}
 				break;
 				case "organization":
-					var url = "/api/members/geolocatedorganizations";
+					var url = "/api/geosearch/organizations";
 					var data = { id: marker.scope_id};
 				break;
 			} //end switch
