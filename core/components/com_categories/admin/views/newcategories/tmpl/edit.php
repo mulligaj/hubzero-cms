@@ -11,9 +11,7 @@ defined('_HZEXEC_') or die();
 Html::behavior('tooltip');
 Html::behavior('formvalidation');
 Html::behavior('keepalive');
-$titleText = Lang::txt('COM_CATEGORIES_TITLE') . ': ';
-$titleText .= $this->task == 'edit' ? 'Edit' : 'Create';
-Toolbar::title($titleText, 'content');
+Toolbar::title($this->title, 'content');
 if ($this->canDo->get('core.edit'))
 {
     Toolbar::apply();
@@ -80,7 +78,15 @@ Toolbar::help('category');
 					<div class="col span6">
 						<div class="input-wrap">
 							<?php echo $this->form->getLabel('published'); ?>
-							<?php echo $this->form->getInput('published'); ?>
+							<?php if ($this->canDo->get('core.edit.state')): ?>
+								<?php echo $this->form->getInput('published'); ?>
+							<?php else: ?>
+							<select name="fields[published]" disabled="disabled">
+								<option value="<?php echo $this->item->get('published');?>">
+									<?php echo $this->item->published; ?>
+								</option>
+							</select>
+							<?php endif; ?>
 						</div>
 					</div>
 					<div class="col span6">
@@ -134,7 +140,7 @@ Toolbar::help('category');
 						</td>
 					</tr>
 					<tr>
-						<td><?php echo Lang::txt('COM_CATEGORY_CREATED'); ?></td>
+						<td><?php echo Lang::txt('COM_CATEGORY_FIELD_CREATED'); ?></td>
 						<td>
 							<?php echo $this->item->get('created_time'); ?>
 						</td>

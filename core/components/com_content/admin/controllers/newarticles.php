@@ -54,8 +54,10 @@ class Newarticles extends AdminController
 		$this->registerTask('apply', 'save');
 		$this->registerTask('save2new', 'save');
 		$this->registerTask('save2copy', 'save');
+		$this->registerTask('archive', 'state');
 		$this->registerTask('publish', 'state');
 		$this->registerTask('unpublish', 'state');
+		$this->registerTask('trash', 'state');
 		$this->registerTask('orderup', 'reorder');
 		$this->registerTask('orderdown', 'reorder');
 		parent::execute();
@@ -312,82 +314,53 @@ class Newarticles extends AdminController
 		$this->cancelTask();
 	}
 
-	public function unpublishTask()
+	public function stateTask()
 	{
 		Request::checkToken();
-		$ids = Request::getArray('cid');
-		if (!empty($ids))
-		{
-			$articles = Article::all()->whereIn('id', $ids)->rows();
-			foreach ($articles as $article)
-			{
-				$article->set('state', '0');
-			}
-			if (!$articles->save())
-			{
-				Notify::error($articles->getError());
-			}
-			else
-			{
-				$count = count($articles);
-				$title = Inflector::pluralize('article', $count);
-				Notify::success(Lang::txt('COM_CONTENT_N_ITEMS_UNPUBLISHED', $count, $title));
-			}
-		}
-		else
-		{
-			Notify::warning(Lang::txt('COM_CONTENT_NO_SELECTION'));
-		}
-		$this->cancelTask();
-	}
+		$states = array(
+			'publish' => array(
+				'value' => '1',
+				'lang' => 'COM_CONTENT_N_ITEMS_PUBLISHED'
+			),
+			'unpublish' => array(
+				'value' => '0',
+				'lang' => 'COM_CONTENT_N_ITEMS_UNPUBLISHED'
+			),
+			'archive' => array(
+				'value' => '2',
+				'lang' => 'COM_CONTENT_N_ITEMS_ARCHIVED'
+			),
+			'trash' => array(
+				'value' => '-2',
+				'lang' => 'COM_CONTENT_N_ITEMS_TRASHED'
+			)
+		);
+		$state = $states[$this->_task];	
 
-	public function publishTask()
-	{
-		Request::checkToken();
 		$ids = Request::getArray('cid');
 		if (!empty($ids))
 		{
 			$articles = Article::all()->whereIn('id', $ids)->rows();
-			foreach ($articles as $article)
+			$permissionErrors = 0;
+			foreach ($articles as $index => $article)
 			{
-				$article->set('state', '1');
+				if (!User::authorise('core.edit.state', $article->asset_id))
+				{
+					Notify::error("Can't change state drop $index");
+					$permissionErrors++;
+					continue;
+				}
+				$article->set('state', $state['value']);
 			}
-			if (!$articles->save())
-			{
-				Notify::error($articles->getError());
-			}
-			else
+		}
+		if ($articles->count() != $permissionErrors)
+		{
+			if ($articles->save())
 			{
 				$count = (int) count($articles);
 				$title = Inflector::pluralize('article', $count);
-				Notify::success(Lang::txt('COM_CONTENT_N_ITEMS_PUBLISHED', $count, $title));
+				Notify::success(Lang::txt($state['lang'], $count, $title));
 			}
-		}
-		else
-		{
-			Notify::warning(Lang::txt('COM_CONTENT_NO_SELECTION'));
-		}
-		$this->cancelTask();
-	}
-
-	public function archiveTask()
-	{
-		Request::checkToken();
-		$ids = Request::getArray('cid');
-		$articles = Article::all()->whereIn('id', $ids)->rows();
-		foreach ($articles as $article)
-		{
-			$article->set('state', '2');
-		}
-		if (!$articles->save())
-		{
-			Notify::error($articles->getError());	
-		}
-		else
-		{
-			$count = (int) count($articles);
-			$title = Inflector::pluralize('article', $count);
-			Notify::success(Lang::txt('COM_CONTENT_N_ITEMS_ARCHIVED', $count, $title));
 		}
 		$this->cancelTask();
 	}
@@ -397,6 +370,7 @@ class Newarticles extends AdminController
 		Request::checkToken();
 		$ids = Request::getArray('cid');
 		$articles = Article::all()->whereIn('id', $ids)->rows();
+		$permissionErrors = 0;
 		foreach ($articles as $key => $article)
 		{
 			if (!User::authorise('core.admin', $article->asset_id))
@@ -404,14 +378,14 @@ class Newarticles extends AdminController
 				if ($article->checked_out != User::getInstance()->get('id'))
 				{
 					Notify::warning(Lang::txt('COM_CONTENT_CHECKED_IN_ERROR', $article->id));
-					$articles->drop($key);
+					$permissionErrors++;
 					continue;
 				}
 			}
 			$article->set('checked_out', null);
 			$article->set('checked_out_time', null);
 		}
-		if ($articles->count() > 0)
+		if ($articles->count() != $permissionErrors)
 		{
 			if ($articles->save())
 			{
@@ -423,36 +397,14 @@ class Newarticles extends AdminController
 		$this->cancelTask();
 	}
 
-	public function deleteTask()
-	{
-		Request::checkToken();
-		$ids = Request::getArray('cid');
-		$articles = Article::all()->whereIn('id', $ids)->rows();
-		foreach ($articles as $article)
-		{
-			$article->set('state', '-2');
-		}
-		if (!$articles->save())
-		{
-			Notify::error($articles->getError());	
-		}
-		else
-		{
-			$count = (int) count($articles);
-			$title = Inflector::pluralize('article', $count);
-			Notify::success(Lang::txt('COM_CONTENT_N_ITEMS_DELETED', $count, $title));
-		}
-		$this->cancelTask();
-	}
-
 	public function cancelTask()
 	{
 		if ($this->_task == 'cancel')
 		{
 			$id = Request::getInt('id', 0);
-			$article = Article::oneOrFail($id);
-			$articleCheckedOut = $article->get('checked_out');
-			if (User::getInstance()->get('id') == $articleCheckedOut)
+			$article = Article::one($id);
+			$articleCheckedOut = $article instanceof Article ? $article->get('checked_out') : 0;
+			if ($article && User::getInstance()->get('id') == $articleCheckedOut)
 			{
 				$article->set('checked_out', null);
 				$article->set('checked_out_time', null);

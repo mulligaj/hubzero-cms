@@ -31,6 +31,7 @@
 
 namespace Components\Content\Models;
 
+use Components\Categories\Models\Category;
 use Hubzero\Database\Relational;
 use Hubzero\Database\Asset;
 use Hubzero\Utility\String;
@@ -143,9 +144,18 @@ class Article extends Relational
 		});
 	}
 
+	public function automaticAssetId()
+	{
+		if (!empty($this->assetRules))
+		{
+			return parent::automaticAssetId();
+		}
+		return $this->get('asset_id');
+	}
+
 	public function category()
 	{
-		return $this->belongsToOne('\Components\Categories\Models\Category', 'catid');
+		return $this->belongsToOne('Components\Categories\Models\Category', 'catid');
 	}
 
 	public function author()
@@ -153,9 +163,30 @@ class Article extends Relational
 		return $this->belongsToOne('\Hubzero\User\User', 'created_by');
 	}
 
+	public function editor()
+	{
+		return $this->belongsToOne('\Hubzero\User\User', 'checked_out');
+	}
+
 	public function categories()
 	{
-		return \Components\Categories\Models\Category::all()->whereEquals('extension', 'com_content');
+		$categories = Category::all()
+			->whereEquals('extension', 'com_content')
+			->whereIn('published', array(0, 1))
+			->order('lft', 'asc');
+		return $categories;
+	}
+
+	public function transformState()
+	{
+		$states = array(
+			'0' => 'Unpublished',
+			'1' => 'Published',
+			'2' => 'Archived',
+			'-2' => 'Trashed'
+		);
+		$stateNum = $this->get('state', 0);
+		return $states[$stateNum];
 	}
 
 	public function accessLevel()

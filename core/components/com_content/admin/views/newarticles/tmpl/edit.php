@@ -9,7 +9,7 @@
 // No direct access.
 defined('_HZEXEC_') or die();
 
-$canDo = Components\Content\Admin\Helpers\Permissions::getActions('article');
+$canDo = Components\Content\Admin\Helpers\Permissions::getActions('article', $this->item->get('id'));
 // Load the tooltip behavior.
 Html::behavior('tooltip');
 Html::behavior('formvalidation');
@@ -77,21 +77,25 @@ endif;
 					<label for="categories-field"><?php echo Lang::txt('COM_CONTENT_CHOOSE_CATEGORY_LABEL'); ?></label>
 					<select id="categories-field" name="fields[catid]">
 						<?php foreach ($this->item->categories as $category): ?>
-							<?php 
+							<?php
+								if (!User::authorise('core.create', $category->asset_id))
+								{
+									continue;
+								}
 								$selected = '';
-								if (empty($this->item->get('catid')))
+								if (empty($this->item->catid))
 								{
 									if (strtolower($category->alias) == 'uncategorised')
 									{
 										$selected = 'selected="selected"';
 									}
 								}
-								elseif ($category->id == $this->item->get('catid'))
+								elseif ($category->id == $this->item->catid)
 								{
 									$selected = 'selected="selected"';
 								}
 							?>
-							<option value="<?php echo $category->id;?>" <?php echo $selected;?>><?php echo $category->title;?></option>
+							<option value="<?php echo $category->id;?>" <?php echo $selected;?>><?php echo $category->nestedTitle();?></option>
 						<?php endforeach; ?>
 					</select>
 				</div>
@@ -99,7 +103,15 @@ endif;
 				<div class="width-50 fltlft">
 					<div class="input-wrap">
 						<?php echo $this->form->getLabel('state'); ?>
-						<?php echo $this->form->getInput('state'); ?>
+						<?php if ($canDo->get('core.edit.state')): ?>
+							<?php echo $this->form->getInput('state'); ?>
+						<?php else: ?>
+						<select name="fields[state]" id="categories-field" disabled="disabled">
+							<option value="<?php echo $this->item->get('state'); ?>">
+								<?php echo $this->item->state; ?>
+							</option>
+						</select>
+						<?php endif; ?>
 					</div>
 				</div>
 				<div class="width-50 fltrt">

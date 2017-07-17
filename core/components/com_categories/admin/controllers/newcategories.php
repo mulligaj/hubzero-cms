@@ -57,6 +57,8 @@ class Newcategories extends AdminController
 		$this->registerTask('save2copy', 'save');
 		$this->registerTask('publish', 'state');
 		$this->registerTask('unpublish', 'state');
+		$this->registerTask('archive', 'state');
+		$this->registerTask('trash', 'state');
 		$this->registerTask('orderup', 'reorder');
 		$this->registerTask('orderdown', 'reorder');
 		parent::execute();
@@ -173,11 +175,45 @@ class Newcategories extends AdminController
 		{	
 			$category = Category::oneOrNew($id);
 		}
-		if ($category->isNew())
+		if (!$category->isNew())
 		{
-			$category->set('extension', $extension);
+			$assetId = $category->get('asset_id');
+			$createdBy = $category->get('created_by');
+			$checkedOut = $category->get('checked_out');
+			if ($checkedOut)
+			{
+				if ($checkedOut != User::getInstance()->get('id'))
+				{
+				Notify::error(Lang::txt('Currently checked out'));
+				$this->cancelTask();
+				}
+			}
+			if (!User::authorise('core.edit', $assetId))
+			{
+				if (!User::authorise('core.edit.own', $assetId)
+				|| $createdBy != User::getInstance()->get('id'))
+				{
+					App::abort(403, Lang::txt('COM_CONTENT_NOT_AUTHORIZED'));
+				}
+			}
+			$category->set('checked_out', User::getInstance()->get('id'));
+			$category->set('checked_out_time', Date::of()->toSql());
+			$category->save();
+			$lang = 'COM_CATEGORIES_CATEGORY_EDIT_TITLE';
 		}
+		else
+		{
+			if (!User::authorise('core.create', $extension))
+			{
+				App::abort(403, Lang::txt('COM_CONTENT_NOT_AUTHORIZED'));
+			}
+			$category->set('extension', $extension);
+			$lang = 'COM_CATEGORIES_CATEGORY_ADD_TITLE';
+		}
+		$extensionLang = Lang::txt(strtoupper($extension));
+		$title = Lang::txt($lang, $extensionLang);
 		$canDo = CategoriesHelper::getActions($extension, 'category', $category->get('id', 0));
+		$this->view->set('title', $title);
 		$this->view->set('item', $category);
 		$this->view->set('form', $category->getForm());
 		$this->view->set('canDo', $canDo);
@@ -192,6 +228,13 @@ class Newcategories extends AdminController
 		$extension = Request::getCmd('extension');
 		$categoryId = Request::getInt('id');
 		$category = Category::oneOrNew($categoryId);
+		$checkedOut = $category->get('checked_out');
+		if ($checkedOut)
+		{
+			$category->set('checked_out', null);
+			$category->set('checked_out_time', null);
+			$category->save();
+		}
 		if (!empty($items['rules']))
 		{
 			$rules = array_map(function($item){
@@ -225,24 +268,53 @@ class Newcategories extends AdminController
 		$this->cancelTask();
 	}
 
-	public function archiveTask()
+	public function stateTask()
 	{
 		Request::checkToken();
+		$states = array(
+			'publish' => array(
+				'value' => '1',
+				'lang' => 'COM_CATEGORIES_N_ITEMS_PUBLISHED'
+			),
+			'unpublish' => array(
+				'value' => '0',
+				'lang' => 'COM_CATEGORIES_N_ITEMS_UNPUBLISHED'
+			),
+			'archive' => array(
+				'value' => '2',
+				'lang' => 'COM_CATEGORIES_N_ITEMS_ARCHIVED'
+			),
+			'trash' => array(
+				'value' => '-2',
+				'lang' => 'COM_CATEGORIES_N_ITEMS_TRASHED'
+			)
+		);
+		$state = $states[$this->_task];
+
 		$ids = Request::getArray('cid');
-		$categories = Category::all()->whereIn('id', $ids)->rows();
-		foreach ($categories as $category)
+		if (!empty($ids))
 		{
-			$category->set('published', '2');
+			$categories = Category::all()->whereIn('id', $ids)->rows();
+			$permissionErrors = 0;
+			foreach ($categories as $index => $category)
+			{
+				if (!User::authorise('core.edit.state', $category->asset_id))
+				{
+					Notify::error("Can't change state drop $index");
+					$permissionErrors++;
+					continue;
+				}
+				$category->set('published', $state['value']);
+			}
 		}
-		if (!$categories->save())
+		$count = count($categories);
+		if ($count != $permissionErrors)
 		{
-			Notify::error($categories->getError());	
-		}
-		else
-		{
-			$count = (int) count($categories);
-			$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
-			Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_ARCHIVED', $count, $title));
+			if ($categories->save())
+			{
+				$title = Inflector::pluralize('category', $count);
+				Notify::success(Lang::txt($state['lang'], $count, $title));
+			}
 		}
 		$this->cancelTask();
 	}
@@ -266,86 +338,6 @@ class Newcategories extends AdminController
 			$count = (int) count($categories);
 			$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
 			Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_CHECKED_IN_MORE', $count, $title));
-		}
-		$this->cancelTask();
-	}
-
-	public function deleteTask()
-	{
-		Request::checkToken();
-		$ids = Request::getArray('cid');
-		$categories = Category::all()->whereIn('id', $ids)->rows();
-		foreach ($categories as $category)
-		{
-			$category->set('published', '-2');
-		}
-		if (!$categories->save())
-		{
-			Notify::error(Lang::txt('COM_CATEGORY_DELETE_ERROR'));	
-		}
-		else
-		{
-			$count = (int) count($categories);
-			$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
-			Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_DELETED', $count, $title));
-		}
-		$this->cancelTask();
-	}
-
-	public function unpublishTask()
-	{
-		Request::checkToken();
-		$ids = Request::getArray('cid');
-		if (!empty($ids))
-		{
-			$categories = Category::all()->whereIn('id', $ids)->rows();
-			foreach ($categories as $category)
-			{
-				$category->set('published', '0');
-			}
-			if (!$categories->save())
-			{
-				Notify::error(Lang::txt('COM_CATEGORY_UNPUBLISH_ERROR'));
-			}
-			else
-			{
-				$count = (int) count($categories);
-				$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
-				Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_UNPUBLISHED', $count, $title));
-			}
-		}
-		else
-		{
-			Notify::warning(Lang::txt('COM_CATEGORY_NO_SELECTION'));
-		}
-		$this->cancelTask();
-	}
-
-	public function publishTask()
-	{
-		Request::checkToken();
-		$ids = Request::getArray('cid');
-		if (!empty($ids))
-		{
-			$categories = Category::all()->whereIn('id', $ids)->rows();
-			foreach ($categories as $category)
-			{
-				$category->set('published', '1');
-			}
-			if (!$categories->save())
-			{
-				Notify::error(Lang::txt('COM_CATEGORY_PUBLISH_ERROR'));
-			}
-			else
-			{
-				$count = (int) count($categories);
-				$title = Inflector::pluralize(Lang::txt('COM_CATEGORY'), $count);
-				Notify::success(Lang::txt('COM_CATEGORIES_N_ITEMS_PUBLISHED', $count, $title));
-			}
-		}
-		else
-		{
-			Notify::warning(Lang::txt('COM_CATEGORY_NO_SELECTION'));
 		}
 		$this->cancelTask();
 	}
@@ -404,10 +396,23 @@ class Newcategories extends AdminController
 	 */
 	public function cancelTask()
 	{
+		if ($this->_task == 'cancel')
+		{
+			$id = Request::getInt('id', 0);
+			$category = Category::one($id);
+			$categoryCheckedOut = $category instanceof Category ? $category->get('checked_out') : 0;
+			if ($category && User::getInstance()->get('id') == $categoryCheckedOut)
+			{
+				$category->set('checked_out', null);
+				$category->set('checked_out_time', null);
+				$category->save();
+			}
+		}
 		$extension = Request::getCmd('extension');
 		// Set the redirect
 		\App::redirect(
-			\Route::url('index.php?option=' . $this->_option . ($this->_controller ? '&controller=' . $this->_controller : '') . '&extension=' . $extension, false)
+			\Route::url('index.php?option=' . $this->_option . ($this->_controller ? '&controller=' . $this->_controller : 
+				'') . '&extension=' . $extension, false)
 		);
 	}
 

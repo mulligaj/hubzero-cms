@@ -80,8 +80,9 @@ class Category extends Nested
 	public $always = array(
 		'params',
 		'metadata',
+		'modified_user_id',
 		'asset_id',
-		'modified_user_id'
+		'modified_time'
 	);
 
 	/**
@@ -94,11 +95,6 @@ class Category extends Nested
 		'created_user_id'
 	);
 
-	/**
-	 * Rules array converted into JSON string.
-	 *
-	 * @var string
-	 */
 	public $assetRules;
 
 	protected $namespace = 'category';
@@ -117,6 +113,15 @@ class Category extends Nested
 
 			$this->namespace = $name;
 		}
+	}
+
+	public function automaticAssetId()
+	{
+		if (!empty($this->assetRules))
+		{
+			return parent::automaticAssetId();
+		}
+		return $this->get('asset_id');
 	}
 
 	/**
@@ -158,6 +163,11 @@ class Category extends Nested
 		}
 	}
 
+	public function automaticModifiedTime()
+	{
+		return Date::of()->toSql();
+	}
+
 	public function transformName()
 	{
 		return $this->get('title');
@@ -197,6 +207,18 @@ class Category extends Nested
 		return $this->metadataRegistry;
 	}
 
+	public function transformPublished()
+	{
+		$states = array(
+			'0' => 'Unpublished',
+			'1' => 'Published',
+			'2' => 'Archived',
+			'-2' => 'Trashed'
+		);
+		$stateNum = $this->get('published', 0);
+		return $states[$stateNum];
+	}
+
 	public function automaticMetadata($data)
 	{
         if (!empty($data['metadata']))
@@ -206,7 +228,6 @@ class Category extends Nested
         }
 		return false;
 	}
-
 
 	public function getForm()
     {
@@ -220,13 +241,14 @@ class Category extends Nested
 		$data = $this->getAttributes();
         $data['params'] = $this->params->toArray();
         $data['metadata'] = $this->metadata->toArray();
-		if ($this->isNew())
-		{
-			unset($data['asset_id']);
-		}
         $form->bind($data);
         return $form;
     }
+
+	public function editor()
+	{
+		return $this->belongsToOne('\Hubzero\User\User', 'checked_out');
+	}
 
 	public static function saveorder($ordering, $extension)
 	{

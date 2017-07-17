@@ -36,13 +36,13 @@ if ($canChangeState)
 
 if ($canDelete)
 {
-    Toolbar::deleteList('', 'delete');
+    Toolbar::deleteList('', 'trash');
 }
 
 if ($canAdmin)
 {
     Toolbar::spacer();
-    Toolbar::preferences($this->option, '550');
+    Toolbar::preferences($this->filters['extension'], '550');
 }
 
 Toolbar::spacer();
@@ -148,7 +148,7 @@ Toolbar::title(Lang::txt('COM_CATEGORIES_CATEGORIES_TITLE', Lang::txt($extension
 							}
 						?>
 						<?php if ($item->checked_out) : ?>
-							<?php echo Html::grid('checkedout', $i, $item->editor, $item->checked_out_time, 'categories.', $canCheckin); ?>
+							<?php echo Html::grid('checkedout', $i, $item->editor->name, $item->checked_out_time, 'categories.', $canCheckin); ?>
 						<?php endif; ?>
 						<?php if ($canEdit || $canEditOwn) : ?>
 							<a href="<?php echo Route::url('index.php?option=com_categories&task=category.edit&id='.$item->id.'&extension='.$extension);?>">

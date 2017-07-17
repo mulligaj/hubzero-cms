@@ -62,7 +62,6 @@ class Permissions
 		{
 			$assetName .= '.' . (int) $assetId;
 		}
-
 		$result = new Object;
 
 		$actions = array(

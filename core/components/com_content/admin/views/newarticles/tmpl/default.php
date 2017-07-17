@@ -14,7 +14,6 @@ $canEdit = User::authorise('core.edit', 'com_content');
 $canChangeState = User::authorise('core.edit.state', 'com_content');
 $canDelete = User::authorise('core.delete', 'com_content');
 
-Html::addIncludePath(JPATH_COMPONENT.'/helpers/html');
 Html::behavior('multiselect');
 Toolbar::title(Lang::txt('COM_CONTENT_ARTICLES_TITLE'), 'content');
 
@@ -31,15 +30,15 @@ if ($canEdit)
 Toolbar::spacer();
 if ($canChangeState)
 {
-    Toolbar::publishList();
-    Toolbar::unpublishList();
-    Toolbar::spacer();
+	Toolbar::publishList();
+	Toolbar::unpublishList();
+	Toolbar::spacer();
 	Toolbar::archiveList();
 	Toolbar::checkin();
 }
 if ($canDelete)
 {
-    Toolbar::deleteList('', 'delete');
+	Toolbar::deleteList('', 'trash');
 }
 
 if ($canAdmin)
@@ -166,7 +165,7 @@ $saveOrder = $listOrder == 'ordering';
 				</td>
 				<td>
 					<?php if ($item->checked_out) : ?>
-						<?php echo Html::grid('checkedout', $i, $item->editor, $item->checked_out_time, 'articles.', $canCheckin); ?>
+						<?php echo Html::grid('checkedout', $i, $item->editor->name, $item->checked_out_time, 'articles.', $canCheckin); ?>
 					<?php endif; ?>
 					<?php if ($canEdit || $canEditOwn) : ?>
 						<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller .'&task=edit&id='.$item->id);?>">
@@ -178,7 +177,10 @@ $saveOrder = $listOrder == 'ordering';
 						<?php echo Lang::txt('JGLOBAL_LIST_ALIAS', $this->escape($item->alias));?></p>
 				</td>
 				<td class="center">
-					<?php echo Html::grid('published', $item->state, $i, 'articles.', $canChange, 'cb', $item->publish_up, $item->publish_down); ?>
+					<?php echo Html::grid(
+						'published', $item->get('state'), 
+						$i, 'articles.', 
+						$canChange, 'cb', $item->publish_up, $item->publish_down); ?>
 				</td>
 				<?php /*<td class="priority-4 center">
 					<?php echo Html::contentadministrator('featured', $item->featured, $i, $canChange); ?>
