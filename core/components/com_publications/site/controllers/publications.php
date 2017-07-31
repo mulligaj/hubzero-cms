@@ -1387,9 +1387,6 @@ class Publications extends SiteController
 			return;
 		}
 
-		//echo 'not yet';
-		//return;
-
 		// Load language file
 		Lang::load('com_projects') ||
 		Lang::load('com_projects', PATH_CORE . DS . 'components' . DS . 'com_projects' . DS . 'site');
@@ -1409,12 +1406,12 @@ class Publications extends SiteController
 		}
 
 		// Get project model
-		$project = new \Components\Projects\Models\Project();
+		$project = new \Components\Projects\Models\Project($pid);
 
 		// Get project information
 		if ($pid)
 		{
-			$project->loadProvisioned($pid);
+			//$project->loadProvisioned($pid);
 
 			if (!$project->exists())
 			{
@@ -1430,13 +1427,13 @@ class Publications extends SiteController
 			}
 
 			// Redirect to project if not provisioned
-			if (!$project->isProvisioned())
+			/*if (!$project->isProvisioned())
 			{
 				App::redirect(
 					Route::url($project->link('publications'))
 				);
 				return;
-			}
+			}*/
 		}
 		else
 		{
@@ -1491,9 +1488,8 @@ class Publications extends SiteController
 				App::abort(500, $objO->getError());
 			}
 
-			/*
 			// Create and initialize local repo
-			if (!$project->repo()->iniLocal())
+			/*if (!$project->repo()->iniLocal())
 			{
 				App::abort(500, Lang::txt('UNABLE_TO_CREATE_UPLOAD_PATH'));
 			}*/
@@ -1508,8 +1504,21 @@ class Publications extends SiteController
 		// Load the version
 		$version = Models\Orm\Version::oneOrFail($vid);
 
+		// Make sure the license applied allows for derivations
+		if (!$version->license->get('derivatives'))
+		{
+			Notify::warning(Lang::txt('The license applied to this publication does not allow for derivatives.'));
+
+			App::redirect(
+				Route::url('index.php?option=com_publications&id=' . $version->get('publication_id') . '&v=' . $version->get('id'), false)
+			);
+		}
+
+		// Set some paths
+		$repoPath = Component::params('com_projects')->get('webpath') . '/' . $project->get('alias') . '/files';
+
 		$pubfilespace = $version->filespace();
-		$prjfilespace = Component::params('com_projects')->get('webpath') . '/' . $project->get('alias');
+		$prjfilespace = $repoPath . ($pid ? '/publication_' . $vid : '');
 
 		// We're going to need the original ID later
 		$pub_id = $version->get('publication_id');
@@ -1570,13 +1579,16 @@ class Publications extends SiteController
 			App::abort(500, $version->getError());
 		}
 
+		$prjfilespace .= ($pid ? '_' . $version->get('id') : '');
+		$newpubfilespace = $version->filespace();
+
 		// Copy tags
 		include_once dirname(dirname(__DIR__))  . DS . 'helpers' . DS . 'tags.php';
 
 		$rt = new Helpers\Tags($this->database);
 		if ($tags = $rt->get_tag_string($pub_id))
 		{
-			$rt->tag_object(User::get('id'), $pub_id, $tags, 1);
+			$rt->tag_object(User::get('id'), $version->get('publication_id'), $tags, 1);
 		}
 
 		// Copy citations
@@ -1601,24 +1613,42 @@ class Publications extends SiteController
 		}
 
 		// Copy authors
+		if (!isset($objO))
+		{
+			$objO = $project->table('Owner');
+		}
+		$ownrs = $objO->getOwners($project->get('id'));
+		$owners = array();
+		foreach ($ownrs as $owner)
+		{
+			$owners[$owner->userid] = $owner->id;
+		}
 		foreach ($authors as $author)
 		{
 			$owner_id = $author->get('project_owner_id');
 
-			$objO->load($owner_id);
-			$objO->id         = null;
-			$objO->added      = Date::of('now')->toSql();
-			$objO->num_visits = 0;
-			$objO->lastvisit  = null;
-			if ($objO->groupid != $project->get('owned_by_group'))
+			if (!isset($owners[$author->get('user_id')]))
 			{
-				$objO->groupid = 0;
+				$objO->load($owner_id);
+				$objO->projectid  = $project->get('id');
+				$objO->id         = null;
+				$objO->added      = Date::of('now')->toSql();
+				$objO->num_visits = 0;
+				$objO->lastvisit  = null;
+				$objO->status     = 2;
+				$objO->role       = 0;
+				if ($objO->groupid != $project->get('owned_by_group'))
+				{
+					$objO->groupid = 0;
+				}
+				$objO->store();
+
+				$owners[$author->get('user_id')] = $objO->id;
 			}
-			$objO->store();
 
 			$author->set('id', 0);
 			$author->set('publication_version_id', $version->get('id'));
-			$author->set('project_owner_id', $objO->id);
+			$author->set('project_owner_id', $owners[$author->get('user_id')]);
 			$author->set('created', Date::of('now')->toSql());
 			$author->set('created_by', User::get('id'));
 			$author->set('modified', '0000-00-00 00:00:00');
@@ -1631,8 +1661,74 @@ class Publications extends SiteController
 		}
 
 		// Copy attachments
+		// Get manifest from either version record (published) or master type
+		$manifest = $version->get('curation', $publication->type->get('curation'));
+		$curation = json_decode($manifest, true);
+		$fileParams = array(
+			'directory'    => '',
+			'dirHierarchy' => 1
+		);
+		$galleryParams = array(
+			'directory'    => 'gallery',
+			'dirHierarchy' => 0
+		);
+		if (isset($curation['blocks']))
+		{
+			foreach ($curation['blocks'] as $block)
+			{
+				if (!isset($block['name']))
+				{
+					continue;
+				}
+				if ($block['name'] == 'content' && isset($block['elements']))
+				{
+					foreach ($block['elements'] as $element)
+					{
+						if (!isset($element['type']))
+						{
+							continue;
+						}
+						if ($element['type'] == 'attachment')
+						{
+							if ($element['params']['type'] == 'file')
+							{
+								$fileParams = $element['params']['typeParams'];
+							}
+						}
+					}
+				}
+				if ($block['name'] == 'extras' && isset($block['elements']))
+				{
+					foreach ($block['elements'] as $element)
+					{
+						if (!isset($element['type']))
+						{
+							continue;
+						}
+						if ($element['type'] == 'attachment')
+						{
+							$params = $element['params']['typeParams'];
+							if ($params['handler'] == 'imageviewer')
+							{
+								$galleryParams = $params;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!is_dir($prjfilespace))
+		{
+			if (!Filesystem::makeDirectory($prjfilespace, 0755, true, true))
+			{
+				App::abort(500, Lang::txt('COM_PROJECTS_FILES_ERROR_UNABLE_TO_CREATE_PATH'));
+			}
+		}
 		foreach ($attachments as $attachment)
 		{
+			$oldid = $attachment->get('id');
+
 			$attachment->set('id', 0);
 			$attachment->set('publication_id', $version->get('publication_id'));
 			$attachment->set('publication_version_id', $version->get('id'));
@@ -1646,21 +1742,186 @@ class Publications extends SiteController
 				App::abort(500, $attachment->getError());
 			}
 
+			$sub = 'publication_' . $vid . '_' . $version->get('id');
+
 			if ($attachment->get('type') == 'file')
 			{
+				$dirHierarchy = $fileParams['dirHierarchy'];
+
 				// Copy the files into the project
-				$from = $pubfilespace . '/' . $attachment->get('path');
-				$to   = $prjfilespace . '/' . $attachment->get('path');
-
-				if (!file_exists($from))
+				$path = explode('/', $attachment->get('path'));
+				$orig = array_pop($path);
+				// If copying to a project, files are placed in a sub-directory
+				// So, update the path info on the attachment record to reflect
+				if ($pid)
 				{
-					continue;
+					//array_unshift($path, 'publication_' . $vid);
+					$attachment->set('path', $sub . '/' . $attachment->get('path'));
+					$attachment->save();
+				}
+				$path = implode('/', $path);
+				$file = $orig;
+				$filenew = $orig;
+
+				$file2 = Filesystem::name($file) . '-' . $oldid . '.' . Filesystem::extension($file);
+				$file2new = Filesystem::name($file) . '-' . $attachment->get('id') . '.' . Filesystem::extension($file);
+
+				$from   = $pubfilespace . '/' . ($path ? $path . '/' : ''); // . $file;
+				$toProj = $prjfilespace . '/' . ($path ? $path . '/' : ''); // . $file;
+				$toPub  = $newpubfilespace . '/' . ($path ? $path . '/' : ''); // . $file;
+
+				// Check the default location
+				if (!file_exists($from . $file))
+				{
+					// OK, maybe it's in the gallery
+					$from  = dirname($pubfilespace) . '/' . $galleryParams['directory'] . '/' . ($path ? $path . '/' : '');
+					$toPub = dirname($newpubfilespace) . '/' . $galleryParams['directory'] . '/' . ($path ? $path . '/' : '');
+
+					if (!file_exists($from . $file))
+					{
+						// Let's try an alternate file name
+						if (!file_exists($from . $file2))
+						{
+							Notify::error('File does not exist: ' . $from . $filenames['main']);
+							continue;
+						}
+						// Found it
+						else
+						{
+							$dirHierarchy = $galleryParams['dirHierarchy'];
+
+							$file = $file2;
+							$filenew = $file2new;
+						}
+					}
+					// Found it
+					else
+					{
+						$dirHierarchy = $galleryParams['dirHierarchy'];
+					}
 				}
 
-				if (!Filesystem::copy($from, $to))
+				$source = array();
+				$source['main'] = $file;
+				$source['hash'] = $file . '.hash';
+				$source['thmb'] = \Components\Projects\Helpers\Html::createThumbName($file, '_tn', 'png');
+
+				$dest = array();
+				$dest['main'] = $filenew;
+				$dest['hash'] = $filenew . '.hash';
+				$dest['thmb'] = \Components\Projects\Helpers\Html::createThumbName($filenew, '_tn', 'png'); // thumbnails aren't in sub?
+
+				if (!is_dir($toProj))
 				{
-					App::abort(500, $attachment->getError());
+					Filesystem::makeDirectory($toProj, 0755, true, true);
+
+					if ($pid)
+					{
+						// Commit to GIT
+						$fileObj = new \Components\Projects\Models\File(
+							substr($toProj, (strlen($repoPath) + 1)),
+							$repoPath
+						);
+						$fileObj->set('type', 'folder');
+						$fileObj->clear('ext');
+
+						$committed = $project->repo()->call('makeDirectory', array(
+							'file'    => $fileObj,
+							'replace' => false
+						));
+						if (!$committed)
+						{
+							App::abort(500, Lang::txt('Error committing directory: %s', $project->repo()->getError()));
+						}
+					}
 				}
+
+				foreach ($source as $type => $filename)
+				{
+					if (!file_exists($from . $filename))
+					{
+						if ($type == 'main')
+						{
+							Notify::warning('File does not exist: ' . $from . $filename);
+						}
+						continue;
+					}
+
+					// We only copy the file itself to the project
+					// The hash and thumbnail go only to the publication space
+					if ($type == 'main')
+					{
+						// Copy to the project space but to its original name
+						// Note: gallery items' filenames will have a suffix with attachment record ID but the database entry
+						// will point to the un-suffixed filename. DB: foo.jpg (in project space) = foo-123.jpg (in publication space)
+						if (!Filesystem::copy($from . $filename, $toProj . $orig)) //$filename
+						{
+							App::abort(500, Lang::txt('Failed to copy file "' . $from . $filename . '" to "' . $toProj . $orig . '"'));
+						}
+
+						if ($pid)
+						{
+							// Commit to GIT
+							$fileObj = new \Components\Projects\Models\File(
+								substr($toProj . $orig, (strlen($repoPath) + 1)),
+								$repoPath
+							);
+
+							$committed = $project->repo()->call('checkin', array(
+								'file'    => $fileObj,
+								'replace' => false,
+								'message' => Lang::txt('Files forked from publication #%s', $pub_id),
+								'author'  => null,
+								'date'    => null
+							));
+							if (!$committed)
+							{
+								App::abort(500, Lang::txt('Error committing file: %s', $project->repo()->getError()));
+							}
+						}
+					}
+
+					// Make sure directory exist in publication space
+					$to = $toPub;
+
+					// Preserve hierarchhy?
+					if ($dirHierarchy == 1)
+					{
+						$to .= ($pid ? $sub . '/' : '');
+					}
+
+					if (!is_dir($to))
+					{
+						Filesystem::makeDirectory($to, 0755, true, true);
+					}
+
+					$to .= $dest[$type];
+
+					// Copy to the publication space
+					if (!Filesystem::copy($from . $filename, $to))
+					{
+						App::abort(500, Lang::txt('Failed to copy file "' . $from . $filename . '" to "' . $to . '"'));
+					}
+				}
+			}
+		}
+
+		// Copy publication thumbnail
+		$files = array('master.png', 'thumb.gif');
+		$from  = dirname($pubfilespace);
+		$to    = dirname($newpubfilespace);
+
+		foreach ($files as $filename)
+		{
+			if (!file_exists($from . $filename))
+			{
+				continue;
+			}
+
+			// Copy to the publication space
+			if (!Filesystem::copy($from . $filename, $to . $filename))
+			{
+				App::abort(500, Lang::txt('Failed to copy file "' . $from . $filename . '" to "' . $to . $filename . '"'));
 			}
 		}
 
@@ -1678,6 +1939,162 @@ class Publications extends SiteController
 		App::redirect(
 			Route::url('index.php?option=' . $this->_option . '&task=submit&pid=' . $version->get('publication_id') . '&version=' . $version->get('version_number'))
 		);
+	}
+
+	/**
+	 * Show differences between two publications
+	 *
+	 * @return  void
+	 */
+	public function compareTask()
+	{
+		$lft = Request::getInt('left', 0);
+		$rgt = Request::getInt('right', 0);
+
+		// Make sure we have values for both sides
+		if (!$lft || !$rgt)
+		{
+			Notify::error(Lang::txt('COM_PUBLICATIONS_ERROR_MISSING_VERSION'));
+
+			App::redirect(
+				Route::url('index.php?option=' . $this->_option)
+			);
+		}
+
+		// Can't compare against itself
+		if ($lft == $rgt)
+		{
+			Notify::error(Lang::txt('COM_PUBLICATIONS_ERROR_SAME_VERSIONS'));
+
+			App::redirect(
+				Route::url('index.php?option=' . $this->_option)
+			);
+		}
+
+		// Get our model and load publication data
+		include_once dirname(dirname(__DIR__)) . '/models/orm/publication.php';
+
+		// Load the lft version and make sure the user has access
+		$lversion = Models\Orm\Version::oneOrFail($lft);
+		$lpublica = $lversion->publication;
+
+		if (!$lversion->get('id') || $lversion->isDeleted()
+		 || !$lpublica->get('id'))
+		{
+			Notify::error(Lang::txt('COM_PUBLICATIONS_RESOURCE_NOT_FOUND'));
+
+			App::redirect(
+				Route::url('index.php?option=' . $this->_option)
+			);
+		}
+
+		/*if (!$lpublica->access('view'))
+		{
+			return $this->_blockAccess();
+		}*/
+
+		// Load the rgt version and make sure the user has access
+		$rversion = Models\Orm\Version::oneOrFail($rgt);
+
+		if (!$rversion->get('id') || $rversion->isDeleted())
+		{
+			Notify::error(Lang::txt('COM_PUBLICATIONS_RESOURCE_NOT_FOUND'));
+
+			App::redirect(
+				Route::url('index.php?option=' . $this->_option)
+			);
+		}
+
+		$rpublica = new Models\Publication(null, 'default', $rversion->get('id'));
+
+		if (!$rpublica->access('view'))
+		{
+			return $this->_blockAccess();
+		}
+
+		$rpublica->setCuration();
+		$customFields = json_decode($rpublica->_curationModel->getMetaSchema(), true);
+
+		// Diff the two versions
+		require_once dirname(dirname(__DIR__)) . '/helpers/Diff.php';
+		require_once dirname(dirname(__DIR__)) . '/helpers/Diff/Renderer/Html/SideBySide.php';
+
+		$diffs = array();
+
+		$l = explode("\n", $lversion->get('title'));
+		$r = explode("\n", $rversion->get('title'));
+
+		$diff = new \Diff($l, $r);
+		$diffs['title'] = $diff->render(new \Diff_Renderer_Html_SideBySide);
+
+		$l = array();
+		foreach ($lversion->authors as $author)
+		{
+			$l[] = $author->get('name') . ' (' . $author->get('organization') . ')';
+		}
+		$r = array();
+		foreach ($rversion->authors as $author)
+		{
+			$r[] = $author->get('name') . ' (' . $author->get('organization') . ')';
+		}
+
+		$diff = new \Diff($l, $r);
+		$diffs['authors'] = $diff->render(new \Diff_Renderer_Html_SideBySide);
+
+		$l = explode("\n", $lversion->get('description'));
+		$r = explode("\n", $rversion->get('description'));
+
+		$diff = new \Diff($l, $r);
+		$diffs['description'] = $diff->render(new \Diff_Renderer_Html_SideBySide);
+
+		$diffs['metadata'] = array();
+
+		$lmetadata = $lversion->metadata;
+		$rmetadata = $rversion->metadata;
+		foreach ($lmetadata as $key => $l)
+		{
+			$r = (isset($rmetadata[$key]) ? $rmetadata[$key] : '');
+			$l = explode("\n", $l);
+			$r = explode("\n", $r);
+
+			$diff = new \Diff($l, $r);
+			$diffs['metadata'][$key] = $diff->render(new \Diff_Renderer_Html_SideBySide);
+		}
+
+		foreach ($rmetadata as $key => $r)
+		{
+			if (isset($diffs['metadata'][$key]))
+			{
+				continue;
+			}
+			$l = (isset($lmetadata[$key]) ? $lmetadata[$key] : '');
+			$l = explode("\n", $l);
+			$r = explode("\n", $r);
+
+			$diff = new \Diff($l, $r);
+			$diffs['metadata'][$key] = $diff->render(new \Diff_Renderer_Html_SideBySide);
+		}
+
+		// Set the pathway
+		if (Pathway::count() <= 0)
+		{
+			Pathway::append(
+				Lang::txt(strtoupper($this->_option)),
+				'index.php?option=' . $this->_option
+			);
+		}
+		Pathway::append(
+			Lang::txt(strtoupper($this->_option . '_' . $this->_task)),
+			'index.php?option=' . $this->_option . '&task=' . $this->_task . '&lft=' . $lft . '&rgt=' . $rgt
+		);
+
+		// Display the view
+		$this->view
+			->set('lft', $lversion)
+			->set('rgt', $rversion)
+			->set('diffs', $diffs)
+			->set('customFields', $customFields)
+			->display();
 	}
 
 	/**

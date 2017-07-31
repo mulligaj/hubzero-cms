@@ -152,6 +152,12 @@ class plgPublicationsForks extends \Hubzero\Plugin\Plugin
 			return $arr;
 		}
 
+		// Make sure the license applied allows for derivations
+		if (!$publication->license()->derivatives)
+		{
+			return $arr;
+		}
+
 		$db = App::get('db');
 		$db->setQuery("SELECT COUNT(id) FROM `#__publication_versions` WHERE `forked_from`=" . $db->quote($publication->version->get('id')));
 
@@ -174,7 +180,7 @@ class plgPublicationsForks extends \Hubzero\Plugin\Plugin
 	 */
 	private function _forks($publication)
 	{
-		/*
+		/* @TODO: Move query to use ORM model
 		$forks = Version::all()
 			->including('publication')
 			->whereEquals('forked_from', $publication->get('id'))
@@ -248,6 +254,11 @@ class plgPublicationsForks extends \Hubzero\Plugin\Plugin
 		// the "other" list and sort everything by title
 		foreach ($owned as $own)
 		{
+			// If not a manager, collaborator, or author, skip
+			if (!in_array($own->get('role'), array(1, 2, 3)))
+			{
+				continue;
+			}
 			$projects[$own->get('title')] = $own;
 		}
 
@@ -257,6 +268,11 @@ class plgPublicationsForks extends \Hubzero\Plugin\Plugin
 
 		foreach ($other as $own)
 		{
+			// If not a manager, collaborator, or author, skip
+			if (!in_array($own->get('role'), array(1, 2, 3)))
+			{
+				continue;
+			}
 			$projects[$own->get('title')] = $own;
 		}
 

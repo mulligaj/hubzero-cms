@@ -172,7 +172,7 @@ class Version extends Relational
 	 */
 	public function license()
 	{
-		return $this->oneToOne(__NAMESPACE__ . '\\License', 'license_type');
+		return $this->oneToOne(__NAMESPACE__ . '\\License', 'id', 'license_type');
 	}
 
 	/**
@@ -284,6 +284,40 @@ class Version extends Relational
 	public function isUnpublished()
 	{
 		return ($this->get('state') == self::STATE_UNPUBLISHED);
+	}
+
+	/**
+	 * Check if the publication is published
+	 *
+	 * @return  bool
+	 */
+	public function isPublished()
+	{
+		if ($this->isNew())
+		{
+			return false;
+		}
+
+		if ($this->get('state') != self::STATE_PUBLISHED)
+		{
+			return false;
+		}
+
+		if ($this->get('published_up')
+		 && $this->get('published_up') != '0000-00-00 00:00:00'
+		 && $this->get('published_up') > Date::toSql())
+		{
+			return false;
+		}
+
+		if ($this->get('published_down')
+		 && $this->get('published_down') != '0000-00-00 00:00:00'
+		 && $this->get('published_down') < Date::toSql())
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -482,6 +516,28 @@ class Version extends Relational
 		$vid = String::pad($this->get('id'), 5);
 		$sec = $this->get('secret');
 
-		return PATH_APP . '/site/publications/' . $pid . '/' . $vid . '/' . $sec;
+		return PATH_APP . '/' . trim(\Component::params('com_publications')->get('webpath', '/site/publications'), '/') . '/' . $pid . '/' . $vid . '/' . $sec;
+	}
+
+	/**
+	 * Split metadata into parts
+	 *
+	 * @return  array
+	 */
+	public function transformMetadata()
+	{
+		$data = array();
+
+		preg_match_all("#<nb:(.*?)>(.*?)</nb:(.*?)>#s", $this->get('metadata'), $matches, PREG_SET_ORDER);
+
+		if (count($matches) > 0)
+		{
+			foreach ($matches as $match)
+			{
+				$data[$match[1]] = $match[2];
+			}
+		}
+
+		return $data;
 	}
 }
