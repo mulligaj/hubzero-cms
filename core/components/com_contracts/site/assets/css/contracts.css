@@ -1,0 +1,98 @@
+/*
+
+	-- -- -- -- -- -- --
+	com_drwho CSS
+	-- -- -- -- -- -- --
+
+*/
+
+section.contract-paginated {
+	height: 90vh;
+	width: 100%;
+	margin: auto;
+	overflow: hidden;
+	position: relative;
+	top: 0;
+	display: none;
+}
+
+section.contract-paginated .article {
+	display: none;
+	position: absolute;
+	width: 100%;
+	height: inherit;
+	transition: 1s left;
+	padding: 0 4em;
+}
+
+section.contract-paginated .article .page-content {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	height: 90%;
+}
+
+section.contract-paginated .article footer {
+	padding-top: 1em;
+	height: 10%;
+}
+
+section.contract-paginated .prev-article {
+	left: -100%;
+	display: inline-block;
+}
+
+section.contract-paginated .current-article {
+	left: 0px;
+	display: inline-block;
+}
+
+section.contract-paginated .next-article {
+	left: 100%;
+	display: inline-block;
+}
+
+section.contract-paginated nav.pagination {
+	display: block;
+}
+
+section.contract-paginated nav.pagination button {
+	position: absolute;
+	background: transparent;
+	border: none;
+	outline: none;
+	height: 90%;
+	background: black;
+	top: 0;
+	transition: 2s opacity;
+	opacity: .25;
+	color: white;
+	
+}
+section.contract-paginated nav.pagination #prev {
+	left: 0;
+}
+section.contract-paginated nav.pagination #next {
+	right: 0;
+}
+
+section.contract-paginated nav.pagination button:hover {
+	opacity: 1;
+}
+
+nav.pagination {
+	display: none;
+}
+
+.article footer {
+	text-align: center;
+}
+
+#hubForm .radio-options input, #hubForm .radio-options input + label {
+	display: inline;
+	padding-right: .5em;
+	margin-bottom: 10px;
+}
+
+#hubForm .radio-options input.option-hidden, #hubForm .radio-options input.option-hidden + label {
+	display: none;
+}
