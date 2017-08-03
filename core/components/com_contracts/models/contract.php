@@ -2,6 +2,7 @@
 namespace Components\Contracts\Models;
 
 require __DIR__ . '/page.php';
+require __DIR__ . '/agreement.php';
 use Hubzero\Database\Relational;
 use Hubzero\Utility\String;
 use Session;
@@ -33,6 +34,11 @@ class Contract extends Relational
 	public function pages()
 	{
 		return $this->oneToMany('Page', 'contract_id')->order('ordering', 'ASC');
+	}
+
+	public function agreements()
+	{
+		return $this->oneToMany('Agreement', 'contract_id')->order('created', 'DESC');
 	}
 
 	/**

@@ -44,26 +44,26 @@ Pathway::append(
 </header>
 
 <section class="main section">
-	<form id="hubForm" action="<?php echo Route::url('index.php?option=' . $this->option . '&task=save');?>" method="post">
+	<form id="hubForm" action="<?php echo Route::url('index.php?option=' . $this->option . '&task=save' . '&alias=' . $this->contract->alias);?>" method="post">
 	<fieldset>
 		<legend>Contact Information</legend>
 		<div class="grid">
 			<div class="col span6">
 				<label for="firstname">
 					First Name
-					<input type="text" name="firstname" id="firstname" />
+					<input type="text" name="firstname" id="firstname" value="<?php echo $this->escape($this->agreement->firstname); ?>"/>
 				</label>
 			</div>
 			<div class="col span6 omega">
 				<label for="lastname">
 					Last Name
-					<input type="text" name="lastname" id="lastname" />
+					<input type="text" name="lastname" id="lastname"  value="<?php echo $this->escape($this->agreement->lastname); ?>" />
 				</label>
 			</div>
 			<div class="col span6 omega">
 				<label for="email">
 					E-mail
-					<input type="text" name="email" id="email" />
+					<input type="text" name="email" id="email" value="<?php echo $this->escape($this->agreement->email); ?>" />
 				</label>
 			</div>
 		</div>
@@ -72,15 +72,15 @@ Pathway::append(
 		<legend>Organization Information</legend>
 		<div class="grid">
 			<div class="col span12 omega">
-				<label for="orgname">
+				<label for="organization_name">
 					Organization Name
-					<input type="text" name="orgname" id="orgname" />
+					<input type="text" name="organization_name" id="organization_name" value="<?php echo $this->escape($this->agreement->organization_name); ?>" />
 				</label>
 			</div>
 			<div class="col span12 omega">
-				<label for="orgaddress">
+				<label for="organization_address">
 					Organization Address
-					<input type="text" name="orgaddress" id="orgaddress" />
+					<textarea name="organization_address" id="organization_address" rows="5"><?php echo $this->escape($this->agreement->organization_address); ?></textarea>
 				</label>
 			</div>
 		</div>
@@ -88,13 +88,14 @@ Pathway::append(
 	<fieldset>
 		<legend>Contract Agreement</legend>
 		<div class="grid">
+			<input type="hidden" name="contract_id" value="<?php echo $this->contract->id; ?>" />
 			<div class="col span12 omega radio-options">
 				<p>Do you have authority to authorize contracts on behalf of this organization?</p>
-				<input type="radio" class="option-hidden" name="authorized" value="" id="authorized-none" checked="checked" />
+				<input type="radio" class="option-hidden" name="authority" value="" id="authorized-none" <?php echo !is_numeric($this->agreement->authority) ? 'checked="checked"' : '';?> />
 				<label for="authorized-none">No Option Selected</label>
-				<input type="radio" class="option" name="authorized" value="1" id="authorized-yes" />
+				<input type="radio" class="option" name="authority" value="1" id="authorized-yes" <?php echo $this->agreement->authority == 1 ? 'checked="checked"' : '';?> />
 				<label for="authorized-yes">Yes</label>
-				<input type="radio" class="option" name="authorized" value="0" id="authorized-no" />
+				<input type="radio" class="option" name="authority" value="0" id="authorized-no" <?php echo is_numeric($this->agreement->authority) && $this->agreement->authority == 0 ? 'checked="checked"' : '';?> />
 				<label for="authorized-no">No</label>
 			</div>
 			<div class="col span12 omega">
@@ -106,12 +107,12 @@ Pathway::append(
 								<?php echo $page->content; ?>
 								<?php if ($page->isLast()): ?>
 									<fieldset class="radio-options">
-										<input type="radio" class="option-hidden" name="acceptance" value="" id="acceptance-none" checked="checked" />
-										<label for="acceptance-none">No Option Selected</label>
-										<input type="radio" class="option" name="acceptance" value="1" id="acceptance-accept" />
-										<label for="acceptance-accept">I Accept</label>
-										<input type="radio" class="option" name="acceptance" value="-1" id="acceptance-changes-required" />
-										<label for="acceptance-changes-required">I Require Changes</label>
+										<input type="radio" class="option-hidden" name="accepted" value="" id="accepted-none" checked="checked" />
+										<label for="accepted-none">No Option Selected</label>
+										<input type="radio" class="option" name="accepted" value="1" id="accepted-accept" />
+										<label for="accepted-accept">I Accept</label>
+										<input type="radio" class="option" name="accepted" value="-1" id="accepted-changes-required" />
+										<label for="accepted-changes-required">I Require Changes</label>
 									</fieldset>
 								<?php endif; ?>
 							</div>
@@ -164,7 +165,7 @@ Pathway::append(
 			checkPagePosition();
 		});
 
-	  	$('input[name="authorized"]').on('click', function(e){
+	  	$('input[name="authority"]').on('click', function(e){
 			if ($(this).val() == 1){
 				$('.contract-paginated').show();
 				checkPagePosition();

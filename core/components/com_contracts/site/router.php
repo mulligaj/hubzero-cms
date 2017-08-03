@@ -43,17 +43,16 @@ class Router extends Base
 	{
 		$segments = array();
 
+		if (!empty($query['alias'])) 
+		{
+			$segments[] = $query['alias'];
+			unset($query['alias']);
+		}
 		if (!empty($query['task'])) 
 		{
 			$segments[] = $query['task'];
 			unset($query['task']);
 		}
-		if (!empty($query['id'])) 
-		{
-			$segments[] = $query['id'];
-			unset($query['id']);
-		}
-
 		return $segments;
 	}
 
@@ -80,11 +79,11 @@ class Router extends Base
 
 		if (isset($segments[0])) 
 		{
-			$vars['task'] = $segments[0];
+			$vars['alias'] = $segments[0];
 		}
 		if (isset($segments[1])) 
 		{
-			$vars['id'] = $segments[1];
+			$vars['task'] = $segments[1];
 		}
 
 		return $vars;
