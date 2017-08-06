@@ -280,6 +280,9 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 				case 'events':
 					$this->events();
 					break;
+				case 'unregister':
+					$this->unregister();
+					break;
 				default:
 					$arr['html'] = $this->display();
 					break;
@@ -781,11 +784,14 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		}
 
 		//make sure registration email is valid
-		if ($registration && isset($event['email']) && $event['email'] != '' && !filter_var($event['email'], FILTER_VALIDATE_EMAIL))
-		{
-			$this->setError('You must enter a valid email address for the events registration admin email.');
-			$this->event = $eventsModelEvent;
-			return $this->edit();
+		if ($registration && isset($event['email']) && $event['email'] != '') {
+			$emailArray = explode(',', $event['email']);
+			if (!filter_var_array($emailArray, FILTER_VALIDATE_EMAIL))
+			{
+				$this->setError('You must enter a valid email address for the events registration admin email.');
+				$this->event = $eventsModelEvent;
+				return $this->edit();
+			}
 		}
 
 		//make sure registration email is valid
@@ -1382,7 +1388,10 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 			}
 
 			//send email
-			$this->_sendEmail($eventsEvent->email, $from, $subject, $message);
+			$emailArray = explode(',', $eventsEvent->email);
+			foreach ($emailArray as $emailSingle) {
+				$this->_sendEmail($emailSingle, $from, $subject, $message);
+			}
 		}
 
 		// build message to send to event registerer
@@ -1565,6 +1574,39 @@ class plgGroupsCalendar extends \Hubzero\Plugin\Plugin
 		{
 			// If no new lines or commas just return the value
 			return $value;
+		}
+	}
+
+	/**
+	 * Unregister from an event
+	 *
+	 * $return  void
+	 */
+	private function unregister() 
+	{
+		Request::checkToken('get');
+
+		$db = App::get('db');
+		$event_id = Request::getVar('event_id', array(), 'get');
+		$email = Request::getVar('email', array(), 'get');
+
+		if ($this->user->authorise('manager') || $this->user->email == $email) {
+			$sql = "DELETE FROM `#__events_respondents` WHERE event_id='$event_id' AND email='$email'";
+			$db->setQuery($sql);
+			$db->query();
+			App::redirect(
+				Route::url('index.php?option=' . $this->option . '&cn=' . $this->group->cn . '&calendar_id=' . $event_id . '&active=calendar&action=details'),
+				Lang::txt('Unregistered from event'),
+				'passed'
+			);
+		}
+		else {
+
+			App::redirect(
+				Route::url('index.php?option=' . $this->option . '&cn=' . $this->group->cn . '&calendar_id=' . $event_id . '&active=calendar&action=details'),
+				Lang::txt('Incorrect email while being unregistered'),
+				'warning'
+			);
 		}
 	}
 

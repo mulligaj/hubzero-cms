@@ -92,14 +92,15 @@ $month = date("m", strtotime($this->event->publish_up));
 <table class="group-registrants">
 	<thead>
 		<tr>
-			<th colspan="3">
-				<a href="<?php echo Route::url('index.php?option='.$this->option.'&cn='.$this->group->get('cn').'&active=calendar&action=download&event_id='.$this->event->id); ?>">Download Registrants (.csv)</a>
+			<th colspan="4">
+				<a href="<?php echo Route::url('index.php?option=' . $this->option.'&cn=' . $this->group->get('cn') . '&active=calendar&action=download&event_id=' . $this->event->id); ?>">Download Registrants (.csv)</a>
 			</th>
 		</tr>
 		<tr>
-			<th><?php echo Lang::txt('Name'); ?></th>
-			<th><?php echo Lang::txt('Email'); ?></th>
-			<th><?php echo Lang::txt('Register Date'); ?></th>
+			<th><?php echo Lang::txt('PLG_GROUPS_CALENDAR_REGISTRANTS_NAME'); ?></th>
+			<th><?php echo Lang::txt('PLG_GROUPS_CALENDAR_REGISTRANTS_EMAIL'); ?></th>
+			<th><?php echo Lang::txt('PLG_GROUPS_CALENDAR_REGISTRANTS_DATE'); ?></th>
+			<th><?php echo Lang::txt('PLG_GROUPS_CALENDAR_REGISTRANTS_UNREGISTER'); ?></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -109,11 +110,16 @@ $month = date("m", strtotime($this->event->publish_up));
 					<td><?php echo $registrant->last_name . ', ' . $registrant->first_name; ?></td>
 					<td><?php echo $registrant->email; ?></td>
 					<td><?php echo Date::of($registrant->registered)->toLocal('l, F d, Y @ g:i a'); ?></td>
+					<?php if($registrant->email == $this->user->email || $this->authorized == 'manager') { ?>
+					<td><a href="<?php echo Route::url('index.php?option=' . $this->option . '&cn=' . $this->group->cn . '&active=calendar&action=unregister&email=' . $registrant->email  . '&event_id=' . $this->event->id . '&' . Session::getFormToken() . '=1');  ?>"`>Unregister</a></td>
+					<?php } else { ?>
+					<td></td>
+					<?php } ?>
 				</tr>
 			<?php endforeach; ?>
 		<?php else : ?>
 			<tr>
-				<td colspan="3">Currently there are no event registrants.</td>
+				<td colspan="4">Currently there are no event registrants.</td>
 			</tr>
 		<?php endif; ?>
 	</tbody>
