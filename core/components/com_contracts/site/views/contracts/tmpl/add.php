@@ -27,7 +27,7 @@ $this->css();
 // This sets the <title> tag of the document and will overwrite any previous
 // title set. To append or modify an existing title, it must be retrieved first
 // with $title = Document::getTitle();
-Document::setTitle(Lang::txt('COM_DRWHO'));
+Document::setTitle(Lang::txt('COM_CONTRACTS'));
 
 // Set the pathway (breadcrumbs)
 //
@@ -35,7 +35,7 @@ Document::setTitle(Lang::txt('COM_DRWHO'));
 // all hubs and/or templates. In general, it's good practice to set the pathway
 // even if it's unknown if hey will be displayed or not.
 Pathway::append(
-	Lang::txt('COM_DRWHO'),  // Text to display
+	Lang::txt('COM_CONTRACTS'),  // Text to display
 	'index.php?option=' . $this->option  // Link. Route::url() not needed.
 );
 ?>
@@ -116,7 +116,7 @@ Pathway::append(
 									</fieldset>
 								<?php endif; ?>
 							</div>
-							<footer>Page <?php echo $page->get('ordering'); ?></footer>
+							<footer><?php echo 'page ' . $page->get('ordering') . ' of ' . $pageCount; ?></footer>
 						</article>	
 					<?php endforeach; ?>
 					<nav class="pagination">
@@ -134,6 +134,7 @@ Pathway::append(
 </section>
 <script type="text/javascript">
 	$(function(){
+		checkPagePosition();
 		$('section.contract').addClass('contract-paginated');
 		if ($('#authorized-yes').prop('checked'))
 		{
@@ -175,7 +176,7 @@ Pathway::append(
 			}
 		});
 
-		var checkPagePosition = function () {
+		function checkPagePosition() {
 			var articleCount = $('.article').length;
 			var currentIndex = $('.article').index($('.current-article'));
 			if (currentIndex == 0){

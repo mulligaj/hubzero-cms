@@ -3,7 +3,7 @@
 defined('_HZEXEC_') or die();
 
 // Get the permissions helper
-$canDo = \Components\Drwho\Helpers\Permissions::getActions('character');
+$canDo = \Components\Contracts\Helpers\Permissions::getActions('character');
 
 // Toolbar is a helper class to simplify the creation of Toolbar 
 // titles, buttons, spacers and dividers in the Admin Interface.
@@ -45,9 +45,9 @@ Html::behavior('framework');
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm">
 	<fieldset id="filter-bar">
 		<label for="filter_search"><?php echo Lang::txt('JSEARCH_FILTER'); ?>:</label>
-		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo Lang::txt('COM_DRWHO_FILTER_SEARCH_PLACEHOLDER'); ?>" />
+		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo Lang::txt('COM_CONTRACTS_FILTER_SEARCH_PLACEHOLDER'); ?>" />
 
-		<input type="submit" value="<?php echo Lang::txt('COM_DRWHO_GO'); ?>" />
+		<input type="submit" value="<?php echo Lang::txt('COM_CONTRACTS_GO'); ?>" />
 		<button type="button" onclick="$('#filter_search').val('');this.form.submit();"><?php echo Lang::txt('JSEARCH_FILTER_CLEAR'); ?></button>
 	</fieldset>
 

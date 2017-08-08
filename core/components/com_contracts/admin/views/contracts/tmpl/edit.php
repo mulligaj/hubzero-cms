@@ -3,7 +3,7 @@
 defined('_HZEXEC_') or die();
 
 // Get the permissions helper
-$canDo = \Components\Drwho\Helpers\Permissions::getActions('character');
+$canDo = \Components\Contracts\Helpers\Permissions::getActions('character');
 
 // Toolbar is a helper class to simplify the creation of Toolbar 
 // titles, buttons, spacers and dividers in the Admin Interface.
@@ -23,6 +23,7 @@ if ($canDo->get('core.edit'))
 Toolbar::cancel();
 Toolbar::spacer();
 Toolbar::help('character');
+$this->css('contracts');
 ?>
 <script type="text/javascript">
 function submitbutton(pressbutton)
@@ -139,6 +140,9 @@ function submitbutton(pressbutton)
 			var tokenInput = $('#item-form input[type="hidden"]:last');
 			$('#pages-section').on('click', '.edit-item', function(e){
 				e.preventDefault();
+				e.stopPropagation();
+				$(this).parent().addClass('active');
+				$(this).parent().addClass('editing');
 				var url = $(this).attr('href');
 				var pageContainer = $(this).siblings('.page-content');
 				var textArea = $(this).find('textarea').text();
@@ -151,6 +155,14 @@ function submitbutton(pressbutton)
 					}
 				});
 			});
+
+			$('#pages-section').on('click', '.page-item', function(e){
+				if (!$(this).hasClass('editing') || !$(this).hasClass('active')){
+					$(this).siblings().removeClass('active');
+					$(this).toggleClass('active');
+				}
+			});
+
 			$('#pages-section').sortable({
 				update: function(event, ui){reorderPages()}
 			});
@@ -166,6 +178,7 @@ function submitbutton(pressbutton)
 					method: "POST",
 					success: function(response){
 						container.html(response.content);
+						container.parent('.page-item').removeClass('editing');
 					}
 				});
 			});

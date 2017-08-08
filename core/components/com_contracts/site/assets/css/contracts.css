@@ -7,7 +7,7 @@
 */
 
 section.contract-paginated {
-	height: 90vh;
+	height: 75vh;
 	width: 100%;
 	margin: auto;
 	overflow: hidden;
@@ -53,6 +53,10 @@ section.contract-paginated .next-article {
 
 section.contract-paginated nav.pagination {
 	display: block;
+}
+
+#hubForm section.contract-paginated fieldset.radio-options {
+	padding: 1em;
 }
 
 section.contract-paginated nav.pagination button {

@@ -1,0 +1,13 @@
+.page-item {
+	height: 150px;
+	overflow: hidden;
+	transition: 2s height;	
+	background: white;
+	margin: 1em;
+	border: 1px solid black;
+}
+
+.page-item.active {
+	height: 700px;
+	overflow: auto;
+}

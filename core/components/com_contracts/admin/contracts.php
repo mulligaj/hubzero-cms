@@ -7,7 +7,7 @@ namespace Components\Contracts\Admin;
 // particularly important for components that can have potentially
 // dramatic effects on users and the site (such as the members 
 // component or plugin manager).
-if (!\User::authorise('core.manage', 'com_drwo'))
+if (!\User::authorise('core.manage', 'com_contracts'))
 {
 	return \App::abort(404, \Lang::txt('JERROR_ALERTNOAUTHOR'));
 }
@@ -52,9 +52,15 @@ require_once __DIR__ . '/controllers/' . $controllerName . '.php';
 // loaded by the template. Since we'll have multiple controllers to manage
 // seasons and characters, we'll add a menu item for each controller.
 \Submenu::addEntry(
-	\Lang::txt('COM_DRWHO_SEASONS'),
+	\Lang::txt('COM_CONTRACTS'),
 	\Route::url('index.php?option=com_contracts&controller=contracts'),
-	($controllerName == 'seasons')
+	($controllerName == 'contracts')
+);
+
+\Submenu::addEntry(
+	\Lang::txt('COM_CONTRACT_AGREEMENTS'),
+	\Route::url('index.php?option=com_contracts&controller=agreements'),
+	($controllerName == 'agreements')
 );
 
 // Build the class name

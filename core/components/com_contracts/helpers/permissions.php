@@ -1,5 +1,5 @@
 <?php
-namespace Components\Drwho\Helpers;
+namespace Components\Contracts\Helpers;
 
 use Hubzero\Base\Object;
 use User;
@@ -14,7 +14,7 @@ class Permissions
 	 *
 	 * @var  string
 	 */
-	public static $extension = 'com_drwho';
+	public static $extension = 'com_contracts';
 
 	/**
 	 * Gets a list of the actions that can be performed.
