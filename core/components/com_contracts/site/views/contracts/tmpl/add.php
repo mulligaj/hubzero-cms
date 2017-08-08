@@ -89,6 +89,7 @@ Pathway::append(
 		<legend>Contract Agreement</legend>
 		<div class="grid">
 			<input type="hidden" name="contract_id" value="<?php echo $this->contract->id; ?>" />
+			<?php echo Html::input('token'); ?>
 			<div class="col span12 omega radio-options">
 				<p>Do you have authority to authorize contracts on behalf of this organization?</p>
 				<input type="radio" class="option-hidden" name="authority" value="" id="authorized-none" <?php echo !is_numeric($this->agreement->authority) ? 'checked="checked"' : '';?> />

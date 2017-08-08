@@ -41,6 +41,7 @@ class Contracts extends SiteController
 
 	public function saveTask()
 	{
+		Request::checkToken();
 		$attributes = array(
 			'firstname' => Request::getVar('firstname'),
 			'lastname' => Request::getVar('lastname'),
