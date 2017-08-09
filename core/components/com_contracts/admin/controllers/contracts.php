@@ -105,7 +105,11 @@ class Contracts extends AdminController
 		// Get our model
 		// This is the entry point to the database and the 
 		// table of characters we'll be retrieving data from
-		$record = Contract::all();
+		$record = Contract::all()
+					->select('#__contracts.*')
+					->select('#__contract_agreements.id', 'submissions_count', true) 
+					->join('#__contract_agreements', '#__contracts.id', 'contract_id', 'left')
+					->group('#__contracts.id');
 
 		if ($filters['state'] >= 0)
 		{

@@ -78,4 +78,21 @@ class Agreement extends Relational
 	{
 		return isset($data['modified']) && $data['modified'] ? $data['modified'] : Date::toSql(); 
 	}
+
+	public function transformAccepted()
+	{
+		$status = array(
+			'-1' => 'Changes Required',
+			'0' => 'No',
+			'1' => 'Yes'
+		);
+		$statusId = (string) $this->get('accepted', 0);
+		return $status[$statusId];
+	}
+
+	public function transformAuthority()
+	{
+		$authority = $this->get('authority', 0) == 1 ? 'Yes' : 'No';
+		return $authority;
+	}
 }

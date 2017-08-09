@@ -41,7 +41,7 @@ $canDo = \Components\Contracts\Helpers\Permissions::getActions('character');
 // Here we'll had the title of the component and various options
 // for adding/editing/etc based on if the user has permission to
 // perform such actions.
-Toolbar::title(Lang::txt('COM_CONTRACT_AGREEMENTS'));
+Toolbar::title(Lang::txt('COM_CONTRACTS') . ': ' . Lang::txt('COM_CONTRACT_AGREEMENTS'));
 if ($canDo->get('core.admin'))
 {
 	Toolbar::preferences($this->option, '550');
@@ -91,16 +91,17 @@ function submitbutton(pressbutton)
 			<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_CONTRACT', 'contract', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_ORGANIZATION', 'organization_name', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_FIRSTNAME', 'firstname', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_LASTNAME', 'lastname', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_CONTRACT', 'contract', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_CONTACT', 'lastname', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_EMAIL', 'email', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_ACCEPTANCE', 'accepted', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_CREATED', 'created', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
 			<tr>
-				<td colspan="6"><?php
+				<td colspan="8"><?php
 				// Initiate paging
 				echo $this->pagination(
 					$this->total,
@@ -117,11 +118,18 @@ function submitbutton(pressbutton)
 						<input type="checkbox" name="id[]" value="<?php echo $row->get('id'); ?>" onclick="isChecked(this.checked, this);" />
 					</td>
 					<td><?php echo $row->id; ?></td>
+					<td>
+						<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=agreements&task=edit&id=' . $row->id);?>">
+							<?php echo $this->escape($row->organization_name); ?>
+							<br/>
+							<?php echo nl2br($this->escape($row->organization_address)); ?>
+						</a>
+					</td>
 					<td><?php echo $this->escape($row->contract->title); ?></td>
-					<td><?php echo $this->escape($row->organization_name); ?></td>
-					<td><?php echo $this->escape($row->firstname); ?></td>
-					<td><?php echo $this->escape($row->lastname); ?></td>
-					<td><?php echo $row->accepted; ?></td>
+					<td><?php echo $this->escape($row->firstname . ' ' . $row->lastname ); ?></td>
+					<td><?php echo $this->escape($row->get('email')); ?></td>
+					<td><?php echo $this->escape($row->accepted); ?></td>
+					<td><?php echo Date::of($row->created)->toLocal('M jS, Y @ g:i A'); ?></td>
 				</tr>
 			<?php endforeach; ?>
 		</tbody>

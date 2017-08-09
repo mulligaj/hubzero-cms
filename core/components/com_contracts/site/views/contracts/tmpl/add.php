@@ -129,7 +129,7 @@ Pathway::append(
 		</div>
 	</fieldset>
 	<p class="submit">
-		<input type="submit" value="Submit" />
+		<input type="submit" value="Continue" class="btn" />
 	</p>
 	</form>
 </section>
@@ -170,6 +170,8 @@ Pathway::append(
 	  	$('input[name="authority"]').on('click', function(e){
 			if ($(this).val() == 1){
 				$('.contract-paginated').show();
+				var topPos = $('.contract-paginated').offset().top - 110;
+				$(window).scrollTop(topPos);
 				checkPagePosition();
 			}
 			else{

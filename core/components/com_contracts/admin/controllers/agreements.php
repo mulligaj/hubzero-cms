@@ -143,7 +143,7 @@ class Agreements extends AdminController
 			}
 
 			// Load the article
-			$row = Contract::oneOrNew($id);
+			$row = Agreement::oneOrNew($id);
 		}
 
 		// Output the view
@@ -178,7 +178,7 @@ class Agreements extends AdminController
 		$fields = Request::getVar('fields', array(), 'post', 'none', 2);
 
 		// Initiate model and bind the incoming data to it
-		$row = Contract::oneOrNew($fields['id'])->set($fields);
+		$row = Agreement::oneOrNew($fields['id'])->set($fields);
 
 		// Validate and save the data
 		//

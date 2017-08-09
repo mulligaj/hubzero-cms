@@ -57,6 +57,7 @@ Html::behavior('framework');
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->rows->count(); ?>);" /></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_TITLE', 'title', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_SUBMISSIONS', 'submissions_count', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -87,6 +88,9 @@ Html::behavior('framework');
 							<?php echo $this->escape($row->get('title')); ?>
 						</span>
 					<?php } ?>
+				</td>
+				<td>
+					<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=agreements&contract_id=' . $row->get('id'));?>"><?php echo $row->get('submissions_count'); ?></a>
 				</td>
 			</tr>
 			<?php
