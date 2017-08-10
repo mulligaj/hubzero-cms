@@ -4,10 +4,17 @@
 	transition: 2s height;	
 	background: white;
 	margin: 1em;
-	border: 1px solid black;
+	border-radius:10px;
+	border: 1px solid lightgrey;
 }
-
 .page-item.active {
 	height: 700px;
 	overflow: auto;
+}
+.subnav li {
+	display: inline;
+}
+
+.save-item-buttons {
+	display: none;
 }

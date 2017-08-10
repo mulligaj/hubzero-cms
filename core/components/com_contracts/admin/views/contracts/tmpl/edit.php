@@ -94,11 +94,6 @@ function submitbutton(pressbutton)
 					<?php } ?>
 				</tbody>
 			</table>
-
-			<fieldset class="adminform">
-				<legend><span><?php echo Lang::txt('JGLOBAL_FIELDSET_PUBLISHING'); ?></span></legend>
-
-			</fieldset>
 		</div>
 	</div>
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
@@ -141,17 +136,20 @@ function submitbutton(pressbutton)
 			$('#pages-section').on('click', '.edit-item', function(e){
 				e.preventDefault();
 				e.stopPropagation();
-				$(this).parent().addClass('active');
-				$(this).parent().addClass('editing');
+				var pageContainer = $(this).closest('.page-item');
+				pageContainer.addClass('active');
+				pageContainer.addClass('editing');
 				var url = $(this).attr('href');
-				var pageContainer = $(this).siblings('.page-content');
+				var pageContent = pageContainer.children('.page-content');
 				var textArea = $(this).find('textarea').text();
 				$.ajax({
 					url: url,
 					data: {"text" : textArea},
 					method: "POST",
 					success: function(response){
-						$(pageContainer).html(response.content);
+						pageContent.html(response.content);
+						pageContent.siblings('.edit-item-buttons').hide();
+						pageContent.siblings('.save-item-buttons').show();
 					}
 				});
 			});
@@ -179,6 +177,8 @@ function submitbutton(pressbutton)
 					success: function(response){
 						container.html(response.content);
 						container.parent('.page-item').removeClass('editing');
+						container.siblings('.save-item-buttons').hide();
+						container.siblings('.edit-item-buttons').show();
 					}
 				});
 			});
