@@ -54,9 +54,12 @@ function loadDocument(documentUrl) {
     "use strict";
 
     if (documentUrl) {
-
-        var extension = documentUrl.split('.').pop(),
+	var documentUrlSplit = documentUrl.split('?'),
+	    documentUrl = documentUrlSplit[0],
+	    params = documentUrlSplit[1];
+        var extension = documentUrl.split('.')[1],
             Plugin;
+	documentUrl = documentUrl + '?' + params;
 
         switch (extension) {
         case 'odt':
