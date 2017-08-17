@@ -197,6 +197,11 @@ class Contracts extends AdminController
 		// Incoming
 		$fields = Request::getVar('fields', array(), 'post', 'none', 2);
 
+		if (isset($fields['contact_id']) && !is_numeric($fields['contact_id']))
+		{
+			unset($fields['contact_id']);
+		}
+
 		// Initiate model and bind the incoming data to it
 		$row = Contract::oneOrNew($fields['id'])->set($fields);
 

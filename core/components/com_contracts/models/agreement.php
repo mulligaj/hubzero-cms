@@ -46,6 +46,8 @@ class Agreement extends Relational
 		'modified'
 	);
 
+	public $document = '';
+
 	public function setup()
 	{
 		$this->addRule('accepted', function($data){
@@ -74,9 +76,76 @@ class Agreement extends Relational
 		return $this->belongsToOne('Contract', 'contract_id');
 	}
 
+	public function document()
+	{
+		if (empty($this->document))
+		{
+			$this->document = $this->_replacePlaceholders();
+		}
+		return $this->document;
+	}
+
+	public function getDocumentPdf($asString = false)
+	{
+		$pageHtml = $this->document();
+		
+		if (empty($pageHtml))
+		{
+			return false;
+		}
+
+		$pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+		$pdf->SetCreator(PDF_CREATOR);
+		$pdf->SetTitle($this->title);
+
+		$pdf->SetPrintHeader(false);
+		$pdf->SetPrintFooter(false);
+
+		$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+		$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+
+		$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+
+		$pdf->SetImageScale(PDF_IMAGE_SCALE_RATIO);
+
+		$pdf->setFontSubsetting(true);
+
+		$pdf->SetFont('dejavusans', '', 10, '', true);
+		$pdf->AddPage();
+
+		$pdf->writeHTML($pageHtml, true, false, true, false, '');
+		if ($asString)
+		{
+			return $pdf->Output($this->contract->title . '.pdf', 'S');
+		}
+		else
+		{
+			header('Content-type: application/pdf');
+			$pdf->Output($this->contract->title . '.pdf', 'I');
+			exit();
+		}
+	}
+
+	private function _replacePlaceholders()
+	{
+		$document = preg_replace_callback("/{{([^}{]*)}}/", function($matches){
+			$property = trim(strtolower($matches[1]));
+			return $this->$property;
+		}, $this->contract->template());
+		return $document;
+	}
+
 	public function automaticModified($data)
 	{
 		return isset($data['modified']) && $data['modified'] ? $data['modified'] : Date::toSql(); 
+	}
+
+	public function transformCreated()
+	{
+		$dateString = $this->get('created');
+		$date = Date::of($dateString)->toLocal('F jS, Y g:h A');
+		return $date;
 	}
 
 	public function transformAccepted()

@@ -65,6 +65,8 @@ class Contracts extends SiteController
 			return;
 		}	
 		Notify::success('Successfully submitted contract.');
+
+
 		App::redirect(Route::url('index.php?option=' . $this->_option . '&task=add' . '&alias=' . $agreement->contract->alias));
 	}
 
@@ -73,48 +75,30 @@ class Contracts extends SiteController
 		$contractId = Request::getVar('alias', 0);
 		if (is_numeric($contractId))
 		{
-			$contract = Contract::oneOrFail($contractId);
+			$agreement = Agreement::oneOrFail($contractId);
 		}
 		else
 		{
 			$contract = Contract::oneByAlias($contractId);
 		}
+		$agreement->getDocumentPdf();
+	}
 
-		$pageHtml = '';
-		foreach ($contract->pages as $page)
-		{
-			$pageHtml .= $page->content;
-		}
-		
-		if (empty($pageHtml))
-		{
-			App::abort(403, 'No Content Found');
-		}
-		
-		$pdf = new \TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-		$pdf->SetCreator(PDF_CREATOR);
-		$pdf->SetTitle($contract->title);
-
-		$pdf->SetPrintHeader(false);
-		$pdf->SetPrintFooter(false);
-
-		$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-		
-		$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-
-		$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
-		
-		$pdf->SetImageScale(PDF_IMAGE_SCALE_RATIO);
-
-		$pdf->setFontSubsetting(true);
-
-		$pdf->SetFont('dejavusans', '', 14, '', true);
-		$pdf->AddPage();
-		
-		$pdf->writeHTML($pageHtml, true, false, true, false, '');
-		header('Content-type: application/pdf');
-		
-		$pdf->Output('example_001.pdf', 'I');
+	public function emailTask()
+	{
+		$eview = new \Hubzero\Component\View(array(
+			'name'   => 'emails',
+			'layout' => 'success'
+		));
+		$subject  = Config::get('sitename') .' '.Lang::txt('COM_MEMBERS_REGISTER_EMAIL_CONFIRMATION');
+		$eview->baseUrl = Request::base();
+		$eview->sitename   = Config::get('sitename');
+		$eview->option = $this->_option;
+		$eview->config = $this->config;
+		$eview->agreement   = $agreement;
+		$template = $eview->loadTemplate();
+		echo $template;
 		exit();
+
 	}
 }

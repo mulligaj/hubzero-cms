@@ -129,7 +129,7 @@ function submitbutton(pressbutton)
 					<td><?php echo $this->escape($row->firstname . ' ' . $row->lastname ); ?></td>
 					<td><?php echo $this->escape($row->get('email')); ?></td>
 					<td><?php echo $this->escape($row->accepted); ?></td>
-					<td><?php echo Date::of($row->created)->toLocal('M jS, Y @ g:i A'); ?></td>
+					<td><?php echo $row->created; ?></td>
 				</tr>
 			<?php endforeach; ?>
 		</tbody>

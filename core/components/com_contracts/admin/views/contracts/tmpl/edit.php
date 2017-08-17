@@ -62,6 +62,18 @@ function submitbutton(pressbutton)
 				</div>
 
 			</fieldset>
+			<fieldset class="adminform">
+				<legend><span><?php echo Lang::txt('COM_CONTRACTS_MESSAGES'); ?></span></legend>
+				<div class="input-wrap">
+					<label for="field-accepted-message"><?php echo Lang::txt('COM_CONTRACTS_FIELD_ACCEPTED_MESSAGE'); ?></label>
+					<textarea name="fields[accepted_message]" id="field-accepted-message" rows="15"><?php echo $this->escape($this->row->get('accepted_message')); ?></textarea>
+				</div>
+				<div class="input-wrap">
+					<label for="field-manual-message"><?php echo Lang::txt('COM_CONTRACTS_FIELD_MANUAL_MESSAGE'); ?></label>
+					<textarea name="fields[manual_message]" id="field-manual-message" rows="15"><?php echo $this->escape($this->row->get('manual_message')); ?></textarea>
+				</div>
+				
+			</fieldset>
 		</div>
 		<div class="col span5">
 			<table class="meta">
@@ -94,6 +106,17 @@ function submitbutton(pressbutton)
 					<?php } ?>
 				</tbody>
 			</table>
+			<fieldset class="editform">
+				<div class="input-wrap">
+					<label for="acusers">Primary Contact Person</label>
+					<?php $userSelect = Event::trigger('hubzero.onGetSingleEntryWithSelect', array(array('members', 'fields[contact_id]', 'acusers','', $this->row->contact->get('name',''), '', 'owner'))); ?>
+					<?php if (count($userSelect) > 0): ?>
+						<?php echo $userSelect[0]; ?>
+					<?php else: ?>
+					<input type="text" name="fields[contact_id]" value="<?php echo $this->escape($this->row->get('contact_id')); ?>" id="acusers" value="" size="30" autocomplete="off" />
+					<?php endif; ?>
+				</div>
+			</fieldset>
 		</div>
 	</div>
 	<input type="hidden" name="option" value="<?php echo $this->option; ?>" />
@@ -212,6 +235,40 @@ function submitbutton(pressbutton)
 						});
 					}
 				});
+			};
+			var userSearch = $('#user-search').autocomplete({
+				source: function(request, response) {
+					$.ajax({
+						url: 'https://localhost/api/members/list', 
+						data: {search: request.term}, 
+						success: function(myResponse){
+							var members = myResponse.members;
+							var results = [];
+							$.each(members, function(index, member){
+								memberItem = {
+									label: member.name,
+									value: member.id,
+									username: member.usernmae
+								};
+								results.push(memberItem);
+							});
+							response(results);
+						}
+					});
+				},
+				select: function(event, ui){
+					$('input[name="fields[contact_id]"]').val(ui.item.id);
+				}
+			}).autocomplete("instance");
+			userSearch._renderItem = function( ul, item ){
+				return $('<li>').append(item.label).appendTo(ul);
+			};
+			userSearch._renderMenu = function (ul, items){
+				var that = this;
+				$.each(items, function(index, item){
+					that._renderItemData(ul, item);
+				});
+				$(ul).find("li:even").css('background', 'red');
 			};
 		});
 	</script>
