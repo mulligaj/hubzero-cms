@@ -44,7 +44,7 @@ Pathway::append(
 </header>
 
 <section class="main section">
-	<form id="hubForm" action="<?php echo Route::url('index.php?option=' . $this->option . '&task=save' . '&alias=' . $this->contract->alias);?>" method="post">
+	<form id="hubForm" action="<?php echo Route::url('index.php?option=' . $this->option . '&task=save' . '&alias=' . $this->agreement->contract->alias);?>" method="post">
 	<fieldset>
 		<legend>Contact Information</legend>
 		<div class="grid">
@@ -88,113 +88,56 @@ Pathway::append(
 	<fieldset>
 		<legend>Contract Agreement</legend>
 		<div class="grid">
-			<input type="hidden" name="contract_id" value="<?php echo $this->contract->id; ?>" />
 			<?php echo Html::input('token'); ?>
 			<div class="col span12 omega radio-options">
-				<p>Do you have authority to authorize contracts on behalf of this organization?</p>
-				<input type="radio" class="option-hidden" name="authority" value="" id="authorized-none" <?php echo !is_numeric($this->agreement->authority) ? 'checked="checked"' : '';?> />
+				<p>Do you have authority to authorize contract agreements on behalf of this organization?</p>
+				<input type="radio" class="option-hidden" name="authority" value="" id="authorized-none" <?php echo !is_numeric($this->agreement->get('authority')) ? 'checked="checked"' : '';?> />
 				<label for="authorized-none">No Option Selected</label>
-				<input type="radio" class="option" name="authority" value="1" id="authorized-yes" <?php echo $this->agreement->authority == 1 ? 'checked="checked"' : '';?> />
+				<input type="radio" class="option" name="authority" value="1" id="authorized-yes" <?php echo $this->agreement->get('authority') == 1 ? 'checked="checked"' : '';?> />
 				<label for="authorized-yes">Yes</label>
-				<input type="radio" class="option" name="authority" value="0" id="authorized-no" <?php echo is_numeric($this->agreement->authority) && $this->agreement->authority == 0 ? 'checked="checked"' : '';?> />
+				<input type="radio" class="option" name="authority" value="0" id="authorized-no" <?php echo is_numeric($this->agreement->get('authority')) && $this->agreement->get('authority') == 0 ? 'checked="checked"' : '';?> />
 				<label for="authorized-no">No</label>
+				<p> If you select "Yes", an agreement will appear below. Please read the entire agreement. When finished reading, select an agreement option at the bottom.</p>
 			</div>
 			<div class="col span12 omega">
-				<section class="contract">
-					<?php $pageCount = $this->contract->pages->count(); ?>
-					<?php foreach ($this->contract->pages as $page): ?>
-						<article id="<?php echo 'contract-page-' . $page->id;?>" class="article <?php echo $page->isFirst() ? 'current-article' : '';?>">
-							<div class="page-content">
-								<?php echo $page->content; ?>
-								<?php if ($page->isLast()): ?>
-									<fieldset class="radio-options">
-										<input type="radio" class="option-hidden" name="accepted" value="" id="accepted-none" checked="checked" />
-										<label for="accepted-none">No Option Selected</label>
-										<input type="radio" class="option" name="accepted" value="1" id="accepted-accept" />
-										<label for="accepted-accept">I Accept</label>
-										<input type="radio" class="option" name="accepted" value="-1" id="accepted-changes-required" />
-										<label for="accepted-changes-required">I Require Changes</label>
-									</fieldset>
-								<?php endif; ?>
-							</div>
-							<footer><?php echo 'page ' . $page->get('ordering') . ' of ' . $pageCount; ?></footer>
-						</article>	
-					<?php endforeach; ?>
-					<nav class="pagination">
-						<button id="prev">Prev</button>
-						<button id="next">Next</button>
-					</nav>
-				</section>
+					<section class="contract" id="contract-section">
+						<?php if ($this->agreement->documentViewable()): ?>
+							<?php echo $this->loadTemplate('agreement'); ?>				
+						<?php endif; ?>
+					</section>
 			</div>
 		</div>
 	</fieldset>
 	<p class="submit">
+		<input type="hidden" name="contract_id" value="<?php echo $this->agreement->contract->id; ?>" />
 		<input type="submit" value="Continue" class="btn" />
 	</p>
 	</form>
 </section>
 <script type="text/javascript">
 	$(function(){
-		checkPagePosition();
-		$('section.contract').addClass('contract-paginated');
-		if ($('#authorized-yes').prop('checked'))
-		{
-			$('.contract-paginated').show();
-		}
-		$('.contract-paginated .article').first().addClass('current-article').next('.article').addClass('next-article');
-		$('#next').on('click',function(e){
-			e.preventDefault();
-			var currentPage = $('.current-article');
-			var nextPage = $('.next-article');
-			var prevPage = $('.prev-article');
-			if (nextPage.length){
-				nextPage.removeClass('next-article').addClass('current-article').next('.article').addClass('next-article');
-				currentPage.removeClass('current-article').addClass('prev-article');
-				prevPage.removeClass('prev-article');
-			}
-			checkPagePosition();
-		});
-		$('#prev').on('click',function(e){
-			e.preventDefault();
-			var currentPage = $('.current-article');
-			var nextPage = $('.next-article');
-			var prevPage = $('.prev-article');
-			if (prevPage.length){
-				prevPage.removeClass('prev-article').addClass('current-article').prev('.article').addClass('prev-article');
-				currentPage.removeClass('current-article').addClass('next-article');
-				nextPage.removeClass('next-article');
-			}
-			checkPagePosition();
-		});
-
 	  	$('input[name="authority"]').on('click', function(e){
 			if ($(this).val() == 1){
-				$('.contract-paginated').show();
-				var topPos = $('.contract-paginated').offset().top - 110;
-				$(window).scrollTop(topPos);
-				checkPagePosition();
+				var parentForm = $(this).closest('form');
+				$.ajax({
+					url: parentForm.attr('action'),
+					data: parentForm.serialize() + '&no_html=1',
+					success: function(response){
+						if (response.showDocument == true){
+							$('#contract-section').html(response.html);
+							var topPos = $('#contract-section').offset().top - 110;
+							$(window).scrollTop(topPos);
+						}
+						else{
+							$('#authorized-none').prop('checked', true);
+							parentForm.submit();
+						}
+					}
+				});
 			}
 			else{
-				$('.contract-paginated').hide();
+				$('#contract-section').html('');
 			}
 		});
-
-		function checkPagePosition() {
-			var articleCount = $('.article').length;
-			var currentIndex = $('.article').index($('.current-article'));
-			if (currentIndex == 0){
-				$('#prev').hide();
-			}	
-			else if (articleCount > 1){
-				$('#prev').show();
-			}
-			if (currentIndex == (articleCount - 1)){
-				$('#next').hide();
-			}
-			else if (articleCount > 1){
-				$('#next').show();
-			}
-		
-		};
 	});
 </script>

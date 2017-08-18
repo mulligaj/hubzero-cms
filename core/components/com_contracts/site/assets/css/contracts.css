@@ -6,19 +6,17 @@
 
 */
 
-section.contract-paginated {
-	height: 75vh;
+#contract-section {
+	max-height: 75vh;
 	width: 100%;
 	margin: auto;
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: auto;
 	position: relative;
 	top: 0;
-	display: none;
 }
 
-section.contract-paginated .article {
-	display: none;
-	position: absolute;
+#contract-section article {
 	width: 100%;
 	height: inherit;
 	transition: 1s left;

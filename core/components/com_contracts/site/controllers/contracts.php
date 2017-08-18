@@ -15,11 +15,7 @@ class Contracts extends SiteController
 	 */
 	public function addTask($agreement = null)
 	{
-		if ($agreement instanceof Agreement)
-		{
-			$contract = $agreement->contract;
-		}
-		else
+		if (!($agreement instanceof Agreement))
 		{
 			$contractId = Request::getVar('alias', 0);
 			if (is_numeric($contractId))
@@ -31,17 +27,17 @@ class Contracts extends SiteController
 				$contract = Contract::oneByAlias($contractId);
 			}
 			$agreement = Agreement::blank();
+			$agreement->set('contract_id', $contract->id);
 		}
 
-		$this->view->set('contract', $contract)
-					->set('agreement', $agreement)
+		$this->view->set('agreement', $agreement)
 					->setLayout('add')
 					->display();
 	}
 
 	public function saveTask()
 	{
-		Request::checkToken();
+		//Request::checkToken();
 		$attributes = array(
 			'firstname' => Request::getVar('firstname'),
 			'lastname' => Request::getVar('lastname'),
@@ -57,17 +53,60 @@ class Contracts extends SiteController
 		$agreement->set($attributes);
 		if (!$agreement->save())
 		{
-			foreach ($agreement->getErrors() as $error)
+			if (Request::getVar('no_html') == 1)
 			{
-				Notify::error($error);
+				if ($agreement->documentViewable())
+				{
+					$this->view->setLayout('add')
+						->set('agreement', $agreement);
+					$response = array(
+						'showDocument' => true,
+						'html' => $this->view->loadTemplate('agreement')
+					);
+				}
+				else
+				{
+					$response = array('showDocument' => false);
+				}
+				header('Content-type: application/json');
+				echo json_encode($response);
+				exit();
 			}
+			Notify::warning($agreement->getError());
 			$this->addTask($agreement);
 			return;
 		}	
 		Notify::success('Successfully submitted contract.');
+		$eview = new \Hubzero\Component\View(array(
+			'name'   => 'emails',
+			'layout' => 'success'
+		));
+		$subject  = Config::get('sitename') .' '.Lang::txt('COM_MEMBERS_REGISTER_EMAIL_CONFIRMATION');
 
+		$eview->baseUrl = Request::base();
+		$eview->sitename   = Config::get('sitename');
+		$eview->option = $this->_option;
+		$eview->config = $this->config;
+		$eview->agreement   = $agreement;
+		$template = $eview->loadTemplate();
+		$email = new \Hubzero\Mail\Message();
+		$attachment = new \Swift_Attachment($agreement->getDocumentPdf(true), $agreement->contract->title . '.pdf', 'application/pdf');
+
+		$email->attach($attachment);
+		$email->setFrom('druidwithboots@gmail.com');
+		$email->setTo($agreement->email);
+		$email->setSubject($subject);
+		$email->setBody($template, 'text/html');
+		$transport = \Swift_SmtpTransport::newInstance('smtp.gmail.com', 587, 'tls')
+			->setUsername('druidwithboots@gmail.com')
+			->setPassword('poqahvafyxwfjzqf');
+		$email->send($transport);
 
 		App::redirect(Route::url('index.php?option=' . $this->_option . '&task=add' . '&alias=' . $agreement->contract->alias));
+	}
+
+	public function emailmeTask()
+	{
 	}
 
 	public function downloadTask()
@@ -86,19 +125,6 @@ class Contracts extends SiteController
 
 	public function emailTask()
 	{
-		$eview = new \Hubzero\Component\View(array(
-			'name'   => 'emails',
-			'layout' => 'success'
-		));
-		$subject  = Config::get('sitename') .' '.Lang::txt('COM_MEMBERS_REGISTER_EMAIL_CONFIRMATION');
-		$eview->baseUrl = Request::base();
-		$eview->sitename   = Config::get('sitename');
-		$eview->option = $this->_option;
-		$eview->config = $this->config;
-		$eview->agreement   = $agreement;
-		$template = $eview->loadTemplate();
-		echo $template;
-		exit();
 
 	}
 }

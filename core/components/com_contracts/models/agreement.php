@@ -35,7 +35,9 @@ class Agreement extends Relational
 		'firstname' => 'notempty',
 		'lastname' => 'notempty',
 		'email' => 'notempty',
-		'authority' => 'notempty'
+		'authority' => 'notempty',
+		'organization_name' => 'notempty',
+		'organization_address' => 'notempty'
 	);
 
 	public $initiate = array(
@@ -47,6 +49,7 @@ class Agreement extends Relational
 	);
 
 	public $document = '';
+	public $documentAttributes = array('firstname', 'lastname', 'email', 'organization_name', 'organization_address');
 
 	public function setup()
 	{
@@ -83,6 +86,27 @@ class Agreement extends Relational
 			$this->document = $this->_replacePlaceholders();
 		}
 		return $this->document;
+	}
+
+	public function hasDocumentAttributes()
+	{
+		foreach ($this->documentAttributes as $attribute)
+		{
+			if (!$this->get($attribute))
+			{
+				return false;
+			}	
+		}
+		return true;
+	}
+
+	public function documentViewable()
+	{
+		if ($this->get('authority') == 1 && $this->hasDocumentAttributes())
+		{
+			return true;
+		}
+		return false;
 	}
 
 	public function getDocumentPdf($asString = false)
