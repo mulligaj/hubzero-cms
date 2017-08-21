@@ -196,11 +196,8 @@ class Contracts extends AdminController
 
 		// Incoming
 		$fields = Request::getVar('fields', array(), 'post', 'none', 2);
-
-		if (isset($fields['contact_id']) && !is_numeric($fields['contact_id']))
-		{
-			unset($fields['contact_id']);
-		}
+		$contacts = Request::getVar('contacts', array());
+		$contacts = explode(',', $contacts);
 
 		// Initiate model and bind the incoming data to it
 		$row = Contract::oneOrNew($fields['id'])->set($fields);
@@ -211,6 +208,7 @@ class Contracts extends AdminController
 		// message from the model to the controller and fall through
 		// to the edit form. We pass the existing model to the edit form
 		// so it can repopulate the form with the user-submitted data.
+
 		if (!$row->save())
 		{
 			foreach ($row->getErrors() as $error)
@@ -220,6 +218,8 @@ class Contracts extends AdminController
 
 			return $this->editTask($row);
 		}
+
+		$row->contacts()->sync($contacts);
 
 		// Notify the user that the entry was saved
 		Notify::success(Lang::txt('COM_DRWHO_ENTRY_SAVED'));

@@ -41,6 +41,21 @@ class Contract extends Relational
 		return $this->oneToMany('Page', 'contract_id')->order('ordering', 'ASC');
 	}
 
+	public function contacts()
+	{
+		return $this->manyToMany('Hubzero\User\User', '#__contract_contacts', 'contract_id', 'user_id');
+	}
+
+	public function contactsAutoComplete()
+	{
+		$contacts = array();
+		foreach ($this->contacts as $contact)
+		{
+			$contacts[] = $contact->name . ' (' . $contact->id . ')';
+		}
+		return implode(',', $contacts);
+	}
+
 	public function agreements()
 	{
 		return $this->oneToMany('Agreement', 'contract_id')->order('created', 'DESC');

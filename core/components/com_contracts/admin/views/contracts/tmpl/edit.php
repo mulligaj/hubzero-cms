@@ -109,7 +109,7 @@ function submitbutton(pressbutton)
 			<fieldset class="editform">
 				<div class="input-wrap">
 					<label for="acusers">Primary Contact Person</label>
-					<?php $userSelect = Event::trigger('hubzero.onGetSingleEntryWithSelect', array(array('members', 'fields[contact_id]', 'acusers','', $this->row->contact->get('name',''), '', 'owner'))); ?>
+					<?php $userSelect = Event::trigger('hubzero.onGetMultiEntry', array(array('members', 'contacts', 'acusers','', $this->row->contactsAutoComplete(), '', 'owner'))); ?>
 					<?php if (count($userSelect) > 0): ?>
 						<?php echo $userSelect[0]; ?>
 					<?php else: ?>

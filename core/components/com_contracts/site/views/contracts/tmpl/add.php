@@ -97,7 +97,7 @@ Pathway::append(
 				<label for="authorized-yes">Yes</label>
 				<input type="radio" class="option" name="authority" value="0" id="authorized-no" <?php echo is_numeric($this->agreement->get('authority')) && $this->agreement->get('authority') == 0 ? 'checked="checked"' : '';?> />
 				<label for="authorized-no">No</label>
-				<p> If you select "Yes", an agreement will appear below. Please read the entire agreement. When finished reading, select an agreement option at the bottom.</p>
+				<p> If you select "Yes", the agreement will appear below. Please read the entire agreement. When finished reading, select an agreement option at the end of the agreement.</p>
 			</div>
 			<div class="col span12 omega">
 					<section class="contract" id="contract-section">
@@ -122,6 +122,7 @@ Pathway::append(
 				$.ajax({
 					url: parentForm.attr('action'),
 					data: parentForm.serialize() + '&no_html=1',
+					method: 'POST',
 					success: function(response){
 						if (response.showDocument == true){
 							$('#contract-section').html(response.html);

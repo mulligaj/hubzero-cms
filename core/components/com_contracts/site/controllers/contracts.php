@@ -37,7 +37,7 @@ class Contracts extends SiteController
 
 	public function saveTask()
 	{
-		//Request::checkToken();
+		Request::checkToken();
 		$attributes = array(
 			'firstname' => Request::getVar('firstname'),
 			'lastname' => Request::getVar('lastname'),
@@ -82,6 +82,7 @@ class Contracts extends SiteController
 			'layout' => 'success'
 		));
 		$subject  = Config::get('sitename') .' '.Lang::txt('COM_MEMBERS_REGISTER_EMAIL_CONFIRMATION');
+		$from = Config::get('mailfrom');
 
 		$eview->baseUrl = Request::base();
 		$eview->sitename   = Config::get('sitename');
@@ -93,8 +94,9 @@ class Contracts extends SiteController
 		$attachment = new \Swift_Attachment($agreement->getDocumentPdf(true), $agreement->contract->title . '.pdf', 'application/pdf');
 
 		$email->attach($attachment);
-		$email->setFrom('druidwithboots@gmail.com');
+		$email->setFrom($from);
 		$email->setTo($agreement->email);
+		$email->setCc($agreement->contract->contacts->fieldsByKey('email'));
 		$email->setSubject($subject);
 		$email->setBody($template, 'text/html');
 		$transport = \Swift_SmtpTransport::newInstance('smtp.gmail.com', 587, 'tls')
@@ -103,10 +105,6 @@ class Contracts extends SiteController
 		$email->send($transport);
 
 		App::redirect(Route::url('index.php?option=' . $this->_option . '&task=add' . '&alias=' . $agreement->contract->alias));
-	}
-
-	public function emailmeTask()
-	{
 	}
 
 	public function downloadTask()
@@ -121,10 +119,5 @@ class Contracts extends SiteController
 			$contract = Contract::oneByAlias($contractId);
 		}
 		$agreement->getDocumentPdf();
-	}
-
-	public function emailTask()
-	{
-
 	}
 }
