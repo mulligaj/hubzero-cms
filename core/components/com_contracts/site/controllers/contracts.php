@@ -35,6 +35,14 @@ class Contracts extends SiteController
 					->display();
 	}
 
+	public function messageTask()
+	{
+		$contractId = Request::getVar('alias');
+		$agreement = Agreement::one($contractId);
+		echo $agreement->accepted_message;
+		exit();
+	}
+
 	public function saveTask()
 	{
 		Request::checkToken();
@@ -81,7 +89,7 @@ class Contracts extends SiteController
 			'name'   => 'emails',
 			'layout' => 'success'
 		));
-		$subject  = Config::get('sitename') .' '.Lang::txt('COM_MEMBERS_REGISTER_EMAIL_CONFIRMATION');
+		$subject  = Config::get('sitename') . ' ' . $agreement->contract->title . ' ' . Lang::txt('COM_CONTRACTS_EMAIL_SUBJECT');
 		$from = Config::get('mailfrom');
 
 		$eview->baseUrl = Request::base();
@@ -105,19 +113,5 @@ class Contracts extends SiteController
 		$email->send($transport);
 
 		App::redirect(Route::url('index.php?option=' . $this->_option . '&task=add' . '&alias=' . $agreement->contract->alias));
-	}
-
-	public function downloadTask()
-	{
-		$contractId = Request::getVar('alias', 0);
-		if (is_numeric($contractId))
-		{
-			$agreement = Agreement::oneOrFail($contractId);
-		}
-		else
-		{
-			$contract = Contract::oneByAlias($contractId);
-		}
-		$agreement->getDocumentPdf();
 	}
 }

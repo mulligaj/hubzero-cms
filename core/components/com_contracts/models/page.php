@@ -173,19 +173,4 @@ class Page extends Relational
 		}
 		return $content;
 	}
-
-	/**
-	 * Deletes the existing/current model
-	 *
-	 * @return  bool
-	 */
-	public function destroy()
-	{
-		if (!$this->seasons()->sync(array()))
-		{
-			return false;
-		}
-
-		return parent::destroy();
-	}
 }

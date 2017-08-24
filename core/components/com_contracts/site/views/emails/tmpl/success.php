@@ -67,18 +67,6 @@ $this->css($css);
 
 ?>
 
-<!-- ====== Start Header ====== -->
-<table id="account-header" width="100%"  cellpadding="0" cellspacing="0" border="0">
-	<tbody>
-		<tr>
-			<td style="font-weight: bold; border-bottom: 1px solid #c2e1e3; padding: 16px 30px; text-align: center; font-size: 1.5em; color: green;" align="left">
-				Thank you for your Interest!
-			</td>
-		</tr>
-	</tbody>
-</table>
-<!-- ====== End Header ====== -->
-
 <!-- ====== Start Header Spacer ====== -->
 <table  width="100%" cellpadding="0" cellspacing="0" border="0">
 	<tr style="border-collapse: collapse;">
@@ -91,28 +79,16 @@ $this->css($css);
 	<tbody>
 		<tr>
 			<td width="100%" style="padding: 18px 8px 8px 8px; border-top: 2px solid #e9e9e9;">
-				<p>Hello <?php echo $this->agreement->firstname; ?>,</p>
-				<?php echo $this->agreement->contract->accepted_message; ?>
+				<p>Hello <?php echo $this->agreement->firstname . ' ' . $this->agreement->lastname; ?>,</p>
+				<?php if ($this->agreement->get('accepted', 0) == 1): ?>	
+				<?php echo $this->agreement->accepted_message; ?>
+				<?php else: ?>
+				<?php echo $this->agreement->manual_message; ?>
+				<?php endif; ?>
 			</td>
 		</tr>
 	</tbody>
 </table>
-
-<!-- Start Header -->
-<table width="100%" cellpadding="2" cellspacing="3" border="0" style="border-collapse: collapse; border-top: 2px solid #e1e1e1;">
-	<tbody>
-		<tr>
-			<td align="left" valign="bottom" style="line-height: 1; padding: 5px 0 0 0; ">
-				<span style="font-size: 0.85em; color: #666; -webkit-text-size-adjust: none;">
-					<?php echo Lang::txt('COM_MEMBERS_CREDENTIALS_EMAIL_WHY_NOTFIED', $this->config->get('sitename'), $this->baseUrl, $this->baseUrl); ?>
-					<p>Please send your reply to: <strong><?php echo $this->escape($this->agreement->contract->contact->name . ' <' . $this->agreement->contract->contact->email . '>');?></strong></p>
-					
-				</span>
-			</td>
-		</tr>
-	</tbody>
-</table>
-<!-- End Header -->
 
 <!-- Start Footer Spacer -->
 <table width="100%" cellpadding="0" cellspacing="0" border="0">

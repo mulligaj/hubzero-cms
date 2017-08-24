@@ -3,6 +3,7 @@ namespace Components\Contracts\Admin\Controllers;
 
 use Hubzero\Component\AdminController;
 use Components\Contracts\Models\Agreement;
+use Components\Contracts\Models\Contract;
 use Request;
 use Config;
 use Notify;
@@ -12,26 +13,6 @@ use Lang;
 use Date;
 use App;
 
-/**
- * Drwho controller for show characters
- * 
- * Accepts an array of configuration values to the constructor. If no config 
- * passed, it will automatically determine the component and controller names.
- * Internally, sets the $database, $user, $view, and component $config.
- * 
- * Executable tasks are determined by method name. All public methods that end in 
- * "Task" (e.g., displayTask, editTask) are callable by the end user.
- * 
- * View name defaults to controller name with layout defaulting to task name. So,
- * a $controller of "One" and a $task of "two" will map to:
- *
- * /{component name}
- *     /{client name}
- *         /views
- *             /one
- *                 /tmpl
- *                     /two.php
- */
 class Agreements extends AdminController
 {
 	/**
@@ -41,24 +22,12 @@ class Agreements extends AdminController
 	 */
 	public function displayTask()
 	{
-		// Get some incoming filters to apply to the entries list
-		//
-		// The Request::getState() method makes it easy to retain values of 
-		// certain variables across page accesses. This makes development much 
-		// simpler because we no longer has to worry about losing variable values 
-		// if it is left out of a form. The best example is that the form will
-		// retain the proper filters even after navigating to the edit entry form
-		// and back.
+
 		$filters = array(
 			'search' => urldecode(Request::getState(
 				$this->_option . '.' . $this->_controller . '.search',
 				'search',
 				''
-			)),
-			'state' => urldecode(Request::getState(
-				$this->_option . '.' . $this->_controller . '.state',
-				'state',
-				-1
 			)),
 			'contract' => urldecode(Request::getState(
 				$this->_option . '.' . $this->_controller . '.contract',
@@ -68,7 +37,7 @@ class Agreements extends AdminController
 			'sort' => Request::getState(
 				$this->_option . '.' . $this->_controller . '.sort',
 				'filter_order',
-				'name'
+				'lastname'
 			),
 			'sort_Dir' => Request::getState(
 				$this->_option . '.' . $this->_controller . '.sortdir',
@@ -89,26 +58,44 @@ class Agreements extends AdminController
 			)
 		);
 
-		// Get our model
-		// This is the entry point to the database and the 
-		// table of characters we'll be retrieving data from
 		$agreements = Agreement::all();
 
-		if ($filters['contract'] >= 0)
+		if ($filters['contract'] > 0)
 		{
 			$agreements->whereEquals('contract_id', $filters['contract']);
 		}
+		
+		$searchableFields = array(
+			'firstname',
+			'lastname',
+			'email',
+			'organization_name',
+			'organization_address'
+		);
 
+		if (!empty($filters['search']))
+		{
+			$firstValue = array_shift($searchableFields);
+			$agreements->whereLike($firstValue, $filters['search'], 1);
+			foreach ($searchableFields as $field)
+			{
+				$agreements->orWhereLike($field, $filters['search'], 1);
+			}
+			$agreements->resetDepth();
+		}
 
 		$rows = $agreements
 			->ordered('filter_order', 'filter_order_Dir')
 			->paginated()
 			->rows();
 
+		$contracts = Contract::all()->order('title', 'ASC')->rows();
+
 		// Output the view
 		$this->view
 			->set('filters', $filters)
 			->set('rows', $rows)
+			->set('contracts', $contracts)
 			->set('total', count($agreements))
 			->display();
 	}
@@ -121,21 +108,16 @@ class Agreements extends AdminController
 	 */
 	public function editTask($row=null)
 	{
-		// This is a flag to disable the main menu. This makes sure the user
-		// doesn't navigate away while int he middle of editing an entry.
-		// To leave the form, one must explicitely call the "cancel" task.
+		if (!User::authorise('core.edit', $this->_option)
+         && !User::authorise('core.create', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
+
 		Request::setVar('hidemainmenu', 1);
 
-		// If we're being passed an object, use it instead
-		// This means we came from saveTask() and some error occurred.
-		// Most likely a missing or incorrect field.
 		if (!is_object($row))
 		{
-			// Grab the incoming ID and load the record for editing
-			//
-			// IDs can come arrive in two formts: single integer or 
-			// an array of integers. If it's the latter, we'll only take 
-			// the first ID in the list.
 			$id = Request::getVar('id', array(0));
 			if (is_array($id) && !empty($id))
 			{
@@ -146,13 +128,6 @@ class Agreements extends AdminController
 			$row = Agreement::oneOrNew($id);
 		}
 
-		// Output the view
-		// 
-		// Make sure we load the edit view.
-		// This is for cases where saveTask() might encounter a data
-		// validation error and fall through to editTask(). Since layout 
-		// is auto-assigned the task name, the layout will be 'save' but
-		// saveTask has no layout!
 		$this->view
 			->set('row', $row)
 			->setLayout('edit')
@@ -166,13 +141,13 @@ class Agreements extends AdminController
 	 */
 	public function saveTask()
 	{
-		// [SECURITY] Check for request forgeries
-		//
-		// We're currently only checking POST, so if someone tries
-		// to access this task via a querystring (... &task=delete&id[]=1)
-		// it will be denied. This helps ensure the deletion process is
-		// *only* coming in through the submitted edit form.
 		Request::checkToken();
+
+		if (!User::authorise('core.edit', $this->_option)
+         && !User::authorise('core.create', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
 
 		// Incoming
 		$fields = Request::getVar('fields', array(), 'post', 'none', 2);
@@ -180,12 +155,6 @@ class Agreements extends AdminController
 		// Initiate model and bind the incoming data to it
 		$row = Agreement::oneOrNew($fields['id'])->set($fields);
 
-		// Validate and save the data
-		//
-		// If save() returns false for any reason, me pass the error
-		// message from the model to the controller and fall through
-		// to the edit form. We pass the existing model to the edit form
-		// so it can repopulate the form with the user-submitted data.
 		if (!$row->save())
 		{
 			foreach ($row->getErrors() as $error)
@@ -218,21 +187,13 @@ class Agreements extends AdminController
 	 */
 	public function removeTask()
 	{
-		// [SECURITY] Check for request forgeries
-		//
-		// We're currently only checking POST, so if someone tries
-		// to access this task via a querystring (... &task=delete&id[]=1)
-		// it will be denied. This helps ensure the deletion process is
-		// *only* coming in through the main listing, which submits a form.
+		if (!User::authorise('core.delete', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
 		Request::checkToken();
 
-		// Incoming
-		//
-		// We're expecting an array of incoming IDs from the
-		// entries listing. But, we'll force the data into an
-		// array just to be extra sure.
-		$ids = Request::getVar('id', array());
-		$ids = (!is_array($ids) ? array($ids) : $ids);
+		$ids = Request::getVar('id', array(), 'post');
 
 		// Do we actually have any entries?
 		if (count($ids) > 0)
@@ -243,19 +204,10 @@ class Agreements extends AdminController
 			foreach ($ids as $id)
 			{
 				// Get the model for this entry
-				$entry = Contract::oneOrFail(intval($id));
+				$entry = Agreement::one(intval($id));
 
-				// Delete the entry
-				//
-				// NOTE: It's generally preferred to use the model to delete
-				// entries instead of direct SQL statements as the model will
-				// typically take care of associated data and clean up after itself.
 				if (!$entry->destroy())
 				{
-					// If the deletion process fails for any reason, we'll take the 
-					// error message passed from the model and assign it to the message
-					// handler to be displayed by the template after we redirect back
-					// to the main listing.
 					Notify::error($entry->getError());
 					continue;
 				}
@@ -280,30 +232,15 @@ class Agreements extends AdminController
 	 */
 	public function stateTask()
 	{
-		// [SECURITY] Check for request forgeries
-		//
-		// Unlike deleteTask() above, we're allowing requests from both
-		// GET and POST. This allows us to have single click "toggle" buttons
-		// on the entries list as well as handle checkboxes+toolbar button presses
-		// which submit a form. This is a little less secure but state change
-		// is fairly innocuous.
 		Request::checkToken(['get', 'post']);
 
 		$state = $this->getTask() == 'publish' ? 1 : 0;
 
-		// Incoming
-		//
-		// We're expecting an array of incoming IDs from the
-		// entries listing. But, we'll force the data into an
-		// array just to be extra sure.
 		$ids = Request::getVar('id', array(0));
 		$ids = (!is_array($ids) ? array($ids) : $ids);
 
-		// Check for a resource
 		if (count($ids) < 1)
 		{
-			// No entries found, so go back to the entries list with
-			// a message scolding the user for not selecting anything. Tsk, tsk.
 			Notify::warning(Lang::txt('COM_DRWHO_SELECT_ENTRY_TO', $this->_task));
 
 			return $this->cancelTask();
@@ -319,24 +256,15 @@ class Agreements extends AdminController
 			// Store new content
 			if (!$row->save())
 			{
-				// If the save() process fails for any reason, we'll take the 
-				// error message passed from the model and assign it to the message
-				// handler to be displayed by the template after we redirect back
-				// to the main listing.
 				Notify::error($row->getError());
 				continue;
 			}
 
-			// Here, we're countign the number of successful state changes
-			// so we can display that number in a message when we're done.
 			$success++;
 		}
 
 		if ($success)
 		{
-			// Get the appropriate message for the task called. We're
-			// passing in the number of successful state changes so it
-			// can be displayed in the message.
 			switch ($this->_task)
 			{
 				case 'publish':
@@ -352,8 +280,6 @@ class Agreements extends AdminController
 
 			Notify::success($message);
 		}
-
-		// Set the redirect URL to the main entries listing.
 		$this->cancelTask();
 	}
 }

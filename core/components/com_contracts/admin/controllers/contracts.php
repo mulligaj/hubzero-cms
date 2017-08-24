@@ -12,26 +12,6 @@ use Lang;
 use Date;
 use App;
 
-/**
- * Drwho controller for show characters
- * 
- * Accepts an array of configuration values to the constructor. If no config 
- * passed, it will automatically determine the component and controller names.
- * Internally, sets the $database, $user, $view, and component $config.
- * 
- * Executable tasks are determined by method name. All public methods that end in 
- * "Task" (e.g., displayTask, editTask) are callable by the end user.
- * 
- * View name defaults to controller name with layout defaulting to task name. So,
- * a $controller of "One" and a $task of "two" will map to:
- *
- * /{component name}
- *     /{client name}
- *         /views
- *             /one
- *                 /tmpl
- *                     /two.php
- */
 class Contracts extends AdminController
 {
 	/**
@@ -41,17 +21,11 @@ class Contracts extends AdminController
 	 */
 	public function execute()
 	{
-		// Here we're aliasing the task 'add' to 'edit'. When examing
-		// this controller, you should not find any method called 'addTask'.
-		// Instead, we're telling the controller to execute the 'edit' task
-		// whenever a task of 'add' is called.
 		$this->registerTask('add', 'edit');
 		$this->registerTask('apply', 'save');
 		$this->registerTask('publish', 'state');
 		$this->registerTask('unpublish', 'state');
 
-		// Call the parent execute() method. Important! Otherwise, the
-		// controller will never actually execute anything.
 		parent::execute();
 	}
 
@@ -62,38 +36,16 @@ class Contracts extends AdminController
 	 */
 	public function displayTask()
 	{
-		// Get some incoming filters to apply to the entries list
-		//
-		// The Request::getState() method makes it easy to retain values of 
-		// certain variables across page accesses. This makes development much 
-		// simpler because we no longer has to worry about losing variable values 
-		// if it is left out of a form. The best example is that the form will
-		// retain the proper filters even after navigating to the edit entry form
-		// and back.
 		$filters = array(
 			'search' => urldecode(Request::getState(
 				$this->_option . '.' . $this->_controller . '.search',
 				'search',
 				''
 			)),
-			'state' => urldecode(Request::getState(
-				$this->_option . '.' . $this->_controller . '.state',
-				'state',
-				-1
-			)),
-			'season' => urldecode(Request::getState(
-				$this->_option . '.' . $this->_controller . '.season',
-				'season',
-				0
-			)),
-			// Get sorting variables
-			//
-			// "sort" is the name of the table column to sort by
-			// "sort_Dir" is the direction to sort by [ASC, DESC]
 			'sort' => Request::getState(
 				$this->_option . '.' . $this->_controller . '.sort',
 				'filter_order',
-				'name'
+				'title'
 			),
 			'sort_Dir' => Request::getState(
 				$this->_option . '.' . $this->_controller . '.sortdir',
@@ -102,23 +54,15 @@ class Contracts extends AdminController
 			)
 		);
 
-		// Get our model
-		// This is the entry point to the database and the 
-		// table of characters we'll be retrieving data from
 		$record = Contract::all()
 					->select('#__contracts.*')
 					->select('#__contract_agreements.id', 'submissions_count', true) 
 					->join('#__contract_agreements', '#__contracts.id', 'contract_id', 'left')
 					->group('#__contracts.id');
 
-		if ($filters['state'] >= 0)
+		if (!empty($filters['search']))
 		{
-			$record->whereEquals('state', $filters['state']);
-		}
-
-		if ($search = $filters['search'])
-		{
-			$record->whereLike('name', $search);
+			$record->whereLike('title', $filters['search']);
 		}
 
 		$rows = $record
@@ -141,21 +85,16 @@ class Contracts extends AdminController
 	 */
 	public function editTask($row=null)
 	{
-		// This is a flag to disable the main menu. This makes sure the user
-		// doesn't navigate away while int he middle of editing an entry.
-		// To leave the form, one must explicitely call the "cancel" task.
+		if (!User::authorise('core.edit', $this->_option)
+         && !User::authorise('core.create', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
+
 		Request::setVar('hidemainmenu', 1);
 
-		// If we're being passed an object, use it instead
-		// This means we came from saveTask() and some error occurred.
-		// Most likely a missing or incorrect field.
 		if (!is_object($row))
 		{
-			// Grab the incoming ID and load the record for editing
-			//
-			// IDs can come arrive in two formts: single integer or 
-			// an array of integers. If it's the latter, we'll only take 
-			// the first ID in the list.
 			$id = Request::getVar('id', array(0));
 			if (is_array($id) && !empty($id))
 			{
@@ -166,13 +105,6 @@ class Contracts extends AdminController
 			$row = Contract::oneOrNew($id);
 		}
 
-		// Output the view
-		// 
-		// Make sure we load the edit view.
-		// This is for cases where saveTask() might encounter a data
-		// validation error and fall through to editTask(). Since layout 
-		// is auto-assigned the task name, the layout will be 'save' but
-		// saveTask has no layout!
 		$this->view
 			->set('row', $row)
 			->setLayout('edit')
@@ -186,28 +118,19 @@ class Contracts extends AdminController
 	 */
 	public function saveTask()
 	{
-		// [SECURITY] Check for request forgeries
-		//
-		// We're currently only checking POST, so if someone tries
-		// to access this task via a querystring (... &task=delete&id[]=1)
-		// it will be denied. This helps ensure the deletion process is
-		// *only* coming in through the submitted edit form.
 		Request::checkToken();
 
-		// Incoming
+		if (!User::authorise('core.edit', $this->_option)
+         && !User::authorise('core.create', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
+
 		$fields = Request::getVar('fields', array(), 'post', 'none', 2);
 		$contacts = Request::getVar('contacts', array());
 		$contacts = explode(',', $contacts);
 
-		// Initiate model and bind the incoming data to it
 		$row = Contract::oneOrNew($fields['id'])->set($fields);
-
-		// Validate and save the data
-		//
-		// If save() returns false for any reason, me pass the error
-		// message from the model to the controller and fall through
-		// to the edit form. We pass the existing model to the edit form
-		// so it can repopulate the form with the user-submitted data.
 
 		if (!$row->save())
 		{
@@ -243,19 +166,13 @@ class Contracts extends AdminController
 	 */
 	public function removeTask()
 	{
-		// [SECURITY] Check for request forgeries
-		//
-		// We're currently only checking POST, so if someone tries
-		// to access this task via a querystring (... &task=delete&id[]=1)
-		// it will be denied. This helps ensure the deletion process is
-		// *only* coming in through the main listing, which submits a form.
 		Request::checkToken();
 
-		// Incoming
-		//
-		// We're expecting an array of incoming IDs from the
-		// entries listing. But, we'll force the data into an
-		// array just to be extra sure.
+		if (!User::authorise('core.delete', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
+
 		$ids = Request::getVar('id', array());
 		$ids = (!is_array($ids) ? array($ids) : $ids);
 
@@ -270,17 +187,8 @@ class Contracts extends AdminController
 				// Get the model for this entry
 				$entry = Contract::oneOrFail(intval($id));
 
-				// Delete the entry
-				//
-				// NOTE: It's generally preferred to use the model to delete
-				// entries instead of direct SQL statements as the model will
-				// typically take care of associated data and clean up after itself.
 				if (!$entry->destroy())
 				{
-					// If the deletion process fails for any reason, we'll take the 
-					// error message passed from the model and assign it to the message
-					// handler to be displayed by the template after we redirect back
-					// to the main listing.
 					Notify::error($entry->getError());
 					continue;
 				}
@@ -294,91 +202,7 @@ class Contracts extends AdminController
 			Notify::success(Lang::txt('COM_DRWHO_ENTRIES_DELETED'));
 		}
 
-		// Set the redirect URL to the main entries listing.
 		$this->cancelTask();
 	}
 
-	/**
-	 * Sets the state of one or more entries
-	 *
-	 * @return  void
-	 */
-	public function stateTask()
-	{
-		// [SECURITY] Check for request forgeries
-		//
-		// Unlike deleteTask() above, we're allowing requests from both
-		// GET and POST. This allows us to have single click "toggle" buttons
-		// on the entries list as well as handle checkboxes+toolbar button presses
-		// which submit a form. This is a little less secure but state change
-		// is fairly innocuous.
-		Request::checkToken(['get', 'post']);
-
-		$state = $this->getTask() == 'publish' ? 1 : 0;
-
-		// Incoming
-		//
-		// We're expecting an array of incoming IDs from the
-		// entries listing. But, we'll force the data into an
-		// array just to be extra sure.
-		$ids = Request::getVar('id', array(0));
-		$ids = (!is_array($ids) ? array($ids) : $ids);
-
-		// Check for a resource
-		if (count($ids) < 1)
-		{
-			// No entries found, so go back to the entries list with
-			// a message scolding the user for not selecting anything. Tsk, tsk.
-			Notify::warning(Lang::txt('COM_DRWHO_SELECT_ENTRY_TO', $this->_task));
-
-			return $this->cancelTask();
-		}
-
-		// Loop through all the IDs
-		$success = 0;
-		foreach ($ids as $id)
-		{
-			// Load the entry and set its state
-			$row = Contract::oneOrNew(intval($id))->set(array('state' => $state));
-
-			// Store new content
-			if (!$row->save())
-			{
-				// If the save() process fails for any reason, we'll take the 
-				// error message passed from the model and assign it to the message
-				// handler to be displayed by the template after we redirect back
-				// to the main listing.
-				Notify::error($row->getError());
-				continue;
-			}
-
-			// Here, we're countign the number of successful state changes
-			// so we can display that number in a message when we're done.
-			$success++;
-		}
-
-		if ($success)
-		{
-			// Get the appropriate message for the task called. We're
-			// passing in the number of successful state changes so it
-			// can be displayed in the message.
-			switch ($this->_task)
-			{
-				case 'publish':
-					$message = Lang::txt('COM_DRWHO_ITEMS_PUBLISHED', $success);
-				break;
-				case 'unpublish':
-					$message = Lang::txt('COM_DRWHO_ITEMS_UNPUBLISHED', $success);
-				break;
-				case 'archive':
-					$message = Lang::txt('COM_DRWHO_ITEMS_ARCHIVED', $success);
-				break;
-			}
-
-			Notify::success($message);
-		}
-
-		// Set the redirect URL to the main entries listing.
-		$this->cancelTask();
-	}
 }

@@ -54,6 +54,12 @@ class Pages extends AdminController
 
 	public function editTask()
 	{
+		if (!User::authorise('core.edit', $this->_option)
+         && !User::authorise('core.create', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
+
 		$contractId = Request::getVar('contract_id', 0);
 		$pageId = Request::getVar('id', 0);
 		$pageOrder = Request::getArray('currentOrder');
@@ -82,6 +88,11 @@ class Pages extends AdminController
 
 	public function saveTask()
 	{
+		if (!User::authorise('core.edit', $this->_option)
+         && !User::authorise('core.create', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
 		Request::checkToken();
 		$pageId = Request::getVar('id', 0);
 		$text = Request::getVar('content');
@@ -113,5 +124,35 @@ class Pages extends AdminController
 			exit();
 		}
 		
+	}
+
+	/**
+	 * Delete one or more entries
+	 *
+	 * @return  void
+	 */
+	public function removeTask()
+	{
+		if (!User::authorise('core.delete', $this->_option))
+        {
+            App::abort(403, Lang::txt('JERROR_ALERTNOAUTHOR'));
+        }
+
+		Request::checkToken('get');
+
+		$id = Request::getVar('id', '');
+
+		$entry = Page::one(intval($id));
+		$contractId = $entry->contract_id;
+		
+		if (!$entry->destroy())
+		{
+			Notify::error($entry->getError());
+		}	
+		else
+		{
+			Notify::success(Lang::txt('COM_DRWHO_ENTRIES_DELETED'));
+		}
+		App::redirect(Route::url('index.php?option=' . $this->_option . '&controller=contracts&task=edit&id=' . $contractId, false));
 	}
 }

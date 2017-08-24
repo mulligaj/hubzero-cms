@@ -80,10 +80,22 @@ function submitbutton(pressbutton)
 
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm">
 	<fieldset id="filter-bar">
-		<label for="filter_search"><?php echo Lang::txt('JSEARCH_FILTER'); ?>:</label>
-		<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo Lang::txt('COM_CONTRACTS_FILTER_SEARCH_PLACEHOLDER'); ?>" />
-
-		<input type="submit" value="<?php echo Lang::txt('COM_CONTRACTS_GO'); ?>" />
+		<div class="grid">
+			<div class="col span4">
+				<label for="filter_search"><?php echo Lang::txt('JSEARCH_FILTER'); ?>:</label>
+				<input type="text" name="search" id="filter_search" value="<?php echo $this->escape($this->filters['search']); ?>" placeholder="<?php echo Lang::txt('COM_CONTRACTS_FILTER_SEARCH_PLACEHOLDER'); ?>" />
+				<input type="submit" value="<?php echo Lang::txt('COM_CONTRACTS_GO'); ?>" />
+			</div>
+			<div class="col span8 align-right">
+				<label for="filter-contract"><?php echo Lang::txt('COM_BLOG_FIELD_STATE'); ?>:</label>
+				<select name="contract_id" id="filter-contract" onchange="this.form.submit();">
+						<option value="0"<?php echo $this->filters['contract'] == 0 ? ' selected="selected"' : ''; ?>><?php echo Lang::txt('COM_CONTRACTS_CONTRACT_PLACEHOLDER'); ?></option>
+					<?php foreach ($this->contracts as $contract):?>
+						<option value="<?php echo $contract->get('id');?>"<?php echo $this->filters['contract'] == $contract->get('id') ? ' selected="selected"' : ''; ?>><?php echo $contract->title; ?></option>
+					<?php endforeach; ?>
+				</select>
+			</div>
+		</div>
 	</fieldset>
 
 	<table class="adminlist">
@@ -92,7 +104,7 @@ function submitbutton(pressbutton)
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo count($this->rows);?>);" /></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_ORGANIZATION', 'organization_name', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_CONTRACT', 'contract', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_CONTRACT', 'contract_id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_CONTACT', 'lastname', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_EMAIL', 'email', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-5"><?php echo Html::grid('sort', 'COM_CONTRACTS_COL_ACCEPTANCE', 'accepted', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
@@ -139,7 +151,6 @@ function submitbutton(pressbutton)
 	<input type="hidden" name="controller" value="<?php echo $this->controller; ?>" />
 	<input type="hidden" name="task" value="" autocomplete="off" />
 	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="contract_id" value="<?php echo $this->filters['contract']; ?>" />
 	<input type="hidden" name="filter_order" value="<?php echo $this->filters['sort']; ?>" />
 	<input type="hidden" name="filter_order_Dir" value="<?php echo $this->filters['sort_Dir']; ?>" />
 

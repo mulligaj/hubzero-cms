@@ -79,13 +79,40 @@ class Agreement extends Relational
 		return $this->belongsToOne('Contract', 'contract_id');
 	}
 
+	/**
+	 * Returns the completed document based on the template created on the Contract.
+	 *
+	 * @return string
+	 */
 	public function document()
 	{
 		if (empty($this->document))
 		{
-			$this->document = $this->_replacePlaceholders();
+			$this->document = $this->_replacePlaceholders($this->contract->template());
 		}
 		return $this->document;
+	}
+
+	/**
+	 * Returns the completed accepted message based on the template created on the Contract.
+	 *
+	 * @return string
+	 */
+	public function transformAcceptedMessage()
+	{
+		$message = $this->_replacePlaceholders($this->contract->accepted_message);
+		return $message;
+	}
+
+	/**
+	 * Returns the completed manual process message based on the template created on the Contract.
+	 *
+	 * @return string
+	 */
+	public function transformManualMessage()
+	{
+		$message = $this->_replacePlaceholders($this->contract->manual_message);
+		return $message;
 	}
 
 	public function hasDocumentAttributes()
@@ -151,12 +178,17 @@ class Agreement extends Relational
 		}
 	}
 
-	private function _replacePlaceholders()
+	/**
+	 * Replaces all values encapsulated in {{ }} with the appropriate agreement property value.
+	 * @param   string   $template  the template provided that needs any placeholders provided replaced.
+	 * @return string
+	 */
+	private function _replacePlaceholders($template)
 	{
 		$document = preg_replace_callback("/{{([^}{]*)}}/", function($matches){
 			$property = trim(strtolower($matches[1]));
 			return $this->$property;
-		}, $this->contract->template());
+		}, $template);
 		return $document;
 	}
 

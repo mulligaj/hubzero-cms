@@ -94,9 +94,9 @@ Pathway::append(
 				<input type="radio" class="option-hidden" name="authority" value="" id="authorized-none" <?php echo !is_numeric($this->agreement->get('authority')) ? 'checked="checked"' : '';?> />
 				<label for="authorized-none">No Option Selected</label>
 				<input type="radio" class="option" name="authority" value="1" id="authorized-yes" <?php echo $this->agreement->get('authority') == 1 ? 'checked="checked"' : '';?> />
-				<label for="authorized-yes">Yes</label>
+				<label for="authorized-yes">Yes, I have authority and would like to review the agreement now.</label>
 				<input type="radio" class="option" name="authority" value="0" id="authorized-no" <?php echo is_numeric($this->agreement->get('authority')) && $this->agreement->get('authority') == 0 ? 'checked="checked"' : '';?> />
-				<label for="authorized-no">No</label>
+				<label for="authorized-no">No, I would like to recieve an electronic copy via email for further review and/or signature by someone else.</label>
 				<p> If you select "Yes", the agreement will appear below. Please read the entire agreement. When finished reading, select an agreement option at the end of the agreement.</p>
 			</div>
 			<div class="col span12 omega">

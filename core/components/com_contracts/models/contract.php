@@ -31,9 +31,24 @@ class Contract extends Relational
 		'alias' => 'notempty',
 	);
 
-	public function contact()
+	public $initiate = array(
+		'created',
+		'created_by'
+	);
+
+	public $always = array(
+		'modified',
+		'modified_by'
+	);
+
+	public function automaticModified($data)
 	{
-		return $this->belongsToOne('\Hubzero\User\User', 'contact_id');
+		return Date::of()->toSql();
+	}
+
+	public function automaticModifiedBy($data)
+	{
+		return User::getInstance()->get('id');
 	}
 
 	public function pages()
@@ -88,12 +103,21 @@ class Contract extends Relational
 	 */
 	public function destroy()
 	{
-		if (!$this->seasons()->sync(array()))
+		if (!$this->contacts()->sync(array()))
+		{
+			return false;
+		}
+
+		if (!$this->pages->destroyAll())
+		{
+			return false;
+		}
+
+		if (!$this->agreements->destroyAll())
 		{
 			return false;
 		}
 
 		return parent::destroy();
 	}
-
 }

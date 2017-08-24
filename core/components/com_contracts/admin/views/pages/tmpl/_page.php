@@ -5,8 +5,8 @@
 	</ul>
 	<ul class="subnav save-item-buttons">
 		<li><button type="submit" form="<?php echo 'save-item-' . $this->page->get('id'); ?>" class="button">Save</button></li>
-		<li><button type="reset" form="<?php echo 'save-item-' . $this->page->get('id'); ?>" class="button cancel">Cancel</button></li>
 	</ul>
+	<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=pages' . '&task=remove&id=' . $this->page->get('id') . '&' . Session::getFormToken() . '=1'); ?>" class="delete-page">Delete</a>
 	<label for="<?php echo $pageId; ?>" class="page-label">Page <?php echo $this->pageNum; ?></label>
 	<div class="page-content">
 		<?php if ($this->task == 'add'): ?>

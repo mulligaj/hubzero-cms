@@ -1,11 +1,3 @@
-/*
-
-	-- -- -- -- -- -- --
-	com_drwho CSS
-	-- -- -- -- -- -- --
-
-*/
-
 #contract-section {
 	max-height: 75vh;
 	width: 100%;
@@ -21,6 +13,11 @@
 	height: inherit;
 	transition: 1s left;
 	padding: 0 4em;
+}
+
+#contract-section .radio-options {
+	padding-top: 1em;
+	text-align: center;
 }
 
 section.contract-paginated .article .page-content {
