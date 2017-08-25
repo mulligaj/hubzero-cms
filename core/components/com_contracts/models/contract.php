@@ -41,6 +41,7 @@ class Contract extends Relational
 		'modified_by'
 	);
 
+
 	public function automaticModified($data)
 	{
 		return Date::of()->toSql();
@@ -85,6 +86,7 @@ class Contract extends Relational
 		}
 		return $template;
 	}
+
 
 	/**
 	 * Defines a belongs to one relationship

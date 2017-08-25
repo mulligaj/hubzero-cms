@@ -20,7 +20,7 @@ $this->css();
 // Similarly, a js() method is available for pushing javascript assets to the document.
 // The arguments accepted are the same as the css() method described above.
 //
-// $this->js();
+$this->js();
 
 // Set the document title
 //
@@ -89,7 +89,7 @@ Pathway::append(
 		<legend>Contract Agreement</legend>
 		<div class="grid">
 			<?php echo Html::input('token'); ?>
-			<div class="col span12 omega radio-options">
+			<fieldset class="radio-options">
 				<p>Do you have authority to authorize contract agreements on behalf of this organization?</p>
 				<input type="radio" class="option-hidden" name="authority" value="" id="authorized-none" <?php echo !is_numeric($this->agreement->get('authority')) ? 'checked="checked"' : '';?> />
 				<label for="authorized-none">No Option Selected</label>
@@ -98,7 +98,7 @@ Pathway::append(
 				<input type="radio" class="option" name="authority" value="0" id="authorized-no" <?php echo is_numeric($this->agreement->get('authority')) && $this->agreement->get('authority') == 0 ? 'checked="checked"' : '';?> />
 				<label for="authorized-no">No, I would like to recieve an electronic copy via email for further review and/or signature by someone else.</label>
 				<p> If you select "Yes", the agreement will appear below. Please read the entire agreement. When finished reading, select an agreement option at the end of the agreement.</p>
-			</div>
+			</fieldset>
 			<div class="col span12 omega">
 					<section class="contract" id="contract-section">
 						<?php if ($this->agreement->documentViewable()): ?>
@@ -114,31 +114,3 @@ Pathway::append(
 	</p>
 	</form>
 </section>
-<script type="text/javascript">
-	$(function(){
-	  	$('input[name="authority"]').on('click', function(e){
-			if ($(this).val() == 1){
-				var parentForm = $(this).closest('form');
-				$.ajax({
-					url: parentForm.attr('action'),
-					data: parentForm.serialize() + '&no_html=1',
-					method: 'POST',
-					success: function(response){
-						if (response.showDocument == true){
-							$('#contract-section').html(response.html);
-							var topPos = $('#contract-section').offset().top - 110;
-							$(window).scrollTop(topPos);
-						}
-						else{
-							$('#authorized-none').prop('checked', true);
-							parentForm.submit();
-						}
-					}
-				});
-			}
-			else{
-				$('#contract-section').html('');
-			}
-		});
-	});
-</script>

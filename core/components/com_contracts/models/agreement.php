@@ -67,6 +67,10 @@ class Agreement extends Relational
 			}
 			return false;
 		});
+
+		Event::addListener(function($event){
+			$this->sendEmail();
+		}, '#__contract_agreements_new');
 	}
 
 	/**
@@ -112,6 +116,16 @@ class Agreement extends Relational
 	public function transformManualMessage()
 	{
 		$message = $this->_replacePlaceholders($this->contract->manual_message);
+		return $message;
+	}
+
+	/**
+	 * Returns appropriate message based on accepted status
+	 * @return string
+	 */
+	public function message()
+	{
+		$message = $this->get('accepted') == 1 ? $this->accepted_message : $this->manual_message;
 		return $message;
 	}
 
@@ -178,6 +192,36 @@ class Agreement extends Relational
 		}
 	}
 
+	public function sendEmail()
+	{
+		$eview = new \Hubzero\Component\View(array(
+			'name'   => 'emails',
+			'layout' => 'success'
+		));
+		$subject  = Config::get('sitename') . ' ' . $this->contract->title . ' ' . Lang::txt('COM_CONTRACTS_EMAIL_SUBJECT');
+		$from = Config::get('mailfrom');
+
+		$eview->baseUrl = Request::base();
+		$eview->sitename   = Config::get('sitename');
+		$eview->option = $this->_option;
+		$eview->config = $this->config;
+		$eview->agreement   = $this;
+		$template = $eview->loadTemplate();
+		$email = new \Hubzero\Mail\Message();
+		$attachment = new \Swift_Attachment($this->getDocumentPdf(true), $this->contract->title . '.pdf', 'application/pdf');
+
+		$email->attach($attachment);
+		$email->setFrom($from);
+		$email->setTo($this->email);
+		$email->setCc($this->contract->contacts->fieldsByKey('email'));
+		$email->setSubject($subject);
+		$email->setBody($template, 'text/html');
+		//$transport = \Swift_SmtpTransport::newInstance('smtp.gmail.com', 587, 'tls')
+		//		->setUsername('')
+		//	->setPassword('');
+		$email->send();
+	}	
+
 	/**
 	 * Replaces all values encapsulated in {{ }} with the appropriate agreement property value.
 	 * @param   string   $template  the template provided that needs any placeholders provided replaced.
@@ -200,7 +244,7 @@ class Agreement extends Relational
 	public function transformCreated()
 	{
 		$dateString = $this->get('created');
-		$date = Date::of($dateString)->toLocal('F jS, Y g:h A');
+		$date = Date::of($dateString)->toLocal('F jS, Y g:i A T');
 		return $date;
 	}
 

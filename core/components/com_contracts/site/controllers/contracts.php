@@ -35,14 +35,6 @@ class Contracts extends SiteController
 					->display();
 	}
 
-	public function messageTask()
-	{
-		$contractId = Request::getVar('alias');
-		$agreement = Agreement::one($contractId);
-		echo $agreement->accepted_message;
-		exit();
-	}
-
 	public function saveTask()
 	{
 		Request::checkToken();
@@ -85,33 +77,9 @@ class Contracts extends SiteController
 			return;
 		}	
 		Notify::success('Successfully submitted contract.');
-		$eview = new \Hubzero\Component\View(array(
-			'name'   => 'emails',
-			'layout' => 'success'
-		));
-		$subject  = Config::get('sitename') . ' ' . $agreement->contract->title . ' ' . Lang::txt('COM_CONTRACTS_EMAIL_SUBJECT');
-		$from = Config::get('mailfrom');
-
-		$eview->baseUrl = Request::base();
-		$eview->sitename   = Config::get('sitename');
-		$eview->option = $this->_option;
-		$eview->config = $this->config;
-		$eview->agreement   = $agreement;
-		$template = $eview->loadTemplate();
-		$email = new \Hubzero\Mail\Message();
-		$attachment = new \Swift_Attachment($agreement->getDocumentPdf(true), $agreement->contract->title . '.pdf', 'application/pdf');
-
-		$email->attach($attachment);
-		$email->setFrom($from);
-		$email->setTo($agreement->email);
-		$email->setCc($agreement->contract->contacts->fieldsByKey('email'));
-		$email->setSubject($subject);
-		$email->setBody($template, 'text/html');
-		$transport = \Swift_SmtpTransport::newInstance('smtp.gmail.com', 587, 'tls')
-			->setUsername('druidwithboots@gmail.com')
-			->setPassword('poqahvafyxwfjzqf');
-		$email->send($transport);
-
-		App::redirect(Route::url('index.php?option=' . $this->_option . '&task=add' . '&alias=' . $agreement->contract->alias));
+		$this->view
+			->setLayout('success')
+			->set('row', $agreement)
+			->display();
 	}
 }

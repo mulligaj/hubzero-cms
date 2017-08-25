@@ -1,18 +1,18 @@
 #contract-section {
 	max-height: 75vh;
-	width: 100%;
+	width: 90%;
 	margin: auto;
 	overflow-x: hidden;
 	overflow-y: auto;
 	position: relative;
+	background: white;
 	top: 0;
 }
 
 #contract-section article {
-	width: 100%;
+	width: 95%;
 	height: inherit;
 	transition: 1s left;
-	padding: 0 4em;
 }
 
 #contract-section .radio-options {
@@ -86,10 +86,20 @@ nav.pagination {
 	text-align: center;
 }
 
+#hubForm .radio-options p:first-child {
+	margin-bottom: 1.5em;
+}
+
 #hubForm .radio-options input, #hubForm .radio-options input + label {
 	display: inline;
-	padding-right: .5em;
-	margin-bottom: 10px;
+}
+
+#hubForm fieldset fieldset.radio-options {
+	padding-left: 2em;
+}
+
+#hubForm fieldset.radio-options label {
+	padding-left: .5em;
 }
 
 #hubForm .radio-options input.option-hidden, #hubForm .radio-options input.option-hidden + label {
