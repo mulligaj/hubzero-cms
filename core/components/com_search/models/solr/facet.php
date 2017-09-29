@@ -67,14 +67,12 @@ class Facet extends Relational
 		if (!$this->isNew())
 		{
 			$tops = $this->all()
-				->whereEquals('parent_id', 0)
 				->where('id', '!=', $this->id)
 				->rows();
 		}
 		else
 		{
 			$tops = $this->all()
-				->whereEquals('parent_id', 0)
 				->rows();
 		}
 
@@ -105,7 +103,7 @@ class Facet extends Relational
 	{
 		if ($this->hasParent())
 		{
-			$facet = $this->parentFacet->facet . ' AND ' . $this->get('facet');
+			$facet = '(' . $this->parentFacet->facet . ') AND (' . $this->get('facet') . ')';
 		}
 		else
 		{
