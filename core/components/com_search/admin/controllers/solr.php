@@ -35,12 +35,15 @@ use Hubzero\Component\AdminController;
 use Components\Search\Models\Solr\Blacklist;
 use Components\Search\Models\Solr\Facet;
 use \Hubzero\Search\Query;
+use \Hubzero\Search\Index;
 use Components\Search\Helpers\SolrHelper;
+use Components\Search\Helpers\DiscoveryHelper;
 use Components\Developer\Models\Application;
 use Hubzero\Access\Group as Accessgroup;
 use stdClass;
 
 require_once Component::path('com_search') . DS . 'helpers' . DS . 'solr.php';
+require_once Component::path('com_search') . DS . 'helpers' . DS . 'discovery.php';
 require_once Component::path('com_search') . DS . 'models' . DS . 'solr' . DS . 'blacklist.php';
 require_once Component::path('com_search') . DS . 'models' . DS . 'solr' . DS . 'facet.php';
 require_once Component::path('com_developer') . DS . 'models' . DS . 'application.php';
@@ -541,5 +544,30 @@ class Solr extends AdminController
 			$message,
 			$success
 		);
+	}
+
+	public function addDocumentsTask()
+	{
+		$documentsList = array();
+		$documentsList = array(
+			array('id' => 'test_1', 'title' => 'The new recruit', 'description' => 'testing indexing', 'hubtype' => 'resource', 'access_level' => 'public', 'url' => 'www.reddit.com'),
+			array('id' => 'test_2', 'title' => 'The new recruit part 2', 'description' => 'testing indexing part 2', 'hubtype' => 'resource', 'access_level' => 'public', 'url' => 'www.reddit.com')
+		);
+		$newQuery = new \Hubzero\Search\Index($this->config);
+		$newQuery->index($documentsList);
+	}
+
+	public function checkItTask()
+	{
+		$file = \Component::path('com_resources') . '/models/resource.php';
+		if (DiscoveryHelper::isSearchable($file))
+		{
+			echo "Yep, it is!";
+		}
+		else
+		{
+			echo "Nope, it isn't";
+		}
+		exit();
 	}
 }

@@ -175,8 +175,6 @@ class Solr extends SiteController
 		if ($terms != '' && $numFound == 0)
 		{
 			// Get MoreLikeThis results
-			$spellSuggestions = $query->spellCheck($terms);
-			$this->view->spellSuggestions = $spellSuggestions;
 		}
 
 		$this->view->pagination = new \Hubzero\Pagination\Paginator($numFound, $start, $limit);
