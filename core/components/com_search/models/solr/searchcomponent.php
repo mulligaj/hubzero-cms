@@ -27,29 +27,71 @@
  * @package   hubzero-cms
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
- * @since     2.1.1
+ * @since     2.1.4
  */
 
-namespace Components\Search\Helpers;
-require_once \Component::path('com_search') . '/admin/interfaces/searchable.php';
-use ReflectionClass;
-use \Components\Search\Admin\Interfaces\Searchable as Searchable;
+namespace Components\Search\Models\Solr;
+
+use Hubzero\Database\Relational;
+use Hubzero\Database\Rows;
+use Hubzero\Utility\String;
+use Hubzero\Base\Object;
+use Components\Search\Helpers\DiscoveryHelper;
+
 
 /**
- * Solr helper class
+ * Database model for search components
+ *
+ * @uses  \Hubzero\Database\Relational
+
  */
-class DiscoveryHelper
+class SearchComponent extends Relational
 {
-	public static function isSearchable($file)
+	protected $namespace = 'solr_search';
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 */
+	public $initiate = array(
+		'created'
+	);
+
+	/**
+	 * Discover searchable components
+	 *
+	 */
+
+	public function getNewComponents()
 	{
-		include $file;
-		$className = '\Components\Resources\Models\\' . ucfirst(basename($file, '.php'));
-		$reflectionClass = new \ReflectionClass($className);
-		return $reflectionClass->implementsInterface('\Components\Search\Admin\Interfaces\Searchable');
+		$existing = self::all()->rows()->fieldsByKey('name');
+		$components = DiscoveryHelper::getSearchableComponents($existing);
+		$newComponents = new Rows();
+		foreach ($components as $component)
+		{
+			$newItem = self::blank()->set('name', $component);
+			$newComponents->push($newItem);
+		}
+		return $newComponents;
 	}
 
-	public static function searchResults()
+	public function getSearchResults()
 	{
-		return false;
+		$models = $this->getSearchableModels();
+		$results = array();
+		foreach ($models as $model)
+		{
+			$modelResults = $model::searchResults();
+			$results = array_merge($results, $modelResults);
+		}
+		return $results;
+	}
+
+	public function getSearchableModels()
+	{
+		$componentName = $this->get('name');
+		$models = DiscoveryHelper::getSearchableModels($componentName);
+		return $models;
 	}
 }

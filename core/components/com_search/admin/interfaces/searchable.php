@@ -36,5 +36,6 @@ namespace Components\Search\Admin\Interfaces;
  */
 interface Searchable
 {
+	public function searchResult();
 	public static function searchResults();
 }

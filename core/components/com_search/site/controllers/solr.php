@@ -89,7 +89,7 @@ class Solr extends SiteController
 			->rows();
 		foreach ($allFacets as $facet)
 		{
-			$multifacet->createQuery($facet->getQueryName(), $facet->facet, array('root_type'));
+			$multifacet->createQuery($facet->getQueryName(), $facet->facet, array('exclude' => 'root_type'));
 		} 
 
 		$filters = Request::getVar('filters', array());

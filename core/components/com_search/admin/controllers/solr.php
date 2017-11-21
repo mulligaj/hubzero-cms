@@ -34,6 +34,7 @@ namespace Components\Search\Admin\Controllers;
 use Hubzero\Component\AdminController;
 use Components\Search\Models\Solr\Blacklist;
 use Components\Search\Models\Solr\Facet;
+use Components\Search\Models\Solr\SearchComponent;
 use \Hubzero\Search\Query;
 use \Hubzero\Search\Index;
 use Components\Search\Helpers\SolrHelper;
@@ -43,8 +44,8 @@ use Hubzero\Access\Group as Accessgroup;
 use stdClass;
 
 require_once Component::path('com_search') . DS . 'helpers' . DS . 'solr.php';
-require_once Component::path('com_search') . DS . 'helpers' . DS . 'discovery.php';
 require_once Component::path('com_search') . DS . 'models' . DS . 'solr' . DS . 'blacklist.php';
+require_once Component::path('com_search') . DS . 'models' . DS . 'solr' . DS . 'searchcomponent.php';
 require_once Component::path('com_search') . DS . 'models' . DS . 'solr' . DS . 'facet.php';
 require_once Component::path('com_developer') . DS . 'models' . DS . 'application.php';
 
@@ -318,7 +319,7 @@ class Solr extends AdminController
 			// Redirect back to the search page.
 			App::redirect(
 				Route::url('index.php?option=' . $this->_option . '&controller=' . $this->_controller. '&task=documentlisting&facet='.$facet.'&limitstart='.$limitstart.'&limit='.$limit.'&filter='.$filter, false),
-				'Submitted ' . $id . ' for removal.',
+				'Submitted ' . $id . ' for a456281089622edf93ac39e53d91c6b2d5d117bcremoval.',
 				'success'
 			);
 		}
@@ -548,26 +549,31 @@ class Solr extends AdminController
 
 	public function addDocumentsTask()
 	{
-		$documentsList = array();
-		$documentsList = array(
-			array('id' => 'test_1', 'title' => 'The new recruit', 'description' => 'testing indexing', 'hubtype' => 'resource', 'access_level' => 'public', 'url' => 'www.reddit.com'),
-			array('id' => 'test_2', 'title' => 'The new recruit part 2', 'description' => 'testing indexing part 2', 'hubtype' => 'resource', 'access_level' => 'public', 'url' => 'www.reddit.com')
-		);
+		$resourceComponent = \Components\Search\Models\Solr\SearchComponent::all()->whereEquals('name', 'resources')->row();
+		$results = $resourceComponent->getSearchResults();
 		$newQuery = new \Hubzero\Search\Index($this->config);
-		$newQuery->index($documentsList);
+		$newQuery->index($results);
 	}
 
-	public function checkItTask()
+	public function discoverTask()
 	{
-		$file = \Component::path('com_resources') . '/models/resource.php';
-		if (DiscoveryHelper::isSearchable($file))
+		$componentModel = new \Components\Search\Models\Solr\SearchComponent();
+		$components = $componentModel->getNewComponents();
+		if ($components->count() > 0)
 		{
-			echo "Yep, it is!";
+			if ($components->save())
+			{
+				\Notify::success('New Searchable Components found');
+			}
 		}
 		else
 		{
-			echo "Nope, it isn't";
+			\Notify::warning('No new components found.');
 		}
-		exit();
+
+		$resourceSearchResults = \Components\Resources\Models\Orm\Resource::searchResults();
+		App::redirect(
+			Route::url('index.php?option=com_search&task=display', false)
+		);
 	}
 }
