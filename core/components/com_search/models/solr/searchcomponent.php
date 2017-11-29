@@ -58,6 +58,8 @@ class SearchComponent extends Relational
 		'created'
 	);
 
+	private $searchIndexer = null;
+
 	/**
 	 * Discover searchable components
 	 *
@@ -76,22 +78,37 @@ class SearchComponent extends Relational
 		return $newComponents;
 	}
 
-	public function getSearchResults()
+	public function indexSearchResults()
 	{
-		$models = $this->getSearchableModels();
-		$results = array();
-		foreach ($models as $model)
+		$model = $this->getSearchableModel();
+		$newQuery = $this->getSearchIndexer();
+		$offset = $this->get('indexed_records', 0);
+		$modelResults = $model::searchResults(3000, $offset);
+		if ($modelResults)
 		{
-			$modelResults = $model::searchResults();
-			$results = array_merge($results, $modelResults);
+			foreach ($modelResults['records'] as $result)
+			{
+				$newQuery->index($result->searchResult(), false, 60000);
+			}
+			return $modelResults['offset'];
 		}
-		return $results;
+		return false;
 	}
 
-	public function getSearchableModels()
+	public function getSearchableModel()
 	{
 		$componentName = $this->get('name');
-		$models = DiscoveryHelper::getSearchableModels($componentName);
+		$models = DiscoveryHelper::getSearchableModel($componentName);
 		return $models;
+	}
+
+	private function getSearchIndexer()
+	{
+		if (!isset($this->searchIndexer))
+		{
+			$config = Component::params('com_search');
+			$this->searchIndexer = new \Hubzero\Search\Adapters\SolrIndexAdapter($config);
+		}
+		return $this->searchIndexer;
 	}
 }

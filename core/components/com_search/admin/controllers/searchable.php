@@ -81,19 +81,16 @@ class Searchable extends AdminController
 			->rows();
 		foreach ($components as $component)
 		{
-			$results = $component->getSearchResults();
-			if (!empty($results))
+			$recordsIndexed = $component->indexSearchResults();
+			if (!$recordsIndexed)
 			{
-				$newQuery = new \Hubzero\Search\Index($this->config);
-				$newQuery->index($results);
 				$component->set('state', 1);
-				$date = Date::of()->toSql();
-				$component->set('indexed', $date);
-				if ($component->save())
-				{
-					Notify::success('Successfully indexed ' . $component->name); 
-				}
 			}
+			else
+			{
+				$component->set('indexed_records', $recordsIndexed);
+			}
+			$component->save();
 		}
 
 		App::redirect(Route::url('index.php?option=' . $this->_option . '&controller=searchable', false));
@@ -115,6 +112,7 @@ class Searchable extends AdminController
 			$component->set('state', 0);
 			$date = Date::of()->toSql();
 			$component->set('indexed', null);
+			$component->set('indexed_records', 0);
 			if ($component->save())
 			{
 				Notify::success('Successfully removed items from index' . $component->name); 
@@ -140,7 +138,6 @@ class Searchable extends AdminController
 			\Notify::warning('No new components found.');
 		}
 
-		$resourceSearchResults = \Components\Resources\Models\Orm\Resource::searchResults();
 		App::redirect(
 			Route::url('index.php?option=com_search&task=display&controller=searchable', false)
 		);

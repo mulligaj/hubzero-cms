@@ -31,9 +31,8 @@
  */
 
 namespace Components\Search\Helpers;
-require_once \Component::path('com_search') . '/admin/interfaces/searchable.php';
 use ReflectionClass;
-use \Components\Search\Admin\Interfaces\Searchable as Searchable;
+use Hubzero\Search\Searchable;
 
 /**
  * Solr helper class
@@ -45,11 +44,10 @@ class DiscoveryHelper
 		if (is_object($class) || class_exists($class))
 		{
 			$reflect = new ReflectionClass($class);
-			if ($reflect->implementsInterface('\Components\Search\Admin\Interfaces\Searchable'))
+			if ($reflect->implementsInterface('Hubzero\Search\Searchable'))
 			{
 				return $reflect->getNamespaceName();
 			}
-			
 		}
 		return false;
 	}
@@ -86,7 +84,7 @@ class DiscoveryHelper
 		return $searchableComponents;
 	}
 
-	public static function getSearchableModels($component)
+	public static function getSearchableModel($component)
 	{
 		$modelPath = Component::path($component) . '/models/';
 		$ormModelPath = $modelPath . 'orm/';
@@ -120,23 +118,15 @@ class DiscoveryHelper
 				$ormClassName = $baseNameSpace . 'Orm\\' . $className;
 				if (self::isSearchable($ormClassName))
 				{
-					$searchableFlag = true;
-					$searchableModels[] = $ormClassName;
+					return $ormClassName;
 				}
 			}
 
 			if (self::isSearchable($fullClassName))
 			{
-				$searchableFlag = true;
-				$searchableModels[] = $fullClassName;
+				return $fullClassName;
 			}
-			
 		}
-
-		if (!$searchableFlag)
-		{
-			return false;
-		}
-		return	$searchableModels;
+		return false;
 	}
 }

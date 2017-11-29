@@ -95,8 +95,8 @@ class plgSearchSolr extends \Hubzero\Plugin\Plugin
 				{
 					$config = Component::params('com_search');
 					$index = new \Hubzero\Search\Index($config);
-					$modelIndex = $model->searchResult();
-					$index->delete($modelIndex);
+					$modelIndexId = $model->searchResult()['id'];
+					$index->delete($modelIndexId);
 				}
 			}
 	}
