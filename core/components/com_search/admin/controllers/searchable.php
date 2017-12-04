@@ -74,6 +74,9 @@ class Searchable extends AdminController
 	public function activateIndexTask()
 	{
 		$ids = Request::getArray('id', array());
+		$limit = Request::getInt('limit', 1000);
+		$offset = Request::getInt('offset', 0);
+		$numProcess = Request::getInt('numprocess');
 		$components = SearchComponent::all()
 			->whereIn('id', $ids)
 			->where('state', 'IS', null)
@@ -81,16 +84,23 @@ class Searchable extends AdminController
 			->rows();
 		foreach ($components as $component)
 		{
-			$recordsIndexed = $component->indexSearchResults();
+			$recordsIndexed = $component->indexSearchResults($limit, $offset);
 			if (!$recordsIndexed)
 			{
 				$component->set('state', 1);
+				$recordsIndexed['state'] = 1;
+				$recordsIndexed['link'] = Route::url('index.php?option=' . $this->_option . '&controller=searchable&task=deleteIndex&id=' . $component->get('id'), false);
 			}
 			else
 			{
-				$component->set('indexed_records', $recordsIndexed);
+				$component->set('indexed_records', $recordsIndexed['offset']);
+				$recordsIndexed['state'] = 0;
+				$recordsIndexed['numprocess'] = empty($numProcess) ? ceil($component->getSearchCount() / $limit) : $numProcess;
 			}
 			$component->save();
+			header('Content-Type: application/json');
+			echo json_encode($recordsIndexed);
+			exit();
 		}
 
 		App::redirect(Route::url('index.php?option=' . $this->_option . '&controller=searchable', false));

@@ -134,3 +134,43 @@ function submitbutton(pressbutton)
 	<?php echo Html::input('token'); ?>
 </form>
 </section><!-- / #main -->
+<script type="text/javascript">
+$(function(){
+	$('td').on('click', '.unpublished', function(e){
+		e.preventDefault();
+		var url = $(this).attr('href');
+		$(this).removeClass('state');
+		$(this).removeClass('unpublished');
+		$(this).text("Indexing...");
+		indexResults(url, this);
+	});	
+});
+var currentProcess = 0;
+function indexResults(url, link, limit, offset, numprocess){
+	$.ajax({
+		url: url,
+		data: {
+			offset: offset,
+			limit: limit,
+			numprocess: numprocess
+		},
+		success: function(response){
+			if (response.state != 1)
+			{
+				currentProcess++;
+				console.log("Indexed " + currentProcess + " of " + response.numprocess);
+				$(link).text('Indexed ' + currentProcess + ' of ' + response.numprocess);
+				indexResults(url, link, response.limit, response.offset, response.numprocess);
+			}
+			else
+			{
+				$(link).text('');
+				$(link).addClass('state');
+				$(link).addClass('published');
+				$(link).attr('href', response.link);
+			}
+		}	
+	});
+
+};
+</script>

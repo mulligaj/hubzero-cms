@@ -78,21 +78,30 @@ class SearchComponent extends Relational
 		return $newComponents;
 	}
 
-	public function indexSearchResults()
+	public function indexSearchResults($limit, $offset)
 	{
 		$model = $this->getSearchableModel();
 		$newQuery = $this->getSearchIndexer();
-		$offset = $this->get('indexed_records', 0);
-		$modelResults = $model::searchResults(3000, $offset);
-		if ($modelResults)
+		$modelResults = $model::searchResults($limit, $offset);
+		if (count($modelResults) > 0)
 		{
-			foreach ($modelResults['records'] as $result)
+			foreach ($modelResults as $result)
 			{
 				$newQuery->index($result->searchResult(), false, 60000);
 			}
-			return $modelResults['offset'];
+			$results = array(
+				'limit' => $limit,
+				'offset' => $offset + $limit
+			);
+			return $results;
 		}
 		return false;
+	}
+
+	public function getSearchCount()
+	{
+		$model = $this->getSearchableModel();
+		return $model::searchTotal();
 	}
 
 	public function getSearchableModel()

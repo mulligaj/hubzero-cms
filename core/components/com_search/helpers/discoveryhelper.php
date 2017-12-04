@@ -76,7 +76,7 @@ class DiscoveryHelper
 		$searchableComponents = array();
 		foreach ($componentList as $component)
 		{
-			if (self::getSearchableModels($component))
+			if (self::getSearchableModel($component))
 			{
 				$searchableComponents[] = $component;
 			}
