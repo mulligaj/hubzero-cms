@@ -59,6 +59,7 @@ class Solr extends SiteController
 		$config = Component::params('com_search');
 		$query = new \Hubzero\Search\Query($config);
 
+		$childTerms = Request::getVar('childTerms', '');
 		$terms = Request::getVar('terms', '');
 		$limit = Request::getInt('limit', Config::get('list_limit'));
 		$start = Request::getInt('start', 0);
@@ -89,13 +90,13 @@ class Solr extends SiteController
 			->rows();
 		foreach ($allFacets as $facet)
 		{
-			$multifacet->createQuery($facet->getQueryName(), $facet->facet, array('exclude' => 'root_type'));
+			$multifacet->createQuery($facet->getQueryName(), $facet->facet, array('exclude' => 'root_type', 'include' => 'child_type'));
 		} 
 
 		$filters = Request::getVar('filters', array());
 
 		// To pass to the view
-		$urlQuery = '?terms=' . $terms;
+		$urlQuery = '?terms=' . $terms . '&childTerms=' . $childTerms;
 		$rootFacets = Facet::all()
 			->including('children')
 			->including('parentFacet')
@@ -130,19 +131,28 @@ class Solr extends SiteController
 				$query->addFilter('Type', '(' . implode(' OR ', $allfacets) . ')', 'root_type');
 			}
 		}
+		$queryTerms = $terms;
+		if (!empty($childTerms))
+		{
+			// This string tells Solr to filter the parents out based on childTerm
+			$queryTerms .= ' +{!parent which=hubtype:*}' . $childTerms;
+		}
 
-		$query = $query->query($terms)->limit($limit)->start($start);
-
+		$query->query($queryTerms)->limit($limit)->start($start);
+		$childFilter = '[child parentFilter=hubtype:*';
 		// Administrators can see all records
 		if (!User::authorise('core.admin'))
 		{
+			$childFilter .= ' childFilter=access_level:public';
 			$query->restrictAccess();
 		}
+		$childFilter .= ']';
 
 		if (isset($locationFilter))
 		{
 			$query->addFilter('BoundingBox', $locationFilter, 'root_type');
 		}
+		$query->fields(array('*', $childFilter));
 
 		// Build the reset of the query string
 		$urlQuery .= '&limit=' . $limit;
@@ -167,7 +177,6 @@ class Solr extends SiteController
 		{
 			$facetCounts[$facet] = $count;
 		}
-
 		// Format the results (highlighting, snippet, etc)
 		$results = $this->formatResults($results, $terms);
 
@@ -180,6 +189,7 @@ class Solr extends SiteController
 		$this->view->pagination = new \Hubzero\Pagination\Paginator($numFound, $start, $limit);
 		$this->view->pagination->setAdditionalUrlParam('terms', $terms);
 		$this->view->pagination->setAdditionalUrlParam('type', $type);
+		$this->view->pagination->setAdditionalUrlParam('childTerms', $childTerms);
 
 		if (isset($results) && count($results) > 0)
 		{
@@ -210,6 +220,7 @@ class Solr extends SiteController
 		\Document::setTitle($terms ? Lang::txt('COM_SEARCH_RESULTS_FOR', $this->view->escape($terms)) : Lang::txt('COM_SEARCH'));
 
 		$this->view->terms = $terms;
+		$this->view->childTerms = $childTerms;
 		$this->view->type = $type;
 		$this->view->section = $section;
 		$this->view->setLayout('display');

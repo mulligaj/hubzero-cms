@@ -110,14 +110,15 @@ class Facet extends Relational
 		return $facet;
 	}
 
-	public function formatWithCounts($counts, $activeType = null, $terms = null)
+	public function formatWithCounts($counts, $activeType = null, $terms = null, $childTerms = null)
 	{
 		$countIndex = $this->getQueryName();
 		$count = isset($counts[$countIndex]) ? $counts[$countIndex] : 0;
 		if ($count > 0)
 		{
 			$class = ($activeType == $this->id) ? 'class="active"' : '';
-			$link = Route::url('index.php?option=com_search&terms=' . $terms . '&type=' . $this->id);
+			$link = Route::url('index.php?option=com_search&terms=' . $terms . '&type=' . 
+				$this->id . '&childTerms=' . $childTerms);
 			$html = '<li><a ' . $class . ' href="' . $link . '">';
 			$html .= $this->name . '<span class="item-count">' . $count . '</span></a>';
 			if ($this->children->count() > 0)
@@ -125,7 +126,7 @@ class Facet extends Relational
 				$html .= '<ul>';
 				foreach ($this->children as $child)
 				{
-					$html .= $child->formatWithCounts($counts, $activeType, $terms);
+					$html .= $child->formatWithCounts($counts, $activeType, $terms, $childTerms);
 				}
 				$html .= '</ul>';
 			}

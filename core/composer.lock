@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "afa27621de294e9d27f80345daf94339",
-    "content-hash": "9dab00912138855d5798ec9e8b7dbcd4",
+    "hash": "338c71dd2c52fca47523a8232a7a18de",
+    "content-hash": "752616ea1f71cd6ac773318e0ec3cfd4",
     "packages": [
         {
             "name": "aferrandini/phpqrcode",
@@ -315,12 +315,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ezyang/htmlpurifier.git",
-                "reference": "v4.5.0"
+                "reference": "d516e2f8de435ea78cc6152abc425d3ff2c4d289"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ezyang/htmlpurifier/zipball/v4.5.0",
-                "reference": "v4.5.0",
+                "url": "https://api.github.com/repos/ezyang/htmlpurifier/zipball/d516e2f8de435ea78cc6152abc425d3ff2c4d289",
+                "reference": "d516e2f8de435ea78cc6152abc425d3ff2c4d289",
                 "shasum": ""
             },
             "require": {
@@ -2271,27 +2271,31 @@
         },
         {
             "name": "solarium/solarium",
-            "version": "3.5.1",
+            "version": "3.8.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/solariumphp/solarium.git",
-                "reference": "96f441f53c4de10f1154b386c925f51b08bf2fa6"
+                "reference": "c353babec89fdbe8c64054bfec8e77bcb5da6705"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/solariumphp/solarium/zipball/96f441f53c4de10f1154b386c925f51b08bf2fa6",
-                "reference": "96f441f53c4de10f1154b386c925f51b08bf2fa6",
+                "url": "https://api.github.com/repos/solariumphp/solarium/zipball/c353babec89fdbe8c64054bfec8e77bcb5da6705",
+                "reference": "c353babec89fdbe8c64054bfec8e77bcb5da6705",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.2",
-                "symfony/event-dispatcher": "~2.3"
+                "symfony/event-dispatcher": "~2.3|~3.0"
             },
             "require-dev": {
+                "guzzlehttp/guzzle": "^3.8 || ^6.2",
                 "phpunit/phpunit": "~3.7",
-                "satooshi/php-coveralls": "~0.6",
+                "satooshi/php-coveralls": "~1.0",
                 "squizlabs/php_codesniffer": "~1.4",
                 "zendframework/zendframework1": "~1.12"
+            },
+            "suggest": {
+                "minimalcode/search": "Query builder compatible with Solarium, allows simplified solr-query handling"
             },
             "type": "library",
             "extra": {
@@ -2321,7 +2325,7 @@
                 "search",
                 "solr"
             ],
-            "time": "2015-12-19 16:00:15"
+            "time": "2017-02-02 13:32:22"
         },
         {
             "name": "swiftmailer/swiftmailer",

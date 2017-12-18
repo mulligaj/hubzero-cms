@@ -49,7 +49,7 @@
         "league/flysystem": "1.0.*",
         "league/flysystem-dropbox": "1.0.*",
         "hubzero/framework": "dev-master",
-        "solarium/solarium": "3.5.1",
+        "solarium/solarium": "3.8.1",
         "hubzero/flysystem-github": "dev-develop",
         "nao-pon/flysystem-google-drive": "~1.1",
         "php-amqplib/php-amqplib": "2.5.*",

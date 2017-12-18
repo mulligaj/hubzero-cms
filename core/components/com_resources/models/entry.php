@@ -1596,7 +1596,7 @@ class Entry extends Relational implements \Hubzero\Search\Searchable
 		$obj->url = Request::root() . $this->link();
 		$obj->title = $this->title;
 		$id = $this->id;
-		$obj->id = 'resource-' . $this->id;
+		$obj->id = 'resource-' . $id;
 		$obj->hubtype = 'resource';
 
 		$obj->type = $this->type()->type;
@@ -1616,7 +1616,13 @@ class Entry extends Relational implements \Hubzero\Search\Searchable
 		{
 			foreach ($tags as $tag)
 			{
-				$obj->tags[] = $tag->raw_tag;
+				$title = $tag->get('raw_tag', '');
+				$obj->tags[] = array(
+					'id' => 'tag-' . $tag->id,
+					'title' => $title,
+					'access_level' => $tag->admin == 0 ? 'public' : 'private',
+					'type' => 'tag'
+				);
 			}
 		}
 

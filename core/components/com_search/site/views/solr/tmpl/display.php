@@ -95,7 +95,7 @@ $noResult = count($this->results) > 0 ? false : true;
 							<a <?php echo ($this->type == '') ? 'class="active"' : ''; ?> href="<?php echo Route::url('index.php?option=com_search&terms=' . $this->terms); ?>">All Categories <span class="item-count"><?php echo $this->total; ?></span></a>
 						</li>
 						<?php foreach ($this->facets as $facet): ?>
-							<?php echo $facet->formatWithCounts($this->facetCounts, $this->type, $this->terms); ?>
+							<?php echo $facet->formatWithCounts($this->facetCounts, $this->type, $this->terms, $this->childTerms); ?>
 						<?php endforeach; ?>
 					</ul>
 				</div><!-- / .container -->
@@ -103,6 +103,9 @@ $noResult = count($this->results) > 0 ? false : true;
 			<div class="subject">
 				<div class="container">
 					<div class="results list"><!-- add "tiled" to class for tiled view -->
+						<?php if (!empty($this->childTerms)): ?>
+							<a href="<?php echo Route::url('index.php?option=com_search&terms=' . $this->terms . '&type=' . $this->type);?>"><?php echo $this->childTerms; ?></a>
+						<?php endif; ?>
 						<?php foreach ($this->results as $result): ?>
 							<?php if (is_array($result)): ?>
 								<div class="result <?php echo (isset($result['access_level']) ? $result['access_level'] : 'public'); ?>" id="<?php echo $result['id']; ?>">
@@ -141,12 +144,14 @@ $noResult = count($this->results) > 0 ? false : true;
 											</div><!-- end result snippet -->
 										<?php endif; ?>
 
-										<?php if (isset($result['tags'])): ?>
+										<?php if (isset($result['_childDocuments_'])): ?>
 											<!-- Tags -->
 											<div class="result-tags">
 												<ul class="tags">
-													<?php foreach ($result['tags'] as $tag): ?>
-													<li><a class="tag" href="<?php echo Route::url('index.php?option=com_search&terms=' . $tag); ?>"><?php echo $tag; ?></a></li>
+													<?php foreach ($result['_childDocuments_'] as $tag): ?>
+													<li>
+														<a class="tag" href="<?php echo Route::url('index.php?option=com_search&terms=' . 
+															$this->terms . '&childTerms=id:' . $tag['id']); ?>"><?php echo $tag['title'][0]; ?></a></li>
 													<?php endforeach; ?>
 												</ul>
 											</div>
@@ -170,6 +175,7 @@ $noResult = count($this->results) > 0 ? false : true;
 						</nav>
 						<div class="clearfix"></div>
 						<input type="hidden" name="terms" value="<?php echo $terms; ?>" />
+						<input type="hidden" name="childTerms" value="<?php echo $this->childTerms; ?>" />
 						<input type="hidden" name="type" value="<?php echo $this->type; ?>" />
 					</form>
 				</div><!-- / .container -->
