@@ -74,7 +74,6 @@ class Searchable extends AdminController
 	public function activateIndexTask()
 	{
 		$ids = Request::getArray('id', array());
-		$limit = Request::getInt('limit', 1000);
 		$offset = Request::getInt('offset', 0);
 		$numProcess = Request::getInt('numprocess');
 		$components = SearchComponent::all()
@@ -84,7 +83,7 @@ class Searchable extends AdminController
 			->rows();
 		foreach ($components as $component)
 		{
-			$recordsIndexed = $component->indexSearchResults($limit, $offset);
+			$recordsIndexed = $component->indexSearchResults($offset);
 			if (!$recordsIndexed)
 			{
 				$component->set('state', 1);
@@ -95,7 +94,7 @@ class Searchable extends AdminController
 			{
 				$component->set('indexed_records', $recordsIndexed['offset']);
 				$recordsIndexed['state'] = 0;
-				$recordsIndexed['numprocess'] = empty($numProcess) ? ceil($component->getSearchCount() / $limit) : $numProcess;
+				$recordsIndexed['numprocess'] = empty($numProcess) ? $component->getSearchCount() : $numProcess;
 			}
 			$component->save();
 			header('Content-Type: application/json');
@@ -132,6 +131,13 @@ class Searchable extends AdminController
 		App::redirect(Route::url('index.php?option=' . $this->_option . '&controller=searchable', false));
 		
 	}	
+
+	public function newTagsTask()
+	{
+		$resources = \Components\Publications\Models\Orm\Publication::one(1);
+		print_r($resources->searchResult());
+	}
+
 	public function discoverTask()
 	{
 		$componentModel = new \Components\Search\Models\Solr\SearchComponent();

@@ -78,20 +78,23 @@ class SearchComponent extends Relational
 		return $newComponents;
 	}
 
-	public function indexSearchResults($limit, $offset)
+	public function indexSearchResults($offset)
 	{
+		$params = Component::params('com_search');
+		$batchSize = $params->get('solr_batchsize');
+		$commitWithin = $params->get('solr_commit');
 		$model = $this->getSearchableModel();
 		$newQuery = $this->getSearchIndexer();
-		$modelResults = $model::searchResults($limit, $offset);
+		$modelResults = $model::searchResults($batchSize, $offset);
 		if (count($modelResults) > 0)
 		{
 			foreach ($modelResults as $result)
 			{
-				$newQuery->index($result->searchResult(), false, 60000);
+				$newQuery->index($result->searchResult(), true, $commitWithin, $batchSize);
 			}
 			$results = array(
-				'limit' => $limit,
-				'offset' => $offset + $limit
+				'limit' => $batchSize,
+				'offset' => $offset + $batchSize
 			);
 			return $results;
 		}
@@ -101,7 +104,10 @@ class SearchComponent extends Relational
 	public function getSearchCount()
 	{
 		$model = $this->getSearchableModel();
-		return $model::searchTotal();
+		$params = Component::params('com_search');
+		$batchSize = $params->get('solr_batchsize');
+		$batches = ceil($model::all()->total() / $batchSize);
+		return $batches;
 	}
 
 	public function getSearchableModel()

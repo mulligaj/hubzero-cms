@@ -118,7 +118,7 @@ class Facet extends Relational
 		{
 			$class = ($activeType == $this->id) ? 'class="active"' : '';
 			$link = Route::url('index.php?option=com_search&terms=' . $terms . '&type=' . 
-				$this->id . '&childTerms=' . $childTerms);
+				$this->id . $childTerms);
 			$html = '<li><a ' . $class . ' href="' . $link . '">';
 			$html .= $this->name . '<span class="item-count">' . $count . '</span></a>';
 			if ($this->children->count() > 0)

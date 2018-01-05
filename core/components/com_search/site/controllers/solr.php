@@ -59,7 +59,7 @@ class Solr extends SiteController
 		$config = Component::params('com_search');
 		$query = new \Hubzero\Search\Query($config);
 
-		$childTerms = Request::getVar('childTerms', '');
+		$childTerms = Request::getArray('childTerms', array());
 		$terms = Request::getVar('terms', '');
 		$limit = Request::getInt('limit', Config::get('list_limit'));
 		$start = Request::getInt('start', 0);
@@ -94,9 +94,23 @@ class Solr extends SiteController
 		} 
 
 		$filters = Request::getVar('filters', array());
-
+		$queryTerms = $terms;
+		if (!empty($childTerms))
+		{
+			foreach ($childTerms as $child)
+			{
+				// This string tells Solr to filter the parents out based on childTerm
+				$queryTerms .= ' +{!parent which=hubtype:*}' . $child['id'];
+			}
+		}
 		// To pass to the view
-		$urlQuery = '?terms=' . $terms . '&childTerms=' . $childTerms;
+		$childTermsString = '';
+		foreach ($childTerms as $index => $child)
+		{
+			$childTermsString .= '&childTerms[' . $index . ']' . '[id]=' . $child['id']; 
+			$childTermsString .= '&childTerms[' . $index . ']' . '[title]=' . $child['title'];
+		}
+		$urlQuery = '?terms=' . $terms . $childTermsString;
 		$rootFacets = Facet::all()
 			->including('children')
 			->including('parentFacet')
@@ -130,12 +144,6 @@ class Solr extends SiteController
 			{
 				$query->addFilter('Type', '(' . implode(' OR ', $allfacets) . ')', 'root_type');
 			}
-		}
-		$queryTerms = $terms;
-		if (!empty($childTerms))
-		{
-			// This string tells Solr to filter the parents out based on childTerm
-			$queryTerms .= ' +{!parent which=hubtype:*}' . $childTerms;
 		}
 
 		$query->query($queryTerms)->limit($limit)->start($start);
@@ -189,7 +197,11 @@ class Solr extends SiteController
 		$this->view->pagination = new \Hubzero\Pagination\Paginator($numFound, $start, $limit);
 		$this->view->pagination->setAdditionalUrlParam('terms', $terms);
 		$this->view->pagination->setAdditionalUrlParam('type', $type);
-		$this->view->pagination->setAdditionalUrlParam('childTerms', $childTerms);
+		foreach ($childTerms as $index => $child)
+		{
+			$this->view->pagination->setAdditionalUrlParam('childTerms[' . $index . '][id]', $child['id']);
+			$this->view->pagination->setAdditionalUrlParam('childTerms[' . $index . '][title]', $child['title']);
+		}
 
 		if (isset($results) && count($results) > 0)
 		{
@@ -221,6 +233,7 @@ class Solr extends SiteController
 
 		$this->view->terms = $terms;
 		$this->view->childTerms = $childTerms;
+		$this->view->childTermsString = $childTermsString;
 		$this->view->type = $type;
 		$this->view->section = $section;
 		$this->view->setLayout('display');

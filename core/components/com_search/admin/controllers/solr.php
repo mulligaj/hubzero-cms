@@ -546,34 +546,4 @@ class Solr extends AdminController
 			$success
 		);
 	}
-
-	public function addDocumentsTask()
-	{
-		$resourceComponent = \Components\Search\Models\Solr\SearchComponent::all()->whereEquals('name', 'resources')->row();
-		$results = $resourceComponent->getSearchResults();
-		$newQuery = new \Hubzero\Search\Index($this->config);
-		$newQuery->index($results);
-	}
-
-	public function discoverTask()
-	{
-		$componentModel = new \Components\Search\Models\Solr\SearchComponent();
-		$components = $componentModel->getNewComponents();
-		if ($components->count() > 0)
-		{
-			if ($components->save())
-			{
-				\Notify::success('New Searchable Components found');
-			}
-		}
-		else
-		{
-			\Notify::warning('No new components found.');
-		}
-
-		$resourceSearchResults = \Components\Resources\Models\Orm\Resource::searchResults();
-		App::redirect(
-			Route::url('index.php?option=com_search&task=display', false)
-		);
-	}
 }

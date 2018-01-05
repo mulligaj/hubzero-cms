@@ -1661,7 +1661,6 @@ class Entry extends Relational implements \Hubzero\Search\Searchable
 
 	public static function searchResults($limit, $offset = 0)
 	{
-		$records = self::all()->start($offset)->limit($limit)->rows();
-		return $records;
+		return self::all()->start($offset)->limit($limit)->rows();
 	}
 }
