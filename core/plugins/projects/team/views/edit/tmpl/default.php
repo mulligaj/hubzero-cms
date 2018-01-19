@@ -241,7 +241,18 @@ if ($group)
 					<?php } ?>
 				</td>
 				<td class="mini">
-					<?php echo $owner->status == 1 ? Date::of($owner->added)->toLocal('M d, Y') : '<span class="invited">' . Lang::txt('PLG_PROJECTS_TEAM_INVITED') . '</span>';  ?>
+					<?php if ($owner->status == 1): ?>
+						<?php echo Date::of($owner->added)->toLocal('M d, Y'); ?> 
+					<?php elseif ($owner->status == 3): ?>
+						<a id="<?php echo 'form-' . $owner->id;?>" 
+							href="<?php echo Route::url('index.php?option=com_projects&alias=' . 
+								$this->model->get('alias') . '&task=team&action=approvemembership&owner=' . $owner->userid);?>" 
+							class="btn success manage">
+							Approve Membership
+						</a>
+					<?php else: ?>
+						<?php echo '<span class="invited">' . Lang::txt('PLG_PROJECTS_TEAM_INVITED') . '</span>'; ?>
+					<?php endif; ?>
 				</td>
 				<td>
 					<?php echo $owner->groupdesc ? \Hubzero\Utility\Str::truncate($owner->groupdesc, 30) : ''; ?>

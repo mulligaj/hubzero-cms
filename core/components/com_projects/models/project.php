@@ -269,7 +269,7 @@ class Project extends Model
 		if (!isset($this->_member) || $reload == true)
 		{
 			$this->_tblOwner->loadOwner($this->get('id'), User::get('id'));
-			$this->_member = $this->_tblOwner->id && $this->_tblOwner->status != 2 ? $this->_tblOwner : false;
+			$this->_member = $this->_tblOwner->id ? $this->_tblOwner : false;
 		}
 
 		return $this->_member;
@@ -581,7 +581,7 @@ class Project extends Model
 
 		// Is user project member?
 		$member = $this->member();
-		if (empty($member) || !$member->id)
+		if (empty($member) || $member->get('status') != 1)
 		{
 			if ($this->isPublic() && $this->isActive())
 			{

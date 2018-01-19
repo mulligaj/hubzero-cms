@@ -32,6 +32,7 @@
 
 namespace Components\Projects\Site\Controllers;
 
+
 use Components\Projects\Tables;
 use Components\Projects\Models;
 use Components\Projects\Helpers;
@@ -114,6 +115,37 @@ class Projects extends Base
 		}
 
 		echo json_encode($json);
+	}
+
+	public function requestAccessTask()
+	{
+		$project = Request::getVar('alias');
+		$task = $this->_task;
+		$return = Route::url('index.php?option=com_projects&alias=' . $project . '&task=' . $task, false);
+		if (User::isGuest())
+		{
+			$redirectUrl = Route::url('index.php?option=com_users&view=login&return=' . base64_encode($return), false);
+			App::redirect($redirectUrl);
+		}
+
+		if (!$this->model->member())
+		{
+			if ($this->model->exists())
+			{
+				require_once Component::path('com_projects') . '/models/orm/owner.php';
+				$member = \Components\Projects\Models\Orm\Owner::blank();
+				$member->set('projectid', $this->model->get('id'));
+				$member->set('userid', 1002);
+				$member->set('status', 3);
+				$currentTime = Date::of()->toSql();
+				$member->set('added', $currentTime);
+				if ($member->save())
+				{
+					Notify::success('You have sucessfully requested membership');
+				}
+			}
+		}
+		App::redirect(Route::url('index.php?option=com_projects&alias=' . $project, false));
 	}
 
 	/**

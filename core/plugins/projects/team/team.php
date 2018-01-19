@@ -197,6 +197,12 @@ class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 				case 'newauthor':
 					$arr['html'] = $this->select();
 					break;
+				case 'approvemembership':
+					$arr['html'] = $this->_approveMembership();
+					break;
+				case 'denymembership':
+					$arr['html'] = $this->_denyMembership();
+					break;
 			}
 		}
 
@@ -323,8 +329,11 @@ class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 
 		// Get count of project groups
 		$groups = $this->model->table('Owner')->getProjectGroups($this->model->get('id'));
-		$view->count_groups = $groups ? count($groups) : 0;
 
+		$userId = User::getInstance()->get('id');
+		$projectId = $this->model->get('id');
+		$view->currentUser = Components\Projects\Models\Orm\Owner::oneByProjectAndUser($projectId, $userId); 
+		$view->count_groups = $groups ? count($groups) : 0;
 		$view->params   = $this->model->params;
 		$view->option   = $this->_option;
 		$view->database = $this->_database;
@@ -903,6 +912,79 @@ class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 			$url .= '&active=team';
 
 			App::redirect(Route::url($url));
+		}
+	}
+
+	/**
+	 * Approve membership request
+	 *
+	 * @return mixed
+	 */
+	protected function _approveMembership()
+	{
+		$projectId = $this->model->get('id');
+		$userId = User::getInstance()->get('id');
+		$currentUser = Components\Projects\Models\Orm\Owner::oneByProjectAndUser($projectId, $userId);
+		$ownerId = Request::getVar('owner', 0);
+		if ($currentUser->isManager() && $ownerId != 0)
+		{
+			$owner = Components\Projects\Models\Orm\Owner::oneByProjectAndUser($projectId, $ownerId);	
+			$owner->set('status', 1);
+			if ($owner->save())
+			{
+				Notify::success('Membership successfully approved');
+				$url = Route::url('index.php?option=' . $this->_option .
+					'&task=team' . '&alias=' . $this->model->get('alias'), false);
+				App::redirect($url);
+			}
+		}
+		else
+		{
+			App::abort(403, 'You shall not pass');
+		}
+	}
+
+	/**
+	 *  Deny membership request
+	 *
+	 * @return mixed
+	 */
+	protected function _denyMembership()
+	{
+		$projectId = $this->model->get('id');
+		$userId = User::getInstance()->get('id');
+		$currentUser = Components\Projects\Models\Orm\Owner::oneByProjectAndUser($projectId, $userId);
+		$ownerId = Request::getVar('owner', 0);
+		if ($currentUser->isManager() && $ownerId != 0)
+		{
+			$owner = Components\Projects\Models\Orm\Owner::oneByProjectAndUser($projectId, $ownerId);	
+			$view = new \Hubzero\Plugin\View(
+				array(
+					'folder'  => 'projects',
+					'element' => 'team',
+					'name'    => 'memberrequest'
+				)
+			);
+
+			$view->option   = $this->_option;
+			$view->model    = $this->model;
+			$view->owner	= $owner;
+			$view->setErrors($this->getErrors());
+
+			return $view->loadTemplate();
+
+			$owner->set('status', 4);
+			if ($owner->save())
+			{
+				Notify::success('Membership request has been denied');
+				$url = Route::url('index.php?option=' . $this->_option .
+					'&task=team' . '&alias=' . $this->model->get('alias'), false);
+				App::redirect($url);
+			}
+		}
+		else
+		{
+			App::abort(403, 'You shall not pass');
 		}
 	}
 

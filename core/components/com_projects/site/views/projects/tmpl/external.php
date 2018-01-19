@@ -85,6 +85,12 @@ $this->css('theme' . $theme . '.css');
 
 	<section class="main section">
 		<div class="project-inner-wrap">
+			<?php $member = $this->model->member(); ?>
+			<?php if (!$member): ?>
+				<a href="<?php echo Route::url('index.php?option=com_projects&task=requestaccess&alias=' . $this->model->get('alias'));?>">Request Membership</a>
+			<?php elseif ($member->get('status') == 3): ?>
+				<a href="">Membership Requested</a>
+			<?php endif; ?>
 			<?php if ($this->model->about('parsed')) { ?>
 				<div class="public-list-header">
 					<h3><?php echo Lang::txt('COM_PROJECTS_ABOUT'); ?></h3>
