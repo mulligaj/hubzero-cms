@@ -940,7 +940,7 @@ class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 		}
 		else
 		{
-			App::abort(403, 'You shall not pass');
+			App::abort(403, Lang::txt('PLG_PROJECTS_TEAM_NOT_PERMITTED'));
 		}
 	}
 
@@ -955,24 +955,27 @@ class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 		$userId = User::getInstance()->get('id');
 		$currentUser = Components\Projects\Models\Orm\Owner::oneByProjectAndUser($projectId, $userId);
 		$ownerId = Request::getVar('owner', 0);
+		$confirm = Request::getInt('confirm', 0);
 		if ($currentUser->isManager() && $ownerId != 0)
 		{
 			$owner = Components\Projects\Models\Orm\Owner::oneByProjectAndUser($projectId, $ownerId);	
-			$view = new \Hubzero\Plugin\View(
-				array(
-					'folder'  => 'projects',
-					'element' => 'team',
-					'name'    => 'memberrequest'
-				)
-			);
+			if ($confirm != 1)
+			{
+				$view = new \Hubzero\Plugin\View(
+					array(
+						'folder'  => 'projects',
+						'element' => 'team',
+						'name'    => 'memberrequest'
+					)
+				);
 
-			$view->option   = $this->_option;
-			$view->model    = $this->model;
-			$view->owner	= $owner;
-			$view->setErrors($this->getErrors());
+				$view->option   = $this->_option;
+				$view->model    = $this->model;
+				$view->owner	= $owner;
+				$view->setErrors($this->getErrors());
 
-			return $view->loadTemplate();
-
+				return $view->loadTemplate();
+			}
 			$owner->set('status', 4);
 			if ($owner->save())
 			{
@@ -984,7 +987,7 @@ class plgProjectsTeam extends \Hubzero\Plugin\Plugin
 		}
 		else
 		{
-			App::abort(403, 'You shall not pass');
+			App::abort(403, Lang::txt('PLG_PROJECTS_TEAM_NOT_PERMITTED'));
 		}
 	}
 
