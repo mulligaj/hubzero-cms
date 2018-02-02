@@ -60,6 +60,19 @@ $noResult = count($this->results) > 0 ? false : true;
 			<input type="text" name="terms" id="terms" value="<?php echo htmlspecialchars($terms); ?>" placeholder="Enter keyword or phrase" />
 			<input type="hidden" name="section" value="<?php echo $this->escape($this->section); ?>" />
 		</fieldset>
+		<?php	
+			$tags_list = Event::trigger('hubzero.onGetMultiEntry', 
+								array(
+									array('tags', 'tags', 'actags', '', $this->tags)
+									)	
+							);
+
+			if (count($tags_list) > 0) {
+				echo $tags_list[0];
+			} else {
+				echo '<input type="text" name="tags" value="' . $tags . '" />';
+			}
+		?>
 		<?php if ($this->section == 'map' && 0) { ?>
 			<fieldset class="map-search">
 				<input type="hidden" name="minlat" id="minlat" value="<?php if (isset($this->minlat)) echo $this->minlat; ?>" />
@@ -191,11 +204,8 @@ $noResult = count($this->results) > 0 ? false : true;
 						</nav>
 						<div class="clearfix"></div>
 						<input type="hidden" name="terms" value="<?php echo $terms; ?>" />
-						<?php if (!empty($this->childTerms)):?>
-							<?php foreach ($this->childTerms as $index => $child): ?>
-								<input type="hidden" name="<?php echo 'childTerms[' . $index . '][id]';?>" value="<?php echo $child['id']; ?>" />
-								<input type="hidden" name="<?php echo 'childTerms[' . $index . '][title]';?>" value="<?php echo $child['title']; ?>" />
-							<?php endforeach; ?>
+						<?php if (!empty($this->tags)):?>
+							<input type="hidden" name="tags" value="<?php echo $this->tags; ?>" />
 						<?php endif; ?>
 						<input type="hidden" name="type" value="<?php echo $this->type; ?>" />
 					</form>
