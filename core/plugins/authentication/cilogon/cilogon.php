@@ -44,9 +44,9 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 	protected $_autoloadLanguage = true;
 
 	/**
-	 * Stores the initialized Facebook object.
+	 * Stores the initialized CILogon object.
 	 *
-	 * @var  object  Facebook
+	 * @var  object  CILogon
 	 */
 	private $cilogon = null;
 
@@ -82,10 +82,9 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 		// and the current limitations of the PHP SDK).
 	}
 
-
 	/**
-	 * Method to call when redirected back from facebook after authentication
-	 * Grab the return URL if set and handle denial of app privileges from facebook
+	 * Method to call when redirected back from gc after authentication
+	 * Grab the return URL if set and handle denial of app privileges from gc
 	 *
 	 * @param   object  $credentials
 	 * @param   object  $options
@@ -107,12 +106,12 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 		$options['return'] = $b64dreturn;
 
 		// Check to make sure they didn't deny our application permissions
-		if (Request::getVar('error', NULL))
+		if (Request::getVar('error', null))
 		{
 			// User didn't authorize our app or clicked cancel
 			App::redirect(
 				Route::url('index.php?option=com_users&view=login&return=' . $return),
-				Lang::txt('PLG_AUTHENTICATION_FACEBOOK_MUST_AUTHORIZE_TO_LOGIN', Config::get('sitename')),
+				Lang::txt('PLG_AUTHENTICATION_CILOGON_MUST_AUTHORIZE_TO_LOGIN', Config::get('sitename')),
 				'error'
 			);
 		}
@@ -134,11 +133,12 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 	{
 		$redirectUri = self::getReturnUrl($view->return);
 		$provider = $this->cilogon($redirectUri);
-		$loginUrl = $provider->getAuthorizationUrl();
-		$_SESSION['oauth2state'] = $provider->getState();
+		$loginUrl = $provider->getAuthorizationUrl(array(
+			'scope' => ['openid', 'email', 'profile', 'org.cilogon.userinfo']
+		));
+		Session::set('state', $provider->getState(), 'cilogon');
 		// Redirect to the login URL
-		header('Location: ' . $loginUrl);
-		exit();
+		App::redirect($loginUrl);
 	}
 
 	/**
@@ -151,41 +151,51 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 	 */
 	public function onUserAuthenticate($credentials, $options, &$response)
 	{
-		$provider = $this->cilogon();
-		$state = Request::getVar('state');
-		$sessionState = $_SESSION['oauth2state'];
-		if ($state != $sessionState)
+		try
 		{
-			unset($_SESSION['oauth2state']);
-			ddie('unmatched');
+			$storedState = Session::get('state', null, 'cilogon');
+			$state = Request::getVar('state');
+			if (empty($state) || $storedState !== $state)
+			{
+				throw new Exception('Mismatched state');
+			}
+			Session::clear('state', 'cilogon');
+		
+			$token = $this->cilogon()->getAccessToken('authorization_code', array('code' => Request::getVar('code')));
 		}
-		$token = $provider->getAccessToken('authorization_code', array('code' => Request::getVar('code')));
-		// Make sure we have a user_id (facebook returns 0 for a non-logged in user)
-		if ((isset($user_id) && $user_id > 0) || (isset($session) && $session))
+		catch (\Exception $e)
+		{
+			$response->status = \Hubzero\Auth\Status::FAILURE;
+			$response->error_message = Lang::txt('PLG_AUTHENTICATION_CILOGON_ERROR_RETRIEVING_PROFILE', $e->getMessage());
+			return;
+		}	
+		// Make sure we have a user_id (gc returns 0 for a non-logged in user)
+		if ((isset($user_id) && $user_id > 0) || (isset($token) && $token))
 		{
 			try
 			{
-				$cilogonResponse = $this->cilogon()->getResourceOwner($session);
+				$cilogonResponse = $this->cilogon()->getResourceOwner($token);
 				$id       = $cilogonResponse->getId();
+				$firstname = $cilogonResponse->getGivenName();
+				$lastname = $cilogonResponse->getFamilyName();
 				$fullname = $cilogonResponse->getName();
 				$email    = $cilogonResponse->getEmail();
+				$fullname = empty($fullname) ? $firstname . ' ' . $lastname : $fullname;
 			}
 			catch (\Exception $e)
 			{
 				// Error message?
 				$response->status = \Hubzero\Auth\Status::FAILURE;
-				$response->error_message = Lang::txt('PLG_AUTHENTICATION_FACEBOOK_ERROR_RETRIEVING_PROFILE', $e->getMessage());
+				$response->error_message = Lang::txt('PLG_AUTHENTICATION_CILOGON_ERROR_RETRIEVING_PROFILE', $e->getMessage());
 				return;
 			}
-
 			// Create the hubzero auth link
 			$method = (Component::params('com_users')->get('allowUserRegistration', false)) ? 'find_or_create' : 'find';
 			$hzal = \Hubzero\Auth\Link::$method('authentication', 'cilogon', null, $id);
-
 			if ($hzal === false)
 			{
 				$response->status = \Hubzero\Auth\Status::FAILURE;
-				$response->error_message = Lang::txt('PLG_AUTHENTICATION_FACEBOOK_UNKNOWN_USER');
+				$response->error_message = Lang::txt('PLG_AUTHENTICATION_CILOGON_UNKNOWN_USER');
 				return;
 			}
 
@@ -209,13 +219,11 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 			{
 				$response->username = '-' . $hzal->id;
 				$response->email    = $response->username . '@invalid';
-
 				// Also set a suggested username for their hub account
 				$sub_email    = explode('@', $email, 2);
 				$tmp_username = $sub_email[0];
 				App::get('session')->set('auth_link.tmp_username', $tmp_username);
 			}
-
 			$hzal->update();
 
 
@@ -237,7 +245,7 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 		else
 		{
 			$response->status = \Hubzero\Auth\Status::FAILURE;
-			$response->error_message = Lang::txt('PLG_AUTHENTICATION_FACEBOOK_AUTHENTICATION_FAILED');
+			$response->error_message = Lang::txt('PLG_AUTHENTICATION_CILOGON_AUTHENTICATION_FAILED');
 		}
 	}
 
@@ -251,7 +259,7 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 	{
 		try
 		{
-			$session = $this->cilogon()->getAccessToken('authorization_code', ['code' => $this->getVar('code')]);
+			$session = $this->cilogon()->getAccessToken('authorization_code', ['code' => Request::getVar('code')]);
 		}
 		catch (\Exception $ex)
 		{
@@ -270,7 +278,7 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 			{
 				// Error message?
 				$response->status = \Hubzero\Auth\Status::FAILURE;
-				$response->error_message = Lang::txt('PLG_AUTHENTICATION_FACEBOOK_ERROR_RETRIEVING_PROFILE', $e->getMessage());
+				$response->error_message = Lang::txt('PLG_AUTHENTICATION_CILOGON_ERROR_RETRIEVING_PROFILE', $e->getMessage());
 				return;
 			}
 
@@ -282,7 +290,7 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 				// This cilogon account is already linked to another hub account
 				App::redirect(
 					Route::url('index.php?option=com_members&id=' . User::get('id') . '&active=account'),
-					Lang::txt('PLG_AUTHENTICATION_FACEBOOK_ACCOUNT_ALREADY_LINKED'),
+					Lang::txt('PLG_AUTHENTICATION_CILOGON_ACCOUNT_ALREADY_LINKED'),
 					'error'
 				);
 			}
@@ -299,7 +307,7 @@ class plgAuthenticationCILogon extends \Hubzero\Plugin\OauthClient
 			// User didn't authorize our app, or, clicked cancel
 			App::redirect(
 				Route::url('index.php?option=com_members&id=' . User::get('id') . '&active=account'),
-				Lang::txt('PLG_AUTHENTICATION_FACEBOOK_MUST_AUTHORIZE_TO_LINK', Config::get('sitename')),
+				Lang::txt('PLG_AUTHENTICATION_CILOGON_MUST_AUTHORIZE_TO_LINK', Config::get('sitename')),
 				'error'
 			);
 		}
