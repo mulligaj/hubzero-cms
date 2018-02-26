@@ -42,10 +42,12 @@ use Plugin;
 use Config;
 use Lang;
 use stdClass;
+use Components\Resources\Models\Entry;
 
 require_once \Component::path('com_search') . '/models/solr/facet.php';
 require_once \Component::path('com_search') . '/models/solr/searchcomponent.php';
 require_once \Component::path('com_search') . '/helpers/urlqueryhelper.php';
+require_once \Component::path('com_resources') . '/models/entry.php';
 require_once \Component::path('com_tags') . '/models/tag.php';
 
 /**
@@ -53,6 +55,15 @@ require_once \Component::path('com_tags') . '/models/tag.php';
  */
 class Solr extends SiteController
 {
+	public function testTask()
+	{
+		$resources = \Components\Resources\Models\Entry::all()->limit(1000);
+		foreach ($resources as $resource)
+		{
+			print_r($resource->fields());
+		}
+		exit();
+	}
 	/**
 	 * Display search form and results (if any)
 	 *
