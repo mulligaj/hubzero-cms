@@ -1547,20 +1547,20 @@ class Citation extends Relational implements \Hubzero\Search\Searchable
 		$citation->tags = $tags;
 
 		$citation->author = explode(';', $this->getAuthorString(false));
-		if ($this->scope == 'member')
-		{
-			$url = '/members/' . $this->uid . '/citations';
-		}
-		elseif ($this->scope != 'group')
-		{
-			$url = '/citations/view/' . $this->id;
-		}
 
-		if ($this->published == 1 && $this->scope != 'group')
+		if ($this->published != 1)
 		{
+			return false;
+		}
+		else
+		{
+			$citation->access_level = 'private';
+			$citation->owner_type = 'user';
+			$citation->owner = $this->scope_id;
 			if ($this->scope == 'member')
 			{
-				$user = User::getInstance($this->uid);
+				$url = '/members/' . $this->scope_id . '/citations';
+				$user = \Hubzero\User\User::one($this->scope_id);
 				if ($user->get('blocked') == 0 && $user->get('approved') > 0)
 				{
 					if ($user->get('access') == 1)
@@ -1571,52 +1571,35 @@ class Citation extends Relational implements \Hubzero\Search\Searchable
 					{
 						$citation->access_level = 'registered';
 					}
-					else
-					{
-						$citation->access_level = 'private';
-					}
 				}
-				else
+			}
+			elseif ($this->scope == 'group')
+			{
+				$group = \Hubzero\User\Group::getInstance($this->scope_id);
+				$citation->owner_type = 'group';
+				if ($group)
 				{
-					$citation->access_level = 'private';
+					$groupName = $group->get('cn');
+					$url = '/groups/' . $groupName . '/citations';
+					$citationAccess = \Hubzero\User\Group\Helper::getPluginAccess($group, 'citations');
+					if ($citationAccess == 'anyone')
+					{
+						$citation->access_level = 'public';
+					}
+					elseif ($citationAccess == 'registered')
+					{
+						$citation->access_level = 'registered';
+					}
 				}
 			}
 			else
 			{
 				$citation->access_level = 'public';
+				$citation->owner = $this->uid;
+				$url = '/citations/view/' . $this->id;
 			}
 		}
-		elseif ($this->scope == 'group')
-		{
-			$group = \Hubzero\User\Group::getInstance($this->scope_id);
-			if ($group)
-			{
-				$groupName = $group->get('cn');
-				$url = '/groups/' . $groupName . '/citations';
-				$citationAccess = \Hubzero\User\Group\Helper::getPluginAccess($group, 'citations');
-				if ($citationAccess == 'anyone')
-				{
-					$citation->access_level = 'public';
-				}
-				elseif ($citationAccess == 'registered')
-				{
-					$citation->access_level = 'registered';
-				}
-				else
-				{
-					$citation->access_level = 'private';
-					$citation->owner_type = 'group';
-					$citation->owner = $this->scope_id;
-				}
-			}
-		}
-		else
-		{
-			$citation->access_level = 'private';
-			$citation->owner_type = 'user';
-			$citation->owner = $this->uid;
-		}
-		$citation->url = rtrim(Request::root(), '/') . Route::urlForClient('site', $url);
+		$citation->url = rtrim(Request::root(), '/') . preg_replace('/(api|admin)\//', '', \Route::url($url));
 		return $citation;
 	}
 
