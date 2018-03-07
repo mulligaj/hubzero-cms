@@ -630,7 +630,8 @@ class Member extends User implements \Hubzero\Search\Searchable
 		$obj->title   = $this->get('name');
 
 		$base = rtrim(Request::base(), '/');
-		$obj->url = rtrim(Request::root(), '/') . Route::urlForClient('site', 'index.php?option=com_members' . '&id=' . $this->get('id'));
+		$url = preg_replace('/(api|admin)\//', '', \Route::url('index.php?option=com_members' . '&id=' . $this->get('id'))); 
+		$obj->url = rtrim(Request::root(), '/') . $url;
 
 		// @TODO: Add more fields to the SOLR core.
 		$fields = $this->profiles()->rows()->toObject();

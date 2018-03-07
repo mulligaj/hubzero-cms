@@ -178,39 +178,13 @@ class Profilesv1_1 extends ApiController
 				// 5 - private
 				if ($admin == true && isset($searchable))
 				{
-					$obj = new stdClass;
-					$obj->hubtype = 'member';
-					$obj->id = 'member-' . $entry->get('id');
-					$obj->title = $entry->get('name');
-					$obj->url = str_replace('/api', '', $base . '/' . ltrim(Route::url('index.php?option=' . $this->_option . '&id=' . $entry->get('id')), '/'));
-
-					// @TODO: Add more fields to the SOLR core.
-					$fields = $entry->profiles()->rows()->toObject();
-					$description = '';
-					foreach ($fields as $field)
+					$result = $entry->searchResult();
+					if (!$result)
 					{
-						if ($field->access == 1)
-						{
-							$description .= $field->profile_value . ' ';
-						}
-					}
-					$obj->description = $description;
-
-					$access = $entry->get('access');
-					if ($access == 1)
-					{
-						$obj->access_level = 'public';
-						$obj->owner = $entry->get('id');
-						$obj->owner_type = 'user';
-					}
-					else
-					{
-						$obj->access_level = 'private';
-						$obj->owner = $entry->get('id');
-						$obj->owner_type = 'user';
+						continue;
 					}
 
-					$response->members[] = $obj;
+					$response->members[] = $result;
 				}
 				else
 				{
