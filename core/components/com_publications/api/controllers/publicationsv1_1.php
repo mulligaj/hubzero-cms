@@ -124,7 +124,7 @@ class Publicationsv1_1 extends ApiController
 		}
 
 
-		if ($response->total && !isset($searchable))
+		if ($response->total && !isset($searchable) && !$searchable)
 		{
 			$base = rtrim(Request::base(), '/');
 
@@ -155,67 +155,21 @@ class Publicationsv1_1 extends ApiController
 				$response->publications[] = $obj;
 			}
 		}
-		elseif (isset($searchable))
+		elseif (isset($searchable) && $searchable)
 		{
-			foreach ($publications as $i => $entry)
+			require_once Component::path('com_publications') . '/models/orm/publication.php';
+			$query = \Components\Publications\Models\Orm\Publication::all();
+			$response->publications = array();
+			$response->total = with(clone $query)->total();
+			$publications = $query->paginated()->rows(); 	
+			foreach ($publications as $entry)
 			{
-				$obj = new stdClass;
-				$obj->id            = 'publication-' . $entry->get('id');
-				$obj->hubtype       = 'publication';
-				$obj->title         = $entry->get('title');
-
-				$description = $entry->get('abstract') . ' ' . $entry->get('description');
-				$description = html_entity_decode($description);
-				$description = \Hubzero\Utility\Sanitize::stripAll($description);
-
-				$obj->description   = $description;
-				$obj->url           = str_replace('/api', '', $base . '/' . ltrim(Route::url($entry->link('version')), '/'));
-				$obj->doi           = $entry->get('doi');
-				$statusName         = $entry->getStatusName();
-				$obj->status        = $statusName;
-
-				$authors       = $pa->getAuthors($entry->get('version_id'));
-
-				foreach ($authors as $author)
+				$result = $entry->searchResult();
+				if (!$result)
 				{
-					$obj->author[] = $author->name;
+					continue;
 				}
-
-				$obj->owner_type = 'user';
-				$obj->owner = $entry->creator('id');
-
-				$tags = $entry->getTags();
-
-				if (count($tags) > 0)
-				{
-					$obj->tags = array();
-					foreach ($tags as $tag)
-					{
-						$obj->tags[] = $tag->raw_tag;
-					}
-				}
-
-				if ($statusName != 'published')
-				{
-					$obj->access_level = 'private';
-				}
-				elseif ($statusName == 'published')
-				{
-					if ($entry->access == 0)
-					{
-						$obj->access_level = 'public';
-					}
-					elseif ($entry->access == 1)
-					{
-						$obj->access_level = 'registered';
-					}
-					else
-					{
-						$obj->access_level = 'private';
-					}
-				}
-
-				$response->publications[] = $obj;
+				$response->publications[] = $result;
 			}
 		}
 

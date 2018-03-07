@@ -301,7 +301,7 @@ class Publication extends Relational implements \Hubzero\Search\Searchable
 		$description = \Hubzero\Utility\Sanitize::stripAll($description);
 
 		$obj->description   = $description;
-		$obj->url = rtrim(Request::root(), '/') . Route::urlForClient('site', $this->link());
+		$obj->url = rtrim(Request::root(), '/') . preg_replace('/(api|admin)\//', '', \Route::url($this->link()));
 		$obj->doi           = $activeVersion->get('doi');
 
 		$tags = $this->tags();
