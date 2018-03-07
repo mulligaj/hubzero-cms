@@ -204,101 +204,12 @@ class Entriesv1_1 extends ApiController
 			{
 				foreach ($records as $entry)
 				{
-					$obj = new stdClass;
-
-					if ($entry->alias != '')
+					$result = $entry->searchResult();
+					if (!$result)
 					{
-						$obj->url = '/resources/' . $entry->alias;
+						continue;
 					}
-					else
-					{
-						$obj->url = '/resources/' . $entry->id;
-					}
-
-					$obj->title   = $entry->title;
-					$obj->id      = 'resource-' . $entry->id;
-					$obj->hubtype = 'resource';
-
-					if (isset($types[$entry->get('type')]))
-					{
-						$obj->type = $types[$entry->get('type')]->type;
-					}
-
-					$description = $entry->get('fulltxt') . ' ' . $entry->get('introtext');
-					$description = html_entity_decode($description);
-					$description = \Hubzero\Utility\Sanitize::stripAll($description);
-					$obj->description = $description;
-
-					$authors = $entry
-						->authors()
-						->select('name')
-						->rows()
-						->toObject();
-
-					$obj->author = array();
-					foreach ($authors as $author)
-					{
-						array_push($obj->author, $author->name);
-					}
-
-					if ($entry->standalone != 1 || $entry->published != 1)
-					{
-						$obj->access_level = 'private';
-					}
-					else
-					{
-						switch ($entry->access)
-						{
-							case 0:
-								$obj->access_level = 'public';
-							break;
-							case 1:
-								$obj->access_level = 'registered';
-							break;
-							case 4:
-							default:
-								$obj->access_level = 'private';
-						}
-					}
-
-					$tagCloud = new Cloud($entry->id, 'resources');
-					$tags = $tagCloud->tags()->toObject();
-
-					if (!empty($tags))
-					{
-						foreach ($tags as $tag)
-						{
-							$obj->tags[] = $tag->raw_tag;
-						}
-					}
-
-					$groups = $entry->groups;
-					if (!empty($groups))
-					{
-						foreach ($groups as $g => $group)
-						{
-							$grp = \Hubzero\User\Group::getInstance($group);
-							if ($grp)
-							{
-								$groups[$g] = $grp->get('gidNumber');
-							}
-							// Group not found
-							else
-							{
-								unset($groups[$g]);
-							}
-						}
-						$groups = array_unique($groups);
-						$obj->owner_type = 'group';
-						$obj->owner = $groups;
-					}
-					else
-					{
-						$obj->owner_type = 'user';
-						$obj->owner = $entry->created_by;
-					}
-
-					$response->resources[] = $obj;
+					$response->resources[] = $result;
 				}
 			}
 			else

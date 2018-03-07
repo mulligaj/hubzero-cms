@@ -798,7 +798,7 @@ class Entry extends Relational implements \Hubzero\Search\Searchable
 		$content = preg_replace("#<nb:(.*?)>(.*?)</nb:(.*?)>#s", '', $content);
 		$content = str_replace(array('="/site/', '="site/'), '="' . str_replace(PATH_ROOT, '', PATH_APP) . '/site/', $content);
 
-		$content = \Html::content('prepare', $content);
+		$content = \Hubzero\Html\Builder\Content::prepare($content);
 
 		$content = preg_replace('/^(<!-- \{FORMAT:.*\} -->)/i', '', $content);
 
@@ -1637,7 +1637,7 @@ class Entry extends Relational implements \Hubzero\Search\Searchable
 	{
 		$type = $this->type();
 		$obj = new stdClass;
-		$obj->url = rtrim(Request::root(), '/') . Route::urlForClient('site', $this->link());
+		$obj->url = rtrim(Request::root(), '/') . preg_replace('/(api|admin)\//', '', \Route::url($this->link()));
 		$obj->title = $this->title;
 		$id = $this->id;
 		$obj->id = $this->searchId();
