@@ -1,0 +1,20 @@
+.fancybox-wrap #collectionForm {
+	min-width:300px;
+}
+.fancybox-wrap #collectionForm .grid {
+	padding: 10px;
+}
+
+.fancybox-wrap #collectionForm .grid label {
+	padding: 0px;
+}
+
+.fancybox-wrap #collectionForm .grid .or {
+	margin: 10px;
+	text-align: center;
+	font-weight: bold;
+}
+
+#add-collection {
+	width: 100%;
+}
