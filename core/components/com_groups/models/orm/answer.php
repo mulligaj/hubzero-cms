@@ -146,6 +146,6 @@ class Answer extends Relational
 	 */
 	public function group()
 	{
-		return $this->belongsToOne(__NAMESPACE__ . '\\Group', 'careerplan_id');
+		return $this->belongsToOne(__NAMESPACE__ . '\\Group', 'group_id');
 	}
 }

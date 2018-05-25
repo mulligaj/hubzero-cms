@@ -75,11 +75,6 @@ if (\User::authorise('core.admin', 'com_groups'))
 		\Route::url('index.php?option=com_groups&controller=imports'),
 		($controllerName == 'imports' || $controllerName == 'importhooks')
 	);
-}
-$groupParams = \Component::params('com_groups');
-$customFields = $groupParams->get('custom_fields');
-if (\User::authorise('core.admin', 'com_groups') && $customFields) 
-{
 	\Submenu::addEntry(
 		\Lang::txt('COM_GROUPS_MENU_CUSTOMFIELDS'),
 		\Route::url('index.php?option=com_groups&controller=customfields'),

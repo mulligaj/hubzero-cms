@@ -155,6 +155,19 @@ class Field extends Relational
 	}
 
 	/**
+	 * Get fields for group, including answers provided.
+	 * @param intenger $group_id
+	 * @return object Hubzero\Database\Rows
+	 */
+	public static function getAllGroupFields($group_id)
+	{
+		$fields = self::all()->including(['answers', function($answer) use ($group_id){
+			return $answer->whereEquals('group_id', $group_id)->ordered();
+		}])->ordered();
+		return $fields;
+	}
+
+	/**
 	 * Convert group answers to string or array if multiple values
 	 * @param 	integer	$group_id
 	 * @return 	mixed
@@ -355,9 +368,13 @@ class Field extends Relational
 	 *
 	 * @return  mixed
 	 */
-	public function renderValue()
+	public function renderValue($value)
 	{
-		$value = $this->get('default_value');
+		$value = count($value) == 1 ? $value[0] : $value;
+		if (empty($value))
+		{
+			return false;
+		}
 
 		\Hubzero\Form\Helper::addFieldPath(__DIR__ . '/fields');
 
@@ -505,6 +522,10 @@ class Field extends Relational
 			{
 				$f .= ' cols="' . ($field->get('cols') ? (int) $field->get('cols') : 35) . '"';
 				$f .= ' rows="' . ($field->get('rows') ? (int) $field->get('rows') : 5) . '"';
+			}
+			if ($field->get('type') == 'select')
+			{
+				$f .= $field->get('multiple') ? ' multiple="multiple"' : '';
 			}
 			$f .= ($field->get('required') ? ' required="true"' : '');
 			$f .= '>';

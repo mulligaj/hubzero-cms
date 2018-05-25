@@ -81,11 +81,6 @@ foreach ($this->fields as $field)
 		$element->type = 'textarea';
 		$element->subtype = 'facultyadvisor';
 	}
-	/*if ($element->type == 'scale')
-	{
-		$element->type = 'radio-group';
-		$element->subtype = 'scale';
-	}*/
 	$element->required = (bool)$field->get('required');
 	$element->readonly = (bool)$field->get('readonly');
 	$element->disabled = (bool)$field->get('disabled');
@@ -97,6 +92,8 @@ foreach ($this->fields as $field)
 	$element->blank = (bool)$field->get('option_blank');
 	$element->min = (int)$field->get('min');
 	$element->max = (int)$field->get('max');
+	$element->rows = (int)$field->get('rows');
+	$element->access = (string)$field->get('access');
 	$element->value = (string)$field->get('default_value');
 
 	$options = $field->options()->ordered()->rows();
@@ -123,14 +120,11 @@ foreach ($this->fields as $field)
 	$elements[] = $element;
 }
 
-
 Html::behavior('framework', true);
 
 $this//->css('jquery.ui.css', 'system')
 	->css('formbuilder.css')
-	->js('form-builder.min.js')
-	->js('control_plugins/scale.min.js')
-	->js('control_plugins/goals.min.js');
+	->js('form-builder.min.js');
 ?>
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm" id="item-form">
 	<div id="page-1" class="fb-editor">
@@ -152,6 +146,21 @@ $this//->css('jquery.ui.css', 'system')
 	jQuery(document).ready(function($){
 		var $fbPages = $(document.getElementById("item-form"));
 		var addPageTab = document.getElementById("add-page-tab");
+		var extraFields = { 
+			'access': {
+				label: 'Privacy',
+				options: {
+					'0': 'public',
+					'1': 'registered',
+					'2': 'private'
+				},
+				name: 'access'
+			},
+			'id': {
+				type: 'hidden',
+				label: '&nbsp;'
+			}
+		};
 
 		var options = {
 			disableFields: ['autocomplete', 'file', 'button', 'header'],
@@ -160,93 +169,17 @@ $this//->css('jquery.ui.css', 'system')
 			//disableInjectedStyle: true,
 			disabledAttrs: ['inline', 'style', 'access', 'className', 'subtype'],
 			typeUserAttrs: {
-				'radio-group': {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				},
-				'checkbox-group': {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				},
-				textarea: {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				},
-				select: {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				},
-				date: {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				},
-				paragraph: {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				},
-				hidden: {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				},
-				number: {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				},
-				text: {
-					id: {
-						type: 'hidden',
-						label: '&nbsp;'
-					}
-				}
-			},
-			/*fields: [
-				{
-					label: 'Likert Scale',
-					name: 'scale',
-					attrs: {
-						type: 'scale'
-					},
-					icon: '1-5'
-				},
-				{
-					label: 'Goals',
-					name: 'goals',
-					attrs: {
-						type: 'goals'
-					},
-					icon: 'FA'
-				}
-			]*/
-		};
-
-		/*var templates = {
-			scale: function(fieldData) {
-				return {
-					field: '<span id="' + fieldData.name + '">',
-					onRender: function() {
-						$(document.getElementById(fieldData.name)).rateYo({
-							rating: 3.6
-						});
-					}
-				};
+				'radio-group': extraFields, 
+				'checkbox-group': extraFields, 
+				'textarea': extraFields, 
+				'select': extraFields, 
+				'date': extraFields, 
+				'paragraph': extraFields,
+				'hidden': extraFields, 
+				'number': extraFields, 
+				'text': extraFields 
 			}
-		};*/
+		};
 
 		$fbPages.tabs();
 
@@ -275,7 +208,6 @@ $this//->css('jquery.ui.css', 'system')
 			var options1 = jQuery.extend(true, {}, options);
 
 			options1.defaultFields = <?php echo json_encode($elements); ?>;
-
 			fb = $('#page-1').formBuilder(options1);
 
 			fb.promise.then(function(formbuilder) {
