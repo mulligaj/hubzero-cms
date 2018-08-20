@@ -32,6 +32,7 @@
 namespace Bootstrap\Cli\Providers;
 
 use Hubzero\Base\Middleware;
+use Hubzero\Http\RedirectResponse;
 use Hubzero\Http\Request;
 use Hubzero\Routing\Manager;
 
@@ -54,6 +55,29 @@ class RouterServiceProvider extends Middleware
 	}
 
 	/**
+	 * Force SSL if site is configured to and
+	 * the connection is not secure.
+	 *
+	 * @return  void
+	 */
+	public function boot()
+	{
+		if ($this->app['config']->get('force_ssl') == 2)
+		{
+			if (!$this->app['request']->isSecure())
+			{
+				$uri = str_replace('http:', 'https:', $this->app['request']->getUri());
+
+				$redirect = new RedirectResponse($uri);
+				$redirect->setRequest($this->app['request']);
+				$redirect->send();
+
+				$this->app->close();
+			}
+		}
+	}
+
+	/**
 	 * Handle request in HTTP stack
 	 * 
 	 * @param   object  $request  HTTP Request
@@ -61,6 +85,23 @@ class RouterServiceProvider extends Middleware
 	 */
 	public function handle(Request $request)
 	{
+		if (!$this->app->runningInConsole())
+		{
+			$this->app['dispatcher']->trigger('system.onBeforeRoute');
+
+			foreach ($this->app['router']->parse($request->getUri()) as $key => $val)
+			{
+				$request->setVar($key, $val, 'get');
+			}
+
+			$this->app['dispatcher']->trigger('system.onAfterRoute');
+
+			if ($this->app->has('profiler'))
+			{
+				$this->app['profiler'] ? $this->app['profiler']->mark('afterRoute') : null;
+			}
+		}
+
 		return $this->next($request);
 	}
 }

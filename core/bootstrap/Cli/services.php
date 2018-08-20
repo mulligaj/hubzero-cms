@@ -40,6 +40,9 @@ return array(
 	'Bootstrap\Cli\Providers\LogServiceProvider',
 	'Bootstrap\Cli\Providers\RouterServiceProvider',
 	'Bootstrap\Cli\Providers\FilesystemServiceProvider',
+	'Bootstrap\Cli\Providers\RouterServiceProvider',
+	'Bootstrap\Cli\Providers\MenuServiceProvider',
+	'Bootstrap\Cli\Providers\BuilderServiceProvider',
 	// CLI-specific services
 	'Bootstrap\Cli\Providers\SessionServiceProvider',
 	'Bootstrap\Cli\Providers\UserServiceProvider',

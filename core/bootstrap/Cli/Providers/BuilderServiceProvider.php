@@ -25,27 +25,30 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @copyright Copyright 2015 HUBzero Foundation, LLC.
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Create aliases for runtime
-return [
-	// Core
-	'App'        => 'Hubzero\Facades\App',
-	'Config'     => 'Hubzero\Facades\Config',
-	'Request'    => 'Hubzero\Facades\Request',
-	'Response'   => 'Hubzero\Facades\Response',
-	'Event'      => 'Hubzero\Facades\Event',
-	'Route'      => 'Hubzero\Facades\Route',
-	'User'       => 'Hubzero\Facades\User',
-	'Lang'       => 'Hubzero\Facades\Lang',
-	'Log'        => 'Hubzero\Facades\Log',
-	'Date'       => 'Hubzero\Facades\Date',
-	'Plugin'     => 'Hubzero\Facades\Plugin',
-	'Filesystem' => 'Hubzero\Facades\Filesystem',
-	// CLI specific
-	'Component'  => 'Hubzero\Facades\Component',
-	'Route'      => 'Hubzero\Facades\Route',
-	'Html'       => 'Hubzero\Facades\Html'
-];
+namespace Bootstrap\Cli\Providers;
+
+use Hubzero\Html\Builder;
+use Hubzero\Base\ServiceProvider;
+
+/**
+ * HTML Helper service provider
+ */
+class BuilderServiceProvider extends ServiceProvider
+{
+	/**
+	 * Register the service provider.
+	 *
+	 * @return  void
+	 */
+	public function register()
+	{
+		$this->app['html.builder'] = function($app)
+		{
+			return new Builder();
+		};
+	}
+}

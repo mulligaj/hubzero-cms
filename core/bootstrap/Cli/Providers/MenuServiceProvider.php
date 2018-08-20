@@ -25,27 +25,69 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   hubzero-cms
- * @copyright Copyright 2015 HUBzero Foundation, LLC.
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-// Create aliases for runtime
-return [
-	// Core
-	'App'        => 'Hubzero\Facades\App',
-	'Config'     => 'Hubzero\Facades\Config',
-	'Request'    => 'Hubzero\Facades\Request',
-	'Response'   => 'Hubzero\Facades\Response',
-	'Event'      => 'Hubzero\Facades\Event',
-	'Route'      => 'Hubzero\Facades\Route',
-	'User'       => 'Hubzero\Facades\User',
-	'Lang'       => 'Hubzero\Facades\Lang',
-	'Log'        => 'Hubzero\Facades\Log',
-	'Date'       => 'Hubzero\Facades\Date',
-	'Plugin'     => 'Hubzero\Facades\Plugin',
-	'Filesystem' => 'Hubzero\Facades\Filesystem',
-	// CLI specific
-	'Component'  => 'Hubzero\Facades\Component',
-	'Route'      => 'Hubzero\Facades\Route',
-	'Html'       => 'Hubzero\Facades\Html'
-];
+namespace Bootstrap\Cli\Providers;
+
+use Hubzero\Menu\Manager;
+use Hubzero\Base\ServiceProvider;
+use Hubzero\Config\Registry;
+
+/**
+ * Menu service provider
+ */
+class MenuServiceProvider extends ServiceProvider
+{
+	/**
+	 * Register the service provider.
+	 *
+	 * @return  void
+	 */
+	public function register()
+	{
+		$this->app['menu.manager'] = function($app)
+		{
+			return $manager = new Manager();
+		};
+
+		$this->app['menu'] = function($app)
+		{
+			$options = [
+				'language_filter' => null,
+				'language'        => null,
+				'access'          => \User::getAuthorisedViewLevels()
+			];
+
+			$options['db'] = $app->get('db');
+
+			if ($app->has('language.filter'))
+			{
+				$options['language_filter'] = $app->get('language.filter');
+				$options['language']        = $app->get('language')->getTag();
+			}
+
+			return $app['menu.manager']->menu($app['client']->name, $options);
+		};
+
+		$this->app['menu.params'] = function($app)
+		{
+			$params = new Registry();
+
+			$menu = $app['menu']->getActive();
+
+			if (is_object($menu))
+			{
+				$params->parse($menu->params);
+			}
+			else if ($app->has('component'))
+			{
+				$temp = clone $app['component']->params('com_menus');
+				$params->merge($temp);
+			}
+
+			return $params;
+		};
+	}
+}

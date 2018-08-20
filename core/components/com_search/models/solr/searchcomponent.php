@@ -89,7 +89,7 @@ class SearchComponent extends Relational
 	 *
 	 * @return  object  Hubzero\Database\Rows
 	 */
-	public function getNewComponents()
+	public static function getNewComponents()
 	{
 		$existing = self::all()->rows()->fieldsByKey('name');
 		$components = DiscoveryHelper::getSearchableComponents($existing);
@@ -135,7 +135,7 @@ class SearchComponent extends Relational
 	 * @param   int    $offset  where to begin the database query
 	 * @return  mixed  array of values if more records
 	 */
-	public function indexSearchResults($offset)
+	public function indexSearchResults($offset, $rootUrl)
 	{
 		$params = Component::params('com_search');
 		$batchSize = $params->get('solr_batchsize', 1000);
@@ -145,7 +145,6 @@ class SearchComponent extends Relational
 
 		$modelResults = $model::searchResults($batchSize, $offset);
 		$blackListIds = Blacklist::getDocIdsByScope($model::searchNamespace());
-
 		if (count($modelResults) > 0)
 		{
 			foreach ($modelResults as $result)
@@ -153,6 +152,14 @@ class SearchComponent extends Relational
 				$searchResult = $result->searchResult();
 				if ($searchResult && !in_array($searchResult->id, $blackListIds))
 				{
+					if (php_sapi_name() == 'cli' && $rootUrl && isset($searchResult->url))
+					{
+						$urlSegments = explode('//', $searchResult->url);
+						$urlPath = array_pop($urlSegments);
+						$urlPathSegments = explode('/', $urlPath);
+						array_shift($urlPathSegments);
+						$searchResult->url = $rootUrl . implode('/', $urlPathSegments);
+					} 
 					$newQuery->index($searchResult, true, $commitWithin, $batchSize);
 				}
 			}

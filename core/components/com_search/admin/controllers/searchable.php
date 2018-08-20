@@ -391,8 +391,7 @@ class Searchable extends AdminController
 	 */
 	public function discoverTask()
 	{
-		$componentModel = new \Components\Search\Models\Solr\SearchComponent();
-		$components = $componentModel->getNewComponents();
+		$components = \Components\Search\Models\Solr\SearchComponent::getNewComponents();
 		if ($components->count() > 0)
 		{
 			if ($components->save())
