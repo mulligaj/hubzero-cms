@@ -135,7 +135,7 @@ class SearchComponent extends Relational
 	 * @param   int    $offset  where to begin the database query
 	 * @return  mixed  array of values if more records
 	 */
-	public function indexSearchResults($offset, $rootUrl)
+	public function indexSearchResults($offset, $rootUrl = null)
 	{
 		$params = Component::params('com_search');
 		$batchSize = $params->get('solr_batchsize', 1000);
@@ -160,6 +160,7 @@ class SearchComponent extends Relational
 						array_shift($urlPathSegments);
 						$searchResult->url = $rootUrl . implode('/', $urlPathSegments);
 					} 
+					$searchResult = self::addDomainNameSpace($searchResult);
 					$newQuery->index($searchResult, true, $commitWithin, $batchSize);
 				}
 			}
@@ -175,6 +176,14 @@ class SearchComponent extends Relational
 			return $results;
 		}
 		return false;
+	}
+
+	public static function addDomainNameSpace($searchResult)
+	{
+		$siteName = Config::get('sitename');
+		$searchResult->hubname_s = $siteName;
+		$searchResult->id = $siteName . '-' . $searchResult->id;
+		return $searchResult;
 	}
 
 	public function getSearchableFields()

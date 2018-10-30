@@ -72,7 +72,7 @@ class Searchable extends AdminController
 		$components = SearchComponent::all()->rows();
 		foreach ($components as $component)
 		{
-			$hubType = 'hubtype:' . $component->getSearchNamespace();
+			$hubType = 'hubtype:' . $component->getSearchNamespace() . ' AND hubname_s:' . Config::get('sitename');
 			$multifacet->createQuery($component->getQueryName(), $hubType, array('include' => 'child_type'));
 		}
 
@@ -297,7 +297,10 @@ class Searchable extends AdminController
 			$searchIndex = new \Hubzero\Search\Index($this->config);
 			$componentSearchModel = $component->getSearchableModel();
 			$modelNamespace = $componentSearchModel::searchNamespace();
-			$deleteQuery = array('hubtype' => $modelNamespace);
+			$deleteQuery = array(
+				'hubtype' => $modelNamespace,
+				'hubname_s' => Config::get('sitename')
+			);
 			$searchIndex->delete($deleteQuery);
 			$component->set('state', 0);
 			$date = Date::of()->toSql();
@@ -357,6 +360,7 @@ class Searchable extends AdminController
 			$query = new \Hubzero\Search\Query($config);
 			$results = $query->query($filter)
 				->addFilter('facet', $facet)
+				->addFilter('hubname', 'hubname_s:' . Config::get('sitename'))
 				->limit($limit)->start($limitstart)->run()->getResults();
 
 			// Get the total number of records

@@ -55,6 +55,53 @@ class plgSearchSolr extends \Hubzero\Plugin\Plugin
 	 */
 	public function onAddIndex($table, $model)
 	{
+		$indexResultModel = $this->getSearchableModel($table, $model);
+		if ($indexResultModel)
+		{
+			$config = Component::params('com_search');
+			$commitWithin = $config->get('solr_commit');
+			$index = new Hubzero\Search\Index($config);
+			$modelIndex = $indexResultModel->searchResult();
+			$modelIndex = SearchComponent::addDomainNameSpace($modelIndex);
+			$blackListIds = Blacklist::getDocIdsByScope($indexResultModel::searchNamespace());
+			if ($modelIndex !== false && !in_array($modelIndex->id, $blackListIds))
+			{
+				$message = $index->updateIndex($modelIndex, $commitWithin);
+			}
+			else
+			{
+				$modelIndexId = $indexResultModel->searchId();
+				$message = $index->delete($modelIndexId);
+			}
+			if ($message)
+			{
+				Notify::error($message);
+			}
+		}
+	}
+
+	/**
+	 * onContentDestroy 
+	 * 
+	 * @param   mixed  $table
+	 * @param   mixed  $model
+	 * @return  void
+	 */
+	public function onRemoveIndex($table, $model)
+	{
+		$resultModel = $this->getSearchableModel($table, $model);
+		if ($resultModel)
+		{
+			$config = Component::params('com_search');
+			$index = new Hubzero\Search\Index($config);
+			$modelIndex = $resultModel->searchResult();
+			$modelIndex = SearchComponent::addDomainNameSpace($modelIndex);
+			$index->delete($modelIndex->id);
+		}
+	}
+
+	private function getSearchableModel($table, $model)
+	{
 		$modelClass = new ReflectionClass($model);
 		$modelNamespace = explode('\\', $modelClass->getNamespaceName());
 		$componentName = strtolower($modelNamespace[1]);
@@ -78,54 +125,8 @@ class plgSearchSolr extends \Hubzero\Plugin\Plugin
 				}
 				$indexResultModel = $searchModel::newFromResults($model);
 			}
-
-			if ($indexResultModel)
-			{
-				$config = Component::params('com_search');
-				$commitWithin = $config->get('solr_commit');
-				$index = new Hubzero\Search\Index($config);
-				$modelIndex = $indexResultModel->searchResult();
-				$blackListIds = Blacklist::getDocIdsByScope($indexResultModel::searchNamespace());
-				if ($modelIndex !== false && !in_array($modelIndex->id, $blackListIds))
-				{
-					$message = $index->updateIndex($modelIndex, $commitWithin);
-				}
-				else
-				{
-					$modelIndexId = $indexResultModel->searchId();
-					$message = $index->delete($modelIndexId);
-				}
-				if ($message)
-				{
-					Notify::error($message);
-				}
-			}
+			return $indexResultModel;
 		}
-	}
-
-	/**
-	 * onContentDestroy 
-	 * 
-	 * @param   mixed  $table
-	 * @param   mixed  $model
-	 * @return  void
-	 */
-	public function onRemoveIndex($table, $model)
-	{
-		// @TODO: Implement mechanism to send to Solr index
-		// This Event is called in the Relational save() method.
-		$modelName = '';
-		if ($modelName = Components\Search\Helpers\DiscoveryHelper::isSearchable($model))
-		{
-			$extensionName = strtolower(explode('\\', $modelName)[1]);
-			$searchComponent = SearchComponent::all()->whereEquals('name', $extensionName)->row();
-			if ($searchComponent->get('state') == 1)
-			{
-				$config = Component::params('com_search');
-				$index = new Hubzero\Search\Index($config);
-				$modelIndexId = $model->searchId();
-				$index->delete($modelIndexId);
-			}
-		}
+		return false;
 	}
 }
