@@ -36,6 +36,10 @@ $(function(){
 		e.preventDefault();
 		var categoryType = $(this).data('type');
 		var typeInput = $('.data-entry input[name=type]');
+		if (typeInput.val() != categoryType)
+		{
+			$('.type-filters input[type="checkbox"]').prop('checked', false);
+		}
 		typeInput.val(categoryType);
 		$('.data-entry').submit();
 	});

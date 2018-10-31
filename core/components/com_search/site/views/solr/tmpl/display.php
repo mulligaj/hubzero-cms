@@ -113,14 +113,23 @@ $tagSearch = ($searchParams->get('solr_tagsearch', 0) == 1) ? true : false;
 			<div class="section-inner hz-layout-with-aside">
 				<nav class="aside">
 					<div class="container facet">
+						<h3>Hub</h3>
+						<ul>
+						<?php foreach ($this->hubResults as $hub => $count): ?>
+							<li>
+								<label>
+									<input type="checkbox" class="checkbox" name="hub[]" value="<?php echo $hub;?>" <?php echo in_array($hub, $this->hubs) ? 'checked' : '';?> />
+									<?php echo ucfirst($hub);?>
+									<span class="item-count"><?php echo $count;?></span>
+								</label>
+							</li>
+						<?php endforeach; ?>
+						</ul>
+					</div>
+					<div class="container facet">
 						<h3>Category</h3>
 						<?php if ($this->type == ''): ?>
 							<ul>
-								<li>
-									<a <?php echo ($this->type == '') ? 'class="active"' : ''; ?> href="<?php echo Route::url('index.php?option=com_search&terms=' . $this->terms); ?>">All Categories <span class="item-count">
-										<?php echo $this->total; ?></span>
-									</a>
-								</li>
 								<?php foreach ($this->facets as $facet): ?>
 									<?php echo $facet->formatWithCounts($this->facetCounts, $this->type, $this->terms, $this->childTermsString); ?>
 								<?php endforeach; ?>
@@ -128,12 +137,16 @@ $tagSearch = ($searchParams->get('solr_tagsearch', 0) == 1) ? true : false;
 						<?php else: ?>
 							<ul>
 								<li>
-									<a <?php echo ($this->type == '') ? 'class="active"' : ''; ?> href="<?php echo Route::url('index.php?option=com_search&terms=' . $this->terms); ?>"> &lt; Back</a>
+									<a class="category-filter" data-type="" href="<?php echo Route::url('index.php?option=com_search&terms=' . $this->terms); ?>">Clear Filter</a>
 								</li>
 								<?php echo $this->searchComponent->formatWithCounts($this->facetCounts, $this->type, $this->terms, $this->childTermsString, $this->filters);?>
 							</ul>
 						<?php endif; ?>
 					</div><!-- / .container -->
+					<div class="container facet">
+						<button>Apply Filters</button>
+					</div>
+	
 				</nav><!-- / .aside -->
 				<div class="subject">
 					<div class="container">

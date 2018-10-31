@@ -76,6 +76,7 @@ class Solr extends SiteController
 		$section = Request::getString('section', 'content');
 		$tagString = Request::getString('tags', '');
 		$filters = Request::getArray('filters', '');
+		$hubs = Request::getArray('hub');
 		$tags = null;
 		if ($tagString)
 		{
@@ -106,6 +107,7 @@ class Solr extends SiteController
 			->whereEquals('state', 1);
 		// Add categories for Facet functions (mainly counting the different categories)
 		$multifacet = $query->adapter->getFacetMultiQuery('hubtypes');
+		$facetField = $query->adapter->query->getFacetSet()->createFacetField('hub')->setField('hubname_s');
 		$allFacets = Facet::all()
 			->whereEquals('state', 1)
 			->including('parentFacet')
@@ -136,6 +138,17 @@ class Solr extends SiteController
 		if ($sortBy != '' && $sortDir != '')
 		{
 			$query = $query->sortBy($sortBy, $sortDir);
+		}
+
+		if (!empty($hubs))
+		{
+			$hubString = '';
+			foreach ($hubs as $hubName)
+			{
+				$hubString .= !empty($hubString) ? ' OR ' : '';
+				$hubString .= 'hubname_s:' . $hubName;
+			}
+			$query->addFilter('Hub', $hubString, 'root_type');
 		}
 		$typeComponent = null;
 		if ($type != null)
@@ -207,9 +220,11 @@ class Solr extends SiteController
 		$results  = $query->getResults();
 		$numFound = $query->getNumFound();
 		$facetResult = array();
+		$hubResults = array();
 		if (isset($query->resultsFacetSet) && $query->resultsFacetSet)
 		{
 			$facetResult = $query->resultsFacetSet->getFacet('hubtypes');
+			$hubResults = $query->resultsFacetSet->getFacet('hub');
 		}
 		$facetCounts = array();
 		if (!empty($facetResult))
@@ -242,6 +257,7 @@ class Solr extends SiteController
 			$this->view->query = $terms;
 			$this->view->results = $results;
 			$this->view->facets = $searchComponents;
+			$this->view->hubResults = $hubResults;
 			$this->view->facetCounts = $facetCounts;
 			$this->view->total = 0;
 			foreach ($this->view->facets as $facet)
@@ -281,6 +297,7 @@ class Solr extends SiteController
 		$this->view->childTermsString =  $tagParams;
 		$this->view->type = $type;
 		$this->view->filters = $filters;
+		$this->view->hubs = $hubs;
 		$this->view->searchComponent = $typeComponent;
 		$this->view->viewOverrides = $viewOverrides;
 		$this->view->section = $section;
@@ -323,6 +340,8 @@ class Solr extends SiteController
 			{
 				//@FIXME: SOLR-specific
 				$result['title'] = $result['title'][0];
+				$result['description'] = isset($result['description'][0]) ? $result['description'][0] : '';
+				$result['url'] = $result['url'][0];
 				$snippet = '';
 				foreach ($result as $field => &$r)
 				{

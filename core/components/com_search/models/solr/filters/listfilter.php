@@ -52,11 +52,11 @@ class Listfilter extends Filter
 	public function renderHtml($counts, $selectedOptions)
 	{
 		$html = '<ul>';
-		$html .= '<li><fieldset class="search-filters"><legend>' . $this->label . '</legend>';
+	$html .= '<li><fieldset class="search-filters"><legend>' . $this->label . '</legend>';
 		$countTotal = 0;
 		if ($this->options->count() > 0)
 		{
-			$html .= '<ul>';
+			$html .= '<ul class="type-filters">';
 			foreach ($this->options()->order('ordering', 'ASC') as $option)
 			{
 				$countIndex = $this->field . '_' . $option->id;
@@ -69,7 +69,7 @@ class Listfilter extends Filter
 				$checked = in_array($option->value, $selectedOptions) ? 'checked' : '';
 				$html .= '<li><label><input type="checkbox" class="checkbox" name="filters[' .
 					$this->field . '][' . $option->id . ']" value="' . $option->value . '"' . $checked . '/>';
-				$html .= $option->value . '<span class="item-count">' . $count . '</span></a>';
+				$html .= $option->value . '<span class="item-count">' . $count . '</span>';
 				$html .= '</label></li>';
 			}
 			$html .= '</ul>';

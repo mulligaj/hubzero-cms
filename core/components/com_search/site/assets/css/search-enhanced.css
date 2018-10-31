@@ -1,4 +1,7 @@
 /* Set the stage */
+	.aside .facet label {
+		position: relative;
+	}
 	section.options {
 		padding: 0;
 		background-color: #fff;

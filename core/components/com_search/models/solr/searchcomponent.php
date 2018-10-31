@@ -180,9 +180,11 @@ class SearchComponent extends Relational
 
 	public static function addDomainNameSpace($searchResult)
 	{
+		$siteCode = Config::get('sitecode');
 		$siteName = Config::get('sitename');
 		$searchResult->hubname_s = $siteName;
-		$searchResult->id = $siteName . '-' . $searchResult->id;
+		$searchResult->hubcode_s = $siteCode;
+		$searchResult->id = $siteCode . '-' . $searchResult->id;
 		return $searchResult;
 	}
 
@@ -282,7 +284,7 @@ class SearchComponent extends Relational
 
 		if ($count > 0)
 		{
-			$class = ($activeType == $this->id) ? 'class="active"' : '';
+			$class = ($activeType == $this->id) ? 'class="active category-filter"' : 'class="category-filter"';
 			$link = Route::url('index.php?option=com_search&terms=' . $terms . '&type=' . $this->id . $childTerms);
 			$html .= '<li><a ' . $class . ' href="' . $link . '" data-type=' . $this->id . '>';
 			$html .= $this->name . '<span class="item-count">' . $count . '</span></a>';
@@ -294,7 +296,6 @@ class SearchComponent extends Relational
 					$filterHtml = $filter->renderHtml($counts, $filterSelectedOptions);
 					$html .= $filterHtml;
 				}
-				$html .= '<button>Apply Filters</button>';
 			}
 			$html .= '</li>';
 		}
