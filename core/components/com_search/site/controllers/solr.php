@@ -146,7 +146,7 @@ class Solr extends SiteController
 			foreach ($hubs as $hubName)
 			{
 				$hubString .= !empty($hubString) ? ' OR ' : '';
-				$hubString .= 'hubname_s:' . $hubName;
+				$hubString .= 'hubname_s:"' . $hubName . '"';
 			}
 			$query->addFilter('Hub', $hubString, 'root_type');
 		}
