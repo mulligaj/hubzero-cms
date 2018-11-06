@@ -37,7 +37,7 @@
 
 	<div class="result-extras">
 		<!-- Cateogory : mandatory -->
-		<span class="result-category"><?php echo ucfirst($this->result['hubtype']); ?></span>
+		<span class="result-category"><?php echo !empty($this->result['hubname_s']) ? ucfirst($this->result['hubname_s']) . ': ' : '';?><?php echo ucfirst($this->result['hubtype']); ?></span>
 
 		<?php if (isset($this->result['date'])): ?>
 			<?php $date = new \Hubzero\Utility\Date($this->result['date']); ?>

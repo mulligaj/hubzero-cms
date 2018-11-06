@@ -115,7 +115,7 @@ $tagSearch = ($searchParams->get('solr_tagsearch', 0) == 1) ? true : false;
 					<div class="container facet">
 						<h3>Hub</h3>
 						<ul>
-						<?php foreach ($this->hubResults as $hub => $count): ?>
+						<?php foreach ($this->hubResults as $hub => $count):?>
 							<li>
 								<label>
 									<input type="checkbox" class="checkbox" name="hub[]" value="<?php echo $hub;?>" <?php echo in_array($hub, $this->hubs) ? 'checked' : '';?> />

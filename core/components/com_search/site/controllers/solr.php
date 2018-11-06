@@ -221,10 +221,21 @@ class Solr extends SiteController
 		$numFound = $query->getNumFound();
 		$facetResult = array();
 		$hubResults = array();
+		$hubResultsArray = array();
 		if (isset($query->resultsFacetSet) && $query->resultsFacetSet)
 		{
 			$facetResult = $query->resultsFacetSet->getFacet('hubtypes');
 			$hubResults = $query->resultsFacetSet->getFacet('hub');
+			if (!empty($hubResults))
+			{
+				foreach ($hubResults as $facet => $count)
+				{
+					if ($count > 0)
+					{
+						$hubResultsArray[$facet] = $count;
+					}
+				}
+			}
 		}
 		$facetCounts = array();
 		if (!empty($facetResult))
@@ -257,7 +268,7 @@ class Solr extends SiteController
 			$this->view->query = $terms;
 			$this->view->results = $results;
 			$this->view->facets = $searchComponents;
-			$this->view->hubResults = $hubResults;
+			$this->view->hubResults = $hubResultsArray;
 			$this->view->facetCounts = $facetCounts;
 			$this->view->total = 0;
 			foreach ($this->view->facets as $facet)
