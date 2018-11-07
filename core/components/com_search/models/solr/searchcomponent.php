@@ -158,6 +158,7 @@ class SearchComponent extends Relational
 						$urlPath = array_pop($urlSegments);
 						$urlPathSegments = explode('/', $urlPath);
 						array_shift($urlPathSegments);
+						$rootUrl = rtrim($rootUrl, '/') . '/';
 						$searchResult->url = $rootUrl . implode('/', $urlPathSegments);
 					} 
 					$searchResult = self::addDomainNameSpace($searchResult);
