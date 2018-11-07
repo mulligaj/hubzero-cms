@@ -62,7 +62,10 @@ class plgSearchSolr extends \Hubzero\Plugin\Plugin
 			$commitWithin = $config->get('solr_commit');
 			$index = new Hubzero\Search\Index($config);
 			$modelIndex = $indexResultModel->searchResult();
-			$modelIndex = SearchComponent::addDomainNameSpace($modelIndex);
+			if (is_object($modelIndex))
+			{
+				$modelIndex = SearchComponent::addDomainNameSpace($modelIndex);
+			}
 			$blackListIds = Blacklist::getDocIdsByScope($indexResultModel::searchNamespace());
 			if ($modelIndex !== false && !in_array($modelIndex->id, $blackListIds))
 			{
@@ -70,7 +73,10 @@ class plgSearchSolr extends \Hubzero\Plugin\Plugin
 			}
 			else
 			{
-				$modelIndexId = $indexResultModel->searchId();
+				$searchObj = new stdClass();
+				$searchObj->id = $indexResultModel->searchId();
+				$searchObj = SearchComponent::addDomainNameSpace($searchObj);
+				$modelIndexId = $searchObj->id;
 				$message = $index->delete($modelIndexId);
 			}
 			if ($message)
