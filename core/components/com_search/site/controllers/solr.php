@@ -188,12 +188,8 @@ class Solr extends SiteController
 
 		$query->query($queryTerms)->limit($limit)->start($start);
 		$childFilter = '[child parentFilter=hubtype:*';
-		// Administrators can see all records
-		if (!User::authorise('core.admin'))
-		{
-			$childFilter .= ' childFilter=access_level:public';
-			$query->restrictAccess();
-		}
+		$childFilter .= ' childFilter=access_level:public';
+		$query->addFilter('Access', 'access_level:public', 'access_type');
 		$childFilter .= ']';
 
 		if (isset($locationFilter))
