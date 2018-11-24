@@ -31,10 +31,13 @@
 
 namespace Components\Search\Api\Controllers;
 
+require_once Component::path('com_search') . '/models/solr/searchcomponent.php';
 use Hubzero\Component\ApiController;
+use Hubzero\Search\Index;
 use Hubzero\Utility\Inflector;
 use Hubzero\Utility\Str;
 use Hubzero\Search\Query;
+use Components\Search\Models\Solr\SearchComponent;
 use Component;
 use stdClass;
 use Request;
@@ -186,6 +189,61 @@ class Searchv1_0 extends ApiController
 		$response->success = true;
 
 		$this->send($response);
+	}
+
+	/**
+	 * Display a list of hub types for a term
+	 *
+	 * @apiMethod POST
+	 * @apiUri    /search/indexResult
+	 * @apiParameter {
+	 * 		"name":          "result",
+	 * 		"description":   "Result to be indexed by solr.",
+	 * 		"type":          "string",
+	 * 		"required":      true,
+	 * 		"default":       "*:*"
+	 * }
+	 * @return  void
+	 */
+	public function indexResultTask()
+	{
+		$result = Request::getString('result', '');
+		$method = Request::getString('method', '');
+		$modelResults = json_decode($result);
+		$config = Component::params('com_search');
+		$commitWithin = $config->get('solr_commit');
+		$index = new \Hubzero\Search\Index($config);
+		$components = SearchComponent::all()
+			->whereEquals('state', 1)
+			->rows();
+		$hubtypes = array();
+		foreach ($components as $component)
+		{
+			$hubtypes[] = $component->getSearchNamespace();
+		}
+		foreach ($modelResults as $modelResult)
+		{
+			if (($method == 'update') 
+				&& in_array($modelResult->hubtype, $hubtypes) 
+				&& ($modelResult->access_level == 'public'))
+			{
+				$message = $index->updateIndex($modelResult, $commitWithin);
+			}
+			else
+			{
+				if (!empty($modelResult->id))
+				{
+					$modelIndexId = $modelResult->id;
+					$message = $index->delete($modelIndexId);
+				}
+				elseif (!empty($modelResult->hubcode_s) && !empty($modelResult->hubtype))
+				{
+					$deleteQuery = (array) $modelResult;
+					$message = $index->delete($deleteQuery);
+				}
+			}
+		}
+		$this->send($message);
 	}
 
 	/**
