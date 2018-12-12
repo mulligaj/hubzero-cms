@@ -1584,6 +1584,42 @@ class Entry extends Relational implements \Hubzero\Search\Searchable
 		return $accessLevel;
 	}
 
+	/*
+	 * Get publication date from metadata, fallback to published_up date
+	 *
+	 * @return string
+	 */
+	public function getPublicationDate()
+	{
+		$fields = $this->fields();
+		$publicationDateMap = array(
+			'programs' => 'date',
+			'theses' => 'dateawarded',
+			'governmentdocuments' => 'dateofpublication',
+			'posters' => 'datepresented',
+			'audio' => 'datepublished',
+			'books' => 'publicationdate',
+			'booksection' => 'publicationyear',
+			'journalarticles' => 'yearofpublication',
+			'conferencepapers' => 'yearpublished'
+		);
+		$publicationDate = '';
+		foreach ($publicationDateMap as $dateField)
+		{
+			if (!empty($fields[$dateField]))
+			{
+					$publicationDate = $fields[$dateField];
+					break;
+			}
+		}
+		if (strlen($publicationDate) == 4)
+		{
+			$publicationDate = $publicationDate . '-01-01 00:00:00';
+		}
+		$publicationDate = empty($publicationDate) && !empty($obj->publish_up) ? $obj->publish_up : $publicationDate;
+		return $publicationDate;
+	}
+
 	/**
 	 * Get the groups allowed to access a resource
 	 *

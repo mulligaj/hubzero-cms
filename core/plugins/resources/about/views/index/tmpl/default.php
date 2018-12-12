@@ -37,6 +37,10 @@ $this->css();
 
 $sef = Route::url($this->model->link());
 
+// the view mutates the original model data.
+// Cloning the model for COins usage.
+$clonedModel = clone $this->model;
+
 // Set the display date
 $thedate = $this->model->date;
 if ($this->model->isTool() && $this->model->curtool)
@@ -325,7 +329,7 @@ $maintext = $this->model->description;
 
 		<?php
 		$cite = null; // Not used
-		echo \Components\Resources\Helpers\Html::citationCOins($cite, $this->model);
+		echo \Components\Resources\Helpers\Html::citationCOins($cite, $clonedModel);
 		?>
 	</div><!-- / .resource -->
 </div><!-- / .subject -->

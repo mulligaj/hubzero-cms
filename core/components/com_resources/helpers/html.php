@@ -601,7 +601,7 @@ class Html
 			'rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal',  //info:ofi/fmt:kev:mtx:journal
 			'rft.genre=article',
 			'rft.atitle=' . urlencode($model->title),
-			'rft.date=' . \Date::of($model->date)->toLocal('Y')
+			'rft.date=' . \Date::of($model->getPublicationDate())->format('Y')
 		);
 
 		$tconfig = \Component::params('com_tools');
@@ -632,7 +632,7 @@ class Html
 		}
 		else
 		{
-			$author_array = $model->contributors();
+			$author_array = $model->contributors('!submitter');
 		}
 
 		if ($author_array)

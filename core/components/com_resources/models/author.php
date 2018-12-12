@@ -155,7 +155,7 @@ class Author extends Relational
 	{
 		$profile = Member::one($this->profile->get('id'));
 
-		if (!$profile->get('id'))
+		if (!$profile || !$profile->get('id'))
 		{
 			return false;
 		}
