@@ -657,7 +657,6 @@ class Projects extends Base
 				$action,
 				array($plugin)
 			);
-
 			// Get plugin content
 			$sections = Event::trigger('projects.onProject', $plugin_params);
 
